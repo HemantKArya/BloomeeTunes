@@ -1,0 +1,59 @@
+name: "Build & Release"
+
+on:
+    push: 
+        branches: main
+
+jobs:
+    builds:
+        name: Build & Release
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Setup-Java
+              uses: actions/setup-java@v3.12.0
+              with:
+                distribution: 'oracle'
+                java-version: '17'
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                flutter-version: '3.13.0'
+                channel: 'stable'
+            - name: Install Dependencies
+              run: flutter pub get
+
+            - name: Create .env file
+              run: echo "CLIENT_ID = ${{secrets.CLIENT_ID}}\nCLIENT_SECRET = ${{secrets.CLIENT_SECRET}}EOF" > assets/.env
+
+            - name: Create keystore file
+              run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > ./android/bloomee.jks
+            
+            - name: Create Keystore properties
+              run: |
+                  echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
+                  echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
+                  echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
+            
+            - name: Build App files
+              run: flutter build apk --release --build-number ${{github.run_number}}
+
+            - name: Verify Sign
+              run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
+
+            - name: Rename APK file
+              run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/bloomee_tunes_v1.0.0+${{github.run_number}}.apk
+
+            - name: Upload Artifacts
+              uses: actions/upload-artifact@v2
+              with:
+                name: Release
+                path: |
+                  build/app/outputs/flutter-apk/bloomee_tunes_v1.0.0+${{github.run_number}}.apk
+            - name: Create Release
+              uses: ncipollo/release-action@v1
+              with:
+                artifacts: "build/app/outputs/flutter-apk/bloomee_tunes_v1.0.0+${{github.run_number}}.apk"
+                tag: v1.0.0+${{github.run_number}}
+                token: ${{secrets.SECRET_KEY}}

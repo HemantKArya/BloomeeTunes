@@ -1,0 +1,141 @@
+name: Bloomee
+description: A open source Free Music Player.
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+2
+
+environment:
+  sdk: '>=3.0.6 <4.0.0'
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+  cached_network_image: ^3.2.3
+  flutter_bloc: ^8.1.3
+  dart_des: ^1.0.2
+  http: ^1.1.0
+  logging: ^1.2.0
+  unicons: any
+  feather_icons: ^1.2.0
+  fluentui_system_icons: ^1.1.208
+  google_nav_bar: ^5.0.6
+  carousel_slider: ^4.2.1
+  palette_generator: ^0.3.3+2
+  audio_video_progress_bar: ^1.0.1
+  just_audio: ^0.9.34
+  audio_service: ^0.18.10
+  audio_session: ^0.1.16
+  rxdart: ^0.27.7
+  go_router: ^10.1.0
+  extended_image: ^8.1.0
+  easy_debounce: ^2.0.3
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.0
+  modal_bottom_sheet: ^3.0.0-pre
+  youtube_explode_dart: ^2.0.2
+  html_unescape: ^2.0.0
+  marquee: ^2.2.3
+  string_similarity: ^2.0.0
+  flutter_dotenv: ^5.1.0
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # change_app_package_name: ^1.1.0
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^2.0.2
+  isar_generator: ^3.1.0+1
+  build_runner: any
+  flutter_launcher_icons: "^0.13.1"
+
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  adaptive_icon_background: "assets/icons/back.png"
+  adaptive_icon_foreground: "assets/icons/fore.png"
+  image_path: "assets/icons/bloomee_gen_v01.jpg"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+
+  macos:
+    generate: true
+    image_path: "assets/icons/bloomee_gen_v01.jpg"
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/sample/album_cover_sam1.jpg
+    - assets/.env
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  fonts:
+    - family: Gilroy
+      fonts:
+        - asset: assets/fonts/Gilroy/Gilroy-Regular.ttf
+        - asset: assets/fonts/Gilroy/Gilroy-Medium.ttf
+          weight: 700
+        - asset: assets/fonts/Gilroy/Gilroy-Bold.ttf
+          weight: 900
+    - family: CodePro
+      fonts:
+        - asset: assets/fonts/CodePro/Code Pro LC.otf
+          weight: 400
+        - asset: assets/fonts/CodePro/Code Pro Bold LC.otf
+          weight: 700
+    - family: Fjalla
+      fonts:
+        - asset: assets/fonts/Fjalla/FjallaOne-Regular.ttf
+    - family: FontAwesome-Brands
+      fonts:
+        - asset: assets/fonts/fontawesome-free-6.4.0-desktop/otfs/Font Awesome 6 Brands-Regular-400.otf
+    - family: FontAwesome-Regular
+      fonts:
+        - asset: assets/fonts/fontawesome-free-6.4.0-desktop/otfs/Font Awesome 6 Free-Regular-400.otf
+    - family: FontAwesome-Solids
+      fonts:
+        - asset: assets/fonts/fontawesome-free-6.4.0-desktop/otfs/Font Awesome 6 Free-Solid-900.otf
+
