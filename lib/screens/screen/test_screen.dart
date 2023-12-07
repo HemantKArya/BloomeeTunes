@@ -1,4 +1,4 @@
-import 'package:Bloomee/repository/Spotify/spotify_api.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:Bloomee/services/bloomeeUpdaterTools.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
