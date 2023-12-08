@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -21,7 +22,7 @@ Future<Map<String, dynamic>> getLatestVersion() async {
       "download_url": data["assets"][0]["browser_download_url"],
     };
   } else {
-    print('Failed to load latest version! - updater tools');
+    log('Failed to load latest version!', name: 'UpdaterTools');
     return {
       "results": false,
     };

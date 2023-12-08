@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
@@ -18,10 +20,10 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
       : super(LibraryItemsInitial()) {
     mediaDBCubit.refreshLibrary.listen(
       (value) {
-        print(value);
+        log(value.toString(), name: "libItemsCubit");
         if (value) {
           getAndEmitPlaylists();
-          print("got refresh command");
+          log("got refresh command", name: "libItemsCubit");
         }
       },
     );
@@ -64,8 +66,8 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
         // libraryItemsState.subTitles?.add("Saavan");
       }
       emit(state.copyWith(playlists: libraryItemsState.playlists));
-      print(
-          "emitted from library ${_playlists.toString()} - ${libraryItemsState.playlists.length} - MediaPlaylists ${mediaPlaylist}");
+      log("emitted from library ${_playlists.toString()} - ${libraryItemsState.playlists.length} - MediaPlaylists ${mediaPlaylist}",
+          name: "libItemsCubit");
     }
   }
 

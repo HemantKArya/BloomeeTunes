@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:Bloomee/services/db/MediaDB.dart';
@@ -20,23 +21,23 @@ class MediaIsarDBService {
         .filter()
         .isarIdEqualTo(mediaPlaylistDB.isarId)
         .findFirstSync();
-    print(_mediaPlaylistDB);
+    log(_mediaPlaylistDB.toString(), name: "DB");
 
     if (_mediaPlaylistDB == null) {
       addPlaylist(mediaPlaylistDB);
     }
 
     if (_mediaitem != null) {
-      print("1");
+      log("1", name: "DB");
       _mediaitem.mediaInPlaylistsDB.add(mediaPlaylistDB);
-      print("2");
+      log("2", name: "DB");
       isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(_mediaitem!));
     } else {
-      print("3");
+      log("3", name: "DB");
       MediaItemDB? _mediaitem = mediaItemDB;
-      print("id: ${_mediaitem.id}");
+      log("id: ${_mediaitem.id}", name: "DB");
       _mediaitem.mediaInPlaylistsDB.add(mediaPlaylistDB);
-      print("4");
+      log("4", name: "DB");
       isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(_mediaitem));
     }
     _mediaitem = isarDB.mediaItemDBs
@@ -55,7 +56,7 @@ class MediaIsarDBService {
       mediaPlaylistDB.mediaRanks = _list;
       isarDB
           .writeTxnSync(() => isarDB.mediaPlaylistDBs.putSync(mediaPlaylistDB));
-      print(mediaPlaylistDB.mediaRanks);
+      log(mediaPlaylistDB.mediaRanks.toString(), name: "DB");
     }
 
     // isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(mediaItemDB));
@@ -77,7 +78,7 @@ class MediaIsarDBService {
     if (_mediaitem != null && _mediaPlaylistDB != null) {
       if (_mediaitem.mediaInPlaylistsDB.contains(mediaPlaylistDB)) {
         _mediaitem.mediaInPlaylistsDB.remove(mediaPlaylistDB);
-        print("Removed from playlist");
+        log("Removed from playlist", name: "DB");
         isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(_mediaitem));
         if (_mediaPlaylistDB.mediaRanks.contains(_mediaitem.id)) {
           // _mediaPlaylistDB.mediaRanks.indexOf(_mediaitem.id!)
@@ -105,7 +106,7 @@ class MediaIsarDBService {
       isarDB
           .writeTxnSync(() => isarDB.mediaPlaylistDBs.putSync(mediaPlaylistDB));
     } else {
-      print("Already created");
+      log("Already created", name: "DB");
     }
   }
 
@@ -167,7 +168,7 @@ class MediaIsarDBService {
   Future<Isar> openDB() async {
     if (Isar.instanceNames.isEmpty) {
       String _path = (await getApplicationDocumentsDirectory()).path;
-      print(_path);
+      log(_path, name: "DB");
       return await Isar.open([MediaPlaylistDBSchema, MediaItemDBSchema],
           directory: _path);
     }
@@ -223,7 +224,7 @@ class MediaIsarDBService {
     isarDB.writeTxnSync(() =>
         _res = isarDB.mediaPlaylistDBs.deleteSync(mediaPlaylistDB.isarId));
     if (_res) {
-      print("${mediaPlaylistDB.playlistName} is Deleted!!");
+      log("${mediaPlaylistDB.playlistName} is Deleted!!", name: "DB");
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:rxdart/rxdart.dart';
@@ -73,13 +74,14 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
       EasyDebounce.debounce('initializeTokenDebounce',
           const Duration(milliseconds: 59 * 60 * 1000), () async {
         initializeAccessToken();
-        print("initialized from debounce! $accessSpotifyToken");
+        log("initialized from debounce! ${accessSpotifyToken?.length}",
+            name: "saavnRepCubit");
       });
-      print("token $accessSpotifyToken");
+      log("token ${accessSpotifyToken?.length}", name: "saavnRepCubit");
     } else {
       initializeAccessToken();
-
-      print("initialized direct $accessSpotifyToken");
+      log("initialized direct ${accessSpotifyToken?.length}",
+          name: "saavnRepCubit");
     }
   }
 
@@ -90,7 +92,7 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
     if (spotify) {
       search_queries = await spotifyApi.getSearchQueriesFromSpotify(
           query, accessSpotifyToken);
-      // print(search_queries);
+      // log(search_queries,name: "saavnRepCubit");
     }
 
     for (int i = 0; i < search_queries.length; i++) {
@@ -115,7 +117,7 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
       final playlistName = _spotifyMap["playlistName"] as String;
       final _spotifyList = _spotifyMap["tracks"] as List;
 
-      print(_spotifyList);
+      log(_spotifyList.toString(), name: "saavnRepCubit");
       if (_spotifyList.length > 0) {
         for (int k = 0; k < _spotifyList.length; k++) {
           // await Future.delayed(Duration(milliseconds: 20));
@@ -141,7 +143,8 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
                 MediaPlaylistDB(playlistName: playlistName));
           }
 
-          print("here5 ${_spotifyList[k]["track"]["name"]} - ${playlistName}");
+          log("here5 ${_spotifyList[k]["track"]["name"]} - ${playlistName}",
+              name: "saavnRepCubit");
         }
       }
     }

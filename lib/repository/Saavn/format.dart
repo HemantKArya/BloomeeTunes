@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 import 'package:dart_des/dart_des.dart';
-import 'package:logging/logging.dart';
 import 'package:Bloomee/utils/extentions.dart';
 
 String getImageUrl(String? imageUrl, {String quality = 'high'}) {
@@ -69,9 +69,8 @@ Future<List> formatSongsResponse(
     }
 
     if (response != null && response.containsKey('Error')) {
-      Logger.root.severe(
-        'Error at index $i inside FormatSongsResponse: ${response["Error"]}',
-      );
+      log('Error at index $i inside FormatSongsResponse: ${response["Error"]}',
+          name: "Format");
     } else {
       if (response != null) {
         searchedList.add(response);
@@ -140,7 +139,7 @@ Future<Map> formatSingleSongResponse(Map response) async {
     };
     // Hive.box('cache').put(response['id'].toString(), info);
   } catch (e) {
-    Logger.root.severe('Error inside FormatSingleSongResponse: $e');
+    log('Error inside FormatSingleSongResponse: $e', name: "Format");
     return {'Error': e};
   }
 }
@@ -185,7 +184,7 @@ Future<Map> formatSingleSongResponse(Map response) async {
 //     ];
 //     data['collections_temp'] = promoListTemp;
 //   } catch (e) {
-//     Logger.root.severe('Error inside formatHomePageData: $e');
+//     log('Error inside formatHomePageData: $e');
 //   }
 //   return data;
 // }
@@ -233,7 +232,7 @@ Future<Map> formatSingleAlbumResponse(Map response) async {
       'perma_url': response['url'].toString(),
     };
   } catch (e) {
-    Logger.root.severe('Error inside formatSingleAlbumResponse: $e');
+    log('Error inside formatSingleAlbumResponse: $e', name: "Format");
     return {'Error': e};
   }
 }
@@ -295,7 +294,7 @@ Future<Map> formatSingleAlbumSongResponse(Map response) async {
       'url': decode(response['encrypted_media_url'].toString())
     };
   } catch (e) {
-    Logger.root.severe('Error inside FormatSingleAlbumSongResponse: $e');
+    log('Error inside FormatSingleAlbumSongResponse: $e', name: "Format");
     return {'Error': e};
   }
 }
@@ -325,7 +324,7 @@ Future<Map> formatSinglePlaylistResponse(Map response) async {
       'perma_url': response['url'].toString(),
     };
   } catch (e) {
-    Logger.root.severe('Error inside formatSinglePlaylistResponse: $e');
+    log('Error inside formatSinglePlaylistResponse: $e', name: "Format");
     return {'Error': e};
   }
 }
@@ -360,7 +359,7 @@ Future<Map> formatSingleArtistResponse(Map response) async {
       'image': getImageUrl(response['image'].toString()),
     };
   } catch (e) {
-    Logger.root.severe('Error inside formatSingleArtistResponse: $e');
+    log('Error inside formatSingleArtistResponse: $e', name: "Format");
     return {'Error': e};
   }
 }
@@ -378,7 +377,7 @@ Future<Map> formatSingleShowResponse(Map response) async {
       'image': getImageUrl(response['image'].toString()),
     };
   } catch (e) {
-    Logger.root.severe('Error inside formatSingleShowResponse: $e');
+    log('Error inside formatSingleShowResponse: $e', name: "Format");
     return {'Error': e};
   }
 }
@@ -405,9 +404,8 @@ Future<List<Map>> formatAlbumResponse(
         break;
     }
     if (response!.containsKey('Error')) {
-      Logger.root.severe(
-        'Error at index $i inside FormatAlbumResponse: ${response["Error"]}',
-      );
+      log('Error at index $i inside FormatAlbumResponse: ${response["Error"]}',
+          name: "Format");
     } else {
       searchedAlbumList.add(response);
     }

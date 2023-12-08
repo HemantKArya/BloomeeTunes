@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -20,15 +22,6 @@ class AddToPlaylistCubit extends Cubit<AddToPlaylistState> {
     required this.mediaDBCubit,
   }) : super(AddToPlaylistInitial()) {
     getAndEmitPlaylists();
-    // mediaDBCubit.refreshLibrary.listen(
-    //   (value) {
-    //     print(value);
-    //     if (value) {
-    //       getAndEmitPlaylists();
-    //       print("got refresh command - addtoplaylist");
-    //     }
-    //   },
-    // );
   }
 
   List<MediaPlaylist> mediaPlaylist = [];
@@ -71,8 +64,7 @@ class AddToPlaylistCubit extends Cubit<AddToPlaylistState> {
         // addToPlaylistState.subTitles?.add("Saavan");
       }
       emit(state.copyWith(playlists: addToPlaylistState.playlists));
-      print(
-          "emitted from addtoplaylist ${_playlists.toString()} - ${addToPlaylistState.playlists.length} - MediaPlaylists ${mediaPlaylist}");
+      log("emitted from addtoplaylist ${_playlists.toString()} - ${addToPlaylistState.playlists.length} - MediaPlaylists ${mediaPlaylist}");
     }
   }
 }

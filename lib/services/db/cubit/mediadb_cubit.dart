@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
@@ -74,9 +76,9 @@ class MediaDBCubit extends Cubit<MediadbState> {
     // orgMediaList.toSet().toList();
     List<MediaItemDB> reorderedList = orgMediaList;
     orgMediaList.forEach((element) {
-      print('orgMEdia - ${element.id} - ${element.title}');
+      log('orgMEdia - ${element.id} - ${element.title}', name: "MediaDBCubit");
     });
-    print(rankIndex.toString());
+    log(rankIndex.toString(), name: "MediaDBCubit");
     if (rankIndex.length == orgMediaList.length) {
       reorderedList = rankIndex
           .map((e) => orgMediaList.firstWhere(
@@ -84,8 +86,8 @@ class MediaDBCubit extends Cubit<MediadbState> {
               ))
           .map((e) => e)
           .toList();
-      print(
-          'ranklist length - ${rankIndex.length} org length - ${orgMediaList.length}');
+      log('ranklist length - ${rankIndex.length} org length - ${orgMediaList.length}',
+          name: "MediaDBCubit");
       return reorderedList;
     } else {
       return orgMediaList;

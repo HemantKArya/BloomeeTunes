@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart';
 import 'package:Bloomee/repository/Saavn/format.dart';
 import 'package:logging/logging.dart';
@@ -65,7 +66,6 @@ class SaavnAPI {
         "error": ""
       };
     } else {
-      print("Request failed with status: ${response.statusCode}");
       return {"no": "error"};
     }
   }
@@ -78,7 +78,7 @@ class SaavnAPI {
   //       result = await formatHomePageData(data);
   //     }
   //   } catch (e) {
-  //     Logger.root.severe('Error in fetchHomePageData: $e');
+  //     log('Error in fetchHomePageData: $e');
   //   }
   //   return result;
   // }
@@ -111,7 +111,7 @@ class SaavnAPI {
           }
         }
       } catch (e) {
-        Logger.root.severe('Error in getSongFromToken with -1: $e');
+        log('Error in getSongFromToken with -1: $e');
       }
       return {'songs': List.empty()};
     } else {
@@ -122,7 +122,7 @@ class SaavnAPI {
         if (res.statusCode == 200) {
           final Map getMain = json.decode(res.body) as Map;
           if (getMain['status'] == 'failure') {
-            Logger.root.severe('Error in getSongFromToken response: $getMain');
+            log('Error in getSongFromToken response: $getMain');
             return {'songs': List.empty()};
           }
           if (type == 'album' || type == 'playlist') {
@@ -147,7 +147,7 @@ class SaavnAPI {
           };
         }
       } catch (e) {
-        Logger.root.severe('Error in getSongFromToken: $e');
+        log('Error in getSongFromToken: $e');
       }
       return {'songs': List.empty()};
     }
@@ -167,90 +167,78 @@ class SaavnAPI {
         '__call=autocomplete.get&cc=in&includeMetaTags=1&query=$searchQuery';
 
     final res = await getResponse(params, usev4: false);
-    if (res.statusCode == 200) {
-      final getMain = json.decode(res.body);
-      final List albumResponseList = getMain['albums']['data'] as List;
-      position[getMain['albums']['position'] as int] = 'Albums';
+    try {
+      if (res.statusCode == 200) {
+        final getMain = json.decode(res.body);
+        final List albumResponseList = getMain['albums']['data'] as List;
+        position[getMain['albums']['position'] as int] = 'Albums';
 
-      final List playlistResponseList = getMain['playlists']['data'] as List;
-      position[getMain['playlists']['position'] as int] = 'Playlists';
+        final List playlistResponseList = getMain['playlists']['data'] as List;
+        position[getMain['playlists']['position'] as int] = 'Playlists';
 
-      final List artistResponseList = getMain['artists']['data'] as List;
-      position[getMain['artists']['position'] as int] = 'Artists';
+        final List artistResponseList = getMain['artists']['data'] as List;
+        position[getMain['artists']['position'] as int] = 'Artists';
 
-      // final List showResponseList = getMain['shows']['data'] as List;
-      // position[getMain['shows']['position'] as int] = 'Podcasts';
+        final List topQuery = getMain['topquery']['data'] as List;
 
-      // final List episodeResponseList = getMain['episodes']['data'] as List;
-      // position[getMain['episodes']['position'] as int] = 'Episodes';
-
-      final List topQuery = getMain['topquery']['data'] as List;
-
-      searchedAlbumList = await formatAlbumResponse(albumResponseList, 'album');
-      if (searchedAlbumList.isNotEmpty) {
-        result['Albums'] = searchedAlbumList;
-      }
-
-      searchedPlaylistList = await formatAlbumResponse(
-        playlistResponseList,
-        'playlist',
-      );
-      if (searchedPlaylistList.isNotEmpty) {
-        result['Playlists'] = searchedPlaylistList;
-      }
-
-      // searchedShowList =
-      //     await FormatResponse().formatAlbumResponse(showResponseList, 'show');
-      // if (searchedShowList.isNotEmpty) {
-      //   result['Podcasts'] = searchedShowList;
-      // }
-
-      // searchedEpisodeList = await FormatResponse()
-      //     .formatAlbumResponse(episodeResponseList, 'episode');
-      // if (searchedEpisodeList.isNotEmpty) {
-      //   result['Episodes'] = searchedEpisodeList;
-      // }
-
-      searchedArtistList = await formatAlbumResponse(
-        artistResponseList,
-        'artist',
-      );
-      if (searchedArtistList.isNotEmpty) {
-        result['Artists'] = searchedArtistList;
-      }
-
-      if (topQuery.isNotEmpty &&
-          (topQuery[0]['type'] != 'playlist' ||
-              topQuery[0]['type'] == 'artist' ||
-              topQuery[0]['type'] == 'album')) {
-        position[getMain['topquery']['position'] as int] = 'Top Result';
-        position[getMain['songs']['position'] as int] = 'Songs';
-
-        switch (topQuery[0]['type'] as String) {
-          case 'artist':
-            searchedTopQueryList =
-                await formatAlbumResponse(topQuery, 'artist');
-            break;
-          case 'album':
-            searchedTopQueryList = await formatAlbumResponse(topQuery, 'album');
-            break;
-          case 'playlist':
-            searchedTopQueryList =
-                await formatAlbumResponse(topQuery, 'playlist');
-            break;
-          default:
-            break;
+        searchedAlbumList =
+            await formatAlbumResponse(albumResponseList, 'album');
+        if (searchedAlbumList.isNotEmpty) {
+          result['Albums'] = searchedAlbumList;
         }
-        if (searchedTopQueryList.isNotEmpty) {
-          result['Top Result'] = searchedTopQueryList;
+
+        searchedPlaylistList = await formatAlbumResponse(
+          playlistResponseList,
+          'playlist',
+        );
+        if (searchedPlaylistList.isNotEmpty) {
+          result['Playlists'] = searchedPlaylistList;
         }
-      } else {
-        if (topQuery.isNotEmpty && topQuery[0]['type'] == 'song') {
-          position[getMain['topquery']['position'] as int] = 'Songs';
-        } else {
+
+        searchedArtistList = await formatAlbumResponse(
+          artistResponseList,
+          'artist',
+        );
+        if (searchedArtistList.isNotEmpty) {
+          result['Artists'] = searchedArtistList;
+        }
+
+        if (topQuery.isNotEmpty &&
+            (topQuery[0]['type'] != 'playlist' ||
+                topQuery[0]['type'] == 'artist' ||
+                topQuery[0]['type'] == 'album')) {
+          position[getMain['topquery']['position'] as int] = 'Top Result';
           position[getMain['songs']['position'] as int] = 'Songs';
+
+          switch (topQuery[0]['type'] as String) {
+            case 'artist':
+              searchedTopQueryList =
+                  await formatAlbumResponse(topQuery, 'artist');
+              break;
+            case 'album':
+              searchedTopQueryList =
+                  await formatAlbumResponse(topQuery, 'album');
+              break;
+            case 'playlist':
+              searchedTopQueryList =
+                  await formatAlbumResponse(topQuery, 'playlist');
+              break;
+            default:
+              break;
+          }
+          if (searchedTopQueryList.isNotEmpty) {
+            result['Top Result'] = searchedTopQueryList;
+          }
+        } else {
+          if (topQuery.isNotEmpty && topQuery[0]['type'] == 'song') {
+            position[getMain['topquery']['position'] as int] = 'Songs';
+          } else {
+            position[getMain['songs']['position'] as int] = 'Songs';
+          }
         }
       }
+    } catch (e) {
+      log('Failed to fetch data - $e');
     }
     return [result, position];
   }
@@ -279,7 +267,7 @@ class SaavnAPI {
         };
       }
     } catch (e) {
-      Logger.root.severe('Error in fetchSongSearchResults: $e');
+      log('Error in fetchSongSearchResults: $e');
       return {
         'songs': List.empty(),
         'error': e,
@@ -293,7 +281,7 @@ class SaavnAPI {
     if (response.statusCode == 200) {
       return json.decode(response.body) as List;
     } else {
-      print("Request failed with status: ${response.statusCode}");
+      log("Request failed with status: ${response.statusCode}");
       return ["error"];
     }
   }

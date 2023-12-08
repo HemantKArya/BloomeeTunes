@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -52,6 +54,6 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
         mediaItems: _mediaItemList,
         albumName: "Search",
         loadingState: LoadingState.loaded));
-    print("got all searches ${_mediaItemList.length}");
+    log("got all searches ${_mediaItemList.length}", name: "FetchSearchRes");
   }
 }
