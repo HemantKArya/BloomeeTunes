@@ -1,6 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -164,12 +163,6 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                         .fetchPlaylistFromSpotify(
                                             context.read<MediaDBCubit>(),
                                             value);
-
-                                    context
-                                        .read<SaavnSearchRepositoryCubit>()
-                                        .fetchPlaylistFromSpotify(
-                                            context.read<MediaDBCubit>(),
-                                            value.toString());
                                     showDialog(
                                       barrierDismissible: false,
                                       context: context,

@@ -110,6 +110,14 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
   Future<void> fetchPlaylistFromSpotify(
       MediaDBCubit _mediaDBCubit, String playListID) async {
     mediaDBCubit = _mediaDBCubit;
+
+    String? _playlistID = getPlaylistIdFromSpotifyUrl(playListID);
+
+    if (_playlistID != null) {
+      playListID = _playlistID;
+      log("Spotify Playlist: ${_playlistID}", name: "saavnRepCubit");
+    }
+
     importFromSpotifyState.add(ImportPlaylistStateInitial());
     if (accessSpotifyToken != null) {
       final _spotifyMap = await spotifyApi.getAllTracksOfPlaylist(
@@ -160,4 +168,39 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
     searchQuery.close();
     return super.close();
   }
+}
+
+String? getPlaylistIdFromSpotifyUrl(String url) {
+  if (Uri.tryParse(url) == null) {
+    return null;
+  }
+
+  final uri = Uri.parse(url);
+  if (uri.host != 'open.spotify.com') {
+    return null;
+  }
+
+  final pathSegments = uri.pathSegments;
+  if (pathSegments.isEmpty || pathSegments[0] != 'playlist') {
+    return null;
+  }
+
+  final playlistId = pathSegments[1];
+  if (playlistId.isEmpty) {
+    return null;
+  }
+
+  // Check if the URL contains an additional query parameter for "si"
+  // (share identifier) and "pi" (playlist index)
+  final queryParams = uri.queryParameters;
+  if (queryParams.containsKey('si') || queryParams.containsKey('pi')) {
+    // Extract playlist ID before the query parameters
+    return playlistId.split('?').first;
+  }
+
+  return playlistId;
+}
+
+bool isSpotifyPlaylistUrl(String url) {
+  return getPlaylistIdFromSpotifyUrl(url) != null;
 }
