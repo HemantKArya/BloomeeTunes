@@ -1,3 +1,4 @@
+ ![BloomeeTunes](./assets/icons/Bloomee_Logo_cover.png)
 # **Bloomee Music 🌸🎶**
 
 Bloomee is my experimental Flutter project, a music app designed to bring you ad-free tunes from various sources and learn Flutter for My future projects. Dive into a world of limitless music from platforms like YouTube and Jio Saavn, with more sources blooming soon! 🌼🎵
@@ -33,3 +34,5 @@ Actually i needed it...was frustrated with Ad-based Music Player 😉😎
 6. **Create a Pull Request:** Submit a pull request, and let your notes join the Bloomee Symphony!
 
 **Let the Bloomee Music app be your gateway to a world of enchanting tunes. 🌺🎧**
+
+[![iamhemant](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/iamhemantindia/)
