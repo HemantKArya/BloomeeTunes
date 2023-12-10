@@ -5,7 +5,7 @@ import 'package:Bloomee/theme_data/default.dart';
 import 'package:http/http.dart' as http;
 
 Image loadImage(coverImageUrl,
-    {placeholderPath = "assets/sample/album_cover_sam1.jpg"}) {
+    {placeholderPath = "assets/icons/Bloomee_Logo.png"}) {
   ImageProvider<Object> placeHolder = AssetImage(placeholderPath);
   return Image.network(
     coverImageUrl,
@@ -47,7 +47,7 @@ Image loadImage(coverImageUrl,
 }
 
 CachedNetworkImage loadImageCached(coverImageURL,
-    {placeholderPath = "assets/sample/album_cover_sam1.jpg"}) {
+    {placeholderPath = "assets/icons/Bloomee_Logo.png"}) {
   ImageProvider<Object> placeHolder = AssetImage(placeholderPath);
   return CachedNetworkImage(
     imageUrl: coverImageURL,
@@ -85,7 +85,7 @@ CachedNetworkImage loadImageCached(coverImageURL,
 }
 
 Future<ImageProvider> getImageProvider(String imageUrl,
-    {String placeholderUrl = "assets/sample/album_cover_sam1.jpg"}) async {
+    {String placeholderUrl = "assets/icons/Bloomee_Logo.png"}) async {
   if (imageUrl != "") {
     final response = await http.head(Uri.parse(imageUrl));
     if (response.statusCode == 200) {

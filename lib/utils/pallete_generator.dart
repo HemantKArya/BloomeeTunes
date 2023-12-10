@@ -4,7 +4,7 @@ import 'package:palette_generator/palette_generator.dart';
 
 Future<PaletteGenerator> getPalleteFromImage(String url) async {
   ImageProvider<Object> placeHolder =
-      AssetImage("assets/sample/album_cover_sam1.jpg");
+      AssetImage("assets/icons/Bloomee_Logo.png");
 
   try {
     return (await PaletteGenerator.fromImageProvider(
