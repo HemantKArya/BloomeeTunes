@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
@@ -16,29 +18,39 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   BloomeeMusicPlayer() {
     audioPlayer = AudioPlayer(
-        androidOffloadSchedulingEnabled: true, handleInterruptions: true);
+      androidOffloadSchedulingEnabled: true,
+      handleInterruptions: true,
+    );
     audioPlayer.setVolume(1);
 
     audioPlayer.playerStateStream.listen((event) {
+      log(event.playing.toString(), name: "bloomeePlayer-event");
       playbackState.add(PlaybackState(
-        // Which buttons should appear in the notification now
-        controls: [
-          MediaControl.skipToPrevious,
-          event.playing ? MediaControl.pause : MediaControl.play,
-          MediaControl.stop,
-          MediaControl.skipToNext,
-        ],
-        // Which other actions should be enabled in the notification
-        systemActions: const {
-          MediaAction.seek,
-          MediaAction.seekForward,
-          MediaAction.seekBackward,
-        },
-
-        androidCompactActionIndices: const [0, 1, 3],
-
-        playing: event.playing,
-      ));
+          // Which buttons should appear in the notification now
+          controls: [
+            MediaControl.skipToPrevious,
+            !event.playing ? MediaControl.play : MediaControl.pause,
+            // MediaControl.stop,
+            MediaControl.skipToNext,
+          ],
+          processingState: switch (event.processingState) {
+            ProcessingState.idle => AudioProcessingState.idle,
+            ProcessingState.loading => AudioProcessingState.loading,
+            ProcessingState.buffering => AudioProcessingState.buffering,
+            ProcessingState.ready => AudioProcessingState.ready,
+            ProcessingState.completed => AudioProcessingState.completed,
+          },
+          // Which other actions should be enabled in the notification
+          systemActions: const {
+            MediaAction.skipToPrevious,
+            MediaAction.playPause,
+            MediaAction.skipToNext,
+          },
+          androidCompactActionIndices: const [0, 1, 2],
+          updatePosition: audioPlayer.position,
+          playing: event.playing
+          // playing: audioPlayer.playerState.playing,
+          ));
     });
   }
 
@@ -47,7 +59,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     await audioPlayer.play();
-    // print("playing");
+    // log("playing", name: "bloomeePlayer");
   }
 
   @override
@@ -71,12 +83,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> pause() async {
     await audioPlayer.pause();
-    print("paused");
+    log("paused", name: "bloomeePlayer");
   }
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem) async {
-    print(mediaItem.extras?["url"]);
+    log(mediaItem.extras?["url"], name: "bloomeePlayer");
     bool isPlaying = audioPlayer.playing;
     updateMediaItem(mediaItem);
     if (mediaItem.extras?["source"] == "youtube") {
@@ -116,13 +128,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (currentPlayingIdx < (currentPlaylist.length - 1)) {
       currentPlayingIdx++;
       prepare4play(idx: currentPlayingIdx);
-      print("skippingNext-------");
+      log("skippingNext-------", name: "bloomeePlayer");
     }
   }
 
   @override
   Future<void> stop() async {
-    // print("Called Stop!!");
+    // log("Called Stop!!");
     // audioPlayer.stop();
     super.stop();
   }

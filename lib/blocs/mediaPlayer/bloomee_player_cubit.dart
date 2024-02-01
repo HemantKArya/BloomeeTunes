@@ -24,8 +24,8 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
       config: const AudioServiceConfig(
           androidStopForegroundOnPause: true,
           androidNotificationChannelId: 'com.BloomeePlayer.notification.status',
-          androidNotificationChannelName: 'mediaPlayback',
-          androidShowNotificationBadge: true,
+          androidNotificationChannelName: 'BloomeTunes',
+          androidResumeOnClick: true,
           notificationColor: Default_Theme.accentColor2),
     );
 

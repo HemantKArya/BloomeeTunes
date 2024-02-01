@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +18,7 @@ void main() {
   try {
     dotenv.load(fileName: "assets/.env");
   } on Exception catch (e) {
-    print("error $e");
+    log("error $e");
     dotenv.load(mergeWith: Platform.environment);
   }
   runApp(const MyApp());

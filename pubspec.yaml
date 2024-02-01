@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.3+0
+version: 1.2.0+0
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
@@ -39,8 +39,8 @@ dependencies:
   carousel_slider: ^4.2.1
   palette_generator: ^0.3.3+2
   audio_video_progress_bar: ^1.0.1
-  just_audio: ^0.9.34
-  audio_service: ^0.18.10
+  just_audio: ^0.9.36
+  audio_service: ^0.18.12
   audio_session: ^0.1.16
   rxdart: ^0.27.7
   go_router: ^10.1.0
@@ -83,7 +83,7 @@ flutter_launcher_icons:
   ios: true
   adaptive_icon_background: "assets/icons/Bloomee_Logo_back_5.png"
   adaptive_icon_foreground: "assets/icons/Bloomee_Logo_mini.png"
-  image_path: "assets/icons/Bloomee_Logo.png"
+  image_path: "assets/icons/Bloomee_Logo_masked.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
 
   macos:
