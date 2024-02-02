@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:async/async.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
@@ -16,6 +16,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       BehaviorSubject<String>.seeded("Empty");
   int currentPlayingIdx = 0;
 
+  CancelableOperation<List<String>> getLinkOperation =
+      CancelableOperation.fromFuture(Future.value([]));
+
   BloomeeMusicPlayer() {
     audioPlayer = AudioPlayer(
       androidOffloadSchedulingEnabled: true,
@@ -24,7 +27,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.setVolume(1);
 
     audioPlayer.playerStateStream.listen((event) {
-      log(event.playing.toString(), name: "bloomeePlayer-event");
+      // log(event.playing.toString(), name: "bloomeePlayer-event");
       playbackState.add(PlaybackState(
           // Which buttons should appear in the notification now
           controls: [
@@ -88,7 +91,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem) async {
-    log(mediaItem.extras?["url"], name: "bloomeePlayer");
+    // log(mediaItem.extras?["url"], name: "bloomeePlayer");
     bool isPlaying = audioPlayer.playing;
     updateMediaItem(mediaItem);
     if (mediaItem.extras?["source"] == "youtube") {
@@ -97,10 +100,21 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       final tempStrmVideo = await YouTubeServices()
           .getVideoFromId(mediaItem.id.replaceAll("youtube", ''));
       if (tempStrmVideo != null) {
-        final tempStrmLink = await YouTubeServices().getUri(tempStrmVideo);
+        if (!getLinkOperation.isCompleted) {
+          getLinkOperation.cancel();
+        }
 
-        await audioPlayer.setUrl(tempStrmLink.first).then((value) {
-          if (isPlaying) audioPlayer.play();
+        getLinkOperation = CancelableOperation.fromFuture(
+            YouTubeServices().getUri(tempStrmVideo), onCancel: () {
+          log("Canceled/Skipped - ${mediaItem.title}", name: "bloomeePlayer");
+        });
+
+        getLinkOperation.then((tempStrmLinks) {
+          audioPlayer.setUrl(tempStrmLinks.first).then((value) {
+            if (super.mediaItem.value?.id == mediaItem.id && isPlaying) {
+              audioPlayer.play();
+            }
+          });
         });
       }
       return;
@@ -128,7 +142,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (currentPlayingIdx < (currentPlaylist.length - 1)) {
       currentPlayingIdx++;
       prepare4play(idx: currentPlayingIdx);
-      log("skippingNext-------", name: "bloomeePlayer");
+      // log("skippingNext-------", name: "bloomeePlayer");
     }
   }
 
@@ -149,13 +163,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onTaskRemoved() {
-    audioPlayer.stop();
+    super.stop();
+    audioPlayer.dispose();
     return super.onTaskRemoved();
   }
 
   @override
   Future<void> onNotificationDeleted() {
     audioPlayer.stop();
+    super.stop();
 
     return super.onNotificationDeleted();
   }
