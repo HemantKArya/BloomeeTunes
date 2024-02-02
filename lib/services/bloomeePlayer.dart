@@ -14,6 +14,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   List<MediaItemModel> currentPlaylist = [];
   BehaviorSubject<String> currentQueueName =
       BehaviorSubject<String>.seeded("Empty");
+
+  BehaviorSubject<bool> isLinkProcessing = BehaviorSubject<bool>.seeded(false);
   int currentPlayingIdx = 0;
   bool isPaused = false;
 
@@ -100,6 +102,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (mediaItem.extras?["source"] == "youtube") {
       audioPlayer.seek(Duration.zero);
       audioPlayer.stop();
+      isLinkProcessing.add(true);
+
       final tempStrmVideo = await YouTubeServices()
           .getVideoFromId(mediaItem.id.replaceAll("youtube", ''));
       if (tempStrmVideo != null) {
@@ -114,6 +118,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
         getLinkOperation.then((tempStrmLinks) {
           audioPlayer.setUrl(tempStrmLinks.first).then((value) {
+            isLinkProcessing.add(false);
             if (super.mediaItem.value?.id == mediaItem.id && !isPaused) {
               audioPlayer.play();
             }

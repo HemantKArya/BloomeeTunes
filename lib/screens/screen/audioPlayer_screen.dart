@@ -260,7 +260,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                           InkWell(
                             onTap: () => musicPlayer.rewind(),
                             child: const Icon(
-                              FluentIcons.arrow_repeat_1_24_filled,
+                              FluentIcons.replay_20_regular,
                               color: Default_Theme.primaryColor1,
                               size: 35,
                             ),
@@ -273,19 +273,53 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                               size: 35,
                             ),
                           ),
-                          StreamBuilder<PlayerState>(
+                          StreamBuilder(
                               stream: context
                                   .watch<BloomeePlayerCubit>()
                                   .bloomeePlayer
-                                  .audioPlayer
-                                  .playerStateStream,
-                              builder: (context, snapshot) {
-                                return PlayPauseButton(
-                                  size: 75,
-                                  onPause: () => musicPlayer.pause(),
-                                  onPlay: () => musicPlayer.play(),
-                                  isPlaying: snapshot.data?.playing ?? false,
-                                );
+                                  .isLinkProcessing,
+                              builder: (context, snapshot2) {
+                                return snapshot2.hasData &&
+                                        snapshot2.data == true
+                                    ? Container(
+                                        decoration: const BoxDecoration(
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color:
+                                                    Default_Theme.accentColor2,
+                                                spreadRadius: 1,
+                                                blurRadius: 20)
+                                          ],
+                                          shape: BoxShape.circle,
+                                          color: Default_Theme.accentColor2,
+                                        ),
+                                        width: 75,
+                                        height: 75,
+                                        child: const Center(
+                                          child: SizedBox(
+                                            width: 35,
+                                            height: 35,
+                                            child: CircularProgressIndicator(
+                                              color:
+                                                  Default_Theme.primaryColor1,
+                                            ),
+                                          ),
+                                        ))
+                                    : StreamBuilder<PlayerState>(
+                                        stream: context
+                                            .watch<BloomeePlayerCubit>()
+                                            .bloomeePlayer
+                                            .audioPlayer
+                                            .playerStateStream,
+                                        builder: (context, snapshot) {
+                                          return PlayPauseButton(
+                                            size: 75,
+                                            onPause: () => musicPlayer.pause(),
+                                            onPlay: () => musicPlayer.play(),
+                                            isPlaying:
+                                                snapshot.data?.playing ?? false,
+                                          );
+                                        });
                               }),
                           InkWell(
                             onTap: () => musicPlayer.skipToNext(),
