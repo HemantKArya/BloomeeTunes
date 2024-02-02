@@ -15,6 +15,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   BehaviorSubject<String> currentQueueName =
       BehaviorSubject<String>.seeded("Empty");
   int currentPlayingIdx = 0;
+  bool isPaused = false;
 
   CancelableOperation<List<String>> getLinkOperation =
       CancelableOperation.fromFuture(Future.value([]));
@@ -62,6 +63,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     await audioPlayer.play();
+    isPaused = false;
     // log("playing", name: "bloomeePlayer");
   }
 
@@ -86,13 +88,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> pause() async {
     await audioPlayer.pause();
+    isPaused = true;
     log("paused", name: "bloomeePlayer");
   }
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem) async {
     // log(mediaItem.extras?["url"], name: "bloomeePlayer");
-    bool isPlaying = audioPlayer.playing;
+    // bool isPlaying = audioPlayer.playing;
     updateMediaItem(mediaItem);
     if (mediaItem.extras?["source"] == "youtube") {
       audioPlayer.seek(Duration.zero);
@@ -111,7 +114,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
         getLinkOperation.then((tempStrmLinks) {
           audioPlayer.setUrl(tempStrmLinks.first).then((value) {
-            if (super.mediaItem.value?.id == mediaItem.id && isPlaying) {
+            if (super.mediaItem.value?.id == mediaItem.id && !isPaused) {
               audioPlayer.play();
             }
           });
