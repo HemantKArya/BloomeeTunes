@@ -83,8 +83,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       {int idx = 0, bool doPlay = false}) async {
     currentPlaylist = mediaList.mediaItems;
     currentQueueName.add(mediaList.albumName);
-    await prepare4play(idx: idx);
-    if (doPlay) play();
+    await prepare4play(idx: idx, doPlay: doPlay);
+    // if (doPlay) play();
   }
 
   @override
@@ -95,14 +95,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> playMediaItem(MediaItem mediaItem) async {
+  Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
     // log(mediaItem.extras?["url"], name: "bloomeePlayer");
-    // bool isPlaying = audioPlayer.playing;
     updateMediaItem(mediaItem);
     if (mediaItem.extras?["source"] == "youtube") {
-      audioPlayer.seek(Duration.zero);
-      audioPlayer.stop();
       isLinkProcessing.add(true);
+      audioPlayer.pause();
+      audioPlayer.seek(Duration.zero);
 
       final tempStrmVideo = await YouTubeServices()
           .getVideoFromId(mediaItem.id.replaceAll("youtube", ''));
@@ -117,8 +116,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         });
 
         getLinkOperation.then((tempStrmLinks) {
+          isLinkProcessing.add(false);
           audioPlayer.setUrl(tempStrmLinks.first).then((value) {
-            isLinkProcessing.add(false);
             if (super.mediaItem.value?.id == mediaItem.id && !isPaused) {
               audioPlayer.play();
             }
@@ -128,13 +127,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       return;
     }
     await audioPlayer.setUrl(mediaItem.extras?["url"]);
+    if (doPlay) play();
   }
 
   Future<void> prepare4play({int idx = 0, bool doPlay = false}) async {
     if (currentPlaylist.isNotEmpty) {
       currentPlayingIdx = idx;
-      await playMediaItem(currentMedia);
-      if (doPlay) play();
+      await playMediaItem(currentMedia, doPlay: doPlay);
     }
   }
 
