@@ -43,7 +43,7 @@ jobs:
               run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
 
             - name: Rename APK file
-              run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/bloomee_tunes_v1.1.3+${{github.run_number}}.apk
+              run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/bloomee_tunes_v1.2.3+${{github.run_number}}.apk
 
             - name: Upload Artifacts
               uses: actions/upload-artifact@v2
