@@ -49,12 +49,14 @@ class GlobalRoutes {
       ),
       GoRoute(
         name: GlobalStrConsts.playlistView,
+        parentNavigatorKey: globalRouterKey,
         path: '/PlaylistView/:playlistName',
         builder: (context, state) => PlaylistView(
             playListName: state.pathParameters['playlistName'] ?? "none"),
       ),
       GoRoute(
         path: '/AddToPlaylist',
+        parentNavigatorKey: globalRouterKey,
         name: GlobalStrConsts.addToPlaylistScreen,
         builder: (context, state) => AddToPlaylistScreen(),
       ),

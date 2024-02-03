@@ -4,6 +4,7 @@ import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:Bloomee/screens/widgets/like_widget.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
@@ -13,6 +14,7 @@ import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
+import '../../routes_and_consts/global_str_consts.dart';
 import '../widgets/mediaItemOptions_bottomsheet.dart';
 import '../widgets/unicode_icons.dart';
 
@@ -68,10 +70,10 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                     .currentQueueName,
                 builder: (context, snapshot) {
                   return InkWell(
-                    // onTap: () => context.pushNamed(GlobalStrConsts.playlistView,
-                    //     pathParameters: {
-                    //       "playlistName": snapshot.data ?? "Liked"
-                    //     }),
+                    onTap: () => context.pushNamed(GlobalStrConsts.playlistView,
+                        pathParameters: {
+                          "playlistName": snapshot.data ?? "Liked"
+                        }),
                     child: Text(
                       snapshot.data ?? "Unknown",
                       textAlign: TextAlign.center,
