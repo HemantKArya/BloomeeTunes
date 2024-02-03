@@ -13,6 +13,8 @@ import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
+import '../widgets/mediaItemOptions_bottomsheet.dart';
+import '../widgets/unicode_icons.dart';
 
 class AudioPlayerView extends StatefulWidget {
   const AudioPlayerView({super.key});
@@ -34,6 +36,20 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
         elevation: 0,
         foregroundColor: Default_Theme.primaryColor1,
         centerTitle: true,
+        actions: [
+          IconButton(
+              onPressed: () {
+                showMediaItemOptions(
+                    context,
+                    context
+                        .read<BloomeePlayerCubit>()
+                        .bloomeePlayer
+                        .currentMedia);
+              },
+              icon: UnicodeIcon(
+                  strCode: "\uf142",
+                  fontColor: Default_Theme.primaryColor2.withOpacity(1)))
+        ],
         title: Column(
           children: [
             Text(

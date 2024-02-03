@@ -116,29 +116,7 @@ class SearchBoxWidget extends StatelessWidget {
       },
       child: TextField(
         controller: _textEditingController,
-        // autofocus: false,
-        // onTap: () {
-        //   showSearch(
-        //     context: context,
-        //     delegate: searchPageDelegate(),
-        //   );
-        // },
-        // focusNode: _focusNode,
-        // onSubmitted: (value) {
-        //   _searchSuggestions = [];
-        //   context.read<FetchSearchResultsCubit>().search(value);
-        // },
-        // onChanged: (value) {
-        //   YouTubeServices().getSearchSuggestions(query: value).then((value) {
-        //     _searchSuggestions = value as List<String>;
-        //   });
-        // },
-        // onTapOutside: (event) {
-        //   _searchSuggestions = [];
-        //   _focusNode.unfocus();
-        // },
         enabled: false,
-
         textAlign: TextAlign.center,
         style: TextStyle(color: Default_Theme.primaryColor1.withOpacity(0.55)),
         textInputAction: TextInputAction.search,
