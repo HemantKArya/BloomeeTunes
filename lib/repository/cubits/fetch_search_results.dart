@@ -1,6 +1,8 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
@@ -16,6 +18,16 @@ class FetchSearchResultsState extends MediaPlaylist {
       {required super.mediaItems,
       required super.albumName,
       required this.loadingState});
+
+  @override
+  bool operator ==(covariant FetchSearchResultsState other) {
+    if (identical(this, other)) return true;
+
+    return other.loadingState == loadingState;
+  }
+
+  @override
+  int get hashCode => loadingState.hashCode;
 }
 
 final class FetchSearchResultsInitial extends FetchSearchResultsState {
@@ -32,6 +44,14 @@ final class FetchSearchResultsLoading extends FetchSearchResultsState {
             mediaItems: [],
             albumName: 'Empty',
             loadingState: LoadingState.loading);
+}
+
+final class FetchSearchResultsLoaded extends FetchSearchResultsState {
+  FetchSearchResultsLoaded()
+      : super(
+            mediaItems: [],
+            albumName: 'Empty',
+            loadingState: LoadingState.loaded);
 }
 //------------------------------------------------------------------------
 

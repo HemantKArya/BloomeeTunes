@@ -27,41 +27,21 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         backgroundColor: Default_Theme.themeColor,
         body: BlocBuilder<FetchSearchResultsCubit, FetchSearchResultsState>(
-          buildWhen: (previous, current) {
-            if (current != previous && current.albumName == "Search") {
-              return true;
-            } else {
-              return false;
-            }
-          },
+          // buildWhen: (previous, current) {
+          //   if (current != previous && current.albumName == "Search") {
+          //     return true;
+          //   } else {
+          //     return false;
+          //   }
+          // },
           builder: (context, state) {
-            if (state is SaavnRepositoryInitial) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Icon(
-                        Icons.error_outline,
-                        color: Default_Theme.primaryColor2.withOpacity(0.4),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Text(
-                        "Change the keyword and try to search again!",
-                        softWrap: true,
-                        textAlign: TextAlign.center,
-                        style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
-                            color:
-                                Default_Theme.primaryColor2.withOpacity(0.4))),
-                      ),
-                    ),
-                  ],
+            if (state is FetchSearchResultsLoading) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Default_Theme.accentColor2,
                 ),
               );
-            } else {
+            } else if (state.loadingState == LoadingState.loaded) {
               return ListView.builder(
                 itemCount: state.mediaItems.length,
                 itemBuilder: (context, index) {
@@ -78,6 +58,32 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   );
                 },
+              );
+            } else {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Icon(
+                        Icons.search_rounded,
+                        color: Default_Theme.primaryColor2.withOpacity(0.4),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Text(
+                        "Type the keyword and try to search again!",
+                        softWrap: true,
+                        textAlign: TextAlign.center,
+                        style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
+                            color:
+                                Default_Theme.primaryColor2.withOpacity(0.6))),
+                      ),
+                    ),
+                  ],
+                ),
               );
             }
           },

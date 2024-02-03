@@ -26,6 +26,7 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
           androidNotificationChannelId: 'com.BloomeePlayer.notification.status',
           androidNotificationChannelName: 'BloomeTunes',
           androidResumeOnClick: true,
+          // androidNotificationIcon: 'assets/icons/Bloomee_logo_fore.png',
           androidShowNotificationBadge: true,
           notificationColor: Default_Theme.accentColor2),
     );
