@@ -70,10 +70,13 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                     .currentQueueName,
                 builder: (context, snapshot) {
                   return InkWell(
-                    onTap: () => context.pushNamed(GlobalStrConsts.playlistView,
-                        pathParameters: {
-                          "playlistName": snapshot.data ?? "Liked"
-                        }),
+                    onTap: () {
+                      // context.pop();
+                      // context.pushNamed(GlobalStrConsts.playlistView,
+                      //     pathParameters: {
+                      //       "playlistName": snapshot.data ?? "Liked"
+                      //     });
+                    },
                     child: Text(
                       snapshot.data ?? "Unknown",
                       textAlign: TextAlign.center,
