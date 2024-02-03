@@ -16,6 +16,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   List<MediaPlaylist> mediaPlaylist = [];
   LibraryItemsState libraryItemsState =
       LibraryItemsState(playlists: List.empty(growable: true));
+
   LibraryItemsCubit({required this.mediaDBCubit})
       : super(LibraryItemsInitial()) {
     mediaDBCubit.refreshLibrary.listen(
@@ -33,8 +34,11 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   Future<void> getAndEmitPlaylists() async {
     libraryItemsState =
         LibraryItemsState(playlists: List.empty(growable: true));
+
     mediaPlaylist = await mediaDBCubit.getListOfPlaylists2();
+
     List<String> _playlists = List.empty(growable: true);
+
     if (libraryItemsState.playlists.isNotEmpty) {
       for (var element in libraryItemsState.playlists) {
         _playlists.add(element.playlistName ?? "Unknown");
@@ -59,13 +63,13 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
         PlaylistItemProperties _playlistItem = PlaylistItemProperties(
             playlistName: element.albumName,
             imageProvider: _tempProvider,
-            subTitle: "Saavan");
+            subTitle: "${element.mediaItems.length} Items");
         libraryItemsState.playlists.add(_playlistItem);
 
         // libraryItemsState.playlistNames?.add(element.albumName);
         // libraryItemsState.subTitles?.add("Saavan");
       }
-      emit(state.copyWith(playlists: libraryItemsState.playlists));
+      emit(libraryItemsState);
       log("emitted from library ${_playlists.toString()} - ${libraryItemsState.playlists.length} - MediaPlaylists ${mediaPlaylist}",
           name: "libItemsCubit");
     }

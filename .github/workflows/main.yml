@@ -50,10 +50,10 @@ jobs:
               with:
                 name: Release
                 path: |
-                  build/app/outputs/flutter-apk/bloomee_tunes_v1.1.3+${{github.run_number}}.apk
+                  build/app/outputs/flutter-apk/bloomee_tunes_v1.2.3+${{github.run_number}}.apk
             - name: Create Release
               uses: ncipollo/release-action@v1
               with:
-                artifacts: "build/app/outputs/flutter-apk/bloomee_tunes_v1.1.3+${{github.run_number}}.apk"
-                tag: v1.2.2+${{github.run_number}}
+                artifacts: "build/app/outputs/flutter-apk/bloomee_tunes_v1.2.3+${{github.run_number}}.apk"
+                tag: v1.2.3+${{github.run_number}}
                 token: ${{secrets.SECRET_KEY}}
