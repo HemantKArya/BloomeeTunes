@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 
+import 'package:Bloomee/model/saavnModel.dart';
+import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:bloc/bloc.dart';
 
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
@@ -11,6 +13,15 @@ import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 
 enum LoadingState { initial, loading, loaded, noInternet }
+
+enum SourceEngine { eng_YTM, eng_YTV, eng_JIS }
+
+class LastSearch {
+  String query;
+  final SourceEngine sourceEngine;
+  List<MediaItemModel> mediaItemList = List.empty(growable: true);
+  LastSearch({required this.query, required this.sourceEngine});
+}
 
 class FetchSearchResultsState extends MediaPlaylist {
   LoadingState loadingState = LoadingState.initial;
@@ -57,9 +68,82 @@ final class FetchSearchResultsLoaded extends FetchSearchResultsState {
 
 class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
   FetchSearchResultsCubit() : super(FetchSearchResultsInitial());
+
+  LastSearch last_YTM_search =
+      LastSearch(query: "", sourceEngine: SourceEngine.eng_YTM);
+  LastSearch last_YTV_search =
+      LastSearch(query: "", sourceEngine: SourceEngine.eng_YTV);
+  LastSearch last_JIS_search =
+      LastSearch(query: "", sourceEngine: SourceEngine.eng_JIS);
+
   List<MediaItemModel> _mediaItemList = List.empty(growable: true);
 
-  Future<void> search(String query) async {
+  Future<void> searchYTM(String query) async {
+    log("Youtube Music Search", name: "FetchSearchRes");
+
+    last_YTM_search.query = query;
+    emit(FetchSearchResultsLoading());
+    final searchResults = await YtMusicService().search(query, filter: "songs");
+    last_YTM_search.mediaItemList =
+        fromYtSongMapList2MediaItemList(searchResults[0]['items']);
+    emit(FetchSearchResultsState(
+        mediaItems: last_YTM_search.mediaItemList,
+        albumName: "Search",
+        loadingState: LoadingState.loaded));
+    log("got all searches ${last_YTM_search.mediaItemList.length}",
+        name: "FetchSearchRes");
+  }
+
+  Future<void> searchYTV(String query) async {
+    log("Youtube Video Search", name: "FetchSearchRes");
+
+    last_YTV_search.query = query;
+    emit(FetchSearchResultsLoading());
+
+    final searchResults = await YouTubeServices().fetchSearchResults(query);
+    last_YTV_search.mediaItemList =
+        (fromYtVidSongMapList2MediaItemList(searchResults[0]['items']));
+    emit(FetchSearchResultsState(
+        mediaItems: last_YTV_search.mediaItemList,
+        albumName: "Search",
+        loadingState: LoadingState.loaded));
+    log("got all searches ${last_YTV_search.mediaItemList.length}",
+        name: "FetchSearchRes");
+  }
+
+  Future<void> searchJIS(String query) async {
+    emit(FetchSearchResultsLoading());
+    log("JIOSaavn Search", name: "FetchSearchRes");
+    final searchResults =
+        await SaavnAPI().fetchSongSearchResults(searchQuery: query);
+    last_JIS_search.mediaItemList =
+        fromSaavnSongMapList2MediaItemList(searchResults['songs']);
+
+    emit(FetchSearchResultsState(
+        mediaItems: last_JIS_search.mediaItemList,
+        albumName: "Search",
+        loadingState: LoadingState.loaded));
+
+    log("got all searches ${last_JIS_search.mediaItemList.length}",
+        name: "FetchSearchRes");
+    // log(" Results ${searchResults}", name: "FetchSearchRes");
+  }
+
+  Future<void> search(String query,
+      {SourceEngine sourceEngine = SourceEngine.eng_YTM}) async {
+    if (sourceEngine == SourceEngine.eng_YTM) {
+      searchYTM(query);
+    } else if (sourceEngine == SourceEngine.eng_YTV) {
+      searchYTV(query);
+    } else if (sourceEngine == SourceEngine.eng_JIS) {
+      searchJIS(query);
+    } else {
+      log("Invalid Source Engine", name: "FetchSearchRes");
+      searchYTM(query);
+    }
+  }
+
+  Future<void> search2(String query) async {
     emit(FetchSearchResultsLoading());
     final searchResults = await YtMusicService().search(query, filter: "songs");
     _mediaItemList = fromYtSongMapList2MediaItemList(searchResults[0]['items']);

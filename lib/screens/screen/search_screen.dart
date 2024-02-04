@@ -1,6 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:Bloomee/repository/Saavn/cubit/saavn_repository_cubit.dart';
 import 'package:Bloomee/repository/cubits/fetch_search_results.dart';
 import 'package:Bloomee/screens/screen/search_views/search_page.dart';
 import 'package:Bloomee/screens/widgets/horizontalSongCard_widget.dart';
@@ -14,6 +15,58 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  int _selectedSearchEngine = 0;
+  SourceEngine _sourceEngine = SourceEngine.eng_JIS;
+  final TextEditingController _textEditingController = TextEditingController();
+
+  Widget sourceEngineRadioButton(
+      String text, int index, SourceEngine sourceEngine) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 10),
+      child: SizedBox(
+        height: 30,
+        child: AnimatedContainer(
+          duration: const Duration(seconds: 1),
+          curve: accelerateEasing,
+          child: OutlinedButton(
+            onPressed: () {
+              setState(() {
+                _selectedSearchEngine = index;
+                _sourceEngine = sourceEngine;
+                if (_textEditingController.text.toString().length > 0) {
+                  log("Search Engine ${sourceEngine.toString()}",
+                      name: "SearchScreen");
+                  context.read<FetchSearchResultsCubit>().search(
+                      _textEditingController.text.toString(),
+                      sourceEngine: sourceEngine);
+                }
+              });
+            },
+            style: OutlinedButton.styleFrom(
+                backgroundColor: _selectedSearchEngine == index
+                    ? Default_Theme.accentColor2
+                    : Colors.transparent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                side: const BorderSide(
+                    color: Default_Theme.accentColor2,
+                    style: BorderStyle.solid,
+                    width: 2)),
+            child: Text(
+              text,
+              style: TextStyle(
+                      color: _selectedSearchEngine == index
+                          ? Default_Theme.primaryColor2
+                          : Default_Theme.accentColor2,
+                      fontSize: 15)
+                  .merge(Default_Theme.secondoryTextStyleMedium),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -22,7 +75,70 @@ class _SearchScreenState extends State<SearchScreen> {
           FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          title: SizedBox(height: 50.0, child: SearchBoxWidget()),
+          shadowColor: Colors.black,
+          bottom: PreferredSize(
+            preferredSize: const Size(100, 20),
+            child: SizedBox(
+              height: 35,
+              width: MediaQuery.of(context).size.width,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 18, right: 18, top: 5, bottom: 5),
+                child: Row(
+                  children: [
+                    sourceEngineRadioButton("JIS", 0, SourceEngine.eng_JIS),
+                    sourceEngineRadioButton("YTM", 1, SourceEngine.eng_YTM),
+                    sourceEngineRadioButton("YTV", 2, SourceEngine.eng_YTV),
+                    // const Spacer()
+                  ],
+                ),
+              ),
+            ),
+          ),
+          title: SizedBox(
+            height: 50.0,
+            child: InkWell(
+              onTap: () {
+                showSearch(
+                        context: context,
+                        delegate: searchPageDelegate(_sourceEngine),
+                        query: _textEditingController.text)
+                    .then((value) {
+                  if ((value as String) != 'null') {
+                    _textEditingController.text = value.toString();
+                  }
+                });
+              },
+              child: TextField(
+                controller: _textEditingController,
+                enabled: false,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Default_Theme.primaryColor1.withOpacity(0.55)),
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                    filled: true,
+                    suffixIcon: Icon(
+                      Icons.search,
+                      color: Default_Theme.primaryColor1.withOpacity(0.4),
+                    ),
+                    fillColor: Default_Theme.primaryColor2.withOpacity(0.07),
+                    contentPadding: const EdgeInsets.only(top: 20),
+                    hintText: "Find your next song obsession...",
+                    hintStyle: TextStyle(
+                        color: Default_Theme.primaryColor1.withOpacity(0.4),
+                        fontFamily: "Gilroy"),
+                    disabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(style: BorderStyle.none),
+                        borderRadius: BorderRadius.circular(50)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color:
+                                Default_Theme.primaryColor1.withOpacity(0.7)),
+                        borderRadius: BorderRadius.circular(50))),
+              ),
+            ),
+          ),
           backgroundColor: Default_Theme.themeColor,
         ),
         backgroundColor: Default_Theme.themeColor,
@@ -45,16 +161,13 @@ class _SearchScreenState extends State<SearchScreen> {
               return ListView.builder(
                 itemCount: state.mediaItems.length,
                 itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {},
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.only(left: 18, bottom: 5, right: 18),
-                      child: HorizontalSongCardWidget(
-                        index: index,
-                        mediaPlaylist: state,
-                        showLiked: true,
-                      ),
+                  return Padding(
+                    padding:
+                        const EdgeInsets.only(left: 18, bottom: 5, right: 18),
+                    child: HorizontalSongCardWidget(
+                      index: index,
+                      mediaPlaylist: state,
+                      showLiked: true,
                     ),
                   );
                 },
@@ -88,57 +201,6 @@ class _SearchScreenState extends State<SearchScreen> {
             }
           },
         ),
-      ),
-    );
-  }
-}
-
-class SearchBoxWidget extends StatelessWidget {
-  SearchBoxWidget({
-    super.key,
-  });
-  final TextEditingController _textEditingController = TextEditingController();
-  // final _focusNode = FocusNode();
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        showSearch(
-                context: context,
-                delegate: searchPageDelegate(),
-                query: _textEditingController.text)
-            .then((value) {
-          if ((value as String) != 'null') {
-            _textEditingController.text = value.toString();
-          }
-        });
-      },
-      child: TextField(
-        controller: _textEditingController,
-        enabled: false,
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Default_Theme.primaryColor1.withOpacity(0.55)),
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-            filled: true,
-            suffixIcon: Icon(
-              Icons.search,
-              color: Default_Theme.primaryColor1.withOpacity(0.4),
-            ),
-            fillColor: Default_Theme.primaryColor2.withOpacity(0.07),
-            contentPadding: const EdgeInsets.only(top: 20),
-            hintText: "What you want to listen?",
-            hintStyle: TextStyle(
-                color: Default_Theme.primaryColor1.withOpacity(0.4),
-                fontFamily: "Gilroy"),
-            disabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(style: BorderStyle.none),
-                borderRadius: BorderRadius.circular(50)),
-            focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                    color: Default_Theme.primaryColor1.withOpacity(0.7)),
-                borderRadius: BorderRadius.circular(50))),
       ),
     );
   }

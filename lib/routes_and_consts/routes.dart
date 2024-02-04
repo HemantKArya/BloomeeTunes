@@ -16,7 +16,7 @@ class GlobalRoutes {
   static final globalRouterKey = GlobalKey<NavigatorState>();
 
   final globalRouter = GoRouter(
-    initialLocation: '/${GlobalStrConsts.exploreScreen}',
+    initialLocation: '/${GlobalStrConsts.searchScreen}',
     navigatorKey: globalRouterKey,
     routes: [
       GoRoute(
