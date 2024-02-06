@@ -55,32 +55,36 @@ void showMediaItemOptions(BuildContext context, MediaItemModel mediaItemModel) {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 5),
-                                child: Text(
+                                padding: const EdgeInsets.only(top: 5),
+                                child: SelectableText(
                                   mediaItemModel.title,
                                   maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                                  // overflow: TextOverflow.ellipsis,
                                   style: Default_Theme.secondoryTextStyle.merge(
                                       const TextStyle(
                                           color: Default_Theme.primaryColor2,
                                           fontWeight: FontWeight.bold,
+                                          overflow: TextOverflow.ellipsis,
                                           fontSize: 20)),
                                 ),
                               ),
-                              Text(
+                              SelectableText(
                                 mediaItemModel.artist ?? "Unknown",
                                 maxLines: 2,
                                 textAlign: TextAlign.start,
-                                overflow: TextOverflow.ellipsis,
+                                // overflow: TextOverflow.ellipsis,
                                 style: Default_Theme.secondoryTextStyle.merge(
                                     TextStyle(
                                         color: Default_Theme.primaryColor2
                                             .withOpacity(0.5),
+                                        overflow: TextOverflow.ellipsis,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18)),
                               ),
+                              // Spacer()
                             ],
                           ),
                         ),

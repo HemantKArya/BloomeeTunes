@@ -3,6 +3,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
@@ -159,26 +160,36 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      snapshot.data?.title ?? "Unknown",
-                                      textAlign: TextAlign.start,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Default_Theme.secondoryTextStyle
-                                          .merge(const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.bold,
-                                              color:
-                                                  Default_Theme.primaryColor1)),
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      clipBehavior: Clip.antiAlias,
+                                      child: SelectableText(
+                                        snapshot.data?.title ?? "Unknown",
+                                        textAlign: TextAlign.start,
+                                        // overflow: TextOverflow.ellipsis,
+                                        style: Default_Theme.secondoryTextStyle
+                                            .merge(const TextStyle(
+                                                fontSize: 24,
+                                                overflow: TextOverflow.ellipsis,
+                                                fontWeight: FontWeight.bold,
+                                                color: Default_Theme
+                                                    .primaryColor1)),
+                                      ),
                                     ),
-                                    Text(
-                                      snapshot.data?.artist ?? "Unknown",
-                                      textAlign: TextAlign.start,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Default_Theme.secondoryTextStyle
-                                          .merge(TextStyle(
-                                              fontSize: 15,
-                                              color: Default_Theme.primaryColor1
-                                                  .withOpacity(0.7))),
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: SelectableText(
+                                        snapshot.data?.artist ?? "Unknown",
+                                        textAlign: TextAlign.start,
+                                        // overflow: TextOverflow.ellipsis,
+                                        style: Default_Theme.secondoryTextStyle
+                                            .merge(TextStyle(
+                                                fontSize: 15,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: Default_Theme
+                                                    .primaryColor1
+                                                    .withOpacity(0.7))),
+                                      ),
                                     )
                                   ],
                                 );

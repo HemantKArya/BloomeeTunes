@@ -40,6 +40,7 @@ dependencies:
   palette_generator: ^0.3.3+2
   audio_video_progress_bar: ^1.0.1
   just_audio: ^0.9.36
+  just_audio_windows: ^0.2.0
   audio_service: ^0.18.12
   audio_session: ^0.1.16
   rxdart: ^0.27.7

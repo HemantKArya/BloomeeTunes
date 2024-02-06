@@ -40,7 +40,7 @@ class HorizontalSongCardWidget extends StatelessWidget {
     return InkWell(
       splashColor: Default_Theme.accentColor2.withOpacity(0.5),
       // focusColor: Default_Theme.accentColor2,
-      hoverColor: Default_Theme.accentColor2,
+      hoverColor: Default_Theme.accentColor2.withOpacity(0.2),
       highlightColor: Default_Theme.accentColor2.withOpacity(0.3),
       onLongPress: () {
         if (mediaPlaylist != null) {
