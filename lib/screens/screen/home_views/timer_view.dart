@@ -14,7 +14,7 @@ class TimerView extends StatelessWidget {
         foregroundColor: Default_Theme.primaryColor1,
         title: Text(
           'Timer',
-          style: TextStyle(
+          style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 25,
                   fontWeight: FontWeight.bold)
@@ -22,7 +22,7 @@ class TimerView extends StatelessWidget {
         ),
       ),
       body: const Center(
-        child: Text('GeeksForGeeks'),
+        child: Text('Bloomee Timer View'),
       ),
     );
   }

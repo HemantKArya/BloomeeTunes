@@ -1,7 +1,10 @@
 import 'dart:developer';
 
+import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/theme_data/default.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
@@ -18,11 +21,16 @@ class MediaDBCubit extends Cubit<MediadbState> {
     addNewPlaylistToDB(MediaPlaylistDB(playlistName: "Liked"));
   }
 
-  Future<void> addNewPlaylistToDB(MediaPlaylistDB mediaPlaylistDB) async {
+  Future<void> addNewPlaylistToDB(MediaPlaylistDB mediaPlaylistDB,
+      {bool undo = false}) async {
     List<String> _list = await getListOfPlaylists();
     if (!_list.contains(mediaPlaylistDB.playlistName)) {
       isarDBService.addPlaylist(mediaPlaylistDB);
       refreshLibrary.add(true);
+      if (!undo) {
+        SnackbarService.showMessage(
+            "Playlist ${mediaPlaylistDB.playlistName} added");
+      }
     }
   }
 
@@ -63,6 +71,11 @@ class MediaDBCubit extends Cubit<MediadbState> {
     refreshLibrary.add(true);
     isarDBService.likeMediaItem(MediaItem2MediaItemDB(mediaItem),
         isLiked: isLiked);
+    if (isLiked) {
+      SnackbarService.showMessage("${mediaItem.title} is Liked!!");
+    } else {
+      SnackbarService.showMessage("${mediaItem.title} is Unliked!!");
+    }
   }
 
   Future<bool> isLiked(MediaItem mediaItem) {
@@ -166,19 +179,41 @@ class MediaDBCubit extends Cubit<MediadbState> {
 
   Future<void> removePlaylist(MediaPlaylistDB mediaPlaylistDB) async {
     isarDBService.removePlaylist(mediaPlaylistDB);
+    SnackbarService.showMessage("${mediaPlaylistDB.playlistName} is Deleted!!",
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: "Undo",
+          textColor: Default_Theme.accentColor2,
+          onPressed: () => addNewPlaylistToDB(mediaPlaylistDB, undo: true),
+        ));
   }
 
   Future<void> removeMediaFromPlaylist(
       MediaItem mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
     MediaItemDB _mediaItemDB = MediaItem2MediaItemDB(mediaItem);
-    isarDBService.removeMediaItem(_mediaItemDB, mediaPlaylistDB);
+    isarDBService.removeMediaItem(_mediaItemDB, mediaPlaylistDB).then((value) {
+      SnackbarService.showMessage(
+          "${mediaItem.title} is removed from ${mediaPlaylistDB.playlistName}!!",
+          duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+              label: "Undo",
+              textColor: Default_Theme.accentColor2,
+              onPressed: () => addMediaItemToPlaylist(
+                  MediaItemDB2MediaItem(_mediaItemDB), mediaPlaylistDB,
+                  undo: true)));
+    });
   }
 
   Future<void> addMediaItemToPlaylist(
-      MediaItemModel mediaItemModel, MediaPlaylistDB mediaPlaylistDB) async {
+      MediaItemModel mediaItemModel, MediaPlaylistDB mediaPlaylistDB,
+      {bool undo = false}) async {
     isarDBService.addMediaItem(
         MediaItem2MediaItemDB(mediaItemModel), mediaPlaylistDB);
     refreshLibrary.add(true);
+    if (!undo) {
+      SnackbarService.showMessage(
+          "${mediaItemModel.title} is added to ${mediaPlaylistDB.playlistName}!!");
+    }
   }
 
   @override

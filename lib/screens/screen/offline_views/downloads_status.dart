@@ -14,7 +14,7 @@ class DownloadsView extends StatelessWidget {
         foregroundColor: Default_Theme.primaryColor1,
         title: Text(
           'Downloads',
-          style: TextStyle(
+          style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 25,
                   fontWeight: FontWeight.bold)
@@ -22,7 +22,7 @@ class DownloadsView extends StatelessWidget {
         ),
       ),
       body: const Center(
-        child: Text('GeeksForGeeks'),
+        child: Text('Bloomee Downloads View'),
       ),
     );
   }

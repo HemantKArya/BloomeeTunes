@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
@@ -81,6 +82,7 @@ class _MyAppState extends State<MyApp> {
                   width: 50, height: 50, child: CircularProgressIndicator());
             } else {
               return MaterialApp.router(
+                scaffoldMessengerKey: SnackbarService.messengerKey,
                 routerConfig: GlobalRoutes().globalRouter,
               );
             }
