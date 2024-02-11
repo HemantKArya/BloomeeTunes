@@ -13,6 +13,7 @@ import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
 import '../../routes_and_consts/global_str_consts.dart';
@@ -361,10 +362,19 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                               size: 35,
                             ),
                           ),
-                          const Icon(
-                            FluentIcons.open_48_filled,
-                            color: Default_Theme.primaryColor1,
-                            size: 35,
+                          InkWell(
+                            child: const Icon(
+                              FluentIcons.open_48_filled,
+                              color: Default_Theme.primaryColor1,
+                              size: 35,
+                            ),
+                            onTap: () {
+                              launchUrlString(context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .currentMedia
+                                  .extras?['perma_url']);
+                            },
                           )
                         ],
                       ),

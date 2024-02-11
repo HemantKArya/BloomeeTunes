@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/utils/url_launcher.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +11,9 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void showMediaItemOptions(BuildContext context, MediaItemModel mediaItemModel) {
   showMaterialModalBottomSheet(
@@ -24,7 +28,7 @@ void showMediaItemOptions(BuildContext context, MediaItemModel mediaItemModel) {
         // borderRadius: const BorderRadius.only(
         //     topLeft: Radius.circular(40), topRight: Radius.circular(40)),
         child: Container(
-          height: (MediaQuery.of(context).size.height * 0.45) + 10,
+          height: (MediaQuery.of(context).size.height * 0.45) + 15,
           color: Default_Theme.accentColor2,
           child: Column(children: [
             const Spacer(),
@@ -33,7 +37,7 @@ void showMediaItemOptions(BuildContext context, MediaItemModel mediaItemModel) {
                 //     topLeft: Radius.circular(42),
                 //     topRight: Radius.circular(42)),
                 child: Container(
-              height: MediaQuery.of(context).size.height * 0.45,
+              height: MediaQuery.of(context).size.height * 0.46,
               width: MediaQuery.of(context).size.width,
               color: Default_Theme.themeColor,
               child: Column(
@@ -111,14 +115,28 @@ void showMediaItemOptions(BuildContext context, MediaItemModel mediaItemModel) {
                     ),
                   ),
                   const OptionIconBtn(
-                      btnName: "Like",
-                      btnIconData: FluentIcons.heart_48_regular),
-                  const OptionIconBtn(
                       btnName: "Save Offline",
                       btnIconData: FluentIcons.arrow_download_48_filled),
-                  const OptionIconBtn(
+                  InkWell(
+                    child: const OptionIconBtn(
                       btnName: "Share with others",
-                      btnIconData: FluentIcons.share_48_filled)
+                      btnIconData: FluentIcons.share_48_filled,
+                    ),
+                    onTap: () {
+                      Share.share(
+                        "Check out this song on Bloomee\n${mediaItemModel.title} by ${mediaItemModel.artist}\n${mediaItemModel.extras?['perma_url']}",
+                      );
+                    },
+                  ),
+                  InkWell(
+                    child: const OptionIconBtn(
+                      btnName: "Open in Browser",
+                      btnIconData: Icons.open_in_browser_outlined,
+                    ),
+                    onTap: () {
+                      launchUrl(Uri.parse(mediaItemModel.extras?['perma_url']));
+                    },
+                  )
                 ],
               ),
             ))
