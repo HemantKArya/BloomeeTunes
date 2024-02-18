@@ -116,7 +116,7 @@ class _MyAppState extends State<MyApp> {
       _sharedFiles.clear();
       _sharedFiles.addAll(event);
       log(_sharedFiles[0].mimeType.toString(), name: "Shared Files Offline");
-      log(_sharedFiles[0].path, name: "Shared Files");
+      log(_sharedFiles[0].path, name: "Shared Files Offline");
       ProcessIncomingIntent(_sharedFiles);
     });
   }
