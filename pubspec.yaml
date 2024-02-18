@@ -59,6 +59,7 @@ dependencies:
   package_info_plus: ^4.2.0
   url_launcher: ^6.2.1
   share_plus: ^7.2.2
+  receive_sharing_intent: ^1.6.7
 
 
 
