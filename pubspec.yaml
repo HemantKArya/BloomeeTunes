@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.2.4+0
+version: 1.2.5+0
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
@@ -76,22 +76,37 @@ dev_dependencies:
   flutter_lints: ^2.0.2
   isar_generator: ^3.1.0+1
   build_runner: any
-  flutter_launcher_icons: "^0.13.1"
+  flutter_launcher_icons: ^0.13.1
+  # icons_launcher: ^2.1.7
 
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+# dart run icons_launcher:create
+# icons_launcher:
+#   image_path: "assets/icons/new_bloomee_logo_zoomedout.png"
+#   platforms:
+#     android:
+#       enable: true
+#       adaptive_icon_background: "assets/icons/bloomee_new_logo_gradient_bg.png"
+#       adaptive_icon_foreground: "assets/icons/new_bloomee_logo_zoomedout.png"
+#       adaptive_monochrome_image: "assets/icons/new_bloomee_logo_mono.png"
+#     ios:
+#       enable: true
+#     windows:
+#       enable: true
+
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  adaptive_icon_background: "assets/icons/Bloomee_Logo_back_5.png"
-  adaptive_icon_foreground: "assets/icons/Bloomee_Logo_mini.png"
-  image_path: "assets/icons/Bloomee_Logo_masked.png"
+  adaptive_icon_background: "assets/icons/bloomee_new_logo_gradient_bg.png"
+  adaptive_icon_foreground: "assets/icons/new_bloomee_logo_zoomedout.png"
+  image_path: "assets/icons/bloomee_new_logo_transparent_c.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
 
   macos:
     generate: true
-    image_path: "assets/icons/Bloomee_Logo.png"
+    image_path: "assets/icons/bloomee_new_logo_c.png"
 
 # The following section is specific to Flutter packages.
 flutter:
