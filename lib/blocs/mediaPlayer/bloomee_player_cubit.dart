@@ -54,9 +54,9 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
   @override
   Future<void> close() {
     EasyDebounce.cancelAll();
-    bloomeePlayer.audioPlayer.dispose();
-    bloomeePlayer.currentQueueName.close();
     bloomeePlayer.stop();
+    bloomeePlayer.currentQueueName.close();
+    bloomeePlayer.audioPlayer.dispose();
     return super.close();
   }
 }

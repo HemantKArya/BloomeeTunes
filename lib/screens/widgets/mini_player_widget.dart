@@ -190,7 +190,6 @@ class MiniPlayerWidget extends StatelessWidget {
                         onPressed: () => context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .audioPlayer
                             .stop(),
                         icon: const Icon(
                           Icons.close_rounded,

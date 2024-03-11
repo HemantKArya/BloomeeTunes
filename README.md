@@ -1,4 +1,4 @@
- ![BloomeeTunes](./assets/icons/Bloomee_Logo_cover.png)
+ ![BloomeeTunes](./assets/icons/new_bloomee_bamnner.png)
 # **Bloomee Music 🌸🎶**
 
 Bloomee is my experimental Flutter project, a music app to learn Flutter for My future projects and designed to bring you ad-free tunes from various sources. Dive into a world of limitless music from platforms like YouTube and Jio Saavn, with more sources blooming soon! 🌼🎵

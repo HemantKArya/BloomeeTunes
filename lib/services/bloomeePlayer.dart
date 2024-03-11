@@ -156,7 +156,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> stop() async {
     // log("Called Stop!!");
-    // audioPlayer.stop();
+    audioPlayer.stop();
     super.stop();
   }
 
@@ -177,6 +177,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onNotificationDeleted() {
+    audioPlayer.dispose();
     audioPlayer.stop();
     super.stop();
 

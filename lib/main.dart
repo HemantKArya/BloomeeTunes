@@ -5,7 +5,9 @@ import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
@@ -58,7 +60,7 @@ void ProcessIncomingIntent(List<SharedMediaFile> _sharedFiles) {
         if (value != null) {
           YouTubeServices()
               .formatVideo(video: value, quality: "High")
-              .then((value) {
+              .then((value) async {
             if (value != null) {
               MediaItemModel _mIM = fromYtVidSongMap2MediaItem(value);
               MediaPlaylist _tempPlaylist = MediaPlaylist(
@@ -66,6 +68,9 @@ void ProcessIncomingIntent(List<SharedMediaFile> _sharedFiles) {
                 mediaItems: [_mIM],
               );
               log(_mIM.title, name: "Shared Files");
+              await bloomeePlayerCubit.bloomeePlayer
+                  .loadPlaylist(_tempPlaylist, doPlay: true);
+              GlobalRoutes.globalRouter.pushNamed(GlobalStrConsts.playerScreen);
             }
           });
         }
@@ -74,13 +79,21 @@ void ProcessIncomingIntent(List<SharedMediaFile> _sharedFiles) {
   }
 }
 
+late BloomeePlayerCubit bloomeePlayerCubit;
+void setupPlayerCubit() {
+  bloomeePlayerCubit = BloomeePlayerCubit();
+}
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   try {
     dotenv.load(fileName: "assets/.env");
   } on Exception catch (e) {
     log("error $e");
     dotenv.load(mergeWith: io.Platform.environment);
   }
+  setupPlayerCubit();
   runApp(const MyApp());
 }
 
@@ -107,6 +120,7 @@ class _MyAppState extends State<MyApp> {
       log(_sharedFiles[0].mimeType.toString(), name: "Shared Files");
       log(_sharedFiles[0].path, name: "Shared Files");
       ProcessIncomingIntent(_sharedFiles);
+
       // Tell the library that we are done processing the intent.
       ReceiveSharingIntent.reset();
     });
@@ -118,7 +132,16 @@ class _MyAppState extends State<MyApp> {
       log(_sharedFiles[0].mimeType.toString(), name: "Shared Files Offline");
       log(_sharedFiles[0].path, name: "Shared Files Offline");
       ProcessIncomingIntent(_sharedFiles);
+      ReceiveSharingIntent.reset();
     });
+  }
+
+  @override
+  void dispose() {
+    _intentSub.cancel();
+    bloomeePlayerCubit.bloomeePlayer.audioPlayer.dispose();
+    bloomeePlayerCubit.close();
+    super.dispose();
   }
 
   @override
@@ -126,7 +149,7 @@ class _MyAppState extends State<MyApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => BloomeePlayerCubit(),
+          create: (context) => bloomeePlayerCubit,
           lazy: false,
         ),
         BlocProvider(
@@ -169,7 +192,7 @@ class _MyAppState extends State<MyApp> {
             } else {
               return MaterialApp.router(
                 scaffoldMessengerKey: SnackbarService.messengerKey,
-                routerConfig: GlobalRoutes().globalRouter,
+                routerConfig: GlobalRoutes.globalRouter,
               );
             }
           },

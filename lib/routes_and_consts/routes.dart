@@ -14,7 +14,7 @@ import 'package:Bloomee/screens/widgets/global_navbar.dart';
 class GlobalRoutes {
   static final globalRouterKey = GlobalKey<NavigatorState>();
 
-  final globalRouter = GoRouter(
+  static final globalRouter = GoRouter(
     initialLocation: '/${GlobalStrConsts.exploreScreen}',
     navigatorKey: globalRouterKey,
     routes: [
