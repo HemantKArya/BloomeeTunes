@@ -1,9 +1,9 @@
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:Bloomee/screens/widgets/like_widget.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
@@ -12,10 +12,8 @@ import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
 import '../widgets/mediaItemOptions_bottomsheet.dart';
-import '../widgets/unicode_icons.dart';
 
 class AudioPlayerView extends StatefulWidget {
   const AudioPlayerView({super.key});
@@ -47,9 +45,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                         .bloomeePlayer
                         .currentMedia);
               },
-              icon: UnicodeIcon(
-                  strCode: "\uf142",
-                  fontColor: Default_Theme.primaryColor2.withOpacity(1)))
+              icon: const Icon(MingCute.more_2_fill,
+                  size: 25, color: Default_Theme.primaryColor1))
         ],
         title: Column(
           children: [
@@ -290,17 +287,17 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                           InkWell(
                             onTap: () => musicPlayer.rewind(),
                             child: const Icon(
-                              FluentIcons.replay_20_regular,
+                              MingCute.refresh_4_line,
                               color: Default_Theme.primaryColor1,
-                              size: 35,
+                              size: 40,
                             ),
                           ),
                           InkWell(
                             onTap: () => musicPlayer.skipToPrevious(),
                             child: const Icon(
-                              FluentIcons.previous_48_filled,
+                              MingCute.skip_previous_fill,
                               color: Default_Theme.primaryColor1,
-                              size: 35,
+                              size: 40,
                             ),
                           ),
                           StreamBuilder(
@@ -354,16 +351,16 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                           InkWell(
                             onTap: () => musicPlayer.skipToNext(),
                             child: const Icon(
-                              FluentIcons.next_48_filled,
+                              MingCute.skip_forward_fill,
                               color: Default_Theme.primaryColor1,
-                              size: 35,
+                              size: 40,
                             ),
                           ),
                           InkWell(
                             child: const Icon(
-                              FluentIcons.open_48_filled,
+                              MingCute.external_link_line,
                               color: Default_Theme.primaryColor1,
-                              size: 35,
+                              size: 40,
                             ),
                             onTap: () {
                               launchUrlString(context

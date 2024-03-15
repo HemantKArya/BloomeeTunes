@@ -1,7 +1,7 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:marquee/marquee.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
@@ -159,7 +159,7 @@ class MiniPlayerWidget extends StatelessWidget {
                                   .bloomeePlayer
                                   .pause(),
                               child: const Icon(
-                                FluentIcons.pause_48_filled,
+                                FontAwesome.pause_solid,
                                 size: 30,
                                 color: Default_Theme.primaryColor2,
                               ),
@@ -175,7 +175,7 @@ class MiniPlayerWidget extends StatelessWidget {
                                   .bloomeePlayer
                                   .play(),
                               child: const Icon(
-                                FluentIcons.play_48_filled,
+                                MingCute.play_fill,
                                 size: 30,
                                 color: Default_Theme.primaryColor2,
                               ),
@@ -192,7 +192,7 @@ class MiniPlayerWidget extends StatelessWidget {
                             .bloomeePlayer
                             .stop(),
                         icon: const Icon(
-                          Icons.close_rounded,
+                          MingCute.close_fill,
                           size: 30,
                           color: Default_Theme.primaryColor2,
                         ),

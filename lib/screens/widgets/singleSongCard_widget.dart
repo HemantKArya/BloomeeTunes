@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:Bloomee/screens/widgets/like_widget.dart';
-import 'package:Bloomee/screens/widgets/unicode_icons.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class SingleSongCardWidget extends StatelessWidget {
   final String titleText;
@@ -94,10 +94,7 @@ class SingleSongCardWidget extends StatelessWidget {
               ),
               Visibility(
                   visible: showOptions,
-                  child: UnicodeIcon(
-                    strCode: "\uf142",
-                    fontColor: Default_Theme.primaryColor2.withOpacity(0.7),
-                  )),
+                  child: const Icon(MingCute.more_2_fill)),
             ],
           )
         ],

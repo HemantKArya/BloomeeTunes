@@ -6,10 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/screens/widgets/like_widget.dart';
-import 'package:Bloomee/screens/widgets/unicode_icons.dart';
 import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'mediaItemOptions_bottomsheet.dart';
@@ -38,10 +38,10 @@ class HorizontalSongCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      splashColor: Default_Theme.accentColor2.withOpacity(0.5),
+      splashColor: Default_Theme.accentColor2.withOpacity(0.1),
       // focusColor: Default_Theme.accentColor2,
-      hoverColor: Default_Theme.accentColor2.withOpacity(0.2),
-      highlightColor: Default_Theme.accentColor2.withOpacity(0.3),
+      hoverColor: Default_Theme.accentColor2.withOpacity(0.1),
+      highlightColor: Default_Theme.accentColor2.withOpacity(0.1),
       onLongPress: () {
         if (mediaPlaylist != null) {
           showMediaItemOptions(context, mediaPlaylist!.mediaItems[index]);
@@ -227,7 +227,8 @@ class HorizontalSongCardWidget extends StatelessWidget {
                       return Visibility(
                         visible: false,
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 8.0, bottom: 3),
+                          padding: const EdgeInsets.only(
+                              left: 8.0, bottom: 3, right: 5.0),
                           child: LikeBtnWidget(
                             isLiked: isLiked,
                             iconSize: 29,
@@ -241,10 +242,8 @@ class HorizontalSongCardWidget extends StatelessWidget {
                 ),
                 Visibility(
                     visible: showOptions,
-                    child: UnicodeIcon(
-                      strCode: "\uf142",
-                      fontColor: Default_Theme.primaryColor2.withOpacity(0.7),
-                    )),
+                    child: const Icon(MingCute.more_2_fill,
+                        color: Default_Theme.accentColor2, size: 30.0)),
               ],
             )
           ],

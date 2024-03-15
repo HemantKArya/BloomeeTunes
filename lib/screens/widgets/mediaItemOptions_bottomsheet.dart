@@ -1,8 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 
@@ -109,16 +109,16 @@ void showMediaItemOptions(BuildContext context, MediaItemModel mediaItemModel) {
                     },
                     child: const OptionIconBtn(
                       btnName: "Add to Playlist",
-                      btnIconData: FluentIcons.library_24_filled,
+                      btnIconData: MingCute.album_2_fill,
                     ),
                   ),
                   const OptionIconBtn(
                       btnName: "Save Offline",
-                      btnIconData: FluentIcons.arrow_download_48_filled),
+                      btnIconData: MingCute.download_2_fill),
                   InkWell(
                     child: const OptionIconBtn(
                       btnName: "Share with others",
-                      btnIconData: FluentIcons.share_48_filled,
+                      btnIconData: MingCute.share_2_line,
                     ),
                     onTap: () {
                       Share.share(
@@ -129,7 +129,7 @@ void showMediaItemOptions(BuildContext context, MediaItemModel mediaItemModel) {
                   InkWell(
                     child: const OptionIconBtn(
                       btnName: "Open in Browser",
-                      btnIconData: Icons.open_in_browser_outlined,
+                      btnIconData: MingCute.chrome_fill,
                     ),
                     onTap: () {
                       launchUrl(Uri.parse(mediaItemModel.extras?['perma_url']));
@@ -164,7 +164,7 @@ class OptionIconBtn extends StatelessWidget {
         children: [
           Icon(
             btnIconData,
-            size: 35,
+            size: 30,
             color: Default_Theme.primaryColor1,
           ),
           Padding(

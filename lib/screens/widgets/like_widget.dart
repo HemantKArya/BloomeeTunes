@@ -1,7 +1,7 @@
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'dart:developer';
 import 'package:flutter/material.dart';
-
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 // ignore: must_be_immutable
 class LikeBtnWidget extends StatefulWidget {
@@ -33,10 +33,10 @@ class _LikeBtnWidgetState extends State<LikeBtnWidget> {
           widget.isLiked = !widget.isLiked;
           if (widget.isLiked) {
             widget.onLiked!();
-            print("Liked");
+            log("Liked");
           } else {
             widget.onDisliked!();
-            print("DisLiked");
+            log("DisLiked");
           }
         });
       },
@@ -56,12 +56,12 @@ Icon heartIcon(
     {isliked = false, color = Default_Theme.accentColor2, size = 50}) {
   return isliked
       ? Icon(
-          FluentIcons.heart_48_filled,
+          AntDesign.heart_fill,
           color: color,
           size: size,
         )
       : Icon(
-          FluentIcons.heart_48_regular,
+          AntDesign.heart_outline,
           color: color,
           size: size,
         );

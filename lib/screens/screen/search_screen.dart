@@ -1,13 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:Bloomee/repository/cubits/fetch_search_results.dart';
 import 'package:Bloomee/screens/screen/search_views/search_page.dart';
 import 'package:Bloomee/screens/widgets/horizontalSongCard_widget.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class SearchScreen extends StatefulWidget {
   String searchQuery = "";
@@ -136,7 +135,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 decoration: InputDecoration(
                     filled: true,
                     suffixIcon: Icon(
-                      Icons.search,
+                      MingCute.search_2_fill,
                       color: Default_Theme.primaryColor1.withOpacity(0.4),
                     ),
                     fillColor: Default_Theme.primaryColor2.withOpacity(0.07),
@@ -185,12 +184,31 @@ class _SearchScreenState extends State<SearchScreen> {
                 );
               } else {
                 return Center(
-                  child: Text(
-                    "No results found!\nTry another keyword or source engine!",
-                    textAlign: TextAlign.center,
-                    style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
-                        color: Default_Theme.primaryColor2.withOpacity(0.7),
-                        fontSize: 14)),
+                  child: Wrap(
+                    children: [
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(
+                              MingCute.sweats_line,
+                              color:
+                                  Default_Theme.primaryColor2.withOpacity(0.7),
+                              size: 40,
+                            ),
+                          ),
+                          Text(
+                            "No results found!\nTry another keyword or source engine!",
+                            textAlign: TextAlign.center,
+                            style: Default_Theme.tertiaryTextStyle.merge(
+                                TextStyle(
+                                    color: Default_Theme.primaryColor2
+                                        .withOpacity(0.7),
+                                    fontSize: 14)),
+                          ),
+                        ],
+                      )
+                    ],
                   ),
                 );
               }

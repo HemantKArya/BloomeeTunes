@@ -4,8 +4,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/screens/widgets/unicode_icons.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class CaraouselWidget extends StatefulWidget {
   CaraouselWidget({
@@ -43,7 +43,10 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                               fontWeight: FontWeight.bold,
                               fontSize: 19)),
                     ),
-                    const UnicodeIcon(strCode: "\uf0e7"),
+                    const Icon(
+                      FontAwesome.bolt_lightning_solid,
+                      color: Default_Theme.primaryColor1,
+                    ),
                   ],
                 ),
               ),

@@ -1,8 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class PlayPauseButton extends StatefulWidget {
   final double size;
@@ -42,7 +42,7 @@ class _PlayPauseButtonState extends State<PlayPauseButton> {
     return GestureDetector(
       onTap: _togglePlayPause,
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 500),
         child: Container(
           decoration: BoxDecoration(
             boxShadow: [
@@ -55,12 +55,12 @@ class _PlayPauseButtonState extends State<PlayPauseButton> {
           height: _size,
           child: _isPlaying
               ? const Icon(
-                  FluentIcons.pause_48_filled,
+                  FontAwesome.pause_solid,
                   size: 35,
                   color: Default_Theme.primaryColor1,
                 )
               : const Icon(
-                  FluentIcons.play_48_filled,
+                  MingCute.play_fill,
                   size: 35,
                   color: Default_Theme.primaryColor1,
                 ),

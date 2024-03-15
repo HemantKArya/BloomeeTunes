@@ -1,12 +1,7 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-// import 'package:feather_icons/feather_icons.dart';
-// import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/screen/offline_views/downloads_status.dart';
-
 import 'package:Bloomee/theme_data/default.dart';
-// import 'package:unicons/unicons.dart';
-import '../widgets/unicode_icons.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class OfflineScreen extends StatelessWidget {
   const OfflineScreen({super.key});
@@ -18,8 +13,8 @@ class OfflineScreen extends StatelessWidget {
           customDiscoverBar(context), //AppBar
           SliverList(
               delegate: SliverChildListDelegate([
-            Text(
-              "data",
+            const Text(
+              "Coming Soon...",
               style: TextStyle(fontSize: 600),
             )
           ]))
@@ -41,22 +36,16 @@ class OfflineScreen extends StatelessWidget {
               style: Default_Theme.primaryTextStyle.merge(const TextStyle(
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),
-          const UnicodeIcon(
-            strCode: "\uf002",
-            font: Default_Theme.fontAwesomeSolidFont,
-            fontSize: 24.0,
-            padding: EdgeInsets.only(left: 15),
-          ),
           InkWell(
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => DownloadsView()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const DownloadsView()));
             },
-            child: const UnicodeIcon(
-              strCode: "\uf019",
-              font: Default_Theme.fontAwesomeSolidFont,
-              fontSize: 25.0,
-              padding: EdgeInsets.only(left: 15, right: 5),
+            child: const Icon(
+              FontAwesome.download_solid,
+              size: 25,
             ),
           ),
         ],

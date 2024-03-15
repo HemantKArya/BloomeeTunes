@@ -3,9 +3,9 @@ import 'package:Bloomee/screens/screen/home_views/notification_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_view.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:icons_plus/icons_plus.dart';
 import '../widgets/carousal_widget.dart';
 import '../widgets/tabList_widget.dart';
-import '../widgets/unicode_icons.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
@@ -44,49 +44,42 @@ class ExploreScreen extends StatelessWidget {
               style: Default_Theme.primaryTextStyle.merge(const TextStyle(
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),
-          InkWell(
-            splashColor: Colors.transparent,
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const NotificationView()));
-            },
-            child: const UnicodeIcon(
-              strCode: "\uf0f3",
-              font: Default_Theme.fontAwesomeRegularFont,
-              fontSize: 25.0,
-              padding: EdgeInsets.only(left: 15),
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: InkWell(
+              splashColor: Colors.transparent,
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const NotificationView()));
+              },
+              child: const Icon(MingCute.notification_line,
+                  color: Default_Theme.primaryColor1, size: 30.0),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: InkWell(
+              splashColor: Colors.transparent,
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const TimerView()));
+              },
+              child: const Icon(MingCute.stopwatch_line,
+                  color: Default_Theme.primaryColor1, size: 30.0),
             ),
           ),
           InkWell(
-            splashColor: Colors.transparent,
-            onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const TimerView()));
-            },
-            child: const UnicodeIcon(
-              strCode: "\uf1da",
-              font: Default_Theme.fontAwesomeSolidFont,
-              fontSize: 24.0,
-              padding: EdgeInsets.only(left: 15),
-            ),
-          ),
-          InkWell(
-            splashColor: Colors.transparent,
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const SettingsView()));
-            },
-            child: const UnicodeIcon(
-              strCode: "\uf013",
-              font: Default_Theme.fontAwesomeSolidFont,
-              fontSize: 25.0,
-              padding: EdgeInsets.only(left: 15, right: 5),
-            ),
-          ),
+              splashColor: Colors.transparent,
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SettingsView()));
+              },
+              child: const Icon(MingCute.settings_3_line,
+                  color: Default_Theme.primaryColor1, size: 30.0)),
         ],
       ),
     );
