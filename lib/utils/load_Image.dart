@@ -61,15 +61,25 @@ CachedNetworkImage loadImageCached(coverImageURL,
             return SizedBox(
               height: constraints.maxWidth,
               width: constraints.maxWidth,
-              child: const CircularProgressIndicator(
-                  color: Default_Theme.accentColor2),
+              child: const AspectRatio(
+                aspectRatio: 1.0,
+                child: Center(
+                  child: CircularProgressIndicator(
+                      color: Default_Theme.accentColor2),
+                ),
+              ),
             );
           } else {
             return SizedBox(
               height: constraints.maxHeight,
               width: constraints.maxHeight,
-              child: const CircularProgressIndicator(
-                  color: Default_Theme.accentColor2),
+              child: const AspectRatio(
+                aspectRatio: 1.0,
+                child: Center(
+                  child: CircularProgressIndicator(
+                      color: Default_Theme.accentColor2),
+                ),
+              ),
             );
           }
         },
