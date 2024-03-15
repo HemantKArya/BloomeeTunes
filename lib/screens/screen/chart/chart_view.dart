@@ -5,7 +5,7 @@ import 'package:Bloomee/plugins/billboard_charts.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
-class ChartScreen extends StatelessWidget {
+class ChartScreen extends StatefulWidget {
   ChartInfo? chartInfo;
   ChartScreen({Key? key, this.chartInfo}) : super(key: key) {
     chartInfo ??= ChartInfo(
@@ -15,6 +15,19 @@ class ChartScreen extends StatelessWidget {
       imgUrl: billboardRandomIMGs.getImage(),
     );
   }
+
+  @override
+  State<ChartScreen> createState() => _ChartScreenState();
+}
+
+class _ChartScreenState extends State<ChartScreen> {
+  late Future _chartData;
+  @override
+  void initState() {
+    super.initState();
+    _chartData = widget.chartInfo!.chartFunction(url: widget.chartInfo!.url);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +37,7 @@ class ChartScreen extends StatelessWidget {
           SliverList(
               delegate: SliverChildListDelegate([
             FutureBuilder(
-                future: chartInfo!.chartFunction(url: chartInfo!.url),
+                future: _chartData,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -70,7 +83,7 @@ class ChartScreen extends StatelessWidget {
         centerTitle: false,
         titlePadding:
             const EdgeInsets.only(left: 8, bottom: 0, right: 0, top: 0),
-        title: Text(chartInfo!.title,
+        title: Text(widget.chartInfo!.title,
             textScaleFactor: 1,
             textAlign: TextAlign.start,
             style: Default_Theme.secondoryTextStyleMedium.merge(const TextStyle(
@@ -80,7 +93,8 @@ class ChartScreen extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                    image: NetworkImage(chartInfo!.imgUrl), fit: BoxFit.cover),
+                    image: NetworkImage(widget.chartInfo!.imgUrl),
+                    fit: BoxFit.cover),
               ),
             ),
             Positioned.fill(

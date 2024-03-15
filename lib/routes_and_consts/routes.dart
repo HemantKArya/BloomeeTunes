@@ -107,6 +107,8 @@ class GlobalRoutes {
                   ]),
             ]),
             StatefulShellBranch(routes: [
+              // create stateful shell branch for search screen
+
               GoRoute(
                 name: GlobalStrConsts.searchScreen,
                 path: '/Search',
