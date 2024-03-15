@@ -36,7 +36,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                 child: Row(
                   children: [
                     Text(
-                      "Trendings",
+                      "Featured",
                       style: Default_Theme.secondoryTextStyle.merge(
                           const TextStyle(
                               color: Default_Theme.primaryColor1,

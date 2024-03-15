@@ -66,7 +66,7 @@ class _TabSongListWidgetState extends State<TabSongListWidget>
                     child: Padding(
                       padding: const EdgeInsets.only(left: 10, right: 10),
                       child: Text(
-                        "Liked",
+                        "Trending",
                         style: Default_Theme.secondoryTextStyle.merge(
                             const TextStyle(
                                 color: Default_Theme.primaryColor1,
@@ -114,9 +114,11 @@ class SongListWidget extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.only(right: 70),
                   child: SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: CircularProgressIndicator()),
+                      height: 60,
+                      width: 60,
+                      child: CircularProgressIndicator(
+                        color: Default_Theme.accentColor2,
+                      )),
                 ),
               );
             } else {
