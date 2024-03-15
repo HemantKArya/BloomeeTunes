@@ -2,8 +2,15 @@ import 'package:Bloomee/plugins/billboard_charts.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
 import 'package:Bloomee/plugins/last_dot_fm_charts.dart';
 import 'package:Bloomee/plugins/melon_charts.dart';
+import 'package:Bloomee/plugins/spotify_top50_chart.dart';
 
 final List<ChartInfo> chartInfoList = [
+  ChartInfo(
+    chartFunction: getSpotifyTop50Chart,
+    imgUrl: spotifyRandomIMGs.getImage(),
+    title: SpotifyCharts.TOP_50.title,
+    url: SpotifyCharts.TOP_50.url,
+  ),
   ChartInfo(
     chartFunction: getLastFmCharts,
     imgUrl: lastfmRandomIMGs.getImage(),
@@ -28,18 +35,18 @@ final List<ChartInfo> chartInfoList = [
     title: MelonCharts.DOMESTIC_MONTHLY.title,
     url: MelonCharts.DOMESTIC_MONTHLY.url,
   ),
-  ChartInfo(
-    chartFunction: getMelonChart,
-    imgUrl: melonRandomIMGs.getImage(),
-    title: MelonCharts.GENREOMICS_DAILY.title,
-    url: MelonCharts.GENREOMICS_DAILY.url,
-  ),
-  ChartInfo(
-    chartFunction: getMelonChart,
-    imgUrl: melonRandomIMGs.getImage(),
-    title: MelonCharts.GENREOMICS_WEEKLY.title,
-    url: MelonCharts.GENREOMICS_WEEKLY.url,
-  ),
+  // ChartInfo(
+  //   chartFunction: getMelonChart,
+  //   imgUrl: melonRandomIMGs.getImage(),
+  //   title: MelonCharts.GENREOMICS_DAILY.title,
+  //   url: MelonCharts.GENREOMICS_DAILY.url,
+  // ),
+  // ChartInfo(
+  //   chartFunction: getMelonChart,
+  //   imgUrl: melonRandomIMGs.getImage(),
+  //   title: MelonCharts.GENREOMICS_WEEKLY.title,
+  //   url: MelonCharts.GENREOMICS_WEEKLY.url,
+  // ),
   ChartInfo(
     chartFunction: getMelonChart,
     imgUrl: melonRandomIMGs.getImage(),
