@@ -140,11 +140,11 @@ flutter:
           weight: 400
         - asset: assets/fonts/Unageo/Unageo-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Unageo/Unageo-SemiBold.ttf
+        - asset: assets/fonts/Unageo/Unageo-Semibold.ttf
           weight: 600
         - asset: assets/fonts/Unageo/Unageo-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Unageo/Unageo-ExtraBold.ttf
+        - asset: assets/fonts/Unageo/Unageo-Extrabold.ttf
           weight: 800
         - asset: assets/fonts/Unageo/Unageo-Black.ttf
           weight: 900
