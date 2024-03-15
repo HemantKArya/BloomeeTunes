@@ -31,43 +31,49 @@ class _ChartScreenState extends State<ChartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          customDiscoverBar(context), //AppBar
-          SliverList(
-              delegate: SliverChildListDelegate([
-            FutureBuilder(
-                future: _chartData,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else if (snapshot.hasData) {
-                    final List<Map<String, String>>? melon = snapshot.data;
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: melon?.length,
-                      itemBuilder: (context, index) {
-                        return ChartListTile(
-                          title: melon![index]['title']!,
-                          subtitle: melon[index]['label']!,
-                          imgUrl: melon[index]['img']!,
-                        );
-                      },
-                    );
-                  } else {
-                    return Center(
-                      child: Text(
-                        'Error: ${snapshot.error}',
-                        style: Default_Theme.primaryTextStyle,
-                      ),
-                    );
-                  }
-                }),
-          ]))
-        ],
+      body: FutureBuilder(
+        future: _chartData,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: SizedBox(
+                  height: 50,
+                  width: 50,
+                  child: CircularProgressIndicator(
+                    color: Default_Theme.accentColor2,
+                  )),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                "Error: ${snapshot.error}",
+                style: Default_Theme.secondoryTextStyleMedium,
+              ),
+            );
+          } else {
+            final List<Map<String, String>>? melon = snapshot.data;
+            return CustomScrollView(
+              slivers: [
+                customDiscoverBar(context), //AppBar
+                SliverList(
+                    delegate: SliverChildListDelegate([
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: melon?.length,
+                    itemBuilder: (context, index) {
+                      return ChartListTile(
+                        title: melon![index]['title']!,
+                        subtitle: melon[index]['label']!,
+                        imgUrl: melon[index]['img']!,
+                      );
+                    },
+                  ),
+                ]))
+              ],
+            );
+          }
+        },
       ),
       backgroundColor: Default_Theme.themeColor,
     );
