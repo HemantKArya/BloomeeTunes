@@ -1,8 +1,15 @@
 import 'package:Bloomee/plugins/billboard_charts.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
+import 'package:Bloomee/plugins/last_dot_fm_charts.dart';
 import 'package:Bloomee/plugins/melon_charts.dart';
 
 final List<ChartInfo> chartInfoList = [
+  ChartInfo(
+    chartFunction: getLastFmCharts,
+    imgUrl: lastfmRandomIMGs.getImage(),
+    title: LastFMCharts.TOP_TRACKS.title,
+    url: LastFMCharts.TOP_TRACKS.url,
+  ),
   ChartInfo(
     chartFunction: getMelonChart,
     imgUrl: melonRandomIMGs.getImage(),

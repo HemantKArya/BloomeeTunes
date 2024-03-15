@@ -14,9 +14,6 @@ const List<String> melonIMGs = [
 
 final RandomIMGs melonRandomIMGs = RandomIMGs(imgURLs: melonIMGs);
 
-const String melonIMG =
-    "https://cdnimg.melon.co.kr/resource/image/cds/musicstory/imgUrl20240311045314513.jpg";
-
 class MelonChartsLinks {
   static const String TOP_100 = 'https://www.melon.com/chart/index.htm';
   static const String HOT_100 = 'https://www.melon.com/chart/hot100/index.htm';
