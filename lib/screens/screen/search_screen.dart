@@ -160,13 +160,6 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         backgroundColor: Default_Theme.themeColor,
         body: BlocBuilder<FetchSearchResultsCubit, FetchSearchResultsState>(
-          // buildWhen: (previous, current) {
-          //   if (current != previous && current.albumName == "Search") {
-          //     return true;
-          //   } else {
-          //     return false;
-          //   }
-          // },
           builder: (context, state) {
             if (state is FetchSearchResultsLoading) {
               return const Center(
@@ -175,20 +168,32 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               );
             } else if (state.loadingState == LoadingState.loaded) {
-              return ListView.builder(
-                itemCount: state.mediaItems.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding:
-                        const EdgeInsets.only(left: 18, bottom: 5, right: 18),
-                    child: HorizontalSongCardWidget(
-                      index: index,
-                      mediaPlaylist: state,
-                      showLiked: true,
-                    ),
-                  );
-                },
-              );
+              if (state.mediaItems.isNotEmpty) {
+                return ListView.builder(
+                  itemCount: state.mediaItems.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding:
+                          const EdgeInsets.only(left: 18, bottom: 5, right: 18),
+                      child: HorizontalSongCardWidget(
+                        index: index,
+                        mediaPlaylist: state,
+                        showLiked: true,
+                      ),
+                    );
+                  },
+                );
+              } else {
+                return Center(
+                  child: Text(
+                    "No results found!\nTry another keyword or source engine!",
+                    textAlign: TextAlign.center,
+                    style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
+                        color: Default_Theme.primaryColor2.withOpacity(0.7),
+                        fontSize: 14)),
+                  ),
+                );
+              }
             } else {
               return Center(
                 child: Column(
