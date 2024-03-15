@@ -71,7 +71,7 @@ class _ChartWidgetState extends State<ChartWidget> {
               child: Container(
                 color: colorPair[_random.nextInt(colorPair.length)]
                     .backgroundColor
-                    .withOpacity(0.5),
+                    .withOpacity(0.65),
               ),
             ),
           ),
