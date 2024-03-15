@@ -110,14 +110,23 @@ class GlobalRoutes {
               GoRoute(
                 name: GlobalStrConsts.searchScreen,
                 path: '/Search',
-                builder: (context, state) => SearchScreen(),
+                builder: (context, state) {
+                  if (state.uri.queryParameters['query'] != null) {
+                    return SearchScreen(
+                      searchQuery:
+                          state.uri.queryParameters['query']!.toString(),
+                    );
+                  } else {
+                    return SearchScreen();
+                  }
+                },
               ),
             ]),
             StatefulShellBranch(routes: [
               GoRoute(
                 name: GlobalStrConsts.offlineScreen,
                 path: '/Offline',
-                builder: (context, state) => OfflineScreen(),
+                builder: (context, state) => const OfflineScreen(),
               ),
             ]),
           ])

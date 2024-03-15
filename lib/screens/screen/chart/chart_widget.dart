@@ -29,24 +29,24 @@ class TextColorPair {
 // create list of color pair which have some light colors with text color, use proffessinoal colors like pastel colors
 final List<TextColorPair> colorPair = [
   TextColorPair(
-    textColor: Color.fromARGB(255, 0, 0, 0),
-    backgroundColor: Color.fromARGB(255, 255, 141, 141),
+    textColor: const Color.fromARGB(255, 0, 0, 0),
+    backgroundColor: const Color.fromARGB(255, 255, 141, 141),
   ),
   TextColorPair(
-    textColor: Color.fromARGB(255, 0, 0, 0),
-    backgroundColor: Color.fromARGB(255, 132, 255, 253),
+    textColor: const Color.fromARGB(255, 0, 0, 0),
+    backgroundColor: const Color.fromARGB(255, 132, 255, 253),
   ),
   TextColorPair(
-    textColor: Color.fromARGB(255, 0, 0, 0),
-    backgroundColor: Color.fromARGB(255, 255, 179, 92),
+    textColor: const Color.fromARGB(255, 0, 0, 0),
+    backgroundColor: const Color.fromARGB(255, 255, 179, 92),
   ),
   TextColorPair(
-    textColor: Color.fromARGB(255, 0, 0, 0),
-    backgroundColor: Color.fromARGB(255, 255, 129, 154),
+    textColor: const Color.fromARGB(255, 0, 0, 0),
+    backgroundColor: const Color.fromARGB(255, 255, 129, 154),
   ),
   TextColorPair(
-    textColor: Color.fromARGB(255, 0, 0, 0),
-    backgroundColor: Color.fromARGB(255, 76, 255, 163),
+    textColor: const Color.fromARGB(255, 0, 0, 0),
+    backgroundColor: const Color.fromARGB(255, 76, 255, 163),
   ),
 ];
 

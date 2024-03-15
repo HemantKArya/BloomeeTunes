@@ -1,14 +1,20 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:Bloomee/repository/cubits/fetch_search_results.dart';
 import 'package:Bloomee/screens/screen/search_views/search_page.dart';
 import 'package:Bloomee/screens/widgets/horizontalSongCard_widget.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  String searchQuery = "";
+  SearchScreen({
+    Key? key,
+    this.searchQuery = "",
+  }) : super(key: key);
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -18,6 +24,17 @@ class _SearchScreenState extends State<SearchScreen> {
   int _selectedSearchEngine = 0;
   SourceEngine _sourceEngine = SourceEngine.eng_JIS;
   final TextEditingController _textEditingController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.searchQuery != "") {
+      _textEditingController.text = widget.searchQuery;
+      context
+          .read<FetchSearchResultsCubit>()
+          .search(widget.searchQuery.toString(), sourceEngine: _sourceEngine);
+    }
+  }
 
   Widget sourceEngineRadioButton(
       String text, int index, SourceEngine sourceEngine) {
