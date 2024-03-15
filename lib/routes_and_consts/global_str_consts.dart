@@ -9,4 +9,5 @@ class GlobalStrConsts {
   static const String playlistView = "PlaylistView";
   static const String addToPlaylistScreen = "AddToPlaylist";
   static const String ImportMediaFromPlatforms = "ImportMediaFromPlatforms";
+  static const String ChartScreen = "ChartScreen";
 }

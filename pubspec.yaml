@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.2.5+0
+version: 2.0.0+0
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
@@ -31,6 +31,7 @@ dependencies:
   flutter_bloc: ^8.1.3
   dart_des: ^1.0.2
   http: ^1.1.0
+  html: ^0.15.4
   logging: ^1.2.0
   unicons: any
   feather_icons: ^1.2.0
@@ -133,6 +134,22 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
+    - family: Unageo
+      fonts:
+        - asset: assets/fonts/Unageo/Unageo-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Unageo/Unageo-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Unageo/Unageo-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Unageo/Unageo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Unageo/Unageo-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Unageo/Unageo-Black.ttf
+          weight: 900
+    
+        
     - family: Gilroy
       fonts:
         - asset: assets/fonts/Gilroy/Gilroy-Regular.ttf
@@ -146,6 +163,21 @@ flutter:
           weight: 400
         - asset: assets/fonts/CodePro/Code Pro Bold LC.otf
           weight: 700
+
+    - family: ReThink-Sans
+      fonts:
+        - asset: assets/fonts/ReThinkSans/RethinkSans-Regular.otf
+          weight: 400
+        - asset: assets/fonts/ReThinkSans/RethinkSans-Medium.otf
+          weight: 500
+        - asset: assets/fonts/ReThinkSans/RethinkSans-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/ReThinkSans/RethinkSans-Bold.otf
+          weight: 700
+        - asset: assets/fonts/ReThinkSans/RethinkSans-ExtraBold.otf
+          weight: 800
+
+
     - family: Fjalla
       fonts:
         - asset: assets/fonts/Fjalla/FjallaOne-Regular.ttf

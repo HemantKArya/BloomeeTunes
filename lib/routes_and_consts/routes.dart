@@ -1,3 +1,4 @@
+import 'package:Bloomee/plugins/chart_defines.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
@@ -10,6 +11,7 @@ import 'package:Bloomee/screens/screen/library_views/playlist_screen.dart';
 import 'package:Bloomee/screens/screen/offline_screen.dart';
 import 'package:Bloomee/screens/screen/search_screen.dart';
 import 'package:Bloomee/screens/widgets/global_navbar.dart';
+import 'package:Bloomee/screens/screen/chart/chart_view.dart';
 
 class GlobalRoutes {
   static final globalRouterKey = GlobalKey<NavigatorState>();
@@ -72,10 +74,23 @@ class GlobalRoutes {
             // ]),
             StatefulShellBranch(routes: [
               GoRoute(
-                name: GlobalStrConsts.exploreScreen,
-                path: '/Explore',
-                builder: (context, state) => ExploreScreen(),
-              )
+                  name: GlobalStrConsts.exploreScreen,
+                  path: '/Explore',
+                  builder: (context, state) => const ExploreScreen(),
+                  routes: [
+                    GoRoute(
+                        name: GlobalStrConsts.ChartScreen,
+                        path: 'ChartScreen',
+                        builder: (context, state) => ChartScreen(
+                              chartInfo: () {
+                                if (state.extra != null) {
+                                  return state.extra as ChartInfo;
+                                } else {
+                                  return null;
+                                }
+                              }(),
+                            )),
+                  ])
             ]),
             StatefulShellBranch(routes: [
               GoRoute(
