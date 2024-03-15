@@ -80,7 +80,17 @@ class _TabSongListWidgetState extends State<TabSongListWidget>
             ),
           ),
         ),
-        _tab_index == 0 ? const SongListWidget() : const Text("hi")
+        _tab_index == 0
+            ? const SongListWidget()
+            : Expanded(
+                child: Center(
+                    child: Text(
+                  "Feature coming soon...",
+                  style:
+                      const TextStyle(color: Color.fromARGB(255, 255, 240, 240))
+                          .merge(Default_Theme.secondoryTextStyleMedium),
+                )),
+              )
       ],
     );
   }
