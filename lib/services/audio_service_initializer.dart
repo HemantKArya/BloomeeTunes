@@ -28,7 +28,7 @@ class PlayerInitializer {
     );
   }
 
-  Future<BloomeeMusicPlayer> getAudioHandler() async {
+  Future<BloomeeMusicPlayer> getBloomeeMusicPlayer() async {
     if (!_isInitialized) {
       await _initialize();
       _isInitialized = true;

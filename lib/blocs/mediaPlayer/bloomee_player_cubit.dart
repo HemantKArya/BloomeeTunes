@@ -16,7 +16,7 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
   }
 
   Future<void> setupPlayer() async {
-    bloomeePlayer = await PlayerInitializer().getAudioHandler();
+    bloomeePlayer = await PlayerInitializer().getBloomeeMusicPlayer();
 
     progressStreams = Rx.defer(
       () => Rx.combineLatest3(
