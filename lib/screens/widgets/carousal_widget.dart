@@ -66,7 +66,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
               autoPlayInterval: const Duration(milliseconds: 2500),
               // aspectRatio: 15 / 16,
               // enableInfiniteScroll: true,
-              enlargeFactor: 0.2,
+              enlargeFactor: 0.3,
               initialPage: 0,
               enlargeCenterPage: true),
           items: [
