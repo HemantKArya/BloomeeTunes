@@ -1,3 +1,4 @@
+import 'package:Bloomee/utils/app_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/screen/home_views/notification_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_view.dart';
@@ -7,8 +8,22 @@ import 'package:icons_plus/icons_plus.dart';
 import '../widgets/carousal_widget.dart';
 import '../widgets/tabList_widget.dart';
 
-class ExploreScreen extends StatelessWidget {
+class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
+
+  @override
+  State<ExploreScreen> createState() => _ExploreScreenState();
+}
+
+class _ExploreScreenState extends State<ExploreScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      updateDialog(context);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

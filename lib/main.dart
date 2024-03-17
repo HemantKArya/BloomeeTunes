@@ -7,7 +7,6 @@ import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
@@ -19,7 +18,6 @@ import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubi
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
 import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:go_router/go_router.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
 

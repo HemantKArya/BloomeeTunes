@@ -22,7 +22,7 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
     bloomeePlayer = await AudioService.init(
       builder: () => BloomeeMusicPlayer(),
       config: const AudioServiceConfig(
-          androidStopForegroundOnPause: true,
+          androidStopForegroundOnPause: false,
           androidNotificationChannelId: 'com.BloomeePlayer.notification.status',
           androidNotificationChannelName: 'BloomeTunes',
           androidResumeOnClick: true,
