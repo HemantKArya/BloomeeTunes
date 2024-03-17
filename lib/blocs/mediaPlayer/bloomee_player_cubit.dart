@@ -1,13 +1,10 @@
-import 'package:audio_service/audio_service.dart';
+import 'package:Bloomee/services/audio_service_initializer.dart';
 import 'package:bloc/bloc.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
-
 import 'package:Bloomee/services/bloomeePlayer.dart';
-import 'package:Bloomee/theme_data/default.dart';
-
 part 'bloomee_player_state.dart';
 
 class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
@@ -19,17 +16,7 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
   }
 
   Future<void> setupPlayer() async {
-    bloomeePlayer = await AudioService.init(
-      builder: () => BloomeeMusicPlayer(),
-      config: const AudioServiceConfig(
-          androidStopForegroundOnPause: false,
-          androidNotificationChannelId: 'com.BloomeePlayer.notification.status',
-          androidNotificationChannelName: 'BloomeTunes',
-          androidResumeOnClick: true,
-          // androidNotificationIcon: 'assets/icons/Bloomee_logo_fore.png',
-          androidShowNotificationBadge: true,
-          notificationColor: Default_Theme.accentColor2),
-    );
+    bloomeePlayer = await PlayerInitializer().getAudioHandler();
 
     progressStreams = Rx.defer(
       () => Rx.combineLatest3(
