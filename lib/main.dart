@@ -16,7 +16,7 @@ import 'package:Bloomee/repository/cubits/fetch_search_results.dart';
 import 'package:Bloomee/routes_and_consts/routes.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
@@ -151,21 +151,21 @@ class _MyAppState extends State<MyApp> {
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => MediaDBCubit(),
+          create: (context) => BloomeeDBCubit(),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => CurrentPlaylistCubit(
+              bloomeeDBCubit: context.read<BloomeeDBCubit>()),
           lazy: false,
         ),
         BlocProvider(
           create: (context) =>
-              CurrentPlaylistCubit(mediaDBCubit: context.read<MediaDBCubit>()),
-          lazy: false,
+              LibraryItemsCubit(bloomeeDBCubit: context.read<BloomeeDBCubit>()),
         ),
         BlocProvider(
-          create: (context) =>
-              LibraryItemsCubit(mediaDBCubit: context.read<MediaDBCubit>()),
-        ),
-        BlocProvider(
-          create: (context) =>
-              AddToPlaylistCubit(mediaDBCubit: context.read<MediaDBCubit>()),
+          create: (context) => AddToPlaylistCubit(
+              bloomeeDBCubit: context.read<BloomeeDBCubit>()),
           lazy: false,
         ),
         BlocProvider(

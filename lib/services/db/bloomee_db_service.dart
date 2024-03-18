@@ -1,12 +1,12 @@
 import 'dart:developer';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:Bloomee/services/db/MediaDB.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
 
-class MediaIsarDBService {
-  late Future<Isar> db;
+class BloomeeDBService {
+  static late Future<Isar> db;
 
-  MediaIsarDBService() {
+  BloomeeDBService() {
     db = openDB();
   }
 
@@ -183,8 +183,12 @@ class MediaIsarDBService {
     if (Isar.instanceNames.isEmpty) {
       String _path = (await getApplicationDocumentsDirectory()).path;
       log(_path, name: "DB");
-      return await Isar.open([MediaPlaylistDBSchema, MediaItemDBSchema],
-          directory: _path);
+      return await Isar.open([
+        MediaPlaylistDBSchema,
+        MediaItemDBSchema,
+        AppSettingsBoolDBSchema,
+        AppSettingsStrDBSchema
+      ], directory: _path);
     }
     return Future.value(Isar.getInstance());
   }
@@ -240,5 +244,39 @@ class MediaIsarDBService {
     if (_res) {
       log("${mediaPlaylistDB.playlistName} is Deleted!!", name: "DB");
     }
+  }
+
+  Future<void> putSettingStr(String key, String value) async {
+    Isar isarDB = await db;
+    if (key.isNotEmpty && value.isNotEmpty) {
+      isarDB.writeTxnSync(() => isarDB.appSettingsStrDBs
+          .putSync(AppSettingsStrDB(settingName: key, settingValue: value)));
+    }
+  }
+
+  Future<void> putSettingBool(String key, bool value) async {
+    Isar isarDB = await db;
+    if (key.isNotEmpty) {
+      isarDB.writeTxnSync(() => isarDB.appSettingsBoolDBs
+          .putSync(AppSettingsBoolDB(settingName: key, settingValue: value)));
+    }
+  }
+
+  Future<String?> getSettingStr(String key) async {
+    Isar isarDB = await db;
+    return isarDB.appSettingsStrDBs
+        .filter()
+        .settingNameEqualTo(key)
+        .findFirstSync()
+        ?.settingValue;
+  }
+
+  Future<bool?> getSettingBool(String key) async {
+    Isar isarDB = await db;
+    return isarDB.appSettingsBoolDBs
+        .filter()
+        .settingNameEqualTo(key)
+        .findFirstSync()
+        ?.settingValue;
   }
 }

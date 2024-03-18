@@ -3,7 +3,7 @@
 
 import 'package:isar/isar.dart';
 
-part 'MediaDB.g.dart';
+part 'GlobalDB.g.dart';
 
 @collection
 class MediaPlaylistDB {
@@ -111,4 +111,48 @@ int fastHash(String string) {
   }
 
   return hash;
+}
+
+@collection
+class AppSettingsStrDB {
+  Id get isarId => fastHash(settingName);
+  String settingName;
+  String settingValue;
+  AppSettingsStrDB({
+    required this.settingName,
+    required this.settingValue,
+  });
+
+  @override
+  bool operator ==(covariant AppSettingsStrDB other) {
+    if (identical(this, other)) return true;
+
+    return other.settingName == settingName &&
+        other.settingValue == settingValue;
+  }
+
+  @override
+  int get hashCode => settingName.hashCode ^ settingValue.hashCode;
+}
+
+@collection
+class AppSettingsBoolDB {
+  Id get isarId => fastHash(settingName);
+  String settingName;
+  bool settingValue;
+  AppSettingsBoolDB({
+    required this.settingName,
+    required this.settingValue,
+  });
+
+  @override
+  bool operator ==(covariant AppSettingsBoolDB other) {
+    if (identical(this, other)) return true;
+
+    return other.settingName == settingName &&
+        other.settingValue == settingValue;
+  }
+
+  @override
+  int get hashCode => settingName.hashCode ^ settingValue.hashCode;
 }

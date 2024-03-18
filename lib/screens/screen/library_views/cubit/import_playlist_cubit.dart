@@ -5,8 +5,8 @@ import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/screens/screen/library_views/playlist_screen.dart';
-import 'package:Bloomee/services/db/MediaDB.dart';
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 
 class ImportPlaylistState {
   String playlistName;
@@ -79,7 +79,7 @@ class ImportPlaylistCubit extends Cubit<ImportPlaylistState> {
   ImportPlaylistCubit() : super(ImportPlaylistStateInitial());
   Future<void> fetchYtPlaylistByID(
     String ytPlaylistID,
-    MediaDBCubit mediaDBCubit,
+    BloomeeDBCubit BloomeeDBCubit,
   ) async {
     importYtPlaylistBS.add(ImportPlaylistStateInitial());
     // try {
@@ -101,7 +101,7 @@ class ImportPlaylistCubit extends Cubit<ImportPlaylistState> {
         // print("5 ${playlist[i].toString()}");
         MediaItemModel mediaItemModel = fromYtVidSongMap2MediaItem(playlist[i]);
         print("5 ${mediaItemModel.toString()}");
-        mediaDBCubit.addMediaItemToPlaylist(mediaItemModel,
+        BloomeeDBCubit.addMediaItemToPlaylist(mediaItemModel,
             MediaPlaylistDB(playlistName: result[0]["metadata"].title));
       }
     }

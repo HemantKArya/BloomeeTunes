@@ -9,8 +9,8 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Spotify/spotify_api.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
-import 'package:Bloomee/services/db/MediaDB.dart';
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 
 part 'saavn_repository_state.dart';
 
@@ -61,7 +61,7 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
   BehaviorSubject<String?> searchQuery = BehaviorSubject<String?>.seeded(null);
   SpotifyApi spotifyApi = SpotifyApi();
   String? accessSpotifyToken;
-  MediaDBCubit? mediaDBCubit;
+  BloomeeDBCubit? bloomeeDBCubit;
   BehaviorSubject<ImportPlaylistState> importFromSpotifyState =
       BehaviorSubject.seeded(ImportPlaylistStateInitial());
 
@@ -121,8 +121,8 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
   }
 
   Future<void> fetchPlaylistFromSpotify(
-      MediaDBCubit _mediaDBCubit, String playListID) async {
-    mediaDBCubit = _mediaDBCubit;
+      BloomeeDBCubit _bloomeeDBCubit, String playListID) async {
+    bloomeeDBCubit = _bloomeeDBCubit;
 
     String? _playlistID = getPlaylistIdFromSpotifyUrl(playListID);
 
@@ -160,7 +160,7 @@ class SaavnSearchRepositoryCubit extends Cubit<SaavnRepositoryState> {
                 itemName: searchResultsList[0].title,
                 totalLength: _spotifyList.length - 1,
                 currentItem: k));
-            _mediaDBCubit.addMediaItemToPlaylist(searchResultsList[0],
+            _bloomeeDBCubit.addMediaItemToPlaylist(searchResultsList[0],
                 MediaPlaylistDB(playlistName: playlistName));
           }
 

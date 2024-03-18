@@ -1,23 +1,21 @@
 import 'dart:developer';
-
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/services/db/MediaDB.dart';
-import 'package:Bloomee/services/db/MediaIsarService.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 
-part 'mediadb_state.dart';
+part 'bloomee_db_state.dart';
 
-class MediaDBCubit extends Cubit<MediadbState> {
+class BloomeeDBCubit extends Cubit<MediadbState> {
   BehaviorSubject<bool> refreshLibrary = BehaviorSubject<bool>.seeded(false);
-  MediaIsarDBService isarDBService = MediaIsarDBService();
-  MediaDBCubit() : super(MediadbInitial()) {
+  BloomeeDBService bloomeeDBService = BloomeeDBService();
+  BloomeeDBCubit() : super(MediadbInitial()) {
     addNewPlaylistToDB(MediaPlaylistDB(playlistName: "Liked"));
   }
 
@@ -25,7 +23,7 @@ class MediaDBCubit extends Cubit<MediadbState> {
       {bool undo = false}) async {
     List<String> _list = await getListOfPlaylists();
     if (!_list.contains(mediaPlaylistDB.playlistName)) {
-      isarDBService.addPlaylist(mediaPlaylistDB);
+      bloomeeDBService.addPlaylist(mediaPlaylistDB);
       refreshLibrary.add(true);
       if (!undo) {
         SnackbarService.showMessage(
@@ -70,10 +68,10 @@ class MediaDBCubit extends Cubit<MediadbState> {
   }
 
   Future<void> setLike(MediaItem mediaItem, {isLiked = false}) async {
-    isarDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
+    bloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
         MediaPlaylistDB(playlistName: "Liked"));
     refreshLibrary.add(true);
-    isarDBService.likeMediaItem(MediaItem2MediaItemDB(mediaItem),
+    bloomeeDBService.likeMediaItem(MediaItem2MediaItemDB(mediaItem),
         isLiked: isLiked);
     if (isLiked) {
       SnackbarService.showMessage("${mediaItem.title} is Liked!!");
@@ -84,7 +82,7 @@ class MediaDBCubit extends Cubit<MediadbState> {
 
   Future<bool> isLiked(MediaItem mediaItem) {
     // bool res = true;
-    return isarDBService.isMediaLiked(MediaItem2MediaItemDB(mediaItem));
+    return bloomeeDBService.isMediaLiked(MediaItem2MediaItemDB(mediaItem));
   }
 
   List<MediaItemDB> reorderByRank(
@@ -93,9 +91,10 @@ class MediaDBCubit extends Cubit<MediadbState> {
     // orgMediaList.toSet().toList();
     List<MediaItemDB> reorderedList = orgMediaList;
     orgMediaList.forEach((element) {
-      log('orgMEdia - ${element.id} - ${element.title}', name: "MediaDBCubit");
+      log('orgMEdia - ${element.id} - ${element.title}',
+          name: "BloomeeDBCubit");
     });
-    log(rankIndex.toString(), name: "MediaDBCubit");
+    log(rankIndex.toString(), name: "BloomeeDBCubit");
     if (rankIndex.length == orgMediaList.length) {
       reorderedList = rankIndex
           .map((e) => orgMediaList.firstWhere(
@@ -104,7 +103,7 @@ class MediaDBCubit extends Cubit<MediadbState> {
           .map((e) => e)
           .toList();
       log('ranklist length - ${rankIndex.length} org length - ${orgMediaList.length}',
-          name: "MediaDBCubit");
+          name: "BloomeeDBCubit");
       return reorderedList;
     } else {
       return orgMediaList;
@@ -116,10 +115,10 @@ class MediaDBCubit extends Cubit<MediadbState> {
     MediaPlaylist _mediaPlaylist =
         MediaPlaylist(mediaItems: [], albumName: mediaPlaylistDB.playlistName);
 
-    var _dbList = await isarDBService.getPlaylistItems(mediaPlaylistDB);
+    var _dbList = await bloomeeDBService.getPlaylistItems(mediaPlaylistDB);
     if (_dbList != null) {
       List<int> _rankList =
-          await isarDBService.getPlaylistItemsRank(mediaPlaylistDB);
+          await bloomeeDBService.getPlaylistItemsRank(mediaPlaylistDB);
 
       if (_rankList.isNotEmpty) {
         _dbList = reorderByRank(_dbList, _rankList);
@@ -135,16 +134,16 @@ class MediaDBCubit extends Cubit<MediadbState> {
 
   Future<void> setPlayListItemsRank(
       MediaPlaylistDB mediaPlaylistDB, List<int> rankList) async {
-    isarDBService.setPlaylistItemsRank(mediaPlaylistDB, rankList);
+    bloomeeDBService.setPlaylistItemsRank(mediaPlaylistDB, rankList);
   }
 
   Future<Stream> getStreamOfPlaylist(MediaPlaylistDB mediaPlaylistDB) async {
-    return await isarDBService.getStream4MediaList(mediaPlaylistDB);
+    return await bloomeeDBService.getStream4MediaList(mediaPlaylistDB);
   }
 
   Future<List<String>> getListOfPlaylists() async {
     List<String> mediaPlaylists = [];
-    final _albumList = await isarDBService.getPlaylists4Library();
+    final _albumList = await bloomeeDBService.getPlaylists4Library();
     if (_albumList.isNotEmpty) {
       _albumList.toList().forEach((element) {
         mediaPlaylists.add(element.playlistName);
@@ -166,7 +165,7 @@ class MediaDBCubit extends Cubit<MediadbState> {
 
   Future<List<MediaPlaylist>> getListOfPlaylists2() async {
     List<MediaPlaylist> mediaPlaylists = [];
-    final _albumList = await isarDBService.getPlaylists4Library();
+    final _albumList = await bloomeeDBService.getPlaylists4Library();
     if (_albumList.isNotEmpty) {
       _albumList.toList().forEach((element) {
         mediaPlaylists.add(fromPlaylistDB2MediaPlaylist(element));
@@ -177,12 +176,12 @@ class MediaDBCubit extends Cubit<MediadbState> {
 
   Future<void> reorderPositionOfItemInDB(
       String playlistName, int old_idx, int new_idx) async {
-    isarDBService.reorderItemPositionInPlaylist(
+    bloomeeDBService.reorderItemPositionInPlaylist(
         MediaPlaylistDB(playlistName: playlistName), old_idx, new_idx);
   }
 
   Future<void> removePlaylist(MediaPlaylistDB mediaPlaylistDB) async {
-    isarDBService.removePlaylist(mediaPlaylistDB);
+    bloomeeDBService.removePlaylist(mediaPlaylistDB);
     SnackbarService.showMessage("${mediaPlaylistDB.playlistName} is Deleted!!",
         duration: const Duration(seconds: 3),
         action: SnackBarAction(
@@ -195,7 +194,7 @@ class MediaDBCubit extends Cubit<MediadbState> {
   Future<void> removeMediaFromPlaylist(
       MediaItem mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
     MediaItemDB _mediaItemDB = MediaItem2MediaItemDB(mediaItem);
-    isarDBService
+    bloomeeDBService
         .removeMediaItemFromPlaylist(_mediaItemDB, mediaPlaylistDB)
         .then((value) {
       SnackbarService.showMessage(
@@ -215,12 +214,32 @@ class MediaDBCubit extends Cubit<MediadbState> {
   Future<void> addMediaItemToPlaylist(
       MediaItemModel mediaItemModel, MediaPlaylistDB mediaPlaylistDB,
       {bool undo = false}) async {
-    isarDBService.addMediaItem(
+    bloomeeDBService.addMediaItem(
         MediaItem2MediaItemDB(mediaItemModel), mediaPlaylistDB);
     refreshLibrary.add(true);
     if (!undo) {
       SnackbarService.showMessage(
           "${mediaItemModel.title} is added to ${mediaPlaylistDB.playlistName}!!");
+    }
+  }
+
+  Future<bool?> getSettingBool(String key) async {
+    return await bloomeeDBService.getSettingBool(key);
+  }
+
+  Future<void> putSettingBool(String key, bool value) async {
+    if (key.isNotEmpty) {
+      bloomeeDBService.putSettingBool(key, value);
+    }
+  }
+
+  Future<String?> getSettingStr(String key) async {
+    return await bloomeeDBService.getSettingStr(key);
+  }
+
+  Future<void> putSettingStr(String key, String value) async {
+    if (key.isNotEmpty && value.isNotEmpty) {
+      bloomeeDBService.putSettingStr(key, value);
     }
   }
 

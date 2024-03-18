@@ -7,7 +7,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:Bloomee/screens/widgets/like_widget.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
@@ -192,7 +192,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                         ),
                         const Spacer(),
                         FutureBuilder(
-                          future: context.read<MediaDBCubit>().isLiked(context
+                          future: context.read<BloomeeDBCubit>().isLiked(context
                               .read<BloomeePlayerCubit>()
                               .bloomeePlayer
                               .currentMedia),
@@ -206,7 +206,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                   isLiked: snapshot.data ?? false,
                                   iconSize: 35,
                                   onLiked: () => context
-                                      .read<MediaDBCubit>()
+                                      .read<BloomeeDBCubit>()
                                       .setLike(
                                           context
                                               .read<BloomeePlayerCubit>()
@@ -214,7 +214,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                               .currentMedia,
                                           isLiked: true),
                                   onDisliked: () => context
-                                      .read<MediaDBCubit>()
+                                      .read<BloomeeDBCubit>()
                                       .setLike(
                                           context
                                               .read<BloomeePlayerCubit>()

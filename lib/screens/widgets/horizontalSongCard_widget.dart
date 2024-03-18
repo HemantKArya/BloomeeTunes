@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/screens/widgets/like_widget.dart';
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -172,7 +172,7 @@ class HorizontalSongCardWidget extends StatelessWidget {
               children: [
                 FutureBuilder(
                   future: context
-                      .read<MediaDBCubit>()
+                      .read<BloomeeDBCubit>()
                       .isLiked(mediaPlaylist!.mediaItems[index]),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data != null) {
@@ -193,13 +193,13 @@ class HorizontalSongCardWidget extends StatelessWidget {
                                     isLiked: snapshot.data ?? false,
                                     iconSize: 29,
                                     onLiked: () => context
-                                        .read<MediaDBCubit>()
+                                        .read<BloomeeDBCubit>()
                                         .setLike(
                                             mediaPlaylist!.mediaItems[index],
                                             isLiked: true),
                                     isPlaying: true,
                                     onDisliked: () => context
-                                        .read<MediaDBCubit>()
+                                        .read<BloomeeDBCubit>()
                                         .setLike(
                                             mediaPlaylist!.mediaItems[index],
                                             isLiked: false),
@@ -209,12 +209,12 @@ class HorizontalSongCardWidget extends StatelessWidget {
                                     isLiked: snapshot.data ?? false,
                                     iconSize: 29,
                                     onLiked: () => context
-                                        .read<MediaDBCubit>()
+                                        .read<BloomeeDBCubit>()
                                         .setLike(
                                             mediaPlaylist!.mediaItems[index],
                                             isLiked: true),
                                     onDisliked: () => context
-                                        .read<MediaDBCubit>()
+                                        .read<BloomeeDBCubit>()
                                         .setLike(
                                             mediaPlaylist!.mediaItems[index],
                                             isLiked: false),

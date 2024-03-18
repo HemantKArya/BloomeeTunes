@@ -3,8 +3,8 @@ import 'package:bloc/bloc.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/services/db/MediaDB.dart';
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 
 part 'current_playlist_state.dart';
@@ -17,15 +17,15 @@ part 'current_playlist_state.dart';
 class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
   MediaPlaylist? mediaPlaylist;
   PaletteGenerator? paletteGenerator;
-  late MediaDBCubit mediaDBCubit;
+  late BloomeeDBCubit bloomeeDBCubit;
   CurrentPlaylistCubit({
     this.mediaPlaylist,
-    required this.mediaDBCubit,
+    required this.bloomeeDBCubit,
   }) : super(CurrentPlaylistInitial()) {}
 
   Future<void> loadPlaylist(String playlistName) async {
     if (mediaPlaylist !=
-        await mediaDBCubit
+        await bloomeeDBCubit
             .getPlaylistItems(MediaPlaylistDB(playlistName: playlistName))) {
       setupPlaylist(playlistName);
     } else {
@@ -38,7 +38,7 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
 
   Future<void> setupPlaylist(String playlistName) async {
     emit(CurrentPlaylistLoading());
-    mediaPlaylist = await mediaDBCubit
+    mediaPlaylist = await bloomeeDBCubit
         .getPlaylistItems(MediaPlaylistDB(playlistName: playlistName));
 
     if (mediaPlaylist?.mediaItems.isNotEmpty ?? false) {

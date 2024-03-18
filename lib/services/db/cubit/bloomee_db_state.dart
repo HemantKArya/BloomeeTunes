@@ -1,4 +1,4 @@
-part of 'mediadb_cubit.dart';
+part of 'bloomee_db_cubit.dart';
 
 @immutable
 sealed class MediadbState {}

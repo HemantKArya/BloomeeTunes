@@ -6,8 +6,8 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/widgets/horizontalSongCard_widget.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
-import 'package:Bloomee/services/db/MediaDB.dart';
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 
@@ -277,7 +277,7 @@ class _PlaylistState extends State<Playlist> {
           //   ),
           // ),
           onDismissed: (direction) {
-            context.read<MediaDBCubit>().removeMediaFromPlaylist(
+            context.read<BloomeeDBCubit>().removeMediaFromPlaylist(
                 _state.mediaItem[index],
                 MediaPlaylistDB(playlistName: _state.albumName));
             setState(() {
@@ -305,7 +305,7 @@ class _PlaylistState extends State<Playlist> {
           final MediaItemModel item = _state.mediaItems.removeAt(oldIndex);
           _state.mediaItems.insert(newIndex, item);
           context
-              .read<MediaDBCubit>()
+              .read<BloomeeDBCubit>()
               .reorderPositionOfItemInDB(_state.albumName, oldIndex, newIndex);
         });
         print(_state.mediaItem.toList().toString());

@@ -5,7 +5,7 @@ import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/createPlaylist_bottomsheet.dart';
 import 'package:Bloomee/screens/widgets/smallPlaylistCard_widget.dart';
-import 'package:Bloomee/services/db/MediaDB.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:icons_plus/icons_plus.dart';
 

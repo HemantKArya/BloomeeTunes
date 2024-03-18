@@ -7,7 +7,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
 
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 
 import '../../../model/MediaPlaylistModel.dart';
@@ -15,11 +15,11 @@ import '../../../model/MediaPlaylistModel.dart';
 part 'add_to_playlist_state.dart';
 
 class AddToPlaylistCubit extends Cubit<AddToPlaylistState> {
-  MediaDBCubit mediaDBCubit;
+  BloomeeDBCubit bloomeeDBCubit;
   BehaviorSubject<MediaItemModel> mediaItemModelBS =
       BehaviorSubject.seeded(mediaItemModelNull);
   AddToPlaylistCubit({
-    required this.mediaDBCubit,
+    required this.bloomeeDBCubit,
   }) : super(AddToPlaylistInitial()) {
     getAndEmitPlaylists();
   }
@@ -32,7 +32,7 @@ class AddToPlaylistCubit extends Cubit<AddToPlaylistState> {
   Future<void> getAndEmitPlaylists() async {
     addToPlaylistState =
         AddToPlaylistState(playlists: List.empty(growable: true));
-    mediaPlaylist = await mediaDBCubit.getListOfPlaylists2();
+    mediaPlaylist = await bloomeeDBCubit.getListOfPlaylists2();
     List<String> _playlists = List.empty(growable: true);
     if (addToPlaylistState.playlists.isNotEmpty) {
       for (var element in addToPlaylistState.playlists) {

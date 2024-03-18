@@ -8,7 +8,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:Bloomee/repository/Saavn/cubit/saavn_repository_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
 import 'package:Bloomee/screens/widgets/import_playlist.dart';
-import 'package:Bloomee/services/db/cubit/mediadb_cubit.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
 class ImportMediaFromPlatformsView extends StatelessWidget {
@@ -159,7 +159,7 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                     context
                                         .read<SaavnSearchRepositoryCubit>()
                                         .fetchPlaylistFromSpotify(
-                                            context.read<MediaDBCubit>(),
+                                            context.read<BloomeeDBCubit>(),
                                             value);
                                     showDialog(
                                       barrierDismissible: false,
@@ -174,7 +174,7 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                       .read<ImportPlaylistCubit>()
                                       .fetchYtPlaylistByID(
                                           "PLDIoUOhQQPlXr63I_vwF9GD8sAKh77dWU",
-                                          context.read<MediaDBCubit>());
+                                          context.read<BloomeeDBCubit>());
                                   showDialog(
                                     barrierDismissible: false,
                                     context: context,
