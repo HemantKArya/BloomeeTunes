@@ -14,9 +14,19 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
+  bool value = false;
   @override
   void initState() {
     super.initState();
+
+    context
+        .read<BloomeeDBCubit>()
+        .getSettingBool("auto_update_notify")
+        .then((value) {
+      setState(() {
+        this.value = value ?? false;
+      });
+    });
   }
 
   @override
@@ -49,42 +59,32 @@ class _SettingsViewState extends State<SettingsView> {
               );
             },
           ),
-          FutureBuilder(
-              future: context
-                  .read<BloomeeDBCubit>()
-                  .getSettingBool("auto_update_notify"),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return AnimatedContainer(
-                    duration: const Duration(seconds: 1),
-                    curve: Curves.decelerate,
-                    child: SwitchListTile(
-                        value: snapshot.data ?? false,
-                        subtitle: Text(
-                          "Get notified when new updates are available in app start up.",
-                          style: TextStyle(
-                                  color: Default_Theme.primaryColor1
-                                      .withOpacity(0.5),
-                                  fontSize: 14)
-                              .merge(Default_Theme.secondoryTextStyleMedium),
-                        ),
-                        title: Text(
-                          "Auto update notify",
-                          style: const TextStyle(
-                                  color: Default_Theme.primaryColor1,
-                                  fontSize: 20)
-                              .merge(Default_Theme.secondoryTextStyleMedium),
-                        ),
-                        onChanged: (value) {
-                          context
-                              .read<BloomeeDBCubit>()
-                              .putSettingBool("auto_update_notify", value);
-                        }),
-                  );
-                } else {
-                  return const SizedBox();
-                }
-              }),
+          AnimatedContainer(
+            duration: const Duration(seconds: 1),
+            child: SwitchListTile(
+                value: value,
+                subtitle: Text(
+                  "Get notified when new updates are available in app start up.",
+                  style: TextStyle(
+                          color: Default_Theme.primaryColor1.withOpacity(0.5),
+                          fontSize: 14)
+                      .merge(Default_Theme.secondoryTextStyleMedium),
+                ),
+                title: Text(
+                  "Auto update notify",
+                  style: const TextStyle(
+                          color: Default_Theme.primaryColor1, fontSize: 20)
+                      .merge(Default_Theme.secondoryTextStyleMedium),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    this.value = value;
+                  });
+                  context
+                      .read<BloomeeDBCubit>()
+                      .putSettingBool("auto_update_notify", value);
+                }),
+          ),
         ],
       ),
     );
