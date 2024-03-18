@@ -10,6 +10,7 @@ class MediaItemModel extends MediaItem {
   String? artist;
   Map<String, dynamic>? extras;
   String? genre;
+  Duration? duration;
 
   MediaItemModel({
     required this.id,
@@ -19,6 +20,7 @@ class MediaItemModel extends MediaItem {
     this.artist,
     this.extras,
     this.genre,
+    this.duration,
   }) : super(
             id: id,
             title: title,
@@ -26,7 +28,8 @@ class MediaItemModel extends MediaItem {
             artUri: artUri,
             artist: artist,
             extras: extras,
-            genre: genre);
+            genre: genre,
+            duration: duration);
 
   @override
   bool operator ==(covariant MediaItemModel other) {

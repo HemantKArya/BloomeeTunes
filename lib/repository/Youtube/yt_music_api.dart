@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:Bloomee/utils/extentions.dart';
@@ -281,9 +282,9 @@ class YtMusicService {
             'items': playlistItems,
           });
         } else {
-          Logger.root.severe(
-            "got null in getMusicHome for '${element['title']['runs'][0]['text']}'",
-          );
+          dev.log(
+              "got null in getMusicHome for '${element['title']['runs'][0]['text']}'",
+              name: "YTM");
         }
       }
 
@@ -292,7 +293,7 @@ class YtMusicService {
 
       return {'body': finalResult, 'head': finalHeadResult};
     } catch (e) {
-      Logger.root.severe('Error in getMusicHome: $e');
+      dev.log('Error in getMusicHome: ', error: e, name: "YTM");
       return {};
     }
   }
@@ -416,7 +417,7 @@ class YtMusicService {
           };
 
           for (final element in subtitleList) {
-            // pprint(element);
+            // print(element);
             Map browseEndpoint = {
               'type': element['navigationEndpoint']?['browseEndpoint']
                       ?['browseEndpointContextSupportedConfigs']
@@ -434,7 +435,20 @@ class YtMusicService {
               details['albumId'] = browseEndpoint['id'];
             } else if (element['text'].toString().contains(':') &&
                 element['text'].toString().split(':')[0].isNumeric()) {
-              details['duration'] = element['text'];
+              details['duration'] =
+                  timeStringToSeconds(element['text']).toString();
+              // print(timeStringToSeconds(element['text']));
+            } else {
+              if (element["text"] != Null &&
+                  details["artists"].isEmpty &&
+                  (element["text"].toString()).trim() != '•') {
+                details['artists'].add({
+                  'name': (element['text'] ?? "")
+                      .toString()
+                      .replaceAll(', & ,', '&'),
+                  'id': browseEndpoint['id'] ?? 'null',
+                });
+              }
             }
 
             // ignore: use_string_buffers
@@ -458,6 +472,7 @@ class YtMusicService {
                 }
               } else if (count == 3) {
                 duration += element['text'].toString();
+                // print(duration);
               }
             }
           }
@@ -483,7 +498,7 @@ class YtMusicService {
           details['views'] = views;
           details['year'] = year;
           details['countSongs'] = countSongs;
-          details['duration'] = duration;
+          // details['duration'] = duration;
           details['subscribers'] = subscribers;
           if (details['type'] == 'song' || details['type'] == 'video') {
             details['url'] = await getSongUrl(id);
@@ -499,8 +514,27 @@ class YtMusicService {
       }
       return searchResults;
     } catch (e) {
-      Logger.root.severe('Error in yt search', e);
+      dev.log('Error in yt search ', error: e, name: "YTM");
       return List.empty();
+    }
+  }
+
+  int timeStringToSeconds(String timeStamp) {
+    // convert min:seconds to seconds
+    try {
+      List<String> time = timeStamp.split(':');
+      if (time.length == 2) {
+        int minutes = int.parse(time[0]);
+        int seconds = int.parse(time[1]);
+        return (minutes * 60) + seconds;
+      } else {
+        int hour = int.parse(time[0]);
+        int minutes = int.parse(time[1]);
+        int seconds = int.parse(time[2]);
+        return (hour * 3600) + (minutes * 60) + seconds;
+      }
+    } catch (e) {
+      return 0;
     }
   }
 
@@ -540,7 +574,7 @@ class YtMusicService {
       }
       return results;
     } catch (e) {
-      Logger.root.severe('Error in yt search suggestions', e);
+      dev.log('Error in yt search suggestions ', error: e, name: "YTM");
       return List.empty();
     }
   }
@@ -604,7 +638,7 @@ class YtMusicService {
         'images': videoDetails['thumbnail']['thumbnails'].map((e) => e['url']),
       };
     } catch (e) {
-      Logger.root.severe('Error in yt get song data', e);
+      dev.log('Error in yt get song data ', error: e, name: "YTM");
       return {};
     }
   }
@@ -790,7 +824,7 @@ class YtMusicService {
         'type': 'playlist',
       };
     } catch (e) {
-      Logger.root.severe('Error in ytmusic getPlaylistDetails', e);
+      dev.log('Error in ytmusic getPlaylistDetails ', error: e, name: "YTM");
       return {'songs': []};
     }
   }
@@ -832,7 +866,7 @@ class YtMusicService {
                 ['clickTrackingParams']);
       }
     } catch (e) {
-      Logger.root.severe('Error in ytmusic home', e);
+      dev.log('Error in ytmusic home ', error: e, name: "YTM");
     }
   }
 
@@ -966,7 +1000,7 @@ class YtMusicService {
         'type': 'album',
       };
     } catch (e) {
-      Logger.root.severe('Error in ytmusic getAlbumDetails', e);
+      dev.log('Error in ytmusic getAlbumDetails ', error: e, name: "YTM");
       return {};
     }
   }
@@ -1204,7 +1238,7 @@ class YtMusicService {
       allResults.removeAt(0);
       return allResults;
     } catch (e) {
-      Logger.root.severe('Error in ytmusic getWatchPlaylist', e);
+      dev.log('Error in ytmusic getWatchPlaylist', name: "YTM", error: e);
       return [];
     }
   }

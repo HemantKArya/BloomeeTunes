@@ -36,7 +36,7 @@ class MediaItemDB {
   String artist;
   String artURL;
   String genre;
-
+  int? duration;
   String mediaID;
   String streamingURL;
   String? source;
@@ -46,27 +46,6 @@ class MediaItemDB {
 
   // @Backlink(to: "mediaItems")
   IsarLinks<MediaPlaylistDB> mediaInPlaylistsDB = IsarLinks<MediaPlaylistDB>();
-
-  // void setLike(bool isliked) {
-  //   if (isliked != isLiked) {
-  //     isLiked = isliked;
-  //     print("object1");
-  //     if (isLiked == true) {
-  //       print("object2");
-  //       if (!mediaInPlaylistsDB
-  //           .contains(MediaPlaylistDB(playlistName: "Liked"))) {
-  //         print("object3");
-  //         mediaInPlaylistsDB.add(MediaPlaylistDB(playlistName: "Liked"));
-  //       }
-  //     } else {
-  //       if (mediaInPlaylistsDB
-  //           .contains(MediaPlaylistDB(playlistName: "Liked"))) {
-  //         print("object2.5");
-  //         mediaInPlaylistsDB.remove(MediaPlaylistDB(playlistName: "Liked"));
-  //       }
-  //     }
-  //   }
-  // }
 
   MediaItemDB({
     this.id,
@@ -78,6 +57,7 @@ class MediaItemDB {
     required this.mediaID,
     required this.streamingURL,
     this.source,
+    this.duration,
     required this.permaURL,
     required this.language,
     required this.isLiked,
@@ -96,6 +76,7 @@ class MediaItemDB {
         other.mediaID == mediaID &&
         other.streamingURL == streamingURL &&
         other.source == source &&
+        other.duration == duration &&
         other.permaURL == permaURL &&
         other.language == language;
   }
@@ -111,6 +92,7 @@ class MediaItemDB {
         mediaID.hashCode ^
         streamingURL.hashCode ^
         source.hashCode ^
+        duration.hashCode ^
         permaURL.hashCode ^
         language.hashCode;
   }

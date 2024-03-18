@@ -42,6 +42,7 @@ class MediaDBCubit extends Cubit<MediadbState> {
         artURL: mediaItem.artUri.toString(),
         genre: mediaItem.genre ?? "Unknown",
         mediaID: mediaItem.id,
+        duration: mediaItem.duration?.inSeconds,
         streamingURL: mediaItem.extras?["url"],
         permaURL: mediaItem.extras?["perma_url"],
         language: mediaItem.extras?["language"] ?? "Unknown",
@@ -55,6 +56,9 @@ class MediaDBCubit extends Cubit<MediadbState> {
         title: mediaItemDB.title,
         album: mediaItemDB.album,
         artist: mediaItemDB.artist,
+        duration: mediaItemDB.duration != null
+            ? Duration(seconds: mediaItemDB.duration!)
+            : const Duration(seconds: 120),
         artUri: Uri.parse(mediaItemDB.artURL),
         genre: mediaItemDB.genre,
         extras: {
@@ -191,7 +195,9 @@ class MediaDBCubit extends Cubit<MediadbState> {
   Future<void> removeMediaFromPlaylist(
       MediaItem mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
     MediaItemDB _mediaItemDB = MediaItem2MediaItemDB(mediaItem);
-    isarDBService.removeMediaItem(_mediaItemDB, mediaPlaylistDB).then((value) {
+    isarDBService
+        .removeMediaItemFromPlaylist(_mediaItemDB, mediaPlaylistDB)
+        .then((value) {
       SnackbarService.showMessage(
           "${mediaItem.title} is removed from ${mediaPlaylistDB.playlistName}!!",
           duration: const Duration(seconds: 3),
@@ -203,6 +209,8 @@ class MediaDBCubit extends Cubit<MediadbState> {
                   undo: true)));
     });
   }
+
+  Future<void> removeMediaItemFromDB(MediaItemDB mediaItemDB) async {}
 
   Future<void> addMediaItemToPlaylist(
       MediaItemModel mediaItemModel, MediaPlaylistDB mediaPlaylistDB,

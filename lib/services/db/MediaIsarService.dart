@@ -62,7 +62,17 @@ class MediaIsarDBService {
     // isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(mediaItemDB));
   }
 
-  Future<void> removeMediaItem(
+  Future<void> removeMediaItem(MediaItemDB mediaItemDB) async {
+    Isar isarDB = await db;
+    bool _res = false;
+    isarDB.writeTxnSync(
+        () => _res = isarDB.mediaItemDBs.deleteSync(mediaItemDB.id!));
+    if (_res) {
+      log("${mediaItemDB.title} is Deleted!!", name: "DB");
+    }
+  }
+
+  Future<void> removeMediaItemFromPlaylist(
       MediaItemDB mediaItemDB, MediaPlaylistDB mediaPlaylistDB) async {
     Isar isarDB = await db;
     MediaItemDB? _mediaitem = isarDB.mediaItemDBs
@@ -80,6 +90,9 @@ class MediaIsarDBService {
         _mediaitem.mediaInPlaylistsDB.remove(mediaPlaylistDB);
         log("Removed from playlist", name: "DB");
         isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(_mediaitem));
+        if (_mediaitem.mediaInPlaylistsDB.isEmpty) {
+          removeMediaItem(_mediaitem);
+        }
         if (_mediaPlaylistDB.mediaRanks.contains(_mediaitem.id)) {
           // _mediaPlaylistDB.mediaRanks.indexOf(_mediaitem.id!)
 
@@ -122,7 +135,8 @@ class MediaIsarDBService {
     if (isLiked && _mediaItem != null) {
       addMediaItem(mediaItemDB, MediaPlaylistDB(playlistName: "Liked"));
     } else if (_mediaItem != null) {
-      removeMediaItem(mediaItemDB, MediaPlaylistDB(playlistName: "Liked"));
+      removeMediaItemFromPlaylist(
+          mediaItemDB, MediaPlaylistDB(playlistName: "Liked"));
     }
   }
 

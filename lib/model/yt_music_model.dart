@@ -10,15 +10,24 @@ MediaItemModel fromYtSongMap2MediaItem(Map<dynamic, dynamic> songItem) {
     artistsID.add(element["id"]);
   });
   artists = _artists.join(',');
+  print(songItem["duration"]);
   return MediaItemModel(
       id: songItem["id"] ?? 'Unknown',
       title: songItem["title"] ?? 'Unknown',
       album: songItem["album"] ?? 'Unknown',
       artist: artists,
       artUri: Uri.parse(songItem["image"]),
+
       // artUri: Uri.parse(
       //     "https://img.youtube.com/vi/${songItem["id"].toString().replaceAll("youtube", '')}/hqdefault.jpg"),
       genre: songItem["genre"] ?? 'Unknown',
+      duration: Duration(
+        seconds: (songItem["duration"] == "null" ||
+                songItem["duration"] == null ||
+                songItem["duration"] == "")
+            ? 120
+            : int.parse(songItem["duration"]),
+      ),
       extras: {
         "url": 'Unknown',
         "source": songItem["provider"] ?? "",

@@ -65,16 +65,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  # change_app_package_name: ^1.1.0
-
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^2.0.2
   isar_generator: ^3.1.0+1
-  build_runner: any
+  build_runner: ^2.4.8
   flutter_launcher_icons: ^0.13.1
   # icons_launcher: ^2.1.7
 

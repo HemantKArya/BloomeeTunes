@@ -28,36 +28,40 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       handleInterruptions: true,
     );
     audioPlayer.setVolume(1);
+    audioPlayer.playbackEventStream.listen(_broadcastPlayerEvent);
+  }
 
-    audioPlayer.playerStateStream.listen((event) {
-      // log(event.playing.toString(), name: "bloomeePlayer-event");
-      playbackState.add(PlaybackState(
-          // Which buttons should appear in the notification now
-          controls: [
-            MediaControl.skipToPrevious,
-            !event.playing ? MediaControl.play : MediaControl.pause,
-            // MediaControl.stop,
-            MediaControl.skipToNext,
-          ],
-          processingState: switch (event.processingState) {
-            ProcessingState.idle => AudioProcessingState.idle,
-            ProcessingState.loading => AudioProcessingState.loading,
-            ProcessingState.buffering => AudioProcessingState.buffering,
-            ProcessingState.ready => AudioProcessingState.ready,
-            ProcessingState.completed => AudioProcessingState.completed,
-          },
-          // Which other actions should be enabled in the notification
-          systemActions: const {
-            MediaAction.skipToPrevious,
-            MediaAction.playPause,
-            MediaAction.skipToNext,
-          },
-          androidCompactActionIndices: const [0, 1, 2],
-          updatePosition: audioPlayer.position,
-          playing: event.playing
-          // playing: audioPlayer.playerState.playing,
-          ));
-    });
+  void _broadcastPlayerEvent(PlaybackEvent event) {
+    bool isPlaying = audioPlayer.playing;
+    // log(event.playing.toString(), name: "bloomeePlayer-event");
+    playbackState.add(PlaybackState(
+      // Which buttons should appear in the notification now
+      controls: [
+        MediaControl.skipToPrevious,
+        isPlaying ? MediaControl.pause : MediaControl.play,
+        // MediaControl.stop,
+        MediaControl.skipToNext,
+      ],
+      processingState: switch (event.processingState) {
+        ProcessingState.idle => AudioProcessingState.idle,
+        ProcessingState.loading => AudioProcessingState.loading,
+        ProcessingState.buffering => AudioProcessingState.buffering,
+        ProcessingState.ready => AudioProcessingState.ready,
+        ProcessingState.completed => AudioProcessingState.completed,
+      },
+      // Which other actions should be enabled in the notification
+      systemActions: const {
+        MediaAction.skipToPrevious,
+        MediaAction.playPause,
+        MediaAction.skipToNext,
+      },
+      androidCompactActionIndices: const [0, 1, 2],
+      updatePosition: audioPlayer.position,
+      playing: isPlaying,
+      bufferedPosition: audioPlayer.bufferedPosition,
+      speed: audioPlayer.speed,
+      // playing: audioPlayer.playerState.playing,
+    ));
   }
 
   MediaItemModel get currentMedia => currentPlaylist[currentPlayingIdx];

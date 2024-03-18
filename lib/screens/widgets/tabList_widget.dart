@@ -108,7 +108,7 @@ class SongListWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.46,
+        // height: MediaQuery.of(context).size.height * 0.46,
         // width: MediaQuery.of(context).size.width * 0.82,
         child: BlocBuilder<SaavnRepositoryCubit, SaavnRepositoryState>(
           buildWhen: (previous, current) {
@@ -133,6 +133,8 @@ class SongListWidget extends StatelessWidget {
               );
             } else {
               return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: state.mediaItems.length,
                   padding: EdgeInsets.zero,
                   itemBuilder: (context, index) {
