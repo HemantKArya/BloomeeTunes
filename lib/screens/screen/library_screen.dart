@@ -15,6 +15,7 @@ class LibraryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
           customDiscoverBar(context), //AppBar
           SliverList(
@@ -70,12 +71,6 @@ class LibraryScreen extends StatelessWidget {
               style: Default_Theme.primaryTextStyle.merge(const TextStyle(
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),
-          // const UnicodeIcon(
-          //   strCode: "\uf002",
-          //   font: Default_Theme.fontAwesomeSolidFont,
-          //   fontSize: 24.0,
-          //   padding: EdgeInsets.only(left: 7, right: 7),
-          // ),
           InkWell(
             onTap: () {
               createPlaylistBottomSheet(context);

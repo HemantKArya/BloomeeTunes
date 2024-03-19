@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:flutter/material.dart';
 
@@ -14,19 +16,9 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  bool value = false;
   @override
   void initState() {
     super.initState();
-
-    context
-        .read<BloomeeDBCubit>()
-        .getSettingBool("auto_update_notify")
-        .then((value) {
-      setState(() {
-        this.value = value ?? false;
-      });
-    });
   }
 
   @override
@@ -45,47 +37,43 @@ class _SettingsViewState extends State<SettingsView> {
               .merge(Default_Theme.secondoryTextStyle),
         ),
       ),
-      body: Column(
-        children: [
-          SettingTile(
-            title: "Check for updates",
-            subtitle: "Check for new updates",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CheckUpdateView(),
-                ),
-              );
-            },
-          ),
-          AnimatedContainer(
-            duration: const Duration(seconds: 1),
-            child: SwitchListTile(
-                value: value,
-                subtitle: Text(
-                  "Get notified when new updates are available in app start up.",
-                  style: TextStyle(
-                          color: Default_Theme.primaryColor1.withOpacity(0.5),
-                          fontSize: 14)
-                      .merge(Default_Theme.secondoryTextStyleMedium),
-                ),
-                title: Text(
-                  "Auto update notify",
-                  style: const TextStyle(
-                          color: Default_Theme.primaryColor1, fontSize: 20)
-                      .merge(Default_Theme.secondoryTextStyleMedium),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    this.value = value;
-                  });
-                  context
-                      .read<BloomeeDBCubit>()
-                      .putSettingBool("auto_update_notify", value);
-                }),
-          ),
-        ],
+      body: BlocBuilder<SettingsCubit, SettingsState>(
+        builder: (context, state) {
+          return Column(
+            children: [
+              SettingTile(
+                title: "Check for updates",
+                subtitle: "Check for new updates",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CheckUpdateView(),
+                    ),
+                  );
+                },
+              ),
+              SwitchListTile(
+                  value: state.autoUpdateNotify,
+                  subtitle: Text(
+                    "Get notified when new updates are available in app start up.",
+                    style: TextStyle(
+                            color: Default_Theme.primaryColor1.withOpacity(0.5),
+                            fontSize: 14)
+                        .merge(Default_Theme.secondoryTextStyleMedium),
+                  ),
+                  title: Text(
+                    "Auto update notify",
+                    style: const TextStyle(
+                            color: Default_Theme.primaryColor1, fontSize: 20)
+                        .merge(Default_Theme.secondoryTextStyleMedium),
+                  ),
+                  onChanged: (value) {
+                    context.read<SettingsCubit>().updateAutoUpdateNotify(value);
+                  }),
+            ],
+          );
+        },
       ),
     );
   }

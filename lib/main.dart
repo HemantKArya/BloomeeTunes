@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
@@ -152,6 +153,10 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => BloomeeDBCubit(),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => SettingsCubit(),
           lazy: false,
         ),
         BlocProvider(
