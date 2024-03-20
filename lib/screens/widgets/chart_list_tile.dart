@@ -22,25 +22,30 @@ class ChartListTile extends StatelessWidget {
     return InkWell(
       onTap: () => context.push(
           "/${GlobalStrConsts.searchScreen}?query=${title} by ${subtitle}"),
-      child: ListTile(
-        leading: loadImageCached(imgUrl),
-        title: Text(
-          title,
-          textAlign: TextAlign.start,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: Default_Theme.tertiaryTextStyle.merge(const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Default_Theme.primaryColor1,
-              fontSize: 14)),
-        ),
-        subtitle: Text(subtitle,
+      child: SizedBox(
+        width: 300,
+        child: ListTile(
+          leading: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(height: 60, child: loadImageCached(imgUrl))),
+          title: Text(
+            title,
             textAlign: TextAlign.start,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
-            style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
-                color: Default_Theme.primaryColor1.withOpacity(0.8),
-                fontSize: 13))),
+            style: Default_Theme.tertiaryTextStyle.merge(const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Default_Theme.primaryColor1,
+                fontSize: 14)),
+          ),
+          subtitle: Text(subtitle,
+              textAlign: TextAlign.start,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
+                  color: Default_Theme.primaryColor1.withOpacity(0.8),
+                  fontSize: 13))),
+        ),
       ),
     );
   }

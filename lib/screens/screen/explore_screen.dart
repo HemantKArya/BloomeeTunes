@@ -1,3 +1,4 @@
+import 'package:Bloomee/blocs/explore/cubit/explore_cubit.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/utils/app_updater.dart';
 import 'package:flutter/material.dart';
@@ -33,25 +34,29 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          customDiscoverBar(context), //AppBar
-          SliverList(
-              delegate: SliverChildListDelegate([
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: CaraouselWidget(),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 20),
-              child: TabSongListWidget(),
-            ),
-          ]))
-        ],
+    return BlocProvider(
+      create: (context) => ExploreCubit(),
+      lazy: false,
+      child: Scaffold(
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            customDiscoverBar(context), //AppBar
+            SliverList(
+                delegate: SliverChildListDelegate([
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: CaraouselWidget(),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 20),
+                child: TabSongListWidget(),
+              ),
+            ]))
+          ],
+        ),
+        backgroundColor: Default_Theme.themeColor,
       ),
-      backgroundColor: Default_Theme.themeColor,
     );
   }
 

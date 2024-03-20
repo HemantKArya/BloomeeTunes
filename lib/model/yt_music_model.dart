@@ -10,7 +10,6 @@ MediaItemModel fromYtSongMap2MediaItem(Map<dynamic, dynamic> songItem) {
     artistsID.add(element["id"]);
   });
   artists = _artists.join(',');
-  print(songItem["duration"]);
   return MediaItemModel(
       id: songItem["id"] ?? 'Unknown',
       title: songItem["title"] ?? 'Unknown',

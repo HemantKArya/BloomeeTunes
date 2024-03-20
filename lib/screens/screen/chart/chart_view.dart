@@ -53,6 +53,7 @@ class _ChartScreenState extends State<ChartScreen> {
           } else {
             final List<Map<String, String>>? melon = snapshot.data;
             return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
               slivers: [
                 customDiscoverBar(context), //AppBar
                 SliverList(

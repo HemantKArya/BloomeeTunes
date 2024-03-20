@@ -144,9 +144,9 @@ Future<List> formatHomeSections(List items) async {
         'count': e['compactStationRenderer']['videoCountText']['runs'][0]
             ['text'],
         'id':
-            'youtube${e['compactStationRenderer']['navigationEndpoint']['watchEndpoint']['playlistId']}',
+            'youtube${e['compactStationRenderer']['navigationEndpoint']['watchPlaylistEndpoint']['playlistId']}',
         'firstItemId':
-            'youtube${e['compactStationRenderer']['navigationEndpoint']['watchEndpoint']['videoId']}',
+            'youtube${e['compactStationRenderer']['navigationEndpoint']['watchPlaylistEndpoint']['videoId']}',
         'image': e['compactStationRenderer']['thumbnail']['thumbnails'][0]
             ['url'],
         'images': [

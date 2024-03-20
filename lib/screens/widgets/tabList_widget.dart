@@ -1,7 +1,8 @@
+import 'package:Bloomee/blocs/explore/cubit/explore_cubit.dart';
+import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/repository/Saavn/cubit/saavn_repository_cubit.dart';
-import 'package:Bloomee/screens/widgets/horizontalSongCard_widget.dart';
 
 import '../../theme_data/default.dart';
 
@@ -110,16 +111,9 @@ class SongListWidget extends StatelessWidget {
       child: SizedBox(
         // height: MediaQuery.of(context).size.height * 0.46,
         // width: MediaQuery.of(context).size.width * 0.82,
-        child: BlocBuilder<SaavnRepositoryCubit, SaavnRepositoryState>(
-          buildWhen: (previous, current) {
-            if (current.albumName == "Trendings" && previous != current) {
-              return true;
-            } else {
-              return false;
-            }
-          },
+        child: BlocBuilder<ExploreCubit, ExploreState>(
           builder: (context, state) {
-            if (state is SaavnRepositoryInitial) {
+            if (state is ExploreInitial) {
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.only(right: 70),
@@ -132,25 +126,54 @@ class SongListWidget extends StatelessWidget {
                 ),
               );
             } else {
-              return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: state.mediaItems.length,
-                  padding: EdgeInsets.zero,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                        padding: const EdgeInsets.only(bottom: 5),
-                        child: HorizontalSongCardWidget(
-                          mediaPlaylist: state,
-                          index: index,
-                          showLiked: true,
-                          showOptions: true,
-                        ));
-                  });
+              List<ChartListTile> _list = state.ytCharts[0].map((e) {
+                return ChartListTile(
+                  title: e["title"],
+                  subtitle: e["artists"][0],
+                  imgUrl: e["img"],
+                );
+              }).toList();
+
+              return buildTrendingCards(_list);
             }
           },
         ),
       ),
     );
   }
+}
+
+Widget buildTrendingCards(List<ChartListTile> product) {
+  final cards = <Widget>[];
+  Widget feautredCards;
+  int endIndex = 4;
+  if (endIndex > product.length) endIndex = product.length;
+  if (product.isNotEmpty) {
+    for (int i = 0; i < product.length; i += 4) {
+      if (endIndex > product.length) endIndex = product.length;
+      List<Widget> currentRow = product.sublist(i, endIndex);
+      endIndex = i + 8;
+      cards.add(Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: currentRow,
+      ));
+    }
+    feautredCards = Container(
+      padding: EdgeInsets.only(top: 16, bottom: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            child: Row(mainAxisSize: MainAxisSize.min, children: cards),
+          ),
+        ],
+      ),
+    );
+  } else {
+    feautredCards = Container();
+  }
+  return feautredCards;
 }

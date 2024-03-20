@@ -260,14 +260,14 @@ class YtMusicService {
       final List result = data['contents']['twoColumnBrowseResultsRenderer']
               ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
           ['contents'] as List;
-
+      // dev.log("result: $result", name: "YTM");
       final List headResult = data['header']['carouselHeaderRenderer']
           ['contents'][0]['carouselItemRenderer']['carouselItems'] as List;
 
       final List shelfRenderer = result.map((element) {
         return element['itemSectionRenderer']['contents'][0]['shelfRenderer'];
       }).toList();
-
+      // dev.log("${shelfRenderer.toString()}");
       final List finalResult = [];
 
       for (Map element in shelfRenderer) {
@@ -287,6 +287,7 @@ class YtMusicService {
               name: "YTM");
         }
       }
+      // dev.log("finalResult: $finalResult", name: "YTM");
 
       final List finalHeadResult = formatHeadItems(headResult);
       finalResult.removeWhere((element) => element == null);
@@ -882,7 +883,7 @@ class YtMusicService {
     };
     // pprint(cToken);
     final response = await sendRequest(endpoint, body, headers, params: params);
-    print(response);
+    // print(response);
   }
 
   Future<Map> getAlbumDetails(String albumId) async {
