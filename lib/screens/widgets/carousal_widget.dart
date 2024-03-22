@@ -86,12 +86,11 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
             for (int i = 0; i < chartInfoList.length; i++)
               InkWell(
                 onTap: () {
-                  GoRouter.of(context).push(
-                      "/${GlobalStrConsts.exploreScreen}/${GlobalStrConsts.ChartScreen}",
-                      extra: chartCubitList[i]);
+                  GoRouter.of(context).pushNamed(GlobalStrConsts.ChartScreen,
+                      pathParameters: {"chartName": chartInfoList[i].title});
                 },
-                child: BlocProvider(
-                  create: (context) => chartCubitList[i],
+                child: BlocProvider.value(
+                  value: chartCubitList[i],
                   child: ChartWidget(
                     chartInfo: chartInfoList[i],
                   ),

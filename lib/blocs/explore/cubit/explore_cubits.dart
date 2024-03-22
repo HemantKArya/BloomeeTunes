@@ -7,7 +7,6 @@ import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
 import 'package:Bloomee/repository/Youtube/yt_charts_home.dart';
-import 'package:Bloomee/screens/screen/chart/show_charts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 
 part 'explore_states.dart';

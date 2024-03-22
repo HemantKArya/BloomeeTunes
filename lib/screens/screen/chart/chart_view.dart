@@ -1,32 +1,43 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChartScreen extends StatefulWidget {
-  ChartCubit? chartCubit;
-  ChartScreen({Key? key, this.chartCubit}) : super(key: key);
+  // ChartCubit? chartCubit;
+  final String chartName;
+  ChartScreen({Key? key, required this.chartName}) : super(key: key);
 
   @override
   State<ChartScreen> createState() => _ChartScreenState();
 }
 
 class _ChartScreenState extends State<ChartScreen> {
+  Future<ChartModel?> chartModel = Future.value(null);
+  Future<ChartModel?> getChart() async {
+    return await BloomeeDBService.getChart(widget.chartName);
+  }
+
   @override
   void initState() {
+    setState(() {
+      chartModel = getChart();
+    });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<ChartCubit, ChartState>(
-        bloc: widget.chartCubit,
+      body: FutureBuilder(
+        future: chartModel,
         builder: (context, state) {
-          if (state is ChartInitial) {
+          if (state.connectionState == ConnectionState.waiting ||
+              state.data == null) {
             return const Center(
               child: SizedBox(
                   height: 50,
@@ -35,7 +46,7 @@ class _ChartScreenState extends State<ChartScreen> {
                     color: Default_Theme.accentColor2,
                   )),
             );
-          } else if (state.chart.chartItems!.isEmpty) {
+          } else if (state.data!.chartItems!.isEmpty) {
             return Center(
               child: Text("Error: No Item in Chart",
                   style: Default_Theme.secondoryTextStyleMedium.merge(
@@ -44,22 +55,21 @@ class _ChartScreenState extends State<ChartScreen> {
                           color: Color.fromARGB(255, 255, 235, 251)))),
             );
           } else {
-            final ChartModel chart = state.chart;
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                customDiscoverBar(context, state), //AppBar
+                customDiscoverBar(context, state.data!), //AppBar
                 SliverList(
                     delegate: SliverChildListDelegate([
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: chart.chartItems!.length,
+                    itemCount: state.data!.chartItems!.length,
                     itemBuilder: (context, index) {
                       return ChartListTile(
-                        title: chart.chartItems![index].name!,
-                        subtitle: chart.chartItems![index].subtitle!,
-                        imgUrl: chart.chartItems![index].imageUrl!,
+                        title: state.data!.chartItems![index].name!,
+                        subtitle: state.data!.chartItems![index].subtitle!,
+                        imgUrl: state.data!.chartItems![index].imageUrl!,
                       );
                     },
                   ),
@@ -73,7 +83,7 @@ class _ChartScreenState extends State<ChartScreen> {
     );
   }
 
-  SliverAppBar customDiscoverBar(BuildContext context, ChartState state) {
+  SliverAppBar customDiscoverBar(BuildContext context, ChartModel state) {
     return SliverAppBar(
       floating: true,
       surfaceTintColor: Default_Theme.themeColor,
@@ -83,7 +93,7 @@ class _ChartScreenState extends State<ChartScreen> {
         centerTitle: false,
         titlePadding:
             const EdgeInsets.only(left: 8, bottom: 0, right: 0, top: 0),
-        title: Text(state.chart.chartName,
+        title: Text(state.chartName,
             textScaleFactor: 1,
             textAlign: TextAlign.start,
             style: Default_Theme.secondoryTextStyleMedium.merge(const TextStyle(
@@ -93,7 +103,9 @@ class _ChartScreenState extends State<ChartScreen> {
             Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                    image: NetworkImage(state.coverImg), fit: BoxFit.cover),
+                    image: NetworkImage(
+                        state.chartItems!.first.imageUrl.toString()),
+                    fit: BoxFit.cover),
               ),
             ),
             Positioned.fill(

@@ -2,6 +2,7 @@ import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/screen/add_to_playlist_screen.dart';
@@ -82,16 +83,10 @@ class GlobalRoutes {
                   routes: [
                     GoRoute(
                         name: GlobalStrConsts.ChartScreen,
-                        path: 'ChartScreen',
+                        path: 'ChartScreen:chartName',
                         builder: (context, state) => ChartScreen(
-                              chartCubit: () {
-                                if (state.extra != null) {
-                                  return state.extra as ChartCubit;
-                                } else {
-                                  return null;
-                                }
-                              }(),
-                            )),
+                            chartName:
+                                state.pathParameters['chartName'] ?? "none")),
                   ])
             ]),
             StatefulShellBranch(routes: [
