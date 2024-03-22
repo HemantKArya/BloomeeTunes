@@ -1,7 +1,9 @@
+import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/screens/screen/chart/chart_widget.dart';
 import 'package:Bloomee/screens/screen/chart/show_charts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -20,6 +22,15 @@ class CaraouselWidget extends StatefulWidget {
 
 class _CaraouselWidgetState extends State<CaraouselWidget> {
   bool _visibility = true;
+  List<ChartCubit> chartCubitList = List.empty(growable: true);
+
+  @override
+  void initState() {
+    for (var i in chartInfoList) {
+      chartCubitList.add(ChartCubit(i));
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,30 +66,35 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
         ),
         CarouselSlider(
           options: CarouselOptions(
-              onPageChanged: (index, _) {
-                setState(() {
-                  _visibility = index == 0;
-                });
-              },
-              height: 320.0,
-              viewportFraction: 0.7,
-              autoPlay: true,
-              autoPlayInterval: const Duration(milliseconds: 2500),
-              // aspectRatio: 15 / 16,
-              // enableInfiniteScroll: true,
-              enlargeFactor: 0.2,
-              initialPage: 0,
-              enlargeCenterPage: true),
+            onPageChanged: (index, _) {
+              setState(() {
+                _visibility = index == 0;
+              });
+            },
+            height: 320.0,
+            viewportFraction: 0.7,
+            autoPlay: true,
+            autoPlayInterval: const Duration(milliseconds: 2500),
+            // aspectRatio: 15 / 16,
+            // enableInfiniteScroll: true,
+            enlargeFactor: 0.2,
+            initialPage: 0,
+            pauseAutoPlayOnTouch: true,
+            enlargeCenterPage: true,
+          ),
           items: [
             for (int i = 0; i < chartInfoList.length; i++)
               InkWell(
                 onTap: () {
                   GoRouter.of(context).push(
                       "/${GlobalStrConsts.exploreScreen}/${GlobalStrConsts.ChartScreen}",
-                      extra: chartInfoList[i]);
+                      extra: chartCubitList[i]);
                 },
-                child: ChartWidget(
-                  chartInfo: chartInfoList[i],
+                child: BlocProvider(
+                  create: (context) => chartCubitList[i],
+                  child: ChartWidget(
+                    chartInfo: chartInfoList[i],
+                  ),
                 ),
               ),
           ],

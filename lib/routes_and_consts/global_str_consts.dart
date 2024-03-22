@@ -10,4 +10,6 @@ class GlobalStrConsts {
   static const String addToPlaylistScreen = "AddToPlaylist";
   static const String ImportMediaFromPlatforms = "ImportMediaFromPlatforms";
   static const String ChartScreen = "ChartScreen";
+
+  static const String autoUpdateNotify = "auto_update_notify";
 }

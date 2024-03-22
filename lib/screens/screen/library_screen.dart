@@ -106,57 +106,65 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      shrinkWrap: true,
-      padding: const EdgeInsets.only(top: 8),
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: widget.state.playlists.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Dismissible(
-          key: ValueKey(widget.state.playlists[index].playlistName),
-          background: Container(
-            color: Colors.red,
-            child: const Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: Icon(
-                    MingCute.delete_3_line,
-                    color: Colors.white,
-                    size: 30,
+        shrinkWrap: true,
+        padding: const EdgeInsets.only(top: 8),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: widget.state.playlists.length,
+        itemBuilder: (context, index) {
+          if (widget.state.playlists[index].playlistName == "recently_played") {
+            return const SizedBox();
+          } else {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Dismissible(
+                key: ValueKey(widget.state.playlists[index].playlistName),
+                background: Container(
+                  color: Colors.red,
+                  child: const Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(left: 20),
+                        child: Icon(
+                          MingCute.delete_3_line,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                      Spacer(),
+                    ],
                   ),
                 ),
-                Spacer(),
-              ],
-            ),
-          ),
-          direction: DismissDirection.startToEnd,
-          onDismissed: (DismissDirection direction) {
-            context.read<LibraryItemsCubit>().removePlaylist(MediaPlaylistDB(
-                playlistName:
-                    widget.state.playlists[index].playlistName ?? "Null"));
-            setState(() {
-              widget.state.playlists.removeAt(index);
-            });
-          },
-          child: InkWell(
-            onTap: () => context.pushNamed(GlobalStrConsts.playlistView,
-                pathParameters: {
-                  "playlistName":
-                      widget.state.playlists[index].playlistName ?? "Liked"
-                }),
-            child: SmallPlaylistCard(
-                playListTitle:
-                    widget.state.playlists[index].playlistName ?? "Unknown",
-                coverArt: Image(
-                  image: widget.state.playlists[index].imageProvider!,
-                  fit: BoxFit.fitHeight,
+                direction: DismissDirection.startToEnd,
+                onDismissed: (DismissDirection direction) {
+                  context.read<LibraryItemsCubit>().removePlaylist(
+                      MediaPlaylistDB(
+                          playlistName:
+                              widget.state.playlists[index].playlistName ??
+                                  "Null"));
+                  setState(() {
+                    widget.state.playlists.removeAt(index);
+                  });
+                },
+                child: InkWell(
+                  onTap: () => context
+                      .pushNamed(GlobalStrConsts.playlistView, pathParameters: {
+                    "playlistName":
+                        widget.state.playlists[index].playlistName ?? "Liked"
+                  }),
+                  child: SmallPlaylistCard(
+                      playListTitle:
+                          widget.state.playlists[index].playlistName ??
+                              "Unknown",
+                      coverArt: Image(
+                        image: widget.state.playlists[index].imageProvider!,
+                        fit: BoxFit.fitHeight,
+                      ),
+                      playListsubTitle:
+                          widget.state.playlists[index].subTitle ?? "Unknown"),
                 ),
-                playListsubTitle:
-                    widget.state.playlists[index].subTitle ?? "Unknown"),
-          ),
-        ),
-      ),
-    );
+              ),
+            );
+          }
+        });
   }
 }

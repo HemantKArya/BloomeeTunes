@@ -31,8 +31,7 @@ class SaavnRepositoryCubit extends Cubit<SaavnRepositoryState> {
   Future<void> fetchTopResultsfromSaavn() async {
     emit(state);
     final trends = await saavnAPI.getTopSearches();
-    final billboardIndia =
-        await getBillboardChart(url: BillboardChartLinks.INDIA_SONGS);
+    final billboardIndia = await getBillboardChart(BillboardCharts.INDIA_SONGS);
 
     List<MediaItemModel> trendings = [];
 
@@ -40,7 +39,7 @@ class SaavnRepositoryCubit extends Cubit<SaavnRepositoryState> {
       for (int i = 0; i < trends.length; i++) {
         final trendingResults = await saavnAPI.fetchSongSearchResults(
             searchQuery:
-                "${billboardIndia[i]["title"]} by ${billboardIndia[i]["label"]}",
+                "${billboardIndia.chartItems![i].name} by ${billboardIndia.chartItems?[i].subtitle ?? ""}",
             count: 1);
 
         trendings +=

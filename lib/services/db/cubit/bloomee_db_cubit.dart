@@ -32,41 +32,6 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
     }
   }
 
-  MediaItemDB MediaItem2MediaItemDB(MediaItem mediaItem) {
-    return MediaItemDB(
-        title: mediaItem.title,
-        album: mediaItem.album ?? "Unknown",
-        artist: mediaItem.artist ?? "Unknown",
-        artURL: mediaItem.artUri.toString(),
-        genre: mediaItem.genre ?? "Unknown",
-        mediaID: mediaItem.id,
-        duration: mediaItem.duration?.inSeconds,
-        streamingURL: mediaItem.extras?["url"],
-        permaURL: mediaItem.extras?["perma_url"],
-        language: mediaItem.extras?["language"] ?? "Unknown",
-        isLiked: false,
-        source: mediaItem.extras?["source"] ?? "Saavn");
-  }
-
-  MediaItemModel MediaItemDB2MediaItem(MediaItemDB mediaItemDB) {
-    return MediaItemModel(
-        id: mediaItemDB.mediaID,
-        title: mediaItemDB.title,
-        album: mediaItemDB.album,
-        artist: mediaItemDB.artist,
-        duration: mediaItemDB.duration != null
-            ? Duration(seconds: mediaItemDB.duration!)
-            : const Duration(seconds: 120),
-        artUri: Uri.parse(mediaItemDB.artURL),
-        genre: mediaItemDB.genre,
-        extras: {
-          "url": mediaItemDB.streamingURL,
-          "source": mediaItemDB.source ?? "None",
-          "perma_url": mediaItemDB.permaURL,
-          "language": mediaItemDB.language,
-        });
-  }
-
   Future<void> setLike(MediaItem mediaItem, {isLiked = false}) async {
     BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
         MediaPlaylistDB(playlistName: "Liked"));
@@ -150,17 +115,6 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
       });
     }
     return mediaPlaylists;
-  }
-
-  MediaPlaylist fromPlaylistDB2MediaPlaylist(MediaPlaylistDB mediaPlaylistDB) {
-    MediaPlaylist mediaPlaylist =
-        MediaPlaylist(mediaItems: [], albumName: mediaPlaylistDB.playlistName);
-    if (mediaPlaylistDB.mediaItems.isNotEmpty) {
-      mediaPlaylistDB.mediaItems.forEach((element) {
-        mediaPlaylist.mediaItems.add(MediaItemDB2MediaItem(element));
-      });
-    }
-    return mediaPlaylist;
   }
 
   Future<List<MediaPlaylist>> getListOfPlaylists2() async {

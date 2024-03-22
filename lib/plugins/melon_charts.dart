@@ -1,4 +1,8 @@
+import 'dart:developer';
+
+import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as parser;
 
@@ -64,12 +68,11 @@ class MelonCharts {
       title: "Melon\nOverseas Monthly", url: MelonChartsLinks.OVERSEAS_MONTHLY);
 }
 
-Future<List<Map<String, String>>> getMelonChart(
-    {String url = MelonChartsLinks.DOMESTIC_DAILY}) async {
+Future<ChartModel> getMelonChart(ChartURL url) async {
   final client = http.Client();
 
   try {
-    final response = await client.get(Uri.parse(url), headers: {
+    final response = await client.get(Uri.parse(url.url), headers: {
       'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     });
@@ -80,7 +83,7 @@ Future<List<Map<String, String>>> getMelonChart(
       final allItems100 = rankList.querySelectorAll('tr.lst100');
       final allItems = allItems50.toList()..addAll(allItems100);
 
-      final melon = <Map<String, String>>[];
+      List<ChartItemModel> chartItems = [];
       for (final item in allItems) {
         final div = item.querySelector('div.wrap_song_info');
         final title = div!.querySelector('div.ellipsis.rank01 a')?.text.trim();
@@ -88,16 +91,39 @@ Future<List<Map<String, String>>> getMelonChart(
             div.querySelector('div.ellipsis.rank02 span')?.text.trim();
         final img =
             item.querySelector('a.image_typeAll img')!.attributes['src']!;
-        melon.add(
-            {'title': title.toString(), 'label': label.toString(), 'img': img});
-      }
 
-      return melon;
+        chartItems.add(ChartItemModel(
+          name: title,
+          imageUrl: img.replaceAll(RegExp(r'resize/\d+'), 'resize/350'),
+          subtitle: label,
+        ));
+      }
+      final melonChart = ChartModel(
+          chartName: url.title,
+          chartItems: chartItems,
+          url: url.url,
+          lastUpdated: DateTime.now());
+      BloomeeDBService.putChart(melonChart);
+      log('Melon Charts: ${melonChart.chartItems!.length} tracks',
+          name: "Melon");
+      return melonChart;
     } else {
+      final chart = await BloomeeDBService.getChart(url.title);
+      if (chart != null) {
+        log('Melon Charts: ${chart.chartItems!.length} tracks loaded from cache',
+            name: "Melon");
+        return chart;
+      }
       throw Exception(
           'Parsing failed with status code: ${response.statusCode}');
     }
   } catch (e) {
+    final chart = await BloomeeDBService.getChart(url.title);
+    if (chart != null) {
+      log('Melon Charts: ${chart.chartItems!.length} tracks loaded from cache',
+          name: "Melon");
+      return chart;
+    }
     throw Exception('Failed to parse page');
   }
 }

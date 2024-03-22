@@ -156,3 +156,36 @@ class AppSettingsBoolDB {
   @override
   int get hashCode => settingName.hashCode ^ settingValue.hashCode;
 }
+
+@collection
+class ChartsCacheDB {
+  Id get isarId => fastHash(chartName);
+  String chartName;
+  DateTime lastUpdated;
+  String? permaURL;
+  List<ChartItemDB> chartItems;
+  ChartsCacheDB({
+    required this.chartName,
+    required this.lastUpdated,
+    required this.chartItems,
+    this.permaURL,
+  });
+}
+
+@embedded
+class ChartItemDB {
+  String? title;
+  String? artist;
+  String? artURL;
+}
+
+@collection
+class RecentlyPlayedDB {
+  Id? id;
+  DateTime lastPlayed;
+  RecentlyPlayedDB({
+    this.id,
+    required this.lastPlayed,
+  });
+  IsarLink<MediaItemDB> mediaItem = IsarLink<MediaItemDB>();
+}

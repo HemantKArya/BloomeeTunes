@@ -1,7 +1,11 @@
+import 'dart:developer';
+
+import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-Future<List<List<Map<String, dynamic>>>> fetchTrendingVideos() async {
+Future<List<ChartModel>> fetchTrendingVideos() async {
   // Fetch the YouTube page to extract the INNERTUBE_API_KEY
   var response = await http
       .get(Uri.parse('https://charts.youtube.com/charts/TrendingVideos/gb'));
@@ -23,7 +27,7 @@ Future<List<List<Map<String, dynamic>>>> fetchTrendingVideos() async {
         "clientName": "WEB_MUSIC_ANALYTICS",
         "clientVersion": "2.0",
         "hl": "en",
-        "gl": "AR",
+        "gl": "IN",
         "experimentIds": [],
         "experimentsToken": "",
         "theme": "MUSIC"
@@ -32,7 +36,9 @@ Future<List<List<Map<String, dynamic>>>> fetchTrendingVideos() async {
       "request": {"internalExperimentFlags": []}
     },
     "browseId": "FEmusic_analytics_charts_home",
-    "query": "perspective=CHART_HOME&chart_params_country_code=global"
+    "query":
+        "perspective=CHART_DETAILS&chart_params_country_code=global&chart_params_chart_type=TRACKS&chart_params_period_type=WEEKLY"
+    // "query": "perspective=CHART_HOME&chart_params_country_code=global"
   };
 
   // Make the POST request
@@ -44,37 +50,51 @@ Future<List<List<Map<String, dynamic>>>> fetchTrendingVideos() async {
   );
 
   if (response.statusCode == 200) {
-    // Parse the JSON response
-    // return json.decode(response.body);
+    // List<dynamic> data = json.decode(response.body)["contents"]
+    //         ['sectionListRenderer']["contents"][0]
+    //     ['musicAnalyticsSectionRenderer']['content']['videos'];
     List<dynamic> data = json.decode(response.body)["contents"]
-            ['sectionListRenderer']["contents"][0]
-        ['musicAnalyticsSectionRenderer']['content']['videos'];
+                ['sectionListRenderer']["contents"][0]
+            ['musicAnalyticsSectionRenderer']['content']['trackTypes'][0]
+        ["trackViews"];
 
-    List<List<Map<String, dynamic>>> playlists = [];
+    // List<List<Map<String, dynamic>>> playlists = [];
+    List<ChartItemModel> chartItems = [];
+    List<ChartModel> chartModels = [];
 
-    for (var types in data) {
-      List<Map<String, dynamic>> playlist = [];
-      for (var i in types['videoViews']) {
-        String title = i['title'];
-        String views = i['viewCount'];
-        String id = i['id'];
-        String img = i['thumbnail']['thumbnails'][0]['url'];
-        List<String> artists = [];
-        for (var artist in i['artists']) {
-          artists.add(artist['name']);
-        }
-        playlist.add({
-          'title': title,
-          'views': views,
-          'id': id,
-          'img': img,
-          'artists': artists
-        });
+    // for (var types in data) {
+    chartItems = [];
+    for (var i in data) {
+      String title = i['name'];
+      // String views = i['viewCount'];
+      // String id = i['id'];
+      String img = i['thumbnail']['thumbnails'][0]['url'];
+      List<String> artists = [];
+      for (var artist in i['artists']) {
+        artists.add(artist['name']);
       }
-      playlists.add(playlist);
+
+      chartItems.add(ChartItemModel(
+          name: title, subtitle: artists.join(", "), imageUrl: img));
     }
-    return playlists;
+    chartModels.add(ChartModel(
+      chartName: "Trending Videos",
+      chartItems: chartItems,
+      url: "https://charts.youtube.com/youtubei/v1/browse?alt=json&key=",
+      lastUpdated: DateTime.now(),
+    ));
+    // }
+    BloomeeDBService.putChart(chartModels[0]);
+    log("Trending Charts: ${chartModels[0].chartItems?.length} items loaded",
+        name: "Trending YT Charts");
+    return chartModels;
   } else {
+    final chart = await BloomeeDBService.getChart("Trending Videos");
+    if (chart != null) {
+      log("Trending Charts: ${chart.chartItems?.length} items loaded from cache",
+          name: "Trending YT Charts");
+      return [chart];
+    }
     throw Exception('Failed to load data: ${response.statusCode}');
   }
 }

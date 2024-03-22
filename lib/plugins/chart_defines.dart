@@ -1,7 +1,8 @@
 import 'dart:math';
 
-typedef ChartFunction = Future<List<Map<String, String>>> Function(
-    {String url});
+import 'package:Bloomee/model/chart_model.dart';
+
+typedef ChartFunction = Future<ChartModel> Function(ChartURL url);
 
 class ChartURL {
   final String url;
@@ -12,14 +13,14 @@ class ChartURL {
 class ChartInfo {
   final ChartFunction chartFunction;
   final String title;
-  final String url;
-  final String imgUrl;
+  String imgUrl;
+  final ChartURL url;
 
   ChartInfo({
     required this.chartFunction,
     required this.title,
-    required this.url,
     required this.imgUrl,
+    required this.url,
   });
 }
 

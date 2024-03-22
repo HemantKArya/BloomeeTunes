@@ -169,6 +169,7 @@ class _SearchScreenState extends State<SearchScreen> {
             } else if (state.loadingState == LoadingState.loaded) {
               if (state.mediaItems.isNotEmpty) {
                 return ListView.builder(
+                  physics: const BouncingScrollPhysics(),
                   itemCount: state.mediaItems.length,
                   itemBuilder: (context, index) {
                     return Padding(

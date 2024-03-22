@@ -1,8 +1,10 @@
 import 'dart:math';
 
+import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChartWidget extends StatefulWidget {
   final ChartInfo chartInfo;
@@ -51,7 +53,16 @@ final List<TextColorPair> colorPair = [
 ];
 
 class _ChartWidgetState extends State<ChartWidget> {
-  final _random = new Random();
+  final _random = Random();
+  TextColorPair _color = colorPair[0];
+  @override
+  void initState() {
+    setState(() {
+      _color = colorPair[_random.nextInt(colorPair.length)];
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -60,36 +71,40 @@ class _ChartWidgetState extends State<ChartWidget> {
         height: 600,
         width: 270,
         child: Stack(children: [
-          SizedBox(
-            height: 600,
-            width: 270,
-            child: loadImageCached(widget.chartInfo.imgUrl),
+          BlocBuilder<ChartCubit, ChartState>(
+            bloc: BlocProvider.of<ChartCubit>(context),
+            builder: (context, state) {
+              return state is ChartInitial
+                  ? const SizedBox()
+                  : SizedBox(
+                      height: 600,
+                      width: 270,
+                      child: loadImageCached(state.coverImg),
+                    );
+            },
           ),
           Positioned(
             child: ClipPath(
               clipper: ChartCardClipper(),
               child: Container(
-                color: colorPair[_random.nextInt(colorPair.length)]
-                    .backgroundColor
-                    .withOpacity(0.65),
+                color: _color.backgroundColor.withOpacity(0.8),
               ),
             ),
           ),
           Positioned(
             bottom: 6,
-            left: 10,
+            right: 10,
             child: SizedBox(
               width: 260,
               child: Text(
                 widget.chartInfo.title,
                 maxLines: 2,
                 softWrap: true,
+                textAlign: TextAlign.right,
                 overflow: TextOverflow.ellipsis,
                 textWidthBasis: TextWidthBasis.parent,
                 style: TextStyle(
-                  color: colorPair[_random.nextInt(colorPair.length)]
-                      .textColor
-                      .withOpacity(0.95),
+                  color: _color.textColor.withOpacity(0.95),
                   fontSize: 27,
                   fontFamily: "Unageo",
                   fontWeight: FontWeight.w900,

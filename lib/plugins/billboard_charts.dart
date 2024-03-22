@@ -1,4 +1,8 @@
+import 'dart:developer';
+
+import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
@@ -129,11 +133,10 @@ Status getStatus(Element element) {
   return Status.ERROR;
 }
 
-Future<List<Map<String, String>>> getBillboardChart(
-    {String url = "https://www.billboard.com/charts/hot-100/"}) async {
+Future<ChartModel> getBillboardChart(ChartURL url) async {
   var client = http.Client();
   try {
-    var response = await client.get(Uri.parse(url), headers: {
+    var response = await client.get(Uri.parse(url.url), headers: {
       'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     });
@@ -142,29 +145,54 @@ Future<List<Map<String, String>>> getBillboardChart(
       var document = parse(response.body);
       var songs =
           document.querySelectorAll('.o-chart-results-list-row-container');
-      List<Map<String, String>> songList = [];
+      // List<Map<String, String>> songList = [];
+      String imgURL;
+      List<ChartItemModel> chartItems = [];
       for (var item in songs) {
         var row = item.querySelector('ul.o-chart-results-list-row');
         var attributes = row!.querySelectorAll('li');
-        var rank = row.attributes['data-detail-target'];
+        // var rank = row.attributes['data-detail-target'];
         var img = attributes[1].querySelector('img');
         var title = attributes[3].querySelector('h3.c-title');
         var label = attributes[3].querySelector('span.c-label');
         var ttl = title?.text.trim();
         var lbl = label?.text.trim();
-        songList.add({
-          'rank': rank.toString(),
-          // 'state': getStatus(attributes[2]),
-          'title': ttl.toString(),
-          'label': lbl.toString(),
-          'img': img!.attributes['data-lazy-src'].toString()
-        });
+
+        imgURL = img!.attributes['data-lazy-src'].toString();
+        if (imgURL.contains("lazyload-fallback.gif")) {
+          imgURL =
+              "https://www.billboard.com/wp-content/themes/vip/pmc-billboard-2021/assets/app/icons/icon-512x512.png";
+        } else {
+          imgURL = imgURL.replaceAll(RegExp(r'(\d+x\d+)\.jpg$'), '344x344.jpg');
+        }
+        chartItems
+            .add(ChartItemModel(name: ttl, imageUrl: imgURL, subtitle: lbl));
       }
-      return songList;
+      final chart = ChartModel(
+          chartName: url.title,
+          chartItems: chartItems,
+          url: url.url,
+          lastUpdated: DateTime.now());
+      BloomeeDBService.putChart(chart);
+      log('Billboard Charts: ${chart.chartItems!.length} tracks',
+          name: "Billboard");
+      return chart;
     } else {
+      final chart = await BloomeeDBService.getChart(url.title);
+      if (chart != null) {
+        log('Billboard Charts: ${chart.chartItems!.length} tracks loaded from cache',
+            name: "Billboard");
+        return chart;
+      }
       throw Exception("Failed to load page");
     }
   } catch (e) {
+    final chart = await BloomeeDBService.getChart(url.title);
+    if (chart != null) {
+      log('Billboard Charts: ${chart.chartItems!.length} tracks loaded from cache',
+          name: "Billboard");
+      return chart;
+    }
     throw Exception("Error: $e");
   }
 }

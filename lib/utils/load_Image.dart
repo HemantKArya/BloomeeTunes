@@ -47,7 +47,8 @@ Image loadImage(coverImageUrl,
 }
 
 CachedNetworkImage loadImageCached(coverImageURL,
-    {placeholderPath = "assets/icons/Bloomee_Logo.png"}) {
+    {placeholderPath = "assets/icons/bloomee_new_logo_c.png",
+    fit = BoxFit.cover}) {
   ImageProvider<Object> placeHolder = AssetImage(placeholderPath);
   return CachedNetworkImage(
     imageUrl: coverImageURL,
@@ -87,10 +88,10 @@ CachedNetworkImage loadImageCached(coverImageURL,
     ),
     errorWidget: (context, url, error) => Image(
       image: placeHolder,
-      fit: BoxFit.cover,
+      fit: fit,
     ),
-    // fadeInDuration: const Duration(milliseconds: 100),
-    fit: BoxFit.cover,
+    fadeInDuration: const Duration(milliseconds: 700),
+    fit: fit,
   );
 }
 

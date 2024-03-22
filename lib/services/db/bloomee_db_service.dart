@@ -1,4 +1,7 @@
 import 'dart:developer';
+import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/model/songModel.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
@@ -10,8 +13,9 @@ class BloomeeDBService {
     db = openDB();
   }
 
-  static Future<void> addMediaItem(
+  static Future<int?> addMediaItem(
       MediaItemDB mediaItemDB, MediaPlaylistDB mediaPlaylistDB) async {
+    int? _id;
     Isar isarDB = await db;
     MediaItemDB? _mediaitem = isarDB.mediaItemDBs
         .filter()
@@ -28,17 +32,18 @@ class BloomeeDBService {
     }
 
     if (_mediaitem != null) {
-      log("1", name: "DB");
+      // log("1", name: "DB");
       _mediaitem.mediaInPlaylistsDB.add(mediaPlaylistDB);
-      log("2", name: "DB");
+      _id = _mediaitem.id;
+      // log("2", name: "DB");
       isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(_mediaitem!));
     } else {
-      log("3", name: "DB");
+      // log("3", name: "DB");
       MediaItemDB? _mediaitem = mediaItemDB;
       log("id: ${_mediaitem.id}", name: "DB");
       _mediaitem.mediaInPlaylistsDB.add(mediaPlaylistDB);
-      log("4", name: "DB");
-      isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(_mediaitem));
+      // log("4", name: "DB");
+      isarDB.writeTxnSync(() => _id = isarDB.mediaItemDBs.putSync(_mediaitem));
     }
     _mediaitem = isarDB.mediaItemDBs
         .filter()
@@ -59,7 +64,7 @@ class BloomeeDBService {
       log(mediaPlaylistDB.mediaRanks.toString(), name: "DB");
     }
 
-    // isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(mediaItemDB));
+    return _id;
   }
 
   static Future<void> removeMediaItem(MediaItemDB mediaItemDB) async {
@@ -188,7 +193,9 @@ class BloomeeDBService {
         MediaPlaylistDBSchema,
         MediaItemDBSchema,
         AppSettingsBoolDBSchema,
-        AppSettingsStrDBSchema
+        AppSettingsStrDBSchema,
+        RecentlyPlayedDBSchema,
+        ChartsCacheDBSchema,
       ], directory: _path);
     }
     return Future.value(Isar.getInstance());
@@ -324,6 +331,98 @@ class BloomeeDBService {
             .isarId,
         fireImmediately: true,
       );
+    }
+  }
+
+  static Future<void> putRecentlyPlayed(MediaItemDB mediaItemDB) async {
+    Isar isarDB = await db;
+    int? id;
+    id = await addMediaItem(
+        mediaItemDB, MediaPlaylistDB(playlistName: "recently_played"));
+    MediaItemDB? _mediaItemDB =
+        isarDB.mediaItemDBs.filter().idEqualTo(id).findFirstSync();
+
+    if (_mediaItemDB != null) {
+      RecentlyPlayedDB? _recentlyPlayed = isarDB.recentlyPlayedDBs
+          .filter()
+          .mediaItem((q) => q.idEqualTo(_mediaItemDB.id!))
+          .findFirstSync();
+      if (_recentlyPlayed != null) {
+        isarDB.writeTxnSync(() => isarDB.recentlyPlayedDBs
+            .putSync(_recentlyPlayed..lastPlayed = DateTime.now()));
+      } else {
+        isarDB.writeTxnSync(() => isarDB.recentlyPlayedDBs.putSync(
+            RecentlyPlayedDB(lastPlayed: DateTime.now())
+              ..mediaItem.value = _mediaItemDB));
+      }
+    } else {
+      log("Failed to add in Recently_Played", name: "DB");
+    }
+  }
+
+  static Future<void> refreshRecentlyPlayed() async {
+    Isar isarDB = await db;
+
+    List<RecentlyPlayedDB> _recentlyPlayed =
+        isarDB.recentlyPlayedDBs.where().findAllSync();
+    for (var element in _recentlyPlayed) {
+      if (DateTime.now().difference(element.lastPlayed).inDays > 7) {
+        removeMediaItemFromPlaylist(element.mediaItem.value!,
+            MediaPlaylistDB(playlistName: "recently_played"));
+        isarDB.writeTxnSync(
+            () => isarDB.recentlyPlayedDBs.deleteSync(element.id!));
+      }
+    }
+  }
+
+  static Future<MediaPlaylist> getRecentlyPlayed() async {
+    Isar isarDB = await db;
+    List<RecentlyPlayedDB> _recentlyPlayed =
+        isarDB.recentlyPlayedDBs.where().sortByLastPlayedDesc().findAllSync();
+    List<MediaItemModel> _mediaItems = [];
+    for (var element in _recentlyPlayed) {
+      _mediaItems.add(MediaItemDB2MediaItem(element.mediaItem.value!));
+    }
+    return MediaPlaylist(mediaItems: _mediaItems, albumName: "Recently Played");
+  }
+
+  static Future<Stream<void>> watchRecentlyPlayed() async {
+    Isar isarDB = await db;
+    return isarDB.recentlyPlayedDBs.watchLazy();
+  }
+
+  static Future<void> putChart(ChartModel chartModel) async {
+    log("Putting Chart", name: "DB");
+    Isar isarDB = await db;
+    int? _id;
+    isarDB.writeTxnSync(() => _id =
+        isarDB.chartsCacheDBs.putSync(chartModelToChartCacheDB(chartModel)));
+    log("Chart Putted with ID: $_id", name: "DB");
+  }
+
+  static Future<ChartModel?> getChart(String chartName) async {
+    Isar isarDB = await db;
+    final chartCacheDB = isarDB.chartsCacheDBs
+        .filter()
+        .chartNameEqualTo(chartName)
+        .findFirstSync();
+    if (chartCacheDB != null) {
+      return chartCacheDBToChartModel(chartCacheDB);
+    } else {
+      return null;
+    }
+  }
+
+  static Future<ChartItemModel?> getFirstFromChart(String chartName) async {
+    Isar isarDB = await db;
+    final chartCacheDB = isarDB.chartsCacheDBs
+        .filter()
+        .chartNameEqualTo(chartName)
+        .findFirstSync();
+    if (chartCacheDB != null) {
+      return chartItemDBToChartItemModel(chartCacheDB.chartItems.first);
+    } else {
+      return null;
     }
   }
 }

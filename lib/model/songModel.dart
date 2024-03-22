@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 
@@ -54,4 +55,39 @@ class MediaItemModel extends MediaItem {
         extras.hashCode ^
         genre.hashCode;
   }
+}
+
+MediaItemDB MediaItem2MediaItemDB(MediaItem mediaItem) {
+  return MediaItemDB(
+      title: mediaItem.title,
+      album: mediaItem.album ?? "Unknown",
+      artist: mediaItem.artist ?? "Unknown",
+      artURL: mediaItem.artUri.toString(),
+      genre: mediaItem.genre ?? "Unknown",
+      mediaID: mediaItem.id,
+      duration: mediaItem.duration?.inSeconds,
+      streamingURL: mediaItem.extras?["url"],
+      permaURL: mediaItem.extras?["perma_url"],
+      language: mediaItem.extras?["language"] ?? "Unknown",
+      isLiked: false,
+      source: mediaItem.extras?["source"] ?? "Saavn");
+}
+
+MediaItemModel MediaItemDB2MediaItem(MediaItemDB mediaItemDB) {
+  return MediaItemModel(
+      id: mediaItemDB.mediaID,
+      title: mediaItemDB.title,
+      album: mediaItemDB.album,
+      artist: mediaItemDB.artist,
+      duration: mediaItemDB.duration != null
+          ? Duration(seconds: mediaItemDB.duration!)
+          : const Duration(seconds: 120),
+      artUri: Uri.parse(mediaItemDB.artURL),
+      genre: mediaItemDB.genre,
+      extras: {
+        "url": mediaItemDB.streamingURL,
+        "source": mediaItemDB.source ?? "None",
+        "perma_url": mediaItemDB.permaURL,
+        "language": mediaItemDB.language,
+      });
 }
