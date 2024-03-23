@@ -126,7 +126,7 @@ class FetchChartCubit extends Cubit<FetchChartState> {
             .chartNameEqualTo(i.title)
             .findFirstSync();
         if ((chartCacheDB?.lastUpdated.difference(DateTime.now()).inHours ??
-                0) >
+                24) >
             12) {
           chart = await i.chartFunction(i.url);
           if ((chart.chartItems?.isNotEmpty) ?? false) {
