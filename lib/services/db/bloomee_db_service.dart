@@ -189,14 +189,17 @@ class BloomeeDBService {
     if (Isar.instanceNames.isEmpty) {
       String _path = (await getApplicationDocumentsDirectory()).path;
       log(_path, name: "DB");
-      return await Isar.open([
-        MediaPlaylistDBSchema,
-        MediaItemDBSchema,
-        AppSettingsBoolDBSchema,
-        AppSettingsStrDBSchema,
-        RecentlyPlayedDBSchema,
-        ChartsCacheDBSchema,
-      ], directory: _path);
+      return await Isar.open(
+        [
+          MediaPlaylistDBSchema,
+          MediaItemDBSchema,
+          AppSettingsBoolDBSchema,
+          AppSettingsStrDBSchema,
+          RecentlyPlayedDBSchema,
+          ChartsCacheDBSchema,
+        ],
+        directory: _path,
+      );
     }
     return Future.value(Isar.getInstance());
   }

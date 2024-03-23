@@ -22,12 +22,13 @@ class CaraouselWidget extends StatefulWidget {
 
 class _CaraouselWidgetState extends State<CaraouselWidget> {
   bool _visibility = true;
+  final FetchChartCubit fetchChartCubit = FetchChartCubit();
   List<ChartCubit> chartCubitList = List.empty(growable: true);
 
   @override
   void initState() {
     for (var i in chartInfoList) {
-      chartCubitList.add(ChartCubit(i));
+      chartCubitList.add(ChartCubit(i, fetchChartCubit));
     }
     super.initState();
   }

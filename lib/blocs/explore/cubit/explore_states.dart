@@ -68,3 +68,22 @@ class ChartInitial extends ChartState {
             ),
             coverImg: "");
 }
+
+class FetchChartState {
+  bool isFetched;
+  FetchChartState({
+    required this.isFetched,
+  });
+
+  FetchChartState copyWith({
+    bool? isFetched,
+  }) {
+    return FetchChartState(
+      isFetched: isFetched ?? this.isFetched,
+    );
+  }
+}
+
+class FetchChartInitial extends FetchChartState {
+  FetchChartInitial() : super(isFetched: false);
+}

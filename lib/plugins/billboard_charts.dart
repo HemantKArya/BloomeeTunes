@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+// import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
@@ -173,26 +173,26 @@ Future<ChartModel> getBillboardChart(ChartURL url) async {
           chartItems: chartItems,
           url: url.url,
           lastUpdated: DateTime.now());
-      BloomeeDBService.putChart(chart);
+      // BloomeeDBService.putChart(chart);
       log('Billboard Charts: ${chart.chartItems!.length} tracks',
           name: "Billboard");
       return chart;
     } else {
-      final chart = await BloomeeDBService.getChart(url.title);
-      if (chart != null) {
-        log('Billboard Charts: ${chart.chartItems!.length} tracks loaded from cache',
-            name: "Billboard");
-        return chart;
-      }
+      // final chart = await BloomeeDBService.getChart(url.title);
+      // if (chart != null) {
+      //   log('Billboard Charts: ${chart.chartItems!.length} tracks loaded from cache',
+      //       name: "Billboard");
+      //   return chart;
+      // }
       throw Exception("Failed to load page");
     }
   } catch (e) {
-    final chart = await BloomeeDBService.getChart(url.title);
-    if (chart != null) {
-      log('Billboard Charts: ${chart.chartItems!.length} tracks loaded from cache',
-          name: "Billboard");
-      return chart;
-    }
+    // final chart = await BloomeeDBService.getChart(url.title);
+    // if (chart != null) {
+    //   log('Billboard Charts: ${chart.chartItems!.length} tracks loaded from cache',
+    //       name: "Billboard");
+    //   return chart;
+    // }
     throw Exception("Error: $e");
   }
 }

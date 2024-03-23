@@ -178,7 +178,7 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => FetchSearchResultsCubit(),
-        )
+        ),
       ],
       child: MultiRepositoryProvider(
         providers: [

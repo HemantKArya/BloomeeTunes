@@ -69,48 +69,51 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       child: BlocBuilder<RecentlyCubit, RecentlyCubitState>(
                         builder: (context, state) {
                           return AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 1000),
-                              child: state is RecentlyCubitInitial
-                                  ? const Center(
-                                      child: SizedBox(
-                                          height: 60,
-                                          width: 60,
-                                          child: CircularProgressIndicator(
-                                            color: Default_Theme.accentColor2,
-                                          )),
-                                    )
-                                  : TabSongListWidget(
-                                      list: state.mediaPlaylist.mediaItems
-                                          .map((e) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 8.0,
-                                            right: 10,
-                                            left: 15,
-                                          ),
-                                          child: SingleSongCardWidget(
-                                            titleText: e.title,
-                                            subText: e.artist ?? "",
-                                            artUri: e.artUri.toString(),
-                                            showLiked: false,
-                                            onClicked: () {
-                                              context
-                                                  .read<BloomeePlayerCubit>()
-                                                  .bloomeePlayer
-                                                  .loadPlaylist(
-                                                    MediaPlaylist(
-                                                      mediaItems: [e],
-                                                      albumName: "Recently",
-                                                    ),
-                                                    doPlay: true,
-                                                  );
-                                            },
-                                          ),
-                                        );
-                                      }).toList(),
-                                      category: "Recently",
-                                      columnSize: 3,
-                                    ));
+                            duration: const Duration(milliseconds: 1000),
+                            child: state is RecentlyCubitInitial
+                                ? const Center(
+                                    child: SizedBox(
+                                        height: 60,
+                                        width: 60,
+                                        child: CircularProgressIndicator(
+                                          color: Default_Theme.accentColor2,
+                                        )),
+                                  )
+                                : ((state.mediaPlaylist.mediaItems.isNotEmpty)
+                                    ? TabSongListWidget(
+                                        list: state.mediaPlaylist.mediaItems
+                                            .map((e) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 8.0,
+                                              right: 10,
+                                              left: 15,
+                                            ),
+                                            child: SingleSongCardWidget(
+                                              titleText: e.title,
+                                              subText: e.artist ?? "",
+                                              artUri: e.artUri.toString(),
+                                              showLiked: false,
+                                              onClicked: () {
+                                                context
+                                                    .read<BloomeePlayerCubit>()
+                                                    .bloomeePlayer
+                                                    .loadPlaylist(
+                                                      MediaPlaylist(
+                                                        mediaItems: [e],
+                                                        albumName: "Recently",
+                                                      ),
+                                                      doPlay: true,
+                                                    );
+                                              },
+                                            ),
+                                          );
+                                        }).toList(),
+                                        category: "Recently",
+                                        columnSize: 3,
+                                      )
+                                    : const SizedBox()),
+                          );
                         },
                       ),
                     ),
