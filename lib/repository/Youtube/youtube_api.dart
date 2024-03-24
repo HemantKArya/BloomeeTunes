@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:html_unescape/html_unescape_small.dart';
 import 'package:http/http.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
@@ -47,13 +47,11 @@ class YouTubeServices {
     }
     final Map? response = await formatVideo(
       video: vid,
-      // quality: Hive.box('settings')
-      //     .get(
-      //       'ytQuality',
-      //       defaultValue: 'Low',
-      //     )
-      //     .toString(),
-      quality: 'Low',
+      quality: await BloomeeDBService.getSettingStr(
+            'ytQuality',
+            defaultValue: 'Low',
+          ) ??
+          'Low',
       data: data,
       getUrl: getUrl ?? true,
       // preferM4a: Hive.box(
@@ -72,9 +70,9 @@ class YouTubeServices {
     }
     String quality;
     try {
-      // quality =
-      //     Hive.box('settings').get('quality', defaultValue: 'Low').toString();
-      quality = 'Low';
+      quality = await BloomeeDBService.getSettingStr('quality',
+              defaultValue: 'Low') ??
+          'Low';
     } catch (e) {
       quality = 'Low';
     }

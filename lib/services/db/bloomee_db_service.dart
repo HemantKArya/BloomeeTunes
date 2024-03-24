@@ -279,22 +279,39 @@ class BloomeeDBService {
     }
   }
 
-  static Future<String?> getSettingStr(String key) async {
+  static Future<String?> getSettingStr(String key,
+      {String? defaultValue}) async {
     Isar isarDB = await db;
-    return isarDB.appSettingsStrDBs
+    final settingValue = isarDB.appSettingsStrDBs
         .filter()
         .settingNameEqualTo(key)
         .findFirstSync()
         ?.settingValue;
+    if (settingValue != null) {
+      return settingValue;
+    } else {
+      // if (defaultValue != null) {
+      //   putSettingStr(key, defaultValue);
+      // }
+      return defaultValue;
+    }
   }
 
-  static Future<bool?> getSettingBool(String key) async {
+  static Future<bool?> getSettingBool(String key, {bool? defaultValue}) async {
     Isar isarDB = await db;
-    return isarDB.appSettingsBoolDBs
+    final settingValue = isarDB.appSettingsBoolDBs
         .filter()
         .settingNameEqualTo(key)
         .findFirstSync()
         ?.settingValue;
+    if (settingValue != null) {
+      return settingValue;
+    } else {
+      // if (defaultValue != null) {
+      //   putSettingBool(key, defaultValue);
+      // }
+      return defaultValue;
+    }
   }
 
   static Future<Stream<AppSettingsStrDB?>?> getWatcher4SettingStr(
