@@ -72,13 +72,16 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
     }
   }
 
-  void addToPlaylist(
-      MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB) {
+  Future<void> addToPlaylist(
+      MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
     if (mediaPlaylistDB.playlistName != "Null") {
-      bloomeeDBCubit.addMediaItemToPlaylist(mediaItem, mediaPlaylistDB);
+      final _tempID = await bloomeeDBCubit.addMediaItemToPlaylist(
+          mediaItem, mediaPlaylistDB);
       getAndEmitPlaylists();
-      SnackbarService.showMessage(
-          "Added ${mediaItem.title} to ${mediaPlaylistDB.playlistName}");
+      // log("Added to playlist - ${mediaPlaylistDB.playlistName} - $_tempID",
+      //     name: "libItemCubit");
+      // SnackbarService.showMessage(
+      //     "Added ${mediaItem.title} to ${mediaPlaylistDB.playlistName}");
     }
   }
 

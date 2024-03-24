@@ -168,7 +168,7 @@ class PlaylistView extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              "Youtube-SPotify",
+                              "Playlist",
                               style: Default_Theme.secondoryTextStyle
                                   .merge(TextStyle(
                                 color: Default_Theme.primaryColor1

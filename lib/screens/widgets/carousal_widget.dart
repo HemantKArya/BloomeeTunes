@@ -74,7 +74,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
             },
             height: 320.0,
             viewportFraction: 0.7,
-            autoPlay: true,
+            // autoPlay: true,
             autoPlayInterval: const Duration(milliseconds: 2500),
             // aspectRatio: 15 / 16,
             // enableInfiniteScroll: true,
