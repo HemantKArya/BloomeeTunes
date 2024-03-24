@@ -64,14 +64,23 @@ Future<List<ChartModel>> fetchTrendingVideos() async {
 
     // for (var types in data) {
     chartItems = [];
+    String img;
     for (var i in data) {
       String title = i['name'];
       // String views = i['viewCount'];
       // String id = i['id'];
-      String img = i['thumbnail']['thumbnails'][0]['url'];
+      try {
+        img = i['thumbnail']['thumbnails'][0]['url'];
+      } catch (e) {
+        img = "null";
+      }
       List<String> artists = [];
-      for (var artist in i['artists']) {
-        artists.add(artist['name']);
+      try {
+        for (var artist in i['artists']) {
+          artists.add(artist['name']);
+        }
+      } catch (e) {
+        artists.add("Unknown");
       }
 
       chartItems.add(ChartItemModel(

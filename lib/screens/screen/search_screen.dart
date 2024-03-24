@@ -1,12 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
+
+import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:Bloomee/repository/cubits/fetch_search_results.dart';
+import 'package:icons_plus/icons_plus.dart';
+
+import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
+import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/screens/screen/search_views/search_page.dart';
 import 'package:Bloomee/screens/widgets/horizontalSongCard_widget.dart';
 import 'package:Bloomee/theme_data/default.dart';
-import 'package:icons_plus/icons_plus.dart';
 
 class SearchScreen extends StatefulWidget {
   String searchQuery = "";
@@ -49,7 +53,7 @@ class _SearchScreenState extends State<SearchScreen> {
               setState(() {
                 _selectedSearchEngine = index;
                 _sourceEngine = sourceEngine;
-                if (_textEditingController.text.toString().length > 0) {
+                if (_textEditingController.text.toString().isNotEmpty) {
                   log("Search Engine ${sourceEngine.toString()}",
                       name: "SearchScreen");
                   context.read<FetchSearchResultsCubit>().search(
@@ -158,88 +162,56 @@ class _SearchScreenState extends State<SearchScreen> {
           backgroundColor: Default_Theme.themeColor,
         ),
         backgroundColor: Default_Theme.themeColor,
-        body: BlocBuilder<FetchSearchResultsCubit, FetchSearchResultsState>(
+        body: BlocBuilder<ConnectivityCubit, ConnectivityState>(
           builder: (context, state) {
-            if (state is FetchSearchResultsLoading) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: Default_Theme.accentColor2,
-                ),
-              );
-            } else if (state.loadingState == LoadingState.loaded) {
-              if (state.mediaItems.isNotEmpty) {
-                return ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: state.mediaItems.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding:
-                          const EdgeInsets.only(left: 18, bottom: 5, right: 18),
-                      child: HorizontalSongCardWidget(
-                        index: index,
-                        mediaPlaylist: state,
-                        showLiked: true,
-                      ),
-                    );
-                  },
-                );
-              } else {
-                return Center(
-                  child: Wrap(
-                    children: [
-                      Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Icon(
-                              MingCute.sweats_line,
-                              color:
-                                  Default_Theme.primaryColor2.withOpacity(0.7),
-                              size: 40,
-                            ),
-                          ),
-                          Text(
-                            "No results found!\nTry another keyword or source engine!",
-                            textAlign: TextAlign.center,
-                            style: Default_Theme.tertiaryTextStyle.merge(
-                                TextStyle(
-                                    color: Default_Theme.primaryColor2
-                                        .withOpacity(0.7),
-                                    fontSize: 14)),
-                          ),
-                        ],
+            return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 600),
+                child: state == ConnectivityState.disconnected
+                    ? const SignBoardWidget(
+                        icon: MingCute.wifi_off_line,
+                        message: "No internet connection!",
                       )
-                    ],
-                  ),
-                );
-              }
-            } else {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Icon(
-                        Icons.search_rounded,
-                        color: Default_Theme.primaryColor2.withOpacity(0.4),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Text(
-                        "Type the keyword and try to search again!",
-                        softWrap: true,
-                        textAlign: TextAlign.center,
-                        style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
-                            color:
-                                Default_Theme.primaryColor2.withOpacity(0.6))),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
+                    : BlocBuilder<FetchSearchResultsCubit,
+                        FetchSearchResultsState>(
+                        builder: (context, state) {
+                          if (state is FetchSearchResultsLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Default_Theme.accentColor2,
+                              ),
+                            );
+                          } else if (state.loadingState ==
+                              LoadingState.loaded) {
+                            if (state.mediaItems.isNotEmpty) {
+                              return ListView.builder(
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: state.mediaItems.length,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 18, bottom: 5, right: 18),
+                                    child: HorizontalSongCardWidget(
+                                      index: index,
+                                      mediaPlaylist: state,
+                                      showLiked: true,
+                                    ),
+                                  );
+                                },
+                              );
+                            } else {
+                              return const SignBoardWidget(
+                                  message:
+                                      "No results found!\nTry another keyword or source engine!",
+                                  icon: MingCute.sweats_line);
+                            }
+                          } else {
+                            return const SignBoardWidget(
+                                message:
+                                    "Search for your favorite songs\nand discover new ones!",
+                                icon: MingCute.search_2_line);
+                          }
+                        },
+                      ));
           },
         ),
       ),

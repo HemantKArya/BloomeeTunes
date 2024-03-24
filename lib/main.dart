@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
+import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -13,7 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/repository/Saavn/cubit/saavn_repository_cubit.dart';
-import 'package:Bloomee/repository/cubits/fetch_search_results.dart';
+import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/routes_and_consts/routes.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
@@ -21,6 +22,7 @@ import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 
 bool isYoutubeLink(String link) {
   if (link.contains("youtube.com") || link.contains("youtu.be")) {
@@ -78,6 +80,12 @@ void ProcessIncomingIntent(List<SharedMediaFile> _sharedFiles) {
   }
 }
 
+Future<void> setHighRefreshRate() async {
+  if (io.Platform.isAndroid) {
+    await FlutterDisplayMode.setHighRefreshRate();
+  }
+}
+
 late BloomeePlayerCubit bloomeePlayerCubit;
 void setupPlayerCubit() {
   bloomeePlayerCubit = BloomeePlayerCubit();
@@ -85,6 +93,7 @@ void setupPlayerCubit() {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  setHighRefreshRate();
 
   try {
     dotenv.load(fileName: "assets/.env");
@@ -160,6 +169,10 @@ class _MyAppState extends State<MyApp> {
           lazy: false,
         ),
         BlocProvider(
+          create: (context) => ConnectivityCubit(),
+          lazy: false,
+        ),
+        BlocProvider(
           create: (context) => CurrentPlaylistCubit(
               bloomeeDBCubit: context.read<BloomeeDBCubit>()),
           lazy: false,
@@ -169,8 +182,7 @@ class _MyAppState extends State<MyApp> {
               LibraryItemsCubit(bloomeeDBCubit: context.read<BloomeeDBCubit>()),
         ),
         BlocProvider(
-          create: (context) => AddToPlaylistCubit(
-              bloomeeDBCubit: context.read<BloomeeDBCubit>()),
+          create: (context) => AddToPlaylistCubit(),
           lazy: false,
         ),
         BlocProvider(

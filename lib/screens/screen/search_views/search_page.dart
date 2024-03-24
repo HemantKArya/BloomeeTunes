@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
-import 'package:Bloomee/repository/cubits/fetch_search_results.dart';
+import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:icons_plus/icons_plus.dart';
 
@@ -95,12 +95,20 @@ class searchPageDelegate extends SearchDelegate {
     // final List<String> suggestionList = [];
 
     return FutureBuilder(
-      future: YouTubeServices().getSearchSuggestions(query: query),
+      future:
+          context.read<FetchSearchResultsCubit>().getSearchSuggestions(query),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(
+              child: CircularProgressIndicator(
+            color: Default_Theme.accentColor2,
+          ));
+        } else if (snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text('No suggestions found'),
+          );
         }
-        List<String> suggestionList = snapshot.data! as List<String>;
+        List<String> suggestionList = snapshot.data!;
         return ListView.builder(
           itemCount: suggestionList.length,
           itemBuilder: (context, index) {

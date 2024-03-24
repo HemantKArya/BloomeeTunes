@@ -1,3 +1,5 @@
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
+import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -31,9 +33,8 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
       setState(() {
         filteredPlaylistsItems = playlistsItems.where((element) {
           return element.playlistName
-                  ?.toLowerCase()
-                  .contains(query.toLowerCase()) ??
-              false;
+              .toLowerCase()
+              .contains(query.toLowerCase());
         }).toList();
       });
     } else {
@@ -47,7 +48,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    context.read<AddToPlaylistCubit>().getAndEmitPlaylists();
+    // context.read<AddToPlaylistCubit>().getAndEmitPlaylists();
   }
 
   MediaItemModel currentMediaModel = mediaItemModelNull;
@@ -70,11 +71,16 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
       ),
       body: Column(
         children: [
-          StreamBuilder<MediaItemModel>(
-              stream: context.watch<AddToPlaylistCubit>().mediaItemModelBS,
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data != mediaItemModelNull) {
-                  currentMediaModel = snapshot.data ?? mediaItemModelNull;
+          BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
+            builder: (context, state) {
+              if (state is AddToPlaylistInitial) {
+                return const Center(
+                    child: CircularProgressIndicator(
+                  color: Default_Theme.accentColor2,
+                ));
+              } else {
+                if (state.mediaItemModel != mediaItemModelNull) {
+                  currentMediaModel = state.mediaItemModel;
                   return Wrap(
                     children: [
                       Padding(
@@ -88,7 +94,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                 width: 80,
                                 height: 80,
                                 child: loadImageCached(
-                                    snapshot.data?.artUri.toString() ?? ""),
+                                    state.mediaItemModel.artUri.toString()),
                               ),
                             ),
                             Expanded(
@@ -98,7 +104,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 5),
                                     child: Text(
-                                      snapshot.data?.title ?? "Unknown",
+                                      state.mediaItemModel.title,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: Default_Theme.secondoryTextStyle
@@ -110,7 +116,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                     ),
                                   ),
                                   Text(
-                                    snapshot.data?.artist ?? "Unknown",
+                                    state.mediaItemModel.artist ?? "Unknown",
                                     maxLines: 2,
                                     textAlign: TextAlign.start,
                                     overflow: TextOverflow.ellipsis,
@@ -137,7 +143,9 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                 } else {
                   return const CircularProgressIndicator();
                 }
-              }),
+              }
+            },
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -151,13 +159,13 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
               decoration: InputDecoration(
                   filled: true,
                   fillColor: Default_Theme.primaryColor2.withOpacity(0.07),
-                  contentPadding: const EdgeInsets.only(top: 20),
-                  hintText: "What you want to listen?",
+                  contentPadding: const EdgeInsets.only(top: 20, left: 15),
+                  hintText: "Search you playlist..",
                   hintStyle: TextStyle(
                       color: Default_Theme.primaryColor1.withOpacity(0.4),
                       fontFamily: "Gilroy"),
                   enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(style: BorderStyle.none),
+                      borderSide: const BorderSide(style: BorderStyle.none),
                       borderRadius: BorderRadius.circular(50)),
                   focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
@@ -166,44 +174,50 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
             ),
           ),
           Expanded(
-            child: BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
+            child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
               builder: (context, state) {
-                playlistsItems = state.playlists;
-                // filteredPlaylistsItems = state.playlists;
-                final _finalList = filteredPlaylistsItems.isEmpty ||
-                        _searchController.text.isEmpty
-                    ? playlistsItems
-                    : filteredPlaylistsItems;
-                return ListView.builder(
-                  itemCount: _finalList.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8, left: 10),
-                      child: InkWell(
-                        onTap: () {
-                          if (_finalList[index].playlistName != null &&
-                              currentMediaModel != mediaItemModelNull) {
-                            context
-                                .read<BloomeeDBCubit>()
-                                .addMediaItemToPlaylist(
+                if (state is LibraryItemsInitial) {
+                  return const SignBoardWidget(
+                      message: "No Playlists Yet",
+                      icon: MingCute.playlist_line);
+                } else {
+                  playlistsItems = state.playlists;
+                  final _finalList = filteredPlaylistsItems.isEmpty ||
+                          _searchController.text.isEmpty
+                      ? playlistsItems
+                      : filteredPlaylistsItems;
+                  return ListView.builder(
+                    itemCount: _finalList.length,
+                    itemBuilder: (context, index) {
+                      if (_finalList[index].playlistName == "recently_played") {
+                        return const SizedBox();
+                      } else {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8, left: 10),
+                          child: InkWell(
+                            onTap: () {
+                              if (currentMediaModel != mediaItemModelNull) {
+                                context.read<LibraryItemsCubit>().addToPlaylist(
                                     currentMediaModel,
                                     MediaPlaylistDB(
-                                        playlistName:
-                                            _finalList[index].playlistName!));
-                            context.pop(context);
-                          }
-                        },
-                        child: SmallPlaylistCard(
-                            playListTitle:
-                                _finalList[index].playlistName ?? "Unknown",
-                            coverArt:
-                                Image(image: _finalList[index].imageProvider!),
-                            playListsubTitle:
-                                _finalList[index].subTitle ?? "Unverified"),
-                      ),
-                    );
-                  },
-                );
+                                      playlistName:
+                                          _finalList[index].playlistName,
+                                    ));
+                                context.pop(context);
+                              }
+                            },
+                            child: SmallPlaylistCard(
+                                playListTitle: _finalList[index].playlistName,
+                                coverArt: loadImageCached(
+                                    _finalList[index].coverImgUrl ?? "null"),
+                                playListsubTitle:
+                                    _finalList[index].subTitle ?? "Unverified"),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                }
               },
             ),
           )

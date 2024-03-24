@@ -160,4 +160,19 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
         loadingState: LoadingState.loaded));
     log("got all searches ${_mediaItemList.length}", name: "FetchSearchRes");
   }
+
+  void clearSearch() {
+    emit(FetchSearchResultsInitial());
+  }
+
+  Future<List<String>> getSearchSuggestions(String query) async {
+    List<String> searchSuggestions;
+    try {
+      searchSuggestions = await YouTubeServices()
+          .getSearchSuggestions(query: query) as List<String>;
+    } catch (e) {
+      searchSuggestions = [];
+    }
+    return searchSuggestions;
+  }
 }

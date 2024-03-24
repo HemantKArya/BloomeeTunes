@@ -13,7 +13,7 @@ import 'package:Bloomee/services/db/bloomee_db_service.dart';
 part 'bloomee_db_state.dart';
 
 class BloomeeDBCubit extends Cubit<MediadbState> {
-  BehaviorSubject<bool> refreshLibrary = BehaviorSubject<bool>.seeded(false);
+  // BehaviorSubject<bool> refreshLibrary = BehaviorSubject<bool>.seeded(false);
   BloomeeDBService bloomeeDBService = BloomeeDBService();
   BloomeeDBCubit() : super(MediadbInitial()) {
     addNewPlaylistToDB(MediaPlaylistDB(playlistName: "Liked"));
@@ -24,7 +24,7 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
     List<String> _list = await getListOfPlaylists();
     if (!_list.contains(mediaPlaylistDB.playlistName)) {
       BloomeeDBService.addPlaylist(mediaPlaylistDB);
-      refreshLibrary.add(true);
+      // refreshLibrary.add(true);
       if (!undo) {
         SnackbarService.showMessage(
             "Playlist ${mediaPlaylistDB.playlistName} added");
@@ -35,7 +35,7 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
   Future<void> setLike(MediaItem mediaItem, {isLiked = false}) async {
     BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
         MediaPlaylistDB(playlistName: "Liked"));
-    refreshLibrary.add(true);
+    // refreshLibrary.add(true);
     BloomeeDBService.likeMediaItem(MediaItem2MediaItemDB(mediaItem),
         isLiked: isLiked);
     if (isLiked) {
@@ -169,7 +169,7 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
       {bool undo = false}) async {
     BloomeeDBService.addMediaItem(
         MediaItem2MediaItemDB(mediaItemModel), mediaPlaylistDB);
-    refreshLibrary.add(true);
+    // refreshLibrary.add(true);
     if (!undo) {
       SnackbarService.showMessage(
           "${mediaItemModel.title} is added to ${mediaPlaylistDB.playlistName}!!");
@@ -220,7 +220,7 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   @override
   Future<void> close() async {
-    refreshLibrary.close();
+    // refreshLibrary.close();
     super.close();
   }
 }
