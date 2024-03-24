@@ -1,4 +1,6 @@
+import 'dart:developer';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/screen/chart/chart_widget.dart';
 import 'package:Bloomee/screens/screen/chart/show_charts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -24,6 +26,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
   bool _visibility = true;
   final FetchChartCubit fetchChartCubit = FetchChartCubit();
   List<ChartCubit> chartCubitList = List.empty(growable: true);
+  bool autoSlideCharts = true;
 
   @override
   void initState() {
@@ -31,6 +34,16 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
       chartCubitList.add(ChartCubit(i, fetchChartCubit));
     }
     super.initState();
+    context.read<SettingsCubit>().stream.listen((event) {
+      if (autoSlideCharts != event.autoSlideCharts) {
+        autoSlideCharts = event.autoSlideCharts;
+        if (autoSlideCharts) {
+          log("Auto Slide Charts Enabled");
+        } else {
+          log("Auto Slide Charts Disabled");
+        }
+      }
+    });
   }
 
   @override
@@ -74,7 +87,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
             },
             height: 320.0,
             viewportFraction: 0.7,
-            // autoPlay: true,
+            autoPlay: autoSlideCharts,
             autoPlayInterval: const Duration(milliseconds: 2500),
             // aspectRatio: 15 / 16,
             // enableInfiniteScroll: true,

@@ -1,7 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:flutter/material.dart';
 
 import 'package:Bloomee/screens/screen/home_views/setting_views/check_update_view.dart';
@@ -70,6 +68,24 @@ class _SettingsViewState extends State<SettingsView> {
                   ),
                   onChanged: (value) {
                     context.read<SettingsCubit>().updateAutoUpdateNotify(value);
+                  }),
+              SwitchListTile(
+                  value: state.autoSlideCharts,
+                  subtitle: Text(
+                    "Slide charts automatically in home screen.",
+                    style: TextStyle(
+                            color: Default_Theme.primaryColor1.withOpacity(0.5),
+                            fontSize: 14)
+                        .merge(Default_Theme.secondoryTextStyleMedium),
+                  ),
+                  title: Text(
+                    "Auto slide charts",
+                    style: const TextStyle(
+                            color: Default_Theme.primaryColor1, fontSize: 20)
+                        .merge(Default_Theme.secondoryTextStyleMedium),
+                  ),
+                  onChanged: (value) {
+                    context.read<SettingsCubit>().updateAutoSlideCharts(value);
                   }),
             ],
           );

@@ -12,4 +12,5 @@ class GlobalStrConsts {
   static const String ChartScreen = "ChartScreen";
 
   static const String autoUpdateNotify = "auto_update_notify";
+  static const String autoSlideCharts = "auto_slide_charts";
 }

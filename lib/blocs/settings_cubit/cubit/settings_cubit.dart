@@ -15,10 +15,19 @@ class SettingsCubit extends Cubit<SettingsState> {
         .then((value) {
       emit(state.copyWith(autoUpdateNotify: value ?? false));
     });
+    BloomeeDBService.getSettingBool(GlobalStrConsts.autoSlideCharts)
+        .then((value) {
+      emit(state.copyWith(autoSlideCharts: value ?? true));
+    });
   }
 
   void updateAutoUpdateNotify(bool value) {
     BloomeeDBService.putSettingBool(GlobalStrConsts.autoUpdateNotify, value);
     emit(state.copyWith(autoUpdateNotify: value));
+  }
+
+  void updateAutoSlideCharts(bool value) {
+    BloomeeDBService.putSettingBool(GlobalStrConsts.autoSlideCharts, value);
+    emit(state.copyWith(autoSlideCharts: value));
   }
 }
