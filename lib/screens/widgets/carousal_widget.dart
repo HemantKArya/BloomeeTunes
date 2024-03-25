@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/theme_data/default.dart';
-import 'package:icons_plus/icons_plus.dart';
 
 class CaraouselWidget extends StatefulWidget {
   CaraouselWidget({
@@ -63,24 +61,24 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 80),
             opacity: _visibility ? 1.0 : 0.0,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15, top: 10),
+            child: const Padding(
+              padding: EdgeInsets.only(left: 15, top: 10),
               child: RotatedBox(
                 quarterTurns: 3,
                 child: Row(
                   children: [
-                    Text(
-                      "Featured",
-                      style: Default_Theme.secondoryTextStyle.merge(
-                          const TextStyle(
-                              color: Default_Theme.primaryColor1,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 19)),
-                    ),
-                    const Icon(
-                      FontAwesome.bolt_lightning_solid,
-                      color: Default_Theme.primaryColor1,
-                    ),
+                    // Text(
+                    //   "Featured",
+                    //   style: Default_Theme.secondoryTextStyle.merge(
+                    //       const TextStyle(
+                    //           color: Default_Theme.primaryColor1,
+                    //           fontWeight: FontWeight.bold,
+                    //           fontSize: 19)),
+                    // ),
+                    // const Icon(
+                    //   FontAwesome.bolt_lightning_solid,
+                    //   color: Default_Theme.primaryColor1,
+                    // ),
                   ],
                 ),
               ),

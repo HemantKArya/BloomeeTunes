@@ -275,6 +275,11 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                       ? Default_Theme.accentColor1
                                       : Default_Theme.accentColor2,
                               thumbRadius: 0,
+                              bufferedBarColor: snapshot
+                                          .data?.currentPlayerState.playing ??
+                                      false
+                                  ? Default_Theme.accentColor1.withOpacity(0.2)
+                                  : Default_Theme.accentColor2.withOpacity(0.2),
                               barHeight: 4,
                             );
                           }),

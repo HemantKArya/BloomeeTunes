@@ -1,15 +1,19 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 
+import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/screens/widgets/mediaItemOptions_bottomsheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/screens/widgets/song_card_widget.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/screens/screen/search_views/search_page.dart';
-import 'package:Bloomee/screens/widgets/horizontalSongCard_widget.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -188,12 +192,38 @@ class _SearchScreenState extends State<SearchScreen> {
                                 itemCount: state.mediaItems.length,
                                 itemBuilder: (context, index) {
                                   return Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 18, bottom: 5, right: 18),
-                                    child: HorizontalSongCardWidget(
-                                      index: index,
-                                      mediaPlaylist: state,
-                                      showLiked: true,
+                                    padding: const EdgeInsets.only(left: 4),
+                                    child: SongCardWidget(
+                                      song: state.mediaItems[index],
+                                      onTap: () {
+                                        if (!listEquals(
+                                            context
+                                                .read<BloomeePlayerCubit>()
+                                                .bloomeePlayer
+                                                .currentPlaylist,
+                                            state.mediaItems)) {
+                                          context
+                                              .read<BloomeePlayerCubit>()
+                                              .bloomeePlayer
+                                              .loadPlaylist(state,
+                                                  idx: index, doPlay: true);
+                                          // context.read<BloomeePlayerCubit>().bloomeePlayer.play();
+                                        } else if (context
+                                                .read<BloomeePlayerCubit>()
+                                                .bloomeePlayer
+                                                .currentMedia !=
+                                            state.mediaItems[index]) {
+                                          context
+                                              .read<BloomeePlayerCubit>()
+                                              .bloomeePlayer
+                                              .prepare4play(
+                                                  idx: index, doPlay: true);
+                                        }
+
+                                        context.push('/MusicPlayer');
+                                      },
+                                      onOptionsTap: () => showMediaItemOptions(
+                                          context, state.mediaItems[index]),
                                     ),
                                   );
                                 },
