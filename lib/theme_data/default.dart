@@ -43,5 +43,15 @@ class Default_Theme {
       selectionColor: accentColor2,
       selectionHandleColor: accentColor2,
     ),
+    switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.all(primaryColor1),
+        trackOutlineColor: MaterialStateProperty.resolveWith((states) =>
+            states.contains(MaterialState.selected)
+                ? accentColor1
+                : accentColor2),
+        trackColor: MaterialStateProperty.resolveWith((states) =>
+            states.contains(MaterialState.selected)
+                ? accentColor1
+                : primaryColor2.withOpacity(0))),
   );
 }
