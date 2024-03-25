@@ -125,9 +125,16 @@ class FetchChartCubit extends Cubit<FetchChartState> {
             .filter()
             .chartNameEqualTo(i.title)
             .findFirstSync();
-        if ((chartCacheDB?.lastUpdated.difference(DateTime.now()).inHours ??
-                24) >
-            12) {
+        bool _shouldFetch = (chartCacheDB?.lastUpdated
+                    .difference(DateTime.now())
+                    .inHours
+                    .abs() ??
+                80) >
+            16;
+        log("Last Updated - ${(chartCacheDB?.lastUpdated.difference(DateTime.now()).inHours)?.abs()} Hours before ",
+            name: "Isolate");
+
+        if (_shouldFetch) {
           chart = await i.chartFunction(i.url);
           if ((chart.chartItems?.isNotEmpty) ?? false) {
             db.writeTxnSync(() =>

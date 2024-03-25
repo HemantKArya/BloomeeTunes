@@ -22,23 +22,26 @@ class Default_Theme {
   static const successColor = Color(0xFF5EFF43);
 
   ThemeData defaultThemeData = ThemeData(
-    // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
     useMaterial3: true,
-    primaryColor: themeColor,
-    hintColor: themeColor,
-    inputDecorationTheme: InputDecorationTheme(
-      enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(style: BorderStyle.none),
-          borderRadius: BorderRadius.circular(50)),
-      focusedBorder: OutlineInputBorder(
-          borderSide:
-              BorderSide(color: Default_Theme.primaryColor1.withOpacity(0.7)),
-          borderRadius: BorderRadius.circular(50)),
+    scaffoldBackgroundColor: themeColor,
+    colorScheme: ColorScheme.fromSwatch().copyWith(
+      primary: accentColor2,
+      secondary: accentColor1,
+      background: themeColor,
+      brightness: Brightness.dark,
     ),
-    primaryTextTheme: const TextTheme(
-        titleLarge: primaryTextStyle,
-        bodyMedium: secondoryTextStyleMedium,
-        bodySmall: tertiaryTextStyle,
-        titleMedium: secondoryTextStyle),
+    iconTheme: const IconThemeData(color: primaryColor1),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: themeColor,
+      // elevation: 0,
+      iconTheme: IconThemeData(color: primaryColor1),
+    ),
+    progressIndicatorTheme:
+        const ProgressIndicatorThemeData(color: accentColor2),
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: Colors.white,
+      selectionColor: accentColor2,
+      selectionHandleColor: accentColor2,
+    ),
   );
 }

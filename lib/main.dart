@@ -9,6 +9,7 @@ import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
@@ -208,6 +209,7 @@ class _MyAppState extends State<MyApp> {
               return MaterialApp.router(
                 scaffoldMessengerKey: SnackbarService.messengerKey,
                 routerConfig: GlobalRoutes.globalRouter,
+                theme: Default_Theme().defaultThemeData,
               );
             }
           },

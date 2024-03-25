@@ -70,6 +70,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
         ),
       ),
       body: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
             builder: (context, state) {
@@ -99,6 +100,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                             ),
                             Expanded(
                               child: Column(
+                                mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Padding(
