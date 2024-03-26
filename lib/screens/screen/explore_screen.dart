@@ -3,7 +3,6 @@ import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
-import 'package:Bloomee/screens/widgets/mediaItemOptions_bottomsheet.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/song_card_widget.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
@@ -20,7 +19,6 @@ import '../widgets/tabList_widget.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
-
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
 }

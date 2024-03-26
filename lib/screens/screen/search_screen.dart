@@ -1,8 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/screens/widgets/mediaItemOptions_bottomsheet.dart';
+import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_card_widget.dart';
 import 'package:flutter/foundation.dart';
@@ -223,7 +222,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                                         context.push('/MusicPlayer');
                                       },
-                                      onOptionsTap: () => showMediaItemOptions(
+                                      onOptionsTap: () => showMoreBottomSheet(
                                           context, state.mediaItems[index]),
                                     ),
                                   );

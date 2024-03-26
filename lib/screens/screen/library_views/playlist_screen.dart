@@ -1,6 +1,5 @@
 import 'dart:developer';
-
-import 'package:Bloomee/screens/widgets/mediaItemOptions_bottomsheet.dart';
+import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_card_widget.dart';
 import 'package:flutter/foundation.dart';
@@ -298,7 +297,7 @@ class _PlaylistState extends State<Playlist> {
               context.push('/MusicPlayer');
             },
             onOptionsTap: () {
-              showMediaItemOptions(context, _state.mediaItems[index]);
+              showMoreBottomSheet(context, _state.mediaItems[index]);
             },
           ),
         );

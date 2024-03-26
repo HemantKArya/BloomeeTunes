@@ -1,3 +1,4 @@
+import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
@@ -13,7 +14,6 @@ import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
-import '../widgets/mediaItemOptions_bottomsheet.dart';
 
 class AudioPlayerView extends StatefulWidget {
   const AudioPlayerView({super.key});
@@ -38,7 +38,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
         actions: [
           IconButton(
               onPressed: () {
-                showMediaItemOptions(
+                showMoreBottomSheet(
                     context,
                     context
                         .read<BloomeePlayerCubit>()
