@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
-
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/screens/screen/search_views/search_page.dart';
@@ -150,8 +149,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     contentPadding: const EdgeInsets.only(top: 20),
                     hintText: "Find your next song obsession...",
                     hintStyle: TextStyle(
-                        color: Default_Theme.primaryColor1.withOpacity(0.4),
-                        fontFamily: "Gilroy"),
+                      color: Default_Theme.primaryColor1.withOpacity(0.3),
+                      fontFamily: "Unageo",
+                      fontWeight: FontWeight.normal,
+                    ),
                     disabledBorder: OutlineInputBorder(
                         borderSide: const BorderSide(style: BorderStyle.none),
                         borderRadius: BorderRadius.circular(50)),

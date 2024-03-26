@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -18,26 +18,24 @@ class searchPageDelegate extends SearchDelegate {
   @override
   ThemeData appBarTheme(BuildContext context) {
     return ThemeData(
-      primaryColor: Default_Theme.accentColor2,
-      indicatorColor: Colors.white,
-      highlightColor: Colors.white24,
-      textTheme: const TextTheme(
-          titleSmall: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.white),
-          titleMedium: TextStyle(color: Colors.white)),
-      inputDecorationTheme: const InputDecorationTheme(
-          // fillColor: Colors.white,
-          // focusColor: Colors.white,
-          // hoverColor: Colors.white,
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none),
-      appBarTheme: AppBarTheme(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          color: Default_Theme.accentColor2),
-      canvasColor: Default_Theme.themeColor,
-      hintColor: Colors.white,
-      splashColor: Colors.white54,
+      colorScheme: ColorScheme.fromSwatch().copyWith(
+        primary: Default_Theme.accentColor2,
+        secondary: Default_Theme.accentColor1,
+        background: Default_Theme.themeColor,
+        brightness: Brightness.dark,
+      ),
+      iconTheme: const IconThemeData(color: Default_Theme.primaryColor1),
+      appBarTheme: const AppBarTheme(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+        backgroundColor: Color.fromARGB(255, 19, 19, 19),
+        iconTheme: IconThemeData(color: Default_Theme.primaryColor1),
+      ),
+      textTheme: TextTheme(
+        titleLarge: const TextStyle(
+          color: Default_Theme.primaryColor1,
+        ).merge(Default_Theme.secondoryTextStyleMedium),
+      ),
     );
   }
 
@@ -105,7 +103,8 @@ class searchPageDelegate extends SearchDelegate {
           ));
         } else if (snapshot.data!.isEmpty) {
           return const Center(
-            child: Text('No suggestions found'),
+            child: SignBoardWidget(
+                message: "No Suggestions found!", icon: MingCute.look_up_line),
           );
         }
         List<String> suggestionList = snapshot.data!;
@@ -113,7 +112,13 @@ class searchPageDelegate extends SearchDelegate {
           itemCount: suggestionList.length,
           itemBuilder: (context, index) {
             return ListTile(
-              title: Text(suggestionList[index]),
+              title: Text(
+                suggestionList[index],
+                style:
+                    const TextStyle(color: Default_Theme.primaryColor1).merge(
+                  Default_Theme.secondoryTextStyle,
+                ),
+              ),
               onTap: () {
                 query = suggestionList[index];
                 // Show the search results based on the selected suggestion.

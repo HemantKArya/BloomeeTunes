@@ -1,10 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
+import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
@@ -12,14 +12,22 @@ import 'package:Bloomee/utils/load_Image.dart';
 class SongCardWidget extends StatelessWidget {
   final MediaItemModel song;
   final bool? showOptions;
+  final bool? showInfoBtn;
+  final bool? showPlayBtn;
   final VoidCallback? onOptionsTap;
+  final VoidCallback? onInfoTap;
+  final VoidCallback? onPlayTap;
   final VoidCallback? onTap;
 
   const SongCardWidget({
     Key? key,
     required this.song,
     this.showOptions,
+    this.showInfoBtn,
+    this.showPlayBtn,
     this.onOptionsTap,
+    this.onInfoTap,
+    this.onPlayTap,
     this.onTap,
   }) : super(key: key);
 
@@ -99,7 +107,37 @@ class SongCardWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              showOptions ?? false
+              (showPlayBtn ?? false)
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 2, right: 2),
+                      child: IconButton(
+                        icon: const Icon(
+                          FontAwesome.play_solid,
+                          size: 30,
+                          color: Default_Theme.primaryColor1,
+                        ),
+                        onPressed: () {
+                          if (onPlayTap != null) onPlayTap!();
+                        },
+                      ),
+                    )
+                  : const SizedBox(),
+              (showInfoBtn ?? false)
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 2, right: 2),
+                      child: IconButton(
+                        icon: const Icon(
+                          MingCute.information_line,
+                          size: 30,
+                          color: Default_Theme.primaryColor1,
+                        ),
+                        onPressed: () {
+                          if (onInfoTap != null) onInfoTap!();
+                        },
+                      ),
+                    )
+                  : const SizedBox(),
+              !(showOptions ?? true)
                   ? const SizedBox()
                   : IconButton(
                       icon: const Icon(

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
-
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -39,58 +38,57 @@ void showMediaItemOptions(BuildContext context, MediaItemModel mediaItemModel) {
               width: MediaQuery.of(context).size.width,
               color: Default_Theme.themeColor,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 15),
-                          child: SizedBox(
-                            height: 80,
-                            width: 80,
-                            child: loadImageCached(
-                                mediaItemModel.artUri.toString()),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10, left: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            height: 70,
+                            width: 70,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: loadImageCached(
+                                mediaItemModel.artUri.toString(),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 5),
-                                child: SelectableText(
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SelectableText(
                                   mediaItemModel.title,
-                                  maxLines: 2,
-                                  // overflow: TextOverflow.ellipsis,
-                                  style: Default_Theme.secondoryTextStyle.merge(
-                                      const TextStyle(
-                                          color: Default_Theme.primaryColor2,
-                                          fontWeight: FontWeight.bold,
+                                  maxLines: 1,
+                                  style: Default_Theme.secondoryTextStyleMedium
+                                      .merge(const TextStyle(
                                           overflow: TextOverflow.ellipsis,
-                                          fontSize: 20)),
+                                          color: Default_Theme.primaryColor2,
+                                          fontSize: 18)),
                                 ),
-                              ),
-                              SelectableText(
-                                mediaItemModel.artist ?? "Unknown",
-                                maxLines: 2,
-                                textAlign: TextAlign.start,
-                                // overflow: TextOverflow.ellipsis,
-                                style: Default_Theme.secondoryTextStyle.merge(
-                                    TextStyle(
-                                        color: Default_Theme.primaryColor2
-                                            .withOpacity(0.5),
-                                        overflow: TextOverflow.ellipsis,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18)),
-                              ),
-                              // Spacer()
-                            ],
-                          ),
-                        ),
-                      ],
+                                SelectableText(
+                                  mediaItemModel.artist ?? "Unknown Artist",
+                                  maxLines: 1,
+                                  style: Default_Theme.secondoryTextStyleMedium
+                                      .merge(const TextStyle(
+                                          overflow: TextOverflow.ellipsis,
+                                          color: Default_Theme.primaryColor2,
+                                          fontSize: 16)),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                   const Divider(

@@ -4,6 +4,7 @@ import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/screens/widgets/mediaItemOptions_bottomsheet.dart';
+import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/song_card_widget.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/utils/app_updater.dart';
@@ -99,8 +100,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                   );
                                             },
                                             onOptionsTap: () =>
-                                                showMediaItemOptions(
-                                                    context, e),
+                                                showMoreBottomSheet(context, e),
                                           );
                                         }).toList(),
                                         category: "Recently",
