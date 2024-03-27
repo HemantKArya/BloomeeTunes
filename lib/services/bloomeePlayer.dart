@@ -213,6 +213,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       fromPlaylist.add(false);
       if (!doPlay) {
         queue.add([currentMedia, mediaItem]);
+        currentPlayingIdx = 0;
         if (audioPlayer.processingState == ProcessingState.completed) {
           queue.add([mediaItem]);
           await prepare4play(idx: 0, doPlay: doPlay);

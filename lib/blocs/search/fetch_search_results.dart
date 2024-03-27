@@ -1,11 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
