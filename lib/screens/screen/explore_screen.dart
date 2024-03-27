@@ -89,12 +89,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                               context
                                                   .read<BloomeePlayerCubit>()
                                                   .bloomeePlayer
-                                                  .loadPlaylist(
-                                                    MediaPlaylist(
-                                                      mediaItems: [e],
-                                                      albumName: "Recently",
-                                                    ),
-                                                    doPlay: true,
+                                                  .addQueueItem(
+                                                    e,
                                                   );
                                             },
                                             onOptionsTap: () =>

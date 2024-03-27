@@ -92,7 +92,7 @@ class PlaylistView extends StatelessWidget {
                               stream: context
                                   .watch<BloomeePlayerCubit>()
                                   .bloomeePlayer
-                                  .currentQueueName,
+                                  .queueTitle,
                               builder: (context, snapshot) {
                                 if (snapshot.hasData &&
                                     snapshot.data == playListName) {

@@ -57,6 +57,19 @@ class MediaItemModel extends MediaItem {
   }
 }
 
+MediaItemModel mediaItem2MediaItemModel(MediaItem mediaItem) {
+  return MediaItemModel(
+    id: mediaItem.id,
+    title: mediaItem.title,
+    album: mediaItem.album,
+    artUri: mediaItem.artUri,
+    artist: mediaItem.artist,
+    extras: mediaItem.extras,
+    genre: mediaItem.genre,
+    duration: mediaItem.duration,
+  );
+}
+
 MediaItemDB MediaItem2MediaItemDB(MediaItem mediaItem) {
   return MediaItemDB(
       title: mediaItem.title,

@@ -6,15 +6,18 @@ import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
+import 'package:rxdart/subjects.dart';
 
 import '../model/MediaPlaylistModel.dart';
 
 class BloomeeMusicPlayer extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   late AudioPlayer audioPlayer;
+
   List<MediaItemModel> currentPlaylist = [];
-  BehaviorSubject<String> currentQueueName =
-      BehaviorSubject<String>.seeded("Empty");
+  int currentQueueIdx = 0;
+  int currentPlaylistIdx = 0;
+  BehaviorSubject<bool> fromPlaylist = BehaviorSubject<bool>.seeded(false);
 
   BehaviorSubject<bool> isLinkProcessing = BehaviorSubject<bool>.seeded(false);
   int currentPlayingIdx = 0;
@@ -65,7 +68,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     ));
   }
 
-  MediaItemModel get currentMedia => currentPlaylist[currentPlayingIdx];
+  MediaItemModel get currentMedia =>
+      mediaItem2MediaItemModel(queue.value[currentPlayingIdx]);
 
   @override
   Future<void> play() async {
@@ -86,8 +90,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   Future<void> loadPlaylist(MediaPlaylist mediaList,
       {int idx = 0, bool doPlay = false}) async {
-    currentPlaylist = mediaList.mediaItems;
-    currentQueueName.add(mediaList.albumName);
+    fromPlaylist.add(true);
+    queue.add(mediaList.mediaItems);
+    queueTitle.add(mediaList.albumName);
     await prepare4play(idx: idx, doPlay: doPlay);
     // if (doPlay) play();
   }
@@ -136,7 +141,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> prepare4play({int idx = 0, bool doPlay = false}) async {
-    if (currentPlaylist.isNotEmpty) {
+    if (queue.value.isNotEmpty) {
       currentPlayingIdx = idx;
       await playMediaItem(currentMedia, doPlay: doPlay);
       BloomeeDBService.putRecentlyPlayed(MediaItem2MediaItemDB(currentMedia));
@@ -147,12 +152,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> rewind() async {
     if (audioPlayer.processingState == ProcessingState.ready) {
       await audioPlayer.seek(Duration.zero);
+    } else if (audioPlayer.processingState == ProcessingState.completed) {
+      await prepare4play(idx: currentPlayingIdx);
     }
   }
 
   @override
   Future<void> skipToNext() async {
-    if (currentPlayingIdx < (currentPlaylist.length - 1)) {
+    if (currentPlayingIdx < (queue.value.length - 1)) {
       currentPlayingIdx++;
       prepare4play(idx: currentPlayingIdx);
       // log("skippingNext-------", name: "bloomeePlayer");
@@ -191,12 +198,60 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> addQueueItem(MediaItem mediaItem) async {
-    queue.add([mediaItem]);
+  Future<void> insertQueueItem(int index, MediaItem mediaItem) async {
+    if (index < queue.value.length) {
+      queue.value.insert(index, mediaItem);
+    } else {
+      queue.add(queue.value..add(mediaItem));
+    }
   }
 
   @override
-  Future<void> addQueueItems(List<MediaItem> mediaItems) async {
+  Future<void> addQueueItem(MediaItem mediaItem,
+      {bool doPlay = true, bool atLast = false}) async {
+    if (fromPlaylist.value) {
+      fromPlaylist.add(false);
+      if (!doPlay) {
+        queue.add([currentMedia, mediaItem]);
+        if (audioPlayer.processingState == ProcessingState.completed) {
+          queue.add([mediaItem]);
+          await prepare4play(idx: 0, doPlay: doPlay);
+        }
+      } else {
+        queue.add([mediaItem]);
+        await prepare4play(idx: 0, doPlay: doPlay);
+      }
+      queueTitle.add("Queue");
+    } else {
+      if (atLast) {
+        queue.add(queue.value..add(mediaItem));
+      } else if (currentPlayingIdx >= queue.value.length - 1 ||
+          queue.value.isEmpty) {
+        queue.add(queue.value..add(mediaItem));
+        if (doPlay) {
+          await prepare4play(idx: queue.value.length - 1, doPlay: doPlay);
+        } else if (audioPlayer.processingState == ProcessingState.completed ||
+            queue.value.length == 1) {
+          await prepare4play(idx: queue.value.length - 1, doPlay: doPlay);
+        }
+      } else {
+        queue.add(queue.value..insert(currentPlayingIdx + 1, mediaItem));
+        if (doPlay) {
+          await prepare4play(idx: currentPlayingIdx + 1, doPlay: true);
+        }
+      }
+    }
+  }
+
+  @override
+  Future<void> addQueueItems(List<MediaItem> mediaItems,
+      {String queueName = "Queue"}) async {
     queue.add(mediaItems);
+    queueTitle.add(queueName);
+  }
+
+  @override
+  Future<void> removeQueueItemAt(int index) async {
+    queue.value.removeAt(index);
   }
 }

@@ -63,7 +63,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                 stream: context
                     .watch<BloomeePlayerCubit>()
                     .bloomeePlayer
-                    .currentQueueName,
+                    .queueTitle,
                 builder: (context, snapshot) {
                   return InkWell(
                     onTap: () {

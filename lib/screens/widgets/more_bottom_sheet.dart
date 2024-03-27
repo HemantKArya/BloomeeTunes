@@ -1,4 +1,5 @@
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
+import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -76,6 +77,10 @@ void showMoreBottomSheet(
                 ),
                 onTap: () {
                   Navigator.pop(context);
+                  context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .addQueueItem(song, doPlay: false);
                 },
               ),
               ListTile(
@@ -94,6 +99,10 @@ void showMoreBottomSheet(
                 ),
                 onTap: () {
                   Navigator.pop(context);
+                  context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .addQueueItem(song, atLast: true, doPlay: false);
                 },
               ),
               ListTile(
