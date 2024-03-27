@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_card_widget.dart';
@@ -29,10 +30,23 @@ class _SearchScreenState extends State<SearchScreen> {
   int _selectedSearchEngine = 0;
   SourceEngine _sourceEngine = SourceEngine.eng_JIS;
   final TextEditingController _textEditingController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  void loadMoreResults() {
+    if (_scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent &&
+        _sourceEngine == SourceEngine.eng_JIS &&
+        context.read<FetchSearchResultsCubit>().state.hasReachedMax == false) {
+      context
+          .read<FetchSearchResultsCubit>()
+          .searchJIS(_textEditingController.text, loadMore: true);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(loadMoreResults);
     if (widget.searchQuery != "") {
       _textEditingController.text = widget.searchQuery;
       context
@@ -187,10 +201,26 @@ class _SearchScreenState extends State<SearchScreen> {
                           } else if (state.loadingState ==
                               LoadingState.loaded) {
                             if (state.mediaItems.isNotEmpty) {
+                              log("Search Results: ${state.mediaItems.length}",
+                                  name: "SearchScreen");
                               return ListView.builder(
+                                controller: _scrollController,
                                 physics: const BouncingScrollPhysics(),
-                                itemCount: state.mediaItems.length,
+                                itemCount: state.hasReachedMax
+                                    ? state.mediaItems.length
+                                    : state.mediaItems.length + 1,
                                 itemBuilder: (context, index) {
+                                  if (index == state.mediaItems.length) {
+                                    return const Center(
+                                      child: SizedBox(
+                                        height: 30,
+                                        width: 30,
+                                        child: CircularProgressIndicator(
+                                          color: Default_Theme.accentColor2,
+                                        ),
+                                      ),
+                                    );
+                                  }
                                   return Padding(
                                     padding: const EdgeInsets.only(left: 4),
                                     child: SongCardWidget(
@@ -205,8 +235,14 @@ class _SearchScreenState extends State<SearchScreen> {
                                           context
                                               .read<BloomeePlayerCubit>()
                                               .bloomeePlayer
-                                              .loadPlaylist(state,
-                                                  idx: index, doPlay: true);
+                                              .loadPlaylist(
+                                                  MediaPlaylist(
+                                                      albumName:
+                                                          state.albumName,
+                                                      mediaItems:
+                                                          state.mediaItems),
+                                                  idx: index,
+                                                  doPlay: true);
                                           // context.read<BloomeePlayerCubit>().bloomeePlayer.play();
                                         } else if (context
                                                 .read<BloomeePlayerCubit>()
