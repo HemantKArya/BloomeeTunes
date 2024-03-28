@@ -79,6 +79,8 @@ void showMoreBottomSheet(
                       .read<BloomeePlayerCubit>()
                       .bloomeePlayer
                       .addQueueItem(song, doPlay: false);
+                  SnackbarService.showMessage("Added to Next in Queue",
+                      duration: const Duration(seconds: 2));
                 },
               ),
               ListTile(
@@ -101,6 +103,8 @@ void showMoreBottomSheet(
                       .read<BloomeePlayerCubit>()
                       .bloomeePlayer
                       .addQueueItem(song, atLast: true, doPlay: false);
+                  SnackbarService.showMessage("Added to Queue",
+                      duration: const Duration(seconds: 2));
                 },
               ),
               ListTile(
