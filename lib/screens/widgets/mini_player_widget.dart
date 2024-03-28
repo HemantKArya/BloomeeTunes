@@ -52,7 +52,7 @@ class MiniPlayerWidget extends StatelessWidget {
                   color: Default_Theme.themeColor,
                 ),
               ),
-              Container(
+              SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Row(
                   children: [
@@ -66,11 +66,12 @@ class MiniPlayerWidget extends StatelessWidget {
                             return Row(
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.all(1.5),
-                                  child: SizedBox(
-                                    width: 70,
+                                  padding: const EdgeInsets.only(right: 1.5),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(15),
                                     child: loadImageCached(
-                                        snapshot.data?.artUri.toString()),
+                                        snapshot.data?.artUri.toString(),
+                                        fit: BoxFit.cover),
                                   ),
                                 ),
                                 Padding(

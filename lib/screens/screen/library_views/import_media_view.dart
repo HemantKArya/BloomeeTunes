@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
+import 'package:Bloomee/utils/external_list_importer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -152,36 +153,15 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                   )),
                               onSubmitted: (value) {
                                 if (isSpotify) {
-                                  context
-                                      .read<SaavnSearchRepositoryCubit>()
-                                      .initializeAccessTokenWithDebounce()
-                                      .then((_value) {
-                                    context
-                                        .read<SaavnSearchRepositoryCubit>()
-                                        .fetchPlaylistFromSpotify(
-                                            context.read<BloomeeDBCubit>(),
-                                            value);
-                                    showDialog(
-                                      barrierDismissible: false,
-                                      context: context,
-                                      builder: (context) => ImportPlaylist(
-                                          isSpotify: true,
-                                          playlistID: value.toString()),
-                                    ).then((value) => context.pop(context));
-                                  });
                                 } else {
-                                  context
-                                      .read<ImportPlaylistCubit>()
-                                      .fetchYtPlaylistByID(
-                                          "PLDIoUOhQQPlXr63I_vwF9GD8sAKh77dWU",
-                                          context.read<BloomeeDBCubit>());
+                                  context.pop(context);
                                   showDialog(
-                                    barrierDismissible: false,
                                     context: context,
-                                    builder: (context) => ImportPlaylist(
-                                        isSpotify: false,
-                                        playlistID: value.toString()),
-                                  ).then((value) => context.pop(context));
+                                    barrierDismissible: false,
+                                    builder: (context) => ImporterDialogWidget(
+                                        strm: ExternalMediaImporter
+                                            .ytPlaylistImporter(value)),
+                                  );
                                 }
 
                                 // context.pop(context);
