@@ -111,6 +111,8 @@ void showPlaylistOptsSheet(BuildContext context, String playlistName) {
                   ),
                   onTap: () async {
                     Navigator.pop(context);
+                    SnackbarService.showMessage(
+                        "Preparing $playlistName for share");
                     final _tmpPath =
                         await BloomeeFileManager.exportPlaylist(playlistName);
                     _tmpPath != null
