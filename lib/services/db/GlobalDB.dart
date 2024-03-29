@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 // import 'dart:js_util';
 
+import 'dart:convert';
 import 'package:isar/isar.dart';
 
 part 'GlobalDB.g.dart';
@@ -96,6 +97,47 @@ class MediaItemDB {
         permaURL.hashCode ^
         language.hashCode;
   }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id': null,
+      'title': title,
+      'album': album,
+      'artist': artist,
+      'artURL': artURL,
+      'genre': genre,
+      'duration': duration,
+      'mediaID': mediaID,
+      'streamingURL': streamingURL,
+      'source': source,
+      'permaURL': permaURL,
+      'language': language,
+      'isLiked': isLiked,
+    };
+  }
+
+  factory MediaItemDB.fromMap(Map<String, dynamic> map) {
+    return MediaItemDB(
+      id: null,
+      title: map['title'] as String,
+      album: map['album'] as String,
+      artist: map['artist'] as String,
+      artURL: map['artURL'] as String,
+      genre: map['genre'] as String,
+      duration: map['duration'] != null ? map['duration'] as int : null,
+      mediaID: map['mediaID'] as String,
+      streamingURL: map['streamingURL'] as String,
+      source: map['source'] != null ? map['source'] as String : null,
+      permaURL: map['permaURL'] as String,
+      language: map['language'] as String,
+      isLiked: map['isLiked'] as bool,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory MediaItemDB.fromJson(String source) =>
+      MediaItemDB.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
 int fastHash(String string) {

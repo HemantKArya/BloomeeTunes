@@ -247,8 +247,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> addQueueItems(List<MediaItem> mediaItems,
       {String queueName = "Queue"}) async {
-    queue.add(mediaItems);
-    queueTitle.add(queueName);
+    for (var mediaItem in mediaItems) {
+      await addQueueItem(
+        mediaItem,
+        atLast: true,
+      );
+    }
   }
 
   @override

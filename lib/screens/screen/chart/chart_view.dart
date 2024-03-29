@@ -1,11 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChartScreen extends StatefulWidget {
   // ChartCubit? chartCubit;

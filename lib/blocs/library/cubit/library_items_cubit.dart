@@ -91,4 +91,22 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
           "Removed ${mediaItem.title} from ${mediaPlaylistDB.playlistName}");
     }
   }
+
+  Future<List<MediaItemModel>?> getPlaylist(String playlistName) async {
+    try {
+      final playlistDB = mediaPlaylistsDB
+          .firstWhere((element) => element.playlistName == playlistName);
+      final _playlist = await BloomeeDBService.getPlaylistItems(playlistDB);
+
+      if (_playlist != null) {
+        final mediaItems =
+            _playlist.map((e) => MediaItemDB2MediaItem(e)).toList();
+        return mediaItems;
+      }
+    } catch (e) {
+      log("Error in getting playlist: $e", name: "libItemCubit");
+      return null;
+    }
+    return null;
+  }
 }

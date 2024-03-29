@@ -290,17 +290,29 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          InkWell(
-                            onTap: () => musicPlayer.rewind(),
-                            child: const Icon(
+                          IconButton(
+                            padding: const EdgeInsets.all(5),
+                            constraints: const BoxConstraints(),
+                            style: const ButtonStyle(
+                              tapTargetSize: MaterialTapTargetSize
+                                  .shrinkWrap, // the '2023' part
+                            ),
+                            onPressed: () => musicPlayer.rewind(),
+                            icon: const Icon(
                               MingCute.refresh_4_line,
                               color: Default_Theme.primaryColor1,
                               size: 40,
                             ),
                           ),
-                          InkWell(
-                            onTap: () => musicPlayer.skipToPrevious(),
-                            child: const Icon(
+                          IconButton(
+                            padding: const EdgeInsets.all(5),
+                            constraints: const BoxConstraints(),
+                            style: const ButtonStyle(
+                              tapTargetSize: MaterialTapTargetSize
+                                  .shrinkWrap, // the '2023' part
+                            ),
+                            onPressed: () => musicPlayer.skipToPrevious(),
+                            icon: const Icon(
                               MingCute.skip_previous_fill,
                               color: Default_Theme.primaryColor1,
                               size: 40,
@@ -354,21 +366,33 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                           );
                                         });
                               }),
-                          InkWell(
-                            onTap: () => musicPlayer.skipToNext(),
-                            child: const Icon(
+                          IconButton(
+                            padding: const EdgeInsets.all(5),
+                            constraints: const BoxConstraints(),
+                            style: const ButtonStyle(
+                              tapTargetSize: MaterialTapTargetSize
+                                  .shrinkWrap, // the '2023' part
+                            ),
+                            onPressed: () => musicPlayer.skipToNext(),
+                            icon: const Icon(
                               MingCute.skip_forward_fill,
                               color: Default_Theme.primaryColor1,
                               size: 40,
                             ),
                           ),
-                          InkWell(
-                            child: const Icon(
+                          IconButton(
+                            padding: const EdgeInsets.all(5),
+                            constraints: const BoxConstraints(),
+                            style: const ButtonStyle(
+                              tapTargetSize: MaterialTapTargetSize
+                                  .shrinkWrap, // the '2023' part
+                            ),
+                            icon: const Icon(
                               MingCute.external_link_line,
                               color: Default_Theme.primaryColor1,
                               size: 40,
                             ),
-                            onTap: () {
+                            onPressed: () {
                               launchUrlString(context
                                   .read<BloomeePlayerCubit>()
                                   .bloomeePlayer

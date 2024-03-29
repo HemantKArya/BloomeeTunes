@@ -63,6 +63,7 @@ dependencies:
   connectivity_plus: ^5.0.2
   share_plus: ^7.2.2
   receive_sharing_intent: ^1.6.7
+  file_picker: ^8.0.0+1
 
 
 

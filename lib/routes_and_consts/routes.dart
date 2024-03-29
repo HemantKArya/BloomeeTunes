@@ -50,9 +50,10 @@ class GlobalRoutes {
       GoRoute(
         name: GlobalStrConsts.playlistView,
         // parentNavigatorKey: globalRouterKey,
-        path: '/PlaylistView/:playlistName',
-        builder: (context, state) => PlaylistView(
-            playListName: state.pathParameters['playlistName'] ?? "none"),
+        path: '/PlaylistView',
+        builder: (context, state) {
+          return PlaylistView();
+        },
       ),
       GoRoute(
         path: '/AddToPlaylist',
