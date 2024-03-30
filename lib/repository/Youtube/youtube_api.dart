@@ -71,10 +71,10 @@ class YouTubeServices {
     String quality;
     try {
       quality = await BloomeeDBService.getSettingStr('quality',
-              defaultValue: 'Low') ??
-          'Low';
+              defaultValue: 'High') ??
+          'High';
     } catch (e) {
-      quality = 'Low';
+      quality = 'High';
     }
     final Map? data = await formatVideo(video: res, quality: quality);
     return data;
@@ -332,21 +332,26 @@ class YouTubeServices {
     String expireAt = '0';
     if (getUrl) {
       // check cache first
-      // if (Hive.box('ytlinkcache').containsKey(video.id.value)) {
-      if (false) {
+      final ytCache = await BloomeeDBService.getYtLinkCache(video.id.value);
+      if (ytCache != null) {
+        // if (false) {
         // final Map cachedData =
         //     Hive.box('ytlinkcache').get(video.id.value) as Map;
         // final int cachedExpiredAt =
-        //     int.parse(cachedData['expire_at'].toString());
-        // if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
-        //     cachedExpiredAt) {
-        //   // cache expired
-        //   urls = await getUri(video);
-        // } else {
-        //   // giving cache link
-        //   Logger.root.info('cache found for ${video.id.value}');
-        //   urls = [cachedData['url'].toString()];
-        // }
+        //     ytCache.expireAt;
+        if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
+            ytCache.expireAt) {
+          // cache expired
+          urls = await getUri(video);
+        } else {
+          // giving cache link
+          log('cache found for ${video.id.value}', name: "YoutubeAPI");
+          urls = [
+            quality == 'High'
+                ? ytCache.highQURL
+                : (ytCache.lowQURL ?? ytCache.highQURL)
+          ];
+        }
       } else {
         //cache not present
         urls = await getUri(video);
@@ -357,25 +362,29 @@ class YouTubeServices {
           (DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600 * 5.5)
               .toString();
 
-      // try {
-      //   await Hive.box('ytlinkcache').put(
-      //     video.id.value,
-      //     {
-      //       'url': finalUrl,
-      //       'expire_at': expireAt,
-      //       'lowUrl': urls.first,
-      //       'highUrl': urls.last,
-      //     },
-      //   ).onError(
-      //     (error, stackTrace) => Logger.root.severe(
-      //       'Hive Error in formatVideo, you probably forgot to open box.\nError: $error',
-      //     ),
-      //   );
-      // } catch (e) {
-      //   Logger.root.severe(
-      //     'Hive Error in formatVideo, you probably forgot to open box.\nError: $e',
-      //   );
-      // }
+      try {
+        // await Hive.box('ytlinkcache').put(
+        //   video.id.value,
+        //   {
+        //     'url': finalUrl,
+        //     'expire_at': expireAt,
+        //     'lowUrl': urls.first,
+        //     'highUrl': urls.last,
+        //   },
+        // ).onError(
+        //   (error, stackTrace) => Logger.root.severe(
+        //     'Hive Error in formatVideo, you probably forgot to open box.\nError: $error',
+        //   ),
+        // );
+        BloomeeDBService.putYtLinkCache(
+          video.id.value,
+          urls.first,
+          urls.last,
+          int.parse(expireAt),
+        );
+      } catch (e) {
+        log('DB Error in formatVideo,\nError:', error: e, name: "YoutubeAPI");
+      }
     }
     return {
       'id': video.id.value,

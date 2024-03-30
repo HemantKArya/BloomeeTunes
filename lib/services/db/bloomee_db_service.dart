@@ -213,6 +213,7 @@ class BloomeeDBService {
           AppSettingsStrDBSchema,
           RecentlyPlayedDBSchema,
           ChartsCacheDBSchema,
+          YtLinkCacheDBSchema,
         ],
         directory: _path,
       );
@@ -467,5 +468,17 @@ class BloomeeDBService {
     } else {
       return null;
     }
+  }
+
+  static Future<void> putYtLinkCache(
+      String id, String lowUrl, String highUrl, int expireAt) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(() => isarDB.ytLinkCacheDBs.putSync(YtLinkCacheDB(
+        videoId: id, lowQURL: lowUrl, highQURL: highUrl, expireAt: expireAt)));
+  }
+
+  static Future<YtLinkCacheDB?> getYtLinkCache(String id) async {
+    Isar isarDB = await db;
+    return isarDB.ytLinkCacheDBs.filter().videoIdEqualTo(id).findFirstSync();
   }
 }

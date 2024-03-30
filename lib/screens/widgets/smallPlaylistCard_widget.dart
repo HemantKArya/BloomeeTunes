@@ -42,10 +42,10 @@ class SmallPlaylistCard extends StatelessWidget {
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: Text(
                   playListTitle,
-                  overflow: TextOverflow.fade,
+                  overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                   style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
-                      fontSize: 18,
+                      fontSize: 17.5,
                       fontWeight: FontWeight.w900,
                       color: Default_Theme.primaryColor1)),
                 ),

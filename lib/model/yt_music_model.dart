@@ -28,7 +28,7 @@ MediaItemModel fromYtSongMap2MediaItem(Map<dynamic, dynamic> songItem) {
             : int.parse(songItem["duration"]),
       ),
       extras: {
-        "url": 'Unknown',
+        "url": songItem["url"] ?? 'Unknown',
         "source": songItem["provider"] ?? "",
         "perma_url":
             'https://www.youtube.com/watch?v=${songItem["id"].toString().replaceAll("youtube", '')}',

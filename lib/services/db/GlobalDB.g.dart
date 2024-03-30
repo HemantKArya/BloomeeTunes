@@ -5929,6 +5929,935 @@ extension RecentlyPlayedDBQueryProperty
   }
 }
 
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+extension GetYtLinkCacheDBCollection on Isar {
+  IsarCollection<YtLinkCacheDB> get ytLinkCacheDBs => this.collection();
+}
+
+const YtLinkCacheDBSchema = CollectionSchema(
+  name: r'YtLinkCacheDB',
+  id: 7299293342969868585,
+  properties: {
+    r'expireAt': PropertySchema(
+      id: 0,
+      name: r'expireAt',
+      type: IsarType.long,
+    ),
+    r'highQURL': PropertySchema(
+      id: 1,
+      name: r'highQURL',
+      type: IsarType.string,
+    ),
+    r'lowQURL': PropertySchema(
+      id: 2,
+      name: r'lowQURL',
+      type: IsarType.string,
+    ),
+    r'videoId': PropertySchema(
+      id: 3,
+      name: r'videoId',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _ytLinkCacheDBEstimateSize,
+  serialize: _ytLinkCacheDBSerialize,
+  deserialize: _ytLinkCacheDBDeserialize,
+  deserializeProp: _ytLinkCacheDBDeserializeProp,
+  idName: r'isarId',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _ytLinkCacheDBGetId,
+  getLinks: _ytLinkCacheDBGetLinks,
+  attach: _ytLinkCacheDBAttach,
+  version: '3.1.0+1',
+);
+
+int _ytLinkCacheDBEstimateSize(
+  YtLinkCacheDB object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.highQURL.length * 3;
+  {
+    final value = object.lowQURL;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.videoId.length * 3;
+  return bytesCount;
+}
+
+void _ytLinkCacheDBSerialize(
+  YtLinkCacheDB object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeLong(offsets[0], object.expireAt);
+  writer.writeString(offsets[1], object.highQURL);
+  writer.writeString(offsets[2], object.lowQURL);
+  writer.writeString(offsets[3], object.videoId);
+}
+
+YtLinkCacheDB _ytLinkCacheDBDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = YtLinkCacheDB(
+    expireAt: reader.readLong(offsets[0]),
+    highQURL: reader.readString(offsets[1]),
+    lowQURL: reader.readStringOrNull(offsets[2]),
+    videoId: reader.readString(offsets[3]),
+  );
+  return object;
+}
+
+P _ytLinkCacheDBDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+Id _ytLinkCacheDBGetId(YtLinkCacheDB object) {
+  return object.isarId;
+}
+
+List<IsarLinkBase<dynamic>> _ytLinkCacheDBGetLinks(YtLinkCacheDB object) {
+  return [];
+}
+
+void _ytLinkCacheDBAttach(
+    IsarCollection<dynamic> col, Id id, YtLinkCacheDB object) {}
+
+extension YtLinkCacheDBQueryWhereSort
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QWhere> {
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterWhere> anyIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+}
+
+extension YtLinkCacheDBQueryWhere
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QWhereClause> {
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterWhereClause> isarIdEqualTo(
+      Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: isarId,
+        upper: isarId,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterWhereClause>
+      isarIdNotEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterWhereClause>
+      isarIdGreaterThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterWhereClause> isarIdLessThan(
+      Id isarId,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterWhereClause> isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerIsarId,
+        includeLower: includeLower,
+        upper: upperIsarId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension YtLinkCacheDBQueryFilter
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QFilterCondition> {
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      expireAtEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'expireAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      expireAtGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'expireAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      expireAtLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'expireAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      expireAtBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'expireAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'highQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'highQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'highQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'highQURL',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'highQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'highQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'highQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'highQURL',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'highQURL',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      highQURLIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'highQURL',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      isarIdEqualTo(Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      isarIdGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      isarIdLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      isarIdBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'isarId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lowQURL',
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lowQURL',
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lowQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lowQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lowQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lowQURL',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lowQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lowQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lowQURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lowQURL',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lowQURL',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      lowQURLIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lowQURL',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'videoId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'videoId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'videoId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'videoId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'videoId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'videoId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'videoId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'videoId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'videoId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterFilterCondition>
+      videoIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'videoId',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension YtLinkCacheDBQueryObject
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QFilterCondition> {}
+
+extension YtLinkCacheDBQueryLinks
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QFilterCondition> {}
+
+extension YtLinkCacheDBQuerySortBy
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QSortBy> {
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> sortByExpireAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'expireAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy>
+      sortByExpireAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'expireAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> sortByHighQURL() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'highQURL', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy>
+      sortByHighQURLDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'highQURL', Sort.desc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> sortByLowQURL() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lowQURL', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> sortByLowQURLDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lowQURL', Sort.desc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> sortByVideoId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'videoId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> sortByVideoIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'videoId', Sort.desc);
+    });
+  }
+}
+
+extension YtLinkCacheDBQuerySortThenBy
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QSortThenBy> {
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> thenByExpireAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'expireAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy>
+      thenByExpireAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'expireAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> thenByHighQURL() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'highQURL', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy>
+      thenByHighQURLDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'highQURL', Sort.desc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> thenByIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> thenByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> thenByLowQURL() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lowQURL', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> thenByLowQURLDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lowQURL', Sort.desc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> thenByVideoId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'videoId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QAfterSortBy> thenByVideoIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'videoId', Sort.desc);
+    });
+  }
+}
+
+extension YtLinkCacheDBQueryWhereDistinct
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QDistinct> {
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QDistinct> distinctByExpireAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'expireAt');
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QDistinct> distinctByHighQURL(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'highQURL', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QDistinct> distinctByLowQURL(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lowQURL', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QDistinct> distinctByVideoId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'videoId', caseSensitive: caseSensitive);
+    });
+  }
+}
+
+extension YtLinkCacheDBQueryProperty
+    on QueryBuilder<YtLinkCacheDB, YtLinkCacheDB, QQueryProperty> {
+  QueryBuilder<YtLinkCacheDB, int, QQueryOperations> isarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isarId');
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, int, QQueryOperations> expireAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'expireAt');
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, String, QQueryOperations> highQURLProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'highQURL');
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, String?, QQueryOperations> lowQURLProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lowQURL');
+    });
+  }
+
+  QueryBuilder<YtLinkCacheDB, String, QQueryOperations> videoIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'videoId');
+    });
+  }
+}
+
 // **************************************************************************
 // IsarEmbeddedGenerator
 // **************************************************************************

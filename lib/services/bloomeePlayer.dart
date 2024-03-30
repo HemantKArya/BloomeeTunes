@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:async/async.dart';
 import 'package:audio_service/audio_service.dart';
@@ -23,8 +24,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   int currentPlayingIdx = 0;
   bool isPaused = false;
 
-  CancelableOperation<List<String>> getLinkOperation =
-      CancelableOperation.fromFuture(Future.value([]));
+  CancelableOperation<String?> getLinkOperation =
+      CancelableOperation.fromFuture(Future.value());
 
   BloomeeMusicPlayer() {
     audioPlayer = AudioPlayer(
@@ -73,9 +74,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> play() async {
-    await audioPlayer.play();
-    isPaused = false;
-    // log("playing", name: "bloomeePlayer");
+    if (isLinkProcessing.value == false) {
+      await audioPlayer.play();
+      isPaused = false;
+    } else {
+      log("Link is in process...", name: "bloomeePlayer");
+      SnackbarService.showMessage("Link is in process...");
+    }
   }
 
   @override
@@ -104,6 +109,32 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     log("paused", name: "bloomeePlayer");
   }
 
+  Future<String?> latestYtLink(String id) async {
+    final vidInfo = await BloomeeDBService.getYtLinkCache(id);
+    if (vidInfo != null) {
+      if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
+          vidInfo.expireAt) {
+        log("Link expired for vidId: $id", name: "bloomeePlayer");
+        return await refreshYtLink(id);
+      } else {
+        log("Link found in cache for vidId: $id", name: "bloomeePlayer");
+        return vidInfo.highQURL;
+      }
+    } else {
+      log("No cache found for vidId: $id", name: "bloomeePlayer");
+      return await refreshYtLink(id);
+    }
+  }
+
+  Future<String?> refreshYtLink(String id) async {
+    final vidMap = await YouTubeServices().refreshLink(id);
+    if (vidMap != null) {
+      return vidMap["url"] as String;
+    } else {
+      return null;
+    }
+  }
+
   @override
   Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
     // log(mediaItem.extras?["url"], name: "bloomeePlayer");
@@ -113,27 +144,35 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       audioPlayer.pause();
       audioPlayer.seek(Duration.zero);
 
-      final tempStrmVideo = await YouTubeServices()
-          .getVideoFromId(mediaItem.id.replaceAll("youtube", ''));
-      if (tempStrmVideo != null) {
-        if (!getLinkOperation.isCompleted) {
-          getLinkOperation.cancel();
-        }
+      // final tempStrmVideo = await YouTubeServices()
+      //     .getVideoFromId(mediaItem.id.replaceAll("youtube", ''));
+      final id = mediaItem.id.replaceAll("youtube", '');
+      // if (tempStrmVideo != null) {
+      if (!getLinkOperation.isCompleted) {
+        getLinkOperation.cancel();
+      }
+      getLinkOperation =
+          CancelableOperation.fromFuture(latestYtLink(id), onCancel: () {
+        log("Canceled/Skipped - ${mediaItem.title}", name: "bloomeePlayer");
+      });
 
-        getLinkOperation = CancelableOperation.fromFuture(
-            YouTubeServices().getUri(tempStrmVideo), onCancel: () {
-          log("Canceled/Skipped - ${mediaItem.title}", name: "bloomeePlayer");
-        });
-
-        getLinkOperation.then((tempStrmLinks) {
-          isLinkProcessing.add(false);
-          audioPlayer.setUrl(tempStrmLinks.first).then((value) {
+      try {
+        getLinkOperation.then((tempStrmLink) async {
+          await audioPlayer.setUrl(tempStrmLink!).then((value) {
+            isLinkProcessing.add(false);
             if (super.mediaItem.value?.id == mediaItem.id && !isPaused) {
               audioPlayer.play();
             }
+          }).onError((error, stackTrace) {
+            log("Error playing this song!", name: "bloomeePlayer");
+            SnackbarService.showMessage("Error playing this song!");
+            isLinkProcessing.add(false);
           });
         });
+      } catch (e) {
+        SnackbarService.showMessage("Error playing this song!");
       }
+      // }
       return;
     }
     await audioPlayer.setUrl(mediaItem.extras?["url"]);

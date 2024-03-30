@@ -231,3 +231,18 @@ class RecentlyPlayedDB {
   });
   IsarLink<MediaItemDB> mediaItem = IsarLink<MediaItemDB>();
 }
+
+@collection
+class YtLinkCacheDB {
+  Id get isarId => fastHash(videoId);
+  String videoId;
+  String? lowQURL;
+  String highQURL;
+  int expireAt;
+  YtLinkCacheDB({
+    required this.videoId,
+    required this.lowQURL,
+    required this.highQURL,
+    required this.expireAt,
+  });
+}
