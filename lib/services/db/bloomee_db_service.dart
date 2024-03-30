@@ -402,13 +402,13 @@ class BloomeeDBService {
     }
   }
 
-  static Future<void> refreshRecentlyPlayed() async {
+  static Future<void> refreshRecentlyPlayed({int days = 7}) async {
     Isar isarDB = await db;
 
     List<RecentlyPlayedDB> _recentlyPlayed =
         isarDB.recentlyPlayedDBs.where().findAllSync();
     for (var element in _recentlyPlayed) {
-      if (DateTime.now().difference(element.lastPlayed).inDays > 7) {
+      if (DateTime.now().difference(element.lastPlayed).inDays > days) {
         removeMediaItemFromPlaylist(element.mediaItem.value!,
             MediaPlaylistDB(playlistName: "recently_played"));
         isarDB.writeTxnSync(
