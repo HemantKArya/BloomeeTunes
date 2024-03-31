@@ -79,10 +79,7 @@ void processIncomingIntent(List<SharedMediaFile> _sharedFiles) {
         }
       });
     }
-  } else if (Uri.parse(_sharedFiles[0].path)
-      .toFilePath()
-      .toString()
-      .contains(".blm")) {
+  } else if (_sharedFiles[0].mimeType == "application/octet-stream") {
     BloomeeFileManager.importPlaylist(
         Uri.parse(_sharedFiles[0].path).toFilePath().toString());
     SnackbarService.showMessage("Playlist Imported");

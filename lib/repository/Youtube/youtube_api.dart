@@ -71,10 +71,10 @@ class YouTubeServices {
     String quality;
     try {
       quality = await BloomeeDBService.getSettingStr('quality',
-              defaultValue: 'High') ??
-          'High';
+              defaultValue: 'Low') ??
+          'Low';
     } catch (e) {
-      quality = 'High';
+      quality = 'Low';
     }
     final Map? data = await formatVideo(video: res, quality: quality);
     return data;

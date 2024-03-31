@@ -118,7 +118,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         return await refreshYtLink(id);
       } else {
         log("Link found in cache for vidId: $id", name: "bloomeePlayer");
-        return vidInfo.highQURL;
+        return vidInfo.lowQURL;
       }
     } else {
       log("No cache found for vidId: $id", name: "bloomeePlayer");
@@ -158,6 +158,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
       try {
         getLinkOperation.then((tempStrmLink) async {
+          log("Got link: $tempStrmLink", name: "bloomeePlayer");
+          // AudioSource audioSource = AudioSource.uri(Uri.parse(tempStrmLink!));
           await audioPlayer.setUrl(tempStrmLink!).then((value) {
             isLinkProcessing.add(false);
             if (super.mediaItem.value?.id == mediaItem.id && !isPaused) {
