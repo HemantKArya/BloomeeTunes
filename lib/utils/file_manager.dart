@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'package:Bloomee/screens/widgets/snackbar.dart';
+// import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:path_provider/path_provider.dart';
@@ -60,7 +60,7 @@ class BloomeeFileManager {
     }
   }
 
-  static Future<void> importPlaylist(String filePath) async {
+  static Future<bool> importPlaylist(String filePath) async {
     //check if file is json or not
     // if (!filePath.endsWith('.blm')) {
     //   log("Invalid file format", name: "FileManager");
@@ -71,42 +71,41 @@ class BloomeeFileManager {
       await readFromJSON(filePath).then((playlistMap) async {
         log("Playlist map: $playlistMap", name: "FileManager");
         if (playlistMap != null && playlistMap.isNotEmpty) {
-          try {
-            bool playlistExists =
-                await isPlaylistExists(playlistMap['playlistName']);
-            int i = 1;
-            String playlistName = playlistMap['playlistName'];
-            while (playlistExists) {
-              playlistName = playlistMap['playlistName'] + "_$i";
-              playlistExists = await isPlaylistExists(playlistName);
-              i++;
-            }
-            log("Playlist name: $playlistName", name: "FileManager");
-
-            final mediaPlaylistDB = MediaPlaylistDB(
-              playlistName: playlistName,
-            );
-
-            for (final mediaItemMap in playlistMap['mediaItems']) {
-              final mediaItemDB = MediaItemDB.fromMap(mediaItemMap);
-              await BloomeeDBService.addMediaItem(mediaItemDB, mediaPlaylistDB);
-              log("Media item imported successfully - ${mediaItemDB.title}",
-                  name: "FileManager");
-            }
-
-            log("Playlist imported successfully");
-          } catch (e) {
-            log("Error importing playlist: $e");
+          bool playlistExists =
+              await isPlaylistExists(playlistMap['playlistName']);
+          int i = 1;
+          String playlistName = playlistMap['playlistName'];
+          while (playlistExists) {
+            playlistName = playlistMap['playlistName'] + "_$i";
+            playlistExists = await isPlaylistExists(playlistName);
+            i++;
           }
+          log("Playlist name: $playlistName", name: "FileManager");
+
+          final mediaPlaylistDB = MediaPlaylistDB(
+            playlistName: playlistName,
+          );
+
+          for (final mediaItemMap in playlistMap['mediaItems']) {
+            final mediaItemDB = MediaItemDB.fromMap(mediaItemMap);
+            await BloomeeDBService.addMediaItem(mediaItemDB, mediaPlaylistDB);
+            log("Media item imported successfully - ${mediaItemDB.title}",
+                name: "FileManager");
+          }
+
+          log("Playlist imported successfully");
         }
       });
+      return true;
     } catch (e) {
       log("Invalid file format");
-      SnackbarService.showMessage("Invalid file format");
+      // SnackbarService.showMessage("Invalid file format");
+      return false;
     }
+    return false;
   }
 
-  static void importMediaItem(String filePath) async {
+  static Future<bool> importMediaItem(String filePath) async {
     // if (!filePath.endsWith('.blm')) {
     //   log("Invalid file format", name: "FileManager");
     //   return;
@@ -115,19 +114,19 @@ class BloomeeFileManager {
     try {
       await readFromJSON(filePath).then((mediaItemMap) {
         if (mediaItemMap != null && mediaItemMap.isNotEmpty) {
-          try {
-            final mediaItemDB = MediaItemDB.fromMap(mediaItemMap);
-            BloomeeDBService.addMediaItem(
-                mediaItemDB, MediaPlaylistDB(playlistName: "Imported"));
-            log("Media item imported successfully");
-          } catch (e) {
-            log("Error importing media item: $e");
-          }
+          final mediaItemDB = MediaItemDB.fromMap(mediaItemMap);
+          BloomeeDBService.addMediaItem(
+              mediaItemDB, MediaPlaylistDB(playlistName: "Imported"));
+          log("Media item imported successfully");
+          // SnackbarService.showMessage("Media item imported successfully");
         }
       });
+      return true;
     } catch (e) {
+      // SnackbarService.showMessage("Error importing media item");
       log("Invalid file format");
     }
+    return false;
   }
 
   static Future<String?> writeToJSON(

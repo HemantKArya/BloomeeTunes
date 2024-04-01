@@ -17,6 +17,7 @@ void showMoreBottomSheet(
   BuildContext context,
   MediaItemModel song, {
   bool showDelete = false,
+  VoidCallback? onDelete,
 }) {
   showModalBottomSheet(
       context: context,
@@ -206,6 +207,7 @@ void showMoreBottomSheet(
                   ),
                   onTap: () {
                     Navigator.pop(context);
+                    if (onDelete != null) onDelete();
                   },
                 ),
               ),

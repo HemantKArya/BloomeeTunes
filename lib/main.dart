@@ -80,9 +80,22 @@ void processIncomingIntent(List<SharedMediaFile> _sharedFiles) {
       });
     }
   } else if (_sharedFiles[0].mimeType == "application/octet-stream") {
-    BloomeeFileManager.importPlaylist(
-        Uri.parse(_sharedFiles[0].path).toFilePath().toString());
-    SnackbarService.showMessage("Playlist Imported");
+    SnackbarService.showMessage("Processing File...");
+    importItems(Uri.parse(_sharedFiles[0].path).toFilePath().toString());
+  }
+}
+
+Future<void> importItems(String path) async {
+  bool _res = await BloomeeFileManager.importMediaItem(path);
+  if (_res) {
+    SnackbarService.showMessage("Media Item Imported");
+  } else {
+    _res = await BloomeeFileManager.importPlaylist(path);
+    if (_res) {
+      SnackbarService.showMessage("Playlist Imported");
+    } else {
+      SnackbarService.showMessage("Invalid File Format");
+    }
   }
 }
 

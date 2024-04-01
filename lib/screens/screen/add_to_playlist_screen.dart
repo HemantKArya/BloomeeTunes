@@ -8,7 +8,6 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/widgets/createPlaylist_bottomsheet.dart';
 import 'package:Bloomee/screens/widgets/smallPlaylistCard_widget.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
 import 'package:Bloomee/utils/load_Image.dart';

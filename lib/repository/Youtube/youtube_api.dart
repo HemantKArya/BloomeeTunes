@@ -334,11 +334,6 @@ class YouTubeServices {
       // check cache first
       final ytCache = await BloomeeDBService.getYtLinkCache(video.id.value);
       if (ytCache != null) {
-        // if (false) {
-        // final Map cachedData =
-        //     Hive.box('ytlinkcache').get(video.id.value) as Map;
-        // final int cachedExpiredAt =
-        //     ytCache.expireAt;
         if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
             ytCache.expireAt) {
           // cache expired
@@ -363,19 +358,6 @@ class YouTubeServices {
               .toString();
 
       try {
-        // await Hive.box('ytlinkcache').put(
-        //   video.id.value,
-        //   {
-        //     'url': finalUrl,
-        //     'expire_at': expireAt,
-        //     'lowUrl': urls.first,
-        //     'highUrl': urls.last,
-        //   },
-        // ).onError(
-        //   (error, stackTrace) => Logger.root.severe(
-        //     'Hive Error in formatVideo, you probably forgot to open box.\nError: $error',
-        //   ),
-        // );
         BloomeeDBService.putYtLinkCache(
           video.id.value,
           urls.first,

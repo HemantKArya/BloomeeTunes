@@ -2,10 +2,10 @@
 part of 'current_playlist_cubit.dart';
 
 class CurrentPlaylistState extends Equatable {
-  bool isFetched;
-  List<MediaItemModel> mediaItems;
-  String albumName;
-  CurrentPlaylistState({
+  final bool isFetched;
+  final List<MediaItemModel> mediaItems;
+  final String albumName;
+  const CurrentPlaylistState({
     required this.isFetched,
     required this.mediaItems,
     required this.albumName,
