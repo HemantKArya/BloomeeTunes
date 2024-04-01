@@ -4,6 +4,8 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_card_widget.dart';
+import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -104,6 +106,28 @@ void showMoreBottomSheet(
                       .bloomeePlayer
                       .addQueueItem(song, atLast: true, doPlay: false);
                   SnackbarService.showMessage("Added to Queue",
+                      duration: const Duration(seconds: 2));
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  MingCute.heart_fill,
+                  color: Default_Theme.primaryColor1,
+                  size: 28,
+                ),
+                title: const Text(
+                  'Add to Favorites',
+                  style: TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontFamily: "Unageo",
+                      fontSize: 17,
+                      fontWeight: FontWeight.w400),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.read<BloomeeDBCubit>().addMediaItemToPlaylist(
+                      song, MediaPlaylistDB(playlistName: "Liked"));
+                  SnackbarService.showMessage("Added to Favorites",
                       duration: const Duration(seconds: 2));
                 },
               ),
