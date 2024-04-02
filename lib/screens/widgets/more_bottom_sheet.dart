@@ -7,6 +7,7 @@ import 'package:Bloomee/screens/widgets/song_card_widget.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/file_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -165,11 +166,13 @@ void showMoreBottomSheet(
                       fontSize: 17,
                       fontWeight: FontWeight.w400),
                 ),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Share.share(
-                    "Check out this song on Bloomee\n${song.title} by ${song.artist}\n${song.extras?['perma_url']}",
-                  );
+                  SnackbarService.showMessage(
+                      "Preparing ${song.title} for share.");
+                  final tmpPath = await BloomeeFileManager.exportMediaItem(
+                      MediaItem2MediaItemDB(song));
+                  tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
                 },
               ),
               ListTile(

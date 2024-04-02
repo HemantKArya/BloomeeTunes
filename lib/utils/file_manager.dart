@@ -51,9 +51,10 @@ class BloomeeFileManager {
     // export media item to json file
     try {
       final Map<String, dynamic> mediaItemMap = mediaItemDB.toMap();
-      await writeToJSON('${mediaItemDB.title}_BloomeeSong.blm', mediaItemMap);
+      final path = await writeToJSON(
+          '${mediaItemDB.title}_BloomeeSong.blm', mediaItemMap);
       log("Media item exported successfully", name: "FileManager");
-      return '${mediaItemDB.title}_BloomeeSong.blm';
+      return path;
     } catch (e) {
       log("Error exporting media item: $e", name: "FileManager");
       return null;
