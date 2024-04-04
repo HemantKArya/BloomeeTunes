@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class ImporterDialogWidget extends StatefulWidget {
   final Stream<ImporterState> strm;
-  ImporterDialogWidget({super.key, required this.strm});
+  const ImporterDialogWidget({super.key, required this.strm});
 
   @override
   State<ImporterDialogWidget> createState() => _ImporterDialogWidgetState();
@@ -35,7 +35,7 @@ class _ImporterDialogWidgetState extends State<ImporterDialogWidget> {
         });
         await Future.delayed(const Duration(seconds: 1));
         Navigator.of(context).pop();
-        SnackbarService.showMessage("Import Completed");
+        // SnackbarService.showMessage("Import Completed");
       }
     });
     super.initState();

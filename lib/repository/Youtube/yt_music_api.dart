@@ -494,7 +494,7 @@ class YtMusicService {
           final String id = nav(childItem, idNav).toString();
           details['id'] = 'youtube$id';
           details['artist'] =
-              details['artists'].map((e) => e['name']).join(',').toString();
+              details['artists'].map((e) => e['name']).join(', ').toString();
           details['subtitle'] = subtitle;
           details['views'] = views;
           details['year'] = year;

@@ -7,7 +7,7 @@ import 'package:Bloomee/screens/widgets/song_card_widget.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
-import 'package:Bloomee/utils/file_manager.dart';
+import 'package:Bloomee/services/file_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -128,8 +128,8 @@ void showMoreBottomSheet(
                   Navigator.pop(context);
                   context.read<BloomeeDBCubit>().addMediaItemToPlaylist(
                       song, MediaPlaylistDB(playlistName: "Liked"));
-                  SnackbarService.showMessage("Added to Favorites",
-                      duration: const Duration(seconds: 2));
+                  // SnackbarService.showMessage("Added to Favorites",
+                  //     duration: const Duration(seconds: 2));
                 },
               ),
               ListTile(

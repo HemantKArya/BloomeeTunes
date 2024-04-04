@@ -4,7 +4,7 @@ import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/theme_data/default.dart';
-import 'package:Bloomee/utils/file_manager.dart';
+import 'package:Bloomee/services/file_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';

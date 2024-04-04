@@ -3310,14 +3310,24 @@ const AppSettingsStrDBSchema = CollectionSchema(
       name: r'hashCode',
       type: IsarType.long,
     ),
-    r'settingName': PropertySchema(
+    r'lastUpdated': PropertySchema(
       id: 1,
+      name: r'lastUpdated',
+      type: IsarType.dateTime,
+    ),
+    r'settingName': PropertySchema(
+      id: 2,
       name: r'settingName',
       type: IsarType.string,
     ),
     r'settingValue': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'settingValue',
+      type: IsarType.string,
+    ),
+    r'settingValue2': PropertySchema(
+      id: 4,
+      name: r'settingValue2',
       type: IsarType.string,
     )
   },
@@ -3343,6 +3353,12 @@ int _appSettingsStrDBEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.settingName.length * 3;
   bytesCount += 3 + object.settingValue.length * 3;
+  {
+    final value = object.settingValue2;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -3353,8 +3369,10 @@ void _appSettingsStrDBSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.hashCode);
-  writer.writeString(offsets[1], object.settingName);
-  writer.writeString(offsets[2], object.settingValue);
+  writer.writeDateTime(offsets[1], object.lastUpdated);
+  writer.writeString(offsets[2], object.settingName);
+  writer.writeString(offsets[3], object.settingValue);
+  writer.writeString(offsets[4], object.settingValue2);
 }
 
 AppSettingsStrDB _appSettingsStrDBDeserialize(
@@ -3364,8 +3382,10 @@ AppSettingsStrDB _appSettingsStrDBDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AppSettingsStrDB(
-    settingName: reader.readString(offsets[1]),
-    settingValue: reader.readString(offsets[2]),
+    lastUpdated: reader.readDateTimeOrNull(offsets[1]),
+    settingName: reader.readString(offsets[2]),
+    settingValue: reader.readString(offsets[3]),
+    settingValue2: reader.readStringOrNull(offsets[4]),
   );
   return object;
 }
@@ -3380,9 +3400,13 @@ P _appSettingsStrDBDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -3585,6 +3609,80 @@ extension AppSettingsStrDBQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'isarId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      lastUpdatedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      lastUpdatedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      lastUpdatedEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      lastUpdatedGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      lastUpdatedLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      lastUpdatedBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastUpdated',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -3864,6 +3962,160 @@ extension AppSettingsStrDBQueryFilter
       ));
     });
   }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'settingValue2',
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'settingValue2',
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2EqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'settingValue2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2GreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'settingValue2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2LessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'settingValue2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2Between(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'settingValue2',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2StartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'settingValue2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2EndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'settingValue2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2Contains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'settingValue2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2Matches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'settingValue2',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2IsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'settingValue2',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterFilterCondition>
+      settingValue2IsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'settingValue2',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension AppSettingsStrDBQueryObject
@@ -3885,6 +4137,20 @@ extension AppSettingsStrDBQuerySortBy
       sortByHashCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'hashCode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
+      sortByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
+      sortByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
     });
   }
 
@@ -3913,6 +4179,20 @@ extension AppSettingsStrDBQuerySortBy
       sortBySettingValueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'settingValue', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
+      sortBySettingValue2() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'settingValue2', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
+      sortBySettingValue2Desc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'settingValue2', Sort.desc);
     });
   }
 }
@@ -3948,6 +4228,20 @@ extension AppSettingsStrDBQuerySortThenBy
   }
 
   QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
+      thenByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
+      thenByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
       thenBySettingName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'settingName', Sort.asc);
@@ -3974,6 +4268,20 @@ extension AppSettingsStrDBQuerySortThenBy
       return query.addSortBy(r'settingValue', Sort.desc);
     });
   }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
+      thenBySettingValue2() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'settingValue2', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QAfterSortBy>
+      thenBySettingValue2Desc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'settingValue2', Sort.desc);
+    });
+  }
 }
 
 extension AppSettingsStrDBQueryWhereDistinct
@@ -3982,6 +4290,13 @@ extension AppSettingsStrDBQueryWhereDistinct
       distinctByHashCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'hashCode');
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QDistinct>
+      distinctByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastUpdated');
     });
   }
 
@@ -3996,6 +4311,14 @@ extension AppSettingsStrDBQueryWhereDistinct
       distinctBySettingValue({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'settingValue', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, AppSettingsStrDB, QDistinct>
+      distinctBySettingValue2({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'settingValue2',
+          caseSensitive: caseSensitive);
     });
   }
 }
@@ -4014,6 +4337,13 @@ extension AppSettingsStrDBQueryProperty
     });
   }
 
+  QueryBuilder<AppSettingsStrDB, DateTime?, QQueryOperations>
+      lastUpdatedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastUpdated');
+    });
+  }
+
   QueryBuilder<AppSettingsStrDB, String, QQueryOperations>
       settingNameProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -4025,6 +4355,13 @@ extension AppSettingsStrDBQueryProperty
       settingValueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'settingValue');
+    });
+  }
+
+  QueryBuilder<AppSettingsStrDB, String?, QQueryOperations>
+      settingValue2Property() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'settingValue2');
     });
   }
 }

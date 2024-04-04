@@ -160,9 +160,13 @@ class AppSettingsStrDB {
   Id get isarId => fastHash(settingName);
   String settingName;
   String settingValue;
+  String? settingValue2;
+  DateTime? lastUpdated;
   AppSettingsStrDB({
     required this.settingName,
     required this.settingValue,
+    this.settingValue2,
+    this.lastUpdated,
   });
 
   @override

@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
-import 'package:logging/logging.dart';
 
 class SpotifyApi {
   final List<String> _scopes = [
@@ -13,7 +14,6 @@ class SpotifyApi {
     'playlist-read-collaborative',
   ];
 
-  /// You can signup for spotify developer account and get your own clientID and clientSecret incase you don't want to use these
   final String clientID = dotenv.env['CLIENT_ID'] ?? '';
   final String clientSecret = dotenv.env['CLIENT_SECRET'] ?? '';
   final String redirectUrl = '127.0.0.1';
@@ -29,23 +29,37 @@ class SpotifyApi {
   String requestAuthorization() =>
       'https://accounts.spotify.com/authorize?client_id=$clientID&response_type=code&redirect_uri=$redirectUrl&scope=${_scopes.join('%20')}';
 
-  Future<String> getAccessToken2() async {
+  Future<String> getAccessTokenCC() async {
+    final token = await BloomeeDBService.getApiTokenDB(
+        GlobalStrConsts.spotifyAccessToken);
+    if (token != null) {
+      log('Access token: $token', name: 'SpotifyAPI');
+      return token;
+    }
+    var response;
     final tokenUrl = Uri.parse('https://accounts.spotify.com/api/token');
-    final response = await post(
-      tokenUrl,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: {
-        'grant_type': 'client_credentials',
-        'client_id': clientID,
-        'client_secret': clientSecret,
-      },
-    );
+    String basicAuth =
+        'Basic ${base64Encode(utf8.encode('$clientID:$clientSecret'))}';
+    try {
+      response = await post(
+        tokenUrl,
+        headers: {
+          'Authorization': basicAuth,
+        },
+        body: {
+          'grant_type': 'client_credentials',
+        },
+      );
+    } catch (e) {
+      log('Error in getting spotify access token: $e', name: "spotifyAPI");
+    }
 
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
       final accessToken = responseBody['access_token'];
+      await BloomeeDBService.putApiTokenDB(GlobalStrConsts.spotifyAccessToken,
+          accessToken, responseBody['expires_in'].toString());
+      log('Got new access token!', name: 'SpotifyAPI2');
       return accessToken;
     } else {
       throw Exception('Failed to get access token');
@@ -87,13 +101,13 @@ class SpotifyApi {
           result['expires_in'].toString(),
         ];
       } else {
-        Logger.root.severe(
+        log(
           'Error in getAccessToken, called: $path, returned: ${response.statusCode}',
-          response.body,
+          error: response.body,
         );
       }
     } catch (e) {
-      Logger.root.severe('Error in getting spotify access token: $e');
+      log('Error in getting spotify access token: $e');
     }
     return [];
   }
@@ -115,9 +129,9 @@ class SpotifyApi {
         final List playlists = result['items'] as List;
         return playlists;
       } else {
-        Logger.root.severe(
+        log(
           'Error in getUserPlaylists, called: $path, returned: ${response.statusCode}',
-          response.body,
+          error: response.body,
         );
       }
     } catch (e) {
@@ -134,7 +148,7 @@ class SpotifyApi {
     int totalTracks = 100;
     String playlistName = "Liked";
 
-    final Map data = await SpotifyApi().getHundredTracksOfPlaylist(
+    final Map data = await getHundredTracksOfPlaylist(
       accessToken,
       playlistId,
       0,
@@ -158,13 +172,13 @@ class SpotifyApi {
 
         playlistName = result["name"] ?? "Liked";
       } else {
-        Logger.root.severe(
+        log(
           'Error in getHundredTracksOfPlaylist, called: $path, returned: ${response.statusCode}',
-          response.body,
+          error: response.body,
         );
       }
     } catch (e) {
-      Logger.root.severe('Error in getting spotify playlist tracks: $e');
+      log('Error in getting spotify playlist tracks: $e');
     }
 
     totalTracks = data['total'] as int;
@@ -172,7 +186,7 @@ class SpotifyApi {
 
     if (totalTracks > 100) {
       for (int i = 1; i * 100 <= totalTracks; i++) {
-        final Map data = await SpotifyApi().getHundredTracksOfPlaylist(
+        final Map data = await getHundredTracksOfPlaylist(
           accessToken,
           playlistId,
           i * 100,
@@ -203,15 +217,15 @@ class SpotifyApi {
 
       if (response.statusCode == 200) {
         final result = await jsonDecode(response.body);
-        log(result, name: "SpotifyAPI");
+        // log(result.toString(), name: "SpotifyAPI");
         final List tracks = result['items'] as List;
         final int total = result['total'] as int;
 
         return {'tracks': tracks, 'total': total};
       } else {
-        Logger.root.severe(
+        log(
           'Error in getHundredTracksOfPlaylist, called: $path, returned: ${response.statusCode}',
-          response.body,
+          error: response.body,
         );
       }
     } catch (e) {
@@ -242,9 +256,9 @@ class SpotifyApi {
       final result = jsonDecode(response.body) as Map;
       return result as Map<String, dynamic>;
     } else {
-      Logger.root.severe(
+      log(
         'Error in searchTrack, called: $path, returned: ${response.statusCode}',
-        response.body,
+        error: response.body,
       );
     }
     return {"error": response.body};
@@ -266,18 +280,19 @@ class SpotifyApi {
       final result = jsonDecode(response.body) as Map;
       return result;
     } else {
-      Logger.root.severe(
+      log(
         'Error in getTrackDetails, called: $path, returned: ${response.statusCode}',
-        response.body,
+        error: response.body,
       );
     }
     return {};
   }
 
-  Future<List<Map>> getFeaturedPlaylists(String accessToken) async {
+  Future<List<Map>> getFeaturedPlaylists(String accessToken,
+      {int limit = 20, offset = 0}) async {
     try {
       final Uri path = Uri.parse(
-        '$spotifyApiBaseUrl/browse/featured-playlists',
+        '$spotifyApiBaseUrl/browse/featured-playlists?offset=$offset&limit=$limit,',
       );
       final response = await get(
         path,
@@ -289,7 +304,8 @@ class SpotifyApi {
       final List<Map> songsData = [];
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        await for (final element in result['playlists']['items'] as Stream) {
+        // log(result.toString(), name: "spotifyApi");
+        for (var element in result['playlists']['items']) {
           songsData.add({
             'name': element['name'],
             'id': element['id'],
@@ -303,9 +319,9 @@ class SpotifyApi {
           });
         }
       } else {
-        Logger.root.severe(
+        log(
           'Error in getFeaturedPlaylists, called: $path, returned: ${response.statusCode}',
-          response.body,
+          error: response.body,
         );
       }
       return songsData;
@@ -334,13 +350,13 @@ class SpotifyApi {
       // log(results["tracks"]["items"]);
       String tempQuery;
       if (results["tracks"] != null) {
-        (results["tracks"]["items"] as List).forEach((e) {
+        for (var e in (results["tracks"]["items"] as List)) {
           tempQuery = e["name"].toString();
-          (e["artists"] as List).forEach((element) {
+          for (var element in (e["artists"] as List)) {
             tempQuery = '$tempQuery ${element["name"]}';
-          });
+          }
           queries.add(tempQuery);
-        });
+        }
         return queries;
       }
     }

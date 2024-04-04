@@ -481,4 +481,35 @@ class BloomeeDBService {
     Isar isarDB = await db;
     return isarDB.ytLinkCacheDBs.filter().videoIdEqualTo(id).findFirstSync();
   }
+
+  static Future<void> putApiTokenDB(
+      String apiName, String token, String expireIn) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(
+      () => isarDB.appSettingsStrDBs.putSync(
+        AppSettingsStrDB(
+          settingName: apiName,
+          settingValue: token,
+          settingValue2: expireIn,
+          lastUpdated: DateTime.now(),
+        ),
+      ),
+    );
+  }
+
+  static Future<String?> getApiTokenDB(String apiName) async {
+    Isar isarDB = await db;
+    final apiToken = isarDB.appSettingsStrDBs
+        .filter()
+        .settingNameEqualTo(apiName)
+        .findFirstSync();
+    if (apiToken != null) {
+      if ((apiToken.lastUpdated!.difference(DateTime.now()).inSeconds + 30)
+              .abs() <
+          int.parse(apiToken.settingValue2!)) {
+        return apiToken.settingValue;
+      }
+    }
+    return null;
+  }
 }
