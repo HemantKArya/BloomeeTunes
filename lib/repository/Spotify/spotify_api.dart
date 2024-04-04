@@ -14,8 +14,10 @@ class SpotifyApi {
     'playlist-read-collaborative',
   ];
 
-  final String clientID = dotenv.env['CLIENT_ID'] ?? '';
-  final String clientSecret = dotenv.env['CLIENT_SECRET'] ?? '';
+  final String clientID =
+      dotenv.env['CLIENT_ID'] ?? '4ede44382bf14ac3ba1d97ad753b233f';
+  final String clientSecret =
+      dotenv.env['CLIENT_SECRET'] ?? 'fb01ad204aff4c12bbcb3ca7ac617990';
   final String redirectUrl = '127.0.0.1';
   final String spotifyApiUrl = 'https://accounts.spotify.com/api';
   final String spotifyApiBaseUrl = 'https://api.spotify.com/v1';
