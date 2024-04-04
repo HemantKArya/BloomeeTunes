@@ -113,19 +113,23 @@ class ImportFromBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton.icon(
-        onPressed: () {
-          onClickFunc();
-        },
-        icon: Padding(
-          padding: const EdgeInsets.only(left: 8, right: 8),
-          child: Icon(btnIcon, color: Default_Theme.primaryColor1, size: 30),
-        ),
-        label: Text(
-          btnName,
-          style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
-              fontSize: 20, color: Default_Theme.primaryColor1)),
-        ));
+    return ListTile(
+      splashColor: Default_Theme.accentColor1.withOpacity(0.3),
+      onTap: onClickFunc,
+      title: Text(
+        btnName,
+        style: const TextStyle(
+                color: Default_Theme.primaryColor1,
+                fontSize: 20,
+                fontWeight: FontWeight.bold)
+            .merge(Default_Theme.secondoryTextStyle),
+      ),
+      leading: Icon(
+        btnIcon,
+        color: Default_Theme.primaryColor1,
+        size: 25,
+      ),
+    );
   }
 }
 

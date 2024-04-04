@@ -178,20 +178,22 @@ class ExternalMediaImporter {
                 .toList()
                 .join(", ");
             log("$title by $artists", name: "Playlist Importer");
-            final mediaItem = await MixedAPI()
-                .getTrackMixed("$title $artists".trim().toLowerCase());
-            if (mediaItem != null) {
-              BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
-                  MediaPlaylistDB(playlistName: playlistTitle));
-              yield ImporterState(
-                totalItems: totalItems,
-                importedItems: i,
-                failedItems: 0,
-                isDone: false,
-                isFailed: false,
-                message: "Importing($i/$totalItems): ${mediaItem.title}",
-              );
-              i++;
+            if (title.isNotEmpty) {
+              final mediaItem = await MixedAPI()
+                  .getTrackMixed("$title $artists".trim().toLowerCase());
+              if (mediaItem != null) {
+                BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
+                    MediaPlaylistDB(playlistName: playlistTitle));
+                yield ImporterState(
+                  totalItems: totalItems,
+                  importedItems: i,
+                  failedItems: 0,
+                  isDone: false,
+                  isFailed: false,
+                  message: "Importing($i/$totalItems): ${mediaItem.title}",
+                );
+                i++;
+              }
             }
           }
           yield ImporterState(
@@ -250,14 +252,18 @@ class ExternalMediaImporter {
         final artists =
             (data['artists'] as List).map((e) => e['name']).toList().join(", ");
         final title = "${data['name']} $artists".trim().toLowerCase();
-        final mediaItem = await MixedAPI().getTrackMixed(title);
-        if (mediaItem != null) {
-          log("Got: ${mediaItem.title}", name: "Spotify Importer");
-          SnackbarService.showMessage("Got Spotify track: ${mediaItem.title}");
-          return mediaItem;
-        } else {
-          log("Failed to import track", name: "Spotify Importer");
-          SnackbarService.showMessage("Failed to import Spotify track");
+
+        if (title.isNotEmpty) {
+          final mediaItem = await MixedAPI().getTrackMixed(title);
+          if (mediaItem != null) {
+            log("Got: ${mediaItem.title}", name: "Spotify Importer");
+            SnackbarService.showMessage(
+                "Got Spotify track: ${mediaItem.title}");
+            return mediaItem;
+          } else {
+            log("Failed to import track", name: "Spotify Importer");
+            SnackbarService.showMessage("Failed to import Spotify track");
+          }
         }
       } catch (e) {
         log(e.toString());
