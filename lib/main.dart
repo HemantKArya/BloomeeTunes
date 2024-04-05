@@ -41,6 +41,9 @@ void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
       case UrlType.youtubePlaylist:
         SnackbarService.showMessage("Import Youtube Playlist from library!");
         break;
+      case UrlType.spotifyAlbum:
+        SnackbarService.showMessage("Import Spotify Album from library!");
+        break;
       case UrlType.youtubeVideo:
         ExternalMediaImporter.ytMediaImporter(sharedMediaFiles[0].path)
             .then((value) async {

@@ -16,7 +16,14 @@ Map<String, dynamic> isSpotifyUrl(String url) {
     return {'isSpotify': false, 'type': ''};
   }
   final type = pathParts[0];
-  return {'isSpotify': true, 'type': type == 'track' ? 'track' : 'playlist'};
+  return {
+    'isSpotify': true,
+    'type': type == 'track'
+        ? 'track'
+        : (type == 'playlist')
+            ? 'playlist'
+            : 'album'
+  };
 }
 
 bool isYoutubeLink(String link) {
@@ -114,6 +121,7 @@ enum UrlType {
   youtubePlaylist,
   spotifyTrack,
   spotifyPlaylist,
+  spotifyAlbum,
   other
 }
 
@@ -130,8 +138,10 @@ UrlType getUrlType(String url) {
       if (spotifyUrl['isSpotify']) {
         if (spotifyUrl['type'] == 'playlist') {
           return UrlType.spotifyPlaylist;
-        } else {
+        } else if (spotifyUrl['type'] == 'track') {
           return UrlType.spotifyTrack;
+        } else if (spotifyUrl['type'] == 'album') {
+          return UrlType.spotifyAlbum;
         }
       }
     }
