@@ -3,10 +3,12 @@ import 'dart:developer';
 import 'dart:io' as io;
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/blocs/timer/timer_bloc.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/services/file_manager.dart';
 import 'package:Bloomee/utils/external_list_importer.dart';
+import 'package:Bloomee/utils/ticker.dart';
 import 'package:Bloomee/utils/url_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -168,6 +170,9 @@ class _MyAppState extends State<MyApp> {
           create: (context) => SettingsCubit(),
           lazy: false,
         ),
+        BlocProvider(
+            create: (context) => TimerBloc(
+                ticker: const Ticker(), bloomeePlayer: bloomeePlayerCubit)),
         BlocProvider(
           create: (context) => ConnectivityCubit(),
           lazy: false,
