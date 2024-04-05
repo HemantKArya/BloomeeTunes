@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 
 class SpotifyApi {
@@ -361,5 +360,89 @@ class SpotifyApi {
       }
     }
     return [query];
+  }
+
+  Future<List<Map>> get50AlbumTracks(String accessToken, String albumId,
+      {int offset = 0, int limit = 50}) async {
+    try {
+      final Uri path = Uri.parse(
+        '$spotifyApiBaseUrl/albums/$albumId/tracks?offset=$offset&limit=$limit',
+      );
+      final response = await get(
+        path,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Accept': 'application/json'
+        },
+      );
+      final List<Map> songsData = [];
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        for (var element in result['items']) {
+          songsData.add({
+            'name': element['name'],
+            'id': element['id'],
+            'externalUrl': element['external_urls']['spotify'],
+            'artists': element['artists'],
+          });
+        }
+      } else {
+        log(
+          'Error in get50AlbumTracks, called: ${path.toString()}, returned: ${response.statusCode}',
+          error: response.body,
+        );
+      }
+      return songsData;
+    } catch (e) {
+      log('Error in getting spotify album tracks: $e', name: "spotifyAPI");
+      return List.empty();
+    }
+  }
+
+  Future<Map<String, Object>> getAllAlbumTracks(
+      String accessToken, String albumId) async {
+    try {
+      int totalItems = 0;
+      String albumName = "";
+      final Uri path = Uri.parse(
+        '$spotifyApiBaseUrl/albums/$albumId',
+      );
+      final response = await get(
+        path,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Accept': 'application/json'
+        },
+      );
+      final List<Map> songsData = [];
+      if (response.statusCode == 200) {
+        totalItems = jsonDecode(response.body)['total_tracks'] as int;
+        albumName = jsonDecode(response.body)['name'];
+        final result = jsonDecode(response.body);
+        for (var element in result['tracks']['items']) {
+          songsData.add({
+            'name': element['name'],
+            'id': element['id'],
+            'externalUrl': element['external_urls']['spotify'],
+            'artists': element['artists'],
+          });
+        }
+        if (totalItems > 50) {
+          for (int i = 1; i * 50 <= totalItems; i++) {
+            songsData.addAll(
+                await get50AlbumTracks(accessToken, albumId, offset: i * 50));
+          }
+        }
+      } else {
+        log(
+          'Error in getAllAlbumTracks, called: ${path.toString()}, returned: ${response.statusCode}',
+          error: response.body,
+        );
+      }
+      return {"tracks": songsData, "total": totalItems, "albumName": albumName};
+    } catch (e) {
+      log('Error in getting spotify album tracks: $e', name: "spotifyAPI");
+      return {"tracks": List.empty(), "total": 0, "error": e, 'albumName': ""};
+    }
   }
 }

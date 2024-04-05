@@ -64,6 +64,24 @@ String? extractSpotifyPlaylistId(String url) {
   return null;
 }
 
+String? extractSpotifyAlbumId(String url) {
+  try {
+    Uri uri = Uri.parse(url);
+    if (uri.host == 'open.spotify.com') {
+      final pathParts = uri.pathSegments;
+      if (pathParts.length < 2) {
+        return null;
+      }
+      if (pathParts[0] == 'album') {
+        return pathParts[1];
+      }
+    }
+  } catch (e) {
+    log(e.toString());
+  }
+  return null;
+}
+
 String? extractSpotifyTrackId(String url) {
   try {
     Uri uri = Uri.parse(url);

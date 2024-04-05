@@ -274,4 +274,98 @@ class ExternalMediaImporter {
     }
     return null;
   }
+
+  static Stream<ImporterState> sfyAlbumImporter(
+      {required String url, String? albumID}) async* {
+    albumID ??= extractSpotifyAlbumId(url);
+    if (albumID != null) {
+      log("Album ID: $albumID", name: "Album Importer");
+      final accessToken = await SpotifyApi().getAccessTokenCC();
+      String title;
+      try {
+        yield ImporterState(
+          totalItems: 0,
+          importedItems: 0,
+          failedItems: 0,
+          isDone: false,
+          isFailed: false,
+          message: "Getting Spotify album...",
+        );
+        final data = await SpotifyApi().getAllAlbumTracks(accessToken, albumID);
+        String albumTitle = data["albumName"].toString();
+        // log(data.toString());
+        final tracks = data["tracks"] as List;
+        int totalItems = tracks.length;
+        String artists;
+        int i = 1;
+        if (tracks.isNotEmpty && albumTitle.isNotEmpty) {
+          for (var (e as Map) in tracks) {
+            title = (e['name']).toString();
+            artists = (e['artists'] as List)
+                .map((e) => e['name'])
+                .toList()
+                .join(", ");
+            log("$title by $artists", name: "Album Importer");
+            if (title.isNotEmpty) {
+              final mediaItem = await MixedAPI()
+                  .getTrackMixed("$title $artists".trim().toLowerCase());
+              if (mediaItem != null) {
+                BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
+                    MediaPlaylistDB(playlistName: albumTitle));
+                yield ImporterState(
+                  totalItems: totalItems,
+                  importedItems: i,
+                  failedItems: 0,
+                  isDone: false,
+                  isFailed: false,
+                  message: "Importing($i/$totalItems): ${mediaItem.title}",
+                );
+                i++;
+              }
+            }
+          }
+          yield ImporterState(
+            totalItems: totalItems,
+            importedItems: i - 1,
+            failedItems: 0,
+            isDone: true,
+            isFailed: false,
+            message: "Imported Album: $albumTitle",
+          );
+          SnackbarService.showMessage("Imported Album: $albumTitle");
+        } else {
+          log("Album is empty!!", name: "Album Importer");
+          yield ImporterState(
+            totalItems: 0,
+            importedItems: 0,
+            failedItems: 0,
+            isDone: false,
+            isFailed: true,
+            message: "Album is empty!!",
+          );
+        }
+      } catch (e) {
+        yield ImporterState(
+          totalItems: 0,
+          importedItems: 0,
+          failedItems: 0,
+          isDone: false,
+          isFailed: true,
+          message: "Failed to import Album",
+        );
+        log(e.toString(), name: "Album Importer");
+      }
+    } else {
+      yield ImporterState(
+        totalItems: 0,
+        importedItems: 0,
+        failedItems: 0,
+        isDone: false,
+        isFailed: true,
+        message: "Invalid Album URL",
+      );
+      log("Invalid Album URL", name: "Album Importer");
+      SnackbarService.showMessage("Invalid Album URL");
+    }
+  }
 }
