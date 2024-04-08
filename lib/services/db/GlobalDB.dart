@@ -250,3 +250,21 @@ class YtLinkCacheDB {
     required this.expireAt,
   });
 }
+
+@collection
+class DownloadDB {
+  Id? id = Isar.autoIncrement;
+  String fileName;
+  String filePath;
+  DateTime? lastDownloaded;
+  bool isDownloaded;
+  String mediaId;
+  DownloadDB({
+    this.id,
+    required this.fileName,
+    required this.filePath,
+    required this.lastDownloaded,
+    required this.isDownloaded,
+    required this.mediaId,
+  });
+}

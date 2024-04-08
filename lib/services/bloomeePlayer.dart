@@ -19,12 +19,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   int currentQueueIdx = 0;
   int currentPlaylistIdx = 0;
   BehaviorSubject<bool> fromPlaylist = BehaviorSubject<bool>.seeded(false);
-
+  BehaviorSubject<bool> isOffline = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isLinkProcessing = BehaviorSubject<bool>.seeded(false);
   int currentPlayingIdx = 0;
   bool isPaused = false;
 
-  CancelableOperation<String?> getLinkOperation =
+  CancelableOperation<AudioSource?> getLinkOperation =
       CancelableOperation.fromFuture(Future.value());
 
   BloomeeMusicPlayer() {
@@ -135,50 +135,66 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
+  Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
+    final _down = await BloomeeDBService.getDownloadDB(
+        mediaItem2MediaItemModel(mediaItem));
+    if (_down != null) {
+      log("Playing Offline", name: "bloomeePlayer");
+      SnackbarService.showMessage("Playing Offline",
+          duration: const Duration(seconds: 1));
+      isOffline.add(true);
+      return AudioSource.uri(Uri.file('${_down.filePath}/${_down.fileName}'));
+    } else {
+      isOffline.add(false);
+      log("Playing from online", name: "bloomeePlayer");
+      if (mediaItem.extras?["source"] == "youtube") {
+        final id = mediaItem.id.replaceAll("youtube", '');
+        final tempStrmLink = await latestYtLink(id);
+        if (tempStrmLink != null) {
+          return AudioSource.uri(Uri.parse(tempStrmLink));
+        }
+      }
+
+      return AudioSource.uri(Uri.parse(mediaItem.extras?["url"]));
+    }
+  }
+
   @override
   Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
     // log(mediaItem.extras?["url"], name: "bloomeePlayer");
     updateMediaItem(mediaItem);
-    if (mediaItem.extras?["source"] == "youtube") {
-      isLinkProcessing.add(true);
-      audioPlayer.pause();
-      audioPlayer.seek(Duration.zero);
+    // removed code
+    // removed code
 
-      // final tempStrmVideo = await YouTubeServices()
-      //     .getVideoFromId(mediaItem.id.replaceAll("youtube", ''));
-      final id = mediaItem.id.replaceAll("youtube", '');
-      // if (tempStrmVideo != null) {
-      if (!getLinkOperation.isCompleted) {
-        getLinkOperation.cancel();
-      }
-      getLinkOperation =
-          CancelableOperation.fromFuture(latestYtLink(id), onCancel: () {
-        log("Canceled/Skipped - ${mediaItem.title}", name: "bloomeePlayer");
-      });
+    isLinkProcessing.add(true);
+    audioPlayer.pause();
+    audioPlayer.seek(Duration.zero);
 
-      try {
-        getLinkOperation.then((tempStrmLink) async {
-          log("Got link: $tempStrmLink", name: "bloomeePlayer");
-          // AudioSource audioSource = AudioSource.uri(Uri.parse(tempStrmLink!));
-          await audioPlayer.setUrl(tempStrmLink!).then((value) {
-            isLinkProcessing.add(false);
-            if (super.mediaItem.value?.id == mediaItem.id && !isPaused) {
-              audioPlayer.play();
-            }
-          }).onError((error, stackTrace) {
-            log("Error playing this song!", name: "bloomeePlayer");
-            SnackbarService.showMessage("Error playing this song!");
-            isLinkProcessing.add(false);
-          });
-        });
-      } catch (e) {
-        SnackbarService.showMessage("Error playing this song!");
-      }
-      // }
-      return;
+    if (!getLinkOperation.isCompleted) {
+      await getLinkOperation.cancel();
     }
-    await audioPlayer.setUrl(mediaItem.extras?["url"]);
-    if (doPlay) play();
+    getLinkOperation = CancelableOperation.fromFuture(
+      getAudioSource(mediaItem),
+      onCancel: () {
+        log("getLinkOperation cancelled", name: "bloomeePlayer");
+        return;
+      },
+    );
+
+    getLinkOperation.then((value) async {
+      if (value != null) {
+        try {
+          await audioPlayer.setAudioSource(value).then((value) {
+            isLinkProcessing.add(false);
+            if (!isPaused) play();
+          });
+        } catch (e) {
+          isLinkProcessing.add(false);
+          log("Error: $e", name: "bloomeePlayer");
+          SnackbarService.showMessage("Error in playing this song: $e");
+        }
+      }
+    });
   }
 
   Future<void> prepare4play({int idx = 0, bool doPlay = false}) async {

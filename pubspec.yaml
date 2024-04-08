@@ -66,7 +66,11 @@ dependencies:
   file_picker: ^8.0.0+1
   fuzzywuzzy: ^1.1.6
   numberpicker: ^2.1.2
-
+  image: ^4.1.7
+  flutter_downloader: ^1.11.6
+  metadata_god: ^0.5.2+1
+  permission_handler: ^11.3.1
+  # mime: ^1.0.5
 
 
 dev_dependencies:

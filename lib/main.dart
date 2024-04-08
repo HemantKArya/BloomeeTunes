@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
+import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/blocs/timer/timer_bloc.dart';
@@ -20,6 +21,7 @@ import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubi
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:metadata_god/metadata_god.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -92,10 +94,10 @@ void setupPlayerCubit() {
   bloomeePlayerCubit = BloomeePlayerCubit();
 }
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setHighRefreshRate();
-
+  MetadataGod.initialize();
   try {
     dotenv.load(fileName: "assets/.env");
   } on Exception catch (e) {
@@ -197,19 +199,22 @@ class _MyAppState extends State<MyApp> {
           create: (context) => FetchSearchResultsCubit(),
         ),
       ],
-      child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
-        builder: (context, state) {
-          if (state is BloomeePlayerInitial) {
-            return const SizedBox(
-                width: 50, height: 50, child: CircularProgressIndicator());
-          } else {
-            return MaterialApp.router(
-              scaffoldMessengerKey: SnackbarService.messengerKey,
-              routerConfig: GlobalRoutes.globalRouter,
-              theme: Default_Theme().defaultThemeData,
-            );
-          }
-        },
+      child: RepositoryProvider(
+        create: (context) => DownloaderCubit(),
+        child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
+          builder: (context, state) {
+            if (state is BloomeePlayerInitial) {
+              return const SizedBox(
+                  width: 50, height: 50, child: CircularProgressIndicator());
+            } else {
+              return MaterialApp.router(
+                scaffoldMessengerKey: SnackbarService.messengerKey,
+                routerConfig: GlobalRoutes.globalRouter,
+                theme: Default_Theme().defaultThemeData,
+              );
+            }
+          },
+        ),
       ),
     );
   }

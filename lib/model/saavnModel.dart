@@ -17,7 +17,7 @@ MediaItemModel fromSaavnSongMap2MediaItem(Map<dynamic, dynamic> songItem) {
       ),
       extras: {
         "url": songItem["url"] ?? 'Unknown',
-        "source": "",
+        "source": "saavn",
         "perma_url": songItem["perma_url"] ?? 'Unknown',
         "language": songItem["language"] ?? 'Unknown',
       });

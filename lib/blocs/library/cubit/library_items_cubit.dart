@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
 import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -14,7 +15,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   List<PlaylistItemProperties> playlistItems = List.empty();
   BloomeeDBCubit bloomeeDBCubit;
   List<MediaPlaylistDB> mediaPlaylistsDB = [];
-
+  StreamSubscription? strmSubsDB;
   LibraryItemsCubit({
     required this.bloomeeDBCubit,
   }) : super(LibraryItemsInitial()) {
@@ -22,9 +23,15 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
     getDBWatcher();
   }
 
+  @override
+  Future<void> close() {
+    strmSubsDB?.cancel();
+    return super.close();
+  }
+
   Future<void> getDBWatcher() async {
     playlistWatcherDB = await BloomeeDBService.getPlaylistsWatcher();
-    playlistWatcherDB?.listen((event) {
+    strmSubsDB = playlistWatcherDB?.listen((event) {
       getAndEmitPlaylists();
     });
   }

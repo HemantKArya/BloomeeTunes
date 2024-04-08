@@ -29,7 +29,7 @@ MediaItemModel fromYtSongMap2MediaItem(Map<dynamic, dynamic> songItem) {
       ),
       extras: {
         "url": songItem["url"] ?? 'Unknown',
-        "source": songItem["provider"] ?? "",
+        "source": "youtube",
         "perma_url":
             'https://www.youtube.com/watch?v=${songItem["id"].toString().replaceAll("youtube", '')}',
         "language": songItem["language"] ?? 'Unknown',

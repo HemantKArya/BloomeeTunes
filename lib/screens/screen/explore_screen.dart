@@ -1,3 +1,4 @@
+import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
@@ -91,6 +92,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                   .addQueueItem(
                                                     e,
                                                   );
+                                              // context
+                                              //     .read<DownloaderCubit>()
+                                              //     .downloadSong(e);
                                             },
                                             onOptionsTap: () =>
                                                 showMoreBottomSheet(context, e),

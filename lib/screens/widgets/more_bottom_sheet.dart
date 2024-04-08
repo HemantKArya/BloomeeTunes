@@ -1,10 +1,12 @@
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
+import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_card_widget.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/services/file_manager.dart';
@@ -22,6 +24,14 @@ void showMoreBottomSheet(
   bool showDelete = false,
   VoidCallback? onDelete,
 }) {
+  bool? isDownloaded;
+  BloomeeDBService.getDownloadDB(song).then((value) {
+    if (value != null) {
+      isDownloaded = true;
+    } else {
+      isDownloaded = false;
+    }
+  });
   showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -197,6 +207,45 @@ void showMoreBottomSheet(
                       duration: const Duration(seconds: 2));
                 },
               ),
+              (isDownloaded != null && isDownloaded == true)
+                  ? ListTile(
+                      leading: const Icon(
+                        MingCute.check_circle_line,
+                        color: Default_Theme.primaryColor1,
+                        size: 28,
+                      ),
+                      title: const Text(
+                        'Alread Downloaded!',
+                        style: TextStyle(
+                            color: Default_Theme.primaryColor1,
+                            fontFamily: "Unageo",
+                            fontSize: 17,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        // context.read<DownloaderCubit>().downloadSong(song);
+                      },
+                    )
+                  : ListTile(
+                      leading: const Icon(
+                        MingCute.download_2_fill,
+                        color: Default_Theme.primaryColor1,
+                        size: 28,
+                      ),
+                      title: const Text(
+                        'Download',
+                        style: TextStyle(
+                            color: Default_Theme.primaryColor1,
+                            fontFamily: "Unageo",
+                            fontSize: 17,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.read<DownloaderCubit>().downloadSong(song);
+                      },
+                    ),
               ListTile(
                 leading: const Icon(
                   MingCute.external_link_line,

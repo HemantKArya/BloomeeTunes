@@ -7195,6 +7195,988 @@ extension YtLinkCacheDBQueryProperty
   }
 }
 
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+extension GetDownloadDBCollection on Isar {
+  IsarCollection<DownloadDB> get downloadDBs => this.collection();
+}
+
+const DownloadDBSchema = CollectionSchema(
+  name: r'DownloadDB',
+  id: -6833781486557602446,
+  properties: {
+    r'fileName': PropertySchema(
+      id: 0,
+      name: r'fileName',
+      type: IsarType.string,
+    ),
+    r'filePath': PropertySchema(
+      id: 1,
+      name: r'filePath',
+      type: IsarType.string,
+    ),
+    r'isDownloaded': PropertySchema(
+      id: 2,
+      name: r'isDownloaded',
+      type: IsarType.bool,
+    ),
+    r'lastDownloaded': PropertySchema(
+      id: 3,
+      name: r'lastDownloaded',
+      type: IsarType.dateTime,
+    ),
+    r'mediaId': PropertySchema(
+      id: 4,
+      name: r'mediaId',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _downloadDBEstimateSize,
+  serialize: _downloadDBSerialize,
+  deserialize: _downloadDBDeserialize,
+  deserializeProp: _downloadDBDeserializeProp,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _downloadDBGetId,
+  getLinks: _downloadDBGetLinks,
+  attach: _downloadDBAttach,
+  version: '3.1.0+1',
+);
+
+int _downloadDBEstimateSize(
+  DownloadDB object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.fileName.length * 3;
+  bytesCount += 3 + object.filePath.length * 3;
+  bytesCount += 3 + object.mediaId.length * 3;
+  return bytesCount;
+}
+
+void _downloadDBSerialize(
+  DownloadDB object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.fileName);
+  writer.writeString(offsets[1], object.filePath);
+  writer.writeBool(offsets[2], object.isDownloaded);
+  writer.writeDateTime(offsets[3], object.lastDownloaded);
+  writer.writeString(offsets[4], object.mediaId);
+}
+
+DownloadDB _downloadDBDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = DownloadDB(
+    fileName: reader.readString(offsets[0]),
+    filePath: reader.readString(offsets[1]),
+    id: id,
+    isDownloaded: reader.readBool(offsets[2]),
+    lastDownloaded: reader.readDateTimeOrNull(offsets[3]),
+    mediaId: reader.readString(offsets[4]),
+  );
+  return object;
+}
+
+P _downloadDBDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readBool(offset)) as P;
+    case 3:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+Id _downloadDBGetId(DownloadDB object) {
+  return object.id ?? Isar.autoIncrement;
+}
+
+List<IsarLinkBase<dynamic>> _downloadDBGetLinks(DownloadDB object) {
+  return [];
+}
+
+void _downloadDBAttach(IsarCollection<dynamic> col, Id id, DownloadDB object) {
+  object.id = id;
+}
+
+extension DownloadDBQueryWhereSort
+    on QueryBuilder<DownloadDB, DownloadDB, QWhere> {
+  QueryBuilder<DownloadDB, DownloadDB, QAfterWhere> anyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+}
+
+extension DownloadDBQueryWhere
+    on QueryBuilder<DownloadDB, DownloadDB, QWhereClause> {
+  QueryBuilder<DownloadDB, DownloadDB, QAfterWhereClause> idEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterWhereClause> idNotEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterWhereClause> idGreaterThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterWhereClause> idLessThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterWhereClause> idBetween(
+    Id lowerId,
+    Id upperId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension DownloadDBQueryFilter
+    on QueryBuilder<DownloadDB, DownloadDB, QFilterCondition> {
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> fileNameEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      fileNameGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'fileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> fileNameLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'fileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> fileNameBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'fileName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      fileNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'fileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> fileNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'fileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> fileNameContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'fileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> fileNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'fileName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      fileNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fileName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      fileNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'fileName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> filePathEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'filePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      filePathGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'filePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> filePathLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'filePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> filePathBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'filePath',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      filePathStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'filePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> filePathEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'filePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> filePathContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'filePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> filePathMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'filePath',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      filePathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'filePath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      filePathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'filePath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> idEqualTo(
+      Id? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> idGreaterThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> idLessThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> idBetween(
+    Id? lower,
+    Id? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      isDownloadedEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isDownloaded',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      lastDownloadedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastDownloaded',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      lastDownloadedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastDownloaded',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      lastDownloadedEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastDownloaded',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      lastDownloadedGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastDownloaded',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      lastDownloadedLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastDownloaded',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      lastDownloadedBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastDownloaded',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> mediaIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'mediaId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      mediaIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'mediaId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> mediaIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'mediaId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> mediaIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'mediaId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> mediaIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'mediaId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> mediaIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'mediaId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> mediaIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'mediaId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> mediaIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'mediaId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition> mediaIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'mediaId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
+      mediaIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'mediaId',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension DownloadDBQueryObject
+    on QueryBuilder<DownloadDB, DownloadDB, QFilterCondition> {}
+
+extension DownloadDBQueryLinks
+    on QueryBuilder<DownloadDB, DownloadDB, QFilterCondition> {}
+
+extension DownloadDBQuerySortBy
+    on QueryBuilder<DownloadDB, DownloadDB, QSortBy> {
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByFileName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fileName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByFileNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fileName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByFilePath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'filePath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByFilePathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'filePath', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByIsDownloaded() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDownloaded', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByIsDownloadedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDownloaded', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByLastDownloaded() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastDownloaded', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy>
+      sortByLastDownloadedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastDownloaded', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByMediaId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'mediaId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByMediaIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'mediaId', Sort.desc);
+    });
+  }
+}
+
+extension DownloadDBQuerySortThenBy
+    on QueryBuilder<DownloadDB, DownloadDB, QSortThenBy> {
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByFileName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fileName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByFileNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fileName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByFilePath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'filePath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByFilePathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'filePath', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByIsDownloaded() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDownloaded', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByIsDownloadedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDownloaded', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByLastDownloaded() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastDownloaded', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy>
+      thenByLastDownloadedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastDownloaded', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByMediaId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'mediaId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByMediaIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'mediaId', Sort.desc);
+    });
+  }
+}
+
+extension DownloadDBQueryWhereDistinct
+    on QueryBuilder<DownloadDB, DownloadDB, QDistinct> {
+  QueryBuilder<DownloadDB, DownloadDB, QDistinct> distinctByFileName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'fileName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QDistinct> distinctByFilePath(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'filePath', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QDistinct> distinctByIsDownloaded() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isDownloaded');
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QDistinct> distinctByLastDownloaded() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastDownloaded');
+    });
+  }
+
+  QueryBuilder<DownloadDB, DownloadDB, QDistinct> distinctByMediaId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'mediaId', caseSensitive: caseSensitive);
+    });
+  }
+}
+
+extension DownloadDBQueryProperty
+    on QueryBuilder<DownloadDB, DownloadDB, QQueryProperty> {
+  QueryBuilder<DownloadDB, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<DownloadDB, String, QQueryOperations> fileNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'fileName');
+    });
+  }
+
+  QueryBuilder<DownloadDB, String, QQueryOperations> filePathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'filePath');
+    });
+  }
+
+  QueryBuilder<DownloadDB, bool, QQueryOperations> isDownloadedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isDownloaded');
+    });
+  }
+
+  QueryBuilder<DownloadDB, DateTime?, QQueryOperations>
+      lastDownloadedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastDownloaded');
+    });
+  }
+
+  QueryBuilder<DownloadDB, String, QQueryOperations> mediaIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'mediaId');
+    });
+  }
+}
+
 // **************************************************************************
 // IsarEmbeddedGenerator
 // **************************************************************************

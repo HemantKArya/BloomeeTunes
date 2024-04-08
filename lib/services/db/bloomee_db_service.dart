@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -214,6 +215,7 @@ class BloomeeDBService {
           RecentlyPlayedDBSchema,
           ChartsCacheDBSchema,
           YtLinkCacheDBSchema,
+          DownloadDBSchema,
         ],
         directory: _path,
       );
@@ -511,5 +513,89 @@ class BloomeeDBService {
       }
     }
     return null;
+  }
+
+  static Future<void> putDownloadDB(
+      {required String fileName,
+      required String filePath,
+      required bool isDownloaded,
+      required DateTime lastDownloaded,
+      required MediaItemModel mediaItem}) async {
+    DownloadDB downloadDB = DownloadDB(
+      fileName: fileName,
+      filePath: filePath,
+      lastDownloaded: lastDownloaded,
+      isDownloaded: isDownloaded,
+      mediaId: mediaItem.id,
+    );
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(downloadDB));
+    addMediaItem(MediaItem2MediaItemDB(mediaItem),
+        MediaPlaylistDB(playlistName: "_DOWNLOADS"));
+  }
+
+  static Future<void> removeDownloadDB(MediaItemModel mediaItem) async {
+    Isar isarDB = await db;
+    DownloadDB? downloadDB = isarDB.downloadDBs
+        .filter()
+        .mediaIdEqualTo(mediaItem.id)
+        .findFirstSync();
+    if (downloadDB != null) {
+      isarDB.writeTxnSync(() => isarDB.downloadDBs.deleteSync(downloadDB.id!));
+      removeMediaItemFromPlaylist(MediaItem2MediaItemDB(mediaItem),
+          MediaPlaylistDB(playlistName: "_DOWNLOADS"));
+    }
+
+    try {
+      File file = File("${downloadDB!.filePath}/${downloadDB.fileName}");
+      if (file.existsSync()) {
+        file.deleteSync();
+        log("File Deleted: ${downloadDB.fileName}", name: "DB");
+      }
+    } catch (e) {
+      log("Failed to delete file: ${downloadDB!.fileName}",
+          error: e, name: "DB");
+    }
+  }
+
+  static Future<DownloadDB?> getDownloadDB(MediaItemModel mediaItem) async {
+    Isar isarDB = await db;
+    final temp = isarDB.downloadDBs
+        .filter()
+        .mediaIdEqualTo(mediaItem.id)
+        .findFirstSync();
+    if (temp != null &&
+        File("${temp.filePath}/${temp.fileName}").existsSync()) {
+      return temp;
+    }
+    return null;
+  }
+
+  static Future<void> updateDownloadDB(DownloadDB downloadDB) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(downloadDB));
+  }
+
+  static Future<List<MediaItemModel>> getDownloadedSongs() async {
+    Isar isarDB = await db;
+    List<DownloadDB> _downloadedSongs =
+        isarDB.downloadDBs.where().findAllSync();
+    List<MediaItemModel> _mediaItems = List.empty(growable: true);
+    for (var element in _downloadedSongs) {
+      if (File("${element.filePath}/${element.fileName}").existsSync()) {
+        log("File exists", name: "DB");
+        _mediaItems.add(MediaItemDB2MediaItem(isarDB.mediaItemDBs
+            .filter()
+            .mediaIDEqualTo(element.mediaId)
+            .findFirstSync()!));
+      } else {
+        log("File not exists ${element.fileName} ", name: "DB");
+        removeDownloadDB(MediaItemDB2MediaItem(isarDB.mediaItemDBs
+            .filter()
+            .mediaIDEqualTo(element.mediaId)
+            .findFirstSync()!));
+      }
+    }
+    return _mediaItems;
   }
 }

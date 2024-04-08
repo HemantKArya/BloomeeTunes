@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,9 +16,11 @@ class SongCardWidget extends StatelessWidget {
   final bool? showOptions;
   final bool? showInfoBtn;
   final bool? showPlayBtn;
+  final bool? delDownBtn;
   final VoidCallback? onOptionsTap;
   final VoidCallback? onInfoTap;
   final VoidCallback? onPlayTap;
+  final VoidCallback? onDelDownTap;
   final VoidCallback? onTap;
 
   const SongCardWidget({
@@ -25,10 +29,12 @@ class SongCardWidget extends StatelessWidget {
     this.showOptions,
     this.showInfoBtn,
     this.showPlayBtn,
+    this.delDownBtn,
     this.onOptionsTap,
     this.onInfoTap,
     this.onPlayTap,
     this.onTap,
+    this.onDelDownTap,
   }) : super(key: key);
 
   @override
@@ -133,6 +139,22 @@ class SongCardWidget extends StatelessWidget {
                         ),
                         onPressed: () {
                           if (onInfoTap != null) onInfoTap!();
+                        },
+                      ),
+                    )
+                  : const SizedBox(),
+              (delDownBtn ?? false)
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 2, right: 0),
+                      child: IconButton(
+                        icon: const Icon(
+                          MingCute.delete_2_line,
+                          size: 30,
+                          color: Default_Theme.primaryColor1,
+                        ),
+                        onPressed: () {
+                          BloomeeDBService.removeDownloadDB(song);
+                          SnackbarService.showMessage("Removed ${song.title}");
                         },
                       ),
                     )

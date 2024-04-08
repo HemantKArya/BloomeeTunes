@@ -1,5 +1,7 @@
+import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class DownloadsView extends StatelessWidget {
   const DownloadsView({super.key});
@@ -21,7 +23,8 @@ class DownloadsView extends StatelessWidget {
         ),
       ),
       body: const Center(
-        child: Text('Bloomee Downloads View'),
+        child: SignBoardWidget(
+            message: "No Downloads Yet", icon: MingCute.download_2_fill),
       ),
     );
   }
