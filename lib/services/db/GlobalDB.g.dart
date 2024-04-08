@@ -7216,18 +7216,13 @@ const DownloadDBSchema = CollectionSchema(
       name: r'filePath',
       type: IsarType.string,
     ),
-    r'isDownloaded': PropertySchema(
-      id: 2,
-      name: r'isDownloaded',
-      type: IsarType.bool,
-    ),
     r'lastDownloaded': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'lastDownloaded',
       type: IsarType.dateTime,
     ),
     r'mediaId': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'mediaId',
       type: IsarType.string,
     )
@@ -7266,9 +7261,8 @@ void _downloadDBSerialize(
 ) {
   writer.writeString(offsets[0], object.fileName);
   writer.writeString(offsets[1], object.filePath);
-  writer.writeBool(offsets[2], object.isDownloaded);
-  writer.writeDateTime(offsets[3], object.lastDownloaded);
-  writer.writeString(offsets[4], object.mediaId);
+  writer.writeDateTime(offsets[2], object.lastDownloaded);
+  writer.writeString(offsets[3], object.mediaId);
 }
 
 DownloadDB _downloadDBDeserialize(
@@ -7281,9 +7275,8 @@ DownloadDB _downloadDBDeserialize(
     fileName: reader.readString(offsets[0]),
     filePath: reader.readString(offsets[1]),
     id: id,
-    isDownloaded: reader.readBool(offsets[2]),
-    lastDownloaded: reader.readDateTimeOrNull(offsets[3]),
-    mediaId: reader.readString(offsets[4]),
+    lastDownloaded: reader.readDateTimeOrNull(offsets[2]),
+    mediaId: reader.readString(offsets[3]),
   );
   return object;
 }
@@ -7300,10 +7293,8 @@ P _downloadDBDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
-    case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -7739,16 +7730,6 @@ extension DownloadDBQueryFilter
   }
 
   QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
-      isDownloadedEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isDownloaded',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<DownloadDB, DownloadDB, QAfterFilterCondition>
       lastDownloadedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -7987,18 +7968,6 @@ extension DownloadDBQuerySortBy
     });
   }
 
-  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByIsDownloaded() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isDownloaded', Sort.asc);
-    });
-  }
-
-  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByIsDownloadedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isDownloaded', Sort.desc);
-    });
-  }
-
   QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> sortByLastDownloaded() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastDownloaded', Sort.asc);
@@ -8063,18 +8032,6 @@ extension DownloadDBQuerySortThenBy
     });
   }
 
-  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByIsDownloaded() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isDownloaded', Sort.asc);
-    });
-  }
-
-  QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByIsDownloadedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isDownloaded', Sort.desc);
-    });
-  }
-
   QueryBuilder<DownloadDB, DownloadDB, QAfterSortBy> thenByLastDownloaded() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastDownloaded', Sort.asc);
@@ -8117,12 +8074,6 @@ extension DownloadDBQueryWhereDistinct
     });
   }
 
-  QueryBuilder<DownloadDB, DownloadDB, QDistinct> distinctByIsDownloaded() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isDownloaded');
-    });
-  }
-
   QueryBuilder<DownloadDB, DownloadDB, QDistinct> distinctByLastDownloaded() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastDownloaded');
@@ -8154,12 +8105,6 @@ extension DownloadDBQueryProperty
   QueryBuilder<DownloadDB, String, QQueryOperations> filePathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'filePath');
-    });
-  }
-
-  QueryBuilder<DownloadDB, bool, QQueryOperations> isDownloadedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isDownloaded');
     });
   }
 

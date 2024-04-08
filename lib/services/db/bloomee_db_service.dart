@@ -525,7 +525,6 @@ class BloomeeDBService {
       fileName: fileName,
       filePath: filePath,
       lastDownloaded: lastDownloaded,
-      isDownloaded: true,
       mediaId: mediaItem.id,
     );
     Isar isarDB = await db;

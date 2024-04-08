@@ -79,18 +79,11 @@ class OfflineScreen extends StatelessWidget {
               style: Default_Theme.primaryTextStyle.merge(const TextStyle(
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),
-          // InkWell(
-          //   onTap: () {
-          //     Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //             builder: (context) => const DownloadsView()));
-          //   },
-          //   child: const Icon(
-          //     FontAwesome.download_solid,
-          //     size: 25,
-          //   ),
-          // ),
+          // IconButton(
+          //     onPressed: () {
+          //       context.read<OfflineCubit>().getSongs();
+          //     },
+          //     icon: const Icon(MingCute.refresh_1_line)),
         ],
       ),
     );

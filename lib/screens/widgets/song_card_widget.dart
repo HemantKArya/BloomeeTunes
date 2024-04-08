@@ -153,18 +153,24 @@ class SongCardWidget extends StatelessWidget {
                           color: Default_Theme.primaryColor1,
                         ),
                         onPressed: () {
-                          if (context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .currentMedia
-                                  .id !=
-                              song.id) {
+                          try {
+                            if (context
+                                    .read<BloomeePlayerCubit>()
+                                    .bloomeePlayer
+                                    .currentMedia
+                                    .id !=
+                                song.id) {
+                              BloomeeDBService.removeDownloadDB(song);
+                              SnackbarService.showMessage(
+                                  "Removed ${song.title}");
+                            } else {
+                              SnackbarService.showMessage(
+                                  "Cannot delete currently playing song");
+                            }
+                          } catch (e) {
                             BloomeeDBService.removeDownloadDB(song);
                             SnackbarService.showMessage(
                                 "Removed ${song.title}");
-                          } else {
-                            SnackbarService.showMessage(
-                                "Cannot delete currently playing song");
                           }
                         },
                       ),
