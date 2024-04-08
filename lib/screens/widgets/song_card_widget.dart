@@ -149,7 +149,7 @@ class SongCardWidget extends StatelessWidget {
                       child: IconButton(
                         icon: const Icon(
                           MingCute.delete_2_line,
-                          size: 30,
+                          size: 28,
                           color: Default_Theme.primaryColor1,
                         ),
                         onPressed: () {
