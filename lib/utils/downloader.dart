@@ -73,8 +73,7 @@ class BloomeeDownloader {
   static Future<bool> alreadyDownloaded(MediaItemModel song) async {
     final tempDB = await BloomeeDBService.getDownloadDB(song);
     if (tempDB != null) {
-      final File file =
-          File("${tempDB.filePath}/${song.title} by ${song.artist}.m4a");
+      final File file = File("${tempDB.filePath}/${tempDB.fileName}");
       final isExist = file.existsSync();
       if (isExist) {
         return true;
@@ -86,7 +85,8 @@ class BloomeeDownloader {
     return false;
   }
 
-  static Future<String?> downloadSong(MediaItemModel song) async {
+  static Future<String?> downloadSong(MediaItemModel song,
+      {required String fileName, required String filePath}) async {
     final String? taskId;
     if (!(await alreadyDownloaded(song))) {
       try {
@@ -94,25 +94,16 @@ class BloomeeDownloader {
         if (song.extras!['source'] == 'youtube' ||
             (song.extras!['perma_url'].toString()).contains('youtube')) {
           kURL = await latestYtLink(song.id.replaceAll("youtube", ""));
-
-          taskId = await FlutterDownloader.enqueue(
-            url: kURL!,
-            savedDir: (await getExternalStorageDirectory())!.path,
-            fileName: "${song.title} by ${song.artist}.m4a",
-            showNotification: true,
-            openFileFromNotification: false,
-          );
         } else {
           kURL = song.extras!['url'];
-
-          taskId = await FlutterDownloader.enqueue(
-            url: kURL!,
-            savedDir: (await getExternalStorageDirectory())!.path,
-            fileName: "${song.title} by ${song.artist}.mp4",
-            showNotification: true,
-            openFileFromNotification: false,
-          );
         }
+        taskId = await FlutterDownloader.enqueue(
+          url: kURL!,
+          savedDir: filePath,
+          fileName: fileName,
+          showNotification: true,
+          openFileFromNotification: false,
+        );
 
         return taskId;
       } catch (e) {

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
@@ -518,20 +519,19 @@ class BloomeeDBService {
   static Future<void> putDownloadDB(
       {required String fileName,
       required String filePath,
-      required bool isDownloaded,
       required DateTime lastDownloaded,
       required MediaItemModel mediaItem}) async {
     DownloadDB downloadDB = DownloadDB(
       fileName: fileName,
       filePath: filePath,
       lastDownloaded: lastDownloaded,
-      isDownloaded: isDownloaded,
+      isDownloaded: true,
       mediaId: mediaItem.id,
     );
     Isar isarDB = await db;
     isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(downloadDB));
     addMediaItem(MediaItem2MediaItemDB(mediaItem),
-        MediaPlaylistDB(playlistName: "_DOWNLOADS"));
+        MediaPlaylistDB(playlistName: GlobalStrConsts.downloadPlaylist));
   }
 
   static Future<void> removeDownloadDB(MediaItemModel mediaItem) async {
@@ -543,7 +543,7 @@ class BloomeeDBService {
     if (downloadDB != null) {
       isarDB.writeTxnSync(() => isarDB.downloadDBs.deleteSync(downloadDB.id!));
       removeMediaItemFromPlaylist(MediaItem2MediaItemDB(mediaItem),
-          MediaPlaylistDB(playlistName: "_DOWNLOADS"));
+          MediaPlaylistDB(playlistName: GlobalStrConsts.downloadPlaylist));
     }
 
     try {

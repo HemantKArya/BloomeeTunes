@@ -1,6 +1,8 @@
+import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class NotificationView extends StatelessWidget {
   const NotificationView({super.key});
@@ -22,7 +24,9 @@ class NotificationView extends StatelessWidget {
         ),
       ),
       body: const Center(
-        child: Text('Bloomee Notifications View'),
+        child: SignBoardWidget(
+            message: "No Notifications yet!",
+            icon: MingCute.notification_off_line),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,7 +15,7 @@ import 'package:Bloomee/utils/load_Image.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class AddToPlaylistScreen extends StatefulWidget {
-  AddToPlaylistScreen({super.key});
+  const AddToPlaylistScreen({super.key});
 
   @override
   State<AddToPlaylistScreen> createState() => _AddToPlaylistScreenState();
@@ -41,13 +42,6 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
         filteredPlaylistsItems = playlistsItems;
       });
     }
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    // context.read<AddToPlaylistCubit>().getAndEmitPlaylists();
   }
 
   MediaItemModel currentMediaModel = mediaItemModelNull;
@@ -183,14 +177,16 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                       icon: MingCute.playlist_line);
                 } else {
                   playlistsItems = state.playlists;
-                  final _finalList = filteredPlaylistsItems.isEmpty ||
+                  final finalList = filteredPlaylistsItems.isEmpty ||
                           _searchController.text.isEmpty
                       ? playlistsItems
                       : filteredPlaylistsItems;
                   return ListView.builder(
-                    itemCount: _finalList.length,
+                    itemCount: finalList.length,
                     itemBuilder: (context, index) {
-                      if (_finalList[index].playlistName == "recently_played") {
+                      if (finalList[index].playlistName == "recently_played" ||
+                          finalList[index].playlistName ==
+                              GlobalStrConsts.downloadPlaylist) {
                         return const SizedBox();
                       } else {
                         return Padding(
@@ -202,17 +198,17 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                     currentMediaModel,
                                     MediaPlaylistDB(
                                       playlistName:
-                                          _finalList[index].playlistName,
+                                          finalList[index].playlistName,
                                     ));
                                 context.pop(context);
                               }
                             },
                             child: SmallPlaylistCard(
-                                playListTitle: _finalList[index].playlistName,
+                                playListTitle: finalList[index].playlistName,
                                 coverArt: loadImageCached(
-                                    _finalList[index].coverImgUrl ?? "null"),
+                                    finalList[index].coverImgUrl ?? "null"),
                                 playListsubTitle:
-                                    _finalList[index].subTitle ?? "Unverified"),
+                                    finalList[index].subTitle ?? "Unverified"),
                           ),
                         );
                       }

@@ -14,4 +14,6 @@ class GlobalStrConsts {
   static const String autoUpdateNotify = "auto_update_notify";
   static const String autoSlideCharts = "auto_slide_charts";
   static const String spotifyAccessToken = "spotify_access_token";
+  static const String downPathSetting = "downloadPath";
+  static const String downloadPlaylist = "_DOWNLOADS";
 }

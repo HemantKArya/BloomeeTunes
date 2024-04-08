@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/downloader.dart';
@@ -18,18 +19,38 @@ part 'downloader_state.dart';
 class DownTask {
   final String taskId;
   final MediaItemModel song;
-  DownTask({required this.taskId, required this.song});
+  final String filePath;
+  final String fileName;
+  DownTask(
+      {required this.taskId,
+      required this.song,
+      required this.filePath,
+      required this.fileName});
 }
 
 class DownloaderCubit extends Cubit<DownloaderState> {
   static bool isInitialized = false;
   static List<DownTask> downloadedSongs = List.empty(growable: true);
+  static late String downPath;
   static ReceivePort receivePort = ReceivePort();
   DownloaderCubit() : super(DownloaderInitial()) {
     initDownloader().then((value) => isInitialized = true);
   }
 
+  Future<void> initDownPath() async {
+    downPath = (await BloomeeDBService.getSettingStr(
+        GlobalStrConsts.downPathSetting,
+        defaultValue: (await getExternalStorageDirectory())!.path))!;
+  }
+
+  Future<String> getDownPath() async {
+    return (await BloomeeDBService.getSettingStr(
+        GlobalStrConsts.downPathSetting,
+        defaultValue: (await getExternalStorageDirectory())!.path))!;
+  }
+
   Future<void> initDownloader() async {
+    await initDownPath();
     await FlutterDownloader.initialize(
         debug:
             true, // optional: set to false to disable printing logs to console (default: true)
@@ -62,12 +83,10 @@ class DownloaderCubit extends Cubit<DownloaderState> {
           downloadedSongs.remove(_task);
           log("Downloaded ${_task.song.title}", name: "DownloaderCubit");
           if (_task.song.extras!['source'] != 'youtube') {
-            File file = File(
-                "${(await getExternalStorageDirectory())!.path}/${_task.song.title} by ${_task.song.artist}.mp4");
+            File file = File(_task.filePath);
             if (file.existsSync()) {
-              await file.rename(
-                  "${(await getExternalStorageDirectory())!.path}/${_task.song.title} by ${_task.song.artist}.m4a");
-              log("Renamed ${_task.song.title} by ${_task.song.artist}.mp4 to ${_task.song.title} by ${_task.song.artist}.m4a",
+              await file.rename(_task.filePath.replaceAll(".mp4", ".m4a"));
+              log("Renamed ${_task.fileName} to ${_task.fileName.replaceAll(".mp4", ".m4a")}",
                   name: "DownloaderCubit");
             }
           }
@@ -81,9 +100,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
           //       error: e, name: "DownloaderCubit");
           // }
           BloomeeDBService.putDownloadDB(
-              fileName: "${_task.song.title} by ${_task.song.artist}.m4a",
-              filePath: (await getExternalStorageDirectory())!.path,
-              isDownloaded: true,
+              fileName: _task.fileName,
+              filePath: _task.filePath,
               lastDownloaded: DateTime.now(),
               mediaItem: _task.song);
           SnackbarService.showMessage("Downloaded ${_task.song.title}");
@@ -108,18 +126,33 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       }
     }
     // check if song is already added to download queue
-    if (downloadedSongs
-        .any((element) => element.song.extras!['url'] == song.extras!['url'])) {
-      log("${song.title} already added to download queue",
-          name: "DownloaderCubit");
-      SnackbarService.showMessage(
-          "${song.title} already added to download queue");
-      return;
-    }
-    final String? taskId = await BloomeeDownloader.downloadSong(song);
-    if (taskId != null) {
-      SnackbarService.showMessage("Added ${song.title} to download queue");
-      downloadedSongs.add(DownTask(taskId: taskId, song: song));
+    if (isInitialized) {
+      if (downloadedSongs.any(
+          (element) => element.song.extras!['url'] == song.extras!['url'])) {
+        log("${song.title} already added to download queue",
+            name: "DownloaderCubit");
+        SnackbarService.showMessage(
+            "${song.title} already added to download queue");
+        return;
+      }
+      downPath = await getDownPath();
+      final String fileName;
+      if (song.extras!['source'] != 'youtube') {
+        fileName = "${song.title} by ${song.artist}.mp4";
+      } else {
+        fileName = "${song.title} by ${song.artist}.m4a";
+      }
+      final String? taskId = await BloomeeDownloader.downloadSong(song,
+          fileName: fileName, filePath: downPath);
+      if (taskId != null) {
+        SnackbarService.showMessage("Added ${song.title} to download queue");
+
+        downloadedSongs.add(DownTask(
+            taskId: taskId,
+            song: song,
+            filePath: downPath,
+            fileName: fileName));
+      }
     }
   }
 }

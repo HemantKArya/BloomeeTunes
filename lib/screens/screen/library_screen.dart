@@ -118,7 +118,9 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
         physics: const NeverScrollableScrollPhysics(),
         itemCount: widget.state.playlists.length,
         itemBuilder: (context, index) {
-          if (widget.state.playlists[index].playlistName == "recently_played") {
+          if (widget.state.playlists[index].playlistName == "recently_played" ||
+              widget.state.playlists[index].playlistName ==
+                  GlobalStrConsts.downloadPlaylist) {
             return const SizedBox();
           } else {
             return Padding(

@@ -146,7 +146,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       return AudioSource.uri(Uri.file('${_down.filePath}/${_down.fileName}'));
     } else {
       isOffline.add(false);
-      log("Playing from online", name: "bloomeePlayer");
+      log("Playing online", name: "bloomeePlayer");
       if (mediaItem.extras?["source"] == "youtube") {
         final id = mediaItem.id.replaceAll("youtube", '');
         final tempStrmLink = await latestYtLink(id);
@@ -176,7 +176,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     getLinkOperation = CancelableOperation.fromFuture(
       getAudioSource(mediaItem),
       onCancel: () {
-        log("getLinkOperation cancelled", name: "bloomeePlayer");
+        log("skipping....", name: "bloomeePlayer");
         return;
       },
     );

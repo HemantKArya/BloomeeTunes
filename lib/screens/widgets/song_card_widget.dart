@@ -153,8 +153,19 @@ class SongCardWidget extends StatelessWidget {
                           color: Default_Theme.primaryColor1,
                         ),
                         onPressed: () {
-                          BloomeeDBService.removeDownloadDB(song);
-                          SnackbarService.showMessage("Removed ${song.title}");
+                          if (context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .currentMedia
+                                  .id !=
+                              song.id) {
+                            BloomeeDBService.removeDownloadDB(song);
+                            SnackbarService.showMessage(
+                                "Removed ${song.title}");
+                          } else {
+                            SnackbarService.showMessage(
+                                "Cannot delete currently playing song");
+                          }
                         },
                       ),
                     )
