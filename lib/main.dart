@@ -125,7 +125,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     // For sharing or opening urls/text coming from outside the app while the app is in the memory
-    _intentSub = ReceiveSharingIntent.getMediaStream().listen((event) {
+    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((event) {
       sharedMediaFiles.clear();
       sharedMediaFiles.addAll(event);
       log(sharedMediaFiles[0].mimeType.toString(), name: "Shared Files");
@@ -133,18 +133,18 @@ class _MyAppState extends State<MyApp> {
       processIncomingIntent(sharedMediaFiles);
 
       // Tell the library that we are done processing the intent.
-      ReceiveSharingIntent.reset();
+      ReceiveSharingIntent.instance.reset();
     });
 
     // For sharing or opening urls/text coming from outside the app while the app is closed
-    ReceiveSharingIntent.getInitialMedia().then((event) {
+    ReceiveSharingIntent.instance.getInitialMedia().then((event) {
       sharedMediaFiles.clear();
       sharedMediaFiles.addAll(event);
       log(sharedMediaFiles[0].mimeType.toString(),
           name: "Shared Files Offline");
       log(sharedMediaFiles[0].path, name: "Shared Files Offline");
       processIncomingIntent(sharedMediaFiles);
-      ReceiveSharingIntent.reset();
+      ReceiveSharingIntent.instance.reset();
     });
   }
 
