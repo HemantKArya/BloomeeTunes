@@ -6,9 +6,8 @@ import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
 class ChartScreen extends StatefulWidget {
-  // ChartCubit? chartCubit;
   final String chartName;
-  ChartScreen({Key? key, required this.chartName}) : super(key: key);
+  const ChartScreen({Key? key, required this.chartName}) : super(key: key);
 
   @override
   State<ChartScreen> createState() => _ChartScreenState();

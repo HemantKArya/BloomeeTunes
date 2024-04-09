@@ -24,7 +24,8 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Default_Theme.themeColor,
         foregroundColor: Default_Theme.primaryColor1,
-        centerTitle: false,
+        surfaceTintColor: Default_Theme.themeColor,
+        centerTitle: true,
         title: Text(
           'Import Songs',
           textAlign: TextAlign.start,

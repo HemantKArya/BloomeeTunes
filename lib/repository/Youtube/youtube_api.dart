@@ -63,19 +63,12 @@ class YouTubeServices {
     return response;
   }
 
-  Future<Map?> refreshLink(String id) async {
+  Future<Map?> refreshLink(String id, {String quality = 'Low'}) async {
     final Video? res = await getVideoFromId(id);
     if (res == null) {
       return null;
     }
-    String quality;
-    try {
-      quality = await BloomeeDBService.getSettingStr('quality',
-              defaultValue: 'Low') ??
-          'Low';
-    } catch (e) {
-      quality = 'Low';
-    }
+    // String quality = quality;
     final Map? data = await formatVideo(video: res, quality: quality);
     return data;
   }
@@ -352,7 +345,7 @@ class YouTubeServices {
         urls = await getUri(video);
       }
 
-      finalUrl = quality == 'High' ? urls.last : urls.first;
+      finalUrl = ((quality == 'High') ? urls.last : urls.first);
       expireAt = RegExp('expire=(.*?)&').firstMatch(finalUrl)!.group(1) ??
           (DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600 * 5.5)
               .toString();

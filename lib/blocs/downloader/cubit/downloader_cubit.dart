@@ -138,10 +138,15 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       downPath = await getDownPath();
       final String fileName;
       if (song.extras!['source'] != 'youtube') {
-        fileName = "${song.title} by ${song.artist}.mp4";
+        fileName = "${song.title} by ${song.artist}.mp4"
+            .replaceAll('?', '-')
+            .replaceAll('/', '-');
       } else {
-        fileName = "${song.title} by ${song.artist}.m4a";
+        fileName = "${song.title} by ${song.artist}.m4a"
+            .replaceAll('?', '-')
+            .replaceAll('/', '-');
       }
+      log('downloading $fileName', name: "DownloaderCubit");
       final String? taskId = await BloomeeDownloader.downloadSong(song,
           fileName: fileName, filePath: downPath);
       if (taskId != null) {

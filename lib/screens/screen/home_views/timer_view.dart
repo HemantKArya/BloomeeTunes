@@ -64,11 +64,12 @@ class _TimerViewState extends State<TimerView> {
         backgroundColor: Default_Theme.themeColor,
         surfaceTintColor: Default_Theme.themeColor,
         foregroundColor: Default_Theme.primaryColor1,
+        centerTitle: true,
         title: Text(
           'Sleep Timer',
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
-                  fontSize: 25,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold)
               .merge(Default_Theme.secondoryTextStyle),
         ),

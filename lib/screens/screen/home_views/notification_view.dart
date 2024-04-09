@@ -14,11 +14,13 @@ class NotificationView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Default_Theme.themeColor,
         foregroundColor: Default_Theme.primaryColor1,
+        surfaceTintColor: Default_Theme.themeColor,
+        centerTitle: true,
         title: Text(
           'Notifications',
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
-                  fontSize: 25,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold)
               .merge(Default_Theme.secondoryTextStyle),
         ),

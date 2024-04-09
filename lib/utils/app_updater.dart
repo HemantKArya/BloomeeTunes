@@ -28,7 +28,7 @@ Future<void> updateDialog(BuildContext context) async {
 }
 
 Future<void> openURL(String url) async {
-  launchUrl(Uri.parse(url));
+  launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 }
 
 // Future<void> downloadApk(String url) async {

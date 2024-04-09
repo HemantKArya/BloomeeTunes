@@ -16,4 +16,10 @@ class GlobalStrConsts {
   static const String spotifyAccessToken = "spotify_access_token";
   static const String downPathSetting = "downloadPath";
   static const String downloadPlaylist = "_DOWNLOADS";
+  static const String downQuality = "downloadQuality";
+  static const String ytDownQuality = "ytDownloadQuality";
+  static const String strmQuality = "streamQuality";
+  static const String ytStrmQuality = "ytStreamQuality";
+  static const String backupPath = "backupPath";
+  static const String autoBackup = "autoBackup";
 }

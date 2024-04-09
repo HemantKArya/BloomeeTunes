@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'package:Bloomee/model/saavnModel.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:async/async.dart';
@@ -118,7 +120,19 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         return await refreshYtLink(id);
       } else {
         log("Link found in cache for vidId: $id", name: "bloomeePlayer");
-        return vidInfo.lowQURL;
+        String kurl = vidInfo.lowQURL!;
+        await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
+            .then((value) {
+          log("Play quality: $value", name: "bloomeePlayer");
+          if (value != null) {
+            if (value == "High") {
+              kurl = vidInfo.highQURL;
+            } else {
+              kurl = vidInfo.lowQURL!;
+            }
+          }
+        });
+        return kurl;
       }
     } else {
       log("No cache found for vidId: $id", name: "bloomeePlayer");
@@ -127,7 +141,19 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<String?> refreshYtLink(String id) async {
-    final vidMap = await YouTubeServices().refreshLink(id);
+    String quality = "Low";
+    await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
+        .then((value) {
+      log('Play quality: $value', name: "bloomeePlayer");
+      if (value != null) {
+        if (value == "High") {
+          quality = "High";
+        } else {
+          quality = "Low";
+        }
+      }
+    });
+    final vidMap = await YouTubeServices().refreshLink(id, quality: quality);
     if (vidMap != null) {
       return vidMap["url"] as String;
     } else {
@@ -154,8 +180,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           return AudioSource.uri(Uri.parse(tempStrmLink));
         }
       }
-
-      return AudioSource.uri(Uri.parse(mediaItem.extras?["url"]));
+      String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
+      log('Playing: $kurl', name: "bloomeePlayer");
+      return AudioSource.uri(Uri.parse(kurl!));
     }
   }
 
