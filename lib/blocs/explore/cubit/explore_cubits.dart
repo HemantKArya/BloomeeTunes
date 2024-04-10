@@ -25,39 +25,51 @@ class TrendingCubit extends Cubit<TrendingCubitState> {
   }
 
   void getTrendingVideos() async {
-    final ytCharts = await fetchTrendingVideos();
-    emit(state.copyWith(ytCharts: ytCharts));
+    List<ChartModel> ytCharts = await fetchTrendingVideos();
+    ChartModel chart = ytCharts[0]
+      ..chartItems = getFirstElements(ytCharts[0].chartItems!, 16);
+    emit(state.copyWith(ytCharts: [chart]));
     isLatest = true;
   }
 
+  List<ChartItemModel> getFirstElements(List<ChartItemModel> list, int count) {
+    return list.length > count ? list.sublist(0, count) : list;
+  }
+
   void getTrendingVideosFromDB() async {
-    final ytChart = await BloomeeDBService.getChart("Trending Videos");
+    ChartModel? ytChart = await BloomeeDBService.getChart("Trending Videos");
     if ((!isLatest) &&
         ytChart != null &&
         (ytChart.chartItems?.isNotEmpty ?? false)) {
-      emit(state.copyWith(ytCharts: [ytChart]));
+      ChartModel chart = ytChart
+        ..chartItems = getFirstElements(ytChart.chartItems!, 16);
+      emit(state.copyWith(ytCharts: [chart]));
     }
   }
 }
 
 class RecentlyCubit extends Cubit<RecentlyCubitState> {
-  late Stream<void> watcher;
+  StreamSubscription<void>? watcher;
   RecentlyCubit() : super(RecentlyCubitInitial()) {
-    BloomeeDBService.refreshRecentlyPlayed();
     getRecentlyPlayed();
     watchRecentlyPlayed();
   }
 
   Future<void> watchRecentlyPlayed() async {
-    watcher = await BloomeeDBService.watchRecentlyPlayed();
-    watcher.listen((event) {
+    (await BloomeeDBService.watchRecentlyPlayed()).listen((event) {
       getRecentlyPlayed();
       log("Recently Played Updated");
     });
   }
 
+  @override
+  Future<void> close() {
+    watcher?.cancel();
+    return super.close();
+  }
+
   void getRecentlyPlayed() async {
-    final mediaPlaylist = await BloomeeDBService.getRecentlyPlayed();
+    final mediaPlaylist = await BloomeeDBService.getRecentlyPlayed(limit: 15);
     emit(state.copyWith(mediaPlaylist: mediaPlaylist));
   }
 }

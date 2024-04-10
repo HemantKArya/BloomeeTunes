@@ -498,17 +498,30 @@ class BloomeeDBService {
     }
   }
 
-  static Future<MediaPlaylist> getRecentlyPlayed() async {
+  static Future<MediaPlaylist> getRecentlyPlayed({int limit = 0}) async {
+    List<MediaItemModel> mediaItems = [];
     Isar isarDB = await db;
-    List<RecentlyPlayedDB> _recentlyPlayed =
-        isarDB.recentlyPlayedDBs.where().sortByLastPlayedDesc().findAllSync();
-    List<MediaItemModel> _mediaItems = [];
-    for (var element in _recentlyPlayed) {
-      if (element.mediaItem.value != null) {
-        _mediaItems.add(MediaItemDB2MediaItem(element.mediaItem.value!));
+    if (limit == 0) {
+      List<RecentlyPlayedDB> recentlyPlayed =
+          isarDB.recentlyPlayedDBs.where().sortByLastPlayedDesc().findAllSync();
+      for (var element in recentlyPlayed) {
+        if (element.mediaItem.value != null) {
+          mediaItems.add(MediaItemDB2MediaItem(element.mediaItem.value!));
+        }
+      }
+    } else {
+      List<RecentlyPlayedDB> recentlyPlayed = isarDB.recentlyPlayedDBs
+          .where()
+          .sortByLastPlayedDesc()
+          .limit(limit)
+          .findAllSync();
+      for (var element in recentlyPlayed) {
+        if (element.mediaItem.value != null) {
+          mediaItems.add(MediaItemDB2MediaItem(element.mediaItem.value!));
+        }
       }
     }
-    return MediaPlaylist(mediaItems: _mediaItems, albumName: "Recently Played");
+    return MediaPlaylist(mediaItems: mediaItems, albumName: "Recently Played");
   }
 
   static Future<Stream<void>> watchRecentlyPlayed() async {

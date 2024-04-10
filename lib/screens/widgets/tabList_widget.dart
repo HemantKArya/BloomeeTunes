@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/screens/widgets/paging_scroll.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme_data/default.dart';
@@ -47,7 +48,6 @@ class TabSongListWidget extends StatelessWidget {
     );
   }
 
-  @override
   bool get wantKeepAlive => true;
 }
 
@@ -55,6 +55,7 @@ Widget buildColumnsCards(List<Widget> items, context, {int columnLength = 4}) {
   final cards = <Widget>[];
   Widget feautredCards;
   int endIndex = columnLength;
+  double itemWidth = (MediaQuery.of(context).size.width - 40) * 0.88;
   if (endIndex > items.length) endIndex = items.length;
   if (items.isNotEmpty) {
     for (int i = 0; i < items.length; i += columnLength) {
@@ -63,7 +64,7 @@ Widget buildColumnsCards(List<Widget> items, context, {int columnLength = 4}) {
       // currentRow.add(const Spacer());
       endIndex = endIndex + columnLength;
       cards.add(SizedBox(
-        width: (MediaQuery.of(context).size.width - 40) * 0.88,
+        width: itemWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -72,21 +73,15 @@ Widget buildColumnsCards(List<Widget> items, context, {int columnLength = 4}) {
         ),
       ));
     }
-    feautredCards = Container(
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: cards),
-          ),
-        ],
+    feautredCards = SizedBox(
+      height: 70 * columnLength.toDouble() + 10,
+      child: ListView(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        physics: PagingScrollPhysics(
+            itemCount: cards.length,
+            viewSize: (MediaQuery.of(context).size.width - 40)),
+        children: cards,
       ),
     );
   } else {
