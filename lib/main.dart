@@ -200,7 +200,8 @@ class _MyAppState extends State<MyApp> {
         ),
       ],
       child: RepositoryProvider(
-        create: (context) => DownloaderCubit(),
+        create: (context) => DownloaderCubit(
+            connectivityCubit: context.read<ConnectivityCubit>()),
         lazy: false,
         child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
           builder: (context, state) {

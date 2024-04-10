@@ -121,17 +121,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       } else {
         log("Link found in cache for vidId: $id", name: "bloomeePlayer");
         String kurl = vidInfo.lowQURL!;
-        await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
-            .then((value) {
-          log("Play quality: $value", name: "bloomeePlayer");
-          if (value != null) {
-            if (value == "High") {
-              kurl = vidInfo.highQURL;
-            } else {
-              kurl = vidInfo.lowQURL!;
-            }
-          }
-        });
+        // await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
+        //     .then((value) {
+        //   log("Play quality: $value", name: "bloomeePlayer");
+        //   if (value != null) {
+        //     if (value == "High") {
+        //       kurl = vidInfo.highQURL;
+        //     } else {
+        //       kurl = vidInfo.lowQURL!;
+        //     }
+        //   }
+        // });
         return kurl;
       }
     } else {
@@ -153,7 +153,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         }
       }
     });
-    final vidMap = await YouTubeServices().refreshLink(id, quality: quality);
+    final vidMap = await YouTubeServices().refreshLink(id, quality: "Low");
     if (vidMap != null) {
       return vidMap["url"] as String;
     } else {

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -30,10 +31,12 @@ class DownTask {
 
 class DownloaderCubit extends Cubit<DownloaderState> {
   static bool isInitialized = false;
+  ConnectivityCubit connectivityCubit;
   static List<DownTask> downloadedSongs = List.empty(growable: true);
   static late String downPath;
   static ReceivePort receivePort = ReceivePort();
-  DownloaderCubit() : super(DownloaderInitial()) {
+  DownloaderCubit({required this.connectivityCubit})
+      : super(DownloaderInitial()) {
     initDownloader().then((value) => isInitialized = true);
   }
 
@@ -126,7 +129,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       }
     }
     // check if song is already added to download queue
-    if (isInitialized) {
+    if (isInitialized &&
+        connectivityCubit.state == ConnectivityState.connected) {
       if (downloadedSongs.any(
           (element) => element.song.extras!['url'] == song.extras!['url'])) {
         log("${song.title} already added to download queue",
@@ -136,7 +140,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         return;
       }
       downPath = await getDownPath();
-      final String fileName;
+      String fileName;
       if (song.extras!['source'] != 'youtube') {
         fileName = "${song.title} by ${song.artist}.mp4"
             .replaceAll('?', '-')
@@ -146,6 +150,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
             .replaceAll('?', '-')
             .replaceAll('/', '-');
       }
+      fileName = await BloomeeDownloader.getValidFileName(fileName, downPath);
       log('downloading $fileName', name: "DownloaderCubit");
       final String? taskId = await BloomeeDownloader.downloadSong(song,
           fileName: fileName, filePath: downPath);
@@ -158,6 +163,9 @@ class DownloaderCubit extends Cubit<DownloaderState> {
             filePath: downPath,
             fileName: fileName));
       }
+    } else {
+      SnackbarService.showMessage(
+          "No internet connection or download service not initialized");
     }
   }
 }
