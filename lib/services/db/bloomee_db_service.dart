@@ -377,6 +377,44 @@ class BloomeeDBService {
     }
   }
 
+  static Future<void> putAPICache(String key, String value) async {
+    Isar isarDB = await db;
+    if (key.isNotEmpty && value.isNotEmpty) {
+      isarDB.writeTxnSync(
+        () => isarDB.appSettingsStrDBs.putSync(
+          AppSettingsStrDB(
+            settingName: key,
+            settingValue: value,
+            settingValue2: "CACHE",
+            lastUpdated: DateTime.now(),
+          ),
+        ),
+      );
+    }
+  }
+
+  static Future<String?> getAPICache(String key) async {
+    Isar isarDB = await db;
+    final apiCache = isarDB.appSettingsStrDBs
+        .filter()
+        .settingNameEqualTo(key)
+        .findFirstSync();
+    if (apiCache != null) {
+      return apiCache.settingValue;
+    }
+    return null;
+  }
+
+  static clearAPICache() async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(
+      () => isarDB.appSettingsStrDBs
+          .filter()
+          .settingValue2Contains("CACHE")
+          .deleteAllSync(),
+    );
+  }
+
   static Future<String?> getSettingStr(String key,
       {String? defaultValue}) async {
     Isar isarDB = await db;

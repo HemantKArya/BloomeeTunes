@@ -12,20 +12,28 @@ class ChartListTile extends StatelessWidget {
   final String subtitle;
   final String imgUrl;
   final bool rectangularImage;
+  final VoidCallback? onTap;
 
   const ChartListTile({
     Key? key,
     required this.title,
     required this.subtitle,
     required this.imgUrl,
+    this.onTap,
     this.rectangularImage = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => context.push(
-          "/${GlobalStrConsts.searchScreen}?query=${title} by ${subtitle}"),
+      onTap: () {
+        if (onTap != null) {
+          onTap!();
+        } else {
+          context.push(
+              "/${GlobalStrConsts.searchScreen}?query=${title} by ${subtitle}");
+        }
+      },
       child: SizedBox(
         // width: 320,
         child: ListTile(

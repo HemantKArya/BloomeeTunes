@@ -68,10 +68,13 @@ class MiniPlayerWidget extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.only(right: 1.5),
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(15),
-                                    child: loadImageCached(
-                                        snapshot.data?.artUri.toString(),
-                                        fit: BoxFit.cover),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: SizedBox.square(
+                                      dimension: 70,
+                                      child: loadImageCached(
+                                          snapshot.data?.artUri.toString(),
+                                          fit: BoxFit.cover),
+                                    ),
                                   ),
                                 ),
                                 Padding(

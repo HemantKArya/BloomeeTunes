@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/createPlaylist_bottomsheet.dart';
-import 'package:Bloomee/screens/widgets/smallPlaylistCard_widget.dart';
+import 'package:Bloomee/screens/widgets/playlist_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:icons_plus/icons_plus.dart';
 

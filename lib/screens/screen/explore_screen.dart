@@ -2,9 +2,8 @@ import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
-import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
-import 'package:Bloomee/screens/widgets/song_card_widget.dart';
+import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/utils/app_updater.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import '../widgets/carousal_widget.dart';
+import '../widgets/horizontal_card_view.dart';
 import '../widgets/tabList_widget.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -41,12 +41,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<TrendingCubit>(
-          create: (context) => TrendingCubit(),
-          lazy: false,
-        ),
+        // BlocProvider<TrendingCubit>(
+        //   create: (context) => TrendingCubit(),
+        //   lazy: false,
+        // ),
         BlocProvider<RecentlyCubit>(
           create: (context) => RecentlyCubit(),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => YTMusicCubit(),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => FetchChartCubit(),
           lazy: false,
         ),
       ],
@@ -119,38 +127,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 0.0),
-                    child: SizedBox(
-                      child: BlocBuilder<TrendingCubit, TrendingCubitState>(
-                        builder: (context, state) {
-                          return AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 1000),
-                            child: state is TrendingCubitInitial
-                                ? const Center(
-                                    child: SizedBox(
-                                        height: 60,
-                                        width: 60,
-                                        child: CircularProgressIndicator(
-                                          color: Default_Theme.accentColor2,
-                                        )),
-                                  )
-                                : TabSongListWidget(
-                                    list: state.ytCharts![0].chartItems!
-                                        .map((e) => ChartListTile(
-                                              title: e.name ?? "",
-                                              subtitle: e.subtitle ?? "",
-                                              imgUrl: e.imageUrl ?? "",
-                                              rectangularImage: true,
-                                            ))
-                                        .toList(),
-                                    category: "Trending",
-                                    columnSize: 4,
-                                  ),
-                          );
-                        },
-                      ),
-                    ),
+                  BlocBuilder<YTMusicCubit, YTMusicCubitState>(
+                    builder: (context, state) {
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        child: state is YTMusicCubitInitial
+                            ? const SizedBox()
+                            : ytSection(state.ytmData),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -159,6 +144,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
         ),
         backgroundColor: Default_Theme.themeColor,
       ),
+    );
+  }
+
+  Widget ytSection(Map<String, List<dynamic>> ytmData) {
+    List<Widget> ytList = List.empty(growable: true);
+    // log(ytmData.toString());
+
+    for (var value in (ytmData["body"]!)) {
+      // log(value.toString());
+      ytList.add(HorizontalCardView(data: value));
+    }
+    return ListView(
+      shrinkWrap: true,
+      padding: const EdgeInsets.only(top: 0),
+      physics: const NeverScrollableScrollPhysics(),
+      children: ytList,
     );
   }
 

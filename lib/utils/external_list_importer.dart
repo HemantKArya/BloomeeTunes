@@ -125,8 +125,7 @@ class ExternalMediaImporter {
 
   static Future<MediaItemModel?> ytMediaImporter(String url) async {
     final videoId = extractVideoId(url);
-    SnackbarService.showMessage("Getting Youtube Audio...",
-        duration: const Duration(seconds: 1));
+    SnackbarService.showMessage("Getting Youtube Audio...", loading: true);
     if (videoId != null) {
       try {
         final video = await YoutubeExplode().videos.get(videoId);

@@ -23,7 +23,7 @@ class CaraouselWidget extends StatefulWidget {
 
 class _CaraouselWidgetState extends State<CaraouselWidget> {
   bool _visibility = true;
-  final FetchChartCubit fetchChartCubit = FetchChartCubit();
+  // final FetchChartCubit fetchChartCubit;
   List<ChartCubit> chartCubitList = List.empty(growable: true);
   bool autoSlideCharts = true;
 
@@ -37,7 +37,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
   @override
   void initState() {
     for (var i in chartInfoList) {
-      chartCubitList.add(ChartCubit(i, fetchChartCubit));
+      chartCubitList.add(ChartCubit(i, context.read<FetchChartCubit>()));
     }
     initSettings();
     super.initState();

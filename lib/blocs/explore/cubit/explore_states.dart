@@ -87,3 +87,25 @@ class FetchChartState {
 class FetchChartInitial extends FetchChartState {
   FetchChartInitial() : super(isFetched: false);
 }
+
+class YTMusicCubitState extends Equatable {
+  final Map<String, List<dynamic>> ytmData;
+  const YTMusicCubitState({
+    required this.ytmData,
+  });
+
+  @override
+  List<Object?> get props => [ytmData];
+
+  YTMusicCubitState copyWith({
+    Map<String, List<dynamic>>? ytmData,
+  }) {
+    return YTMusicCubitState(
+      ytmData: ytmData ?? this.ytmData,
+    );
+  }
+}
+
+class YTMusicCubitInitial extends YTMusicCubitState {
+  YTMusicCubitInitial() : super(ytmData: {});
+}

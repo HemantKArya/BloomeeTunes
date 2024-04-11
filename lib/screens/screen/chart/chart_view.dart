@@ -91,7 +91,7 @@ class _ChartScreenState extends State<ChartScreen> {
         titlePadding:
             const EdgeInsets.only(left: 8, bottom: 0, right: 0, top: 0),
         title: Text(state.chartName,
-            textScaleFactor: 1,
+            textScaler: const TextScaler.linear(1.0),
             textAlign: TextAlign.start,
             style: Default_Theme.secondoryTextStyleMedium.merge(const TextStyle(
                 fontSize: 24, color: Color.fromARGB(255, 255, 235, 251)))),

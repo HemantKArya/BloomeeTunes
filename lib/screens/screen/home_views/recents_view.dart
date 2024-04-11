@@ -2,7 +2,7 @@
 import 'package:Bloomee/blocs/history/cubit/history_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
-import 'package:Bloomee/screens/widgets/song_card_widget.dart';
+import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
