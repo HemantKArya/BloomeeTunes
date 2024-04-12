@@ -8,6 +8,7 @@ import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/utils/app_updater.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/screen/home_views/notification_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_view.dart';
@@ -129,29 +130,25 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                     ),
                   ),
-                  BlocBuilder<ConnectivityCubit, ConnectivityState>(
+                  BlocBuilder<YTMusicCubit, YTMusicCubitState>(
                     builder: (context, state) {
                       return AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
-                        child: switch (state) {
-                          ConnectivityState.connected =>
-                            BlocBuilder<YTMusicCubit, YTMusicCubitState>(
-                              builder: (context, state) {
-                                return AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 400),
-                                  child: state is YTMusicCubitInitial
-                                      ? const SizedBox()
-                                      : ytSection(state.ytmData),
-                                );
-                              },
-                            ),
-                          ConnectivityState.disconnected =>
-                            const SignBoardWidget(
-                              message: "No Internet Connection",
-                              icon: MingCute.wifi_off_line,
-                            ),
-                          _ => const SizedBox()
-                        },
+                        child: state is YTMusicCubitInitial
+                            ? BlocBuilder<ConnectivityCubit, ConnectivityState>(
+                                builder: (context, state2) {
+                                  if ((state2 ==
+                                      ConnectivityState.disconnected)) {
+                                    return const SignBoardWidget(
+                                      message: "No Internet Connection!",
+                                      icon: MingCute.wifi_off_line,
+                                    );
+                                  } else {
+                                    return const SizedBox();
+                                  }
+                                },
+                              )
+                            : ytSection(state.ytmData),
                       );
                     },
                   ),

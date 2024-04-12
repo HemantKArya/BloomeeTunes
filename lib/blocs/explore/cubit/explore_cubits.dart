@@ -115,6 +115,24 @@ class ChartCubit extends Cubit<ChartState> {
   }
 }
 
+Map<String, List<dynamic>> parseYTMusicData(String source) {
+  final dynamicMap = jsonDecode(source);
+
+  Map<String, List<dynamic>> listDynamicMap;
+  if (dynamicMap is Map) {
+    listDynamicMap = dynamicMap.map((key, value) {
+      List<dynamic> list = [];
+      if (value is List) {
+        list = value;
+      }
+      return MapEntry(key, list);
+    });
+  } else {
+    listDynamicMap = {};
+  }
+  return listDynamicMap;
+}
+
 class FetchChartCubit extends Cubit<FetchChartState> {
   FetchChartCubit() : super(FetchChartInitial()) {
     fetchCharts();
@@ -180,18 +198,18 @@ class YTMusicCubit extends Cubit<YTMusicCubitState> {
     final data = await BloomeeDBService.getAPICache("YTMusic");
     if (data != null) {
       final ytmData = await compute(parseYTMusicData, data);
-      emit(state.copyWith(ytmData: ytmData));
+      if (ytmData.isNotEmpty) {
+        emit(state.copyWith(ytmData: ytmData));
+      }
     }
-  }
-
-  Map<String, List<dynamic>> parseYTMusicData(String source) {
-    return jsonDecode(source);
   }
 
   void fetchYTMusic() async {
     final ytCharts = await YtMusicService().getMusicHome();
-    emit(state.copyWith(ytmData: ytCharts));
-    final ytChartsJson = jsonEncode(ytCharts);
-    BloomeeDBService.putAPICache("YTMusic", ytChartsJson);
+    if (ytCharts.isNotEmpty) {
+      emit(state.copyWith(ytmData: ytCharts));
+      final ytChartsJson = jsonEncode(ytCharts);
+      BloomeeDBService.putAPICache("YTMusic", ytChartsJson);
+    }
   }
 }
