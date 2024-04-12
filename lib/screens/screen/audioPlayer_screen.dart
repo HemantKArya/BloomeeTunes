@@ -275,7 +275,12 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                           false
                                       ? Default_Theme.accentColor1
                                       : Default_Theme.accentColor2,
-                              thumbRadius: 0,
+                              thumbRadius: 5,
+                              thumbColor:
+                                  snapshot.data?.currentPlayerState.playing ??
+                                          false
+                                      ? Default_Theme.accentColor1
+                                      : Default_Theme.accentColor2,
                               bufferedBarColor: snapshot
                                           .data?.currentPlayerState.playing ??
                                       false
