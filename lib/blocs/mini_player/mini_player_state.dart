@@ -1,97 +1,41 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-part of 'mini_player_cubit.dart';
+part of 'mini_player_bloc.dart';
 
-class MiniPlayerState {
-  final MediaItemModel mediaItem;
+sealed class MiniPlayerState extends Equatable {
+  final MediaItemModel song;
   final bool isPlaying;
   final bool isBuffering;
-  final bool isProcessing;
-  final bool isCompleted;
   const MiniPlayerState({
-    required this.mediaItem,
+    required this.song,
     required this.isPlaying,
     required this.isBuffering,
-    required this.isProcessing,
-    this.isCompleted = false,
   });
 
-  MiniPlayerState copyWith({
-    MediaItemModel? mediaItem,
-    bool? isPlaying,
-    bool? isBuffering,
-    bool? isProcessing,
-    bool? isCompleted,
-  }) {
-    return MiniPlayerState(
-      mediaItem: mediaItem ?? this.mediaItem,
-      isPlaying: isPlaying ?? this.isPlaying,
-      isBuffering: isBuffering ?? this.isBuffering,
-      isProcessing: isProcessing ?? this.isProcessing,
-      isCompleted: isCompleted ?? this.isCompleted,
-    );
-  }
-
   @override
-  bool operator ==(covariant MiniPlayerState other) {
-    if (identical(this, other)) return true;
-
-    return other.mediaItem == mediaItem &&
-        other.isPlaying == isPlaying &&
-        other.isBuffering == isBuffering &&
-        other.isProcessing == isProcessing &&
-        other.isCompleted == isCompleted;
-  }
-
-  @override
-  int get hashCode {
-    return mediaItem.hashCode ^
-        isPlaying.hashCode ^
-        isBuffering.hashCode ^
-        isProcessing.hashCode ^
-        isCompleted.hashCode;
-  }
+  List<Object> get props => [song, isPlaying, isBuffering];
 }
 
 class MiniPlayerInitial extends MiniPlayerState {
   MiniPlayerInitial()
-      : super(
-          mediaItem: mediaItemModelNull,
-          isPlaying: false,
-          isBuffering: false,
-          isProcessing: false,
-        );
-}
-
-class MiniPlayerWorking extends MiniPlayerState {
-  const MiniPlayerWorking({
-    required MediaItemModel mediaItem,
-    required bool isPlaying,
-    required bool isBuffering,
-    required bool isProcessing,
-  }) : super(
-          mediaItem: mediaItem,
-          isPlaying: isPlaying,
-          isBuffering: isBuffering,
-          isProcessing: isProcessing,
-        );
-}
-
-class MiniPlayerError extends MiniPlayerState {
-  MiniPlayerError()
-      : super(
-          mediaItem: mediaItemModelNull,
-          isPlaying: false,
-          isBuffering: false,
-          isProcessing: false,
-        );
+      : super(song: mediaItemModelNull, isPlaying: false, isBuffering: false);
 }
 
 class MiniPlayerCompleted extends MiniPlayerState {
-  const MiniPlayerCompleted({required MediaItemModel mediaItemModel})
-      : super(
-          mediaItem: mediaItemModel,
-          isPlaying: false,
-          isBuffering: false,
-          isProcessing: false,
-        );
+  const MiniPlayerCompleted(MediaItemModel song)
+      : super(song: song, isPlaying: false, isBuffering: false);
+}
+
+class MiniPlayerWorking extends MiniPlayerState {
+  const MiniPlayerWorking(MediaItemModel song, bool isPlaying, bool isBuffering)
+      : super(song: song, isPlaying: isPlaying, isBuffering: isBuffering);
+}
+
+class MiniPlayerError extends MiniPlayerState {
+  const MiniPlayerError(MediaItemModel song)
+      : super(song: song, isPlaying: false, isBuffering: false);
+}
+
+class MiniPlayerProcessing extends MiniPlayerState {
+  const MiniPlayerProcessing(
+    MediaItemModel song,
+  ) : super(song: song, isPlaying: false, isBuffering: false);
 }

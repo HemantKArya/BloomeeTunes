@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'dart:io' as io;
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
-import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
+import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/blocs/timer/timer_bloc.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -167,7 +167,7 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
             create: (context) =>
-                MiniPlayerCubit(bloomeePlayerCubit: bloomeePlayerCubit),
+                MiniPlayerBloc(playerCubit: bloomeePlayerCubit),
             lazy: true),
         BlocProvider(
           create: (context) => BloomeeDBCubit(),
