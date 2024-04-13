@@ -256,7 +256,7 @@ class YtMusicService {
           RegExp(r'(\"contents\":{.*?}),\"metadata\"', dotAll: true)
               .firstMatch(response.body)![1]!;
       final Map data = json.decode('{$searchResults}') as Map;
-
+      // dev.log("data: ${json.encode(data)}", name: "YTM");
       final List result = data['contents']['twoColumnBrowseResultsRenderer']
               ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
           ['contents'] as List;
@@ -273,23 +273,29 @@ class YtMusicService {
       for (Map element in shelfRenderer) {
         String title = element['title']['runs'][0]['text'].trim();
 
-        List playlistItems = await formatHomeSections(
-            element['content']['horizontalListRenderer']['items']);
+        try {
+          // dev.log("Inside loop: ${title}", name: "YTM");
+          List playlistItems = await formatHomeSections(
+              element['content']['horizontalListRenderer']['items']);
 
-        if (playlistItems.isNotEmpty) {
-          finalResult.add({
-            'title': title,
-            'items': playlistItems,
-          });
-        } else {
-          dev.log(
-              "got null in getMusicHome for '${element['title']['runs'][0]['text']}'",
-              name: "YTM");
+          if (playlistItems.isNotEmpty) {
+            finalResult.add({
+              'title': title,
+              'items': playlistItems,
+            });
+          } else {
+            dev.log(
+                "got null in getMusicHome for '${element['title']['runs'][0]['text']}'",
+                name: "YTM");
+          }
+        } catch (e) {
+          dev.log("Error inside HomeFormat getMusicHome: $e", name: "YTM");
         }
       }
       // dev.log("finalResult: $finalResult", name: "YTM");
 
       final List finalHeadResult = formatHeadItems(headResult);
+      // dev.log("finalHeadResult: $finalHeadResult", name: "YTM");
       finalResult.removeWhere((element) => element == null);
 
       return {'body': finalResult, 'head': finalHeadResult};

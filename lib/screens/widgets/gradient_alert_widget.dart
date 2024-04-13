@@ -2,11 +2,11 @@ import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
 
 class GradientDialog extends StatefulWidget {
-  String message;
-  Future<void> Function(String)? onOk;
-  String? okText;
-  String downloadURL = "";
-  GradientDialog(
+  final String message;
+  final Future<void> Function(String)? onOk;
+  final String? okText;
+  final String downloadURL;
+  const GradientDialog(
     this.message, {
     this.onOk,
     this.okText,
