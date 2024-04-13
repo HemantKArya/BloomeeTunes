@@ -266,3 +266,23 @@ class DownloadDB {
     required this.mediaId,
   });
 }
+
+@collection
+class NotificationDB {
+  Id? id = Isar.autoIncrement;
+  String title;
+  String body;
+  String type;
+  String? url;
+  String? payload;
+  DateTime? time;
+  NotificationDB({
+    this.id,
+    required this.title,
+    required this.body,
+    required this.time,
+    required this.type,
+    this.url,
+    this.payload,
+  });
+}

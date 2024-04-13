@@ -117,7 +117,7 @@ class MiniPlayerCard extends StatelessWidget {
                           state.song.title,
                           style: Default_Theme.secondoryTextStyle.merge(
                               const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: Default_Theme.primaryColor1)),
                           maxLines: 1,

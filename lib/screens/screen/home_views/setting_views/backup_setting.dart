@@ -1,11 +1,9 @@
 import 'dart:io';
-
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,7 +23,7 @@ class BackupSettings extends StatelessWidget {
         surfaceTintColor: Default_Theme.themeColor,
         centerTitle: true,
         title: Text(
-          'Backup and Restore',
+          'Storage',
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 20,
@@ -37,6 +35,44 @@ class BackupSettings extends StatelessWidget {
         builder: (context, state) {
           return ListView(
             children: [
+              SettingTile(
+                title: "Clear History In Every",
+                subtitle: "Clear history after every specified Time.",
+                trailing: DropdownButton(
+                  value: state.historyClearTime,
+                  style: const TextStyle(
+                    color: Default_Theme.primaryColor1,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ).merge(Default_Theme.secondoryTextStyle),
+                  underline: const SizedBox(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      context
+                          .read<SettingsCubit>()
+                          .setHistoryClearTime(newValue);
+                    }
+                  },
+                  items: <String>[
+                    '3',
+                    '7',
+                    '14',
+                    '30',
+                    '60',
+                    '90',
+                    '180',
+                    '365'
+                  ].map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        '${value} Days',
+                      ),
+                    );
+                  }).toList(),
+                ),
+                onTap: () {},
+              ),
               SettingTile(
                 title: "Backup location",
                 subtitle: state.backupPath,

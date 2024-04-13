@@ -22,4 +22,5 @@ class GlobalStrConsts {
   static const String ytStrmQuality = "ytStreamQuality";
   static const String backupPath = "backupPath";
   static const String autoBackup = "autoBackup";
+  static const String historyClearTime = "autoHistoryCleanupTime";
 }

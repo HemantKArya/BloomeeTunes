@@ -1,11 +1,14 @@
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
+import 'package:Bloomee/services/bloomeeUpdaterTools.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/utils/app_updater.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +21,7 @@ import 'package:icons_plus/icons_plus.dart';
 import '../widgets/carousal_widget.dart';
 import '../widgets/horizontal_card_view.dart';
 import '../widgets/tabList_widget.dart';
+import 'package:badges/badges.dart' as badges;
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -26,15 +30,36 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
+  bool isUpdateChecked = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (await context
-              .read<BloomeeDBCubit>()
-              .getSettingBool(GlobalStrConsts.autoUpdateNotify) ??
-          false) {
-        updateDialog(context);
+      if (!isUpdateChecked) {
+        getLatestVersion().then((value) {
+          if (value["results"]) {
+            if (int.parse(value["currBuild"]) < int.parse(value["newBuild"])) {
+              BloomeeDBService.putNotification(
+                title: "Update Available",
+                body:
+                    "New Version of Bloomee🌸 is now available!! Version: ${value["newVer"]} + ${value["newBuild"]}",
+                type: "app_update",
+                unique: true,
+              ).then((_) {
+                setState(() {
+                  isUpdateChecked = true;
+                });
+              });
+            }
+          }
+        });
+
+        if (await context
+                .read<BloomeeDBCubit>()
+                .getSettingBool(GlobalStrConsts.autoUpdateNotify) ??
+            false) {
+          updateDialog(context);
+        }
       }
     });
   }
@@ -189,24 +214,65 @@ class _ExploreScreenState extends State<ExploreScreen> {
               style: Default_Theme.primaryTextStyle.merge(const TextStyle(
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),
-          IconButton(
-            padding: const EdgeInsets.all(5),
-            constraints: const BoxConstraints(),
-            style: const ButtonStyle(
-              tapTargetSize:
-                  MaterialTapTargetSize.shrinkWrap, // the '2023' part
-            ),
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const NotificationView()));
+          BlocBuilder<NotificationCubit, NotificationState>(
+            builder: (context, state) {
+              if (state is NotificationInitial || state.notifications.isEmpty) {
+                return IconButton(
+                  padding: const EdgeInsets.all(5),
+                  constraints: const BoxConstraints(),
+                  style: const ButtonStyle(
+                    tapTargetSize:
+                        MaterialTapTargetSize.shrinkWrap, // the '2023' part
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const NotificationView()));
+                  },
+                  icon: const Icon(MingCute.notification_line,
+                      color: Default_Theme.primaryColor1, size: 30.0),
+                );
+              } else {
+                return badges.Badge(
+                  badgeContent: Padding(
+                    padding: const EdgeInsets.all(1.5),
+                    child: Text(
+                      state.notifications.length.toString(),
+                      style: Default_Theme.primaryTextStyle.merge(
+                          const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Default_Theme.primaryColor2)),
+                    ),
+                  ),
+                  badgeStyle: const badges.BadgeStyle(
+                    badgeColor: Default_Theme.accentColor2,
+                    shape: badges.BadgeShape.circle,
+                  ),
+                  position: badges.BadgePosition.topEnd(top: -10, end: -5),
+                  child: IconButton(
+                    padding: const EdgeInsets.all(5),
+                    constraints: const BoxConstraints(),
+                    style: const ButtonStyle(
+                      tapTargetSize:
+                          MaterialTapTargetSize.shrinkWrap, // the '2023' part
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const NotificationView()));
+                    },
+                    icon: const Icon(MingCute.notification_line,
+                        color: Default_Theme.primaryColor1, size: 30.0),
+                  ),
+                );
+              }
             },
-            icon: const Icon(MingCute.notification_line,
-                color: Default_Theme.primaryColor1, size: 30.0),
           ),
           IconButton(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             constraints: const BoxConstraints(),
             style: const ButtonStyle(
               tapTargetSize:

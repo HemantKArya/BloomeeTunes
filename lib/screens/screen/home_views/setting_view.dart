@@ -81,8 +81,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "Backup & Restore",
-              subtitle: "Backup, Restore, Reset and more...",
+              title: "Storage",
+              subtitle: "Backup, Cache, History, Restore and more...",
               icon: MingCute.coin_2_fill,
               onTap: () {
                 Navigator.push(

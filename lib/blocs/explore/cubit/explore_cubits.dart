@@ -60,7 +60,7 @@ class RecentlyCubit extends Cubit<RecentlyCubitState> {
   }
 
   Future<void> watchRecentlyPlayed() async {
-    (await BloomeeDBService.watchRecentlyPlayed()).listen((event) {
+    watcher = (await BloomeeDBService.watchRecentlyPlayed()).listen((event) {
       getRecentlyPlayed();
       log("Recently Played Updated");
     });

@@ -34,20 +34,20 @@ class TextColorPair {
 // create list of color pair which have some light colors with text color, use proffessinoal colors like pastel colors
 final List<TextColorPair> colorPair = [
   TextColorPair(
-    color1: const Color.fromARGB(255, 223, 205, 0).withOpacity(0.8),
-    color2: const Color.fromARGB(255, 205, 135, 23).withOpacity(0.0),
+    color1: Color.fromARGB(255, 223, 63, 0).withOpacity(0.9),
+    color2: const Color.fromARGB(255, 205, 135, 23).withOpacity(0.7),
   ),
   TextColorPair(
-    color1: const Color.fromARGB(255, 255, 173, 50).withOpacity(0.8),
-    color2: const Color.fromARGB(255, 205, 132, 23).withOpacity(0.0),
+    color1: const Color.fromARGB(255, 255, 173, 50).withOpacity(0.9),
+    color2: const Color.fromARGB(255, 205, 132, 23).withOpacity(0.7),
   ),
   TextColorPair(
-    color1: const Color.fromARGB(255, 0, 115, 223).withOpacity(0.8),
-    color2: const Color.fromARGB(255, 23, 96, 205).withOpacity(0.0),
+    color1: Color.fromARGB(255, 6, 85, 159).withOpacity(0.9),
+    color2: Color.fromARGB(255, 28, 105, 220).withOpacity(0.7),
   ),
   TextColorPair(
-    color1: const Color.fromARGB(255, 223, 0, 123).withOpacity(0.8),
-    color2: const Color.fromARGB(255, 205, 23, 56).withOpacity(0.0),
+    color1: Color.fromARGB(255, 222, 8, 125).withOpacity(0.9),
+    color2: Color.fromARGB(255, 223, 38, 72).withOpacity(0.7),
   ),
 ];
 
@@ -78,7 +78,8 @@ class _ChartWidgetState extends State<ChartWidget> {
                 child: state is ChartInitial
                     ? Stack(children: [
                         Container(
-                          color: const Color.fromARGB(255, 52, 0, 147),
+                          color: const Color.fromARGB(255, 52, 0, 147)
+                              .withOpacity(0.5),
                         ),
                         const Center(
                           child: Icon(MingCute.music_2_fill,

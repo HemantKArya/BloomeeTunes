@@ -54,7 +54,17 @@ class SettingsCubit extends Cubit<SettingsState> {
     });
 
     BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality).then((value) {
-      emit(state.copyWith(ytStrmQuality: value ?? "Low"));
+      if (value == "High" || value == "Low") {
+        emit(state.copyWith(ytStrmQuality: value ?? "Low"));
+      } else {
+        BloomeeDBService.putSettingStr(GlobalStrConsts.ytStrmQuality, "Low");
+        emit(state.copyWith(ytStrmQuality: "Low"));
+      }
+    });
+
+    BloomeeDBService.getSettingStr(GlobalStrConsts.historyClearTime)
+        .then((value) {
+      emit(state.copyWith(historyClearTime: value ?? "30"));
     });
 
     BloomeeDBService.getSettingStr(GlobalStrConsts.backupPath)
@@ -125,6 +135,11 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setAutoBackup(bool value) {
     BloomeeDBService.putSettingBool(GlobalStrConsts.autoBackup, value);
     emit(state.copyWith(autoBackup: value));
+  }
+
+  void setHistoryClearTime(String value) {
+    BloomeeDBService.putSettingStr(GlobalStrConsts.historyClearTime, value);
+    emit(state.copyWith(historyClearTime: value));
   }
 
   Future<void> resetDownPath() async {

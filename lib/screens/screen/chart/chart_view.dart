@@ -60,6 +60,9 @@ class _ChartScreenState extends State<ChartScreen> {
                     delegate: SliverChildListDelegate([
                   ListView.builder(
                     shrinkWrap: true,
+                    padding: const EdgeInsets.only(
+                      top: 5,
+                    ),
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: state.data!.chartItems!.length,
                     itemBuilder: (context, index) {

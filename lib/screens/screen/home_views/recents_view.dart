@@ -1,11 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/history/cubit/history_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/backup_setting.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class HistoryView extends StatelessWidget {
   const HistoryView({super.key});
@@ -16,6 +18,22 @@ class HistoryView extends StatelessWidget {
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(
+              MingCute.settings_1_line,
+              color: Default_Theme.primaryColor1,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BackupSettings(),
+                ),
+              );
+            },
+          ),
+        ],
         backgroundColor: Default_Theme.themeColor,
         surfaceTintColor: Default_Theme.themeColor,
         foregroundColor: Default_Theme.primaryColor1,

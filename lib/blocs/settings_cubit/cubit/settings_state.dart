@@ -11,6 +11,7 @@ class SettingsState {
   String ytStrmQuality;
   String backupPath;
   bool autoBackup;
+  String historyClearTime;
   SettingsState({
     required this.autoUpdateNotify,
     required this.autoSlideCharts,
@@ -21,6 +22,7 @@ class SettingsState {
     required this.ytStrmQuality,
     required this.backupPath,
     required this.autoBackup,
+    required this.historyClearTime,
   });
 
   SettingsState copyWith({
@@ -33,6 +35,7 @@ class SettingsState {
     String? ytStrmQuality,
     String? backupPath,
     bool? autoBackup,
+    String? historyClearTime,
   }) {
     return SettingsState(
       autoUpdateNotify: autoUpdateNotify ?? this.autoUpdateNotify,
@@ -44,6 +47,7 @@ class SettingsState {
       ytStrmQuality: ytStrmQuality ?? this.ytStrmQuality,
       backupPath: backupPath ?? this.backupPath,
       autoBackup: autoBackup ?? this.autoBackup,
+      historyClearTime: historyClearTime ?? this.historyClearTime,
     );
   }
 }
@@ -60,5 +64,6 @@ final class SettingsInitial extends SettingsState {
           ytStrmQuality: "Low",
           backupPath: "",
           autoBackup: true,
+          historyClearTime: "30",
         );
 }
