@@ -5,14 +5,11 @@ import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dar
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
-import 'package:Bloomee/screens/widgets/import_playlist.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
-import 'package:Bloomee/utils/external_list_importer.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
@@ -23,7 +20,6 @@ import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:share_plus/share_plus.dart';
@@ -408,6 +404,7 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                               (context, index) {
                                                 return SongCardWidget(
                                                   song: mediaitems[index],
+                                                  isWide: true,
                                                   onTap: () {
                                                     if (!listEquals(
                                                         context

@@ -17,6 +17,7 @@ class SongCardWidget extends StatelessWidget {
   final bool? showInfoBtn;
   final bool? showPlayBtn;
   final bool? delDownBtn;
+  final bool? isWide;
   final VoidCallback? onOptionsTap;
   final VoidCallback? onInfoTap;
   final VoidCallback? onPlayTap;
@@ -35,6 +36,7 @@ class SongCardWidget extends StatelessWidget {
     this.onPlayTap,
     this.onTap,
     this.onDelDownTap,
+    this.isWide = false,
   }) : super(key: key);
 
   @override
@@ -75,12 +77,19 @@ class SongCardWidget extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 4, right: 4),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: SizedBox(
-                    width: 55,
-                    height: 55,
-                    child: loadImageCached(song.artUri.toString(),
-                        fit: BoxFit.cover),
-                  ),
+                  child: isWide ?? false
+                      ? SizedBox(
+                          width: 80,
+                          height: 55,
+                          child: loadImageCached(song.artUri.toString(),
+                              fit: BoxFit.cover),
+                        )
+                      : SizedBox(
+                          width: 55,
+                          height: 55,
+                          child: loadImageCached(song.artUri.toString(),
+                              fit: BoxFit.cover),
+                        ),
                 ),
               ),
               const SizedBox(width: 10),
