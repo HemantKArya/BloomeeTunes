@@ -291,13 +291,276 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                             );
                           }),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 350),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 25),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Tooltip(
+                              message: "Timer",
+                              child: IconButton(
+                                padding: const EdgeInsets.all(5),
+                                constraints: const BoxConstraints(),
+                                style: const ButtonStyle(
+                                  tapTargetSize: MaterialTapTargetSize
+                                      .shrinkWrap, // the '2023' part
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const TimerView()));
+                                },
+                                icon: const Icon(
+                                  MingCute.alarm_1_line,
+                                  color: Default_Theme.primaryColor1,
+                                  size: 30,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              padding: const EdgeInsets.all(5),
+                              constraints: const BoxConstraints(),
+                              style: const ButtonStyle(
+                                tapTargetSize: MaterialTapTargetSize
+                                    .shrinkWrap, // the '2023' part
+                              ),
+                              onPressed: () => musicPlayer.skipToPrevious(),
+                              icon: const Icon(
+                                MingCute.skip_previous_fill,
+                                color: Default_Theme.primaryColor1,
+                                size: 30,
+                              ),
+                            ),
+                            StreamBuilder(
+                                stream: context
+                                    .watch<BloomeePlayerCubit>()
+                                    .bloomeePlayer
+                                    .isLinkProcessing,
+                                builder: (context, snapshot2) {
+                                  return snapshot2.hasData &&
+                                          snapshot2.data == true
+                                      ? Container(
+                                          decoration: const BoxDecoration(
+                                            boxShadow: [
+                                              BoxShadow(
+                                                  color: Default_Theme
+                                                      .accentColor2,
+                                                  spreadRadius: 1,
+                                                  blurRadius: 20)
+                                            ],
+                                            shape: BoxShape.circle,
+                                            color: Default_Theme.accentColor2,
+                                          ),
+                                          width: 75,
+                                          height: 75,
+                                          child: const Center(
+                                            child: SizedBox(
+                                              width: 35,
+                                              height: 35,
+                                              child: CircularProgressIndicator(
+                                                color:
+                                                    Default_Theme.primaryColor1,
+                                              ),
+                                            ),
+                                          ))
+                                      : StreamBuilder<PlayerState>(
+                                          stream: context
+                                              .watch<BloomeePlayerCubit>()
+                                              .bloomeePlayer
+                                              .audioPlayer
+                                              .playerStateStream,
+                                          builder: (context, snapshot) {
+                                            return PlayPauseButton(
+                                              size: 75,
+                                              onPause: () =>
+                                                  musicPlayer.pause(),
+                                              onPlay: () => musicPlayer.play(),
+                                              isPlaying:
+                                                  snapshot.data?.playing ??
+                                                      false,
+                                            );
+                                          });
+                                }),
+                            IconButton(
+                              padding: const EdgeInsets.all(5),
+                              constraints: const BoxConstraints(),
+                              style: const ButtonStyle(
+                                tapTargetSize: MaterialTapTargetSize
+                                    .shrinkWrap, // the '2023' part
+                              ),
+                              onPressed: () => musicPlayer.skipToNext(),
+                              icon: const Icon(
+                                MingCute.skip_forward_fill,
+                                color: Default_Theme.primaryColor1,
+                                size: 30,
+                              ),
+                            ),
+                            StreamBuilder<bool>(
+                                stream: context
+                                    .watch<BloomeePlayerCubit>()
+                                    .bloomeePlayer
+                                    .audioPlayer
+                                    .shuffleModeEnabledStream,
+                                builder: (context, snapshot) {
+                                  return Tooltip(
+                                    message: "Shuffle",
+                                    child: IconButton(
+                                      padding: const EdgeInsets.all(5),
+                                      constraints: const BoxConstraints(),
+                                      style: const ButtonStyle(
+                                        tapTargetSize: MaterialTapTargetSize
+                                            .shrinkWrap, // the '2023' part
+                                      ),
+                                      icon: Icon(
+                                        MingCute.shuffle_2_fill,
+                                        color: (snapshot.data ?? false)
+                                            ? Default_Theme.accentColor1
+                                            : Default_Theme.primaryColor1,
+                                        size: 30,
+                                      ),
+                                      onPressed: () {
+                                        context
+                                            .read<BloomeePlayerCubit>()
+                                            .bloomeePlayer
+                                            .shuffle((snapshot.data ?? false)
+                                                ? false
+                                                : true);
+                                      },
+                                    ),
+                                  );
+                                })
+                          ],
+                        ),
+                      ),
+                    ),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 350),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Tooltip(
-                            message: "Timer",
+                            message: "Loop",
+                            child: PopupMenuButton(
+                              color: const Color.fromARGB(255, 17, 17, 17),
+                              surfaceTintColor:
+                                  const Color.fromARGB(255, 19, 19, 19),
+                              padding: const EdgeInsets.all(5),
+                              itemBuilder: (BuildContext context) => [
+                                PopupMenuItem(
+                                  value: 0,
+                                  child: Text(
+                                    "Off",
+                                    style:
+                                        Default_Theme.secondoryTextStyle.merge(
+                                      const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Default_Theme.primaryColor1,
+                                          fontSize: 14),
+                                    ),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 1,
+                                  child: Text(
+                                    "Loop One",
+                                    style:
+                                        Default_Theme.secondoryTextStyle.merge(
+                                      const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Default_Theme.primaryColor1,
+                                          fontSize: 14),
+                                    ),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 2,
+                                  child: Text(
+                                    "Loop All",
+                                    style:
+                                        Default_Theme.secondoryTextStyle.merge(
+                                      const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Default_Theme.primaryColor1,
+                                          fontSize: 14),
+                                    ),
+                                  ),
+                                )
+                              ],
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: StreamBuilder<LoopMode>(
+                                    stream: context
+                                        .watch<BloomeePlayerCubit>()
+                                        .bloomeePlayer
+                                        .loopMode,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        switch (snapshot.data) {
+                                          case LoopMode.off:
+                                            return const Icon(
+                                              MingCute.repeat_line,
+                                              color:
+                                                  Default_Theme.primaryColor1,
+                                              size: 30,
+                                            );
+                                          case LoopMode.one:
+                                            return const Icon(
+                                              MingCute.repeat_one_line,
+                                              color: Default_Theme.accentColor1,
+                                              size: 30,
+                                            );
+                                          case LoopMode.all:
+                                            return const Icon(
+                                              MingCute.repeat_fill,
+                                              color: Default_Theme.accentColor1,
+                                              size: 30,
+                                            );
+                                          case null:
+                                            return const Icon(
+                                              MingCute.repeat_line,
+                                              color:
+                                                  Default_Theme.primaryColor1,
+                                              size: 30,
+                                            );
+                                        }
+                                      }
+                                      return const Icon(
+                                        MingCute.repeat_line,
+                                        color: Default_Theme.primaryColor1,
+                                        size: 30,
+                                      );
+                                    }),
+                              ),
+                              onSelected: (value) {
+                                switch (value) {
+                                  case 0:
+                                    context
+                                        .read<BloomeePlayerCubit>()
+                                        .bloomeePlayer
+                                        .setLoopMode(LoopMode.off);
+                                    break;
+                                  case 1:
+                                    context
+                                        .read<BloomeePlayerCubit>()
+                                        .bloomeePlayer
+                                        .setLoopMode(LoopMode.one);
+                                    break;
+                                  case 2:
+                                    context
+                                        .read<BloomeePlayerCubit>()
+                                        .bloomeePlayer
+                                        .setLoopMode(LoopMode.all);
+                                    break;
+                                }
+                              },
+                            ),
+                          ),
+                          Tooltip(
+                            message: "Open Original Link",
                             child: IconButton(
                               padding: const EdgeInsets.all(5),
                               constraints: const BoxConstraints(),
@@ -305,177 +568,22 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                 tapTargetSize: MaterialTapTargetSize
                                     .shrinkWrap, // the '2023' part
                               ),
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const TimerView()));
-                              },
                               icon: const Icon(
-                                MingCute.alarm_1_line,
+                                MingCute.external_link_line,
                                 color: Default_Theme.primaryColor1,
                                 size: 30,
                               ),
+                              onPressed: () {
+                                launchUrlString(context
+                                    .read<BloomeePlayerCubit>()
+                                    .bloomeePlayer
+                                    .currentMedia
+                                    .extras?['perma_url']);
+                              },
                             ),
-                          ),
-                          IconButton(
-                            padding: const EdgeInsets.all(5),
-                            constraints: const BoxConstraints(),
-                            style: const ButtonStyle(
-                              tapTargetSize: MaterialTapTargetSize
-                                  .shrinkWrap, // the '2023' part
-                            ),
-                            onPressed: () => musicPlayer.skipToPrevious(),
-                            icon: const Icon(
-                              MingCute.skip_previous_fill,
-                              color: Default_Theme.primaryColor1,
-                              size: 30,
-                            ),
-                          ),
-                          StreamBuilder(
-                              stream: context
-                                  .watch<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .isLinkProcessing,
-                              builder: (context, snapshot2) {
-                                return snapshot2.hasData &&
-                                        snapshot2.data == true
-                                    ? Container(
-                                        decoration: const BoxDecoration(
-                                          boxShadow: [
-                                            BoxShadow(
-                                                color:
-                                                    Default_Theme.accentColor2,
-                                                spreadRadius: 1,
-                                                blurRadius: 20)
-                                          ],
-                                          shape: BoxShape.circle,
-                                          color: Default_Theme.accentColor2,
-                                        ),
-                                        width: 75,
-                                        height: 75,
-                                        child: const Center(
-                                          child: SizedBox(
-                                            width: 35,
-                                            height: 35,
-                                            child: CircularProgressIndicator(
-                                              color:
-                                                  Default_Theme.primaryColor1,
-                                            ),
-                                          ),
-                                        ))
-                                    : StreamBuilder<PlayerState>(
-                                        stream: context
-                                            .watch<BloomeePlayerCubit>()
-                                            .bloomeePlayer
-                                            .audioPlayer
-                                            .playerStateStream,
-                                        builder: (context, snapshot) {
-                                          return PlayPauseButton(
-                                            size: 75,
-                                            onPause: () => musicPlayer.pause(),
-                                            onPlay: () => musicPlayer.play(),
-                                            isPlaying:
-                                                snapshot.data?.playing ?? false,
-                                          );
-                                        });
-                              }),
-                          IconButton(
-                            padding: const EdgeInsets.all(5),
-                            constraints: const BoxConstraints(),
-                            style: const ButtonStyle(
-                              tapTargetSize: MaterialTapTargetSize
-                                  .shrinkWrap, // the '2023' part
-                            ),
-                            onPressed: () => musicPlayer.skipToNext(),
-                            icon: const Icon(
-                              MingCute.skip_forward_fill,
-                              color: Default_Theme.primaryColor1,
-                              size: 30,
-                            ),
-                          ),
-                          StreamBuilder<bool>(
-                              stream: context
-                                  .watch<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .audioPlayer
-                                  .shuffleModeEnabledStream,
-                              builder: (context, snapshot) {
-                                return Tooltip(
-                                  message: "Shuffle",
-                                  child: IconButton(
-                                    padding: const EdgeInsets.all(5),
-                                    constraints: const BoxConstraints(),
-                                    style: const ButtonStyle(
-                                      tapTargetSize: MaterialTapTargetSize
-                                          .shrinkWrap, // the '2023' part
-                                    ),
-                                    icon: Icon(
-                                      MingCute.shuffle_2_fill,
-                                      color: (snapshot.data ?? false)
-                                          ? Default_Theme.accentColor1
-                                          : Default_Theme.primaryColor1,
-                                      size: 30,
-                                    ),
-                                    onPressed: () {
-                                      context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .shuffle((snapshot.data ?? false)
-                                              ? false
-                                              : true);
-                                    },
-                                  ),
-                                );
-                              })
+                          )
                         ],
                       ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Tooltip(
-                          message: "Replay",
-                          child: IconButton(
-                            padding: const EdgeInsets.all(5),
-                            constraints: const BoxConstraints(),
-                            style: const ButtonStyle(
-                              tapTargetSize: MaterialTapTargetSize
-                                  .shrinkWrap, // the '2023' part
-                            ),
-                            icon: const Icon(
-                              MingCute.refresh_anticlockwise_1_line,
-                              color: Default_Theme.primaryColor1,
-                              size: 30,
-                            ),
-                            onPressed: () => musicPlayer.rewind(),
-                          ),
-                        ),
-                        Tooltip(
-                          message: "Open Original Link",
-                          child: IconButton(
-                            padding: const EdgeInsets.all(5),
-                            constraints: const BoxConstraints(),
-                            style: const ButtonStyle(
-                              tapTargetSize: MaterialTapTargetSize
-                                  .shrinkWrap, // the '2023' part
-                            ),
-                            icon: const Icon(
-                              MingCute.external_link_line,
-                              color: Default_Theme.primaryColor1,
-                              size: 30,
-                            ),
-                            onPressed: () {
-                              launchUrlString(context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .currentMedia
-                                  .extras?['perma_url']);
-                            },
-                          ),
-                        )
-                      ],
                     ),
                   ],
                 ),

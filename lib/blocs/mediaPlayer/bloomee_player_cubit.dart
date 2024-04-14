@@ -29,7 +29,8 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
     );
 
     bloomeePlayer.audioPlayer.playerStateStream.listen((event) {
-      if (event.processingState == ProcessingState.completed) {
+      if (event.processingState == ProcessingState.completed &&
+          bloomeePlayer.loopMode.value != LoopMode.one) {
         //Temp solution(Debouncing) to prevent from subsequent gapless 'completed' event
         EasyThrottle.throttle('skipNext', const Duration(milliseconds: 7000),
             () async => await bloomeePlayer.skipToNext());
