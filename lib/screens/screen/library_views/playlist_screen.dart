@@ -241,10 +241,7 @@ class _PlaylistState extends State<Playlist> {
           key: ValueKey(_state.mediaItems[index].id),
           onTap: () {
             if (!listEquals(
-                context
-                    .read<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .currentPlaylist,
+                context.read<BloomeePlayerCubit>().bloomeePlayer.queue.value,
                 _state.mediaItems)) {
               context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
                   MediaPlaylist(

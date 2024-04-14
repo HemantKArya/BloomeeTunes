@@ -283,9 +283,14 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                                               () {
                                                                             SnackbarService.showMessage("Shuffling & Playing All",
                                                                                 duration: const Duration(seconds: 2));
-                                                                            mediaitems.shuffle();
-                                                                            context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(MediaPlaylist(mediaItems: mediaitems, albumName: "${widget.title} - Youtube"),
-                                                                                doPlay: true);
+                                                                            context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
+                                                                                  MediaPlaylist(
+                                                                                    mediaItems: mediaitems,
+                                                                                    albumName: "${widget.title} - Youtube",
+                                                                                  ),
+                                                                                  doPlay: true,
+                                                                                  shuffling: true,
+                                                                                );
                                                                           },
                                                                           padding: const EdgeInsets
                                                                               .all(
@@ -411,7 +416,8 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                             .read<
                                                                 BloomeePlayerCubit>()
                                                             .bloomeePlayer
-                                                            .currentPlaylist,
+                                                            .queue
+                                                            .value,
                                                         mediaitems)) {
                                                       context
                                                           .read<

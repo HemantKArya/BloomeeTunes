@@ -2,9 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
-import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
-import 'package:Bloomee/screens/screen/library_views/playlist_screen.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 

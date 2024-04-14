@@ -8,8 +8,8 @@ class PlayPauseButton extends StatefulWidget {
   final double size;
   final VoidCallback? onPlay;
   final VoidCallback? onPause;
-  bool isPlaying;
-  PlayPauseButton({
+  final bool isPlaying;
+  const PlayPauseButton({
     Key? key,
     this.size = 60,
     this.onPlay,

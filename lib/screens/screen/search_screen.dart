@@ -16,8 +16,8 @@ import 'package:Bloomee/screens/screen/search_views/search_page.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
 class SearchScreen extends StatefulWidget {
-  String searchQuery = "";
-  SearchScreen({
+  final String searchQuery;
+  const SearchScreen({
     Key? key,
     this.searchQuery = "",
   }) : super(key: key);
@@ -230,7 +230,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                             context
                                                 .read<BloomeePlayerCubit>()
                                                 .bloomeePlayer
-                                                .currentPlaylist,
+                                                .queue
+                                                .value,
                                             state.mediaItems)) {
                                           context
                                               .read<BloomeePlayerCubit>()
