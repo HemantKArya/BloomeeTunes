@@ -33,25 +33,3 @@ List<MediaItemModel> fromYtVidSongMapList2MediaItemList(
       .toList();
   return mediaList;
 }
-
-
-// {id: WGgOSfDX1Wo,
-//  album: OSR Digital,
-// duration: 262,
-// title: MG Rodaima - "Hajar Juni Samma" Movie Song || Swastima, Salon, Akhilesh || Rajan Raj, Melina Rai, 
-// artist: OSR Digital, 
-// image: https://img.youtube.com/vi/WGgOSfDX1Wo/maxresdefault.jpg, 
-// secondImage: https://img.youtube.com/vi/WGgOSfDX1Wo/hqdefault.jpg, 
-// language: YouTube, 
-// genre: YouTube, 
-// expire_at: 0, 
-// url: , 
-// lowUrl: , 
-// highUrl: , 
-// year: 2019, 
-// 320kbps: false, 
-// has_lyrics: false, 
-// release_date: null, 
-// album_id: UCxCoea3ulOukfXiYAm87ZIA, 
-// subtitle: OSR Digital, 
-// perma_url: https://www.youtube.com/watch?v=WGgOSfDX1Wo}

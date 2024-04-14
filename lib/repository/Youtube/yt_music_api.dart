@@ -663,6 +663,7 @@ class YtMusicService {
       body['browseId'] = browseId;
       final Map response =
           await sendRequest(endpoints['browse']!, body, headers);
+      // dev.log('playlist response: ${response.keys}', name: "YTM");
 
       final String? heading = nav(response, [
         'header',
@@ -771,7 +772,16 @@ class YtMusicService {
         String album = '';
         String artist = '';
         String albumArtist = '';
-        String duration = '';
+        String duration = timeStringToSeconds(nav(item, [
+          'musicResponsiveListItemRenderer',
+          'fixedColumns',
+          0,
+          'musicResponsiveListItemFixedColumnRenderer',
+          'text',
+          'runs',
+          0,
+          'text',
+        ])).toString();
         String subtitle = '';
         year = '';
         await Future.forEach(subtitleList, (element) {
@@ -792,7 +802,7 @@ class YtMusicService {
             } else if (count == 1) {
               album += element['text'].toString();
             } else if (count == 2) {
-              duration += element['text'].toString();
+              // duration += element['text'].toString();
             }
           }
         });

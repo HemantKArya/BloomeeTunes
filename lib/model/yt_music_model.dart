@@ -5,11 +5,15 @@ MediaItemModel fromYtSongMap2MediaItem(Map<dynamic, dynamic> songItem) {
   List<String> _artists = List.empty(growable: true);
   List<String> artistsID = List.empty(growable: true);
 
-  (songItem['artists'] as List).forEach((element) {
-    _artists.add(element["name"]);
-    artistsID.add(element["id"]);
-  });
-  artists = _artists.join(',');
+  try {
+    (songItem['artists'] as List).forEach((element) {
+      _artists.add(element["name"]);
+      artistsID.add(element["id"]);
+    });
+    artists = _artists.join(',');
+  } catch (e) {
+    artists = songItem["artist"] ?? 'Unknown';
+  }
   return MediaItemModel(
       id: songItem["id"] ?? 'Unknown',
       title: songItem["title"] ?? 'Unknown',

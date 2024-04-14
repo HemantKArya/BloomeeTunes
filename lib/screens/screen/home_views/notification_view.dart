@@ -48,7 +48,7 @@ class NotificationView extends StatelessWidget {
         body: BlocBuilder<NotificationCubit, NotificationState>(
           builder: (context, state) {
             if (state is NotificationInitial || state.notifications.isEmpty) {
-              const Center(
+              return const Center(
                 child: SignBoardWidget(
                     message: "No Notifications yet!",
                     icon: MingCute.notification_off_line),

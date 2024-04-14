@@ -7,8 +7,6 @@ import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/services/bloomeeUpdaterTools.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/utils/app_updater.dart';
 import 'package:flutter/material.dart';
@@ -36,24 +34,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!isUpdateChecked) {
-        getLatestVersion().then((value) {
-          if (value["results"]) {
-            if (int.parse(value["currBuild"]) < int.parse(value["newBuild"])) {
-              BloomeeDBService.putNotification(
-                title: "Update Available",
-                body:
-                    "New Version of Bloomee🌸 is now available!! Version: ${value["newVer"]} + ${value["newBuild"]}",
-                type: "app_update",
-                unique: true,
-              ).then((_) {
-                setState(() {
-                  isUpdateChecked = true;
-                });
-              });
-            }
-          }
-        });
-
         if (await context
                 .read<BloomeeDBCubit>()
                 .getSettingBool(GlobalStrConsts.autoUpdateNotify) ??

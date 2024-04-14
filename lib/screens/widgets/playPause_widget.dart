@@ -54,14 +54,14 @@ class _PlayPauseButtonState extends State<PlayPauseButton> {
           width: _size,
           height: _size,
           child: _isPlaying
-              ? const Icon(
+              ? Icon(
                   FontAwesome.pause_solid,
-                  size: 35,
+                  size: widget.size * 0.5,
                   color: Default_Theme.primaryColor1,
                 )
-              : const Icon(
+              : Icon(
                   MingCute.play_fill,
-                  size: 35,
+                  size: widget.size * 0.5,
                   color: Default_Theme.primaryColor1,
                 ),
         ),
