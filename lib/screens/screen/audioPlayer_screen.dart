@@ -88,8 +88,6 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
         ),
       ),
       body: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
         child: Stack(
           children: [
             Positioned(

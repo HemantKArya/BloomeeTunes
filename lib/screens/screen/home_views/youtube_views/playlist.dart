@@ -5,6 +5,7 @@ import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dar
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
+import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -410,6 +411,10 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                 return SongCardWidget(
                                                   song: mediaitems[index],
                                                   isWide: true,
+                                                  onOptionsTap: () {
+                                                    showMoreBottomSheet(context,
+                                                        mediaitems[index]);
+                                                  },
                                                   onTap: () {
                                                     if (!listEquals(
                                                         context
