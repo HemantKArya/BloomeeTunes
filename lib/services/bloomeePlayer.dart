@@ -25,6 +25,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   BehaviorSubject<bool> fromPlaylist = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isOffline = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isLinkProcessing = BehaviorSubject<bool>.seeded(false);
+  BehaviorSubject<List<MediaItem>> upNext =
+      BehaviorSubject<List<MediaItem>>.seeded([]);
   BehaviorSubject<LoopMode> loopMode =
       BehaviorSubject<LoopMode>.seeded(LoopMode.off);
   int currentPlayingIdx = 0;
@@ -119,6 +121,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       shuffleIdx = 0;
       shuffleList = generateRandomIndices(queue.value.length);
     }
+    updateUpNext();
   }
 
   Future<void> loadPlaylist(MediaPlaylist mediaList,
@@ -256,7 +259,37 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (queue.value.isNotEmpty) {
       currentPlayingIdx = idx;
       await playMediaItem(currentMedia, doPlay: doPlay);
+      updateUpNext();
       BloomeeDBService.putRecentlyPlayed(MediaItem2MediaItemDB(currentMedia));
+    }
+  }
+
+  Future<void> playOffsetIdx({int offset = 1}) async {
+    if (offset >= 0) {
+      if (audioPlayer.shuffleModeEnabled) {
+        if (offset + shuffleIdx < queue.value.length) {
+          prepare4play(idx: shuffleList[offset + shuffleIdx], doPlay: true);
+          shuffleIdx = shuffleIdx + offset;
+          updateUpNext();
+        }
+      } else {
+        if (currentPlayingIdx + offset < queue.value.length) {
+          prepare4play(idx: offset + currentPlayingIdx, doPlay: true);
+        }
+      }
+    }
+  }
+
+  Future<void> updateUpNext() async {
+    if (queue.value.isNotEmpty) {
+      if (audioPlayer.shuffleModeEnabled && shuffleList.isNotEmpty) {
+        var temp = shuffleList.sublist(shuffleIdx);
+        List<MediaItem> temp2 = [];
+        temp.map((e) => temp2.add(queue.value[e])).toList();
+        upNext.add(temp2);
+      } else {
+        upNext.add(queue.value.sublist(currentPlayingIdx));
+      }
     }
   }
 
