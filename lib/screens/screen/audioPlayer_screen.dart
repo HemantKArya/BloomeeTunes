@@ -101,10 +101,12 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 28, 17, 24).withOpacity(0.75),
+                    color:
+                        const Color.fromARGB(255, 28, 17, 24).withOpacity(0.70),
                     borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(25),
-                        topRight: Radius.circular(25)),
+                      topLeft: Radius.circular(25),
+                      topRight: Radius.circular(25),
+                    ),
                   ),
                 ),
               ),
@@ -410,7 +412,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                             }),
                       ),
                       ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 350),
+                        constraints: const BoxConstraints(maxWidth: 400),
                         child: Padding(
                           padding: const EdgeInsets.only(top: 25),
                           child: Row(
@@ -558,7 +560,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                         ),
                       ),
                       ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 350),
+                        constraints: const BoxConstraints(maxWidth: 400),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -690,11 +692,41 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                   tapTargetSize: MaterialTapTargetSize
                                       .shrinkWrap, // the '2023' part
                                 ),
-                                icon: const Icon(
-                                  MingCute.external_link_line,
-                                  color: Default_Theme.primaryColor1,
-                                  size: 30,
-                                ),
+                                icon: StreamBuilder<MediaItem?>(
+                                    stream: context
+                                        .read<BloomeePlayerCubit>()
+                                        .bloomeePlayer
+                                        .mediaItem,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData &&
+                                          snapshot.data?.extras?['perma_url'] !=
+                                              null) {
+                                        return snapshot
+                                                    .data?.extras?['source'] ==
+                                                'youtube'
+                                            ? const Icon(
+                                                MingCute.youtube_fill,
+                                                color:
+                                                    Default_Theme.primaryColor1,
+                                                size: 30,
+                                              )
+                                            : Text("JioSaavn",
+                                                style: const TextStyle(
+                                                        color: Default_Theme
+                                                            .primaryColor1,
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold)
+                                                    .merge(Default_Theme
+                                                        .secondoryTextStyle));
+                                      }
+
+                                      return const Icon(
+                                        MingCute.external_link_line,
+                                        color: Default_Theme.primaryColor1,
+                                        size: 30,
+                                      );
+                                    }),
                                 onPressed: () {
                                   launchUrlString(context
                                       .read<BloomeePlayerCubit>()
