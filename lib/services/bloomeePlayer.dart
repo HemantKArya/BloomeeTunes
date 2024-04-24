@@ -410,6 +410,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       shuffle(audioPlayer.shuffleModeEnabled);
     }
     queueTitle.add("Queue");
+    updateUpNext();
   }
 
   @override

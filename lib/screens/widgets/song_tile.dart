@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/screens/screen/song_info_screen.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:audio_service/audio_service.dart';
@@ -147,7 +148,15 @@ class SongCardWidget extends StatelessWidget {
                           color: Default_Theme.primaryColor1,
                         ),
                         onPressed: () {
-                          if (onInfoTap != null) onInfoTap!();
+                          if (onInfoTap != null) {
+                            onInfoTap!();
+                          } else {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        SongInfoScreen(song: song)));
+                          }
                         },
                       ),
                     )

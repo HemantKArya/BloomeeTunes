@@ -4,10 +4,10 @@ import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:equatable/equatable.dart';
 
 class MediaPlaylist extends Equatable {
-  late List<MediaItemModel> mediaItems;
-  bool isLiked = false;
-  String albumName = "Unknown";
-  MediaPlaylist({
+  final List<MediaItemModel> mediaItems;
+  final bool isLiked;
+  final String albumName;
+  const MediaPlaylist({
     required this.mediaItems,
     this.isLiked = false,
     required this.albumName,
