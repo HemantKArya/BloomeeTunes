@@ -54,37 +54,9 @@ CachedNetworkImage loadImageCached(coverImageURL,
     imageUrl: coverImageURL,
     memCacheWidth: 500,
     // memCacheHeight: 500,
-    placeholder: (context, url) => Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxHeight > constraints.maxWidth) {
-            return SizedBox(
-              height: constraints.maxWidth,
-              width: constraints.maxWidth,
-              child: const AspectRatio(
-                aspectRatio: 1.0,
-                child: Center(
-                  child: CircularProgressIndicator(
-                      color: Default_Theme.accentColor2),
-                ),
-              ),
-            );
-          } else {
-            return SizedBox(
-              height: constraints.maxHeight,
-              width: constraints.maxHeight,
-              child: const AspectRatio(
-                aspectRatio: 1.0,
-                child: Center(
-                  child: CircularProgressIndicator(
-                      color: Default_Theme.accentColor2),
-                ),
-              ),
-            );
-          }
-        },
-      ),
+    placeholder: (context, url) => Image(
+      image: const AssetImage("assets/icons/lazy_loading.png"),
+      fit: fit,
     ),
     errorWidget: (context, url, error) => Image(
       image: placeHolder,

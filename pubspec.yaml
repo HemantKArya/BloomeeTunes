@@ -125,6 +125,7 @@ flutter:
   assets:
     - assets/.env
     - assets/icons/bloomee_new_logo_c.png
+    - assets/icons/lazy_loading.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
