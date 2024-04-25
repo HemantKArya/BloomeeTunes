@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'dart:isolate';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:Bloomee/utils/country_info.dart';
 import 'package:bloc/bloc.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/chart_model.dart';
@@ -205,7 +206,9 @@ class YTMusicCubit extends Cubit<YTMusicCubitState> {
   }
 
   void fetchYTMusic() async {
-    final ytCharts = await Isolate.run(() => YtMusicService().getMusicHome());
+    String countryCode = await getCountry();
+    final ytCharts = await Isolate.run(
+        () => YtMusicService().getMusicHome(countryCode: countryCode));
     if (ytCharts.isNotEmpty) {
       emit(state.copyWith(ytmData: ytCharts));
       final ytChartsJson = await compute(jsonEncode, ytCharts);

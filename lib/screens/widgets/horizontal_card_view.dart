@@ -33,7 +33,7 @@ class HorizontalCardView extends StatelessWidget {
                 top: 5,
               ),
               child: Text(
-                data["title"],
+                data["title"].toString(),
                 textAlign: TextAlign.start,
                 style: const TextStyle(
                         fontSize: 20,
@@ -70,9 +70,9 @@ class HorizontalCardView extends StatelessWidget {
                   ),
                   for (int i = 0; i < data['items'].length; i++)
                     SquareImgCard(
-                      imgPath: data["items"][i]["image"],
-                      title: data["items"][i]["title"],
-                      subtitle: data["items"][i]["subtitle"],
+                      imgPath: data["items"][i]["image"].toString(),
+                      title: data["items"][i]["title"].toString(),
+                      subtitle: data["items"][i]["subtitle"].toString(),
                       isWide: (data["items"][i]['type'] == "video" ||
                               data["items"][i]['type'] == "chart")
                           ? true
@@ -80,7 +80,7 @@ class HorizontalCardView extends StatelessWidget {
                       tag: (data["items"][i]['type'] == "playlist" ||
                               data["items"][i]['type'] == "chart")
                           ? '${data["items"][i]["count"]} Tracks'
-                          : data["items"][i]["count"],
+                          : data["items"][i]["count"].toString(),
                       isList: (data["items"][i]['type'] == "playlist" ||
                               data["items"][i]['type'] == "chart")
                           ? true
