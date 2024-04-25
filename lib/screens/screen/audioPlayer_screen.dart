@@ -3,6 +3,7 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
+import 'package:Bloomee/screens/widgets/volume_slider.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
@@ -232,16 +233,18 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                   // height: MediaQuery.of(context).size.width * 0.92,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(25),
-                    child: StreamBuilder<MediaItem?>(
-                        stream: context
-                            .watch<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .mediaItem,
-                        builder: (context, snapshot) {
-                          return loadImageCached(
-                              (snapshot.data?.artUri ?? "").toString(),
-                              fit: BoxFit.fitWidth);
-                        }),
+                    child: VolumeDragController(
+                      child: StreamBuilder<MediaItem?>(
+                          stream: context
+                              .watch<BloomeePlayerCubit>()
+                              .bloomeePlayer
+                              .mediaItem,
+                          builder: (context, snapshot) {
+                            return loadImageCached(
+                                (snapshot.data?.artUri ?? "").toString(),
+                                fit: BoxFit.fitWidth);
+                          }),
+                    ),
                   ),
                 ),
               ),
