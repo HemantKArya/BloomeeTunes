@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
+import 'package:Bloomee/utils/country_info.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:Bloomee/utils/extentions.dart';
@@ -241,7 +242,14 @@ class YtMusicService {
 
   initLanguage() async {
     context!['context']['client']['hl'] = 'en';
-    context!['context']['client']['gl'] = 'IN';
+    try {
+      getCountry().then((value) {
+        context!['context']['client']['gl'] = value;
+      });
+    } catch (e) {
+      dev.log('Error in initLanguage: $e', name: "YTM");
+      context!['context']['client']['gl'] = 'IN';
+    }
   }
 
   Future<Map<String, List>> getMusicHome({String countryCode = "IN"}) async {

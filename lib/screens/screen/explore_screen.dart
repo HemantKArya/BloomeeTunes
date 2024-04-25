@@ -48,10 +48,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // BlocProvider<TrendingCubit>(
-        //   create: (context) => TrendingCubit(),
-        //   lazy: false,
-        // ),
         BlocProvider<RecentlyCubit>(
           create: (context) => RecentlyCubit(),
           lazy: false,
@@ -68,7 +64,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: Scaffold(
         body: CustomScrollView(
           shrinkWrap: true,
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           slivers: [
             customDiscoverBar(context), //AppBar
             SliverList(

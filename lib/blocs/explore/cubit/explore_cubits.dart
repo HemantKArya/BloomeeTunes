@@ -205,7 +205,7 @@ class YTMusicCubit extends Cubit<YTMusicCubitState> {
     }
   }
 
-  void fetchYTMusic() async {
+  Future<void> fetchYTMusic() async {
     String countryCode = await getCountry();
     final ytCharts = await Isolate.run(
         () => YtMusicService().getMusicHome(countryCode: countryCode));
