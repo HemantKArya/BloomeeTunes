@@ -94,9 +94,6 @@ class YTMusicCubitState extends Equatable {
     required this.ytmData,
   });
 
-  @override
-  List<Object?> get props => [ytmData];
-
   YTMusicCubitState copyWith({
     Map<String, List<dynamic>>? ytmData,
   }) {
@@ -104,6 +101,9 @@ class YTMusicCubitState extends Equatable {
       ytmData: ytmData ?? this.ytmData,
     );
   }
+
+  @override
+  List<Object?> get props => [ytmData, ytmData.keys, ytmData.hashCode];
 }
 
 class YTMusicCubitInitial extends YTMusicCubitState {

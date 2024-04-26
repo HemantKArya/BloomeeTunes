@@ -6,7 +6,6 @@ import 'dart:isolate';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/utils/country_info.dart';
-import 'package:bloc/bloc.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
@@ -19,7 +18,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-
 part 'explore_states.dart';
 
 class TrendingCubit extends Cubit<TrendingCubitState> {
@@ -210,9 +208,10 @@ class YTMusicCubit extends Cubit<YTMusicCubitState> {
     final ytCharts = await Isolate.run(
         () => YtMusicService().getMusicHome(countryCode: countryCode));
     if (ytCharts.isNotEmpty) {
-      emit(state.copyWith(ytmData: ytCharts));
+      emit(state.copyWith(ytmData: Map<String, List<dynamic>>.from(ytCharts)));
       final ytChartsJson = await compute(jsonEncode, ytCharts);
       BloomeeDBService.putAPICache("YTMusic", ytChartsJson);
+      log("YTMusic Fetched", name: "YTMusic");
     }
   }
 }
