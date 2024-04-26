@@ -23,4 +23,6 @@ class GlobalStrConsts {
   static const String backupPath = "backupPath";
   static const String autoBackup = "autoBackup";
   static const String historyClearTime = "autoHistoryCleanupTime";
+  static const String autoGetCountry = "autoGetCountry";
+  static const String countryCode = "countryCode";
 }

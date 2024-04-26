@@ -12,6 +12,8 @@ class SettingsState {
   String backupPath;
   bool autoBackup;
   String historyClearTime;
+  bool autoGetCountry;
+  String countryCode;
   SettingsState({
     required this.autoUpdateNotify,
     required this.autoSlideCharts,
@@ -23,6 +25,8 @@ class SettingsState {
     required this.backupPath,
     required this.autoBackup,
     required this.historyClearTime,
+    required this.autoGetCountry,
+    required this.countryCode,
   });
 
   SettingsState copyWith({
@@ -36,6 +40,8 @@ class SettingsState {
     String? backupPath,
     bool? autoBackup,
     String? historyClearTime,
+    bool? autoGetCountry,
+    String? countryCode,
   }) {
     return SettingsState(
       autoUpdateNotify: autoUpdateNotify ?? this.autoUpdateNotify,
@@ -48,6 +54,8 @@ class SettingsState {
       backupPath: backupPath ?? this.backupPath,
       autoBackup: autoBackup ?? this.autoBackup,
       historyClearTime: historyClearTime ?? this.historyClearTime,
+      autoGetCountry: autoGetCountry ?? this.autoGetCountry,
+      countryCode: countryCode ?? this.countryCode,
     );
   }
 }
@@ -65,5 +73,7 @@ final class SettingsInitial extends SettingsState {
           backupPath: "",
           autoBackup: true,
           historyClearTime: "30",
+          autoGetCountry: true,
+          countryCode: "IN",
         );
 }

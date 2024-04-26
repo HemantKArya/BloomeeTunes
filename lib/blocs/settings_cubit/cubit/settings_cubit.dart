@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 part 'settings_state.dart';
 
@@ -82,6 +82,15 @@ class SettingsCubit extends Cubit<SettingsState> {
     BloomeeDBService.getSettingBool(GlobalStrConsts.autoBackup).then((value) {
       emit(state.copyWith(autoBackup: value ?? false));
     });
+
+    BloomeeDBService.getSettingBool(GlobalStrConsts.autoGetCountry)
+        .then((value) {
+      emit(state.copyWith(autoGetCountry: value ?? false));
+    });
+
+    BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode).then((value) {
+      emit(state.copyWith(countryCode: value ?? "IN"));
+    });
   }
 
   void autoUpdate() {
@@ -90,6 +99,16 @@ class SettingsCubit extends Cubit<SettingsState> {
         BloomeeDBService.createBackUp();
       }
     });
+  }
+
+  void setCountryCode(String value) {
+    BloomeeDBService.putSettingStr(GlobalStrConsts.countryCode, value);
+    emit(state.copyWith(countryCode: value));
+  }
+
+  void setAutoGetCountry(bool value) {
+    BloomeeDBService.putSettingBool(GlobalStrConsts.autoGetCountry, value);
+    emit(state.copyWith(autoGetCountry: value));
   }
 
   void setAutoUpdateNotify(bool value) {

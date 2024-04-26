@@ -2,6 +2,7 @@
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/appui_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/backup_setting.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/stream_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/updates_setting.dart';
@@ -89,6 +90,18 @@ class SettingsView extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const BackupSettings(),
+                  ),
+                );
+              }),
+          settingListTile(
+              title: "Language & Country",
+              subtitle: "Select your language and country.",
+              icon: MingCute.globe_fill,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CountrySettings(),
                   ),
                 );
               }),
