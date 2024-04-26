@@ -883,13 +883,15 @@ class YtMusicService {
       // });
 
       if (sectionListRenderer['continuations'] != null) {
-        await getContinuation(
-            endpoints['browse']!,
-            sectionListRenderer['continuations'][0]['nextContinuationData']
-                ['continuation'],
-            sectionListRenderer['continuations'][0]['nextContinuationData']
-                ['clickTrackingParams']);
+        dev.log((await getContinuation(
+                endpoints['browse']!,
+                sectionListRenderer['continuations'][0]['nextContinuationData']
+                    ['continuation'],
+                sectionListRenderer['continuations'][0]['nextContinuationData']
+                    ['clickTrackingParams']))
+            .toString());
       }
+      // dev.log('YTM Home: $sectionListRenderer', name: "YTM");
     } catch (e) {
       dev.log('Error in ytmusic home ', error: e, name: "YTM");
     }
