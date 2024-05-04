@@ -40,7 +40,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   BloomeeMusicPlayer() {
     audioPlayer = AudioPlayer(
-      androidOffloadSchedulingEnabled: true,
       handleInterruptions: true,
     );
     audioPlayer.setVolume(1);
