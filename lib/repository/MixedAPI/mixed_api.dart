@@ -23,6 +23,13 @@ class MixedAPI {
         .fetchSongSearchResults(searchQuery: songName, count: 2);
     String? ytTitle;
     String? jsTitle;
+
+    if (ytItems.isEmpty &&
+        (jsItems.isEmpty || jsItems['songs'].toList().isEmpty)) {
+      log("No results found!", name: "MixedAPI");
+      return null;
+    }
+
     var jsItem;
     var ytItem;
     int idx = 0;

@@ -102,7 +102,7 @@ String? extractSpotifyTrackId(String url) {
       }
     }
   } catch (e) {
-    log(e.toString());
+    log(e.toString(), name: 'extractSpotifyTrackId');
   }
   return null;
 }

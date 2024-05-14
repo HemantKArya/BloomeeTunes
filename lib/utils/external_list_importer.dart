@@ -260,8 +260,8 @@ class ExternalMediaImporter {
                 "Got Spotify track: ${mediaItem.title}");
             return mediaItem;
           } else {
-            log("Failed to import track", name: "Spotify Importer");
-            SnackbarService.showMessage("Failed to import Spotify track");
+            log("Not found or failed to import.", name: "Spotify Importer");
+            SnackbarService.showMessage("Not found or failed to import.");
           }
         }
       } catch (e) {
