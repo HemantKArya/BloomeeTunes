@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
@@ -373,6 +374,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                 .watch<BloomeePlayerCubit>()
                                 .progressStreams,
                             builder: (context, snapshot) {
+                              log((snapshot.data?.currentPos).toString(),
+                                  name: "Duration");
                               return ProgressBar(
                                 progress:
                                     snapshot.data?.currentPos ?? Duration.zero,
@@ -754,6 +757,11 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
         ),
       ),
     );
+  }
+
+  Widget desktopViewPlayer(
+      BuildContext context, BloomeeMusicPlayer musicPlayer) {
+    return Text("Desktop View");
   }
 }
 

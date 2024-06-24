@@ -682,8 +682,16 @@ class YtMusicService {
         'text'
       ]) as String?;
       final String subtitle = (nav(response, [
-                'header',
-                'musicDetailHeaderRenderer',
+                'contents',
+                'twoColumnBrowseResultsRenderer',
+                'tabs',
+                0,
+                'tabRenderer',
+                'content',
+                "sectionListRenderer",
+                'contents',
+                0,
+                'musicResponsiveHeaderRenderer',
                 'subtitle',
                 'runs',
               ]) as List? ??
@@ -692,30 +700,47 @@ class YtMusicService {
           .toList()
           .join();
       final String? description = nav(response, [
-        'header',
-        'musicDetailHeaderRenderer',
+        'contents',
+        'twoColumnBrowseResultsRenderer',
+        'tabs',
+        0,
+        'tabRenderer',
+        'content',
+        "sectionListRenderer",
+        'contents',
+        0,
+        'musicResponsiveHeaderRenderer',
+        'description',
+        'musicDescriptionShelfRenderer',
         'description',
         'runs',
         0,
         'text'
       ]) as String?;
+
       final List images = (nav(response, [
-        'header',
-        'musicDetailHeaderRenderer',
+        'contents',
+        'twoColumnBrowseResultsRenderer',
+        'tabs',
+        0,
+        'tabRenderer',
+        'content',
+        "sectionListRenderer",
+        'contents',
+        0,
+        'musicResponsiveHeaderRenderer',
         'thumbnail',
-        'croppedSquareThumbnailRenderer',
+        'musicThumbnailRenderer',
         'thumbnail',
         'thumbnails'
       ]) as List)
           .map((e) => e['url'])
           .toList();
+
       final List finalResults = nav(response, [
             'contents',
-            'singleColumnBrowseResultsRenderer',
-            'tabs',
-            0,
-            'tabRenderer',
-            'content',
+            'twoColumnBrowseResultsRenderer',
+            'secondaryContents',
             'sectionListRenderer',
             'contents',
             0,

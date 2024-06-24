@@ -51,6 +51,7 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
 
   Future<void> _loadData() async {
     final res = await data;
+    // log(res.toString(), name: "YoutubePlaylist");
     items = res["songs"] as List<Map<dynamic, dynamic>>;
     mediaitems = fromYtSongMapList2MediaItemList(items);
     // for (var i = 0; i < items.length; i++) {
