@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class CaraouselWidget extends StatefulWidget {
   CaraouselWidget({
@@ -92,8 +93,15 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                 _visibility = index == 0;
               });
             },
-            height: 320.0,
-            viewportFraction: 0.7,
+            height: ResponsiveBreakpoints.of(context).isMobile ||
+                    ResponsiveBreakpoints.of(context).isTablet
+                ? MediaQuery.of(context).size.height * 0.38
+                : 250,
+            viewportFraction: ResponsiveBreakpoints.of(context).isMobile
+                ? 0.65
+                : ResponsiveBreakpoints.of(context).isTablet
+                    ? 0.30
+                    : 0.25,
             autoPlay: autoSlideCharts,
             autoPlayInterval: const Duration(milliseconds: 2500),
             // aspectRatio: 15 / 16,

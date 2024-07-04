@@ -9,6 +9,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class ChartWidget extends StatefulWidget {
   final ChartInfo chartInfo;
@@ -67,8 +68,15 @@ class _ChartWidgetState extends State<ChartWidget> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(25),
       child: SizedBox(
-        height: 600,
-        width: 270,
+        height: ResponsiveBreakpoints.of(context).isMobile ||
+                ResponsiveBreakpoints.of(context).isTablet
+            ? MediaQuery.of(context).size.height * 0.38
+            : MediaQuery.of(context).size.height * 0.25,
+        width: ResponsiveBreakpoints.of(context).isMobile
+            ? MediaQuery.of(context).size.height * 0.3
+            : ResponsiveBreakpoints.of(context).isTablet
+                ? MediaQuery.of(context).size.width * 0.3
+                : MediaQuery.of(context).size.width * 0.25,
         child: Stack(children: [
           BlocBuilder<ChartCubit, ChartState>(
             bloc: BlocProvider.of<ChartCubit>(context),
@@ -87,10 +95,13 @@ class _ChartWidgetState extends State<ChartWidget> {
                         ),
                       ])
                     : SizedBox(
-                        height: 600,
-                        width: 270,
-                        child: loadImageCached(state.coverImg),
-                      ),
+                        width: ResponsiveBreakpoints.of(context).isMobile
+                            ? MediaQuery.of(context).size.height * 0.3
+                            : ResponsiveBreakpoints.of(context).isTablet
+                                ? MediaQuery.of(context).size.width * 0.3
+                                : MediaQuery.of(context).size.width * 0.25,
+                        child:
+                            loadImageCached(state.coverImg, fit: BoxFit.cover)),
               );
             },
           ),
@@ -114,23 +125,32 @@ class _ChartWidgetState extends State<ChartWidget> {
             ),
           ),
           Positioned(
-            bottom: 6,
-            right: 10,
+            bottom: 4,
+            right: 4,
             child: SizedBox(
-              width: 260,
-              child: Text(
-                widget.chartInfo.title,
-                maxLines: 2,
-                softWrap: true,
-                textAlign: TextAlign.right,
-                overflow: TextOverflow.ellipsis,
-                textWidthBasis: TextWidthBasis.parent,
-                style: const TextStyle(
-                  // color: _color.textColor.withOpacity(0.95),
-                  color: Color.fromARGB(255, 255, 255, 255),
-                  fontSize: 28,
-                  fontFamily: "Unageo",
-                  fontWeight: FontWeight.w700,
+              height: ResponsiveBreakpoints.of(context).isMobile ||
+                      ResponsiveBreakpoints.of(context).isTablet
+                  ? MediaQuery.of(context).size.height * 0.10
+                  : MediaQuery.of(context).size.height * 0.09,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10, bottom: 4, top: 4),
+                  child: Text(
+                    widget.chartInfo.title,
+                    maxLines: 2,
+                    softWrap: true,
+                    textAlign: TextAlign.right,
+                    overflow: TextOverflow.ellipsis,
+                    textWidthBasis: TextWidthBasis.parent,
+                    style: const TextStyle(
+                      // color: _color.textColor.withOpacity(0.95),
+                      color: Color.fromARGB(255, 255, 255, 255),
+                      fontSize: 28,
+                      fontFamily: "Unageo",
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ),

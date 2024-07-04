@@ -374,8 +374,6 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                                 .watch<BloomeePlayerCubit>()
                                 .progressStreams,
                             builder: (context, snapshot) {
-                              log((snapshot.data?.currentPos).toString(),
-                                  name: "Duration");
                               return ProgressBar(
                                 progress:
                                     snapshot.data?.currentPos ?? Duration.zero,

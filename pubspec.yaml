@@ -72,6 +72,7 @@ dependencies:
   permission_handler: ^11.3.1
   receive_sharing_intent: ^1.7.0
   sliding_up_panel: ^2.0.0+1
+  responsive_framework: ^1.4.0
   # mime: ^1.0.5
 
 

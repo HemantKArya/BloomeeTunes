@@ -16,6 +16,7 @@ import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -23,6 +24,7 @@ import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:share_plus/share_plus.dart';
 
 class YoutubePlaylist extends StatefulWidget {
@@ -144,63 +146,89 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                 Default_Theme.themeColor,
                                             surfaceTintColor:
                                                 Default_Theme.themeColor,
-                                            expandedHeight: 230,
+                                            // expandedHeight:
+                                            //     (ResponsiveBreakpoints.of(
+                                            //                 context)
+                                            //             .isMobile
+                                            //         ? MediaQuery.of(context)
+                                            //                 .size
+                                            //                 .height *
+                                            //             0.27
+                                            //         : MediaQuery.of(context)
+                                            //                 .size
+                                            //                 .width *
+                                            //             0.18),
                                             floating: false,
                                             pinned: true,
-                                            flexibleSpace: FlexibleSpaceBar(
-                                              background: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Padding(
+                                            // flexibleSpace: FlexibleSpaceBar(
+                                            //   background:
+                                            // ),
+                                          ),
+                                          SliverToBoxAdapter(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  // mainAxisSize:
+                                                  //     MainAxisSize.min,
+
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 16.0,
+                                                              right: 8.0),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15),
+                                                        child: SizedBox.square(
+                                                          dimension: ResponsiveBreakpoints
+                                                                      .of(
+                                                                          context)
+                                                                  .isMobile
+                                                              ? MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .height *
+                                                                  0.22
+                                                              : MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
+                                                                  0.15,
+                                                          child:
+                                                              loadImageCached(
+                                                                  widget
+                                                                      .imgPath),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: Padding(
                                                         padding:
                                                             const EdgeInsets
                                                                 .only(
-                                                                left: 16.0,
+                                                                left: 8.0,
                                                                 right: 8.0),
-                                                        child: ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(15),
-                                                          child: Stack(
-                                                            children: [
-                                                              SizedBox(
-                                                                height: 180,
-                                                                width: 180,
-                                                                child: loadImageCached(
-                                                                    widget
-                                                                        .imgPath),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .only(
-                                                                  left: 8.0,
-                                                                  right: 8.0),
-                                                          child: Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            FittedBox(
+                                                              fit: BoxFit
+                                                                  .scaleDown,
+                                                              child: Text(
                                                                 widget.title,
                                                                 maxLines: 2,
                                                                 overflow:
@@ -217,182 +245,209 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                                 ).merge(Default_Theme
                                                                         .secondoryTextStyle),
                                                               ),
-                                                              Text(
-                                                                widget.subtitle,
-                                                                maxLines: 2,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize: 13,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Default_Theme
-                                                                      .primaryColor2
-                                                                      .withOpacity(
-                                                                          0.8),
-                                                                ).merge(Default_Theme
-                                                                        .secondoryTextStyle),
-                                                              ),
-                                                              Text(
-                                                                "Youtube • ${(widget.type == 'playlist') ? 'Playlist' : 'Album'}",
-                                                                maxLines: 2,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize: 13,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Default_Theme
-                                                                      .primaryColor2
-                                                                      .withOpacity(
-                                                                          0.8),
-                                                                ).merge(Default_Theme
-                                                                        .secondoryTextStyle),
-                                                              ),
-                                                              Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .only(
-                                                                        top:
-                                                                            8.0,
-                                                                        right:
-                                                                            10),
-                                                                child: SizedBox(
-                                                                  height: 45,
-                                                                  width: 180,
-                                                                  child: Row(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .min,
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .start,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .center,
-                                                                    children: [
-                                                                      Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .all(
-                                                                            8.0),
-                                                                        child:
-                                                                            Tooltip(
-                                                                          message:
-                                                                              "Shuffle & Play All",
-                                                                          child:
-                                                                              IconButton(
-                                                                            onPressed:
-                                                                                () {
-                                                                              SnackbarService.showMessage("Shuffling & Playing All", duration: const Duration(seconds: 2));
-                                                                              context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
-                                                                                    MediaPlaylist(
-                                                                                      mediaItems: mediaitems,
-                                                                                      albumName: "${widget.title} - Youtube",
-                                                                                    ),
-                                                                                    doPlay: true,
-                                                                                    shuffling: true,
-                                                                                  );
-                                                                            },
-                                                                            padding:
-                                                                                const EdgeInsets.all(5),
-                                                                            constraints:
-                                                                                const BoxConstraints(),
-                                                                            icon:
-                                                                                const Icon(
-                                                                              MingCute.shuffle_fill,
-                                                                              color: Default_Theme.primaryColor1,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      Tooltip(
+                                                            ),
+                                                            Text(
+                                                              widget.subtitle,
+                                                              maxLines: 2,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Default_Theme
+                                                                    .primaryColor2
+                                                                    .withOpacity(
+                                                                        0.8),
+                                                              ).merge(Default_Theme
+                                                                  .secondoryTextStyle),
+                                                            ),
+                                                            Text(
+                                                              "Youtube • ${(widget.type == 'playlist') ? 'Playlist' : 'Album'}",
+                                                              maxLines: 2,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Default_Theme
+                                                                    .primaryColor2
+                                                                    .withOpacity(
+                                                                        0.8),
+                                                              ).merge(Default_Theme
+                                                                  .secondoryTextStyle),
+                                                            ),
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      top: 6.0,
+                                                                      bottom:
+                                                                          6.0,
+                                                                      right:
+                                                                          10),
+                                                              child: SizedBox(
+                                                                height: MediaQuery.of(context)
+                                                                            .size
+                                                                            .height <
+                                                                        700
+                                                                    ? 45
+                                                                    : MediaQuery.of(context)
+                                                                            .size
+                                                                            .height *
+                                                                        0.07,
+                                                                width: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width *
+                                                                    0.42,
+                                                                child: Row(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .start,
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    Padding(
+                                                                      padding: const EdgeInsets
+                                                                          .only(
+                                                                          right:
+                                                                              6.0),
+                                                                      child:
+                                                                          Tooltip(
                                                                         message:
-                                                                            "Play All",
-                                                                        child: StreamBuilder<
-                                                                                String>(
-                                                                            stream:
-                                                                                context.watch<BloomeePlayerCubit>().bloomeePlayer.queueTitle,
-                                                                            builder: (context, snapshot) {
-                                                                              if (snapshot.hasData && snapshot.data == "${widget.title} - Youtube") {
-                                                                                return StreamBuilder<PlayerState>(
-                                                                                    stream: context.read<BloomeePlayerCubit>().bloomeePlayer.audioPlayer.playerStateStream,
-                                                                                    builder: (context, snapshot2) {
-                                                                                      if (snapshot2.hasData && (snapshot2.data?.playing ?? false)) {
-                                                                                        return PlayPauseButton(
-                                                                                          onPause: () => context.read<BloomeePlayerCubit>().bloomeePlayer.pause(),
-                                                                                          onPlay: () => context.read<BloomeePlayerCubit>().bloomeePlayer.play(),
-                                                                                          isPlaying: true,
-                                                                                          size: 45,
-                                                                                        );
-                                                                                      } else {
-                                                                                        return PlayPauseButton(
-                                                                                          onPause: () => context.read<BloomeePlayerCubit>().bloomeePlayer.pause(),
-                                                                                          onPlay: () => context.read<BloomeePlayerCubit>().bloomeePlayer.play(),
-                                                                                          isPlaying: false,
-                                                                                          size: 45,
-                                                                                        );
-                                                                                      }
-                                                                                    });
-                                                                              } else {
-                                                                                return PlayPauseButton(
-                                                                                  onPause: () => context.read<BloomeePlayerCubit>().bloomeePlayer.pause(),
-                                                                                  onPlay: () {
-                                                                                    context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(MediaPlaylist(mediaItems: mediaitems, albumName: "${widget.title} - Youtube"));
-                                                                                    context.read<BloomeePlayerCubit>().bloomeePlayer.play();
-                                                                                  },
-                                                                                  size: 45,
-                                                                                );
-                                                                              }
-                                                                            }),
-                                                                      ),
-                                                                      Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .all(
-                                                                            8.0),
+                                                                            "Shuffle & Play All",
                                                                         child:
-                                                                            Tooltip(
-                                                                          message:
-                                                                              "Add to Library",
-                                                                          child:
-                                                                              IconButton(
-                                                                            onPressed:
-                                                                                () async {
-                                                                              SnackbarService.showMessage("Adding to Library", duration: const Duration(seconds: 2));
-                                                                              await Future.forEach(mediaitems, (element) {
-                                                                                BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(element), MediaPlaylistDB(playlistName: "${widget.title} - Youtube"));
-                                                                              });
-                                                                              SnackbarService.showMessage("Added to Library", duration: const Duration(seconds: 2));
-                                                                            },
-                                                                            padding:
-                                                                                const EdgeInsets.all(2),
-                                                                            constraints:
-                                                                                const BoxConstraints(),
-                                                                            icon:
-                                                                                const Icon(
-                                                                              FontAwesome.square_plus,
-                                                                              color: Default_Theme.primaryColor1,
-                                                                            ),
+                                                                            IconButton(
+                                                                          onPressed:
+                                                                              () {
+                                                                            SnackbarService.showMessage("Shuffling & Playing All",
+                                                                                duration: const Duration(seconds: 2));
+                                                                            context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
+                                                                                  MediaPlaylist(
+                                                                                    mediaItems: mediaitems,
+                                                                                    albumName: "${widget.title} - Youtube",
+                                                                                  ),
+                                                                                  doPlay: true,
+                                                                                  shuffling: true,
+                                                                                );
+                                                                          },
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              5),
+                                                                          constraints:
+                                                                              const BoxConstraints(),
+                                                                          icon:
+                                                                              const Icon(
+                                                                            MingCute.shuffle_fill,
+                                                                            color:
+                                                                                Default_Theme.primaryColor1,
                                                                           ),
                                                                         ),
-                                                                      )
-                                                                    ],
-                                                                  ),
+                                                                      ),
+                                                                    ),
+                                                                    Tooltip(
+                                                                      message:
+                                                                          "Play All",
+                                                                      child: StreamBuilder<
+                                                                              String>(
+                                                                          stream: context
+                                                                              .watch<
+                                                                                  BloomeePlayerCubit>()
+                                                                              .bloomeePlayer
+                                                                              .queueTitle,
+                                                                          builder:
+                                                                              (context, snapshot) {
+                                                                            if (snapshot.hasData &&
+                                                                                snapshot.data == "${widget.title} - Youtube") {
+                                                                              return StreamBuilder<PlayerState>(
+                                                                                  stream: context.read<BloomeePlayerCubit>().bloomeePlayer.audioPlayer.playerStateStream,
+                                                                                  builder: (context, snapshot2) {
+                                                                                    if (snapshot2.hasData && (snapshot2.data?.playing ?? false)) {
+                                                                                      return PlayPauseButton(
+                                                                                        onPause: () => context.read<BloomeePlayerCubit>().bloomeePlayer.pause(),
+                                                                                        onPlay: () => context.read<BloomeePlayerCubit>().bloomeePlayer.play(),
+                                                                                        isPlaying: true,
+                                                                                        size: 45,
+                                                                                      );
+                                                                                    } else {
+                                                                                      return PlayPauseButton(
+                                                                                        onPause: () => context.read<BloomeePlayerCubit>().bloomeePlayer.pause(),
+                                                                                        onPlay: () => context.read<BloomeePlayerCubit>().bloomeePlayer.play(),
+                                                                                        isPlaying: false,
+                                                                                        size: 45,
+                                                                                      );
+                                                                                    }
+                                                                                  });
+                                                                            } else {
+                                                                              return PlayPauseButton(
+                                                                                onPause: () => context.read<BloomeePlayerCubit>().bloomeePlayer.pause(),
+                                                                                onPlay: () {
+                                                                                  context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(MediaPlaylist(mediaItems: mediaitems, albumName: "${widget.title} - Youtube"));
+                                                                                  context.read<BloomeePlayerCubit>().bloomeePlayer.play();
+                                                                                },
+                                                                                size: 45,
+                                                                              );
+                                                                            }
+                                                                          }),
+                                                                    ),
+                                                                    Padding(
+                                                                      padding:
+                                                                          const EdgeInsets
+                                                                              .only(
+                                                                        left: 8,
+                                                                      ),
+                                                                      child:
+                                                                          Tooltip(
+                                                                        message:
+                                                                            "Add to Library",
+                                                                        child:
+                                                                            IconButton(
+                                                                          onPressed:
+                                                                              () async {
+                                                                            SnackbarService.showMessage("Adding to Library",
+                                                                                duration: const Duration(seconds: 2));
+                                                                            await Future.forEach(mediaitems,
+                                                                                (element) {
+                                                                              BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(element), MediaPlaylistDB(playlistName: "${widget.title} - Youtube"));
+                                                                            });
+                                                                            SnackbarService.showMessage("Added to Library",
+                                                                                duration: const Duration(seconds: 2));
+                                                                          },
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              2),
+                                                                          constraints:
+                                                                              const BoxConstraints(),
+                                                                          icon:
+                                                                              const Icon(
+                                                                            FontAwesome.square_plus,
+                                                                            color:
+                                                                                Default_Theme.primaryColor1,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    )
+                                                                  ],
                                                                 ),
                                                               ),
-                                                            ],
-                                                          ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
+                                                    ),
+                                                  ],
+                                                )
+                                              ],
                                             ),
                                           ),
                                           SliverPadding(
