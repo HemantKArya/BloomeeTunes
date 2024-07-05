@@ -90,63 +90,71 @@ class _VolumeDragControllerState extends State<VolumeDragController> {
       onVerticalDragStart: _onDragStart,
       onVerticalDragUpdate: _updateVolume,
       onVerticalDragEnd: _onDragEnd,
-      child: Stack(
-        children: <Widget>[
-          widget.child,
-          Positioned(
-            bottom: 100.0,
-            right: 20.0,
-            child: AnimatedOpacity(
-              opacity: _showVolumeController ? 1.0 : 0.0,
-              // opacity: 1,
-              duration: const Duration(milliseconds: 300),
-              child: Container(
-                padding: const EdgeInsets.all(10.0),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(20.0),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Icon(
-                      (_volume == 0)
-                          ? MingCute.volume_off_fill
-                          : MingCute.volume_fill,
-                      color: Default_Theme.primaryColor2,
-                    ),
-                    RotatedBox(
-                      quarterTurns: -1,
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          inactiveTrackColor:
-                              Default_Theme.primaryColor2.withOpacity(0.3),
-                          thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 6.0),
-                          overlayShape: const RoundSliderOverlayShape(
-                              overlayRadius: 16.0),
-                          trackShape: const RoundedRectSliderTrackShape(),
-                          trackHeight: 10.0,
-                        ),
-                        child: Slider(
-                          value: _volume,
-                          onChanged: (value) {
-                            setState(() {
-                              _volume = value;
-                            });
-                          },
-                          min: 0.0,
-                          max: 1.0,
-                        ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        return Stack(
+          children: <Widget>[
+            widget.child,
+            Positioned(
+              right: 20.0,
+              bottom: 0,
+              top: 0,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: AnimatedOpacity(
+                  opacity: _showVolumeController ? 1.0 : 0.0,
+                  // opacity: 1,
+                  duration: const Duration(milliseconds: 300),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(10.0),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(
+                            (_volume == 0)
+                                ? MingCute.volume_off_fill
+                                : MingCute.volume_fill,
+                            color: Default_Theme.primaryColor2,
+                          ),
+                          RotatedBox(
+                            quarterTurns: -1,
+                            child: SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                inactiveTrackColor: Default_Theme.primaryColor2
+                                    .withOpacity(0.3),
+                                thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 6.0),
+                                overlayShape: const RoundSliderOverlayShape(
+                                    overlayRadius: 16.0),
+                                trackShape: const RoundedRectSliderTrackShape(),
+                                trackHeight: 10.0,
+                              ),
+                              child: Slider(
+                                value: _volume,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _volume = value;
+                                  });
+                                },
+                                min: 0.0,
+                                max: 1.0,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 }

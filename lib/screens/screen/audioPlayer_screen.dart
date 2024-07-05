@@ -178,30 +178,30 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                             ),
                             Flexible(
                               flex: 7,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(25),
-                                child: VolumeDragController(
+                              child: VolumeDragController(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(25),
                                   child: StreamBuilder<MediaItem?>(
                                       stream: context
                                           .watch<BloomeePlayerCubit>()
                                           .bloomeePlayer
                                           .mediaItem,
                                       builder: (context, snapshot) {
-                                        return FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              maxWidth:
-                                                  constraints.maxWidth * 0.92,
-                                              minWidth: 200,
-                                            ),
-                                            child: AspectRatio(
-                                              aspectRatio: 1.0,
-                                              child: loadImageCached(
-                                                  (snapshot.data?.artUri ?? "")
-                                                      .toString(),
-                                                  fit: BoxFit.fitWidth),
-                                            ),
+                                        return ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            maxWidth: 200 +
+                                                constraints.maxWidth * 0.90,
+                                            minWidth: 200,
+                                            maxHeight: 200 +
+                                                constraints.maxHeight * 0.90,
+                                            minHeight: 200,
+                                          ),
+                                          child: AspectRatio(
+                                            aspectRatio: 1.0,
+                                            child: loadImageCached(
+                                                (snapshot.data?.artUri ?? "")
+                                                    .toString(),
+                                                fit: BoxFit.fitWidth),
                                           ),
                                         );
                                       }),
