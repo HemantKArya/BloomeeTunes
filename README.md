@@ -9,7 +9,7 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 
 🌟 **Ad-Free Experience:** Say goodbye to interruptions and enjoy uninterrupted musical bliss.
 
-🌍 **Multi-Source PLayer:** Access your favorite tracks from diverse platforms, with more sources continually joining our melody garden.
+🌍 **Multi-Source Player:** Access your favorite tracks from diverse platforms, with more sources continually joining our melody garden.
 
 🚀 **Flutter-Powered Learning:** Bloomee is not just about music; it's about learning and growing with Flutter and BLoC architecture. Explore the intersection of beautiful design and smooth functionality while mastering the art of app development.
 
@@ -23,7 +23,7 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 - [x] 🔓 Open Source
 - [x] ⏲️ Sleep Timer
 - [x] 🌐 Daily Updated Global Charts
-- [ ] 🖥️ Support for Windows
+- [x] 🖥️ Support for Windows
 - [ ] 🐧 Support for Linux
 - [ ] 🍏 Support for iOS
 - [ ] 📝 Lyrics Support

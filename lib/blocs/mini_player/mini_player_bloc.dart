@@ -8,12 +8,13 @@ import 'package:equatable/equatable.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
+import 'package:just_audio/just_audio.dart';
 
 part 'mini_player_event.dart';
 part 'mini_player_state.dart';
 
 class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
-  StreamSubscription<PlaybackState>? _playerStateSubscription;
+  StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<bool>? _linkState;
   BloomeePlayerCubit playerCubit;
   MiniPlayerBloc({
@@ -66,30 +67,32 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
         try {
           add(MiniPlayerProcessingEvent(
               playerCubit.bloomeePlayer.currentMedia));
-          log("Link Processing");
-        } catch (e) {}
+          log("Processing link.", name: "MiniPlayer");
+        } catch (e) {
+          log(e.toString(), name: "MiniPlayer");
+        }
       }
     });
 
     _playerStateSubscription =
-        playerCubit.bloomeePlayer.playbackState.listen((event) {
+        playerCubit.bloomeePlayer.audioPlayer.playerStateStream.listen((event) {
       switch (event.processingState) {
-        case AudioProcessingState.idle:
+        case ProcessingState.idle:
           add(MiniPlayerInitialEvent());
           break;
-        case AudioProcessingState.loading:
+        case ProcessingState.loading:
           try {
             add(MiniPlayerProcessingEvent(
                 playerCubit.bloomeePlayer.currentMedia));
           } catch (e) {}
           break;
-        case AudioProcessingState.buffering:
+        case ProcessingState.buffering:
           try {
             add(MiniPlayerBufferingEvent(
                 playerCubit.bloomeePlayer.currentMedia));
           } catch (e) {}
           break;
-        case AudioProcessingState.ready:
+        case ProcessingState.ready:
           try {
             if (event.playing) {
               add(MiniPlayerPlayedEvent(
@@ -100,7 +103,7 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
             }
           } catch (e) {}
           break;
-        case AudioProcessingState.completed:
+        case ProcessingState.completed:
           try {
             add(MiniPlayerCompletedEvent(
                 playerCubit.bloomeePlayer.currentMedia));

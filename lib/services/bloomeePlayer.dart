@@ -88,6 +88,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> play() async {
     if (isLinkProcessing.value == false) {
       await audioPlayer.play();
+      log("Playing:", name: "bloomeePlayer");
       isPaused = false;
     } else {
       log("Link is in process...", name: "bloomeePlayer");

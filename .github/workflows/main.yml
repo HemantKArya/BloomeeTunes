@@ -5,8 +5,44 @@ on:
         branches: main
 
 jobs:
-    builds:
-        name: Build & Release
+    windows:
+        name: Windows - Build & Release
+        runs-on: windows-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Setup-Java
+              uses: actions/setup-java@v3.12.0
+              with:
+                distribution: 'oracle'
+                java-version: '17'
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                flutter-version: '3.19.4'
+                channel: 'stable'
+            - name: Install Dependencies
+              run: flutter pub get
+            - name: Build App files
+              run: flutter build windows --release --build-number ${{github.run_number}}
+            - name: ZIP build
+            - run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "build/windows/x64/runner/Release/Bloomee.exe"
+            - run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip
+            
+            - name: Upload Artifacts
+              uses: actions/upload-artifact@v2
+              with:
+                name: Release
+                path: |
+                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip
+            - name: Create Release
+              uses: ncipollo/release-action@v1
+              with:
+                artifacts: "build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip"
+                tag: v2.8.0+${{github.run_number}}
+                token: ${{secrets.SECRET_KEY}}
+    android:
+        name: Android - Build & Release
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Repository
@@ -43,17 +79,17 @@ jobs:
               run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
 
             - name: Rename APK file
-              run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/bloomee_tunes_v2.7.14+${{github.run_number}}.apk
+              run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.0+${{github.run_number}}.apk
 
             - name: Upload Artifacts
               uses: actions/upload-artifact@v2
               with:
                 name: Release
                 path: |
-                  build/app/outputs/flutter-apk/bloomee_tunes_v2.7.14+${{github.run_number}}.apk
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.0+${{github.run_number}}.apk
             - name: Create Release
               uses: ncipollo/release-action@v1
               with:
-                artifacts: "build/app/outputs/flutter-apk/bloomee_tunes_v2.7.14+${{github.run_number}}.apk"
-                tag: v2.7.14+${{github.run_number}}
+                artifacts: "build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.0+${{github.run_number}}.apk"
+                tag: v2.8.0+${{github.run_number}}
                 token: ${{secrets.SECRET_KEY}}
