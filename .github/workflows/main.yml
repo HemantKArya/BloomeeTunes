@@ -31,7 +31,12 @@ jobs:
               run: echo "CLIENT_ID = XXXXX\nCLIENT_SECRET = XXXX EOF" > assets/.env
 
             - name: Create keystore file
-              run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > ./android/bloomee.jks
+              run: |
+                  $b64 = "${{ secrets.KEY_STORE }}"
+                  $filename = "./android/bloomee.jks"
+                  $bytes = [Convert]::FromBase64String($b64)
+                  [IO.File]::WriteAllBytes($filename, $bytes)
+              # run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > ./android/bloomee.jks
             
             - name: Create Keystore properties
               run: |
