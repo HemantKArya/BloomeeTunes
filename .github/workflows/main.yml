@@ -5,8 +5,8 @@ on:
         branches: main
 
 jobs:
-    windows:
-        name: Windows - Build & Release
+    build:
+        name: Build & Release
         runs-on: windows-latest
         steps:
             - name: Checkout Repository
@@ -30,47 +30,6 @@ jobs:
             - name: Create .env file
               run: echo "CLIENT_ID = XXXXX\nCLIENT_SECRET = XXXX EOF" > assets/.env
 
-            - name: Build App files
-              run: flutter build windows --release --build-number ${{github.run_number}}
-           
-            - name: ZIP build
-              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip
-            
-            - name: Upload Artifacts
-              uses: actions/upload-artifact@v2
-              with:
-                name: Release
-                path: |
-                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip
-            - name: Create Release
-              uses: ncipollo/release-action@v1
-              with:
-                artifacts: "build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip"
-                tag: v2.8.0+${{github.run_number}}
-                token: ${{secrets.SECRET_KEY}}
-
-    android:
-        name: Android - Build & Release
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v3
-            - name: Setup-Java
-              uses: actions/setup-java@v3.12.0
-              with:
-                distribution: 'oracle'
-                java-version: '17'
-            - name: Setup Flutter
-              uses: subosito/flutter-action@v2
-              with:
-                flutter-version: '3.19.4'
-                channel: 'stable'
-            - name: Install Dependencies
-              run: flutter pub get
-
-            - name: Create .env file
-              run: echo "CLIENT_ID = ${{secrets.CLIENT_ID}}\nCLIENT_SECRET = ${{secrets.CLIENT_SECRET}}EOF" > assets/.env
-
             - name: Create keystore file
               run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > ./android/bloomee.jks
             
@@ -87,16 +46,31 @@ jobs:
               run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
 
             - name: Rename APK file
-              run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.0+${{github.run_number}}.apk
+              run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v2.8.0+${{github.run_number}}.apk"
+
+            - name: Build Windows App
+              run: flutter build windows --release --build-number ${{github.run_number}}
+
+            - name: Rename file
+              run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
+           
+            - name: ZIP build
+              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip
+            
             - name: Upload Artifacts
               uses: actions/upload-artifact@v2
               with:
                 name: Release
                 path: |
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.0+${{github.run_number}}.apk
+                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip
             - name: Create Release
               uses: ncipollo/release-action@v1
               with:
-                artifacts: "build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.0+${{github.run_number}}.apk"
+                artifacts: |
+                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.0+${{github.run_number}}.apk
                 tag: v2.8.0+${{github.run_number}}
                 token: ${{secrets.SECRET_KEY}}
+
+    
