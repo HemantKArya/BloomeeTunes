@@ -25,8 +25,9 @@ jobs:
               run: flutter pub get
             - name: Build App files
               run: flutter build windows --release --build-number ${{github.run_number}}
-            - name: ZIP build
+            - name: Rename files
             - run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "build/windows/x64/runner/Release/Bloomee.exe"
+            - name: ZIP build
             - run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.8.0+${{github.run_number}}.zip
             
             - name: Upload Artifacts
