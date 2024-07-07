@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -19,7 +20,7 @@ Future<Map<String, dynamic>> getLatestVersion() async {
       "currBuild": packageInfo.buildNumber,
       "currVer": packageInfo.version,
       "newVer": data["tag_name"].toString().split("+")[0].replaceFirst("v", ''),
-      "download_url": data["assets"][0]["browser_download_url"],
+      "download_url": extractUpUrl(data),
     };
   } else {
     log('Failed to load latest version!', name: 'UpdaterTools');
@@ -27,4 +28,24 @@ Future<Map<String, dynamic>> getLatestVersion() async {
       "results": false,
     };
   }
+}
+
+String? extractUpUrl(Map<String, dynamic> data) {
+  // List<String> urls = [];
+
+  for (var element in (data["assets"] as List)) {
+    // urls.add(element["browser_download_url"]);
+    if (element["browser_download_url"].toString().contains("windows")) {
+      if (Platform.isWindows) {
+        return element["browser_download_url"].toString();
+      }
+    } else if (element["browser_download_url"].toString().contains("android")) {
+      if (Platform.isAndroid) {
+        return element["browser_download_url"].toString();
+      }
+    } else {
+      continue;
+    }
+  }
+  return null;
 }
