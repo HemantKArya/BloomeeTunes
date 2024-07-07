@@ -5,6 +5,8 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 
 ![BloomeeTunesScrnShots](./assets/icons/banner2BloomeScrnShot.png)
 
+![BloomeeDesktop](./assets/icons/desktop_scrn.png)
+
 ### **Why Bloomee?**
 
 🌟 **Ad-Free Experience:** Say goodbye to interruptions and enjoy uninterrupted musical bliss.
