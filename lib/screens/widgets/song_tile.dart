@@ -52,6 +52,9 @@ class SongCardWidget extends StatelessWidget {
         onTap: () {
           if (onTap != null) onTap!();
         },
+        onSecondaryTap: () {
+          if (onOptionsTap != null) onOptionsTap!();
+        },
         child: Padding(
           padding: const EdgeInsets.only(left: 10, right: 2, top: 4, bottom: 4),
           child: Row(

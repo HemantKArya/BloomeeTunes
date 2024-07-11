@@ -128,6 +128,10 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
                 bottom: 8,
               ),
               child: InkWell(
+                onSecondaryTap: () {
+                  showPlaylistOptsSheet(
+                      context, widget.state.playlists[index].playlistName);
+                },
                 splashColor: Default_Theme.accentColor1.withOpacity(0.2),
                 hoverColor: Default_Theme.accentColor2.withOpacity(0.1),
                 highlightColor: Default_Theme.accentColor2.withOpacity(0.1),
