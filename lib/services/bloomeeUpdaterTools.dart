@@ -20,7 +20,9 @@ Future<Map<String, dynamic>> getLatestVersion() async {
       "currBuild": packageInfo.buildNumber,
       "currVer": packageInfo.version,
       "newVer": data["tag_name"].toString().split("+")[0].replaceFirst("v", ''),
-      "download_url": extractUpUrl(data),
+      // "download_url": extractUpUrl(data),
+      "download_url":
+          "https://sourceforge.net/projects/bloomee/files/latest/download",
     };
   } else {
     log('Failed to load latest version!', name: 'UpdaterTools');

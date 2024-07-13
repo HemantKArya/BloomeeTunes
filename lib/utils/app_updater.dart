@@ -18,7 +18,8 @@ Future<void> updateDialog(BuildContext context) async {
               "New Version of Bloomee🌸 is now available!!\n\nVersion: ${_updateData["newVer"]} + ${_updateData["newBuild"]}",
               onOk: openURL,
               okText: "Update Now!",
-              downloadURL: _updateData["download_url"],
+              // downloadURL: _updateData["download_url"],
+              downloadURL: "https://bloomee.sourceforge.io/",
             );
           },
         );
