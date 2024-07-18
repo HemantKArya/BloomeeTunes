@@ -31,28 +31,28 @@ jobs:
             - name: Create .env file
               run: echo "CLIENT_ID = XXXXX\nCLIENT_SECRET = XXXX EOF" > assets/.env
 
-            - name: Create keystore file
-              run: |
-                  $b64 = "${{ secrets.KEY_STORE }}"
-                  $filename = "./android/bloomee.jks"
-                  $bytes = [Convert]::FromBase64String($b64)
-                  [IO.File]::WriteAllBytes($filename, $bytes)
+            # - name: Create keystore file
+            #   run: |
+            #       $b64 = "${{ secrets.KEY_STORE }}"
+            #       $filename = "./android/bloomee.jks"
+            #       $bytes = [Convert]::FromBase64String($b64)
+            #       [IO.File]::WriteAllBytes($filename, $bytes)
               # run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > ./android/bloomee.jks
             
-            - name: Create Keystore properties
-              run: |
-                  echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
-                  echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
-                  echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
+            # - name: Create Keystore properties
+            #   run: |
+            #       echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
+            #       echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
+            #       echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
             
             - name: Build App files
               run: flutter build apk --release --build-number ${{github.run_number}}
 
-            - name: Verify Sign
-              run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
+            # - name: Verify Sign
+            #   run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
 
             - name: Rename APK file
-              run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v2.8.1+${{github.run_number}}.apk"
+              run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk"
 
             - name: Build Windows App
               run: flutter build windows --release --build-number ${{github.run_number}}
@@ -61,22 +61,22 @@ jobs:
               run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
            
             - name: ZIP build
-              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.8.1+${{github.run_number}}.zip
+              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
             
             - name: Upload Artifacts
               uses: actions/upload-artifact@v2
               with:
                 name: Release
                 path: |
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.1+${{github.run_number}}.apk
-                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.1+${{github.run_number}}.zip
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk
+                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
             - name: Create Release
               uses: ncipollo/release-action@v1
               with:
                 artifacts: |
-                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.1+${{github.run_number}}.zip
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.1+${{github.run_number}}.apk
-                tag: v2.8.1+${{github.run_number}}
+                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk
+                tag: v2.8.2+${{github.run_number}}
                 token: ${{secrets.SECRET_KEY}}
 
     
