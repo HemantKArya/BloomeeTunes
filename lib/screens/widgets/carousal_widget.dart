@@ -95,7 +95,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
             },
             height: ResponsiveBreakpoints.of(context).isMobile ||
                     ResponsiveBreakpoints.of(context).isTablet
-                ? MediaQuery.of(context).size.height * 0.38
+                ? MediaQuery.of(context).size.height * 0.36
                 : 250,
             viewportFraction: ResponsiveBreakpoints.of(context).isMobile
                 ? 0.65

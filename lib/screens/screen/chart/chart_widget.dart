@@ -1,11 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-// import 'dart:math';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
-
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/plugins/chart_defines.dart';
 import 'package:Bloomee/utils/load_Image.dart';
@@ -70,92 +67,91 @@ class _ChartWidgetState extends State<ChartWidget> {
       child: SizedBox(
         height: ResponsiveBreakpoints.of(context).isMobile ||
                 ResponsiveBreakpoints.of(context).isTablet
-            ? MediaQuery.of(context).size.height * 0.38
+            ? MediaQuery.of(context).size.height * 0.35
             : MediaQuery.of(context).size.height * 0.25,
         width: ResponsiveBreakpoints.of(context).isMobile
             ? MediaQuery.of(context).size.height * 0.3
             : ResponsiveBreakpoints.of(context).isTablet
                 ? MediaQuery.of(context).size.width * 0.3
                 : MediaQuery.of(context).size.width * 0.25,
-        child: Stack(children: [
-          BlocBuilder<ChartCubit, ChartState>(
-            bloc: BlocProvider.of<ChartCubit>(context),
-            builder: (context, state) {
-              return AnimatedSwitcher(
-                duration: const Duration(seconds: 1),
-                child: state is ChartInitial
-                    ? Stack(children: [
-                        Container(
-                          color: const Color.fromARGB(255, 52, 0, 147)
-                              .withOpacity(0.5),
-                        ),
-                        const Center(
-                          child: Icon(MingCute.music_2_fill,
-                              size: 80, color: Colors.white),
-                        ),
-                      ])
-                    : SizedBox(
-                        width: ResponsiveBreakpoints.of(context).isMobile
-                            ? MediaQuery.of(context).size.height * 0.3
-                            : ResponsiveBreakpoints.of(context).isTablet
-                                ? MediaQuery.of(context).size.width * 0.3
-                                : MediaQuery.of(context).size.width * 0.25,
-                        child:
-                            loadImageCached(state.coverImg, fit: BoxFit.cover)),
-              );
-            },
-          ),
-          Positioned(
-            child: ClipPath(
-              clipper: ChartCardClipper(),
-              child: Container(
-                // color: Color.fromARGB(255, 255, 35, 196).withOpacity(0.5),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomRight,
-                    end: Alignment.topLeft,
-                    colors: [
-                      _color.color1,
-                      _color.color2,
-                    ],
+        child: LayoutBuilder(builder: (context, constraints) {
+          return Stack(children: [
+            BlocBuilder<ChartCubit, ChartState>(
+              bloc: BlocProvider.of<ChartCubit>(context),
+              builder: (context, state) {
+                return AnimatedSwitcher(
+                  duration: const Duration(seconds: 1),
+                  child: state is ChartInitial
+                      ? Stack(children: [
+                          Container(
+                            color: const Color.fromARGB(255, 52, 0, 147)
+                                .withOpacity(0.5),
+                          ),
+                          const Center(
+                            child: Icon(MingCute.music_2_fill,
+                                size: 80, color: Colors.white),
+                          ),
+                        ])
+                      : SizedBox(
+                          height: constraints.maxHeight,
+                          width: constraints.maxWidth,
+                          child: loadImageCached(state.coverImg,
+                              fit: BoxFit.cover)),
+                );
+              },
+            ),
+            Positioned(
+              child: ClipPath(
+                clipper: ChartCardClipper(),
+                child: Container(
+                  // color: Color.fromARGB(255, 255, 35, 196).withOpacity(0.5),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomRight,
+                      end: Alignment.topLeft,
+                      colors: [
+                        _color.color1,
+                        _color.color2,
+                      ],
+                    ),
                   ),
+                  // color: _color.backgroundColor.withOpacity(0.7),
                 ),
-                // color: _color.backgroundColor.withOpacity(0.7),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 4,
-            right: 4,
-            child: SizedBox(
-              height: ResponsiveBreakpoints.of(context).isMobile ||
-                      ResponsiveBreakpoints.of(context).isTablet
-                  ? MediaQuery.of(context).size.height * 0.10
-                  : MediaQuery.of(context).size.height * 0.09,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 10, bottom: 4, top: 4),
-                  child: Text(
-                    widget.chartInfo.title,
-                    maxLines: 2,
-                    softWrap: true,
-                    textAlign: TextAlign.right,
-                    overflow: TextOverflow.ellipsis,
-                    textWidthBasis: TextWidthBasis.parent,
-                    style: const TextStyle(
-                      // color: _color.textColor.withOpacity(0.95),
-                      color: Color.fromARGB(255, 255, 255, 255),
-                      fontSize: 28,
-                      fontFamily: "Unageo",
-                      fontWeight: FontWeight.w700,
+            Positioned(
+              bottom: 4,
+              right: 4,
+              child: SizedBox(
+                width: constraints.maxWidth * 0.9,
+                height: MediaQuery.of(context).size.height * 0.09,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.only(right: 10, bottom: 4, top: 4),
+                    child: Text(
+                      widget.chartInfo.title,
+                      maxLines: 2,
+                      softWrap: true,
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      textWidthBasis: TextWidthBasis.parent,
+                      style: const TextStyle(
+                        // color: _color.textColor.withOpacity(0.95),
+                        color: Color.fromARGB(255, 255, 255, 255),
+                        fontSize: 28,
+                        fontFamily: "Unageo",
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ]),
+          ]);
+        }),
       ),
     );
   }
