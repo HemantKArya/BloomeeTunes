@@ -2,9 +2,11 @@
 import 'dart:developer';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,8 +29,8 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  int _selectedSearchEngine = 0;
-  SourceEngine _sourceEngine = SourceEngine.eng_JIS;
+  late List<SourceEngine> availSourceEngines;
+  late SourceEngine _sourceEngine;
   final TextEditingController _textEditingController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -46,6 +48,15 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
+    availSourceEngines = SourceEngine.values;
+    _sourceEngine = availSourceEngines[0];
+
+    setState(() {
+      availableSourceEngines().then((value) {
+        availSourceEngines = value;
+        _sourceEngine = availSourceEngines[0];
+      });
+    });
     _scrollController.addListener(loadMoreResults);
     if (widget.searchQuery != "") {
       _textEditingController.text = widget.searchQuery;
@@ -55,8 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Widget sourceEngineRadioButton(
-      String text, int index, SourceEngine sourceEngine) {
+  Widget sourceEngineRadioButton(SourceEngine sourceEngine) {
     return Padding(
       padding: const EdgeInsets.only(right: 10),
       child: SizedBox(
@@ -67,7 +77,6 @@ class _SearchScreenState extends State<SearchScreen> {
           child: OutlinedButton(
             onPressed: () {
               setState(() {
-                _selectedSearchEngine = index;
                 _sourceEngine = sourceEngine;
                 if (_textEditingController.text.toString().isNotEmpty) {
                   log("Search Engine ${sourceEngine.toString()}",
@@ -79,7 +88,7 @@ class _SearchScreenState extends State<SearchScreen> {
               });
             },
             style: OutlinedButton.styleFrom(
-                backgroundColor: _selectedSearchEngine == index
+                backgroundColor: _sourceEngine == sourceEngine
                     ? Default_Theme.accentColor2
                     : Colors.transparent,
                 shape: RoundedRectangleBorder(
@@ -89,9 +98,9 @@ class _SearchScreenState extends State<SearchScreen> {
                     style: BorderStyle.solid,
                     width: 2)),
             child: Text(
-              text,
+              sourceEngine.value,
               style: TextStyle(
-                      color: _selectedSearchEngine == index
+                      color: _sourceEngine == sourceEngine
                           ? Default_Theme.primaryColor2
                           : Default_Theme.accentColor2,
                       fontSize: 15)
@@ -120,14 +129,17 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(
                     left: 18, right: 18, top: 5, bottom: 5),
-                child: Row(
-                  children: [
-                    sourceEngineRadioButton("JIS", 0, SourceEngine.eng_JIS),
-                    sourceEngineRadioButton("YTM", 1, SourceEngine.eng_YTM),
-                    sourceEngineRadioButton("YTV", 2, SourceEngine.eng_YTV),
-                    // const Spacer()
-                  ],
-                ),
+                child: FutureBuilder(
+                    future: availableSourceEngines(),
+                    builder: (context, snapshot) {
+                      return snapshot.hasData || snapshot.data != null
+                          ? Row(
+                              children: snapshot.data!
+                                  .map((e) => sourceEngineRadioButton(e))
+                                  .toList(),
+                            )
+                          : SizedBox();
+                    }),
               ),
             ),
           ),
@@ -284,4 +296,16 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
+}
+
+Future<List<SourceEngine>> availableSourceEngines() async {
+  List<SourceEngine> availSourceEngines = [];
+  for (var engine in SourceEngine.values) {
+    bool isAvailable =
+        await BloomeeDBService.getSettingBool(engine.value) ?? true;
+    if (isAvailable == true) {
+      availSourceEngines.add(engine);
+    }
+  }
+  return availSourceEngines;
 }

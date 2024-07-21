@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
+import 'package:Bloomee/model/source_engines.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:Bloomee/model/saavnModel.dart';
@@ -11,8 +12,6 @@ import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 
 enum LoadingState { initial, loading, loaded, noInternet }
-
-enum SourceEngine { eng_YTM, eng_YTV, eng_JIS }
 
 class LastSearch {
   String query;
@@ -174,15 +173,30 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
 
   Future<void> search(String query,
       {SourceEngine sourceEngine = SourceEngine.eng_YTM}) async {
-    if (sourceEngine == SourceEngine.eng_YTM) {
-      searchYTM(query);
-    } else if (sourceEngine == SourceEngine.eng_YTV) {
-      searchYTV(query);
-    } else if (sourceEngine == SourceEngine.eng_JIS) {
-      searchJIS(query);
-    } else {
-      log("Invalid Source Engine", name: "FetchSearchRes");
-      searchYTM(query);
+    // if (sourceEngine == SourceEngine.eng_YTM) {
+    //   searchYTM(query);
+    // } else if (sourceEngine == SourceEngine.eng_YTV) {
+    //   searchYTV(query);
+    // } else if (sourceEngine == SourceEngine.eng_JIS) {
+    //   searchJIS(query);
+    // } else {
+    //   log("Invalid Source Engine", name: "FetchSearchRes");
+    //   searchYTM(query);
+    // }
+
+    switch (sourceEngine) {
+      case SourceEngine.eng_YTM:
+        searchYTM(query);
+        break;
+      case SourceEngine.eng_YTV:
+        searchYTV(query);
+        break;
+      case SourceEngine.eng_JIS:
+        searchJIS(query);
+        break;
+      default:
+        log("Invalid Source Engine", name: "FetchSearchRes");
+        searchYTM(query);
     }
   }
 
