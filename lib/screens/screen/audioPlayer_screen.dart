@@ -166,7 +166,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                         bottom: 20,
                       ),
                       child: SizedBox(
-                        width: constraints.maxWidth * 0.92,
+                        width: constraints.maxWidth * 0.90,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -179,7 +179,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                             Flexible(
                               flex: 7,
                               child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(16.0),
                                 child: VolumeDragController(
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(25),
