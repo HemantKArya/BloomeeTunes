@@ -14,6 +14,7 @@ class SettingsState {
   String historyClearTime;
   bool autoGetCountry;
   String countryCode;
+  List<bool> sourceEngineSwitches;
   SettingsState({
     required this.autoUpdateNotify,
     required this.autoSlideCharts,
@@ -27,6 +28,7 @@ class SettingsState {
     required this.historyClearTime,
     required this.autoGetCountry,
     required this.countryCode,
+    required this.sourceEngineSwitches,
   });
 
   SettingsState copyWith({
@@ -42,6 +44,7 @@ class SettingsState {
     String? historyClearTime,
     bool? autoGetCountry,
     String? countryCode,
+    List<bool>? sourceEngineSwitches,
   }) {
     return SettingsState(
       autoUpdateNotify: autoUpdateNotify ?? this.autoUpdateNotify,
@@ -56,6 +59,7 @@ class SettingsState {
       historyClearTime: historyClearTime ?? this.historyClearTime,
       autoGetCountry: autoGetCountry ?? this.autoGetCountry,
       countryCode: countryCode ?? this.countryCode,
+      sourceEngineSwitches: sourceEngineSwitches ?? this.sourceEngineSwitches,
     );
   }
 }
@@ -75,5 +79,6 @@ final class SettingsInitial extends SettingsState {
           historyClearTime: "30",
           autoGetCountry: true,
           countryCode: "IN",
+          sourceEngineSwitches: SourceEngine.values.map((e) => true).toList(),
         );
 }

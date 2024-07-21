@@ -70,8 +70,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "App UI Elements",
-              subtitle: "Auto slide, etc.",
+              title: "UI Elements & Services",
+              subtitle: "Auto slide, Source Engines etc.",
               icon: MingCute.display_fill,
               onTap: () {
                 Navigator.push(

@@ -6,7 +6,6 @@ import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -68,9 +67,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget sourceEngineRadioButton(SourceEngine sourceEngine) {
     return Padding(
-      padding: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.only(right: 8),
       child: SizedBox(
-        height: 30,
+        height: 25,
         child: AnimatedContainer(
           duration: const Duration(seconds: 1),
           curve: accelerateEasing,
@@ -88,6 +87,7 @@ class _SearchScreenState extends State<SearchScreen> {
               });
             },
             style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 backgroundColor: _sourceEngine == sourceEngine
                     ? Default_Theme.accentColor2
                     : Colors.transparent,
@@ -103,7 +103,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       color: _sourceEngine == sourceEngine
                           ? Default_Theme.primaryColor2
                           : Default_Theme.accentColor2,
-                      fontSize: 15)
+                      fontSize: 13)
                   .merge(Default_Theme.secondoryTextStyleMedium),
             ),
           ),
@@ -121,6 +121,7 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Scaffold(
         appBar: AppBar(
           shadowColor: Colors.black,
+          surfaceTintColor: Default_Theme.themeColor,
           bottom: PreferredSize(
             preferredSize: const Size(100, 20),
             child: SizedBox(
@@ -129,17 +130,21 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(
                     left: 18, right: 18, top: 5, bottom: 5),
-                child: FutureBuilder(
-                    future: availableSourceEngines(),
-                    builder: (context, snapshot) {
-                      return snapshot.hasData || snapshot.data != null
-                          ? Row(
-                              children: snapshot.data!
-                                  .map((e) => sourceEngineRadioButton(e))
-                                  .toList(),
-                            )
-                          : SizedBox();
-                    }),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: FutureBuilder(
+                      future: availableSourceEngines(),
+                      builder: (context, snapshot) {
+                        return snapshot.hasData || snapshot.data != null
+                            ? Row(
+                                children: snapshot.data!
+                                    .map((e) => sourceEngineRadioButton(e))
+                                    .toList(),
+                              )
+                            : SizedBox();
+                      }),
+                ),
               ),
             ),
           ),
@@ -296,16 +301,4 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
-}
-
-Future<List<SourceEngine>> availableSourceEngines() async {
-  List<SourceEngine> availSourceEngines = [];
-  for (var engine in SourceEngine.values) {
-    bool isAvailable =
-        await BloomeeDBService.getSettingBool(engine.value) ?? true;
-    if (isAvailable == true) {
-      availSourceEngines.add(engine);
-    }
-  }
-  return availSourceEngines;
 }

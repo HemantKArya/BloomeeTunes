@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -91,6 +92,14 @@ class SettingsCubit extends Cubit<SettingsState> {
     BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode).then((value) {
       emit(state.copyWith(countryCode: value ?? "IN"));
     });
+
+    SourceEngine.values.map((e) {
+      BloomeeDBService.getSettingBool(e.value).then((value) {
+        List<bool> switches = List.from(state.sourceEngineSwitches);
+        switches[SourceEngine.values.indexOf(e)] = value ?? true;
+        emit(state.copyWith(sourceEngineSwitches: switches));
+      });
+    });
   }
 
   void autoUpdate() {
@@ -159,6 +168,13 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setHistoryClearTime(String value) {
     BloomeeDBService.putSettingStr(GlobalStrConsts.historyClearTime, value);
     emit(state.copyWith(historyClearTime: value));
+  }
+
+  void setSourceEngineSwitches(int index, bool value) {
+    List<bool> switches = List.from(state.sourceEngineSwitches);
+    switches[index] = value;
+    BloomeeDBService.putSettingBool(SourceEngine.values[index].value, value);
+    emit(state.copyWith(sourceEngineSwitches: switches));
   }
 
   Future<void> resetDownPath() async {
