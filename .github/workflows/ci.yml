@@ -1,16 +1,13 @@
-name: "Build & Release"
+name: "Build"
 
-# on:
-#   push:
-#     branches: main
 on:
-  workflow_dispatch:
+  push:
     branches: main
     
 
 jobs:
     build:
-        name: Build & Release
+        name: Build
         runs-on: windows-latest
         steps:
             - name: Checkout Repository
@@ -34,37 +31,53 @@ jobs:
             - name: Create .env file
               run: echo "CLIENT_ID = XXXXX\nCLIENT_SECRET = XXXX EOF" > assets/.env
 
-            - name: Create keystore file
-              run: |
-                  $b64 = "${{ secrets.KEY_STORE }}"
-                  $filename = "./android/bloomee.jks"
-                  $bytes = [Convert]::FromBase64String($b64)
-                  [IO.File]::WriteAllBytes($filename, $bytes)
+            # - name: Create keystore file
+            #   run: |
+            #       $b64 = "${{ secrets.KEY_STORE }}"
+            #       $filename = "./android/bloomee.jks"
+            #       $bytes = [Convert]::FromBase64String($b64)
+            #       [IO.File]::WriteAllBytes($filename, $bytes)
               # run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > ./android/bloomee.jks
             
-            - name: Create Keystore properties
-              run: |
-                  echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
-                  echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
-                  echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
+            # - name: Create Keystore properties
+            #   run: |
+            #       echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
+            #       echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
+            #       echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
             
             - name: Build App files
               run: flutter build apk --release --build-number ${{github.run_number}}
 
+             - name: Set ANDROID_HOME
+              run: |
+                $env:ANDROID_HOME = "C:\Users\runneradmin\AppData\Local\Android\Sdk"
+                [System.Environment]::SetEnvironmentVariable("ANDROID_HOME", $env:ANDROID_HOME, [System.EnvironmentVariableTarget]::Machine)
+
+            - name: ZipAlign APK
+              run: |
+                $zipalign = "$env:ANDROID_HOME\build-tools\30.0.3\zipalign"
+                & $zipalign -v -p 4 build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-aligned.apk
+
+            - name: Sign APK
+              run: |
+                $apksigner = "$env:ANDROID_HOME\build-tools\30.0.3\apksigner"
+                & $apksigner sign --ks $env:KEY_STORE --ks-pass pass:$env:STORE_PASSWORD --ks-key-alias $env:KEY_ALIAS --key-pass pass:$env:KEY_PASSWORD --out build/app/outputs/flutter-apk/app-signed.apk build/app/outputs/flutter-apk/app-aligned.apk
+
+
             - name: Verify Sign
-              run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
+              run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-signed.apk
 
             - name: Rename APK file
-              run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk"
+              run: Rename-Item -Path "build/app/outputs/flutter-apk/app-signed.apk" -NewName "bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk"
 
-            - name: Build Windows App
-              run: flutter build windows --release --build-number ${{github.run_number}}
+            # - name: Build Windows App
+            #   run: flutter build windows --release --build-number ${{github.run_number}}
 
-            - name: Rename file
-              run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
+            # - name: Rename file
+            #   run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
            
-            - name: ZIP build
-              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
+            # - name: ZIP build
+            #   run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
             
             - name: Upload Artifacts
               uses: actions/upload-artifact@v2
@@ -72,7 +85,7 @@ jobs:
                 name: Release
                 path: |
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk
-                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
+                # build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
             # - name: Create Release
             #   uses: ncipollo/release-action@v1
             #   with:
