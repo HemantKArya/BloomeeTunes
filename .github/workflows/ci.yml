@@ -44,14 +44,14 @@ jobs:
             #       echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
             #       echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
             #       echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
+            - name: Set ANDROID_HOME
+              run: |
+                $env:ANDROID_HOME = "C:\Users\runneradmin\AppData\Local\Android\Sdk"
+                [System.Environment]::SetEnvironmentVariable("ANDROID_HOME", $env:ANDROID_HOME, [System.EnvironmentVariableTarget]::Machine)
             
             - name: Build App files
               run: flutter build apk --release --build-number ${{github.run_number}}
 
-             - name: Set ANDROID_HOME
-              run: |
-                $env:ANDROID_HOME = "C:\Users\runneradmin\AppData\Local\Android\Sdk"
-                [System.Environment]::SetEnvironmentVariable("ANDROID_HOME", $env:ANDROID_HOME, [System.EnvironmentVariableTarget]::Machine)
 
             - name: ZipAlign APK
               run: |
