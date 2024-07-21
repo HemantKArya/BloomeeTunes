@@ -69,7 +69,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: SizedBox(
-        height: 25,
+        height: 27,
         child: AnimatedContainer(
           duration: const Duration(seconds: 1),
           curve: accelerateEasing,
@@ -125,26 +125,22 @@ class _SearchScreenState extends State<SearchScreen> {
           bottom: PreferredSize(
             preferredSize: const Size(100, 20),
             child: SizedBox(
-              height: 35,
+              height: 30,
               width: MediaQuery.of(context).size.width,
               child: Padding(
                 padding: const EdgeInsets.only(
                     left: 18, right: 18, top: 5, bottom: 5),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: FutureBuilder(
-                      future: availableSourceEngines(),
-                      builder: (context, snapshot) {
-                        return snapshot.hasData || snapshot.data != null
-                            ? Row(
-                                children: snapshot.data!
-                                    .map((e) => sourceEngineRadioButton(e))
-                                    .toList(),
-                              )
-                            : SizedBox();
-                      }),
-                ),
+                child: FutureBuilder(
+                    future: availableSourceEngines(),
+                    builder: (context, snapshot) {
+                      return snapshot.hasData || snapshot.data != null
+                          ? Row(
+                              children: snapshot.data!
+                                  .map((e) => sourceEngineRadioButton(e))
+                                  .toList(),
+                            )
+                          : SizedBox();
+                    }),
               ),
             ),
           ),

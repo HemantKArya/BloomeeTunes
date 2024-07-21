@@ -13,11 +13,12 @@ class CheckUpdateView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Default_Theme.themeColor,
         foregroundColor: Default_Theme.primaryColor1,
+        centerTitle: true,
         title: Text(
-          'Check for Update',
+          'Check for Updates',
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold)
               .merge(Default_Theme.secondoryTextStyle),
         ),
