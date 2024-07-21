@@ -24,10 +24,9 @@ if (flutterVersionName == null) {
 }
 
 
-// def keystoreProperties = new Properties()
-//    def keystorePropertiesFile = rootProject.file('key.properties')
-//    if (keystorePropertiesFile.exists()) {
-//        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))}
+def keystoreProperties = new Properties()
+   def keystorePropertiesFile = rootProject.file('key.properties')
+   
 
 android {
     namespace "ls.bloomee.musicplayer"
@@ -59,6 +58,18 @@ android {
     }
 
        signingConfigs {
+
+if (keystorePropertiesFile.exists()) {
+       keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+          release {
+           keyAlias keystoreProperties['keyAlias']
+           keyPassword keystoreProperties['keyPassword']
+           storeFile rootProject.file('bloomee.jks')
+           storePassword keystoreProperties['storePassword']
+       }
+
+       }
+
     //    release {
     //        keyAlias keystoreProperties['keyAlias']
     //        keyPassword keystoreProperties['keyPassword']
@@ -68,6 +79,14 @@ android {
    }
    buildTypes {
        release {
+        if (keystorePropertiesFile.exists()) {
+            println("keystorePropertiesFile exists")
+            signingConfig signingConfigs.release
+        }
+        else {
+            println("keystorePropertiesFile does not exist")
+            signingConfig signingConfigs.debug
+        }
         // signingConfig signingConfigs.debug
         //    signingConfig signingConfigs.release
        }

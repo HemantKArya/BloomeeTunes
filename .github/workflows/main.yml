@@ -73,13 +73,13 @@ jobs:
                 path: |
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk
                   build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
-            # - name: Create Release
-            #   uses: ncipollo/release-action@v1
-            #   with:
-            #     artifacts: |
-            #       build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
-            #       build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk
-            #     tag: v2.8.2+${{github.run_number}}
-            #     token: ${{secrets.SECRET_KEY}}
+            - name: Create Release
+              uses: ncipollo/release-action@v1
+              with:
+                artifacts: |
+                  build/windows/x64/bloomee_tunes_windows_x64_v2.8.2+${{github.run_number}}.zip
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.8.2+${{github.run_number}}.apk
+                tag: v2.8.2+${{github.run_number}}
+                token: ${{secrets.SECRET_KEY}}
 
     
