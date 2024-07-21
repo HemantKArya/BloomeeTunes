@@ -49,10 +49,13 @@ jobs:
               run: flutter build apk --release --build-number ${{github.run_number}}
 
             - name: ZipAlign APK
-              run: "$env:ANDROID_HOME\build-tools\30.0.3\zipalign -v -p 4 build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-aligned.apk"
-            
+              run: |
+                ${ANDROID_HOME}/build-tools/30.0.3/zipalign -v -p 4 build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-aligned.apk
+
             - name: Sign APK
-              run: "$env:ANDROID_HOME\build-tools\30.0.3\apksigner sign --ks ${{ secrets.KEY_STORE }} --ks-pass pass:${{ secrets.STORE_PASSWORD }} --ks-key-alias ${{ secrets.KEY_ALIAS }} --key-pass pass:${{ secrets.KEY_PASSWORD }} --out build/app/outputs/flutter-apk/app-signed.apk build/app/outputs/flutter-apk/app-aligned.apk"
+              run: |
+                ${ANDROID_HOME}/build-tools/30.0.3/apksigner sign --ks ${{ secrets.KEY_STORE }} --ks-pass pass:${{ secrets.STORE_PASSWORD }} --ks-key-alias ${{ secrets.KEY_ALIAS }} --key-pass pass:${{ secrets.KEY_PASSWORD }} --out build/app/outputs/flutter-apk/app-signed.apk build/app/outputs/flutter-apk/app-aligned.apk
+
 
             - name: Verify Sign
               run: jarsigner --verify --verbose build/app/outputs/flutter-apk/app-signed.apk
