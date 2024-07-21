@@ -47,13 +47,13 @@ class _AppUISettingsState extends State<AppUISettings> {
                     "Slide charts automatically in home screen.",
                     style: TextStyle(
                             color: Default_Theme.primaryColor1.withOpacity(0.5),
-                            fontSize: 12.5)
+                            fontSize: 12)
                         .merge(Default_Theme.secondoryTextStyleMedium),
                   ),
                   title: Text(
                     "Auto slide charts",
                     style: const TextStyle(
-                            color: Default_Theme.primaryColor1, fontSize: 17)
+                            color: Default_Theme.primaryColor1, fontSize: 16)
                         .merge(Default_Theme.secondoryTextStyleMedium),
                   ),
                   onChanged: (value) {
@@ -63,14 +63,14 @@ class _AppUISettingsState extends State<AppUISettings> {
                 title: Text(
                   "Source Engines",
                   style: const TextStyle(
-                          color: Default_Theme.primaryColor1, fontSize: 17)
+                          color: Default_Theme.primaryColor1, fontSize: 16)
                       .merge(Default_Theme.secondoryTextStyleMedium),
                 ),
                 subtitle: Text(
                   "Manage the source engines you want to use for Music search. (Restart required)",
                   style: TextStyle(
                           color: Default_Theme.primaryColor1.withOpacity(0.5),
-                          fontSize: 12.5)
+                          fontSize: 12)
                       .merge(Default_Theme.secondoryTextStyleMedium),
                 ),
                 collapsedIconColor: Default_Theme.primaryColor1,

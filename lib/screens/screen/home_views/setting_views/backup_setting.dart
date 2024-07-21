@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -43,7 +42,7 @@ class BackupSettings extends StatelessWidget {
 
     return havePermission;
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,7 +72,7 @@ class BackupSettings extends StatelessWidget {
                   value: state.historyClearTime,
                   style: const TextStyle(
                     color: Default_Theme.primaryColor1,
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ).merge(Default_Theme.secondoryTextStyle),
                   underline: const SizedBox(),
@@ -220,13 +219,13 @@ class BackupSettings extends StatelessWidget {
               SwitchListTile(
                 title: Text("Auto Backup",
                     style: const TextStyle(
-                            color: Default_Theme.primaryColor1, fontSize: 17)
+                            color: Default_Theme.primaryColor1, fontSize: 16)
                         .merge(Default_Theme.secondoryTextStyleMedium)),
                 subtitle: Text(
                     "Automatically create a backup of your data on regular basis.",
                     style: TextStyle(
                             color: Default_Theme.primaryColor1.withOpacity(0.5),
-                            fontSize: 12.5)
+                            fontSize: 12)
                         .merge(Default_Theme.secondoryTextStyleMedium)),
                 value: state.autoBackup,
                 onChanged: (value) {

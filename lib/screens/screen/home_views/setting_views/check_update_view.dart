@@ -73,7 +73,7 @@ class CheckUpdateView extends StatelessWidget {
                           style: TextStyle(
                                   color: Default_Theme.primaryColor1
                                       .withOpacity(0.8),
-                                  fontSize: 17)
+                                  fontSize: 16)
                               .merge(Default_Theme.tertiaryTextStyle),
                           textAlign: TextAlign.center,
                         ),
