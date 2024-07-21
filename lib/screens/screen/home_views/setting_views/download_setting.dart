@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
-import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -42,7 +40,7 @@ Future<bool> storagePermission() async {
   if (!havePermission) {
     // if no permission then open app-setting
     await openAppSettings();
-    }
+  }
 
   return havePermission;
 }
