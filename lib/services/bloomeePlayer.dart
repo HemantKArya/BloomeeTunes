@@ -101,6 +101,24 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.seek(position);
   }
 
+  Future<void> seekNSecForward(Duration n) async {
+    if ((audioPlayer.duration ?? const Duration(seconds: 0)) >=
+        audioPlayer.position + n) {
+      await audioPlayer.seek(audioPlayer.position + n);
+    } else {
+      await audioPlayer
+          .seek(audioPlayer.duration ?? const Duration(seconds: 0));
+    }
+  }
+
+  Future<void> seekNSecBackward(Duration n) async {
+    if (audioPlayer.position - n >= const Duration(seconds: 0)) {
+      await audioPlayer.seek(audioPlayer.position - n);
+    } else {
+      await audioPlayer.seek(const Duration(seconds: 0));
+    }
+  }
+
   @override
   Future<void> updateMediaItem(MediaItem mediaItem) async {
     super.mediaItem.add(mediaItem);
