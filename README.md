@@ -41,10 +41,9 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 
 
 
-<center>
-<br>
-<h3>Download for Android and Windows 😍</h3>
-<a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" width=272 height=44 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></center>
+<h3 align=center>Download for Android and Windows 😍</h3>
+<p align="center">
+<a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" width=272 height=44 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
 </br>
 
 
