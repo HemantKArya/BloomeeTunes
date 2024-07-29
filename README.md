@@ -72,14 +72,14 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 <h4 align=center>Get in touch with me at :-</h4>
 <p align=center>
 <a href=https://www.linkedin.com/in/iamhemantindia/>
-<img src=https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white/>
+<img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"/>
 </a> <a href=https://instagram.com/iamhemantindia/>
-<img src=https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white/>
+<img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white"/>
 </a>
 <a href=https://x.com/iamhemantindia/>
-<img src=https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white/>
+<img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white"/>
 </a>
 <a href=mailto:iamhemantindia@protonmail.com/>
-<img src=https://img.shields.io/badge/proton%20mail-6D4AFF?style=for-the-badge&logo=protonmail&logoColor=white/>
+<img src="https://img.shields.io/badge/proton%20mail-6D4AFF?style=for-the-badge&logo=protonmail&logoColor=white"/>
 </a>
 </p>
