@@ -172,7 +172,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       color: Default_Theme.primaryColor1.withOpacity(0.4),
                     ),
                     fillColor: Default_Theme.primaryColor2.withOpacity(0.07),
-                    contentPadding: const EdgeInsets.only(top: 20),
+                    contentPadding:
+                        const EdgeInsets.only(top: 20, left: 15, right: 5),
                     hintText: "Find your next song obsession...",
                     hintStyle: TextStyle(
                       color: Default_Theme.primaryColor1.withOpacity(0.3),
