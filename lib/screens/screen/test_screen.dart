@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:developer';
-
-import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/repository/Lyrics/genius_api.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
@@ -33,8 +31,10 @@ class TestView extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () async {
-                YtMusicService().getMusicHome().then((value) {
-                  log("Test API: ${jsonEncode(value)}");
+                searchGeniusLyrics("hellow", "adele").then((value) {
+                  log(value.toString());
+                  log(value.lyrics.toString());
+                  log(value.lyrics!.length.toString());
                 });
               },
               child: const Text(
