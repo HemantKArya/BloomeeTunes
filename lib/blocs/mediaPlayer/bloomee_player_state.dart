@@ -2,8 +2,9 @@
 part of 'bloomee_player_cubit.dart';
 
 class BloomeePlayerState {
-  late bool isReady;
-  BloomeePlayerState({required this.isReady});
+  bool isReady;
+  bool showLyrics;
+  BloomeePlayerState({required this.isReady, this.showLyrics = false});
 }
 
 final class BloomeePlayerInitial extends BloomeePlayerState {

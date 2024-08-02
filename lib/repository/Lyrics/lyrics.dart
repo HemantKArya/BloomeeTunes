@@ -1,21 +1,39 @@
 import 'package:Bloomee/model/lyrics_models.dart';
-import 'package:Bloomee/repository/Lyrics/genius_api.dart';
+import 'package:Bloomee/repository/Lyrics/lrcnet_api.dart';
 
 class LyricsRepository {
-  static Future<LyricsSearchResults> getLyrics(String title, String artist,
-      {LyricsProvider provider = LyricsProvider.none}) async {
-    LyricsSearchResults results;
+  static Future<Lyrics> getLyrics(
+    String title,
+    String artist, {
+    String? album,
+    Duration? duration,
+    LyricsProvider provider = LyricsProvider.none,
+  }) async {
+    Lyrics result;
     try {
       switch (provider) {
-        case LyricsProvider.genius:
-          results = await searchGeniusLyrics(title, artist);
+        case LyricsProvider.lrcnet:
+          result = await getLRCNetAPILyrics(
+            title,
+            artist: artist,
+            album: album,
+            duration: duration?.inSeconds.toString(),
+          );
           break;
         default:
-          results = await searchGeniusLyrics(title, artist);
+          result = await getLRCNetAPILyrics(
+            title,
+            artist: artist,
+            album: album,
+            duration: duration?.inSeconds.toString(),
+          );
       }
     } catch (e) {
-      return await searchGeniusLyrics(title, artist);
+      result = await getLRCNetAPILyrics(
+        title,
+        artist: artist,
+      );
     }
-    return results;
+    return result;
   }
 }

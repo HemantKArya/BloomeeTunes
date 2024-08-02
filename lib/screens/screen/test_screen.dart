@@ -1,5 +1,7 @@
 import 'dart:developer';
-import 'package:Bloomee/repository/Lyrics/genius_api.dart';
+import 'package:Bloomee/model/lyrics_models.dart';
+import 'package:Bloomee/repository/Lyrics/lrcnet_api.dart';
+import 'package:Bloomee/repository/Lyrics/lyrics.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
@@ -31,10 +33,12 @@ class TestView extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () async {
-                searchGeniusLyrics("hellow", "adele").then((value) {
+                LyricsRepository.getLyrics("bliss", "milet",
+                        album: "anytime anywhere",
+                        duration: Duration(seconds: 260),
+                        provider: LyricsProvider.lrcnet)
+                    .then((value) {
                   log(value.toString());
-                  log(value.lyrics.toString());
-                  log(value.lyrics!.length.toString());
                 });
               },
               child: const Text(

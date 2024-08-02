@@ -15,6 +15,11 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
     setupPlayer().then((value) => emit(BloomeePlayerState(isReady: true)));
   }
 
+  void switchShowLyrics({bool? value}) {
+    emit(BloomeePlayerState(
+        isReady: true, showLyrics: value ?? !state.showLyrics));
+  }
+
   Future<void> setupPlayer() async {
     bloomeePlayer = await PlayerInitializer().getBloomeeMusicPlayer();
 

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io' as io;
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
+import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
@@ -207,6 +208,9 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(
           create: (context) => FetchSearchResultsCubit(),
         ),
+        BlocProvider(
+          create: (context) => LyricsCubit(bloomeePlayerCubit),
+        )
       ],
       child: RepositoryProvider(
         create: (context) => DownloaderCubit(

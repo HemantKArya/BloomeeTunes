@@ -41,6 +41,11 @@ class SongInfoScreen extends StatelessWidget {
                   subtitle: song.artist ?? 'Unknown',
                 ),
                 InfoTile(
+                  title: "Album",
+                  subtitle: song.album ?? 'Unknown',
+                  icon: MingCute.album_fill,
+                ),
+                InfoTile(
                   icon: MingCute.time_fill,
                   title: "Duration",
                   subtitle: song.duration != null

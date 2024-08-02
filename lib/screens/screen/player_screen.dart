@@ -7,6 +7,7 @@ import 'package:Bloomee/screens/widgets/volume_slider.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,6 +23,7 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'player_views/lyrics_widget.dart';
 
 class AudioPlayerView extends StatefulWidget {
   const AudioPlayerView({super.key});
@@ -30,8 +32,25 @@ class AudioPlayerView extends StatefulWidget {
   State<AudioPlayerView> createState() => _AudioPlayerViewState();
 }
 
-class _AudioPlayerViewState extends State<AudioPlayerView> {
+class _AudioPlayerViewState extends State<AudioPlayerView>
+    with SingleTickerProviderStateMixin {
   final PanelController _panelController = PanelController();
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    _tabController = TabController(length: 2, vsync: this);
+    super.initState();
+    // set value switchLyrics if tab is changed
+    _tabController.addListener(() {
+      if (_tabController.index == 1) {
+        context.read<BloomeePlayerCubit>().switchShowLyrics(value: true);
+      } else {
+        context.read<BloomeePlayerCubit>().switchShowLyrics(value: false);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     BloomeeMusicPlayer musicPlayer =
@@ -255,14 +274,47 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
                           children: [
                             Flexible(
                               child: Container(
-                                height: 20,
+                                height: 5,
                               ),
                             ),
                             Flexible(
                               flex: 7,
                               child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: coverImage(context, constraints),
+                                padding: const EdgeInsets.only(
+                                    right: 16, left: 16, top: 8, bottom: 8),
+                                // child: coverImage(context, constraints),
+                                child: BlocListener<BloomeePlayerCubit,
+                                    BloomeePlayerState>(
+                                  listener: (context, state) {
+                                    if (state.showLyrics) {
+                                      _tabController.animateTo(1);
+                                    } else {
+                                      _tabController.animateTo(0);
+                                    }
+                                  },
+                                  child: TabBarView(
+                                    controller: _tabController,
+                                    physics: const BouncingScrollPhysics(),
+                                    children: [
+                                      Tab(
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 10),
+                                          child:
+                                              coverImage(context, constraints),
+                                        ),
+                                      ),
+                                      Tab(
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                            minHeight: 200,
+                                          ),
+                                          child: const LyricsWidget(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                             // const Spacer(),
@@ -296,7 +348,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
               builder: (context, snapshot) {
                 return ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: 200 + constraints.maxWidth * 0.90,
+                    maxWidth: 200 + constraints.maxWidth * 0.85,
                     minWidth: 200,
                     maxHeight: 200 + constraints.maxHeight * 0.90,
                     minHeight: 200,
@@ -727,116 +779,160 @@ class PlayerCtrlWidgets extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Tooltip(
-                  message: "Loop",
-                  child: PopupMenuButton(
-                    color: const Color.fromARGB(255, 17, 17, 17),
-                    surfaceTintColor: const Color.fromARGB(255, 19, 19, 19),
-                    padding: const EdgeInsets.all(5),
-                    itemBuilder: (BuildContext context) => [
-                      PopupMenuItem(
-                        value: 0,
-                        child: Text(
-                          "Off",
-                          style: Default_Theme.secondoryTextStyle.merge(
-                            const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Default_Theme.primaryColor1,
-                                fontSize: 14),
-                          ),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 1,
-                        child: Text(
-                          "Loop One",
-                          style: Default_Theme.secondoryTextStyle.merge(
-                            const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Default_Theme.primaryColor1,
-                                fontSize: 14),
-                          ),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 2,
-                        child: Text(
-                          "Loop All",
-                          style: Default_Theme.secondoryTextStyle.merge(
-                            const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Default_Theme.primaryColor1,
-                                fontSize: 14),
-                          ),
-                        ),
-                      )
-                    ],
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: StreamBuilder<LoopMode>(
-                          stream: context
-                              .watch<BloomeePlayerCubit>()
-                              .bloomeePlayer
-                              .loopMode,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              switch (snapshot.data) {
-                                case LoopMode.off:
-                                  return const Icon(
-                                    MingCute.repeat_line,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Tooltip(
+                      message: "Loop",
+                      child: PopupMenuButton(
+                        color: const Color.fromARGB(255, 17, 17, 17),
+                        surfaceTintColor: const Color.fromARGB(255, 19, 19, 19),
+                        padding: const EdgeInsets.all(5),
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem(
+                            value: 0,
+                            child: Text(
+                              "Off",
+                              style: Default_Theme.secondoryTextStyle.merge(
+                                const TextStyle(
+                                    fontWeight: FontWeight.bold,
                                     color: Default_Theme.primaryColor1,
-                                    size: 30,
-                                  );
-                                case LoopMode.one:
-                                  return const Icon(
-                                    MingCute.repeat_one_line,
-                                    color: Default_Theme.accentColor1,
-                                    size: 30,
-                                  );
-                                case LoopMode.all:
-                                  return const Icon(
-                                    MingCute.repeat_fill,
-                                    color: Default_Theme.accentColor1,
-                                    size: 30,
-                                  );
-                                case null:
-                                  return const Icon(
-                                    MingCute.repeat_line,
+                                    fontSize: 14),
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 1,
+                            child: Text(
+                              "Loop One",
+                              style: Default_Theme.secondoryTextStyle.merge(
+                                const TextStyle(
+                                    fontWeight: FontWeight.bold,
                                     color: Default_Theme.primaryColor1,
-                                    size: 30,
-                                  );
-                              }
-                            }
-                            return const Icon(
-                              MingCute.repeat_line,
-                              color: Default_Theme.primaryColor1,
-                              size: 30,
-                            );
-                          }),
+                                    fontSize: 14),
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 2,
+                            child: Text(
+                              "Loop All",
+                              style: Default_Theme.secondoryTextStyle.merge(
+                                const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Default_Theme.primaryColor1,
+                                    fontSize: 14),
+                              ),
+                            ),
+                          )
+                        ],
+                        child: Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: StreamBuilder<LoopMode>(
+                              stream: context
+                                  .watch<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .loopMode,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  switch (snapshot.data) {
+                                    case LoopMode.off:
+                                      return const Icon(
+                                        MingCute.repeat_line,
+                                        color: Default_Theme.primaryColor1,
+                                        size: 30,
+                                      );
+                                    case LoopMode.one:
+                                      return const Icon(
+                                        MingCute.repeat_one_line,
+                                        color: Default_Theme.accentColor1,
+                                        size: 30,
+                                      );
+                                    case LoopMode.all:
+                                      return const Icon(
+                                        MingCute.repeat_fill,
+                                        color: Default_Theme.accentColor1,
+                                        size: 30,
+                                      );
+                                    case null:
+                                      return const Icon(
+                                        MingCute.repeat_line,
+                                        color: Default_Theme.primaryColor1,
+                                        size: 30,
+                                      );
+                                  }
+                                }
+                                return const Icon(
+                                  MingCute.repeat_line,
+                                  color: Default_Theme.primaryColor1,
+                                  size: 30,
+                                );
+                              }),
+                        ),
+                        onSelected: (value) {
+                          switch (value) {
+                            case 0:
+                              context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .setLoopMode(LoopMode.off);
+                              break;
+                            case 1:
+                              context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .setLoopMode(LoopMode.one);
+                              break;
+                            case 2:
+                              context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .setLoopMode(LoopMode.all);
+                              break;
+                          }
+                        },
+                      ),
                     ),
-                    onSelected: (value) {
-                      switch (value) {
-                        case 0:
-                          context
-                              .read<BloomeePlayerCubit>()
-                              .bloomeePlayer
-                              .setLoopMode(LoopMode.off);
-                          break;
-                        case 1:
-                          context
-                              .read<BloomeePlayerCubit>()
-                              .bloomeePlayer
-                              .setLoopMode(LoopMode.one);
-                          break;
-                        case 2:
-                          context
-                              .read<BloomeePlayerCubit>()
-                              .bloomeePlayer
-                              .setLoopMode(LoopMode.all);
-                          break;
-                      }
-                    },
-                  ),
+                    Tooltip(
+                      message: "Lyrics",
+                      child:
+                          BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
+                        builder: (context, state) {
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 5),
+                            child: SizedBox(
+                              height: 25,
+                              width: 35,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.all(0),
+                                  side: BorderSide(
+                                      color: state.showLyrics
+                                          ? Default_Theme.accentColor2
+                                          : Default_Theme.primaryColor1,
+                                      width: 2),
+                                ),
+                                onPressed: () {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .switchShowLyrics();
+                                },
+                                child: Text('L',
+                                    style: Default_Theme.secondoryTextStyle
+                                        .merge(TextStyle(
+                                            color: state.showLyrics
+                                                ? Default_Theme.accentColor2
+                                                : Default_Theme.primaryColor1,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold))),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 Tooltip(
                   message: "Open Original Link",

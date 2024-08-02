@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.8.2+0
+version: 2.9.0+0
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
@@ -74,6 +74,7 @@ dependencies:
   receive_sharing_intent: ^1.7.0
   sliding_up_panel: ^2.0.0+1
   responsive_framework: ^1.4.0
+  scrollable_positioned_list: ^0.3.8
   # mime: ^1.0.5
 
 
@@ -187,6 +188,10 @@ flutter:
           weight: 700
         - asset: assets/fonts/ReThinkSans/RethinkSans-ExtraBold.otf
           weight: 800
+          
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/Noto/NotoSans-VariableFont_wdth,wght.ttf
 
 
     - family: Fjalla
