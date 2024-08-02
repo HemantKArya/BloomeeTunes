@@ -25,6 +25,7 @@ import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubi
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:metadata_god/metadata_god.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -101,6 +102,11 @@ void setupPlayerCubit() {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (io.Platform.isLinux) {
+    JustAudioMediaKit.ensureInitialized(
+      linux: true,
+    );
+  }
   setHighRefreshRate();
   MetadataGod.initialize();
   try {
