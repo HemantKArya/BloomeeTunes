@@ -32,9 +32,9 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 - [x] ⏲️ Sleep Timer
 - [x] 🌐 Daily Updated Global Charts
 - [x] 🖥️ Support for Windows
+- [x] 📝 Lyrics Support
 - [ ] 🐧 Support for Linux
 - [ ] 🍏 Support for iOS
-- [ ] 📝 Lyrics Support
 - [ ] 🎼 AI-Generated Playlist
 - [ ] 💡 AI-Based Recommendations
 - [ ] 🆎 Multi-Language support
