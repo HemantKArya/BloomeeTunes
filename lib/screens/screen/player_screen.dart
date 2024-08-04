@@ -7,7 +7,6 @@ import 'package:Bloomee/screens/widgets/volume_slider.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
