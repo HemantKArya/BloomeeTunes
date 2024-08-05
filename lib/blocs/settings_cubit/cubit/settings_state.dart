@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'settings_cubit.dart';
 
-class SettingsState {
+class SettingsState extends Equatable {
   bool autoUpdateNotify;
   bool autoSlideCharts;
   String downPath;
@@ -59,12 +59,30 @@ class SettingsState {
       historyClearTime: historyClearTime ?? this.historyClearTime,
       autoGetCountry: autoGetCountry ?? this.autoGetCountry,
       countryCode: countryCode ?? this.countryCode,
-      sourceEngineSwitches: sourceEngineSwitches ?? this.sourceEngineSwitches,
+      sourceEngineSwitches:
+          List.from(sourceEngineSwitches ?? this.sourceEngineSwitches),
     );
   }
+
+  @override
+  List<Object?> get props => [
+        autoUpdateNotify,
+        autoSlideCharts,
+        downPath,
+        downQuality,
+        ytDownQuality,
+        strmQuality,
+        ytStrmQuality,
+        backupPath,
+        autoBackup,
+        historyClearTime,
+        autoGetCountry,
+        countryCode,
+        sourceEngineSwitches,
+      ];
 }
 
-final class SettingsInitial extends SettingsState {
+class SettingsInitial extends SettingsState {
   SettingsInitial()
       : super(
           autoUpdateNotify: false,

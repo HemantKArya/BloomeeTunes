@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 part 'settings_state.dart';
@@ -93,13 +94,14 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(state.copyWith(countryCode: value ?? "IN"));
     });
 
-    SourceEngine.values.map((e) {
-      BloomeeDBService.getSettingBool(e.value).then((value) {
+    for (var eg in SourceEngine.values) {
+      BloomeeDBService.getSettingBool(eg.value).then((value) {
         List<bool> switches = List.from(state.sourceEngineSwitches);
-        switches[SourceEngine.values.indexOf(e)] = value ?? true;
+        switches[SourceEngine.values.indexOf(eg)] = value ?? true;
         emit(state.copyWith(sourceEngineSwitches: switches));
+        log(switches.toString(), name: 'SettingsCubit');
       });
-    });
+    }
   }
 
   void autoUpdate() {
@@ -174,7 +176,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     List<bool> switches = List.from(state.sourceEngineSwitches);
     switches[index] = value;
     BloomeeDBService.putSettingBool(SourceEngine.values[index].value, value);
-    emit(state.copyWith(sourceEngineSwitches: switches));
+    emit(state.copyWith(sourceEngineSwitches: List.from(switches)));
   }
 
   Future<void> resetDownPath() async {
