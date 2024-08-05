@@ -14,6 +14,18 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/import_playlist.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
+enum ImportType {
+  spotifyPlaylist,
+  spotifySingle,
+  spotifyAlbum,
+  youtubeVidPlaylist,
+  youtubeVidSingle,
+  youtubeMusicPlaylist,
+  youtubeMusicAlbum,
+  youtubeMusicSingle,
+  storage,
+}
+
 class ImportMediaFromPlatformsView extends StatelessWidget {
   const ImportMediaFromPlatformsView({super.key});
 
@@ -46,7 +58,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
             onClickFunc: () {
               getIdAndShowBottomSheet(context,
                   hintText: "https://open.spotify.com/playlist/XXXXX",
-                  isSpotify: true);
+                  importType: ImportType.spotifyPlaylist);
             },
           ),
           ImportFromBtn(
@@ -55,8 +67,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
               onClickFunc: () {
                 getIdAndShowBottomSheet(context,
                     hintText: "https://open.spotify.com/track/XXXXXX",
-                    isSpotify: true,
-                    isSingle: true);
+                    importType: ImportType.spotifySingle);
               }),
           ImportFromBtn(
               btnName: "Album from Spotify",
@@ -64,8 +75,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
               onClickFunc: () {
                 getIdAndShowBottomSheet(context,
                     hintText: "https://open.spotify.com/album/XXXXXX",
-                    isSpotify: true,
-                    isAlbum: true);
+                    importType: ImportType.spotifyAlbum);
               }),
           ImportFromBtn(
               btnName: "Playlist from Youtube",
@@ -73,7 +83,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
               onClickFunc: () {
                 getIdAndShowBottomSheet(context,
                     hintText: "https://www.youtube.com/playlist?list=XXXXXX",
-                    isSpotify: false);
+                    importType: ImportType.youtubeVidPlaylist);
               }),
           ImportFromBtn(
               btnName: "Music from Youtube",
@@ -81,8 +91,31 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
               onClickFunc: () {
                 getIdAndShowBottomSheet(context,
                     hintText: "https://www.youtube.com/watch?v=XXXXXX",
-                    isSpotify: false,
-                    isSingle: true);
+                    importType: ImportType.youtubeVidSingle);
+              }),
+          ImportFromBtn(
+              btnName: "Music from Youtube-Music",
+              btnIcon: FontAwesome.youtube_brand,
+              onClickFunc: () {
+                getIdAndShowBottomSheet(context,
+                    hintText: "https://music.youtube.com/watch?v=XXXXXX",
+                    importType: ImportType.youtubeMusicSingle);
+              }),
+          ImportFromBtn(
+              btnName: "Playlist from Youtube-Music Playlist",
+              btnIcon: FontAwesome.circle_play,
+              onClickFunc: () {
+                getIdAndShowBottomSheet(context,
+                    hintText: "https://music.youtube.com/playlist?list=XXXXXX",
+                    importType: ImportType.youtubeMusicPlaylist);
+              }),
+          ImportFromBtn(
+              btnName: "Playlist from Youtube-Music Album",
+              btnIcon: FontAwesome.circle_play,
+              onClickFunc: () {
+                getIdAndShowBottomSheet(context,
+                    hintText: "https://music.youtube.com/playlist?list=XXXXXX",
+                    importType: ImportType.youtubeMusicPlaylist);
               }),
           ImportFromBtn(
               btnName: "Import Playlist from Storage",
@@ -144,10 +177,7 @@ class ImportFromBtn extends StatelessWidget {
 }
 
 Future getIdAndShowBottomSheet(BuildContext context,
-    {String hintText = "Playlist ID",
-    bool isSpotify = true,
-    bool isAlbum = false,
-    isSingle = false}) {
+    {String hintText = "Playlist ID", required ImportType importType}) {
   return showMaterialModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -202,8 +232,20 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                     borderSide: BorderSide.none,
                                   )),
                               onSubmitted: (value) {
-                                if (isSingle) {
-                                  if (isSpotify) {
+                                switch (importType) {
+                                  case ImportType.spotifyPlaylist:
+                                    context.pop(context);
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) =>
+                                          ImporterDialogWidget(
+                                              strm: ExternalMediaImporter
+                                                  .sfyPlaylistImporter(
+                                                      url: value)),
+                                    );
+                                    break;
+                                  case ImportType.spotifySingle:
                                     context.pop(context);
                                     ExternalMediaImporter.sfyMediaImporter(
                                             value)
@@ -221,7 +263,30 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                             name: "Import Media");
                                       }
                                     });
-                                  } else {
+                                  case ImportType.spotifyAlbum:
+                                    context.pop(context);
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) =>
+                                          ImporterDialogWidget(
+                                              strm: ExternalMediaImporter
+                                                  .sfyAlbumImporter(
+                                                      url: value)),
+                                    );
+                                    break;
+                                  case ImportType.youtubeVidPlaylist:
+                                    context.pop(context);
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) =>
+                                          ImporterDialogWidget(
+                                              strm: ExternalMediaImporter
+                                                  .ytPlaylistImporter(value)),
+                                    );
+                                    break;
+                                  case ImportType.youtubeVidSingle:
                                     context.pop();
                                     ExternalMediaImporter.ytMediaImporter(value)
                                         .then((value) {
@@ -238,44 +303,54 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                             name: "Import Media");
                                       }
                                     });
-                                  }
-                                } else {
-                                  if (isSpotify && !isAlbum) {
-                                    context.pop(context);
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) =>
-                                          ImporterDialogWidget(
-                                              strm: ExternalMediaImporter
-                                                  .sfyPlaylistImporter(
-                                                      url: value)),
-                                    );
-                                  } else if (isSpotify && isAlbum) {
-                                    context.pop(context);
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) =>
-                                          ImporterDialogWidget(
-                                              strm: ExternalMediaImporter
-                                                  .sfyAlbumImporter(
-                                                      url: value)),
-                                    );
-                                  } else {
-                                    context.pop(context);
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) =>
-                                          ImporterDialogWidget(
-                                              strm: ExternalMediaImporter
-                                                  .ytPlaylistImporter(value)),
-                                    );
-                                  }
-                                }
+                                    break;
+                                  case ImportType.youtubeMusicPlaylist:
+                                    context.pop();
 
-                                // context.pop(context);
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) {
+                                        return ImporterDialogWidget(
+                                            strm: ExternalMediaImporter
+                                                .ytmPlaylistImporter(value));
+                                      },
+                                    );
+                                    break;
+                                  case ImportType.youtubeMusicAlbum:
+                                    context.pop();
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) {
+                                        return ImporterDialogWidget(
+                                            strm: ExternalMediaImporter
+                                                .ytmPlaylistImporter(value));
+                                      },
+                                    );
+                                    break;
+                                  case ImportType.youtubeMusicSingle:
+                                    context.pop();
+                                    ExternalMediaImporter.ytmMediaImporter(
+                                            value)
+                                        .then((value) {
+                                      if (value != null) {
+                                        BloomeeDBService.addMediaItem(
+                                            MediaItem2MediaItemDB(value),
+                                            MediaPlaylistDB(
+                                                playlistName:
+                                                    "Youtube Imports"));
+                                        SnackbarService.showMessage(
+                                            "Imported Media: ${value.title}");
+                                      } else {
+                                        log("Failed to import media from YT",
+                                            name: "Import Media");
+                                      }
+                                    });
+                                    break;
+                                  case ImportType.storage:
+                                  // TODO: Handle this case.
+                                }
                               },
                             ),
                           ],

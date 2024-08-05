@@ -53,6 +53,19 @@ String? extractVideoId(String url) {
   return null;
 }
 
+String? extractYTMusicId(String url) {
+  try {
+    Uri uri = Uri.parse(url);
+    if (uri.host == 'music.youtube.com') {
+      return uri.queryParameters['v']; // Retrieve video ID from query parameter
+    }
+  } catch (e) {
+    log(e.toString());
+  }
+
+  return null;
+}
+
 String? extractSpotifyPlaylistId(String url) {
   try {
     Uri uri = Uri.parse(url);

@@ -195,3 +195,18 @@ Future<List> formatHomeSections(List items) async {
 
   return result;
 }
+
+String decodeHexEscapeSequences(String input) {
+  return input.replaceAllMapped(RegExp(r'\\x([0-9A-Fa-f]{2})'), (match) {
+    String hexCode = match.group(1)!;
+    int charCode = int.parse(hexCode, radix: 16);
+    return String.fromCharCode(charCode);
+  });
+}
+
+String decodeUnicode(String input) {
+  return input.replaceAllMapped(RegExp(r'\\u([0-9a-fA-F]{4})'), (match) {
+    var hexCode = match.group(1);
+    return String.fromCharCode(int.parse(hexCode!, radix: 16));
+  });
+}

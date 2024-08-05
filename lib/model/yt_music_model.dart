@@ -18,7 +18,10 @@ MediaItemModel fromYtSongMap2MediaItem(Map<dynamic, dynamic> songItem) {
       id: songItem["id"] ?? 'Unknown',
       title: songItem["title"] ?? 'Unknown',
       album: songItem["album"] ?? 'Unknown',
-      artist: artists,
+      artist:
+          (songItem['artist'] == null || (songItem['artist'] as String).isEmpty)
+              ? artists
+              : songItem['artist'],
       artUri: Uri.parse(songItem["image"]),
 
       // artUri: Uri.parse(

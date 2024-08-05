@@ -2,8 +2,10 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/MixedAPI/mixed_api.dart';
 import 'package:Bloomee/repository/Spotify/spotify_api.dart';
+import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/utils/url_checker.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
@@ -123,6 +125,69 @@ class ExternalMediaImporter {
     }
   }
 
+  static Stream<ImporterState> ytmPlaylistImporter(String url) async* {
+    Uri uri = Uri.parse(url);
+    int count = 0;
+    String? playlistID;
+    if (uri.host == 'music.youtube.com') {
+      playlistID = uri.queryParameters['list'];
+    }
+    log("Playlist ID: $playlistID", name: "Playlist Importer");
+    yield ImporterState(
+        totalItems: 0,
+        importedItems: 0,
+        failedItems: 0,
+        isDone: false,
+        isFailed: false,
+        message: "Importing Playlist...with ID: $playlistID");
+
+    if (playlistID != null) {
+      try {
+        final playlistMeta = await YtMusicService().getPlaylist(playlistID);
+        log("Playlist Name: ${playlistMeta['name']}",
+            name: "Playlist Importer");
+        List<MediaItemModel> mediaItems =
+            fromYtSongMapList2MediaItemList(playlistMeta['songs']);
+        log("Total Items: ${mediaItems.first}", name: "Playlist Importer");
+
+        for (var item in mediaItems) {
+          BloomeeDBService.addMediaItem(
+              MediaItem2MediaItemDB(item),
+              MediaPlaylistDB(
+                playlistName: playlistMeta['name'],
+              ));
+          log("Added: ${item.title}", name: "Playlist Importer");
+          yield ImporterState(
+            totalItems: mediaItems.length,
+            importedItems: ++count,
+            failedItems: 0,
+            isDone: false,
+            isFailed: false,
+            message: "$count/${mediaItems.length} - ${item.title}",
+          );
+        }
+        yield ImporterState(
+          totalItems: mediaItems.length,
+          importedItems: count,
+          failedItems: 0,
+          isDone: true,
+          isFailed: false,
+          message: "Imported Playlist: ${playlistMeta['name']}",
+        );
+      } catch (e) {
+        log(e.toString());
+        yield ImporterState(
+          totalItems: 0,
+          importedItems: 0,
+          failedItems: 0,
+          isDone: false,
+          isFailed: true,
+          message: "Failed to import Playlist",
+        );
+      }
+    }
+  }
+
   static Future<MediaItemModel?> ytMediaImporter(String url) async {
     final videoId = extractVideoId(url);
     SnackbarService.showMessage("Getting Youtube Audio...", loading: true);
@@ -141,6 +206,27 @@ class ExternalMediaImporter {
     } else {
       log("Invalid Youtube URL", name: "Youtube Importer");
       SnackbarService.showMessage("Invalid Youtube URL");
+    }
+    return null;
+  }
+
+  static Future<MediaItemModel?> ytmMediaImporter(String url) async {
+    final videoId = extractYTMusicId(url);
+    SnackbarService.showMessage("Getting Youtube Music Audio...",
+        loading: true);
+    if (videoId != null) {
+      try {
+        final itemMap = await YtMusicService().getSongData(videoId: videoId);
+        final item = fromYtSongMap2MediaItem(itemMap);
+        log("Got: ${item.title}", name: "Youtube Music Importer");
+        SnackbarService.showMessage("Got: ${item.title}");
+        return item;
+      } catch (e) {
+        log(e.toString());
+      }
+    } else {
+      log("Invalid Youtube Music URL", name: "Youtube Music Importer");
+      SnackbarService.showMessage("Invalid Youtube Music URL");
     }
     return null;
   }
