@@ -48,6 +48,14 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
         context.read<BloomeePlayerCubit>().switchShowLyrics(value: false);
       }
     });
+
+    BlocProvider.of<BloomeePlayerCubit>(context).stream.listen((state) {
+      if (state.showLyrics) {
+        _tabController.animateTo(1);
+      } else {
+        _tabController.animateTo(0);
+      }
+    });
   }
 
   @override
@@ -282,37 +290,25 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                                 padding: const EdgeInsets.only(
                                     right: 16, left: 16, top: 8, bottom: 8),
                                 // child: coverImage(context, constraints),
-                                child: BlocListener<BloomeePlayerCubit,
-                                    BloomeePlayerState>(
-                                  listener: (context, state) {
-                                    if (state.showLyrics) {
-                                      _tabController.animateTo(1);
-                                    } else {
-                                      _tabController.animateTo(0);
-                                    }
-                                  },
-                                  child: TabBarView(
-                                    controller: _tabController,
-                                    physics: const BouncingScrollPhysics(),
-                                    children: [
-                                      Tab(
-                                        child: Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 10),
-                                          child:
-                                              coverImage(context, constraints),
-                                        ),
+                                child: TabBarView(
+                                  controller: _tabController,
+                                  physics: const BouncingScrollPhysics(),
+                                  children: [
+                                    Tab(
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(top: 10),
+                                        child: coverImage(context, constraints),
                                       ),
-                                      Tab(
-                                        child: ConstrainedBox(
-                                          constraints: const BoxConstraints(
-                                            minHeight: 200,
-                                          ),
-                                          child: const LyricsWidget(),
+                                    ),
+                                    Tab(
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                          minHeight: 200,
                                         ),
+                                        child: const LyricsWidget(),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -901,23 +897,15 @@ class PlayerCtrlWidgets extends StatelessWidget {
                           return Padding(
                             padding: const EdgeInsets.only(left: 5),
                             child: SizedBox(
-                              height: 25,
-                              width: 35,
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.all(0),
-                                  side: BorderSide(
-                                      color: state.showLyrics
-                                          ? Default_Theme.accentColor2
-                                          : Default_Theme.primaryColor1,
-                                      width: 2),
+                              height: 35,
+                              child: IconButton(
+                                padding: const EdgeInsets.all(5),
+                                constraints: const BoxConstraints(),
+                                style: const ButtonStyle(
+                                  tapTargetSize: MaterialTapTargetSize
+                                      .shrinkWrap, // the '2023' part
                                 ),
-                                onPressed: () {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .switchShowLyrics();
-                                },
-                                child: Text('L',
+                                icon: Text('Lyrics',
                                     style: Default_Theme.secondoryTextStyle
                                         .merge(TextStyle(
                                             color: state.showLyrics
@@ -925,6 +913,12 @@ class PlayerCtrlWidgets extends StatelessWidget {
                                                 : Default_Theme.primaryColor1,
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold))),
+                                onPressed: () {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .switchShowLyrics(
+                                          value: !state.showLyrics);
+                                },
                               ),
                             ),
                           );
