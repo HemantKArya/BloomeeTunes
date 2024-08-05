@@ -15,6 +15,7 @@ class SettingsState extends Equatable {
   bool autoGetCountry;
   String countryCode;
   List<bool> sourceEngineSwitches;
+  Map chartMap;
   SettingsState({
     required this.autoUpdateNotify,
     required this.autoSlideCharts,
@@ -29,6 +30,7 @@ class SettingsState extends Equatable {
     required this.autoGetCountry,
     required this.countryCode,
     required this.sourceEngineSwitches,
+    required this.chartMap,
   });
 
   SettingsState copyWith({
@@ -45,6 +47,7 @@ class SettingsState extends Equatable {
     bool? autoGetCountry,
     String? countryCode,
     List<bool>? sourceEngineSwitches,
+    Map? chartMap,
   }) {
     return SettingsState(
       autoUpdateNotify: autoUpdateNotify ?? this.autoUpdateNotify,
@@ -61,6 +64,7 @@ class SettingsState extends Equatable {
       countryCode: countryCode ?? this.countryCode,
       sourceEngineSwitches:
           List.from(sourceEngineSwitches ?? this.sourceEngineSwitches),
+      chartMap: Map.from(chartMap ?? this.chartMap),
     );
   }
 
@@ -79,6 +83,7 @@ class SettingsState extends Equatable {
         autoGetCountry,
         countryCode,
         sourceEngineSwitches,
+        chartMap,
       ];
 }
 
@@ -98,5 +103,6 @@ class SettingsInitial extends SettingsState {
           autoGetCountry: true,
           countryCode: "IN",
           sourceEngineSwitches: SourceEngine.values.map((e) => true).toList(),
+          chartMap: {},
         );
 }

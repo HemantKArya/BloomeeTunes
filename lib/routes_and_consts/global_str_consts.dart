@@ -25,4 +25,5 @@ class GlobalStrConsts {
   static const String historyClearTime = "autoHistoryCleanupTime";
   static const String autoGetCountry = "autoGetCountry";
   static const String countryCode = "countryCode";
+  static const String chartShowMap = "chartShowMap";
 }

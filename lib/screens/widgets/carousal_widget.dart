@@ -15,7 +15,7 @@ class CaraouselWidget extends StatefulWidget {
   CaraouselWidget({
     super.key,
   }) {
-    chartInfoList.shuffle();
+    // chartInfoList.shuffle();
   }
 
   @override
@@ -86,45 +86,53 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
             ),
           ),
         ),
-        CarouselSlider(
-          options: CarouselOptions(
-            onPageChanged: (index, _) {
-              setState(() {
-                _visibility = index == 0;
-              });
-            },
-            height: ResponsiveBreakpoints.of(context).isMobile ||
-                    ResponsiveBreakpoints.of(context).isTablet
-                ? MediaQuery.of(context).size.height * 0.36
-                : 250,
-            viewportFraction: ResponsiveBreakpoints.of(context).isMobile
-                ? 0.65
-                : ResponsiveBreakpoints.of(context).isTablet
-                    ? 0.30
-                    : 0.25,
-            autoPlay: autoSlideCharts,
-            autoPlayInterval: const Duration(milliseconds: 2500),
-            // aspectRatio: 15 / 16,
-            // enableInfiniteScroll: true,
-            enlargeFactor: 0.2,
-            initialPage: 0,
-            pauseAutoPlayOnTouch: true,
-            enlargeCenterPage: true,
-          ),
-          items: [
-            for (int i = 0; i < chartInfoList.length; i++)
-              BlocProvider.value(
-                value: chartCubitList[i],
-                child: GestureDetector(
-                  onTap: () => GoRouter.of(context).pushNamed(
-                      GlobalStrConsts.ChartScreen,
-                      pathParameters: {"chartName": chartInfoList[i].title}),
-                  child: ChartWidget(
-                    chartInfo: chartInfoList[i],
-                  ),
-                ),
+        BlocBuilder<SettingsCubit, SettingsState>(
+          builder: (context, state) {
+            return CarouselSlider(
+              options: CarouselOptions(
+                onPageChanged: (index, _) {
+                  setState(() {
+                    _visibility = index == 0;
+                  });
+                },
+                height: ResponsiveBreakpoints.of(context).isMobile ||
+                        ResponsiveBreakpoints.of(context).isTablet
+                    ? MediaQuery.of(context).size.height * 0.36
+                    : 250,
+                viewportFraction: ResponsiveBreakpoints.of(context).isMobile
+                    ? 0.65
+                    : ResponsiveBreakpoints.of(context).isTablet
+                        ? 0.30
+                        : 0.25,
+                autoPlay: autoSlideCharts,
+                autoPlayInterval: const Duration(milliseconds: 2500),
+                // aspectRatio: 15 / 16,
+                // enableInfiniteScroll: true,
+                enlargeFactor: 0.2,
+                initialPage: 0,
+                pauseAutoPlayOnTouch: true,
+                enlargeCenterPage: true,
               ),
-          ],
+              items: [
+                for (int i = 0; i < chartInfoList.length; i++)
+                  if (state.chartMap[chartInfoList[i].title] == null ||
+                      state.chartMap[chartInfoList[i].title] == true)
+                    BlocProvider.value(
+                      value: chartCubitList[i],
+                      child: GestureDetector(
+                        onTap: () => GoRouter.of(context).pushNamed(
+                            GlobalStrConsts.ChartScreen,
+                            pathParameters: {
+                              "chartName": chartInfoList[i].title
+                            }),
+                        child: ChartWidget(
+                          chartInfo: chartInfoList[i],
+                        ),
+                      ),
+                    ),
+              ],
+            );
+          },
         ),
       ],
     );

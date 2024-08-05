@@ -1,5 +1,6 @@
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/screens/screen/chart/show_charts.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -91,7 +92,37 @@ class _AppUISettingsState extends State<AppUISettings> {
                             SourceEngine.values.indexOf(e), b);
                       });
                 }).toList(),
-              )
+              ),
+              ExpansionTile(
+                title: Text(
+                  "Allowed Chart Sources",
+                  style: const TextStyle(
+                          color: Default_Theme.primaryColor1, fontSize: 16)
+                      .merge(Default_Theme.secondoryTextStyleMedium),
+                ),
+                subtitle: Text(
+                  "Manage the chart sources you want to see in the home screen.",
+                  style: TextStyle(
+                          color: Default_Theme.primaryColor1.withOpacity(0.5),
+                          fontSize: 12)
+                      .merge(Default_Theme.secondoryTextStyleMedium),
+                ),
+                collapsedIconColor: Default_Theme.primaryColor1,
+                children: chartInfoList.map((e) {
+                  return SwitchListTile(
+                      value: state.chartMap[e.title] ?? true,
+                      title: Text(
+                        e.title,
+                        style: const TextStyle(
+                                color: Default_Theme.primaryColor1,
+                                fontSize: 17)
+                            .merge(Default_Theme.secondoryTextStyleMedium),
+                      ),
+                      onChanged: (b) {
+                        context.read<SettingsCubit>().setChartShow(e.title, b);
+                      });
+                }).toList(),
+              ),
             ],
           );
         },

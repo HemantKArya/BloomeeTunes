@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
@@ -102,6 +103,22 @@ class SettingsCubit extends Cubit<SettingsState> {
         log(switches.toString(), name: 'SettingsCubit');
       });
     }
+
+    Map chartMap = Map.from(state.chartMap);
+    BloomeeDBService.getSettingStr(GlobalStrConsts.chartShowMap).then((value) {
+      if (value != null) {
+        chartMap = jsonDecode(value);
+      }
+      emit(state.copyWith(chartMap: Map.from(chartMap)));
+    });
+  }
+
+  void setChartShow(String title, bool value) {
+    Map chartMap = Map.from(state.chartMap);
+    chartMap[title] = value;
+    BloomeeDBService.putSettingStr(
+        GlobalStrConsts.chartShowMap, jsonEncode(chartMap));
+    emit(state.copyWith(chartMap: Map.from(chartMap)));
   }
 
   void autoUpdate() {
