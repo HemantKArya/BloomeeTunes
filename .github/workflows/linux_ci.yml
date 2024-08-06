@@ -29,7 +29,7 @@ jobs:
         run: echo "CLIENT_ID = XXXXX\nCLIENT_SECRET = XXXX EOF" > assets/.env
 
       - name: Build Linux App
-        run: flutter build linux
+        run: flutter build linux --release --build-number ${{github.run_number}}
 
       - name: Zip Linux App
         run: zip -r bloomee_tunes_linux_v2.9.1_dev+${{github.run_number}}.zip build/linux/x64/release/bundle
@@ -37,5 +37,5 @@ jobs:
       - name: Upload Linux App
         uses: actions/upload-artifact@v2
         with:
-          name: bloomee_tunes_linux
+          name: bloomee_tunes_linux_v2.9.1_dev+${{github.run_number}}.zip
           path: bloomee_tunes_linux_v2.9.1_dev+${{github.run_number}}.zip
