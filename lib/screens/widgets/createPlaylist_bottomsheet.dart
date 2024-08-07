@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -29,85 +30,95 @@ void createPlaylistBottomSheet(BuildContext context) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Spacer(),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.45,
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(42),
-                        topRight: Radius.circular(42)),
-                    child: Container(
-                      color: Default_Theme.themeColor,
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 10, right: 10, bottom: 30),
-                              child: Text(
-                                "Create new Playlist 😍",
-                                style: Default_Theme.secondoryTextStyleMedium
-                                    .merge(const TextStyle(
-                                        color: Default_Theme.accentColor2,
-                                        fontSize: 35)),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 10,
-                                right: 10,
-                                top: 10,
-                              ),
-                              child: TextField(
-                                autofocus: true,
-                                textInputAction: TextInputAction.done,
-                                maxLines: 3,
-                                textAlignVertical: TextAlignVertical.center,
-                                textAlign: TextAlign.center,
-                                focusNode: _focusNode,
-                                cursorHeight: 60,
-                                showCursor: true,
-                                cursorWidth: 5,
-                                cursorRadius: const Radius.circular(5),
-                                cursorColor: Default_Theme.accentColor2,
-                                style: const TextStyle(
-                                        fontSize: 45,
-                                        color: Default_Theme.accentColor2)
-                                    .merge(
-                                        Default_Theme.secondoryTextStyleMedium),
-                                decoration: const InputDecoration(
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide:
-                                          BorderSide(style: BorderStyle.none),
-                                      // borderRadius: BorderRadius.circular(50)
+                LayoutBuilder(builder: (context, constraints) {
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.45,
+                    width: constraints.maxWidth,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(42),
+                          topRight: Radius.circular(42)),
+                      child: SingleChildScrollView(
+                        child: Container(
+                          color: Default_Theme.themeColor,
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 16, right: 16, top: 30),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      "Create new Playlist 😍",
+                                      style: Default_Theme
+                                          .secondoryTextStyleMedium
+                                          .merge(const TextStyle(
+                                              color: Default_Theme.accentColor2,
+                                              fontSize: 35)),
                                     ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide.none,
-                                      // borderRadius: BorderRadius.circular(50),
-                                    )),
-                                onTapOutside: (event) {
-                                  _focusNode.unfocus();
-                                },
-                                onSubmitted: (value) {
-                                  _focusNode.unfocus();
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 10,
+                                    right: 10,
+                                    top: 10,
+                                  ),
+                                  child: TextField(
+                                    autofocus: true,
+                                    textInputAction: TextInputAction.done,
+                                    maxLines: 3,
+                                    textAlignVertical: TextAlignVertical.center,
+                                    textAlign: TextAlign.center,
+                                    focusNode: _focusNode,
+                                    cursorHeight: 60,
+                                    showCursor: true,
+                                    cursorWidth: 5,
+                                    cursorRadius: const Radius.circular(5),
+                                    cursorColor: Default_Theme.accentColor2,
+                                    style: const TextStyle(
+                                            fontSize: 45,
+                                            color: Default_Theme.accentColor2)
+                                        .merge(Default_Theme
+                                            .secondoryTextStyleMedium),
+                                    decoration: const InputDecoration(
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              style: BorderStyle.none),
+                                          // borderRadius: BorderRadius.circular(50)
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide.none,
+                                          // borderRadius: BorderRadius.circular(50),
+                                        )),
+                                    onTapOutside: (event) {
+                                      _focusNode.unfocus();
+                                    },
+                                    onSubmitted: (value) {
+                                      _focusNode.unfocus();
 
-                                  if (value.isNotEmpty && value.length > 2) {
-                                    context
-                                        .read<BloomeeDBCubit>()
-                                        .addNewPlaylistToDB(MediaPlaylistDB(
-                                            playlistName: value));
-                                    context.pop();
-                                  }
-                                },
-                              ),
+                                      if (value.isNotEmpty &&
+                                          value.length > 2) {
+                                        context
+                                            .read<BloomeeDBCubit>()
+                                            .addNewPlaylistToDB(MediaPlaylistDB(
+                                                playlistName: value));
+                                        context.pop();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               ],
             ),
           ),
