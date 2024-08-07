@@ -25,7 +25,7 @@ class LibraryScreen extends StatelessWidget {
               delegate: SliverChildListDelegate([
             Padding(
               padding: const EdgeInsets.only(
-                left: 16,
+                left: 8,
               ),
               child: SizedBox(
                 width: MediaQuery.of(context).size.width,
