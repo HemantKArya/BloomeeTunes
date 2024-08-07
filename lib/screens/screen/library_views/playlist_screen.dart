@@ -6,6 +6,7 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
+import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
@@ -15,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
 class PlaylistView extends StatelessWidget {
@@ -96,99 +98,130 @@ class PlaylistView extends StatelessWidget {
         body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
           builder: (context, state) {
             const double maxExtent = 200;
-            if (state is! CurrentPlaylistInitial &&
-                state.mediaItems.isNotEmpty) {
-              return CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  SliverAppBar(
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      hoverColor: Colors.black.withOpacity(0.5),
-                      highlightColor: Default_Theme.accentColor1,
-                      onPressed: () {
-                        context.pop();
-                      },
-                    ),
-                    backgroundColor: Default_Theme.themeColor,
-                    surfaceTintColor: Default_Theme.themeColor,
-                    expandedHeight: maxExtent,
-                    floating: false,
-                    pinned: true,
-                    centerTitle: false,
-                    flexibleSpace:
-                        LayoutBuilder(builder: (context, constraints) {
-                      final double percentage =
-                          (constraints.maxHeight - kToolbarHeight) /
-                              (maxExtent - kToolbarHeight);
-                      const double startPadding = 20.0;
-                      const double endPadding = 60.0;
-                      final double horizontalPadding = startPadding +
-                          (endPadding - startPadding) * (1.0 - percentage);
-                      final bool isCollapsed = percentage < 0.4;
-                      return FlexibleSpaceBar(
-                        titlePadding: EdgeInsets.only(
-                            left: horizontalPadding,
-                            bottom: isCollapsed ? 16 : 10),
-                        title: Text(state.albumName,
-                            maxLines: isCollapsed ? 1 : 2,
-                            style: Default_Theme.secondoryTextStyleMedium.merge(
-                                const TextStyle(
-                                    fontSize: 18,
-                                    overflow: TextOverflow.ellipsis,
-                                    color:
-                                        Color.fromARGB(255, 255, 235, 251)))),
-                        background: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            loadImageCached(
-                                state.mediaItems.first.artUri.toString()),
-                            Positioned(
-                                child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Default_Theme.themeColor.withOpacity(0.0),
-                                    Default_Theme.themeColor.withOpacity(0.8),
-                                  ],
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              child: (state is! CurrentPlaylistInitial &&
+                      state.mediaItems.isNotEmpty)
+                  ? CustomScrollView(
+                      key: const ValueKey('1'),
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        SliverAppBar(
+                          leading: IconButton(
+                            icon: const Icon(Icons.arrow_back),
+                            hoverColor: Colors.black.withOpacity(0.5),
+                            highlightColor: Default_Theme.accentColor1,
+                            onPressed: () {
+                              context.pop();
+                            },
+                          ),
+                          backgroundColor: Default_Theme.themeColor,
+                          surfaceTintColor: Default_Theme.themeColor,
+                          expandedHeight: maxExtent,
+                          floating: false,
+                          pinned: true,
+                          centerTitle: false,
+                          flexibleSpace:
+                              LayoutBuilder(builder: (context, constraints) {
+                            final double percentage =
+                                (constraints.maxHeight - kToolbarHeight) /
+                                    (maxExtent - kToolbarHeight);
+                            const double startPadding = 20.0;
+                            const double endPadding = 60.0;
+                            final double horizontalPadding = startPadding +
+                                (endPadding - startPadding) *
+                                    (1.0 - percentage);
+                            final bool isCollapsed = percentage < 0.4;
+                            return FlexibleSpaceBar(
+                              titlePadding: EdgeInsets.only(
+                                  left: horizontalPadding,
+                                  bottom: isCollapsed ? 16 : 10),
+                              title: Text(state.albumName,
+                                  maxLines: isCollapsed ? 1 : 2,
+                                  style: Default_Theme.secondoryTextStyleMedium
+                                      .merge(const TextStyle(
+                                          fontSize: 18,
+                                          overflow: TextOverflow.ellipsis,
+                                          color: Color.fromARGB(
+                                              255, 255, 235, 251)))),
+                              background: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  loadImageCached(
+                                      state.mediaItems.first.artUri.toString()),
+                                  Positioned(
+                                      child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Default_Theme.themeColor
+                                              .withOpacity(0.0),
+                                          Default_Theme.themeColor
+                                              .withOpacity(0.8),
+                                        ],
+                                      ),
+                                    ),
+                                  )),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              top: 12,
+                              bottom: 12,
+                              left: 16,
+                            ),
+                            child: Text(
+                              "Playlist • ${state.mediaItems.length} Songs \nby You",
+                              style: Default_Theme.secondoryTextStyle
+                                  .merge(TextStyle(
+                                color: Default_Theme.primaryColor1
+                                    .withOpacity(0.8),
+                                fontSize: 12,
+                              )),
+                            ),
+                          ),
+                        ),
+                        SliverToBoxAdapter(
+                          child: Playlist(
+                            state: state,
+                          ),
+                        )
+                      ],
+                    )
+                  : ((state is CurrentPlaylistInitial ||
+                          state is CurrentPlaylistLoading)
+                      ? const CustomScrollView(
+                          key: ValueKey('2'),
+                          slivers: [
+                            SliverAppBar(),
+                            SliverFillRemaining(
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                          ],
+                        )
+                      : const CustomScrollView(
+                          key: ValueKey('3'),
+                          slivers: [
+                            SliverAppBar(),
+                            SliverFillRemaining(
+                              child: Center(
+                                child: SignBoardWidget(
+                                  message: "No Songs Yet!",
+                                  icon: MingCute.playlist_line,
                                 ),
                               ),
-                            )),
+                            )
                           ],
-                        ),
-                      );
-                    }),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 12,
-                        bottom: 12,
-                        left: 16,
-                      ),
-                      child: Text(
-                        "Playlist • ${state.mediaItems.length} Songs \nby You",
-                        style: Default_Theme.secondoryTextStyle.merge(TextStyle(
-                          color: Default_Theme.primaryColor1.withOpacity(0.8),
-                          fontSize: 12,
                         )),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Playlist(
-                      state: state,
-                    ),
-                  )
-                ],
-              );
-            } else {
-              return const Center(
-                child: Text("No items in playlist"),
-              );
-            }
+            );
           },
         ),
       ),
