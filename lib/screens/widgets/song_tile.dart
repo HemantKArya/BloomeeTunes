@@ -24,6 +24,7 @@ class SongCardWidget extends StatelessWidget {
   final VoidCallback? onPlayTap;
   final VoidCallback? onDelDownTap;
   final VoidCallback? onTap;
+  final Widget? trailing;
 
   const SongCardWidget({
     Key? key,
@@ -38,6 +39,7 @@ class SongCardWidget extends StatelessWidget {
     this.onTap,
     this.onDelDownTap,
     this.isWide = false,
+    this.trailing,
   }) : super(key: key);
 
   @override
@@ -208,6 +210,7 @@ class SongCardWidget extends StatelessWidget {
                         if (onOptionsTap != null) onOptionsTap!();
                       },
                     ),
+              trailing ?? const SizedBox(),
             ],
           ),
         ),
