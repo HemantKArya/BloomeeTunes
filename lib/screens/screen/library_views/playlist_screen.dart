@@ -1,220 +1,196 @@
+import 'dart:io';
+import 'dart:ui';
+import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
-import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
-import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
-import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:icons_plus/icons_plus.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
+import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
+import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
-import '../../../blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'dart:ui';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:just_audio/just_audio.dart';
 
 class PlaylistView extends StatelessWidget {
-  PlaylistView({
-    Key? key,
-  }) : super(key: key);
+  const PlaylistView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // setUpPlaylist(context);
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Default_Theme.themeColor,
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-        elevation: 0,
-        foregroundColor: Default_Theme.primaryColor1,
-      ),
-      body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
-        builder: (context, state) {
-          if (state is! CurrentPlaylistInitial && state.mediaItems.isNotEmpty) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 380,
-                  child: Stack(
-                    children: [
-                      Opacity(
-                        opacity: 0.5,
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: 260,
-                          child: Container(
-                            decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: context
-                                            .read<CurrentPlaylistCubit>()
-                                            .getCurrentPlaylistPallete()
-                                            ?.lightVibrantColor
-                                            ?.color ??
-                                        Colors.blue,
-                                    blurRadius: 50,
-                                    spreadRadius: 2,
-                                  ),
-                                ]),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: 260,
-                        child: Container(
-                          color: Colors.blueAccent.shade400,
-                          child: loadImageCached(
-                              context
-                                  .read<CurrentPlaylistCubit>()
-                                  .getPlaylistCoverArt(),
-                              fit: BoxFit.cover),
-                        ),
-                      ),
-                      Positioned(
-                          top: 225,
-                          right: 20,
-                          child: StreamBuilder<String>(
-                              stream: context
-                                  .watch<BloomeePlayerCubit>()
+    return SafeArea(
+      child: Scaffold(
+        floatingActionButton:
+            BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
+          builder: (context, state) {
+            return StreamBuilder<String>(
+                stream: context
+                    .watch<BloomeePlayerCubit>()
+                    .bloomeePlayer
+                    .queueTitle,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data == state.albumName) {
+                    return StreamBuilder<PlayerState>(
+                        stream: context
+                            .read<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .audioPlayer
+                            .playerStateStream,
+                        builder: (context, snapshot2) {
+                          if (snapshot2.hasData &&
+                              (snapshot2.data?.playing ?? false)) {
+                            return PlayPauseButton(
+                              onPause: () => context
+                                  .read<BloomeePlayerCubit>()
                                   .bloomeePlayer
-                                  .queueTitle,
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData &&
-                                    snapshot.data == state.albumName) {
-                                  return StreamBuilder<PlayerState>(
-                                      stream: context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .audioPlayer
-                                          .playerStateStream,
-                                      builder: (context, snapshot2) {
-                                        if (snapshot2.hasData &&
-                                            (snapshot2.data?.playing ??
-                                                false)) {
-                                          return PlayPauseButton(
-                                            onPause: () => context
-                                                .read<BloomeePlayerCubit>()
-                                                .bloomeePlayer
-                                                .pause(),
-                                            onPlay: () => context
-                                                .read<BloomeePlayerCubit>()
-                                                .bloomeePlayer
-                                                .play(),
-                                            isPlaying: true,
-                                            size: 70,
-                                          );
-                                        } else {
-                                          return PlayPauseButton(
-                                            onPause: () => context
-                                                .read<BloomeePlayerCubit>()
-                                                .bloomeePlayer
-                                                .pause(),
-                                            onPlay: () => context
-                                                .read<BloomeePlayerCubit>()
-                                                .bloomeePlayer
-                                                .play(),
-                                            isPlaying: false,
-                                            size: 70,
-                                          );
-                                        }
-                                      });
-                                } else {
-                                  return PlayPauseButton(
-                                    onPause: () => context
-                                        .read<BloomeePlayerCubit>()
-                                        .bloomeePlayer
-                                        .pause(),
-                                    onPlay: () {
-                                      context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .loadPlaylist(MediaPlaylist(
-                                              mediaItems: state.mediaItems,
-                                              albumName: state.albumName));
-                                      context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .play();
-                                    },
-                                    size: 70,
-                                  );
-                                }
-                              })),
-                      Positioned(
-                        top: 280,
-                        left: 14,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                                  .pause(),
+                              onPlay: () => context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .play(),
+                              isPlaying: true,
+                              size: 60,
+                            );
+                          } else {
+                            return PlayPauseButton(
+                              onPause: () => context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .pause(),
+                              onPlay: () => context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .play(),
+                              isPlaying: false,
+                              size: 60,
+                            );
+                          }
+                        });
+                  } else {
+                    return PlayPauseButton(
+                      onPause: () => context
+                          .read<BloomeePlayerCubit>()
+                          .bloomeePlayer
+                          .pause(),
+                      onPlay: () {
+                        context
+                            .read<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .loadPlaylist(MediaPlaylist(
+                                mediaItems: state.mediaItems,
+                                albumName: state.albumName));
+                        context.read<BloomeePlayerCubit>().bloomeePlayer.play();
+                      },
+                      size: 60,
+                    );
+                  }
+                });
+          },
+        ),
+        extendBodyBehindAppBar: true,
+        backgroundColor: Default_Theme.themeColor,
+        body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
+          builder: (context, state) {
+            const double maxExtent = 200;
+            if (state is! CurrentPlaylistInitial &&
+                state.mediaItems.isNotEmpty) {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      hoverColor: Colors.black.withOpacity(0.5),
+                      highlightColor: Default_Theme.accentColor1,
+                      onPressed: () {
+                        context.pop();
+                      },
+                    ),
+                    backgroundColor: Default_Theme.themeColor,
+                    surfaceTintColor: Default_Theme.themeColor,
+                    expandedHeight: maxExtent,
+                    floating: false,
+                    pinned: true,
+                    centerTitle: false,
+                    flexibleSpace:
+                        LayoutBuilder(builder: (context, constraints) {
+                      final double percentage =
+                          (constraints.maxHeight - kToolbarHeight) /
+                              (maxExtent - kToolbarHeight);
+                      const double startPadding = 20.0;
+                      const double endPadding = 60.0;
+                      final double horizontalPadding = startPadding +
+                          (endPadding - startPadding) * (1.0 - percentage);
+                      final bool isCollapsed = percentage < 0.4;
+                      return FlexibleSpaceBar(
+                        titlePadding: EdgeInsets.only(
+                            left: horizontalPadding,
+                            bottom: isCollapsed ? 16 : 10),
+                        title: Text(state.albumName,
+                            maxLines: isCollapsed ? 1 : 2,
+                            style: Default_Theme.secondoryTextStyleMedium.merge(
+                                const TextStyle(
+                                    fontSize: 18,
+                                    overflow: TextOverflow.ellipsis,
+                                    color:
+                                        Color.fromARGB(255, 255, 235, 251)))),
+                        background: Stack(
+                          fit: StackFit.expand,
                           children: [
-                            SizedBox(
-                              width: 300,
-                              child: Text(
-                                state.albumName,
-                                maxLines: 2,
-                                overflow: TextOverflow.fade,
-                                style: Default_Theme.secondoryTextStyle.merge(
-                                    const TextStyle(
-                                        color: Default_Theme.primaryColor1,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold)),
+                            loadImageCached(
+                                state.mediaItems.first.artUri.toString()),
+                            Positioned(
+                                child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Default_Theme.themeColor.withOpacity(0.0),
+                                    Default_Theme.themeColor.withOpacity(0.8),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Text(
-                              "Playlist",
-                              style: Default_Theme.secondoryTextStyle
-                                  .merge(TextStyle(
-                                color: Default_Theme.primaryColor1
-                                    .withOpacity(0.8),
-                                fontSize: 14,
-                              )),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 20),
-                              child: Text(
-                                "${state.mediaItems.length} Songs",
-                                style: Default_Theme.secondoryTextStyle
-                                    .merge(TextStyle(
-                                  color: Default_Theme.primaryColor1
-                                      .withOpacity(0.8),
-                                  fontSize: 12,
-                                )),
-                              ),
-                            )
+                            )),
                           ],
                         ),
-                      )
-                    ],
+                      );
+                    }),
                   ),
-                ),
-                Expanded(
-                  child: Playlist(
-                    state: state,
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 12,
+                        bottom: 12,
+                        left: 16,
+                      ),
+                      child: Text(
+                        "Playlist • ${state.mediaItems.length} Songs \nby You",
+                        style: Default_Theme.secondoryTextStyle.merge(TextStyle(
+                          color: Default_Theme.primaryColor1.withOpacity(0.8),
+                          fontSize: 12,
+                        )),
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            );
-          } else if (state is CurrentPlaylistLoading) {
-            return const Center(
-              child: SizedBox(
-                width: 50,
-                height: 50,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          } else {
-            return const SignBoardWidget(
-                message: "No Songs Yet", icon: MingCute.playlist_line);
-          }
-        },
+                  SliverToBoxAdapter(
+                    child: Playlist(
+                      state: state,
+                    ),
+                  )
+                ],
+              );
+            } else {
+              return const Center(
+                child: Text("No items in playlist"),
+              );
+            }
+          },
+        ),
       ),
     );
   }
@@ -234,11 +210,23 @@ class _PlaylistState extends State<Playlist> {
     final _state = widget.state;
     return ReorderableListView.builder(
       physics: const BouncingScrollPhysics(),
+      shrinkWrap: true,
       proxyDecorator: proxyDecorator,
       itemBuilder: (context, index) {
         return SongCardWidget(
           song: _state.mediaItems[index],
           key: ValueKey(_state.mediaItems[index].id),
+          trailing: Platform.isAndroid
+              ? null
+              : ReorderableDragStartListener(
+                  index: index,
+                  child: SizedBox(
+                    child: Icon(
+                      Icons.drag_handle,
+                      color: Default_Theme.primaryColor1.withOpacity(0.0),
+                    ),
+                  ),
+                ),
           onTap: () {
             if (!listEquals(
                 context.read<BloomeePlayerCubit>().bloomeePlayer.queue.value,
