@@ -32,10 +32,13 @@ jobs:
         run: flutter build linux --release --build-number ${{github.run_number}}
 
       - name: Zip Linux App
-        run: zip -r bloomee_tunes_linux_v2.9.1_dev+${{github.run_number}}.zip build/linux/x64/release/bundle
+        run: |
+          cd build/linux/x64/release/bundle
+          zip -r bloomee_tunes_linux_v2.9.2_dev+${{github.run_number}}.zip .
+
 
       - name: Upload Linux App
         uses: actions/upload-artifact@v2
         with:
           name: bloomee_tunes_linux_dev
-          path: bloomee_tunes_linux_v2.9.1_dev+${{github.run_number}}.zip
+          path: bloomee_tunes_linux_v2.9.2_dev+${{github.run_number}}.zip
