@@ -26,9 +26,8 @@ class LikeBtnWidget extends StatefulWidget {
 class _LikeBtnWidgetState extends State<LikeBtnWidget> {
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      splashColor: Colors.transparent,
-      onTap: () {
+    return IconButton(
+      onPressed: () {
         setState(() {
           widget.isLiked = !widget.isLiked;
           if (widget.isLiked) {
@@ -40,14 +39,12 @@ class _LikeBtnWidgetState extends State<LikeBtnWidget> {
           }
         });
       },
-      child: SizedBox(
-        child: widget.isPlaying
-            ? heartIcon(
-                color: Default_Theme.accentColor1,
-                size: widget.iconSize,
-                isliked: widget.isLiked)
-            : heartIcon(isliked: widget.isLiked, size: widget.iconSize),
-      ),
+      icon: widget.isPlaying
+          ? heartIcon(
+              color: Default_Theme.accentColor1,
+              size: widget.iconSize,
+              isliked: widget.isLiked)
+          : heartIcon(isliked: widget.isLiked, size: widget.iconSize),
     );
   }
 }
