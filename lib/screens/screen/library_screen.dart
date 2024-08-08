@@ -132,9 +132,9 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
                   showPlaylistOptsSheet(
                       context, widget.state.playlists[index].playlistName);
                 },
-                splashColor: Default_Theme.accentColor1.withOpacity(0.2),
-                hoverColor: Default_Theme.accentColor2.withOpacity(0.1),
-                highlightColor: Default_Theme.accentColor2.withOpacity(0.1),
+                splashColor: Default_Theme.primaryColor2.withOpacity(0.1),
+                hoverColor: Colors.white.withOpacity(0.05),
+                highlightColor: Default_Theme.primaryColor2.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
                 onLongPress: () {
                   showPlaylistOptsSheet(
