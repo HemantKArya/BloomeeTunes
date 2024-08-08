@@ -22,6 +22,45 @@ import 'package:just_audio/just_audio.dart';
 class PlaylistView extends StatelessWidget {
   const PlaylistView({super.key});
 
+  final double titleScale = 1.5;
+  final double titleFontSize = 16;
+
+  Color _adjustColor(Color color, bool darken, {double amount = 0.1}) {
+    final hsl = HSLColor.fromColor(color);
+    HSLColor adjustedHsl = darken
+        ? hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0))
+        : hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+    if (!darken && adjustedHsl.lightness < 0.75) {
+      adjustedHsl = adjustedHsl.withLightness(0.85);
+    }
+    return adjustedHsl.toColor();
+  }
+
+  List<Color> getFBColor(BuildContext context) {
+    // get foreground and background color from current playlist pallete
+    Color? color = context
+        .read<CurrentPlaylistCubit>()
+        .getCurrentPlaylistPallete()
+        ?.lightVibrantColor
+        ?.color;
+    Color? bgColor = context
+        .read<CurrentPlaylistCubit>()
+        .getCurrentPlaylistPallete()
+        ?.darkMutedColor
+        ?.color;
+    if (bgColor != null && color != null) {
+      //calculate contrast between two color and bgcolor
+      final double contrast =
+          bgColor.computeLuminance() / color.computeLuminance();
+      if (contrast > 0.05) {
+        color = _adjustColor(color, false);
+        bgColor = _adjustColor(bgColor, true);
+      }
+      return [color, bgColor];
+    }
+    return [Colors.white, Colors.black];
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -97,7 +136,7 @@ class PlaylistView extends StatelessWidget {
         backgroundColor: Default_Theme.themeColor,
         body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
           builder: (context, state) {
-            const double maxExtent = 200;
+            const double maxExtent = 300;
             return AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
               child: (state is! CurrentPlaylistInitial &&
@@ -105,12 +144,21 @@ class PlaylistView extends StatelessWidget {
                   ? CustomScrollView(
                       key: const ValueKey('1'),
                       physics: const BouncingScrollPhysics(),
+                      primary: true,
                       slivers: [
                         SliverAppBar(
                           leading: IconButton(
-                            icon: const Icon(Icons.arrow_back),
-                            hoverColor: Colors.black.withOpacity(0.5),
-                            highlightColor: Default_Theme.accentColor1,
+                            icon: const Icon(
+                              Icons.arrow_back,
+                            ),
+                            hoverColor: getFBColor(context)[1].withOpacity(0.3),
+                            highlightColor:
+                                getFBColor(context)[0].withOpacity(0.6),
+                            color: getFBColor(context)[0],
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(
+                                  getFBColor(context)[1].withOpacity(0.1)),
+                            ),
                             onPressed: () {
                               context.pop();
                             },
@@ -132,40 +180,108 @@ class PlaylistView extends StatelessWidget {
                                 (endPadding - startPadding) *
                                     (1.0 - percentage);
                             final bool isCollapsed = percentage < 0.4;
+
+                            final span = TextSpan(
+                              text: state.albumName,
+                              style:
+                                  Default_Theme.secondoryTextStyleMedium.merge(
+                                TextStyle(
+                                  fontSize: titleFontSize,
+                                  color: getFBColor(context)[0],
+                                ),
+                              ),
+                            );
+
+                            final textPainter = TextPainter(
+                                text: span,
+                                textDirection: TextDirection.ltr,
+                                maxLines: 3,
+                                textScaler: TextScaler.linear(titleScale))
+                              ..layout(
+                                  maxWidth:
+                                      constraints.maxWidth - horizontalPadding);
+
+                            final textHeight = textPainter.height;
+
                             return FlexibleSpaceBar(
+                              expandedTitleScale: titleScale,
                               titlePadding: EdgeInsets.only(
                                   left: horizontalPadding,
                                   bottom: isCollapsed ? 16 : 10),
-                              title: Text(state.albumName,
-                                  maxLines: isCollapsed ? 1 : 2,
-                                  style: Default_Theme.secondoryTextStyleMedium
-                                      .merge(const TextStyle(
-                                          fontSize: 18,
-                                          overflow: TextOverflow.ellipsis,
-                                          color: Color.fromARGB(
-                                              255, 255, 235, 251)))),
-                              background: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  loadImageCached(
-                                      state.mediaItems.first.artUri.toString()),
-                                  Positioned(
-                                      child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Default_Theme.themeColor
-                                              .withOpacity(0.0),
-                                          Default_Theme.themeColor
-                                              .withOpacity(0.8),
-                                        ],
+                              title: Text(
+                                state.albumName,
+                                maxLines: isCollapsed ? 1 : 3,
+                                style: Default_Theme.secondoryTextStyleMedium
+                                    .merge(
+                                  TextStyle(
+                                    fontSize: titleFontSize,
+                                    overflow: TextOverflow.ellipsis,
+                                    color: getFBColor(context)[0],
+                                  ),
+                                ),
+                              ),
+                              background: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                return Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    loadImageCached(state
+                                        .mediaItems.first.artUri
+                                        .toString()),
+                                    Positioned(
+                                        child: Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            getFBColor(context)[1]
+                                                .withOpacity(0.0),
+                                            getFBColor(context)[1]
+                                                .withOpacity(1),
+                                          ],
+                                          stops: const [0.5, 1],
+                                        ),
+                                      ),
+                                    )),
+
+                                    // Lower portion with blur
+                                    Positioned.fill(
+                                      top: MediaQuery.of(context).size.height *
+                                          0.6, // Adjust this position as needed
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                            sigmaX: 30, sigmaY: 30),
+                                        child: Container(
+                                          color: Colors.black.withOpacity(
+                                              0), // Keep the container color transparent
+                                        ),
                                       ),
                                     ),
-                                  )),
-                                ],
-                              ),
+                                    Positioned.fill(
+                                      top: 10,
+                                      child: Align(
+                                        alignment: Alignment.topCenter,
+                                        child: SizedBox(
+                                          height: constraints.maxHeight -
+                                              (textHeight + 30),
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 80, right: 80),
+                                              child: loadImageCached(state
+                                                  .mediaItems.first.artUri
+                                                  .toString()),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    // blur fade effect bottom edge
+                                  ],
+                                );
+                              }),
                             );
                           }),
                         ),
