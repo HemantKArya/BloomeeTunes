@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
@@ -88,8 +90,17 @@ class MiniPlayerCard extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
-              Container(
-                color: Colors.black.withOpacity(0.85),
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaY: 18,
+                    sigmaX: 18,
+                  ),
+                  child: Container(
+                    color: Colors.black.withOpacity(
+                        0.35), // Keep the container color transparent
+                  ),
+                ),
               ),
               Row(
                 children: [
