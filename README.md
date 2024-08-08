@@ -2,12 +2,12 @@
 **<h1 align=center>Bloomee🌸</h1>**
 <p align="center"><img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge" >
 <img alt="GitHub Release" src="https://img.shields.io/github/v/release/HemantKArya/BloomeeTunes?display_name=release&style=for-the-badge&color=f01d7c" >
-<img alt="GitHub License" src="https://img.shields.io/github/license/HemantKArya/BloomeeTunes?style=for-the-badge&color=1881cc" > <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/HemantKArya/BloomeeTunes/checkout.yml?style=for-the-badge" > <img src=https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white /><br><img src=https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white > <img src=https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white />
+<img alt="GitHub License" src="https://img.shields.io/github/license/HemantKArya/BloomeeTunes?style=for-the-badge&color=1881cc" > <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/HemantKArya/BloomeeTunes/checkout.yml?style=for-the-badge" > <img src=https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white /><br><img src=https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white > <img src=https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white /> <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black"/>
 
 
 </p>
 <br>
-Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad-free tunes from various sources. Dive into a world of limitless music from platforms like YouTube and Jio Saavn, with more sources blooming soon! 🌼🎵
+Bloomee is experimental cross-platform open Source Music player designed to bring you Ad-free tunes from various sources. Dive into a world of limitless music from platforms like YouTube and Jio Saavn, with more sources blooming soon! 🌼🎵
 
 ![BloomeeTunesScrnShots](./assets/icons/banner2BloomeScrnShot.png)
 
@@ -33,7 +33,7 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 - [x] 🌐 Daily Updated Global Charts
 - [x] 🖥️ Support for Windows
 - [x] 📝 Lyrics Support
-- [ ] 🐧 Support for Linux
+- [x] 🐧 Support for Linux
 - [ ] 🍏 Support for iOS
 - [ ] 🎼 AI-Generated Playlist
 - [ ] 💡 AI-Based Recommendations
@@ -41,7 +41,7 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 
 
 
-<h3 align=center>Download for Android and Windows 😍</h3>
+<h3 align=center>Download for Android, Windows & Linux(dev) 😍</h3>
 <p align="center">
 <a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" width=272 height=44 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
 </br>
@@ -55,7 +55,7 @@ Bloomee is my Flutter project, An Open Source Music app designed to bring you Ad
 
 **How to Contribute:**
 
-1. **Fork the Repository:** Start your Bloomee journey by forking **dev(Branch)**.
+1. **Fork the Repository:** Start your Bloomee journey by forking **main(Branch)**.
 
 2. **Clone Locally:** Clone the forked repository to your local machine.
 
