@@ -252,7 +252,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                               .bloomeePlayer
                                               .loadPlaylist(
                                                   MediaPlaylist(
-                                                      albumName:
+                                                      playlistName:
                                                           state.albumName,
                                                       mediaItems:
                                                           state.mediaItems),

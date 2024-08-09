@@ -1245,6 +1245,7 @@ class YtMusicService {
       'subtitle': decodeUnicode(subtitle),
       'description': decodeUnicode(description ?? ""),
       'images': images,
+      'url': "https://music.youtube.com/playlist?list=$playlistId",
       'id': playlistId,
       'total_songs': songResults.length,
       'type':

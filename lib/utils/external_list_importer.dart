@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:developer';
-
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/MixedAPI/mixed_api.dart';
 import 'package:Bloomee/repository/Spotify/spotify_api.dart';
@@ -9,11 +8,9 @@ import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/utils/url_checker.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
-
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 
 class ImporterState {
@@ -75,6 +72,16 @@ class ExternalMediaImporter {
         final playlistMeta = await YoutubeExplode().playlists.get(playlistID);
 
         log("Playlist Name: ${playlistMeta.title}", name: "Playlist Importer");
+        BloomeeDBService.createPlaylist(
+          playlistMeta.title,
+          source: 'youtube',
+          artists: playlistMeta.author,
+          description: playlistMeta.author,
+          isAlbum: false,
+          permaURL: playlistMeta.url,
+          artURL: playlistMeta.thumbnails.mediumResUrl,
+        );
+
         yield ImporterState(
           totalItems: playlistMeta.videoCount ?? 0,
           importedItems: 0,
@@ -90,8 +97,8 @@ class ExternalMediaImporter {
             var itemMap = await YouTubeServices()
                 .formatVideo(video: video, quality: "High", getUrl: false);
             var item = fromYtVidSongMap2MediaItem(itemMap!);
-            BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(item),
-                MediaPlaylistDB(playlistName: playlistMeta.title));
+            await BloomeeDBService.addMediaItem(
+                MediaItem2MediaItemDB(item), playlistMeta.title);
             log("Added: ${item.title}", name: "Playlist Importer");
             yield ImporterState(
               totalItems: playlistMeta.videoCount ?? 0,
@@ -146,16 +153,22 @@ class ExternalMediaImporter {
         final playlistMeta = await YtMusicService().getPlaylist(playlistID);
         log("Playlist Name: ${playlistMeta['name']}",
             name: "Playlist Importer");
+
+        BloomeeDBService.createPlaylist(
+          playlistMeta['name'],
+          source: 'ytmusic',
+          description: playlistMeta['subtitle'],
+          isAlbum: playlistMeta['type'] == "Album" ? true : false,
+          permaURL: playlistMeta['url'],
+          artURL: (playlistMeta['images'] as List).last,
+        );
         List<MediaItemModel> mediaItems =
             fromYtSongMapList2MediaItemList(playlistMeta['songs']);
         log("Total Items: ${mediaItems.first}", name: "Playlist Importer");
 
         for (var item in mediaItems) {
           BloomeeDBService.addMediaItem(
-              MediaItem2MediaItemDB(item),
-              MediaPlaylistDB(
-                playlistName: playlistMeta['name'],
-              ));
+              MediaItem2MediaItemDB(item), playlistMeta['name']);
           log("Added: ${item.title}", name: "Playlist Importer");
           yield ImporterState(
             totalItems: mediaItems.length,
@@ -256,6 +269,14 @@ class ExternalMediaImporter {
         String artists;
         int i = 1;
         if (tracks.isNotEmpty) {
+          BloomeeDBService.createPlaylist(
+            playlistTitle,
+            source: 'spotify',
+            description: data["description"].toString(),
+            isAlbum: false,
+            permaURL: data["url"].toString(),
+            artURL: data["imgUrl"].toString(),
+          );
           for (var (e as Map) in tracks) {
             title = (e['track']['name']).toString();
             artists = (e['track']['artists'] as List)
@@ -267,8 +288,8 @@ class ExternalMediaImporter {
               final mediaItem = await MixedAPI()
                   .getTrackMixed("$title $artists".trim().toLowerCase());
               if (mediaItem != null) {
-                BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
-                    MediaPlaylistDB(playlistName: playlistTitle));
+                BloomeeDBService.addMediaItem(
+                    MediaItem2MediaItemDB(mediaItem), playlistTitle);
                 yield ImporterState(
                   totalItems: totalItems,
                   importedItems: i,
@@ -378,7 +399,17 @@ class ExternalMediaImporter {
         );
         final data = await SpotifyApi().getAllAlbumTracks(accessToken, albumID);
         String albumTitle = data["albumName"].toString();
-        // log(data.toString());
+
+        BloomeeDBService.createPlaylist(
+          albumTitle,
+          source: 'spotify',
+          description: data["description"]?.toString(),
+          isAlbum: true,
+          permaURL: data["url"]?.toString(),
+          artURL: data["imgUrl"]?.toString(),
+          artists: data["artists"]?.toString(),
+        );
+
         final tracks = data["tracks"] as List;
         int totalItems = tracks.length;
         String artists;
@@ -395,8 +426,8 @@ class ExternalMediaImporter {
               final mediaItem = await MixedAPI()
                   .getTrackMixed("$title $artists".trim().toLowerCase());
               if (mediaItem != null) {
-                BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
-                    MediaPlaylistDB(playlistName: albumTitle));
+                BloomeeDBService.addMediaItem(
+                    MediaItem2MediaItemDB(mediaItem), albumTitle);
                 yield ImporterState(
                   totalItems: totalItems,
                   importedItems: i,

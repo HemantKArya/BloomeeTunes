@@ -83,13 +83,9 @@ class BloomeeFileManager {
           }
           log("Playlist name: $playlistName", name: "FileManager");
 
-          final mediaPlaylistDB = MediaPlaylistDB(
-            playlistName: playlistName,
-          );
-
           for (final mediaItemMap in playlistMap['mediaItems']) {
             final mediaItemDB = MediaItemDB.fromMap(mediaItemMap);
-            await BloomeeDBService.addMediaItem(mediaItemDB, mediaPlaylistDB);
+            await BloomeeDBService.addMediaItem(mediaItemDB, playlistName);
             log("Media item imported successfully - ${mediaItemDB.title}",
                 name: "FileManager");
           }
@@ -115,8 +111,7 @@ class BloomeeFileManager {
       await readFromJSON(filePath).then((mediaItemMap) {
         if (mediaItemMap != null && mediaItemMap.isNotEmpty) {
           final mediaItemDB = MediaItemDB.fromMap(mediaItemMap);
-          BloomeeDBService.addMediaItem(
-              mediaItemDB, MediaPlaylistDB(playlistName: "Imported"));
+          BloomeeDBService.addMediaItem(mediaItemDB, "Imported");
           log("Media item imported successfully");
           // SnackbarService.showMessage("Media item imported successfully");
         }

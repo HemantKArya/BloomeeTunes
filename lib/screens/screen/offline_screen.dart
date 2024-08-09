@@ -46,7 +46,7 @@ class OfflineScreen extends StatelessWidget {
                                     .loadPlaylist(
                                         MediaPlaylist(
                                             mediaItems: state.songs,
-                                            albumName: "Offline"),
+                                            playlistName: "Offline"),
                                         idx: state.songs.indexOf(e),
                                         doPlay: true);
                               },

@@ -146,6 +146,9 @@ class SpotifyApi {
     final List tracks = [];
     int totalTracks = 100;
     String playlistName = "Liked";
+    String? imgUrl;
+    String url = 'https://open.spotify.com/playlist/$playlistId';
+    String? description;
 
     final Map data = await getHundredTracksOfPlaylist(
       accessToken,
@@ -168,8 +171,10 @@ class SpotifyApi {
 
       if (response.statusCode == 200) {
         final result = await jsonDecode(response.body);
-
+        imgUrl = (result["images"] as List).first["url"];
+        url = result['external_urls']['spotify'];
         playlistName = result["name"] ?? "Liked";
+        description = result["description"];
       } else {
         log(
           'Error in getHundredTracksOfPlaylist, called: $path, returned: ${response.statusCode}',
@@ -193,7 +198,13 @@ class SpotifyApi {
         tracks.addAll(data['tracks'] as List);
       }
     }
-    return {'tracks': tracks, 'playlistName': playlistName};
+    return {
+      'tracks': tracks,
+      'playlistName': playlistName,
+      'url': url,
+      'imgUrl': imgUrl ?? "",
+      'description': description ?? "",
+    };
   }
 
   Future<Map> getHundredTracksOfPlaylist(
@@ -404,6 +415,10 @@ class SpotifyApi {
     try {
       int totalItems = 0;
       String albumName = "";
+      String? imgUrl;
+      String url = 'https://open.spotify.com/album/$albumId';
+      String? description;
+      String? artists;
       final Uri path = Uri.parse(
         '$spotifyApiBaseUrl/albums/$albumId',
       );
@@ -418,6 +433,14 @@ class SpotifyApi {
       if (response.statusCode == 200) {
         totalItems = jsonDecode(response.body)['total_tracks'] as int;
         albumName = jsonDecode(response.body)['name'];
+        imgUrl = (jsonDecode(response.body)["images"] as List).first["url"];
+        url = jsonDecode(response.body)['external_urls']['spotify'];
+        description = jsonDecode(response.body)['album_type'];
+        List<String> _artists = [];
+        for (var e in (jsonDecode(response.body)['artists'] as List)) {
+          _artists.add(e['name']);
+        }
+        artists = _artists.join(", ");
         final result = jsonDecode(response.body);
         for (var element in result['tracks']['items']) {
           songsData.add({
@@ -439,7 +462,15 @@ class SpotifyApi {
           error: response.body,
         );
       }
-      return {"tracks": songsData, "total": totalItems, "albumName": albumName};
+      return {
+        "tracks": songsData,
+        "total": totalItems,
+        "albumName": albumName,
+        "url": url,
+        "imgUrl": imgUrl ?? "",
+        "description": description ?? "",
+        "artists": artists ?? "",
+      };
     } catch (e) {
       log('Error in getting spotify album tracks: $e', name: "spotifyAPI");
       return {"tracks": List.empty(), "total": 0, "error": e, 'albumName': ""};

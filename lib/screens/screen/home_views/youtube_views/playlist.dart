@@ -9,14 +9,12 @@ import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -335,7 +333,7 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                                             context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
                                                                                   MediaPlaylist(
                                                                                     mediaItems: mediaitems,
-                                                                                    albumName: "${widget.title} - Youtube",
+                                                                                    playlistName: "${widget.title} - Youtube",
                                                                                   ),
                                                                                   doPlay: true,
                                                                                   shuffling: true,
@@ -392,7 +390,7 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                                               return PlayPauseButton(
                                                                                 onPause: () => context.read<BloomeePlayerCubit>().bloomeePlayer.pause(),
                                                                                 onPlay: () {
-                                                                                  context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(MediaPlaylist(mediaItems: mediaitems, albumName: "${widget.title} - Youtube"));
+                                                                                  context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(MediaPlaylist(mediaItems: mediaitems, playlistName: "${widget.title} - Youtube"));
                                                                                   context.read<BloomeePlayerCubit>().bloomeePlayer.play();
                                                                                 },
                                                                                 size: 45,
@@ -418,7 +416,7 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                                                 duration: const Duration(seconds: 2));
                                                                             await Future.forEach(mediaitems,
                                                                                 (element) {
-                                                                              BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(element), MediaPlaylistDB(playlistName: "${widget.title} - Youtube"));
+                                                                              BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(element), "${widget.title} - Youtube");
                                                                             });
                                                                             SnackbarService.showMessage("Added to Library",
                                                                                 duration: const Duration(seconds: 2));
@@ -482,7 +480,7 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                                 MediaPlaylist(
                                                                     mediaItems:
                                                                         mediaitems,
-                                                                    albumName:
+                                                                    playlistName:
                                                                         "${widget.title} - Youtube"),
                                                                 idx: index,
                                                                 doPlay: true);

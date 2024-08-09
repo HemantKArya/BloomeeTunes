@@ -17,5 +17,5 @@ class HistoryState {
 
 class HistoryInitial extends HistoryState {
   HistoryInitial()
-      : super(mediaPlaylist: MediaPlaylist(albumName: "", mediaItems: []));
+      : super(mediaPlaylist: MediaPlaylist(playlistName: "", mediaItems: []));
 }

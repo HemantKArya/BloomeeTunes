@@ -18,19 +18,6 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     required this.bloomeeDBCubit,
   }) : super(CurrentPlaylistInitial()) {}
 
-  Future<void> loadPlaylist(String playlistName) async {
-    if (mediaPlaylist !=
-        await bloomeeDBCubit
-            .getPlaylistItems(MediaPlaylistDB(playlistName: playlistName))) {
-      setupPlaylist(playlistName);
-    } else {
-      emit(state.copyWith(
-          albumName: mediaPlaylist?.albumName,
-          isFetched: true,
-          mediaItem: List<MediaItemModel>.from(mediaPlaylist!.mediaItems)));
-    }
-  }
-
   Future<void> setupPlaylist(String playlistName) async {
     emit(CurrentPlaylistLoading());
     mediaPlaylist = await bloomeeDBCubit
@@ -42,8 +29,9 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     }
     // log(paletteGenerator.toString());
     emit(state.copyWith(
-        albumName: mediaPlaylist?.albumName,
+        playlistName: mediaPlaylist?.playlistName,
         isFetched: true,
+        mediaPlaylist: mediaPlaylist,
         mediaItem: List<MediaItemModel>.from(mediaPlaylist!.mediaItems)));
   }
 

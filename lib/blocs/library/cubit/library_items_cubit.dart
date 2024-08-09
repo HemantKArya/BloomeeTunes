@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:developer';
+import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -14,7 +15,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   Stream<void>? playlistWatcherDB;
   List<PlaylistItemProperties> playlistItems = List.empty();
   BloomeeDBCubit bloomeeDBCubit;
-  List<MediaPlaylistDB> mediaPlaylistsDB = [];
+  List<MediaPlaylist> mediaPlaylists = [];
   StreamSubscription? strmSubsDB;
   LibraryItemsCubit({
     required this.bloomeeDBCubit,
@@ -37,9 +38,9 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   }
 
   Future<void> getAndEmitPlaylists() async {
-    mediaPlaylistsDB = await BloomeeDBService.getPlaylists4Library();
-    if (mediaPlaylistsDB.isNotEmpty) {
-      playlistItems = mediaPlaylistsDB2ItemProperties(mediaPlaylistsDB);
+    mediaPlaylists = await BloomeeDBService.getPlaylists4Library();
+    if (mediaPlaylists.isNotEmpty) {
+      playlistItems = mediaPlaylistsDB2ItemProperties(mediaPlaylists);
 
       emit(LibraryItemsState(playlists: playlistItems));
     } else {
@@ -48,18 +49,19 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   }
 
   List<PlaylistItemProperties> mediaPlaylistsDB2ItemProperties(
-      List<MediaPlaylistDB> _mediaPlaylistsDB) {
+      List<MediaPlaylist> _mediaPlaylists) {
     List<PlaylistItemProperties> _playlists = List.empty(growable: true);
-    if (_mediaPlaylistsDB.isNotEmpty) {
-      for (var element in _mediaPlaylistsDB) {
-        log("${element.playlistName}", name: "libItemCubit");
+    if (_mediaPlaylists.isNotEmpty) {
+      for (var element in _mediaPlaylists) {
+        log(element.playlistName, name: "LibCubit");
         _playlists.add(
           PlaylistItemProperties(
             playlistName: element.playlistName,
             subTitle: "${element.mediaItems.length} Items",
-            coverImgUrl: element.mediaItems.isNotEmpty
-                ? element.mediaItems.first.artURL
-                : null,
+            coverImgUrl: element.imgUrl ??
+                (element.mediaItems.isNotEmpty
+                    ? element.mediaItems.first.artUri?.toString()
+                    : null),
           ),
         );
       }
@@ -100,9 +102,8 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
 
   Future<List<MediaItemModel>?> getPlaylist(String playlistName) async {
     try {
-      final playlistDB = mediaPlaylistsDB
-          .firstWhere((element) => element.playlistName == playlistName);
-      final _playlist = await BloomeeDBService.getPlaylistItems(playlistDB);
+      final _playlist =
+          await BloomeeDBService.getPlaylistItemsByName(playlistName);
 
       if (_playlist != null) {
         final mediaItems =
