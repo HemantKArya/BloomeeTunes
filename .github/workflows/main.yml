@@ -78,5 +78,6 @@ jobs:
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v2.9.2+${{github.run_number}}.apk
                 tag: v2.9.2+${{github.run_number}}
                 token: ${{secrets.SECRET_KEY}}
+                prerelease: true
 
     
