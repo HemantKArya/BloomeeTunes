@@ -7,6 +7,7 @@ import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubi
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
@@ -14,10 +15,13 @@ import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:just_audio/just_audio.dart';
+
+part 'playlist_info_dialog.dart';
 
 class PlaylistView extends StatelessWidget {
   const PlaylistView({super.key});
@@ -65,73 +69,6 @@ class PlaylistView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        floatingActionButton:
-            BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
-          builder: (context, state) {
-            return StreamBuilder<String>(
-                stream: context
-                    .watch<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .queueTitle,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data == state.albumName) {
-                    return StreamBuilder<PlayerState>(
-                        stream: context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .audioPlayer
-                            .playerStateStream,
-                        builder: (context, snapshot2) {
-                          if (snapshot2.hasData &&
-                              (snapshot2.data?.playing ?? false)) {
-                            return PlayPauseButton(
-                              onPause: () => context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .pause(),
-                              onPlay: () => context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .play(),
-                              isPlaying: true,
-                              size: 60,
-                            );
-                          } else {
-                            return PlayPauseButton(
-                              onPause: () => context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .pause(),
-                              onPlay: () => context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .play(),
-                              isPlaying: false,
-                              size: 60,
-                            );
-                          }
-                        });
-                  } else {
-                    return PlayPauseButton(
-                      onPause: () => context
-                          .read<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .pause(),
-                      onPlay: () {
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .loadPlaylist(MediaPlaylist(
-                                mediaItems: state.mediaItems,
-                                albumName: state.albumName));
-                        context.read<BloomeePlayerCubit>().bloomeePlayer.play();
-                      },
-                      size: 60,
-                    );
-                  }
-                });
-          },
-        ),
         extendBodyBehindAppBar: true,
         backgroundColor: Default_Theme.themeColor,
         body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
@@ -140,7 +77,7 @@ class PlaylistView extends StatelessWidget {
             return AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
               child: (state is! CurrentPlaylistInitial &&
-                      state.mediaItems.isNotEmpty)
+                      state.mediaPlaylist.mediaItems.isNotEmpty)
                   ? CustomScrollView(
                       key: const ValueKey('1'),
                       physics: const BouncingScrollPhysics(),
@@ -182,7 +119,7 @@ class PlaylistView extends StatelessWidget {
                             final bool isCollapsed = percentage < 0.4;
 
                             final span = TextSpan(
-                              text: state.albumName,
+                              text: state.mediaPlaylist.playlistName,
                               style:
                                   Default_Theme.secondoryTextStyleMedium.merge(
                                 TextStyle(
@@ -209,7 +146,7 @@ class PlaylistView extends StatelessWidget {
                                   left: horizontalPadding,
                                   bottom: isCollapsed ? 16 : 10),
                               title: Text(
-                                state.albumName,
+                                state.mediaPlaylist.playlistName,
                                 maxLines: isCollapsed ? 1 : 3,
                                 style: Default_Theme.secondoryTextStyleMedium
                                     .merge(
@@ -226,7 +163,7 @@ class PlaylistView extends StatelessWidget {
                                   fit: StackFit.expand,
                                   children: [
                                     loadImageCached(state
-                                        .mediaItems.first.artUri
+                                        .mediaPlaylist.mediaItems.first.artUri
                                         .toString()),
                                     Positioned(
                                         child: Container(
@@ -271,13 +208,40 @@ class PlaylistView extends StatelessWidget {
                                               padding: const EdgeInsets.only(
                                                   left: 80, right: 80),
                                               child: loadImageCached(state
-                                                  .mediaItems.first.artUri
+                                                  .mediaPlaylist
+                                                  .mediaItems
+                                                  .first
+                                                  .artUri
                                                   .toString()),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    )
+                                    ),
+                                    Positioned(
+                                        right: 8,
+                                        top: 8,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            MingCute.more_1_line,
+                                          ),
+                                          hoverColor: getFBColor(context)[1]
+                                              .withOpacity(0.2),
+                                          color: getFBColor(context)[0],
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    getFBColor(context)[1]
+                                                        .withOpacity(0.05)),
+                                          ),
+                                          onPressed: () {
+                                            // dialog to show all infromation about the playlist (playlist name, source, description, original link, type, etc  )
+                                            showPlaylistInfo(context, state,
+                                                fgColor: getFBColor(context)[0],
+                                                bgColor:
+                                                    getFBColor(context)[1]);
+                                          },
+                                        )),
                                     // blur fade effect bottom edge
                                   ],
                                 );
@@ -292,14 +256,144 @@ class PlaylistView extends StatelessWidget {
                               bottom: 12,
                               left: 16,
                             ),
-                            child: Text(
-                              "Playlist • ${state.mediaItems.length} Songs \nby You",
-                              style: Default_Theme.secondoryTextStyle
-                                  .merge(TextStyle(
-                                color: Default_Theme.primaryColor1
-                                    .withOpacity(0.8),
-                                fontSize: 12,
-                              )),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "${state.mediaPlaylist.isAlbum ? "Album" : "Playlist"} • ${state.mediaPlaylist.mediaItems.length} Songs \nby ${state.mediaPlaylist.artists ?? 'You'}",
+                                    style: Default_Theme.secondoryTextStyle
+                                        .merge(TextStyle(
+                                      color: Default_Theme.primaryColor1
+                                          .withOpacity(0.8),
+                                      fontSize: 12,
+                                    )),
+                                  ),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                    onPressed: () {
+                                      context
+                                          .read<BloomeePlayerCubit>()
+                                          .bloomeePlayer
+                                          .audioPlayer
+                                          .setShuffleModeEnabled(true);
+                                      context
+                                          .read<BloomeePlayerCubit>()
+                                          .bloomeePlayer
+                                          .loadPlaylist(MediaPlaylist(
+                                              mediaItems: state
+                                                  .mediaPlaylist.mediaItems,
+                                              playlistName: state
+                                                  .mediaPlaylist.playlistName))
+                                          .then((_) {
+                                        context
+                                            .read<BloomeePlayerCubit>()
+                                            .bloomeePlayer
+                                            .audioPlayer
+                                            .play();
+                                      });
+                                    },
+                                    iconSize: 22,
+                                    padding: EdgeInsets.zero,
+                                    icon: Icon(MingCute.shuffle_line,
+                                        color: Default_Theme.primaryColor1
+                                            .withOpacity(0.8))),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.only(right: 16, left: 5),
+                                  child: BlocBuilder<CurrentPlaylistCubit,
+                                      CurrentPlaylistState>(
+                                    builder: (context, state) {
+                                      return StreamBuilder<String>(
+                                          stream: context
+                                              .watch<BloomeePlayerCubit>()
+                                              .bloomeePlayer
+                                              .queueTitle,
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData &&
+                                                snapshot.data ==
+                                                    state.mediaPlaylist
+                                                        .playlistName) {
+                                              return StreamBuilder<PlayerState>(
+                                                  stream: context
+                                                      .read<
+                                                          BloomeePlayerCubit>()
+                                                      .bloomeePlayer
+                                                      .audioPlayer
+                                                      .playerStateStream,
+                                                  builder:
+                                                      (context, snapshot2) {
+                                                    if (snapshot2.hasData &&
+                                                        (snapshot2.data
+                                                                ?.playing ??
+                                                            false)) {
+                                                      return PlayPauseButton(
+                                                        onPause: () => context
+                                                            .read<
+                                                                BloomeePlayerCubit>()
+                                                            .bloomeePlayer
+                                                            .pause(),
+                                                        onPlay: () => context
+                                                            .read<
+                                                                BloomeePlayerCubit>()
+                                                            .bloomeePlayer
+                                                            .audioPlayer
+                                                            .play(),
+                                                        isPlaying: true,
+                                                        size: 35,
+                                                      );
+                                                    } else {
+                                                      return PlayPauseButton(
+                                                        onPause: () => context
+                                                            .read<
+                                                                BloomeePlayerCubit>()
+                                                            .bloomeePlayer
+                                                            .pause(),
+                                                        onPlay: () => context
+                                                            .read<
+                                                                BloomeePlayerCubit>()
+                                                            .bloomeePlayer
+                                                            .audioPlayer
+                                                            .play(),
+                                                        isPlaying: false,
+                                                        size: 35,
+                                                      );
+                                                    }
+                                                  });
+                                            } else {
+                                              return PlayPauseButton(
+                                                onPause: () => context
+                                                    .read<BloomeePlayerCubit>()
+                                                    .bloomeePlayer
+                                                    .pause(),
+                                                onPlay: () {
+                                                  context
+                                                      .read<
+                                                          BloomeePlayerCubit>()
+                                                      .bloomeePlayer
+                                                      .loadPlaylist(MediaPlaylist(
+                                                          mediaItems: state
+                                                              .mediaPlaylist
+                                                              .mediaItems,
+                                                          playlistName: state
+                                                              .mediaPlaylist
+                                                              .playlistName));
+                                                  context
+                                                      .read<
+                                                          BloomeePlayerCubit>()
+                                                      .bloomeePlayer
+                                                      .audioPlayer
+                                                      .play();
+                                                },
+                                                size: 35,
+                                              );
+                                            }
+                                          });
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -363,8 +457,8 @@ class _PlaylistState extends State<Playlist> {
       proxyDecorator: proxyDecorator,
       itemBuilder: (context, index) {
         return SongCardWidget(
-          song: _state.mediaItems[index],
-          key: ValueKey(_state.mediaItems[index].id),
+          song: _state.mediaPlaylist.mediaItems[index],
+          key: ValueKey(_state.mediaPlaylist.mediaItems[index].id),
           trailing: Platform.isAndroid
               ? null
               : ReorderableDragStartListener(
@@ -379,19 +473,23 @@ class _PlaylistState extends State<Playlist> {
           onTap: () {
             if (!listEquals(
                 context.read<BloomeePlayerCubit>().bloomeePlayer.queue.value,
-                _state.mediaItems)) {
+                _state.mediaPlaylist.mediaItems)) {
               context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
                   MediaPlaylist(
-                      mediaItems: _state.mediaItems,
-                      albumName: _state.albumName),
+                      mediaItems: _state.mediaPlaylist.mediaItems,
+                      playlistName: _state.mediaPlaylist.playlistName),
                   idx: index,
                   doPlay: true);
-              // context.read<BloomeePlayerCubit>().bloomeePlayer.play();
+              context
+                  .read<BloomeePlayerCubit>()
+                  .bloomeePlayer
+                  .audioPlayer
+                  .play();
             } else if (context
                     .read<BloomeePlayerCubit>()
                     .bloomeePlayer
                     .currentMedia !=
-                _state.mediaItems[index]) {
+                _state.mediaPlaylist.mediaItems[index]) {
               context
                   .read<BloomeePlayerCubit>()
                   .bloomeePlayer
@@ -401,29 +499,30 @@ class _PlaylistState extends State<Playlist> {
             context.push('/MusicPlayer');
           },
           onOptionsTap: () {
-            showMoreBottomSheet(context, _state.mediaItems[index],
+            showMoreBottomSheet(context, _state.mediaPlaylist.mediaItems[index],
                 onDelete: () {
               context.read<BloomeeDBCubit>().removeMediaFromPlaylist(
-                  _state.mediaItems[index],
-                  MediaPlaylistDB(playlistName: _state.albumName));
+                  _state.mediaPlaylist.mediaItems[index],
+                  MediaPlaylistDB(
+                      playlistName: _state.mediaPlaylist.playlistName));
               setState(() {
-                _state.mediaItems.removeAt(index);
+                _state.mediaPlaylist.mediaItems.removeAt(index);
               });
             }, showDelete: true);
           },
         );
       },
-      itemCount: _state.mediaItems.length,
+      itemCount: _state.mediaPlaylist.mediaItems.length,
       onReorder: (oldIndex, newIndex) {
         setState(() {
           if (oldIndex < newIndex) {
             newIndex -= 1;
           }
-          final MediaItemModel item = _state.mediaItems.removeAt(oldIndex);
-          _state.mediaItems.insert(newIndex, item);
-          context
-              .read<BloomeeDBCubit>()
-              .reorderPositionOfItemInDB(_state.albumName, oldIndex, newIndex);
+          final MediaItemModel item =
+              _state.mediaPlaylist.mediaItems.removeAt(oldIndex);
+          _state.mediaPlaylist.mediaItems.insert(newIndex, item);
+          context.read<BloomeeDBCubit>().reorderPositionOfItemInDB(
+              _state.mediaPlaylist.playlistName, oldIndex, newIndex);
         });
       },
     );
