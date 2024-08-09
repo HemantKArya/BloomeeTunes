@@ -31,122 +31,124 @@ void showPlaylistOptsSheet(BuildContext context, String playlistName) {
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20), topRight: Radius.circular(20)),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                ListTile(
-                  leading: const Icon(
-                    MingCute.play_circle_fill,
-                    color: Default_Theme.primaryColor1,
-                    size: 28,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  PltOptBtn(
+                    icon: MingCute.play_circle_fill,
+                    title: "Play",
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      final _list = await context
+                          .read<LibraryItemsCubit>()
+                          .getPlaylist(playlistName);
+                      if (_list != null && _list.isNotEmpty) {
+                        context
+                            .read<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .loadPlaylist(
+                                MediaPlaylist(
+                                    mediaItems: _list,
+                                    playlistName: playlistName),
+                                doPlay: true);
+                        SnackbarService.showMessage("Playing $playlistName");
+                      }
+                    },
                   ),
-                  title: const Text(
-                    "Play",
-                    style: TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontFamily: "Unageo",
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400),
+                  PltOptBtn(
+                    title: 'Add Playlist to Queue',
+                    icon: MingCute.playlist_2_line,
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      final _list = await context
+                          .read<LibraryItemsCubit>()
+                          .getPlaylist(playlistName);
+                      if (_list != null && _list.isNotEmpty) {
+                        context
+                            .read<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .addQueueItems(_list);
+                        SnackbarService.showMessage(
+                            "Added $playlistName to Queue");
+                      }
+                    },
                   ),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    final _list = await context
-                        .read<LibraryItemsCubit>()
-                        .getPlaylist(playlistName);
-                    if (_list != null && _list.isNotEmpty) {
-                      context
-                          .read<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .loadPlaylist(
-                              MediaPlaylist(
-                                  mediaItems: _list, albumName: playlistName),
-                              doPlay: true);
-                      SnackbarService.showMessage("Playing $playlistName");
-                    }
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(
-                    MingCute.playlist_2_line,
-                    color: Default_Theme.primaryColor1,
-                    size: 28,
-                  ),
-                  title: const Text(
-                    "Add Playlist to Queue",
-                    style: TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontFamily: "Unageo",
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    final _list = await context
-                        .read<LibraryItemsCubit>()
-                        .getPlaylist(playlistName);
-                    if (_list != null && _list.isNotEmpty) {
-                      context
-                          .read<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .addQueueItems(_list);
+                  PltOptBtn(
+                    icon: MingCute.share_2_fill,
+                    title: "Share Playlist",
+                    onPressed: () async {
+                      Navigator.pop(context);
                       SnackbarService.showMessage(
-                          "Added $playlistName to Queue");
-                    }
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(
-                    MingCute.share_2_fill,
-                    color: Default_Theme.primaryColor1,
-                    size: 28,
+                          "Preparing $playlistName for share");
+                      final _tmpPath =
+                          await BloomeeFileManager.exportPlaylist(playlistName);
+                      _tmpPath != null
+                          ? Share.shareXFiles([XFile(_tmpPath)])
+                          : null;
+                    },
                   ),
-                  title: const Text(
-                    "Share Playlist",
-                    style: TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontFamily: "Unageo",
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400),
+                  PltOptBtn(
+                    title: 'Delete Playlist',
+                    icon: MingCute.delete_2_fill,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.read<LibraryItemsCubit>().removePlaylist(
+                          MediaPlaylistDB(playlistName: playlistName));
+                    },
                   ),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    SnackbarService.showMessage(
-                        "Preparing $playlistName for share");
-                    final _tmpPath =
-                        await BloomeeFileManager.exportPlaylist(playlistName);
-                    _tmpPath != null
-                        ? Share.shareXFiles([XFile(_tmpPath)])
-                        : null;
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(
-                    MingCute.delete_2_fill,
-                    color: Default_Theme.primaryColor1,
-                    size: 28,
-                  ),
-                  title: const Text(
-                    "Delete Playlist",
-                    style: TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontFamily: "Unageo",
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.read<LibraryItemsCubit>().removePlaylist(
-                        MediaPlaylistDB(playlistName: playlistName));
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
       );
     },
   );
+}
+
+class PltOptBtn extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onPressed;
+  const PltOptBtn({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Row(
+        children: [
+          Icon(
+            icon,
+            color: Default_Theme.primaryColor1,
+            size: 28,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8),
+              child: Text(
+                title,
+                style: const TextStyle(
+                    color: Default_Theme.primaryColor1,
+                    fontFamily: "Unageo",
+                    fontSize: 17,
+                    fontWeight: FontWeight.w400),
+              ),
+            ),
+          ),
+        ],
+      ),
+      onPressed: onPressed,
+      hoverColor: Default_Theme.primaryColor1.withOpacity(0.04),
+    );
+  }
 }
 
 Future<T> showFloatingModalBottomSheet<T>({
