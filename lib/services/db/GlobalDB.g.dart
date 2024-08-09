@@ -22,13 +22,18 @@ const MediaPlaylistDBSchema = CollectionSchema(
       name: r'hashCode',
       type: IsarType.long,
     ),
-    r'mediaRanks': PropertySchema(
+    r'lastUpdated': PropertySchema(
       id: 1,
+      name: r'lastUpdated',
+      type: IsarType.dateTime,
+    ),
+    r'mediaRanks': PropertySchema(
+      id: 2,
       name: r'mediaRanks',
       type: IsarType.longList,
     ),
     r'playlistName': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'playlistName',
       type: IsarType.string,
     )
@@ -73,8 +78,9 @@ void _mediaPlaylistDBSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.hashCode);
-  writer.writeLongList(offsets[1], object.mediaRanks);
-  writer.writeString(offsets[2], object.playlistName);
+  writer.writeDateTime(offsets[1], object.lastUpdated);
+  writer.writeLongList(offsets[2], object.mediaRanks);
+  writer.writeString(offsets[3], object.playlistName);
 }
 
 MediaPlaylistDB _mediaPlaylistDBDeserialize(
@@ -84,9 +90,10 @@ MediaPlaylistDB _mediaPlaylistDBDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = MediaPlaylistDB(
-    playlistName: reader.readString(offsets[2]),
+    lastUpdated: reader.readDateTimeOrNull(offsets[1]),
+    playlistName: reader.readString(offsets[3]),
   );
-  object.mediaRanks = reader.readLongList(offsets[1]) ?? [];
+  object.mediaRanks = reader.readLongList(offsets[2]) ?? [];
   return object;
 }
 
@@ -100,8 +107,10 @@ P _mediaPlaylistDBDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readLongList(offset) ?? []) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
+      return (reader.readLongList(offset) ?? []) as P;
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -308,6 +317,80 @@ extension MediaPlaylistDBQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'isarId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterFilterCondition>
+      lastUpdatedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterFilterCondition>
+      lastUpdatedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterFilterCondition>
+      lastUpdatedEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterFilterCondition>
+      lastUpdatedGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterFilterCondition>
+      lastUpdatedLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterFilterCondition>
+      lastUpdatedBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastUpdated',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -682,6 +765,20 @@ extension MediaPlaylistDBQuerySortBy
   }
 
   QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterSortBy>
+      sortByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterSortBy>
+      sortByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterSortBy>
       sortByPlaylistName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'playlistName', Sort.asc);
@@ -726,6 +823,20 @@ extension MediaPlaylistDBQuerySortThenBy
   }
 
   QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterSortBy>
+      thenByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterSortBy>
+      thenByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QAfterSortBy>
       thenByPlaylistName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'playlistName', Sort.asc);
@@ -746,6 +857,13 @@ extension MediaPlaylistDBQueryWhereDistinct
       distinctByHashCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'hashCode');
+    });
+  }
+
+  QueryBuilder<MediaPlaylistDB, MediaPlaylistDB, QDistinct>
+      distinctByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastUpdated');
     });
   }
 
@@ -778,6 +896,13 @@ extension MediaPlaylistDBQueryProperty
     });
   }
 
+  QueryBuilder<MediaPlaylistDB, DateTime?, QQueryOperations>
+      lastUpdatedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastUpdated');
+    });
+  }
+
   QueryBuilder<MediaPlaylistDB, List<int>, QQueryOperations>
       mediaRanksProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -789,6 +914,1780 @@ extension MediaPlaylistDBQueryProperty
       playlistNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'playlistName');
+    });
+  }
+}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+extension GetPlaylistsInfoDBCollection on Isar {
+  IsarCollection<PlaylistsInfoDB> get playlistsInfoDBs => this.collection();
+}
+
+const PlaylistsInfoDBSchema = CollectionSchema(
+  name: r'PlaylistsInfoDB',
+  id: 1617157397511618734,
+  properties: {
+    r'artURL': PropertySchema(
+      id: 0,
+      name: r'artURL',
+      type: IsarType.string,
+    ),
+    r'artists': PropertySchema(
+      id: 1,
+      name: r'artists',
+      type: IsarType.string,
+    ),
+    r'description': PropertySchema(
+      id: 2,
+      name: r'description',
+      type: IsarType.string,
+    ),
+    r'hashCode': PropertySchema(
+      id: 3,
+      name: r'hashCode',
+      type: IsarType.long,
+    ),
+    r'isAlbum': PropertySchema(
+      id: 4,
+      name: r'isAlbum',
+      type: IsarType.bool,
+    ),
+    r'lastUpdated': PropertySchema(
+      id: 5,
+      name: r'lastUpdated',
+      type: IsarType.dateTime,
+    ),
+    r'permaURL': PropertySchema(
+      id: 6,
+      name: r'permaURL',
+      type: IsarType.string,
+    ),
+    r'playlistName': PropertySchema(
+      id: 7,
+      name: r'playlistName',
+      type: IsarType.string,
+    ),
+    r'source': PropertySchema(
+      id: 8,
+      name: r'source',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _playlistsInfoDBEstimateSize,
+  serialize: _playlistsInfoDBSerialize,
+  deserialize: _playlistsInfoDBDeserialize,
+  deserializeProp: _playlistsInfoDBDeserializeProp,
+  idName: r'isarId',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _playlistsInfoDBGetId,
+  getLinks: _playlistsInfoDBGetLinks,
+  attach: _playlistsInfoDBAttach,
+  version: '3.1.0+1',
+);
+
+int _playlistsInfoDBEstimateSize(
+  PlaylistsInfoDB object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.artURL;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.artists;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.description;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.permaURL;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.playlistName.length * 3;
+  {
+    final value = object.source;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _playlistsInfoDBSerialize(
+  PlaylistsInfoDB object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.artURL);
+  writer.writeString(offsets[1], object.artists);
+  writer.writeString(offsets[2], object.description);
+  writer.writeLong(offsets[3], object.hashCode);
+  writer.writeBool(offsets[4], object.isAlbum);
+  writer.writeDateTime(offsets[5], object.lastUpdated);
+  writer.writeString(offsets[6], object.permaURL);
+  writer.writeString(offsets[7], object.playlistName);
+  writer.writeString(offsets[8], object.source);
+}
+
+PlaylistsInfoDB _playlistsInfoDBDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = PlaylistsInfoDB(
+    artURL: reader.readStringOrNull(offsets[0]),
+    artists: reader.readStringOrNull(offsets[1]),
+    description: reader.readStringOrNull(offsets[2]),
+    isAlbum: reader.readBoolOrNull(offsets[4]),
+    lastUpdated: reader.readDateTime(offsets[5]),
+    permaURL: reader.readStringOrNull(offsets[6]),
+    playlistName: reader.readString(offsets[7]),
+    source: reader.readStringOrNull(offsets[8]),
+  );
+  return object;
+}
+
+P _playlistsInfoDBDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 5:
+      return (reader.readDateTime(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+Id _playlistsInfoDBGetId(PlaylistsInfoDB object) {
+  return object.isarId;
+}
+
+List<IsarLinkBase<dynamic>> _playlistsInfoDBGetLinks(PlaylistsInfoDB object) {
+  return [];
+}
+
+void _playlistsInfoDBAttach(
+    IsarCollection<dynamic> col, Id id, PlaylistsInfoDB object) {}
+
+extension PlaylistsInfoDBQueryWhereSort
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QWhere> {
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterWhere> anyIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+}
+
+extension PlaylistsInfoDBQueryWhere
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QWhereClause> {
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterWhereClause>
+      isarIdEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: isarId,
+        upper: isarId,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterWhereClause>
+      isarIdNotEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterWhereClause>
+      isarIdGreaterThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterWhereClause>
+      isarIdLessThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterWhereClause>
+      isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerIsarId,
+        includeLower: includeLower,
+        upper: upperIsarId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension PlaylistsInfoDBQueryFilter
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QFilterCondition> {
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'artURL',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'artURL',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'artURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'artURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'artURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'artURL',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'artURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'artURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'artURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'artURL',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'artURL',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artURLIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'artURL',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'artists',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'artists',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'artists',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'artists',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'artists',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'artists',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'artists',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'artists',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'artists',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'artists',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'artists',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      artistsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'artists',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'description',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'description',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'description',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'description',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'description',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      descriptionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'description',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      hashCodeEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hashCode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      hashCodeGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hashCode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      hashCodeLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hashCode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      hashCodeBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hashCode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      isAlbumIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'isAlbum',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      isAlbumIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'isAlbum',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      isAlbumEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isAlbum',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      isarIdEqualTo(Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      isarIdGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      isarIdLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      isarIdBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'isarId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      lastUpdatedEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      lastUpdatedGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      lastUpdatedLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      lastUpdatedBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastUpdated',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'permaURL',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'permaURL',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'permaURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'permaURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'permaURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'permaURL',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'permaURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'permaURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'permaURL',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'permaURL',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'permaURL',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      permaURLIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'permaURL',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'playlistName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'playlistName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'playlistName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'playlistName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'playlistName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'playlistName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'playlistName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'playlistName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'playlistName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      playlistNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'playlistName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'source',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'source',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'source',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'source',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'source',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'source',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'source',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'source',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'source',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'source',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'source',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterFilterCondition>
+      sourceIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'source',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension PlaylistsInfoDBQueryObject
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QFilterCondition> {}
+
+extension PlaylistsInfoDBQueryLinks
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QFilterCondition> {}
+
+extension PlaylistsInfoDBQuerySortBy
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QSortBy> {
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> sortByArtURL() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'artURL', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByArtURLDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'artURL', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> sortByArtists() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'artists', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByArtistsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'artists', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByDescription() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByDescriptionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByHashCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hashCode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByHashCodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hashCode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> sortByIsAlbum() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAlbum', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByIsAlbumDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAlbum', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByPermaURL() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'permaURL', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByPermaURLDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'permaURL', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByPlaylistName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'playlistName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortByPlaylistNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'playlistName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> sortBySource() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'source', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      sortBySourceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'source', Sort.desc);
+    });
+  }
+}
+
+extension PlaylistsInfoDBQuerySortThenBy
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QSortThenBy> {
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> thenByArtURL() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'artURL', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByArtURLDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'artURL', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> thenByArtists() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'artists', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByArtistsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'artists', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByDescription() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByDescriptionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByHashCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hashCode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByHashCodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hashCode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> thenByIsAlbum() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAlbum', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByIsAlbumDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAlbum', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> thenByIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByPermaURL() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'permaURL', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByPermaURLDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'permaURL', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByPlaylistName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'playlistName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenByPlaylistNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'playlistName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy> thenBySource() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'source', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QAfterSortBy>
+      thenBySourceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'source', Sort.desc);
+    });
+  }
+}
+
+extension PlaylistsInfoDBQueryWhereDistinct
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct> {
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct> distinctByArtURL(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'artURL', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct> distinctByArtists(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'artists', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct>
+      distinctByDescription({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'description', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct>
+      distinctByHashCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hashCode');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct>
+      distinctByIsAlbum() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isAlbum');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct>
+      distinctByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastUpdated');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct> distinctByPermaURL(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'permaURL', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct>
+      distinctByPlaylistName({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'playlistName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QDistinct> distinctBySource(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'source', caseSensitive: caseSensitive);
+    });
+  }
+}
+
+extension PlaylistsInfoDBQueryProperty
+    on QueryBuilder<PlaylistsInfoDB, PlaylistsInfoDB, QQueryProperty> {
+  QueryBuilder<PlaylistsInfoDB, int, QQueryOperations> isarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isarId');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, String?, QQueryOperations> artURLProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'artURL');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, String?, QQueryOperations> artistsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'artists');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, String?, QQueryOperations>
+      descriptionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'description');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, int, QQueryOperations> hashCodeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hashCode');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, bool?, QQueryOperations> isAlbumProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isAlbum');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, DateTime, QQueryOperations>
+      lastUpdatedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastUpdated');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, String?, QQueryOperations> permaURLProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'permaURL');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, String, QQueryOperations>
+      playlistNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'playlistName');
+    });
+  }
+
+  QueryBuilder<PlaylistsInfoDB, String?, QQueryOperations> sourceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'source');
     });
   }
 }

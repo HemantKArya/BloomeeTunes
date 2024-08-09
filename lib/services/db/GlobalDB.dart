@@ -2,6 +2,7 @@
 // import 'dart:js_util';
 
 import 'dart:convert';
+
 import 'package:isar/isar.dart';
 
 part 'GlobalDB.g.dart';
@@ -11,8 +12,10 @@ class MediaPlaylistDB {
   Id get isarId => fastHash(playlistName);
   String playlistName;
   List<int> mediaRanks = List.empty(growable: true);
+  DateTime? lastUpdated;
   MediaPlaylistDB({
     required this.playlistName,
+    this.lastUpdated,
   });
   @Backlink(to: "mediaInPlaylistsDB")
   IsarLinks<MediaItemDB> mediaItems = IsarLinks<MediaItemDB>();
@@ -26,6 +29,80 @@ class MediaPlaylistDB {
 
   @override
   int get hashCode => playlistName.hashCode;
+}
+
+@collection
+class PlaylistsInfoDB {
+  Id get isarId => fastHash(playlistName);
+  String playlistName;
+  bool? isAlbum;
+  String? artURL;
+  String? description;
+  String? permaURL;
+  String? source;
+  String? artists;
+  DateTime lastUpdated;
+
+  PlaylistsInfoDB({
+    required this.playlistName,
+    required this.lastUpdated,
+    this.isAlbum,
+    this.artURL,
+    this.description,
+    this.permaURL,
+    this.source,
+    this.artists,
+  });
+
+  @override
+  bool operator ==(covariant PlaylistsInfoDB other) {
+    if (identical(this, other)) return true;
+
+    return other.playlistName == playlistName;
+  }
+
+  @override
+  int get hashCode {
+    return playlistName.hashCode;
+  }
+
+  @override
+  String toString() {
+    return 'PlaylistsInfoDB(playlistName: $playlistName, isAlbum: $isAlbum, artURL: $artURL, description: $description, permaURL: $permaURL, source: $source, artists: $artists, lastUpdated: $lastUpdated)';
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'playlistName': playlistName,
+      'isAlbum': isAlbum,
+      'artURL': artURL,
+      'description': description,
+      'permaURL': permaURL,
+      'source': source,
+      'artists': artists,
+      'lastUpdated': lastUpdated.millisecondsSinceEpoch,
+    };
+  }
+
+  factory PlaylistsInfoDB.fromMap(Map<String, dynamic> map) {
+    return PlaylistsInfoDB(
+      playlistName: map['playlistName'] as String,
+      isAlbum: map['isAlbum'] != null ? map['isAlbum'] as bool : null,
+      artURL: map['artURL'] != null ? map['artURL'] as String : null,
+      description:
+          map['description'] != null ? map['description'] as String : null,
+      permaURL: map['permaURL'] != null ? map['permaURL'] as String : null,
+      source: map['source'] != null ? map['source'] as String : null,
+      artists: map['artists'] != null ? map['artists'] as String : null,
+      lastUpdated:
+          DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'] as int),
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory PlaylistsInfoDB.fromJson(String source) =>
+      PlaylistsInfoDB.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
 @collection

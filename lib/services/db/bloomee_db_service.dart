@@ -13,8 +13,9 @@ class BloomeeDBService {
 
   BloomeeDBService() {
     db = openDB();
-    Future.delayed(const Duration(seconds: 30), () {
-      refreshRecentlyPlayed();
+    Future.delayed(const Duration(seconds: 30), () async {
+      await refreshRecentlyPlayed();
+      await purgeUnassociatedMediaItems();
     });
   }
 
@@ -33,6 +34,7 @@ class BloomeeDBService {
           YtLinkCacheDBSchema,
           NotificationDBSchema,
           DownloadDBSchema,
+          PlaylistsInfoDBSchema,
         ],
         directory: _path,
       );
@@ -119,13 +121,19 @@ class BloomeeDBService {
   }
 
   static Future<int?> addMediaItem(
-      MediaItemDB mediaItemDB, MediaPlaylistDB mediaPlaylistDB) async {
-    int? _id;
+      MediaItemDB mediaItemDB, String playlistName) async {
+    int? id;
     Isar isarDB = await db;
+    MediaPlaylistDB mediaPlaylistDB =
+        MediaPlaylistDB(playlistName: playlistName);
+
+    // search for media item if already exists
     MediaItemDB? _mediaitem = isarDB.mediaItemDBs
         .filter()
         .permaURLEqualTo(mediaItemDB.permaURL)
         .findFirstSync();
+
+    // search for playlist if already exists
     MediaPlaylistDB? _mediaPlaylistDB = isarDB.mediaPlaylistDBs
         .filter()
         .isarIdEqualTo(mediaPlaylistDB.isarId)
@@ -133,7 +141,8 @@ class BloomeeDBService {
     log(_mediaPlaylistDB.toString(), name: "DB");
 
     if (_mediaPlaylistDB == null) {
-      final tmpId = await addPlaylist(mediaPlaylistDB);
+      // create playlist if not exists
+      final tmpId = await createPlaylist(playlistName);
       _mediaPlaylistDB = isarDB.mediaPlaylistDBs
           .filter()
           .isarIdEqualTo(mediaPlaylistDB.isarId)
@@ -141,27 +150,23 @@ class BloomeeDBService {
       log("${_mediaPlaylistDB.toString()} ID: $tmpId", name: "DB");
     }
 
+    // add playlist to _mediaitem
     if (_mediaitem != null) {
-      // log("1", name: "DB");
+      // update and save existing media item
       _mediaitem.mediaInPlaylistsDB.add(_mediaPlaylistDB!);
-      _id = _mediaitem.id;
-      // log("2", name: "DB");
+      id = _mediaitem.id;
       isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(_mediaitem!));
     } else {
-      // log("3", name: "DB");
-      MediaItemDB? _mediaitem = mediaItemDB;
+      // save given new media item
+      _mediaitem = mediaItemDB;
       log("id: ${_mediaitem.id}", name: "DB");
       _mediaitem.mediaInPlaylistsDB.add(mediaPlaylistDB);
-      // log("4", name: "DB");
-      isarDB.writeTxnSync(() => _id = isarDB.mediaItemDBs.putSync(_mediaitem));
+      isarDB.writeTxnSync(() => id = isarDB.mediaItemDBs.putSync(_mediaitem!));
     }
-    _mediaitem = isarDB.mediaItemDBs
-        .filter()
-        .permaURLEqualTo(mediaItemDB.permaURL)
-        .findFirstSync();
-    if (_mediaitem?.mediaInPlaylistsDB != null &&
-        !(_mediaPlaylistDB?.mediaRanks.contains(_mediaitem!.id) ?? false)) {
-      mediaPlaylistDB = _mediaitem!.mediaInPlaylistsDB
+
+    // add current rank for media item in playlist orderList
+    if (!(_mediaPlaylistDB?.mediaRanks.contains(_mediaitem.id) ?? false)) {
+      mediaPlaylistDB = _mediaitem.mediaInPlaylistsDB
           .filter()
           .isarIdEqualTo(mediaPlaylistDB.isarId)
           .findFirstSync()!;
@@ -174,7 +179,7 @@ class BloomeeDBService {
       log(mediaPlaylistDB.mediaRanks.toString(), name: "DB");
     }
 
-    return _id;
+    return id;
   }
 
   static Future<void> removeMediaItem(MediaItemDB mediaItemDB) async {
@@ -184,6 +189,32 @@ class BloomeeDBService {
         () => _res = isarDB.mediaItemDBs.deleteSync(mediaItemDB.id!));
     if (_res) {
       log("${mediaItemDB.title} is Deleted!!", name: "DB");
+    }
+  }
+
+  static Future<void> purgeUnassociatedMediaItem(
+      MediaItemDB mediaItemDB) async {
+    // Remove media items that are not associated with any playlist
+    if (mediaItemDB.mediaInPlaylistsDB.isEmpty) {
+      log("Purging ${mediaItemDB.title}", name: "DB");
+      await removeMediaItem(mediaItemDB);
+    }
+  }
+
+  static Future<void> purgeUnassociatedMediaItems() async {
+    // Remove media items that are not associated with any playlist
+    Isar isarDB = await db;
+    List<MediaItemDB> mediaItems = isarDB.mediaItemDBs.where().findAllSync();
+    for (var element in mediaItems) {
+      await purgeUnassociatedMediaItem(element);
+    }
+  }
+
+  static Future<void> purgeUnassociatedMediaFromList(
+      List<MediaItemDB> mediaItems) async {
+    // purge media items that are not associated with any playlist from given list
+    for (var element in mediaItems) {
+      await purgeUnassociatedMediaItem(element);
     }
   }
 
@@ -206,7 +237,7 @@ class BloomeeDBService {
         log("Removed from playlist", name: "DB");
         isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(_mediaitem));
         if (_mediaitem.mediaInPlaylistsDB.isEmpty) {
-          removeMediaItem(_mediaitem);
+          await removeMediaItem(_mediaitem);
         }
         if (_mediaPlaylistDB.mediaRanks.contains(_mediaitem.id)) {
           // _mediaPlaylistDB.mediaRanks.indexOf(_mediaitem.id!)
@@ -218,25 +249,78 @@ class BloomeeDBService {
               () => isarDB.mediaPlaylistDBs.putSync(_mediaPlaylistDB));
         }
       }
+    } else {
+      log("MediaItem or MediaPlaylist is null", name: "DB");
+      if (_mediaitem != null) {
+        await purgeUnassociatedMediaItem(_mediaitem);
+      }
     }
-
-    // isarDB.writeTxnSync(() => isarDB.mediaItemDBs.putSync(mediaItemDB));
   }
 
   static Future<int?> addPlaylist(MediaPlaylistDB mediaPlaylistDB) async {
     Isar isarDB = await db;
     int? id;
+    if (mediaPlaylistDB.playlistName.isEmpty) {
+      return null;
+    }
     MediaPlaylistDB? _mediaPlaylist = isarDB.mediaPlaylistDBs
         .filter()
         .isarIdEqualTo(mediaPlaylistDB.isarId)
         .findFirstSync();
 
     if (_mediaPlaylist == null) {
-      isarDB.writeTxnSync(
-          () => id = isarDB.mediaPlaylistDBs.putSync(mediaPlaylistDB));
+      id = isarDB
+          .writeTxnSync(() => isarDB.mediaPlaylistDBs.putSync(mediaPlaylistDB));
     } else {
       log("Already created", name: "DB");
       id = _mediaPlaylist.isarId;
+    }
+    return id;
+  }
+
+  static Future<int?> createPlaylist(
+    String playlistName, {
+    String? artURL,
+    String? description,
+    String? permaURL,
+    String? source,
+    String? artists,
+    bool isAlbum = false,
+    List<MediaItemDB> mediaItems = const [],
+  }) async {
+    if (playlistName.isEmpty) {
+      return null;
+    }
+
+    int? id;
+    MediaPlaylistDB mediaPlaylistDB = MediaPlaylistDB(
+      playlistName: playlistName,
+      lastUpdated: DateTime.now(),
+    );
+    id = await addPlaylist(mediaPlaylistDB);
+    if (id != null) {
+      if (mediaItems.isNotEmpty) {
+        for (var element in mediaItems) {
+          await addMediaItem(element, playlistName);
+        }
+      }
+      if (artURL != null ||
+          description != null ||
+          permaURL != null ||
+          source != null ||
+          artists != null ||
+          isAlbum) {
+        await createPlaylistInfo(
+          playlistName,
+          artURL: artURL,
+          description: description,
+          permaURL: permaURL,
+          source: source,
+          artists: artists,
+          isAlbum: isAlbum,
+        );
+      }
+      log("Playlist Created: $playlistName", name: "DB");
     }
     return id;
   }
@@ -247,6 +331,163 @@ class BloomeeDBService {
         .filter()
         .playlistNameEqualTo(playlistName)
         .findFirstSync();
+  }
+
+  static Future<void> removePlaylist(MediaPlaylistDB mediaPlaylistDB) async {
+    Isar isarDB = await db;
+    bool _res = false;
+
+    MediaPlaylistDB? _mediaPlaylistDB = isarDB.mediaPlaylistDBs
+        .filter()
+        .isarIdEqualTo(mediaPlaylistDB.isarId)
+        .findFirstSync();
+    if (_mediaPlaylistDB != null) {
+      final mediaItems = _mediaPlaylistDB.mediaItems.map((e) => e).toList();
+      isarDB.writeTxnSync(() =>
+          _res = isarDB.mediaPlaylistDBs.deleteSync(mediaPlaylistDB.isarId));
+      if (_res) {
+        await purgeUnassociatedMediaFromList(mediaItems);
+        await removePlaylistByName(mediaPlaylistDB.playlistName);
+        log("${mediaPlaylistDB.playlistName} is Deleted!!", name: "DB");
+      }
+    }
+  }
+
+  static Future<void> removePlaylistByName(String playlistName) async {
+    Isar isarDB = await db;
+    MediaPlaylistDB? mediaPlaylistDB = isarDB.mediaPlaylistDBs
+        .filter()
+        .playlistNameEqualTo(playlistName)
+        .findFirstSync();
+    if (mediaPlaylistDB != null) {
+      await removePlaylist(mediaPlaylistDB);
+    }
+  }
+
+  static Future<List<int>> getPlaylistItemsRank(
+      MediaPlaylistDB mediaPlaylistDB) async {
+    Isar isarDB = await db;
+    return isarDB.mediaPlaylistDBs
+            .getSync(mediaPlaylistDB.isarId)
+            ?.mediaRanks
+            .toList() ??
+        [];
+  }
+
+  static Future<void> setPlaylistItemsRank(
+      MediaPlaylistDB mediaPlaylistDB, List<int> rankList) async {
+    Isar isarDB = await db;
+    MediaPlaylistDB? _mediaPlaylistDB =
+        isarDB.mediaPlaylistDBs.getSync(mediaPlaylistDB.isarId);
+    if (_mediaPlaylistDB != null &&
+        _mediaPlaylistDB.mediaItems.length >= rankList.length) {
+      isarDB.writeTxnSync(() {
+        _mediaPlaylistDB.mediaRanks = rankList;
+        isarDB.mediaPlaylistDBs.putSync(_mediaPlaylistDB);
+      });
+    }
+  }
+
+  static Future<List<MediaItemDB>?> getPlaylistItems(
+      MediaPlaylistDB mediaPlaylistDB) async {
+    Isar isarDB = await db;
+    return isarDB.mediaPlaylistDBs
+        .getSync(mediaPlaylistDB.isarId)
+        ?.mediaItems
+        .toList();
+  }
+
+  static Future<List<MediaItemDB>?> getPlaylistItemsByName(
+      String playlistName) async {
+    Isar isarDB = await db;
+    MediaPlaylistDB? mediaPlaylistDB = isarDB.mediaPlaylistDBs
+        .filter()
+        .playlistNameEqualTo(playlistName)
+        .findFirstSync();
+    return mediaPlaylistDB?.mediaItems.toList();
+  }
+
+  static Future<List<MediaPlaylist>> getPlaylists4Library() async {
+    Isar isarDB = await db;
+    final playlists = await isarDB.mediaPlaylistDBs.where().findAll();
+    List<MediaPlaylist> mediaPlaylists = [];
+    for (var e in playlists) {
+      PlaylistsInfoDB? info = await getPlaylistInfo(e.playlistName);
+      mediaPlaylists
+          .add(fromPlaylistDB2MediaPlaylist(e, playlistsInfoDB: info));
+    }
+    return mediaPlaylists;
+  }
+
+  static Future<Stream<void>> getPlaylistsWatcher() async {
+    Isar isarDB = await db;
+    return isarDB.mediaPlaylistDBs.watchLazy(fireImmediately: true);
+  }
+
+  static Future<int?> createPlaylistInfo(
+    String playlistName, {
+    String? artURL,
+    String? description,
+    String? permaURL,
+    String? source,
+    String? artists,
+    bool isAlbum = false,
+  }) async {
+    if (playlistName.isNotEmpty) {
+      return await addPlaylistInfo(
+        PlaylistsInfoDB(
+          playlistName: playlistName,
+          lastUpdated: DateTime.now(),
+          artURL: artURL,
+          description: description,
+          permaURL: permaURL,
+          source: source,
+          artists: artists,
+          isAlbum: isAlbum,
+        ),
+      );
+    }
+    return null;
+  }
+
+  static Future<int> addPlaylistInfo(PlaylistsInfoDB playlistInfoDB) async {
+    Isar isarDB = await db;
+    return isarDB
+        .writeTxnSync(() => isarDB.playlistsInfoDBs.putSync(playlistInfoDB));
+  }
+
+  Future<void> updatePlaylistInfo(PlaylistsInfoDB playlistsInfoDB) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(() => isarDB.playlistsInfoDBs.putSync(playlistsInfoDB));
+  }
+
+  static Future<void> removePlaylistInfo(
+      PlaylistsInfoDB playlistsInfoDB) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(
+        () => isarDB.playlistsInfoDBs.deleteSync(playlistsInfoDB.isarId));
+  }
+
+  static Future<PlaylistsInfoDB?> getPlaylistInfo(String playlistName) async {
+    Isar isarDB = await db;
+    return isarDB.playlistsInfoDBs
+        .filter()
+        .playlistNameEqualTo(playlistName)
+        .findFirstSync();
+  }
+
+  static Future<List<PlaylistsInfoDB>> getPlaylistsInfo() async {
+    Isar isarDB = await db;
+    return isarDB.playlistsInfoDBs.where().findAllSync();
+  }
+
+  static Future<void> removePlaylistInfoByName(String playlistName) async {
+    Isar isarDB = await db;
+    int c = isarDB.writeTxnSync(() => isarDB.playlistsInfoDBs
+        .filter()
+        .playlistNameEqualTo(playlistName)
+        .deleteAllSync());
+    log("$c items deleted", name: "DB");
   }
 
   static Future<void> likeMediaItem(MediaItemDB mediaItemDB,
@@ -260,7 +501,7 @@ class BloomeeDBService {
         .permaURLEqualTo(mediaItemDB.permaURL)
         .findFirstSync();
     if (isLiked && _mediaItem != null) {
-      addMediaItem(mediaItemDB, MediaPlaylistDB(playlistName: "Liked"));
+      addMediaItem(mediaItemDB, "Liked");
     } else if (_mediaItem != null) {
       removeMediaItemFromPlaylist(
           mediaItemDB, MediaPlaylistDB(playlistName: "Liked"));
@@ -310,59 +551,6 @@ class BloomeeDBService {
       MediaPlaylistDB mediaPlaylistDB) async {
     Isar isarDB = await db;
     return isarDB.mediaPlaylistDBs.watchObject(mediaPlaylistDB.isarId);
-  }
-
-  static Future<List<int>> getPlaylistItemsRank(
-      MediaPlaylistDB mediaPlaylistDB) async {
-    Isar isarDB = await db;
-    return isarDB.mediaPlaylistDBs
-            .getSync(mediaPlaylistDB.isarId)
-            ?.mediaRanks
-            .toList() ??
-        [];
-  }
-
-  static Future<void> setPlaylistItemsRank(
-      MediaPlaylistDB mediaPlaylistDB, List<int> rankList) async {
-    Isar isarDB = await db;
-    MediaPlaylistDB? _mediaPlaylistDB =
-        isarDB.mediaPlaylistDBs.getSync(mediaPlaylistDB.isarId);
-    if (_mediaPlaylistDB != null &&
-        _mediaPlaylistDB.mediaItems.length >= rankList.length) {
-      isarDB.writeTxnSync(() {
-        _mediaPlaylistDB.mediaRanks = rankList;
-        isarDB.mediaPlaylistDBs.putSync(_mediaPlaylistDB);
-      });
-    }
-  }
-
-  static Future<List<MediaItemDB>?> getPlaylistItems(
-      MediaPlaylistDB mediaPlaylistDB) async {
-    Isar isarDB = await db;
-    return isarDB.mediaPlaylistDBs
-        .getSync(mediaPlaylistDB.isarId)
-        ?.mediaItems
-        .toList();
-  }
-
-  static Future<List<MediaPlaylistDB>> getPlaylists4Library() async {
-    Isar isarDB = await db;
-    return await isarDB.mediaPlaylistDBs.where().findAll();
-  }
-
-  static Future<Stream<void>> getPlaylistsWatcher() async {
-    Isar isarDB = await db;
-    return isarDB.mediaPlaylistDBs.watchLazy(fireImmediately: true);
-  }
-
-  static Future<void> removePlaylist(MediaPlaylistDB mediaPlaylistDB) async {
-    Isar isarDB = await db;
-    bool _res = false;
-    isarDB.writeTxnSync(() =>
-        _res = isarDB.mediaPlaylistDBs.deleteSync(mediaPlaylistDB.isarId));
-    if (_res) {
-      log("${mediaPlaylistDB.playlistName} is Deleted!!", name: "DB");
-    }
   }
 
   static Future<void> putSettingStr(String key, String value) async {
@@ -502,8 +690,7 @@ class BloomeeDBService {
   static Future<void> putRecentlyPlayed(MediaItemDB mediaItemDB) async {
     Isar isarDB = await db;
     int? id;
-    id = await addMediaItem(
-        mediaItemDB, MediaPlaylistDB(playlistName: "recently_played"));
+    id = await addMediaItem(mediaItemDB, "recently_played");
     MediaItemDB? _mediaItemDB =
         isarDB.mediaItemDBs.filter().idEqualTo(id).findFirstSync();
 
@@ -573,7 +760,8 @@ class BloomeeDBService {
         }
       }
     }
-    return MediaPlaylist(mediaItems: mediaItems, albumName: "Recently Played");
+    return MediaPlaylist(
+        mediaItems: mediaItems, playlistName: "Recently Played");
   }
 
   static Future<Stream<void>> watchRecentlyPlayed() async {
@@ -672,8 +860,8 @@ class BloomeeDBService {
     );
     Isar isarDB = await db;
     isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(downloadDB));
-    addMediaItem(MediaItem2MediaItemDB(mediaItem),
-        MediaPlaylistDB(playlistName: GlobalStrConsts.downloadPlaylist));
+    addMediaItem(
+        MediaItem2MediaItemDB(mediaItem), GlobalStrConsts.downloadPlaylist);
   }
 
   static Future<void> removeDownloadDB(MediaItemModel mediaItem) async {

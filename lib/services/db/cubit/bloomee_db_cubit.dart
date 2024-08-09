@@ -32,8 +32,7 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
   }
 
   Future<void> setLike(MediaItem mediaItem, {isLiked = false}) async {
-    BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem),
-        MediaPlaylistDB(playlistName: "Liked"));
+    BloomeeDBService.addMediaItem(MediaItem2MediaItemDB(mediaItem), "Liked");
     // refreshLibrary.add(true);
     BloomeeDBService.likeMediaItem(MediaItem2MediaItemDB(mediaItem),
         isLiked: isLiked);
@@ -76,23 +75,32 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   Future<MediaPlaylist> getPlaylistItems(
       MediaPlaylistDB mediaPlaylistDB) async {
-    MediaPlaylist _mediaPlaylist =
-        MediaPlaylist(mediaItems: [], albumName: mediaPlaylistDB.playlistName);
+    MediaPlaylist _mediaPlaylist = MediaPlaylist(
+        mediaItems: [], playlistName: mediaPlaylistDB.playlistName);
 
     var _dbList = await BloomeeDBService.getPlaylistItems(mediaPlaylistDB);
-    if (_dbList != null) {
-      List<int> _rankList =
-          await BloomeeDBService.getPlaylistItemsRank(mediaPlaylistDB);
+    final playlist =
+        await BloomeeDBService.getPlaylist(mediaPlaylistDB.playlistName);
+    final info =
+        await BloomeeDBService.getPlaylistInfo(mediaPlaylistDB.playlistName);
+    if (playlist != null) {
+      _mediaPlaylist =
+          fromPlaylistDB2MediaPlaylist(mediaPlaylistDB, playlistsInfoDB: info);
 
-      if (_rankList.isNotEmpty) {
-        _dbList = reorderByRank(_dbList, _rankList);
-      }
+      if (_dbList != null) {
+        List<int> _rankList =
+            await BloomeeDBService.getPlaylistItemsRank(mediaPlaylistDB);
 
-      for (var element in _dbList) {
-        _mediaPlaylist.mediaItems.add(MediaItemDB2MediaItem(element));
+        if (_rankList.isNotEmpty) {
+          _dbList = reorderByRank(_dbList, _rankList);
+        }
+        _mediaPlaylist.mediaItems.clear();
+
+        for (var element in _dbList) {
+          _mediaPlaylist.mediaItems.add(MediaItemDB2MediaItem(element));
+        }
       }
     }
-
     return _mediaPlaylist;
   }
 
@@ -121,7 +129,7 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
     final _albumList = await BloomeeDBService.getPlaylists4Library();
     if (_albumList.isNotEmpty) {
       _albumList.toList().forEach((element) {
-        mediaPlaylists.add(fromPlaylistDB2MediaPlaylist(element));
+        mediaPlaylists.add(element);
       });
     }
     return mediaPlaylists;
@@ -161,13 +169,11 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
     });
   }
 
-  Future<void> removeMediaItemFromDB(MediaItemDB mediaItemDB) async {}
-
   Future<int?> addMediaItemToPlaylist(
       MediaItemModel mediaItemModel, MediaPlaylistDB mediaPlaylistDB,
       {bool undo = false}) async {
     final _id = await BloomeeDBService.addMediaItem(
-        MediaItem2MediaItemDB(mediaItemModel), mediaPlaylistDB);
+        MediaItem2MediaItemDB(mediaItemModel), mediaPlaylistDB.playlistName);
     // refreshLibrary.add(true);
     if (!undo) {
       SnackbarService.showMessage(
