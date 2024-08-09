@@ -281,18 +281,14 @@ class PlaylistView extends StatelessWidget {
                                       context
                                           .read<BloomeePlayerCubit>()
                                           .bloomeePlayer
-                                          .loadPlaylist(MediaPlaylist(
-                                              mediaItems: state
-                                                  .mediaPlaylist.mediaItems,
-                                              playlistName: state
-                                                  .mediaPlaylist.playlistName))
-                                          .then((_) {
-                                        context
-                                            .read<BloomeePlayerCubit>()
-                                            .bloomeePlayer
-                                            .audioPlayer
-                                            .play();
-                                      });
+                                          .loadPlaylist(
+                                              MediaPlaylist(
+                                                  mediaItems: state
+                                                      .mediaPlaylist.mediaItems,
+                                                  playlistName: state
+                                                      .mediaPlaylist
+                                                      .playlistName),
+                                              doPlay: true);
                                     },
                                     iconSize: 22,
                                     padding: EdgeInsets.zero,
@@ -372,19 +368,15 @@ class PlaylistView extends StatelessWidget {
                                                       .read<
                                                           BloomeePlayerCubit>()
                                                       .bloomeePlayer
-                                                      .loadPlaylist(MediaPlaylist(
-                                                          mediaItems: state
-                                                              .mediaPlaylist
-                                                              .mediaItems,
-                                                          playlistName: state
-                                                              .mediaPlaylist
-                                                              .playlistName));
-                                                  context
-                                                      .read<
-                                                          BloomeePlayerCubit>()
-                                                      .bloomeePlayer
-                                                      .audioPlayer
-                                                      .play();
+                                                      .loadPlaylist(
+                                                          MediaPlaylist(
+                                                              mediaItems: state
+                                                                  .mediaPlaylist
+                                                                  .mediaItems,
+                                                              playlistName: state
+                                                                  .mediaPlaylist
+                                                                  .playlistName),
+                                                          doPlay: true);
                                                 },
                                                 size: 35,
                                               );
@@ -480,11 +472,6 @@ class _PlaylistState extends State<Playlist> {
                       playlistName: _state.mediaPlaylist.playlistName),
                   idx: index,
                   doPlay: true);
-              context
-                  .read<BloomeePlayerCubit>()
-                  .bloomeePlayer
-                  .audioPlayer
-                  .play();
             } else if (context
                     .read<BloomeePlayerCubit>()
                     .bloomeePlayer

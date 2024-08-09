@@ -119,7 +119,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                       .bloomeePlayer
                                                       .addQueueItem(
                                                         e,
+                                                        doPlay: true,
                                                       );
+
                                                   // context
                                                   //     .read<DownloaderCubit>()
                                                   //     .downloadSong(e);

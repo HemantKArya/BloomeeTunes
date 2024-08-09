@@ -258,7 +258,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                                           state.mediaItems),
                                                   idx: index,
                                                   doPlay: true);
-                                          // context.read<BloomeePlayerCubit>().bloomeePlayer.play();
                                         } else if (context
                                                 .read<BloomeePlayerCubit>()
                                                 .bloomeePlayer

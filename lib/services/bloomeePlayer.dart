@@ -260,9 +260,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     getLinkOperation.then((value) async {
       if (value != null) {
         try {
-          await audioPlayer.setAudioSource(value).then((value) {
+          await audioPlayer.setAudioSource(value).then((value) async {
             isLinkProcessing.add(false);
-            if (!isPaused || doPlay) play();
+            if (!isPaused || doPlay) {
+              log("doPlay", name: "bloomeePlayer");
+              await audioPlayer.play();
+              if (!audioPlayer.playing) {
+                await audioPlayer.play();
+              }
+            }
           });
         } catch (e) {
           isLinkProcessing.add(false);
