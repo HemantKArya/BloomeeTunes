@@ -21,34 +21,28 @@ class LibraryScreen extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         slivers: [
           customDiscoverBar(context), //AppBar
-          SliverList(
-              delegate: SliverChildListDelegate([
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 8,
-                right: 8,
-              ),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                // height: MediaQuery.of(context).size.height,
-                child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-                  builder: (context, state) {
-                    return AnimatedSwitcher(
-                      duration: const Duration(seconds: 1),
-                      child: state != LibraryItemsInitial()
-                          ? ListOfPlaylists(
-                              state: state,
-                            )
-                          : const SignBoardWidget(
-                              message: "No Playlists Yet\nCreate One Now!",
-                              icon: MingCute.playlist_line,
-                            ),
-                    );
-                  },
-                ),
-              ),
-            )
-          ]))
+          BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+            builder: (context, state) {
+              if (state is LibraryItemsInitial) {
+                return const SliverToBoxAdapter(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              } else if (state is! LibraryItemsInitial) {
+                return ListOfPlaylists(state: state);
+              } else {
+                return const SliverToBoxAdapter(
+                  child: Center(
+                    child: SignBoardWidget(
+                      message: "No Playlists Found!",
+                      icon: MingCute.playlist_fill,
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
         ],
       ),
       backgroundColor: Default_Theme.themeColor,
@@ -113,20 +107,20 @@ class ListOfPlaylists extends StatefulWidget {
 class _ListOfPlaylistsState extends State<ListOfPlaylists> {
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        shrinkWrap: true,
-        padding: const EdgeInsets.only(top: 8),
-        physics: const NeverScrollableScrollPhysics(),
+    return SliverList.builder(
+        // itemExtent: 80,
         itemCount: widget.state.playlists.length,
         itemBuilder: (context, index) {
           if (widget.state.playlists[index].playlistName == "recently_played" ||
               widget.state.playlists[index].playlistName ==
                   GlobalStrConsts.downloadPlaylist) {
-            return const SizedBox();
+            return const SizedBox.shrink();
           } else {
             return Padding(
               padding: const EdgeInsets.only(
-                bottom: 8,
+                bottom: 4,
+                left: 8,
+                right: 8,
               ),
               child: InkWell(
                 onSecondaryTap: () {

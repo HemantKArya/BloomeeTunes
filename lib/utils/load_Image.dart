@@ -67,7 +67,7 @@ CachedNetworkImage loadImageCached(coverImageURL,
   );
 }
 
-class LoadImageCached extends StatelessWidget {
+class LoadImageCached extends StatefulWidget {
   final String imageUrl;
   final String placeholderUrl;
   final BoxFit fit;
@@ -82,21 +82,26 @@ class LoadImageCached extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<LoadImageCached> createState() => _LoadImageCachedState();
+}
+
+class _LoadImageCachedState extends State<LoadImageCached> {
+  @override
   Widget build(BuildContext context) {
     return CachedNetworkImage(
-      imageUrl: imageUrl,
-      height: height,
+      imageUrl: widget.imageUrl,
+      height: widget.height,
       // memCacheHeight: 500,
       placeholder: (context, url) => Image(
         image: const AssetImage("assets/icons/lazy_loading.png"),
-        fit: fit,
+        fit: widget.fit,
       ),
       errorWidget: (context, url, error) => Image(
-        image: AssetImage(placeholderUrl),
-        fit: fit,
+        image: AssetImage(widget.placeholderUrl),
+        fit: widget.fit,
       ),
       fadeInDuration: const Duration(milliseconds: 700),
-      fit: fit,
+      fit: widget.fit,
     );
   }
 }

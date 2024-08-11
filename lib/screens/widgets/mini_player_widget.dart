@@ -99,7 +99,7 @@ class MiniPlayerCard extends StatelessWidget {
                   ),
                   child: Container(
                     color: Colors.black.withOpacity(
-                        0.55), // Keep the container color transparent
+                        0.5), // Keep the container color transparent
                   ),
                 ),
               ),
