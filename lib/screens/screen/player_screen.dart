@@ -259,8 +259,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                             builder: (context, snapshot) {
                               return AnimatedSwitcher(
                                   duration: const Duration(seconds: 3),
-                                  child: _getAmbientShadowWidget(
-                                      context, snapshot));
+                                  child: AmbientImgShadowWidget(
+                                      snapshot: snapshot));
                             }),
                       ),
                     ),
@@ -297,7 +297,9 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                                     Tab(
                                       child: Padding(
                                         padding: const EdgeInsets.only(top: 10),
-                                        child: coverImage(context, constraints),
+                                        child: CoverImageVolSlider(
+                                          constraints: constraints,
+                                        ),
                                       ),
                                     ),
                                     Tab(
@@ -327,9 +329,14 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
       );
     });
   }
+}
 
-  VolumeDragController coverImage(
-      BuildContext context, BoxConstraints constraints) {
+class CoverImageVolSlider extends StatelessWidget {
+  final BoxConstraints constraints;
+  const CoverImageVolSlider({super.key, required this.constraints});
+
+  @override
+  Widget build(BuildContext context) {
     return VolumeDragController(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(25),
@@ -345,8 +352,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                 ),
                 child: AspectRatio(
                   aspectRatio: 1.0,
-                  child: loadImageCached(
-                      (snapshot.data?.artUri ?? "").toString(),
+                  child: LoadImageCached(
+                      imageUrl: (snapshot.data?.artUri ?? "").toString(),
                       fit: BoxFit.fitWidth),
                 ),
               );
@@ -977,9 +984,12 @@ class PlayerCtrlWidgets extends StatelessWidget {
   }
 }
 
-Widget _getAmbientShadowWidget(
-    BuildContext context, AsyncSnapshot<MediaItem?> snapshot) {
-  if (snapshot.hasData) {
+class AmbientImgShadowWidget extends StatelessWidget {
+  final AsyncSnapshot<MediaItem?> snapshot;
+  const AmbientImgShadowWidget({super.key, required this.snapshot});
+
+  @override
+  Widget build(BuildContext context) {
     return FutureBuilder(
       future: getPalleteFromImage(context
           .read<BloomeePlayerCubit>()
@@ -1010,15 +1020,6 @@ Widget _getAmbientShadowWidget(
           );
         }
       },
-    );
-  } else {
-    return Container(
-      decoration: const BoxDecoration(color: Colors.transparent, boxShadow: [
-        BoxShadow(
-            color: Color.fromARGB(255, 68, 252, 255),
-            blurRadius: 120,
-            spreadRadius: 30)
-      ]),
     );
   }
 }
