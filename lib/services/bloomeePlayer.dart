@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -264,9 +265,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
             isLinkProcessing.add(false);
             if (!isPaused || doPlay) {
               log("doPlay", name: "bloomeePlayer");
-              await audioPlayer.play();
-              if (!audioPlayer.playing) {
-                await audioPlayer.play();
+              await play();
+              if (Platform.isWindows && audioPlayer.playing == false) {
+                // temp fix for windows (first play not working)
+                await play();
               }
             }
           });
