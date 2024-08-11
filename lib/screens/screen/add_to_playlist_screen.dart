@@ -88,8 +88,9 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                               child: SizedBox(
                                 width: 80,
                                 height: 80,
-                                child: loadImageCached(
-                                    state.mediaItemModel.artUri.toString()),
+                                child: LoadImageCached(
+                                    imageUrl:
+                                        state.mediaItemModel.artUri.toString()),
                               ),
                             ),
                             Expanded(
@@ -206,8 +207,9 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                             },
                             child: SmallPlaylistCard(
                                 playListTitle: finalList[index].playlistName,
-                                coverArt: loadImageCached(
-                                    finalList[index].coverImgUrl ?? "null"),
+                                coverArt: LoadImageCached(
+                                    imageUrl:
+                                        finalList[index].coverImgUrl ?? "null"),
                                 playListsubTitle:
                                     finalList[index].subTitle ?? "Unverified"),
                           ),

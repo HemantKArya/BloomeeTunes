@@ -31,7 +31,7 @@ class ChartListTile extends StatelessWidget {
           onTap!();
         } else {
           context.push(
-              "/${GlobalStrConsts.searchScreen}?query=${title} by ${subtitle}");
+              "/${GlobalStrConsts.searchScreen}?query=$title by $subtitle");
         }
       },
       child: SizedBox(
@@ -43,10 +43,13 @@ class ChartListTile extends StatelessWidget {
                   ? SizedBox(
                       height: 60,
                       width: 80,
-                      child: loadImageCached(imgUrl, fit: BoxFit.cover),
+                      child:
+                          LoadImageCached(imageUrl: imgUrl, fit: BoxFit.cover),
                     )
                   : SizedBox(
-                      height: 60, width: 60, child: loadImageCached(imgUrl))),
+                      height: 60,
+                      width: 60,
+                      child: LoadImageCached(imageUrl: imgUrl))),
           title: Text(
             title,
             textAlign: TextAlign.start,

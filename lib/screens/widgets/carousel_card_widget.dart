@@ -16,10 +16,10 @@ class CarouselCardView extends StatelessWidget {
         height: MediaQuery.of(context).size.height / 1.5,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(25),
-          child: loadImageCached(coverImageUrl),
+          child: LoadImageCached(imageUrl: coverImageUrl),
         ),
       ),
-      Positioned(bottom: 15, right: 20, child: PlayPauseButton()),
+      const Positioned(bottom: 15, right: 20, child: PlayPauseButton()),
     ]);
   }
 }

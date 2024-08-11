@@ -22,7 +22,7 @@ class SongInfoScreen extends StatelessWidget {
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: loadImageCached(song.artUri.toString()),
+              background: LoadImageCached(imageUrl: song.artUri.toString()),
             ),
           ),
           SliverList(
