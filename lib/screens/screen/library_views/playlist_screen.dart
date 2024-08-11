@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
@@ -27,6 +26,7 @@ class PlaylistView extends StatelessWidget {
   const PlaylistView({super.key});
 
   final double titleScale = 1.5;
+
   final double titleFontSize = 16;
 
   Color _adjustColor(Color color, bool darken, {double amount = 0.1}) {
@@ -162,9 +162,10 @@ class PlaylistView extends StatelessWidget {
                                 return Stack(
                                   fit: StackFit.expand,
                                   children: [
-                                    loadImageCached(state
-                                        .mediaPlaylist.mediaItems.first.artUri
-                                        .toString()),
+                                    LoadImageCached(
+                                        imageUrl: state.mediaPlaylist.mediaItems
+                                            .first.artUri
+                                            .toString()),
                                     Positioned(
                                         child: Container(
                                       decoration: BoxDecoration(
@@ -207,12 +208,10 @@ class PlaylistView extends StatelessWidget {
                                             child: Padding(
                                               padding: const EdgeInsets.only(
                                                   left: 80, right: 80),
-                                              child: loadImageCached(state
-                                                  .mediaPlaylist
-                                                  .mediaItems
-                                                  .first
-                                                  .artUri
-                                                  .toString()),
+                                              child: LoadImageCached(
+                                                  imageUrl: state.mediaPlaylist
+                                                      .mediaItems.first.artUri
+                                                      .toString()),
                                             ),
                                           ),
                                         ),
@@ -254,7 +253,7 @@ class PlaylistView extends StatelessWidget {
                             padding: const EdgeInsets.only(
                               top: 12,
                               bottom: 12,
-                              left: 16,
+                              left: 20,
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -389,11 +388,9 @@ class PlaylistView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SliverToBoxAdapter(
-                          child: Playlist(
-                            state: state,
-                          ),
-                        )
+                        SliverPlaylistItems(
+                          state: state,
+                        ),
                       ],
                     )
                   : ((state is CurrentPlaylistInitial ||
@@ -431,87 +428,95 @@ class PlaylistView extends StatelessWidget {
   }
 }
 
-class Playlist extends StatefulWidget {
+class SliverPlaylistItems extends StatefulWidget {
+  const SliverPlaylistItems({Key? key, required this.state}) : super(key: key);
+
   final CurrentPlaylistState state;
-  const Playlist({super.key, required this.state});
 
   @override
-  State<Playlist> createState() => _PlaylistState();
+  State<SliverPlaylistItems> createState() => _SliverPlaylistItemsState();
 }
 
-class _PlaylistState extends State<Playlist> {
+class _SliverPlaylistItemsState extends State<SliverPlaylistItems> {
+  List<MediaItemModel> mediaItems = [];
+
+  @override
+  void initState() {
+    setState(() {
+      mediaItems = widget.state.mediaPlaylist.mediaItems;
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final _state = widget.state;
-    return ReorderableListView.builder(
-      physics: const BouncingScrollPhysics(),
-      shrinkWrap: true,
-      proxyDecorator: proxyDecorator,
-      itemBuilder: (context, index) {
-        return SongCardWidget(
-          song: _state.mediaPlaylist.mediaItems[index],
-          key: ValueKey(_state.mediaPlaylist.mediaItems[index].id),
-          trailing: Platform.isAndroid
-              ? null
-              : ReorderableDragStartListener(
-                  index: index,
-                  child: SizedBox(
-                    child: Icon(
-                      Icons.drag_handle,
-                      color: Default_Theme.primaryColor1.withOpacity(0.0),
-                    ),
-                  ),
-                ),
-          onTap: () {
-            if (!listEquals(
-                context.read<BloomeePlayerCubit>().bloomeePlayer.queue.value,
-                _state.mediaPlaylist.mediaItems)) {
-              context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
-                  MediaPlaylist(
-                      mediaItems: _state.mediaPlaylist.mediaItems,
-                      playlistName: _state.mediaPlaylist.playlistName),
-                  idx: index,
-                  doPlay: true);
-            } else if (context
-                    .read<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .currentMedia !=
-                _state.mediaPlaylist.mediaItems[index]) {
-              context
-                  .read<BloomeePlayerCubit>()
-                  .bloomeePlayer
-                  .prepare4play(idx: index, doPlay: true);
-            }
+    return SliverPadding(
+      padding: const EdgeInsets.only(left: 8, right: 8),
+      sliver: SliverReorderableList(
+        itemBuilder: (context, index) {
+          return ReorderableDelayedDragStartListener(
+            key: ValueKey(mediaItems[index].id),
+            index: index,
+            child: SongCardWidget(
+              song: mediaItems[index],
+              onTap: () {
+                if (!listEquals(
+                    context
+                        .read<BloomeePlayerCubit>()
+                        .bloomeePlayer
+                        .queue
+                        .value,
+                    widget.state.mediaPlaylist.mediaItems)) {
+                  context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
+                      MediaPlaylist(
+                          mediaItems: mediaItems,
+                          playlistName:
+                              widget.state.mediaPlaylist.playlistName),
+                      idx: index,
+                      doPlay: true);
+                } else if (context
+                        .read<BloomeePlayerCubit>()
+                        .bloomeePlayer
+                        .currentMedia !=
+                    mediaItems[index]) {
+                  context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .prepare4play(idx: index, doPlay: true);
+                }
 
-            context.push('/MusicPlayer');
-          },
-          onOptionsTap: () {
-            showMoreBottomSheet(context, _state.mediaPlaylist.mediaItems[index],
-                onDelete: () {
-              context.read<BloomeeDBCubit>().removeMediaFromPlaylist(
-                  _state.mediaPlaylist.mediaItems[index],
-                  MediaPlaylistDB(
-                      playlistName: _state.mediaPlaylist.playlistName));
-              setState(() {
-                _state.mediaPlaylist.mediaItems.removeAt(index);
-              });
-            }, showDelete: true);
-          },
-        );
-      },
-      itemCount: _state.mediaPlaylist.mediaItems.length,
-      onReorder: (oldIndex, newIndex) {
-        setState(() {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
-          final MediaItemModel item =
-              _state.mediaPlaylist.mediaItems.removeAt(oldIndex);
-          _state.mediaPlaylist.mediaItems.insert(newIndex, item);
-          context.read<BloomeeDBCubit>().reorderPositionOfItemInDB(
-              _state.mediaPlaylist.playlistName, oldIndex, newIndex);
-        });
-      },
+                context.push('/MusicPlayer');
+              },
+              onOptionsTap: () {
+                showMoreBottomSheet(
+                    context, widget.state.mediaPlaylist.mediaItems[index],
+                    onDelete: () {
+                  context.read<BloomeeDBCubit>().removeMediaFromPlaylist(
+                        widget.state.mediaPlaylist.mediaItems[index],
+                        MediaPlaylistDB(
+                            playlistName:
+                                widget.state.mediaPlaylist.playlistName),
+                      );
+                }, showDelete: true);
+              },
+            ),
+          );
+        },
+        itemExtent: 70,
+        itemCount: mediaItems.length,
+        proxyDecorator: proxyDecorator,
+        onReorder: (oldIndex, newIndex) {
+          setState(() {
+            if (oldIndex < newIndex) {
+              newIndex -= 1;
+            }
+            final MediaItemModel item = mediaItems.removeAt(oldIndex);
+            mediaItems.insert(newIndex, item);
+            context.read<BloomeeDBCubit>().reorderPositionOfItemInDB(
+                widget.state.mediaPlaylist.playlistName, oldIndex, newIndex);
+          });
+        },
+      ),
     );
   }
 }
@@ -524,9 +529,9 @@ Widget proxyDecorator(Widget child, int index, Animation<double> animation) {
       final double elevation = lerpDouble(0, 6, animValue)!;
       return Material(
         elevation: elevation,
-        color: Default_Theme.accentColor2.withOpacity(0.3),
+        color: const Color.fromARGB(255, 0, 48, 66),
         borderRadius: BorderRadius.circular(12),
-        shadowColor: Colors.transparent,
+        shadowColor: Default_Theme.themeColor,
         child: child,
       );
     },

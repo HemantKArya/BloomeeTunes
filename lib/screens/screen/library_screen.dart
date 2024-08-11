@@ -26,6 +26,7 @@ class LibraryScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(
                 left: 8,
+                right: 8,
               ),
               child: SizedBox(
                 width: MediaQuery.of(context).size.width,
@@ -149,8 +150,9 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
                 },
                 child: SmallPlaylistCard(
                     playListTitle: widget.state.playlists[index].playlistName,
-                    coverArt: loadImageCached(
-                        widget.state.playlists[index].coverImgUrl.toString()),
+                    coverArt: LoadImageCached(
+                        imageUrl: widget.state.playlists[index].coverImgUrl
+                            .toString()),
                     playListsubTitle:
                         widget.state.playlists[index].subTitle ?? "Unknown"),
               ),

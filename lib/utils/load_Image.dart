@@ -67,6 +67,40 @@ CachedNetworkImage loadImageCached(coverImageURL,
   );
 }
 
+class LoadImageCached extends StatelessWidget {
+  final String imageUrl;
+  final String placeholderUrl;
+  final BoxFit fit;
+  final double height;
+
+  const LoadImageCached({
+    Key? key,
+    required this.imageUrl,
+    this.placeholderUrl = "assets/icons/bloomee_new_logo_c.png",
+    this.fit = BoxFit.cover,
+    this.height = 500,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      height: height,
+      // memCacheHeight: 500,
+      placeholder: (context, url) => Image(
+        image: const AssetImage("assets/icons/lazy_loading.png"),
+        fit: fit,
+      ),
+      errorWidget: (context, url, error) => Image(
+        image: AssetImage(placeholderUrl),
+        fit: fit,
+      ),
+      fadeInDuration: const Duration(milliseconds: 700),
+      fit: fit,
+    );
+  }
+}
+
 Future<ImageProvider> getImageProvider(String imageUrl,
     {String placeholderUrl = "assets/icons/bloomee_new_logo_c.png"}) async {
   if (imageUrl != "") {

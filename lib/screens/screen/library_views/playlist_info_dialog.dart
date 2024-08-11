@@ -19,6 +19,7 @@ class InfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
+      dense: true,
       title: Text(
         title,
         style: Default_Theme.secondoryTextStyle.merge(

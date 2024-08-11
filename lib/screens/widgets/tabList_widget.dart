@@ -84,6 +84,7 @@ Widget buildColumnsCards(List<Widget> items, context, {int columnLength = 4}) {
         physics: PagingScrollPhysics(
             itemCount: cards.length,
             viewSize: (MediaQuery.of(context).size.width - 40)),
+        itemExtent: itemWidth,
         children: cards,
       ),
     );

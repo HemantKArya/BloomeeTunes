@@ -49,8 +49,8 @@ class SongCardWidget extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         splashColor: Default_Theme.accentColor1.withOpacity(0.2),
-        hoverColor: Default_Theme.accentColor2.withOpacity(0.1),
-        highlightColor: Default_Theme.accentColor2.withOpacity(0.1),
+        hoverColor: Default_Theme.primaryColor2.withOpacity(0.1),
+        highlightColor: Default_Theme.primaryColor2.withOpacity(0.1),
         onTap: () {
           if (onTap != null) onTap!();
         },
@@ -87,14 +87,20 @@ class SongCardWidget extends StatelessWidget {
                       ? SizedBox(
                           width: 80,
                           height: 55,
-                          child: loadImageCached(song.artUri.toString(),
-                              fit: BoxFit.cover),
+                          child: LoadImageCached(
+                            imageUrl: song.artUri.toString(),
+                            fit: BoxFit.cover,
+                            height: 80,
+                          ),
                         )
                       : SizedBox(
                           width: 55,
                           height: 55,
-                          child: loadImageCached(song.artUri.toString(),
-                              fit: BoxFit.cover),
+                          child: LoadImageCached(
+                            imageUrl: song.artUri.toString(),
+                            fit: BoxFit.cover,
+                            height: 80,
+                          ),
                         ),
                 ),
               ),

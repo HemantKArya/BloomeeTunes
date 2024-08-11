@@ -185,6 +185,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
     return ListView(
       shrinkWrap: true,
+      itemExtent: 275,
       padding: const EdgeInsets.only(top: 0),
       physics: const NeverScrollableScrollPhysics(),
       children: ytList,

@@ -199,10 +199,9 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                                       .size
                                                                       .width *
                                                                   0.15,
-                                                          child:
-                                                              loadImageCached(
-                                                                  widget
-                                                                      .imgPath),
+                                                          child: LoadImageCached(
+                                                              imageUrl: widget
+                                                                  .imgPath),
                                                         ),
                                                       ),
                                                     ),

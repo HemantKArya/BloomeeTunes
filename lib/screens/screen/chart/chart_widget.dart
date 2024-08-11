@@ -95,8 +95,10 @@ class _ChartWidgetState extends State<ChartWidget> {
                       : SizedBox(
                           height: constraints.maxHeight,
                           width: constraints.maxWidth,
-                          child: loadImageCached(state.coverImg,
-                              fit: BoxFit.cover)),
+                          child: LoadImageCached(
+                            imageUrl: state.coverImg,
+                            fit: BoxFit.cover,
+                          )),
                 );
               },
             ),

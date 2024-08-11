@@ -86,8 +86,8 @@ class MiniPlayerCard extends StatelessWidget {
                 color: Default_Theme.themeColor,
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.width,
-                child: loadImageCached(
-                  state.song.artUri.toString(),
+                child: LoadImageCached(
+                  imageUrl: state.song.artUri.toString(),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -113,8 +113,8 @@ class MiniPlayerCard extends StatelessWidget {
                       child: SizedBox(
                         width: 61,
                         height: 61,
-                        child: loadImageCached(
-                          state.song.artUri.toString(),
+                        child: LoadImageCached(
+                          imageUrl: state.song.artUri.toString(),
                           fit: BoxFit.cover,
                         ),
                       ),

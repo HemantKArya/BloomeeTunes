@@ -1,8 +1,6 @@
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class SquareImgCard extends StatelessWidget {
@@ -52,7 +50,9 @@ class SquareImgCard extends StatelessWidget {
                     SizedBox(
                       height: 150,
                       width: isWide ? 250 : 150,
-                      child: loadImageCached(imgPath),
+                      child: LoadImageCached(
+                        imageUrl: imgPath,
+                      ),
                     ),
                     Visibility(
                       visible: tag != null,
