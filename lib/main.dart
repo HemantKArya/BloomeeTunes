@@ -106,6 +106,7 @@ Future<void> main() async {
   if (io.Platform.isLinux) {
     JustAudioMediaKit.ensureInitialized(
       linux: true,
+      windows: false,
     );
   }
   setHighRefreshRate();
