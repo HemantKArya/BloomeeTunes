@@ -34,11 +34,11 @@ jobs:
       - name: Zip Linux App
         run: |
           cd build/linux/x64/release/bundle
-          zip -r bloomee_tunes_linux_v2.9.3_dev+${{github.run_number}}.zip .
+          zip -r bloomee_tunes_linux_v2.9.4_dev+${{github.run_number}}.zip .
 
 
       - name: Upload Linux App
         uses: actions/upload-artifact@v2
         with:
           name: bloomee_tunes_linux_dev
-          path: bloomee_tunes_linux_v2.9.3_dev+${{github.run_number}}.zip
+          path: bloomee_tunes_linux_v2.9.4_dev+${{github.run_number}}.zip
