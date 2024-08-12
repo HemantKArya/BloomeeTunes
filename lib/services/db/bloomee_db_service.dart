@@ -374,6 +374,16 @@ class BloomeeDBService {
         [];
   }
 
+  static Future<List<int>> getPlaylistItemsRankByName(
+      String playlistName) async {
+    Isar isarDB = await db;
+    MediaPlaylistDB? mediaPlaylistDB = isarDB.mediaPlaylistDBs
+        .filter()
+        .playlistNameEqualTo(playlistName)
+        .findFirstSync();
+    return mediaPlaylistDB?.mediaRanks.toList() ?? [];
+  }
+
   static Future<void> setPlaylistItemsRank(
       MediaPlaylistDB mediaPlaylistDB, List<int> rankList) async {
     Isar isarDB = await db;
@@ -384,6 +394,22 @@ class BloomeeDBService {
       isarDB.writeTxnSync(() {
         _mediaPlaylistDB.mediaRanks = rankList;
         isarDB.mediaPlaylistDBs.putSync(_mediaPlaylistDB);
+      });
+    }
+  }
+
+  static Future<void> updatePltItemsRankByName(
+      String playlistName, List<int> rankList) async {
+    Isar isarDB = await db;
+    MediaPlaylistDB? mediaPlaylistDB = isarDB.mediaPlaylistDBs
+        .filter()
+        .playlistNameEqualTo(playlistName)
+        .findFirstSync();
+    if (mediaPlaylistDB != null &&
+        mediaPlaylistDB.mediaItems.length >= rankList.length) {
+      isarDB.writeTxnSync(() {
+        mediaPlaylistDB.mediaRanks = rankList;
+        isarDB.mediaPlaylistDBs.putSync(mediaPlaylistDB);
       });
     }
   }
