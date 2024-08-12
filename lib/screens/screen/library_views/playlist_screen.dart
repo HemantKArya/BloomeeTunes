@@ -275,11 +275,6 @@ class PlaylistView extends StatelessWidget {
                                       context
                                           .read<BloomeePlayerCubit>()
                                           .bloomeePlayer
-                                          .audioPlayer
-                                          .setShuffleModeEnabled(true);
-                                      context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
                                           .loadPlaylist(
                                               MediaPlaylist(
                                                   mediaItems: state
@@ -287,9 +282,9 @@ class PlaylistView extends StatelessWidget {
                                                   playlistName: state
                                                       .mediaPlaylist
                                                       .playlistName),
-                                              doPlay: true);
+                                              doPlay: true,
+                                              shuffling: true);
                                     },
-                                    iconSize: 22,
                                     padding: EdgeInsets.zero,
                                     icon: Icon(MingCute.shuffle_line,
                                         color: Default_Theme.primaryColor1
