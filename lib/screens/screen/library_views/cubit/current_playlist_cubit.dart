@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -33,6 +34,28 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
         isFetched: true,
         mediaPlaylist: mediaPlaylist,
         mediaItem: List<MediaItemModel>.from(mediaPlaylist!.mediaItems)));
+  }
+
+  Future<List<int>> getItemOrder() async {
+    return await BloomeeDBService.getPlaylistItemsRankByName(
+        mediaPlaylist!.playlistName);
+  }
+
+  String getTitle() {
+    return state.mediaPlaylist.playlistName;
+  }
+
+  Future<void> updatePlaylist(List<int> newOrder) async {
+    final oldOrder = await getItemOrder();
+    if (oldOrder != newOrder &&
+        mediaPlaylist != null &&
+        newOrder.length >= mediaPlaylist!.mediaItems.length) {
+      await BloomeeDBService.updatePltItemsRankByName(
+          mediaPlaylist!.playlistName, newOrder);
+      final playlist = await bloomeeDBCubit.getPlaylistItems(
+          MediaPlaylistDB(playlistName: mediaPlaylist!.playlistName));
+      emit(state.copyWith(mediaPlaylist: playlist));
+    }
   }
 
   int getPlaylistLength() {

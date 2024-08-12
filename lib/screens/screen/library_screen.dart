@@ -124,7 +124,7 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
               ),
               child: InkWell(
                 onSecondaryTap: () {
-                  showPlaylistOptsSheet(
+                  showPlaylistOptsExtSheet(
                       context, widget.state.playlists[index].playlistName);
                 },
                 splashColor: Default_Theme.primaryColor2.withOpacity(0.1),
@@ -132,7 +132,7 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
                 highlightColor: Default_Theme.primaryColor2.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
                 onLongPress: () {
-                  showPlaylistOptsSheet(
+                  showPlaylistOptsExtSheet(
                       context, widget.state.playlists[index].playlistName);
                 },
                 onTap: () {
