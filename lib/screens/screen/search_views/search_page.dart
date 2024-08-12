@@ -18,14 +18,7 @@ class searchPageDelegate extends SearchDelegate {
 
   @override
   ThemeData appBarTheme(BuildContext context) {
-    return ThemeData(
-      colorScheme: ColorScheme.fromSwatch().copyWith(
-        primary: Default_Theme.accentColor2,
-        secondary: Default_Theme.accentColor1,
-        background: Default_Theme.themeColor,
-        brightness: Brightness.dark,
-      ),
-      iconTheme: const IconThemeData(color: Default_Theme.primaryColor1),
+    return Theme.of(context).copyWith(
       appBarTheme: const AppBarTheme(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(20))),

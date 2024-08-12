@@ -29,6 +29,7 @@ class Default_Theme {
       secondary: accentColor1,
       background: themeColor,
       brightness: Brightness.dark,
+      surface: themeColor,
     ),
     iconTheme: const IconThemeData(color: primaryColor1),
     appBarTheme: const AppBarTheme(
@@ -43,6 +44,7 @@ class Default_Theme {
       selectionColor: accentColor2,
       selectionHandleColor: accentColor2,
     ),
+    brightness: Brightness.dark,
     switchTheme: SwitchThemeData(
         thumbColor: MaterialStateProperty.all(primaryColor1),
         trackOutlineColor: MaterialStateProperty.resolveWith((states) =>
