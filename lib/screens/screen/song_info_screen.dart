@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -22,7 +23,9 @@ class SongInfoScreen extends StatelessWidget {
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: LoadImageCached(imageUrl: song.artUri.toString()),
+              background: LoadImageCached(
+                  imageUrl:
+                      formatImgURL(song.artUri.toString(), ImageQuality.high)),
             ),
           ),
           SliverList(

@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 
@@ -50,12 +51,16 @@ class _YtSongTileState extends State<YtSongTile> {
                         height: 60,
                         width: 80,
                         child: LoadImageCached(
-                            imageUrl: widget.imgUrl, fit: BoxFit.cover),
+                            imageUrl:
+                                formatImgURL(widget.imgUrl, ImageQuality.low),
+                            fit: BoxFit.cover),
                       )
                     : SizedBox(
                         height: 60,
                         width: 60,
-                        child: LoadImageCached(imageUrl: widget.imgUrl))),
+                        child: LoadImageCached(
+                            imageUrl: formatImgURL(
+                                widget.imgUrl, ImageQuality.low)))),
           ),
           title: Text(
             widget.title,

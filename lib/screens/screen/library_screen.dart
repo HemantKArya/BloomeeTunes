@@ -1,6 +1,7 @@
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -145,8 +146,10 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
                 child: SmallPlaylistCard(
                     playListTitle: widget.state.playlists[index].playlistName,
                     coverArt: LoadImageCached(
-                        imageUrl: widget.state.playlists[index].coverImgUrl
-                            .toString()),
+                        imageUrl: formatImgURL(
+                            widget.state.playlists[index].coverImgUrl
+                                .toString(),
+                            ImageQuality.low)),
                     playListsubTitle:
                         widget.state.playlists[index].subTitle ?? "Unknown"),
               ),

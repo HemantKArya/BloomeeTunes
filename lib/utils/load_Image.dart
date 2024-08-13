@@ -71,14 +71,12 @@ class LoadImageCached extends StatefulWidget {
   final String imageUrl;
   final String placeholderUrl;
   final BoxFit fit;
-  final double height;
 
   const LoadImageCached({
     Key? key,
     required this.imageUrl,
     this.placeholderUrl = "assets/icons/bloomee_new_logo_c.png",
     this.fit = BoxFit.cover,
-    this.height = 500,
   }) : super(key: key);
 
   @override
@@ -90,8 +88,6 @@ class _LoadImageCachedState extends State<LoadImageCached> {
   Widget build(BuildContext context) {
     return CachedNetworkImage(
       imageUrl: widget.imageUrl,
-      height: widget.height,
-      // memCacheHeight: 500,
       placeholder: (context, url) => Image(
         image: const AssetImage("assets/icons/lazy_loading.png"),
         fit: widget.fit,

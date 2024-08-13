@@ -2,6 +2,7 @@
 import 'package:Bloomee/screens/screen/song_info_screen.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -88,18 +89,22 @@ class SongCardWidget extends StatelessWidget {
                           width: 80,
                           height: 55,
                           child: LoadImageCached(
-                            imageUrl: song.artUri.toString(),
+                            imageUrl: formatImgURL(
+                              song.artUri.toString(),
+                              ImageQuality.low,
+                            ),
                             fit: BoxFit.cover,
-                            height: 80,
                           ),
                         )
                       : SizedBox(
                           width: 55,
                           height: 55,
                           child: LoadImageCached(
-                            imageUrl: song.artUri.toString(),
+                            imageUrl: formatImgURL(
+                              song.artUri.toString(),
+                              ImageQuality.low,
+                            ),
                             fit: BoxFit.cover,
-                            height: 80,
                           ),
                         ),
                 ),
