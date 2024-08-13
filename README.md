@@ -1,7 +1,7 @@
- ![BloomeeTunes](./assets/icons/bloomeetunes_new_banner.png)
+ ![BloomeeTunes](./assets/docs/bloomeetunes_new_banner.png)
 **<h1 align=center>Bloomee🌸</h1>**
-<p align="center"><img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge" >
-<img alt="GitHub Release" src="https://img.shields.io/github/v/release/HemantKArya/BloomeeTunes?display_name=release&style=for-the-badge&color=f01d7c" >
+<p align="center"><a href="https://github.com/HemantKArya/BloomeeTunes/releases/latest"><img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge" >
+<img alt="GitHub Release" src="https://img.shields.io/github/v/release/HemantKArya/BloomeeTunes?display_name=release&style=for-the-badge&color=f01d7c" ></a>
 <img alt="GitHub License" src="https://img.shields.io/github/license/HemantKArya/BloomeeTunes?style=for-the-badge&color=1881cc" > <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/HemantKArya/BloomeeTunes/checkout.yml?style=for-the-badge" > <img src=https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white /><br><img src=https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white > <img src=https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white /> <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black"/>
 
 
@@ -9,9 +9,9 @@
 <br>
 Bloomee is experimental cross-platform open Source Music player designed to bring you Ad-free tunes from various sources. Dive into a world of limitless music from platforms like YouTube and Jio Saavn, with more sources blooming soon! 🌼🎵
 
-![BloomeeTunesScrnShots](./assets/icons/banner2BloomeScrnShot.png)
+![BloomeeTunesScrnShots](./assets/docs/banner2BloomeScrnShot.png)
 
-![BloomeeDesktop](./assets/icons/desktop_scrn.png)
+![BloomeeDesktop](./assets/docs/lyricsscrn.png)
 
 ### **Why Bloomee?**
 
@@ -22,18 +22,17 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 🚀 **Flutter-Powered Learning:** Bloomee is not just about music; it's about learning and growing with Flutter and BLoC architecture. Explore the intersection of beautiful design and smooth functionality while mastering the art of app development.
 
 ### **Features**
-- [x] 🎵 Offline Music Experience
 - [x] 🚫 Ad-Free Music
+- [x] 📝 Lyrics Support (Time Synced)
+- [x] 🎵 Offline Music Experience
+- [x] ⏲️ Sleep Timer
+- [x] 🎧 Personalized Playlist Creation and Sharing
+- [x] 🌐 Daily Updated Global Charts. (Billboard, Last.fm and more.)
+- [x] 🖥️ Support for Android, Windows and Linux.
 - [x] 📉 Minimal Data Usage
 - [x] 💾 Space Efficient
 - [x] 🏃 Lightweight App
-- [x] 🎧 Personalized Playlist Creation and Sharing
 - [x] 🔓 Open Source
-- [x] ⏲️ Sleep Timer
-- [x] 🌐 Daily Updated Global Charts
-- [x] 🖥️ Support for Windows
-- [x] 📝 Lyrics Support
-- [x] 🐧 Support for Linux
 - [ ] 🍏 Support for iOS
 - [ ] 🎼 AI-Generated Playlist
 - [ ] 💡 AI-Based Recommendations
