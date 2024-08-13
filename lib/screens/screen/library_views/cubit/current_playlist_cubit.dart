@@ -2,6 +2,7 @@
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -47,14 +48,14 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
 
   Future<void> updatePlaylist(List<int> newOrder) async {
     final oldOrder = await getItemOrder();
-    if (oldOrder != newOrder &&
+    if (!listEquals(newOrder, oldOrder) &&
         mediaPlaylist != null &&
         newOrder.length >= mediaPlaylist!.mediaItems.length) {
       await BloomeeDBService.updatePltItemsRankByName(
           mediaPlaylist!.playlistName, newOrder);
       final playlist = await bloomeeDBCubit.getPlaylistItems(
           MediaPlaylistDB(playlistName: mediaPlaylist!.playlistName));
-      emit(state.copyWith(mediaPlaylist: playlist));
+      setupPlaylist(playlist.playlistName);
     }
   }
 
