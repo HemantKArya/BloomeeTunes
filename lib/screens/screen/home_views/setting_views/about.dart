@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class About extends StatelessWidget {
@@ -30,7 +31,7 @@ class About extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              "Bloomee🌸\nAn Open-Source Music Player\nby",
+              "Bloomee🌸\nAn Open Cross-Platform Music Player\nby",
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: Default_Theme.accentColor2,
@@ -59,8 +60,28 @@ class About extends StatelessWidget {
                     fontSize: 15,
                     fontFamily: 'Unageo',
                     fontWeight: FontWeight.bold)),
-            const SizedBox(
-              height: 50,
+            Padding(
+              padding: const EdgeInsets.only(
+                  top: 20, bottom: 10, right: 10, left: 10),
+              child: FutureBuilder(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final PackageInfo packageInfo =
+                        snapshot.data as PackageInfo;
+                    return Text(
+                      "v${packageInfo.version}+${packageInfo.buildNumber}",
+                      style: TextStyle(
+                        color: Default_Theme.primaryColor2.withOpacity(0.5),
+                        fontSize: 15,
+                        fontFamily: 'Unageo',
+                      ),
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
+              ),
             ),
             ElevatedButton(
                 onPressed: () {
