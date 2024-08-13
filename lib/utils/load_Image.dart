@@ -69,6 +69,7 @@ CachedNetworkImage loadImageCached(coverImageURL,
 
 class LoadImageCached extends StatefulWidget {
   final String imageUrl;
+  final String? fallbackUrl;
   final String placeholderUrl;
   final BoxFit fit;
 
@@ -77,6 +78,7 @@ class LoadImageCached extends StatefulWidget {
     required this.imageUrl,
     this.placeholderUrl = "assets/icons/bloomee_new_logo_c.png",
     this.fit = BoxFit.cover,
+    this.fallbackUrl,
   }) : super(key: key);
 
   @override
@@ -88,14 +90,31 @@ class _LoadImageCachedState extends State<LoadImageCached> {
   Widget build(BuildContext context) {
     return CachedNetworkImage(
       imageUrl: widget.imageUrl,
+      useOldImageOnUrlChange: true,
       placeholder: (context, url) => Image(
         image: const AssetImage("assets/icons/lazy_loading.png"),
         fit: widget.fit,
       ),
-      errorWidget: (context, url, error) => Image(
-        image: AssetImage(widget.placeholderUrl),
-        fit: widget.fit,
-      ),
+      errorWidget: (context, url, error) => widget.fallbackUrl == null
+          ? Image(
+              image: AssetImage(widget.placeholderUrl),
+              fit: widget.fit,
+            )
+          : CachedNetworkImage(
+              // now using fallback url
+              imageUrl: widget.fallbackUrl!,
+              memCacheWidth: 500,
+              placeholder: (context, url) => Image(
+                image: const AssetImage("assets/icons/lazy_loading.png"),
+                fit: widget.fit,
+              ),
+              errorWidget: (context, url, error) => Image(
+                image: AssetImage(widget.placeholderUrl),
+                fit: widget.fit,
+              ),
+              fadeInDuration: const Duration(milliseconds: 700),
+              fit: widget.fit,
+            ),
       fadeInDuration: const Duration(milliseconds: 700),
       fit: widget.fit,
     );
