@@ -10,6 +10,7 @@ enum ImageSource {
   billboard,
   lastfm,
   melon,
+  other,
 }
 
 String formatImgURL(String imgURL, ImageQuality quality) {
@@ -24,12 +25,12 @@ String formatImgURL(String imgURL, ImageQuality quality) {
     source = ImageSource.spotify;
   } else if (imgURL.contains('billboard')) {
     source = ImageSource.billboard;
-  } else if (imgURL.contains('last.fm')) {
+  } else if (imgURL.contains('lastfm')) {
     source = ImageSource.lastfm;
   } else if (imgURL.contains('melon')) {
     source = ImageSource.melon;
   } else {
-    source = ImageSource.yt;
+    source = ImageSource.other;
   }
 
   switch (source) {
@@ -59,13 +60,61 @@ String formatImgURL(String imgURL, ImageQuality quality) {
       return imgURL;
 
     case ImageSource.billboard:
-      return imgURL;
+      {
+        switch (quality) {
+          case ImageQuality.low:
+            {
+              return imgURL.replaceAll('344x344', '180x180');
+            }
+          case ImageQuality.medium:
+            {
+              return imgURL.replaceAll('344x344', '344x344');
+            }
+          case ImageQuality.high:
+            {
+              return imgURL;
+            }
+        }
+      }
 
     case ImageSource.lastfm:
-      return imgURL;
+      {
+        switch (quality) {
+          case ImageQuality.low:
+            {
+              return imgURL.replaceAll('500x500', 'avatar70s');
+            }
+          case ImageQuality.medium:
+            {
+              return imgURL;
+            }
+          case ImageQuality.high:
+            {
+              return imgURL;
+            }
+        }
+      }
 
     case ImageSource.melon:
-      return imgURL;
+      {
+        switch (quality) {
+          case ImageQuality.low:
+            {
+              return imgURL.replaceAll(
+                  'resize/350/quality', 'resize/250/quality');
+            }
+          case ImageQuality.medium:
+            {
+              return imgURL.replaceAll(
+                  'resize/350/quality', 'resize/400/quality');
+            }
+          case ImageQuality.high:
+            {
+              return imgURL.replaceAll(
+                  'resize/350/quality', 'resize/500/quality');
+            }
+        }
+      }
     default:
       return imgURL;
   }
