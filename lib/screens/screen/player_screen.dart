@@ -20,6 +20,7 @@ import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
@@ -362,13 +363,45 @@ class CoverImageVolSlider extends StatelessWidget {
   }
 }
 
-class UpNextPanel extends StatelessWidget {
-  const UpNextPanel({
+class UpNextPanel extends StatefulWidget {
+  UpNextPanel({
     super.key,
     required PanelController panelController,
   }) : _panelController = panelController;
 
   final PanelController _panelController;
+
+  @override
+  State<UpNextPanel> createState() => _UpNextPanelState();
+}
+
+class _UpNextPanelState extends State<UpNextPanel> {
+  final ItemScrollController _scrollController = ItemScrollController();
+
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
+
+  final ScrollOffsetController _scrollOffsetController =
+      ScrollOffsetController();
+
+  final ScrollOffsetListener _scrollOffsetListener =
+      ScrollOffsetListener.create();
+
+  @override
+  void initState() {
+    context.read<BloomeePlayerCubit>().bloomeePlayer.mediaItem.listen((value) {
+      if (value != null) {
+        _scrollController.scrollTo(
+            index: context
+                .read<BloomeePlayerCubit>()
+                .bloomeePlayer
+                .currentPlayingIdx,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut);
+      }
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -406,9 +439,9 @@ class UpNextPanel extends StatelessWidget {
               child: Center(
                 child: GestureDetector(
                   onTap: () {
-                    _panelController.isPanelOpen
-                        ? _panelController.close()
-                        : _panelController.open();
+                    widget._panelController.isPanelOpen
+                        ? widget._panelController.close()
+                        : widget._panelController.open();
                   },
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -447,12 +480,20 @@ class UpNextPanel extends StatelessWidget {
             ),
             Expanded(
               child: StreamBuilder(
-                stream:
-                    context.watch<BloomeePlayerCubit>().bloomeePlayer.upNext,
+                stream: context
+                    .watch<BloomeePlayerCubit>()
+                    .bloomeePlayer
+                    .queue
+                    .stream,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    return ListView.builder(
+                    return ScrollablePositionedList.builder(
+                      itemScrollController: _scrollController,
+                      itemPositionsListener: _itemPositionsListener,
+                      scrollOffsetController: _scrollOffsetController,
+                      scrollOffsetListener: _scrollOffsetListener,
                       padding: const EdgeInsets.only(top: 5),
+                      physics: const BouncingScrollPhysics(),
                       itemCount: snapshot.data?.length ?? 0,
                       shrinkWrap: true,
                       // physics: const NeverScrollableScrollPhysics(),
