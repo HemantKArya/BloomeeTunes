@@ -6,6 +6,7 @@ import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
@@ -87,7 +88,8 @@ class MiniPlayerCard extends StatelessWidget {
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.width,
                 child: LoadImageCached(
-                  imageUrl: state.song.artUri.toString(),
+                  imageUrl: formatImgURL(
+                      state.song.artUri.toString(), ImageQuality.low),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -114,7 +116,8 @@ class MiniPlayerCard extends StatelessWidget {
                         width: 61,
                         height: 61,
                         child: LoadImageCached(
-                          imageUrl: state.song.artUri.toString(),
+                          imageUrl: formatImgURL(
+                              state.song.artUri.toString(), ImageQuality.low),
                           fit: BoxFit.cover,
                         ),
                       ),

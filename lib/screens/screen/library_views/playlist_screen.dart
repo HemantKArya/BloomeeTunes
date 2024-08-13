@@ -12,6 +12,7 @@ import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -164,9 +165,11 @@ class PlaylistView extends StatelessWidget {
                                   fit: StackFit.expand,
                                   children: [
                                     LoadImageCached(
-                                        imageUrl: state.mediaPlaylist.mediaItems
-                                            .first.artUri
-                                            .toString()),
+                                        imageUrl: formatImgURL(
+                                            state.mediaPlaylist.mediaItems.first
+                                                .artUri
+                                                .toString(),
+                                            ImageQuality.low)),
                                     Positioned(
                                         child: Container(
                                       decoration: BoxDecoration(
@@ -209,10 +212,31 @@ class PlaylistView extends StatelessWidget {
                                             child: Padding(
                                               padding: const EdgeInsets.only(
                                                   left: 80, right: 80),
-                                              child: LoadImageCached(
-                                                  imageUrl: state.mediaPlaylist
-                                                      .mediaItems.first.artUri
-                                                      .toString()),
+                                              child: Container(
+                                                // shadow effect
+                                                decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color:
+                                                          getFBColor(context)[1]
+                                                              .withOpacity(0.2),
+                                                      spreadRadius: 5,
+                                                      blurRadius: 7,
+                                                      offset: const Offset(0,
+                                                          3), // changes position of shadow
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: LoadImageCached(
+                                                    imageUrl: formatImgURL(
+                                                        state
+                                                            .mediaPlaylist
+                                                            .mediaItems
+                                                            .first
+                                                            .artUri
+                                                            .toString(),
+                                                        ImageQuality.high)),
+                                              ),
                                             ),
                                           ),
                                         ),
