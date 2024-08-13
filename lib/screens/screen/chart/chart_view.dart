@@ -1,6 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
+import 'package:Bloomee/utils/load_Image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -100,14 +103,17 @@ class _ChartScreenState extends State<ChartScreen> {
                 fontSize: 24, color: Color.fromARGB(255, 255, 235, 251)))),
         background: Stack(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: NetworkImage(
-                        state.chartItems!.first.imageUrl.toString()),
-                    fit: BoxFit.cover),
-              ),
-            ),
+            LayoutBuilder(builder: (context, constraints) {
+              return Container(
+                width: constraints.maxWidth,
+                child: LoadImageCached(
+                  imageUrl: formatImgURL(
+                      state.chartItems!.first.imageUrl.toString(),
+                      ImageQuality.high),
+                  fit: BoxFit.cover,
+                ),
+              );
+            }),
             Positioned.fill(
                 child: Container(
                     decoration: BoxDecoration(
