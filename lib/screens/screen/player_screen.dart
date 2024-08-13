@@ -542,7 +542,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
                               context
                                   .read<BloomeePlayerCubit>()
                                   .bloomeePlayer
-                                  .playOffsetIdx(offset: index);
+                                  .skipToQueueItem(index);
                             },
                             //
                             song: mediaItem2MediaItemModel(

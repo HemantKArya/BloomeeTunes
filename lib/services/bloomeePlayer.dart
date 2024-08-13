@@ -240,6 +240,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
+  Future<void> skipToQueueItem(int index) {
+    currentPlayingIdx = index;
+    playMediaItem(queue.value[index]);
+
+    log("skipToQueueItem", name: "bloomeePlayer");
+    return super.skipToQueueItem(index);
+  }
+
+  @override
   Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
     updateMediaItem(mediaItem);
 
