@@ -149,7 +149,7 @@ class _ListOfPlaylistsState extends State<ListOfPlaylists> {
                         imageUrl: formatImgURL(
                             widget.state.playlists[index].coverImgUrl
                                 .toString(),
-                            ImageQuality.low)),
+                            ImageQuality.medium)),
                     playListsubTitle:
                         widget.state.playlists[index].subTitle ?? "Unknown"),
               ),
