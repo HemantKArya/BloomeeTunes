@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:developer';
 import 'dart:ui';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
@@ -58,6 +60,12 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
         _tabController.animateTo(0);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -354,6 +362,10 @@ class CoverImageVolSlider extends StatelessWidget {
                       imageUrl: formatImgURL(
                           (snapshot.data?.artUri ?? "").toString(),
                           ImageQuality.high),
+                      fallbackUrl: formatImgURL(
+                        (snapshot.data?.artUri ?? "").toString(),
+                        ImageQuality.medium,
+                      ),
                       fit: BoxFit.fitWidth),
                 );
               });
@@ -364,7 +376,7 @@ class CoverImageVolSlider extends StatelessWidget {
 }
 
 class UpNextPanel extends StatefulWidget {
-  UpNextPanel({
+  const UpNextPanel({
     super.key,
     required PanelController panelController,
   }) : _panelController = panelController;
@@ -387,20 +399,46 @@ class _UpNextPanelState extends State<UpNextPanel> {
   final ScrollOffsetListener _scrollOffsetListener =
       ScrollOffsetListener.create();
 
+  StreamSubscription? _mediaItemSub;
+
   @override
   void initState() {
-    context.read<BloomeePlayerCubit>().bloomeePlayer.mediaItem.listen((value) {
-      if (value != null) {
-        _scrollController.scrollTo(
-            index: context
-                .read<BloomeePlayerCubit>()
-                .bloomeePlayer
-                .currentPlayingIdx,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut);
+    _mediaItemSub = context
+        .read<BloomeePlayerCubit>()
+        .bloomeePlayer
+        .mediaItem
+        .listen((value) {
+      if (value != null && mounted) {
+        // at first the scrollablepositionedlist is not ready
+        try {
+          _scrollController.scrollTo(
+              index: context
+                  .read<BloomeePlayerCubit>()
+                  .bloomeePlayer
+                  .currentPlayingIdx,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut);
+        } catch (e) {
+          log(e.toString(), name: "UpNextPanel");
+          Future.delayed(const Duration(milliseconds: 500), () {
+            _scrollController.scrollTo(
+                index: context
+                    .read<BloomeePlayerCubit>()
+                    .bloomeePlayer
+                    .currentPlayingIdx,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut);
+          });
+        }
       }
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _mediaItemSub?.cancel();
+    super.dispose();
   }
 
   @override
