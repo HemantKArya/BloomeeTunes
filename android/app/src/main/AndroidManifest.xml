@@ -14,7 +14,6 @@
   <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
   <application android:label="Bloomee"
    android:name="${applicationName}" 
-   android:usesCleartextTraffic="true"
    android:hardwareAccelerated="true" 
     android:requestLegacyExternalStorage="true"
    android:icon="@mipmap/launcher_icon">
