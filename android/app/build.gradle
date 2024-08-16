@@ -58,6 +58,16 @@ android {
         versionName flutterVersionName
     }
 
+    // include splits for different architectures and universal APK. (arm64-v8a, armeabi-v7a, x86, x86_64)
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            universalApk true
+        }
+    }
+
     // Removing DEPENDENCY_INFO_BLOCK from the build.gradle file (For FOSS compliance)
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
