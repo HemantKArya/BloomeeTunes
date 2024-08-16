@@ -14,9 +14,11 @@ import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -424,61 +426,68 @@ class PlaylistView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SliverFixedExtentList.builder(
-                            itemBuilder: (context, index) {
-                              return SongCardWidget(
-                                song: state.mediaPlaylist.mediaItems[index],
-                                onTap: () {
-                                  if (!listEquals(
-                                      context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .queue
-                                          .value,
-                                      state.mediaPlaylist.mediaItems)) {
+                        SliverPrototypeExtentList.builder(
+                          itemBuilder: (context, index) {
+                            return SongCardWidget(
+                              key: ValueKey(
+                                  state.mediaPlaylist.mediaItems[index]),
+                              song: state.mediaPlaylist.mediaItems[index],
+                              onTap: () {
+                                if (!listEquals(
                                     context
                                         .read<BloomeePlayerCubit>()
                                         .bloomeePlayer
-                                        .loadPlaylist(
-                                            MediaPlaylist(
-                                                mediaItems: state
-                                                    .mediaPlaylist.mediaItems,
-                                                playlistName: state
-                                                    .mediaPlaylist
-                                                    .playlistName),
-                                            idx: index,
-                                            doPlay: true);
-                                  } else if (context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .currentMedia !=
-                                      state.mediaPlaylist.mediaItems[index]) {
-                                    context
-                                        .read<BloomeePlayerCubit>()
-                                        .bloomeePlayer
-                                        .prepare4play(idx: index, doPlay: true);
-                                  }
-
-                                  context.push('/MusicPlayer');
-                                },
-                                onOptionsTap: () {
-                                  showMoreBottomSheet(context,
-                                      state.mediaPlaylist.mediaItems[index],
-                                      onDelete: () {
-                                    context
-                                        .read<BloomeeDBCubit>()
-                                        .removeMediaFromPlaylist(
-                                          state.mediaPlaylist.mediaItems[index],
-                                          MediaPlaylistDB(
+                                        .queue
+                                        .value,
+                                    state.mediaPlaylist.mediaItems)) {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .loadPlaylist(
+                                          MediaPlaylist(
+                                              mediaItems: state
+                                                  .mediaPlaylist.mediaItems,
                                               playlistName: state
                                                   .mediaPlaylist.playlistName),
-                                        );
-                                  }, showDelete: true);
-                                },
-                              );
-                            },
-                            itemCount: state.mediaPlaylist.mediaItems.length,
-                            itemExtent: 70),
+                                          idx: index,
+                                          doPlay: true);
+                                } else if (context
+                                        .read<BloomeePlayerCubit>()
+                                        .bloomeePlayer
+                                        .currentMedia !=
+                                    state.mediaPlaylist.mediaItems[index]) {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .prepare4play(idx: index, doPlay: true);
+                                }
+
+                                context.push('/MusicPlayer');
+                              },
+                              onOptionsTap: () {
+                                showMoreBottomSheet(context,
+                                    state.mediaPlaylist.mediaItems[index],
+                                    onDelete: () {
+                                  context
+                                      .read<BloomeeDBCubit>()
+                                      .removeMediaFromPlaylist(
+                                        state.mediaPlaylist.mediaItems[index],
+                                        MediaPlaylistDB(
+                                            playlistName: state
+                                                .mediaPlaylist.playlistName),
+                                      );
+                                }, showDelete: true);
+                              },
+                            );
+                          },
+                          itemCount: state.mediaPlaylist.mediaItems.length,
+                          prototypeItem: SongCardWidget(
+                            song: MediaItemModel(
+                                id: "prototype",
+                                artist: "prototype",
+                                title: "prototype"),
+                          ),
+                        ),
                       ],
                     )
                   : ((state is CurrentPlaylistInitial ||
