@@ -7,14 +7,14 @@ import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:icons_plus/icons_plus.dart';
 
-class searchPageDelegate extends SearchDelegate {
+class SearchPageDelegate extends SearchDelegate {
   List<String> searchList = [];
-  SourceEngine _sourceEngine = SourceEngine.eng_YTM;
-  searchPageDelegate(
-    this._sourceEngine,
+  SourceEngine sourceEngine = SourceEngine.eng_YTM;
+  SearchPageDelegate(
+    this.sourceEngine,
   );
   @override
-  String? get searchFieldLabel => "What you want to listen?";
+  String? get searchFieldLabel => "Explore the world of music...";
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -30,6 +30,11 @@ class searchPageDelegate extends SearchDelegate {
           color: Default_Theme.primaryColor1,
         ).merge(Default_Theme.secondoryTextStyleMedium),
       ),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(
+          color: Default_Theme.primaryColor2.withOpacity(0.3),
+        ).merge(Default_Theme.secondoryTextStyle),
+      ),
     );
   }
 
@@ -38,7 +43,7 @@ class searchPageDelegate extends SearchDelegate {
     if (query.isNotEmpty) {
       context
           .read<FetchSearchResultsCubit>()
-          .search(query, sourceEngine: _sourceEngine);
+          .search(query, sourceEngine: sourceEngine);
     }
     close(context, query);
   }

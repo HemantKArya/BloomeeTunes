@@ -139,7 +139,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   .map((e) => sourceEngineRadioButton(e))
                                   .toList(),
                             )
-                          : SizedBox();
+                          : const SizedBox();
                     }),
               ),
             ),
@@ -150,7 +150,7 @@ class _SearchScreenState extends State<SearchScreen> {
               onTap: () {
                 showSearch(
                         context: context,
-                        delegate: searchPageDelegate(_sourceEngine),
+                        delegate: SearchPageDelegate(_sourceEngine),
                         query: _textEditingController.text)
                     .then((value) {
                   if ((value as String) != 'null') {
