@@ -52,14 +52,14 @@ class GlobalRoutes {
         // parentNavigatorKey: globalRouterKey,
         path: '/PlaylistView',
         builder: (context, state) {
-          return PlaylistView();
+          return const PlaylistView();
         },
       ),
       GoRoute(
         path: '/AddToPlaylist',
         parentNavigatorKey: globalRouterKey,
         name: GlobalStrConsts.addToPlaylistScreen,
-        builder: (context, state) => AddToPlaylistScreen(),
+        builder: (context, state) => const AddToPlaylistScreen(),
       ),
       StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>
@@ -90,7 +90,7 @@ class GlobalRoutes {
               GoRoute(
                   name: GlobalStrConsts.libraryScreen,
                   path: '/Library',
-                  builder: (context, state) => LibraryScreen(),
+                  builder: (context, state) => const LibraryScreen(),
                   routes: [
                     GoRoute(
                       path: "ImportMediaFromPlatforms",
@@ -113,7 +113,7 @@ class GlobalRoutes {
                           state.uri.queryParameters['query']!.toString(),
                     );
                   } else {
-                    return SearchScreen();
+                    return const SearchScreen();
                   }
                 },
               ),
