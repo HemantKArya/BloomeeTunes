@@ -158,7 +158,12 @@ class MiniPlayerCard extends StatelessWidget {
                             FontAwesome.backward_step_solid,
                             size: 28,
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            context
+                                .read<BloomeePlayerCubit>()
+                                .bloomeePlayer
+                                .skipToPrevious();
+                          },
                         )
                       : const SizedBox.shrink(),
                   (state.isBuffering || isProcessing)
