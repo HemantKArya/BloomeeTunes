@@ -74,8 +74,10 @@ dependencies:
   responsive_framework: ^1.4.0
   scrollable_positioned_list: ^0.3.8
 
+  # linux plugins
   just_audio_media_kit: ^2.0.0
   media_kit_libs_linux: any
+  audio_service_mpris: ^0.1.5
   # mime: ^1.0.5
 
 
