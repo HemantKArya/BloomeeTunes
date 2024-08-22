@@ -118,8 +118,25 @@ class SearchPageDelegate extends SearchDelegate {
                   Default_Theme.secondoryTextStyle,
                 ),
               ),
+              leading: Icon(
+                MingCute.search_line,
+                size: 22,
+                color: Default_Theme.primaryColor1.withOpacity(0.5),
+              ),
+              trailing: IconButton(
+                onPressed: () {
+                  query = suggestionList[index];
+                  // only update the query and not show the results
+                },
+                icon: Icon(
+                  MingCute.arrow_left_up_line,
+                  color: Default_Theme.primaryColor1.withOpacity(0.5),
+                  size: 22,
+                ),
+              ),
               onTap: () {
                 query = suggestionList[index];
+                showResults(context);
                 // Show the search results based on the selected suggestion.
               },
             );
