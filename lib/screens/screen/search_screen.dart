@@ -72,7 +72,7 @@ class _SearchScreenState extends State<SearchScreen> {
         height: 27,
         child: AnimatedContainer(
           duration: const Duration(seconds: 1),
-          curve: accelerateEasing,
+          curve: Easing.standardAccelerate,
           child: OutlinedButton(
             onPressed: () {
               setState(() {
@@ -147,13 +147,14 @@ class _SearchScreenState extends State<SearchScreen> {
           title: SizedBox(
             height: 50.0,
             child: InkWell(
+              borderRadius: BorderRadius.circular(20),
               onTap: () {
                 showSearch(
                         context: context,
                         delegate: SearchPageDelegate(_sourceEngine),
                         query: _textEditingController.text)
                     .then((value) {
-                  if ((value as String) != 'null') {
+                  if (value != null) {
                     _textEditingController.text = value.toString();
                   }
                 });

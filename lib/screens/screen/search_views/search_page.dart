@@ -40,7 +40,7 @@ class SearchPageDelegate extends SearchDelegate {
 
   @override
   void showResults(BuildContext context) {
-    if (query.isNotEmpty) {
+    if (query.replaceAll(' ', '').isNotEmpty) {
       context
           .read<FetchSearchResultsCubit>()
           .search(query, sourceEngine: sourceEngine);
