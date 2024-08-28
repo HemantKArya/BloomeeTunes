@@ -119,23 +119,47 @@ Future<Map> formatSingleSongResponse(Map response) async {
     return {
       'id': response['id'],
       'type': response['type'],
-      'album': response['album'].toString().unescape(),
+      'album': response['album']?.toString().unescape() ??
+          response['more_info']?['album']?.toString().unescape(),
       'year': response['year'],
-      'duration': response['duration'],
+      'duration': response['duration'] ?? response['more_info']?['duration'],
       'language': response['language'].toString().capitalize(),
       'genre': response['language'].toString().capitalize(),
-      '320kbps': response['320kbps'],
-      'has_lyrics': response['has_lyrics'],
-      'lyrics_snippet': response['lyrics_snippet'].toString().unescape(),
-      'release_date': response['release_date'],
-      'album_id': ['albumid'],
+      '320kbps': response['320kbps'] ?? response['more_info']?['320kbps'],
+      'has_lyrics':
+          response['has_lyrics'] ?? response['more_info']?['has_lyrics'],
+      'lyrics_snippet': response['lyrics_snippet']?.toString().unescape() ??
+          response['more_info']?['lyrics_snippet']?.toString().unescape(),
+      'release_date':
+          response['release_date'] ?? response['more_info']?['release_date'],
+      'album_id': response['more_info']?['artistMap']?['artists'] != null
+          ? (response['more_info']?['artistMap']?['artists'] as List)
+              .map(
+                (e) => e['id'],
+              )
+              .toList()
+          : ['albumId'],
+
       // 'subtitle': response['subtitle'].toString().unescape(),
-      'title': response['song'].toString().unescape(),
-      'artist': response['primary_artists'].toString().unescape(),
+      'title': response['song']?.toString().unescape() ??
+          response['title']?.toString().unescape(),
+      'artist': response['primary_artists']?.toString().unescape() ??
+          (response['more_info']?['artistMap']?['artists'] as List)
+              .map(
+                (e) => e['name'],
+              )
+              .toList()
+              .join(', '),
       // 'album_artist': response['more_info'],
       'image': getImageUrl(response['image'].toString()),
       'perma_url': response['perma_url'],
-      'url': decode(response['encrypted_media_url'].toString()),
+      'url': (response['encrypted_media_url']?.toString() ??
+                  response['more_info']?['encrypted_media_url']?.toString()) !=
+              null
+          ? decode((response['encrypted_media_url']?.toString() ??
+                  response['more_info']?['encrypted_media_url']?.toString()) ??
+              '')
+          : null,
     };
     // Hive.box('cache').put(response['id'].toString(), info);
   } catch (e) {
@@ -189,11 +213,28 @@ Future<Map> formatSingleSongResponse(Map response) async {
 //   return data;
 // }
 
-Future<Map> formatSingleAlbumResponse(Map response) async {
+Future<Map> formatSearchedAlbumResponse(Map response) async {
   try {
+    String? artists;
+    if (response['music'] != null) {
+      artists = response['music'];
+    } else {
+      List<String> artistList = [];
+      if (response['artist']?['music'] != null) {
+        response['artist']['music'].forEach((element) {
+          artistList.add(element[0]);
+        });
+      }
+      if (response['artist']?['singers'] != null) {
+        response['artist']['singers'].forEach((element) {
+          artistList.add(element[0]);
+        });
+      }
+      artists = artistList.join(', ');
+    }
     return {
-      'id': response['id'],
-      'type': response['type'],
+      'id': response['id'] ?? response['albumid'],
+      'type': response['type'] ?? "album",
       'album': response['title'].toString().unescape(),
       'year': response['more_info']?['year'] ?? response['year'],
       'language': response['more_info']?['language'] == null
@@ -202,7 +243,43 @@ Future<Map> formatSingleAlbumResponse(Map response) async {
       'genre': response['more_info']?['language'] == null
           ? response['language'].toString().capitalize()
           : response['more_info']['language'].toString().capitalize(),
-      'album_id': response['id'],
+      'album_id': response['id'] ?? response['albumid'],
+      'subtitle': response['description'] == null
+          ? response['subtitle'].toString().unescape()
+          : response['description'].toString().unescape(),
+      'title': response['title'].toString().unescape(),
+      'artist': artists?.unescape() ?? response['primary_artists'],
+      'album_artist': response['more_info']?['music'] ?? response['music'],
+      'image': getImageUrl(response['image'].toString()),
+      'token': Uri.parse(response['perma_url'] ?? response['url'].toString())
+          .pathSegments
+          .last,
+      'count': response['more_info']?['song_pids'] == null
+          ? 0
+          : response['more_info']['song_pids'].toString().split(', ').length,
+      'songs_pids': response['more_info']?['song_pids'].toString().split(', '),
+      'perma_url': response['perma_url'] ?? response['url'].toString(),
+    };
+  } catch (e) {
+    log('Error inside formatSingleAlbumResponse: $e', name: "Format");
+    return {'Error': e};
+  }
+}
+
+Future<Map> formatSingleAlbumResponse(Map response) async {
+  try {
+    return {
+      'id': response['id'] ?? response['albumid'],
+      'type': response['type'] ?? "album",
+      'album': response['title'].toString().unescape(),
+      'year': response['more_info']?['year'] ?? response['year'],
+      'language': response['more_info']?['language'] == null
+          ? response['language'].toString().capitalize()
+          : response['more_info']['language'].toString().capitalize(),
+      'genre': response['more_info']?['language'] == null
+          ? response['language'].toString().capitalize()
+          : response['more_info']['language'].toString().capitalize(),
+      'album_id': response['id'] ?? response['albumid'],
       'subtitle': response['description'] == null
           ? response['subtitle'].toString().unescape()
           : response['description'].toString().unescape(),
@@ -228,8 +305,8 @@ Future<Map> formatSingleAlbumResponse(Map response) async {
       'count': response['more_info']?['song_pids'] == null
           ? 0
           : response['more_info']['song_pids'].toString().split(', ').length,
-      'songs_pids': response['more_info']['song_pids'].toString().split(', '),
-      'perma_url': response['url'].toString(),
+      'songs_pids': response['more_info']?['song_pids'].toString().split(', '),
+      'perma_url': response['perma_url'] ?? response['url'].toString(),
     };
   } catch (e) {
     log('Error inside formatSingleAlbumResponse: $e', name: "Format");
@@ -302,8 +379,8 @@ Future<Map> formatSingleAlbumSongResponse(Map response) async {
 Future<Map> formatSinglePlaylistResponse(Map response) async {
   try {
     return {
-      'id': response['id'],
-      'type': response['type'],
+      'id': response['id'] ?? response['listid'],
+      'type': response['type'] ?? "playlist",
       'album': response['title'].toString().unescape(),
       'language': response['language'] == null
           ? response['more_info']['language'].toString().capitalize()
@@ -311,17 +388,20 @@ Future<Map> formatSinglePlaylistResponse(Map response) async {
       'genre': response['language'] == null
           ? response['more_info']['language'].toString().capitalize()
           : response['language'].toString().capitalize(),
-      'playlistId': response['id'],
+      'playlistId': response['listid']?.toString() ?? response['id'],
       'subtitle': response['description'] == null
           ? response['subtitle'].toString().unescape()
           : response['description'].toString().unescape(),
-      'title': response['title'].toString().unescape(),
-      'artist': response['extra'].toString().unescape(),
+      'title': response['title']?.toString().unescape() ??
+          response['listname'].toString().unescape(),
+      'artist': (response['artist_name']?.join(', ')?.toString().unescape() ??
+          response['extra']?.toString().unescape()),
       'album_artist': response['more_info'] == null
           ? response['music']
           : response['more_info']['music'],
       'image': getImageUrl(response['image'].toString()),
-      'perma_url': response['url'].toString(),
+      'perma_url': response['perma_url']?.toString().unescape() ??
+          response['url'].toString(),
     };
   } catch (e) {
     log('Error inside formatSinglePlaylistResponse: $e', name: "Format");
@@ -332,30 +412,38 @@ Future<Map> formatSinglePlaylistResponse(Map response) async {
 Future<Map> formatSingleArtistResponse(Map response) async {
   try {
     return {
-      'id': response['id'],
+      'id': response['id'] ?? response['artistId'],
       'type': response['type'],
       'album': response['title'] == null
           ? response['name'].toString().unescape()
           : response['title'].toString().unescape(),
-      'language': response['language'].toString().capitalize(),
+      'language': response['language']?.toString().capitalize() ??
+          response['dominantLanguage'].toString().unescape().capitalize(),
       'genre': response['language'].toString().capitalize(),
-      'artistId': response['id'],
+      'artistId': Uri.parse((response['perma_url']?.toString() ??
+                  (response['url']?.toString() ??
+                      response['urls']?['songs']?.toString().unescape())) ??
+              '')
+          .pathSegments
+          .last,
       'artistToken': response['url'] == null
-          ? response['perma_url'].toString().split('/').last
+          ? response['perma_url'].toString()
           : response['url'].toString().split('/').last,
-      'subtitle': response['description'] == null
-          ? response['role'].toString().capitalize()
-          : response['description'].toString().unescape(),
-      'title': response['title'] == null
-          ? response['name'].toString().unescape()
-          : response['title'].toString().unescape(),
+      'subtitle': response['subtitle']?.toString().unescape() ??
+          (response['description'] == null
+              ? response['role'].toString().capitalize()
+              : response['description'].toString().unescape()),
+      'title': response['name']?.toString().unescape() ??
+          response['title'].toString().unescape(),
       // .split('(')
       // .first
-      'perma_url': response['url'].toString(),
-      'artist': response['title'].toString().unescape(),
-      'album_artist': response['more_info'] == null
-          ? response['music']
-          : response['more_info']['music'],
+      'perma_url': response['perma_url']?.toString() ??
+          (response['url']?.toString() ??
+              response['urls']?['songs']?.toString().unescape()),
+      // 'artist': response['title'].toString().unescape(),
+      // 'album_artist': response['more_info'] == null
+      //     ? response['music']
+      //     : response['more_info']['music'],
       'image': getImageUrl(response['image'].toString()),
     };
   } catch (e) {
@@ -390,6 +478,9 @@ Future<List<Map>> formatAlbumResponse(
   for (int i = 0; i < responseList.length; i++) {
     Map? response;
     switch (type) {
+      case 'albumSearched':
+        response = await formatSearchedAlbumResponse(responseList[i] as Map);
+        break;
       case 'album':
         response = await formatSingleAlbumResponse(responseList[i] as Map);
         break;

@@ -38,8 +38,12 @@ class SaavnAPI {
       url = Uri.https(baseUrl, '$apiStr&$params');
     }
     final String languageHeader = 'L=Hindi';
-    headers = {'cookie': languageHeader, 'Accept': '*/*'};
-
+    headers = {
+      'cookie': languageHeader,
+      'Accept': '*/*',
+      'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+    };
     return get(url, headers: headers).onError((error, stackTrace) {
       return Response(
         {
@@ -282,6 +286,131 @@ class SaavnAPI {
     } else {
       log("Request failed with status: ${response.statusCode}");
       return ["error"];
+    }
+  }
+
+  Future<List> fetchAlbumResults(String searchQuery) async {
+    final param = '__call=search.getAlbumResults&q=$searchQuery';
+    final response = await getResponse(param);
+    if (response.statusCode == 200) {
+      final Map getMain = json.decode(response.body) as Map;
+      final List responseList = getMain['results'] as List;
+      return await formatAlbumResponse(responseList, 'albumSearched');
+    } else {
+      log("Request failed with status: ${response.statusCode}");
+      return [];
+    }
+  }
+
+  Future<List> fetchArtistResults(String searchQuery) async {
+    final param = '${endpoints['artistResults']!}&q=$searchQuery';
+    final response = await getResponse(param);
+    if (response.statusCode == 200) {
+      final Map getMain = json.decode(response.body) as Map;
+      final List responseList = getMain['results'] as List;
+      return await formatAlbumResponse(responseList, 'artist');
+    } else {
+      log("Request failed with status: ${response.statusCode}");
+      return [];
+    }
+  }
+
+  Future<List> fetchPlaylistResults(String searchQuery) async {
+    final param = '${endpoints['playlistResults']!}&q=$searchQuery';
+    final response = await getResponse(param);
+    if (response.statusCode == 200) {
+      final Map getMain = json.decode(response.body) as Map;
+      final List responseList = getMain['results'] as List;
+      return await formatAlbumResponse(responseList, 'playlist');
+    } else {
+      log("Request failed with status: ${response.statusCode}");
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchAlbumDetails(String token) async {
+    final param = '${endpoints['fromToken']!}&token=$token&type=album';
+    final response = await getResponse(param);
+    if (response.statusCode == 200) {
+      final Map getMain = json.decode(response.body) as Map;
+      final List responseList = getMain['songs'] as List;
+      final Map albumDetails = await formatSearchedAlbumResponse(
+        getMain,
+      );
+      final List songs = await formatSongsResponse(responseList, 'song');
+      return {
+        'albumDetails': albumDetails,
+        'songs': songs,
+      };
+    } else {
+      log("Request failed with status: ${response.statusCode}");
+      return {
+        'albumDetails': {"error": "error"},
+        'songs': List.empty(),
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchArtistDetails(
+    String token, {
+    int ns = 50,
+    int na = 50,
+    int p = 0,
+    bool loadMore = false,
+  }) async {
+    final param =
+        '${endpoints['fromToken']!}&token=$token&type=artist&p=$p&n_song=$ns&n_album=$na&sub_type=&category=&sort_order=&includeMetaTags=0';
+
+    final response = await getResponse(param, usev4: true);
+    if (response.statusCode == 200) {
+      final Map getMain = json.decode(response.body) as Map;
+
+      final List responseList = getMain['topSongs'] as List;
+      final Map artistDetails = await formatSingleArtistResponse(getMain);
+      final List songs = await formatSongsResponse(responseList, 'song');
+      final List albumResponseList = getMain['topAlbums'] as List;
+      final List albums =
+          await formatAlbumResponse(albumResponseList, 'albumSearched');
+      return {
+        'artistDetails': artistDetails,
+        'songs': songs,
+        'albums': albums,
+      };
+    } else {
+      log("Request failed with status: ${response.statusCode}");
+      return {
+        'artistDetails': {"error": "error"},
+        'songs': List.empty(),
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchPlaylistDetails(
+    String token, {
+    int n = 100,
+    int p = 1,
+  }) async {
+    final param =
+        '${endpoints['fromToken']!}&token=$token&type=playlist&n=$n&p=$p';
+    final response = await getResponse(param, usev4: true);
+    if (response.statusCode == 200) {
+      final Map getMain = json.decode(response.body) as Map;
+      // log(getMain.toString());
+      final List responseList = getMain['list'] as List;
+      final Map playlistDetails = await formatSinglePlaylistResponse(
+        getMain,
+      );
+      final List songs = await formatSongsResponse(responseList, 'song');
+      return {
+        'playlistDetails': playlistDetails,
+        'songs': songs,
+      };
+    } else {
+      log("Request failed with status: ${response.statusCode}");
+      return {
+        'playlistDetails': {"error": "error"},
+        'songs': List.empty(),
+      };
     }
   }
 }
