@@ -2,7 +2,7 @@ import 'package:Bloomee/screens/widgets/global_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/screens/screen/add_to_playlist_screen.dart';
+import 'package:Bloomee/screens/screen/common_views/add_to_playlist_screen.dart';
 import 'package:Bloomee/screens/screen/player_screen.dart';
 import 'package:Bloomee/screens/screen/explore_screen.dart';
 import 'package:Bloomee/screens/screen/library_screen.dart';
