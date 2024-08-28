@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -27,7 +25,6 @@ class AlbumCard extends StatelessWidget {
           top: 10,
         ),
         child: LayoutBuilder(builder: (context, constraints) {
-          log('constraints.maxWidth: ${constraints.maxWidth}');
           return SizedBox(
             width: ResponsiveBreakpoints.of(context).isMobile
                 ? constraints.maxWidth * 0.9
