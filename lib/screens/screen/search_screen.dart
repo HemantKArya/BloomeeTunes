@@ -360,7 +360,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                     name: "SearchScreen");
                                 return ListView.builder(
                                   controller: _scrollController,
-                                  physics: const BouncingScrollPhysics(),
                                   itemCount: state.hasReachedMax
                                       ? state.mediaItems.length
                                       : state.mediaItems.length + 1,
