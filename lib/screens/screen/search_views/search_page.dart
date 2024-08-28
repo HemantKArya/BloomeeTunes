@@ -10,8 +10,10 @@ import 'package:icons_plus/icons_plus.dart';
 class SearchPageDelegate extends SearchDelegate {
   List<String> searchList = [];
   SourceEngine sourceEngine = SourceEngine.eng_YTM;
+  ResultTypes resultType = ResultTypes.songs;
   SearchPageDelegate(
     this.sourceEngine,
+    this.resultType,
   );
   @override
   String? get searchFieldLabel => "Explore the world of music...";
@@ -43,7 +45,7 @@ class SearchPageDelegate extends SearchDelegate {
     if (query.replaceAll(' ', '').isNotEmpty) {
       context
           .read<FetchSearchResultsCubit>()
-          .search(query, sourceEngine: sourceEngine);
+          .search(query, sourceEngine: sourceEngine, resultType: resultType);
     }
     close(context, query);
   }
