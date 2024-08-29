@@ -25,6 +25,7 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 - [x] 🚫 Ad-Free Music
 - [x] 📝 Lyrics Support (Time Synced)
 - [x] 🎵 Offline Music Experience
+- [x] 🔽 Import playlists from various source.
 - [x] ⏲️ Sleep Timer
 - [x] 🎧 Personalized Playlist Creation and Sharing
 - [x] 🌐 Daily Updated Global Charts. (Billboard, Last.fm and more.)
