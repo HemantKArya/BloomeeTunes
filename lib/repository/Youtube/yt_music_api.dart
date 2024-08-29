@@ -108,7 +108,12 @@ class YtMusicService {
     final String date = year + month + day;
     return {
       'context': {
-        'client': {'clientName': 'WEB_REMIX', 'clientVersion': '1.$date.01.00'},
+        'client': {
+          'clientName': 'WEB_REMIX',
+          'clientVersion': '1.$date.01.00',
+          'hl': 'en',
+          'userAgent': userAgent,
+        },
         'user': {}
       }
     };
@@ -903,358 +908,360 @@ class YtMusicService {
     }
     await initLanguage();
 
-    // try {
-    final res = await get(
-        Uri.parse('https://music.youtube.com/playlist?list=$playlistId'),
-        headers: headers);
+    try {
+      final res = await get(
+          Uri.parse('https://music.youtube.com/playlist?list=$playlistId'),
+          headers: headers);
 
-    RegExp pattern = RegExp(r"data: '(.*?)'");
+      RegExp pattern = RegExp(r"data: '(.*?)'");
 
-    Map response;
+      Map response;
 
-    Iterable<Match> matches = pattern.allMatches(res.body);
-    if (matches.isNotEmpty && matches.toList()[1].group(1) != null) {
-      String encodedString = matches.toList()[1].group(1)!;
-      final decodedString = decodeHexEscapeSequences(encodedString);
-      Map<String, dynamic> data = json.decode(decodedString);
-      response = data;
-    } else {
-      dev.log('No matches found');
-      response = {};
-    }
+      Iterable<Match> matches = pattern.allMatches(res.body);
+      if (matches.isNotEmpty && matches.toList()[1].group(1) != null) {
+        String encodedString = matches.toList()[1].group(1)!;
+        final decodedString = decodeHexEscapeSequences(encodedString);
+        Map<String, dynamic> data =
+            json.decode(decodedString.unescape().replaceAll('\\"', '"'));
+        response = data;
+      } else {
+        dev.log('No matches found');
+        response = {};
+      }
 
-    // final browseId = playlistId.startsWith('VL') ? playlistId : 'VL$playlistId';
-    // final body = Map.from(context!);
-    // body['browseId'] = browseId;
-    // Map response = await sendRequest(endpoints['browse']!, body, headers);
+      // final browseId = playlistId.startsWith('VL') ? playlistId : 'VL$playlistId';
+      // final body = Map.from(context!);
+      // body['browseId'] = browseId;
+      // Map response = await sendRequest(endpoints['browse']!, body, headers);
 
-    String? serviceContext = nav(response, [
-      'responseContext',
-      'serviceTrackingParams',
-      1,
-      'params',
-      3,
-      'key'
-    ]) as String;
+      String? serviceContext = nav(response, [
+        'responseContext',
+        'serviceTrackingParams',
+        1,
+        'params',
+        3,
+        'key'
+      ]) as String;
 
-    if (serviceContext == "GetBrowseAlbumDetailPage_rid") {
-      serviceContext = "musicShelfRenderer";
-    } else {
-      serviceContext = "musicPlaylistShelfRenderer";
-    }
+      if (serviceContext == "GetBrowseAlbumDetailPage_rid") {
+        serviceContext = "musicShelfRenderer";
+      } else {
+        serviceContext = "musicPlaylistShelfRenderer";
+      }
 
-    final playlistShelf = nav(response, [
-      'contents',
-      'twoColumnBrowseResultsRenderer',
-      'secondaryContents',
-      'sectionListRenderer',
-      'contents',
-      0,
-      serviceContext
-    ]) as Map;
-
-    bool isRemaining = playlistShelf.keys.contains('continuations');
-    List finalResults = nav(playlistShelf, ['contents']) as List? ?? [];
-    String? visitorData;
-
-    const patternVisitor = r'visitorData":\s*"([^"]+)"';
-    final regex = RegExp(patternVisitor);
-    final matchVI = regex.firstMatch(res.body);
-
-    if (matchVI != null) {
-      visitorData = matchVI.group(1);
-    }
-
-    String? continuation;
-    String? itct;
-
-    if (isRemaining) {
-      continuation = nav(playlistShelf, [
-        'continuations',
+      final playlistShelf = nav(response, [
+        'contents',
+        'twoColumnBrowseResultsRenderer',
+        'secondaryContents',
+        'sectionListRenderer',
+        'contents',
         0,
-        'nextContinuationData',
-        'continuation',
-      ]) as String?;
-      itct = nav(playlistShelf, [
-        'continuations',
-        0,
-        'nextContinuationData',
-        'clickTrackingParams',
-      ]) as String?;
+        serviceContext
+      ]) as Map;
 
-      dev.log(
-          'visitorData: $visitorData\ncontinuation: $continuation\nitct: $itct',
-          name: "YTM");
+      bool isRemaining = playlistShelf.keys.contains('continuations');
+      List finalResults = nav(playlistShelf, ['contents']) as List? ?? [];
+      String? visitorData;
 
-      while (isRemaining) {
-        Map body = Map.from(initializeContext());
-        if (headers == null) {
-          await init();
-        }
-        await initLanguage();
+      const patternVisitor = r'visitorData":\s*"([^"]+)"';
+      final regex = RegExp(patternVisitor);
+      final matchVI = regex.firstMatch(res.body);
 
-        body['context']['client']['visitorData'] = visitorData ?? "";
-        dev.log('body: $body', name: "YTM");
-        body['continuation'] = continuation;
-        body['itct'] = itct;
-        body['ctoken'] = continuation;
+      if (matchVI != null) {
+        visitorData = matchVI.group(1);
+      }
 
-        Map response2 = await sendRequest(endpoints['browse']!, body, headers);
+      String? continuation;
+      String? itct;
 
-        finalResults.addAll(nav(response2, [
+      if (isRemaining) {
+        continuation = nav(playlistShelf, [
+          'continuations',
+          0,
+          'nextContinuationData',
+          'continuation',
+        ]) as String?;
+        itct = nav(playlistShelf, [
+          'continuations',
+          0,
+          'nextContinuationData',
+          'clickTrackingParams',
+        ]) as String?;
+
+        // dev.log(
+        //     'visitorData: $visitorData\ncontinuation: $continuation\nitct: $itct',
+        //     name: "YTM");
+
+        while (isRemaining) {
+          Map body = Map.from(initializeContext());
+          if (headers == null) {
+            await init();
+          }
+          await initLanguage();
+
+          body['context']['client']['visitorData'] = visitorData ?? "";
+          body['continuation'] = continuation;
+          body['itct'] = itct;
+          body['ctoken'] = continuation;
+
+          Map response2 =
+              await sendRequest(endpoints['browse']!, body, headers);
+
+          finalResults.addAll(nav(response2, [
+                "continuationContents",
+                'musicPlaylistShelfContinuation',
+                'contents',
+              ]) as List? ??
+              []);
+          dev.log('finalResults: ${finalResults.length}', name: "YTM");
+          isRemaining = nav(response2, [
+            "continuationContents",
+            'musicPlaylistShelfContinuation'
+          ]).keys.contains('continuations');
+          if (isRemaining) {
+            continuation = nav(response2, [
               "continuationContents",
               'musicPlaylistShelfContinuation',
-              'contents',
-            ]) as List? ??
-            []);
-        dev.log('finalResults: ${finalResults.length}', name: "YTM");
-        isRemaining = nav(response2, [
-          "continuationContents",
-          'musicPlaylistShelfContinuation'
-        ]).keys.contains('continuations');
-        if (isRemaining) {
-          continuation = nav(response2, [
-            "continuationContents",
-            'musicPlaylistShelfContinuation',
-            'continuations',
-            0,
-            'nextContinuationData',
-            'continuation',
-          ]) as String?;
-          itct = nav(response2, [
-            "continuationContents",
-            'musicPlaylistShelfContinuation',
-            'continuations',
-            0,
-            'nextContinuationData',
-            'clickTrackingParams',
-          ]) as String?;
+              'continuations',
+              0,
+              'nextContinuationData',
+              'continuation',
+            ]) as String?;
+            itct = nav(response2, [
+              "continuationContents",
+              'musicPlaylistShelfContinuation',
+              'continuations',
+              0,
+              'nextContinuationData',
+              'clickTrackingParams',
+            ]) as String?;
+          }
         }
       }
-    }
 
-    final tab = nav(response, [
-      'contents',
-      'twoColumnBrowseResultsRenderer',
-      'tabs',
-      0,
-      'tabRenderer',
-      'content',
-      'sectionListRenderer',
-      'contents',
-      0,
-      'musicResponsiveHeaderRenderer'
-    ]) as Map;
-
-    final String? heading = nav(tab, [
-      'title',
-      'runs',
-      0,
-      'text',
-    ]) as String?;
-    final String subtitle = (nav(tab, [
-              'subtitle',
-              'runs',
-            ]) as List? ??
-            [])
-        .map((e) => e['text'])
-        .toList()
-        .join();
-    final String? description = nav(tab, [
-      'description',
-      'musicDescriptionShelfRenderer',
-      'description',
-      'runs',
-      0,
-      'text'
-    ]) as String?;
-
-    final List images = (nav(tab, [
-      'thumbnail',
-      'musicThumbnailRenderer',
-      'thumbnail',
-      'thumbnails'
-    ]) as List)
-        .map((e) => e['url'])
-        .toList();
-
-    List<Map> songResults = [];
-    await Future.forEach(finalResults, (item) async {
-      final String id = nav(item, [
-        'musicResponsiveListItemRenderer',
-        'playlistItemData',
-        'videoId'
-      ]).toString();
-
-      String image;
-      if ((nav(item, ['musicResponsiveListItemRenderer']) as Map)
-          .containsKey('thumbnail')) {
-        image = nav(item, [
-          'musicResponsiveListItemRenderer',
-          'thumbnail',
-          'musicThumbnailRenderer',
-          'thumbnail',
-          'thumbnails',
-          0,
-          'url'
-        ]).toString();
-      } else {
-        image = nav(tab, [
-          'thumbnail',
-          'musicThumbnailRenderer',
-          'thumbnail',
-          'thumbnails',
-          0,
-          'url',
-        ]);
-      }
-
-      final String title = nav(item, [
-        'musicResponsiveListItemRenderer',
-        'flexColumns',
+      final tab = nav(response, [
+        'contents',
+        'twoColumnBrowseResultsRenderer',
+        'tabs',
         0,
-        'musicResponsiveListItemFlexColumnRenderer',
-        'text',
+        'tabRenderer',
+        'content',
+        'sectionListRenderer',
+        'contents',
+        0,
+        'musicResponsiveHeaderRenderer'
+      ]) as Map;
+
+      final String? heading = nav(tab, [
+        'title',
         'runs',
         0,
         'text',
-      ]).toString();
+      ]) as String?;
+      final String subtitle = (nav(tab, [
+                'subtitle',
+                'runs',
+              ]) as List? ??
+              [])
+          .map((e) => e['text'])
+          .toList()
+          .join();
+      final String? description = nav(tab, [
+        'description',
+        'musicDescriptionShelfRenderer',
+        'description',
+        'runs',
+        0,
+        'text'
+      ]) as String?;
 
-      String type = types[nav(item, [
+      final List images = (nav(tab, [
+        'thumbnail',
+        'musicThumbnailRenderer',
+        'thumbnail',
+        'thumbnails'
+      ]) as List)
+          .map((e) => e['url'])
+          .toList();
+
+      List<Map> songResults = [];
+      await Future.forEach(finalResults, (item) async {
+        final String id = nav(item, [
+          'musicResponsiveListItemRenderer',
+          'playlistItemData',
+          'videoId'
+        ]).toString();
+
+        String image;
+        if ((nav(item, ['musicResponsiveListItemRenderer']) as Map)
+            .containsKey('thumbnail')) {
+          image = nav(item, [
             'musicResponsiveListItemRenderer',
-            'flexColumns',
+            'thumbnail',
+            'musicThumbnailRenderer',
+            'thumbnail',
+            'thumbnails',
             0,
-            'musicResponsiveListItemFlexColumnRenderer',
-            'text',
-            'runs',
+            'url'
+          ]).toString();
+        } else {
+          image = nav(tab, [
+            'thumbnail',
+            'musicThumbnailRenderer',
+            'thumbnail',
+            'thumbnails',
             0,
-            'navigationEndpoint',
-            'watchEndpoint',
-            'watchEndpointMusicSupportedConfigs',
-            'watchEndpointMusicConfig',
-            'musicVideoType'
-          ])] ??
-          'video';
+            'url',
+          ]);
+        }
 
-      List subtitleList;
+        final String title = nav(item, [
+          'musicResponsiveListItemRenderer',
+          'flexColumns',
+          0,
+          'musicResponsiveListItemFlexColumnRenderer',
+          'text',
+          'runs',
+          0,
+          'text',
+        ]).toString();
 
-      int count = 0;
-      String year = '';
-      String artist = '';
-      String? album = serviceContext == "musicPlaylistShelfRenderer"
-          ? nav(item, [
+        String type = types[nav(item, [
               'musicResponsiveListItemRenderer',
               'flexColumns',
-              2,
+              0,
               'musicResponsiveListItemFlexColumnRenderer',
               'text',
               'runs',
               0,
-              'text',
-            ]) as String?
-          : heading;
-      String albumArtist = '';
-      String duration = timeStringToSeconds(nav(item, [
-        'musicResponsiveListItemRenderer',
-        'fixedColumns',
-        0,
-        'musicResponsiveListItemFixedColumnRenderer',
-        'text',
-        'runs',
-        0,
-        'text',
-      ])).toString();
-      String subtitle = '';
-      year = '';
+              'navigationEndpoint',
+              'watchEndpoint',
+              'watchEndpointMusicSupportedConfigs',
+              'watchEndpointMusicConfig',
+              'musicVideoType'
+            ])] ??
+            'video';
 
-      if ((nav(item, [
-        'musicResponsiveListItemRenderer',
-        'flexColumns',
-        1,
-        'musicResponsiveListItemFlexColumnRenderer',
-        'text',
-      ]) as Map)
-          .containsKey('runs')) {
-        subtitleList = nav(item, [
+        List subtitleList;
+
+        int count = 0;
+        String year = '';
+        String artist = '';
+        String? album = serviceContext == "musicPlaylistShelfRenderer"
+            ? nav(item, [
+                'musicResponsiveListItemRenderer',
+                'flexColumns',
+                2,
+                'musicResponsiveListItemFlexColumnRenderer',
+                'text',
+                'runs',
+                0,
+                'text',
+              ]) as String?
+            : heading;
+        String albumArtist = '';
+        String duration = timeStringToSeconds(nav(item, [
+          'musicResponsiveListItemRenderer',
+          'fixedColumns',
+          0,
+          'musicResponsiveListItemFixedColumnRenderer',
+          'text',
+          'runs',
+          0,
+          'text',
+        ])).toString();
+        String subtitle = '';
+        year = '';
+
+        if ((nav(item, [
           'musicResponsiveListItemRenderer',
           'flexColumns',
           1,
           'musicResponsiveListItemFlexColumnRenderer',
           'text',
-          'runs'
-        ]) as List;
-        await Future.forEach(subtitleList, (element) {
-          // ignore: use_string_buffers
-          subtitle += element['text'].toString();
-          if (element['text'].trim() == '•') {
-            count++;
-          } else {
-            if (count == 0) {
-              if (element['text'].toString().trim() == '&') {
-                artist += ', ';
-              } else {
-                artist += element['text'].toString();
-                if (albumArtist == '') {
-                  albumArtist = element['text'].toString();
+        ]) as Map)
+            .containsKey('runs')) {
+          subtitleList = nav(item, [
+            'musicResponsiveListItemRenderer',
+            'flexColumns',
+            1,
+            'musicResponsiveListItemFlexColumnRenderer',
+            'text',
+            'runs'
+          ]) as List;
+          await Future.forEach(subtitleList, (element) {
+            // ignore: use_string_buffers
+            subtitle += element['text'].toString();
+            if (element['text'].trim() == '•') {
+              count++;
+            } else {
+              if (count == 0) {
+                if (element['text'].toString().trim() == '&') {
+                  artist += ', ';
+                } else {
+                  artist += element['text'].toString();
+                  if (albumArtist == '') {
+                    albumArtist = element['text'].toString();
+                  }
                 }
+              } else if (count == 1) {
+                // album += element['text'].toString();
+              } else if (count == 2) {
+                // duration += element['text'].toString();
               }
-            } else if (count == 1) {
-              // album += element['text'].toString();
-            } else if (count == 2) {
-              // duration += element['text'].toString();
             }
+          });
+        } else {
+          final sub = (nav(tab, [
+            'straplineTextOne',
+            'runs',
+          ]) as List);
+          for (var i in sub) {
+            artist += i['text'];
           }
-        });
-      } else {
-        final sub = (nav(tab, [
-          'straplineTextOne',
-          'runs',
-        ]) as List);
-        for (var i in sub) {
-          artist += i['text'];
         }
-      }
 
-      Map d = {
-        'id': 'youtube$id',
-        'type': type,
-        'title': decodeUnicode(title),
-        'artist': decodeUnicode(artist),
-        'genre': 'YouTube',
-        'language': 'YouTube',
-        'year': year,
-        'album_artist': decodeUnicode(albumArtist),
-        'album': decodeUnicode(album ?? ""),
-        'duration': duration,
+        Map d = {
+          'id': 'youtube$id',
+          'type': type,
+          'title': decodeUnicode(title),
+          'artist': decodeUnicode(artist),
+          'genre': 'YouTube',
+          'language': 'YouTube',
+          'year': year,
+          'album_artist': decodeUnicode(albumArtist),
+          'album': decodeUnicode(album ?? ""),
+          'duration': duration,
+          'subtitle': decodeUnicode(subtitle),
+          'image': image.replaceAll('w60-h60', 'w400-h400'),
+          'perma_url': 'https://www.youtube.com/watch?v=$id',
+          'url': await getSongUrl('youtube$id'),
+          'release_date': '',
+          'album_id': '',
+          'expire_at': '0',
+          'provider': 'youtube',
+        };
+
+        songResults.add(d);
+      });
+
+      return {
+        'songs': songResults,
+        'name': decodeUnicode(heading ?? "YoutubeMusic"),
         'subtitle': decodeUnicode(subtitle),
-        'image': image.replaceAll('w60-h60', 'w400-h400'),
-        'perma_url': 'https://www.youtube.com/watch?v=$id',
-        'url': await getSongUrl('youtube$id'),
-        'release_date': '',
-        'album_id': '',
-        'expire_at': '0',
-        'provider': 'youtube',
+        'description': decodeUnicode(description ?? ""),
+        'images': images,
+        'url': "https://music.youtube.com/playlist?list=$playlistId",
+        'id': playlistId,
+        'total_songs': songResults.length,
+        'type': serviceContext == "musicPlaylistShelfRenderer"
+            ? 'Playlist'
+            : 'Album',
       };
-
-      songResults.add(d);
-    });
-
-    return {
-      'songs': songResults,
-      'name': decodeUnicode(heading ?? "YoutubeMusic"),
-      'subtitle': decodeUnicode(subtitle),
-      'description': decodeUnicode(description ?? ""),
-      'images': images,
-      'url': "https://music.youtube.com/playlist?list=$playlistId",
-      'id': playlistId,
-      'total_songs': songResults.length,
-      'type':
-          serviceContext == "musicPlaylistShelfRenderer" ? 'Playlist' : 'Album',
-    };
-    // } catch (e) {
-    //   dev.log('Error in ytmusic getPlaylist ', error: e, name: "YTM");
-    //   return {'songs': []};
-    // }
+    } catch (e) {
+      dev.log('Error in ytmusic getPlaylist ', error: e, name: "YTM");
+      return {'songs': []};
+    }
   }
 
   Future getHomes() async {
@@ -1326,19 +1333,27 @@ class YtMusicService {
       body['browseId'] = albumId;
       final Map response =
           await sendRequest(endpoints['browse']!, body, headers);
+      // dev.log('album response: $response', name: "YTM");
       final String? heading =
-          nav(response, [...headerDetail, ...titleText]) as String?;
+          nav(response, [...musicResponsiveHeader, ...titleText]) as String?;
       final String subtitle = joinRunTexts(
-        nav(response, [...headerDetail, ...subtitleRuns]) as List? ?? [],
+        nav(response, [...musicResponsiveHeader, ...subtitleRuns]) as List? ??
+            [],
       );
       final String description = joinRunTexts(
-        nav(response, [...headerDetail, ...secondSubtitleRuns]) as List? ?? [],
+        nav(response, [...musicResponsiveHeader, ...secondSubtitleRuns])
+                as List? ??
+            [],
+      );
+      final String artists = joinRunTexts(
+        nav(response, [...musicResponsiveHeader, 'straplineTextOne', 'runs']),
       );
       final List images = runUrls(
-        nav(response, [...headerDetail, ...thumbnailCropped]) as List? ?? [],
+        nav(response, [...musicResponsiveHeader, ...thumbnails]) as List? ?? [],
       );
       final List finalResults = nav(response, [
-            ...singleColumnTab,
+            ...twoColumnRenderer,
+            secondaryContents,
             ...sectionListItem,
             ...musicShelf,
             'contents',
@@ -1398,20 +1413,31 @@ class YtMusicService {
             }
           }
         }
+        duration = nav(item, [
+              mRLIR,
+              'fixedColumns',
+              0,
+              'musicResponsiveListItemFixedColumnRenderer',
+              ...textRunText,
+            ]) as String? ??
+            duration;
+
         if (id != null) {
           songResults.add({
             'id': 'youtube$id',
             'type': 'song',
             'title': title,
-            'artist': artist,
+            'artist': artist.isEmpty ? artists : artist,
             'genre': 'YouTube',
             'language': 'YouTube',
             'year': year,
             'album_artist': albumArtist,
-            'album': album,
-            'duration': duration,
+            'album': album.isEmpty ? heading : album,
+            'duration': duration.isNotEmpty
+                ? timeStringToSeconds(duration).toString()
+                : duration,
             'subtitle': subtitle,
-            'image': image ?? 'https://img.youtube.com/vi/$id/mqdefault.jpg',
+            'image': image ?? images.first,
             'perma_url': 'https://www.youtube.com/watch?v=$id',
             'url': await getSongUrl(id),
             'release_date': '',
@@ -1427,6 +1453,7 @@ class YtMusicService {
         'description': description,
         'images': images,
         'id': albumId,
+        'artists': artists,
         'type': 'album',
       };
     } catch (e) {
@@ -1472,6 +1499,88 @@ class YtMusicService {
             'contents',
           ]) as List? ??
           [];
+      final String nextTabTitle = nav(response, [
+            ...singleColumnTab,
+            ...sectionList,
+            1,
+            'musicCarouselShelfRenderer',
+            'header',
+            'musicCarouselShelfBasicHeaderRenderer',
+            'title',
+            'runs',
+            0,
+            'text',
+          ]) as String? ??
+          '';
+      // dev.log('nextTabTitle: $nextTabTitle', name: "YTM");
+      List nextTabResults = [];
+      if (nextTabTitle.contains('Albums')) {
+        final List nextTab = nav(response, [
+              ...singleColumnTab,
+              ...sectionList,
+              1,
+              ...carousel,
+              'contents',
+            ]) as List? ??
+            [];
+        for (final e in nextTab) {
+          final String id = nav(e, [
+                mTRIR,
+                ...navigationBrowseId,
+              ]) as String? ??
+              '';
+          final String image = nav(e, [
+                mTRIR,
+                ...thumbnailRenderer,
+                0,
+                'url',
+              ]) as String? ??
+              '';
+          final String ttl = nav(e, [
+                mTRIR,
+                ...titleText,
+              ]) as String? ??
+              '';
+          final List subtitle = nav(e, [
+                mTRIR,
+                ...subtitleRuns,
+              ]) as List? ??
+              [];
+
+          nextTabResults.add({
+            'id': id,
+            'title': ttl,
+            'subtitle': joinRunTexts(subtitle),
+            'image': image,
+            'year': subtitle.length > 2 ? subtitle[2]['text'] : '',
+            'artist': heading,
+          });
+        }
+        ;
+      }
+
+      String? songsBrowseId;
+      String? songsBrowseParams;
+
+      songsBrowseId = nav(response, [
+        ...singleColumnTab,
+        ...sectionList,
+        0,
+        ...musicShelf,
+        'bottomEndpoint',
+        'browseEndpoint',
+        'browseId',
+      ]);
+      songsBrowseParams = nav(response, [
+        ...singleColumnTab,
+        ...sectionList,
+        0,
+        ...musicShelf,
+        'bottomEndpoint',
+        'browseEndpoint',
+        'params',
+      ]);
+
       final List<Map> songResults = [];
       for (final item in finalResults) {
         final String id = nav(item, mrlirPlaylistId).toString();
@@ -1548,12 +1657,15 @@ class YtMusicService {
       }
       return {
         'songs': songResults,
+        'albums': nextTabTitle.contains('Albums') ? nextTabResults : null,
         'name': heading,
         'subtitle': subtitle,
         'description': description,
         'images': images,
         'id': artistId,
         'type': 'artist',
+        'songBrowseId': songsBrowseId,
+        'songBrowseParams': songsBrowseParams,
       };
     } catch (e) {
       Logger.root.info('Error in ytmusic getArtistDetails', e);

@@ -67,18 +67,26 @@ const carouselTitle = [
   'runs',
   0
 ];
+const twoColumnRenderer = ['contents', 'twoColumnBrowseResultsRenderer'];
+const musicResponsiveHeader = [
+  ...twoColumnRenderer,
+  ...tabContent,
+  ...sectionListItem,
+  'musicResponsiveHeaderRenderer',
+];
 const frameworkMutations = [
   'frameworkUpdates',
   'entityBatchUpdate',
   'mutations'
 ];
 const title = ['title', 'runs', 0];
-final titleText = ['title', ...runText];
+const titleText = ['title', ...runText];
 const textRuns = ['text', 'runs'];
 const textRun = [...textRuns, 0];
 const textRunText = [...textRun, 'text'];
 const subtitle = ['subtitle', runText];
 const subtitleRuns = ['subtitle', 'runs'];
+const secondaryContents = 'secondaryContents';
 const secondSubtitleRuns = ['secondSubtitle', 'runs'];
 const subtitle2 = ['subtitle', 'runs', 2, 'text'];
 const subtitle3 = ['subtitle', 'runs', 4, 'text'];
