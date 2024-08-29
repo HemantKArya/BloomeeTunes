@@ -29,7 +29,7 @@ class AlbumCard extends StatelessWidget {
           return SizedBox(
             width: ResponsiveBreakpoints.of(context).isMobile
                 ? constraints.maxWidth * 0.9
-                : 250,
+                : 220,
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
