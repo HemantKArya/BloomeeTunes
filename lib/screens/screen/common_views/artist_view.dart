@@ -4,6 +4,7 @@ import 'package:Bloomee/model/artist_onl_model.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
+import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -254,104 +255,117 @@ class _ArtistViewState extends State<ArtistView> {
               body: (state is ArtistLoaded)
                   ? TabBarView(
                       children: [
-                        ListView.builder(
-                          itemCount: state.artist.songs.length,
-                          itemBuilder: (context, index) {
-                            return SongCardWidget(
-                              song: state.artist.songs[index],
-                              onOptionsTap: () {
-                                showMoreBottomSheet(
-                                    context, state.artist.songs[index],
-                                    showDelete: false);
-                              },
-                              onTap: () {
-                                if (context
+                        state.artist.songs.isEmpty
+                            ? const SignBoardWidget(
+                                message: "No song found!",
+                                icon: MingCute.unhappy_fill,
+                              )
+                            : ListView.builder(
+                                itemCount: state.artist.songs.length,
+                                itemBuilder: (context, index) {
+                                  return SongCardWidget(
+                                    song: state.artist.songs[index],
+                                    onOptionsTap: () {
+                                      showMoreBottomSheet(
+                                          context, state.artist.songs[index],
+                                          showDelete: false);
+                                    },
+                                    onTap: () {
+                                      if (context
+                                                  .read<BloomeePlayerCubit>()
+                                                  .bloomeePlayer
+                                                  .queueTitle
+                                                  .value !=
+                                              widget.artist.name ||
+                                          context
+                                                  .read<BloomeePlayerCubit>()
+                                                  .bloomeePlayer
+                                                  .currentMedia !=
+                                              state.artist.songs[index]) {
+                                        context
                                             .read<BloomeePlayerCubit>()
                                             .bloomeePlayer
-                                            .queueTitle
-                                            .value !=
-                                        widget.artist.name ||
-                                    context
+                                            .loadPlaylist(state.artist.playlist,
+                                                doPlay: true, idx: index);
+                                      } else if (!context
+                                          .read<BloomeePlayerCubit>()
+                                          .bloomeePlayer
+                                          .audioPlayer
+                                          .playing) {
+                                        context
                                             .read<BloomeePlayerCubit>()
                                             .bloomeePlayer
-                                            .currentMedia !=
-                                        state.artist.songs[index]) {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .bloomeePlayer
-                                      .loadPlaylist(state.artist.playlist,
-                                          doPlay: true, idx: index);
-                                } else if (!context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .audioPlayer
-                                    .playing) {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .bloomeePlayer
-                                      .play();
-                                }
-                              },
-                            );
-                          },
-                        ),
-                        ListView.builder(
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                left: 8,
-                                right: 8,
-                                top: 2,
-                                bottom: 2,
+                                            .play();
+                                      }
+                                    },
+                                  );
+                                },
                               ),
-                              child: ListTile(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AlbumView(
-                                        album: state.artist.albums[index],
+                        state.artist.albums.isEmpty
+                            ? const SignBoardWidget(
+                                message: "No album found!",
+                                icon: MingCute.unhappy_fill,
+                              )
+                            : ListView.builder(
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 8,
+                                      right: 8,
+                                      top: 2,
+                                      bottom: 2,
+                                    ),
+                                    child: ListTile(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => AlbumView(
+                                              album: state.artist.albums[index],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      leading: Hero(
+                                        tag:
+                                            state.artist.albums[index].sourceId,
+                                        child: LoadImageCached(
+                                          imageUrl: state
+                                              .artist.albums[index].imageURL,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        maxLines: 1,
+                                        state.artist.albums[index].name,
+                                        style: Default_Theme
+                                            .secondoryTextStyleMedium
+                                            .merge(
+                                          TextStyle(
+                                            fontSize: 14,
+                                            overflow: TextOverflow.ellipsis,
+                                            color: Default_Theme.primaryColor1
+                                                .withOpacity(0.8),
+                                          ),
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        state.artist.albums[index].artists,
+                                        maxLines: 1,
+                                        style: Default_Theme.secondoryTextStyle
+                                            .merge(
+                                          TextStyle(
+                                            fontSize: 12,
+                                            color: Default_Theme.primaryColor1
+                                                .withOpacity(0.5),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   );
                                 },
-                                leading: Hero(
-                                  tag: state.artist.albums[index].sourceId,
-                                  child: LoadImageCached(
-                                    imageUrl:
-                                        state.artist.albums[index].imageURL,
-                                  ),
-                                ),
-                                title: Text(
-                                  maxLines: 1,
-                                  state.artist.albums[index].name,
-                                  style: Default_Theme.secondoryTextStyleMedium
-                                      .merge(
-                                    TextStyle(
-                                      fontSize: 14,
-                                      overflow: TextOverflow.ellipsis,
-                                      color: Default_Theme.primaryColor1
-                                          .withOpacity(0.8),
-                                    ),
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  state.artist.albums[index].artists,
-                                  maxLines: 1,
-                                  style: Default_Theme.secondoryTextStyle.merge(
-                                    TextStyle(
-                                      fontSize: 12,
-                                      color: Default_Theme.primaryColor1
-                                          .withOpacity(0.5),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          itemCount: state.artist.albums.length,
-                        )
+                                itemCount: state.artist.albums.length,
+                              )
                       ],
                     )
                   : const Center(
