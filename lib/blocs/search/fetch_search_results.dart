@@ -236,7 +236,7 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
     log("Youtube Video Search", name: "FetchSearchRes");
 
     last_YTV_search.query = query;
-    emit(FetchSearchResultsLoading());
+    emit(FetchSearchResultsLoading(resultType: resultType));
 
     switch (resultType) {
       case ResultTypes.playlists:
