@@ -42,8 +42,8 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 
 
 <h3 align=center>Download for Android, Windows & Linux(dev) 😍</h3>
-<p align="center">
-<a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" width=272 height=44 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
+<p align="center"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" height=40/>
+<a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" height=40 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
 </br>
 
 
@@ -68,6 +68,9 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 6. **Create a Pull Request:** Submit a pull request, and let your notes join the Bloomee Symphony!
 
 </br>
+<p align=center>
+<a href="https://apt.izzysoft.de/fdroid/index/apk/ls.bloomee.musicplayer">
+<img alt="izzyondroid" src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidButtonGreyBorder.svg" height=45/></a></p>
 
 <h4 align=center>Get in touch with me at :-</h4>
 <p align=center>
