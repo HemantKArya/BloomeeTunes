@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
@@ -31,6 +32,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
   List<ChartInfo> selectedCharts = List.empty(growable: true);
   Map<dynamic, dynamic> chartMap = {};
   bool autoSlideCharts = true;
+  StreamSubscription? ss;
 
   Future<void> initSettings() async {
     autoSlideCharts = await BloomeeDBService.getSettingBool(
@@ -39,14 +41,31 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
     setState(() {});
   }
 
+  void getSelectedCharts(Map sChartMap) {
+    if (!mapEquals(chartMap, sChartMap)) {
+      selectedCharts.clear();
+      chartCubitList.clear();
+      for (var e in chartInfoList) {
+        if (sChartMap[e.title] == null || sChartMap[e.title] == true) {
+          selectedCharts.add(e);
+          chartCubitList.add(ChartCubit(e, context.read<FetchChartCubit>()));
+        }
+      }
+      if (mounted) {
+        setState(() {
+          log('selected charts: ${selectedCharts.length.toString()}',
+              name: 'ChartCarousel');
+        });
+      }
+    }
+    chartMap = sChartMap;
+  }
+
   @override
   void initState() {
-    // for (var i in chartInfoList) {
-    //   chartCubitList.add(ChartCubit(i, context.read<FetchChartCubit>()));
-    // }
     initSettings();
-
-    context.read<SettingsCubit>().stream.listen((event) {
+    getSelectedCharts(context.read<SettingsCubit>().state.chartMap);
+    ss = context.read<SettingsCubit>().stream.listen((event) {
       if (autoSlideCharts != event.autoSlideCharts) {
         autoSlideCharts = event.autoSlideCharts;
         if (autoSlideCharts) {
@@ -55,27 +74,15 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
           log("Auto Slide Charts Disabled");
         }
       }
-
-      if (!mapEquals(chartMap, event.chartMap)) {
-        selectedCharts.clear();
-        chartCubitList.clear();
-        for (var e in chartInfoList) {
-          if (event.chartMap[e.title] == null ||
-              event.chartMap[e.title] == true) {
-            selectedCharts.add(e);
-            chartCubitList.add(ChartCubit(e, context.read<FetchChartCubit>()));
-          }
-        }
-        if (mounted) {
-          setState(() {
-            log('selected charts: ${selectedCharts.length.toString()}',
-                name: 'ChartCarousel');
-          });
-        }
-      }
-      chartMap = event.chartMap;
+      getSelectedCharts(event.chartMap);
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    ss?.cancel();
+    super.dispose();
   }
 
   @override
