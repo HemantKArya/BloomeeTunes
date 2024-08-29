@@ -149,7 +149,8 @@ Future<Map> formatSingleSongResponse(Map response) async {
                 (e) => e['name'],
               )
               .toList()
-              .join(', '),
+              .join(', ')
+              .unescape(),
       // 'album_artist': response['more_info'],
       'image': getImageUrl(response['image'].toString()),
       'perma_url': response['perma_url'],
@@ -431,7 +432,7 @@ Future<Map> formatSingleArtistResponse(Map response) async {
           : response['url'].toString().split('/').last,
       'subtitle': response['subtitle']?.toString().unescape() ??
           (response['description'] == null
-              ? response['role'].toString().capitalize()
+              ? response['role'].toString().capitalize().unescape()
               : response['description'].toString().unescape()),
       'title': response['name']?.toString().unescape() ??
           response['title'].toString().unescape(),
