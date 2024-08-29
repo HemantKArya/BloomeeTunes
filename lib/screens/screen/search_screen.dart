@@ -464,7 +464,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                       children: [
                                         for (var playlist
                                             in state.playlistItems)
-                                          PlaylistCard(playlist: playlist)
+                                          PlaylistCard(
+                                            playlist: playlist,
+                                            sourceEngine: _sourceEngine,
+                                          )
                                       ],
                                     ),
                                   ),

@@ -1,6 +1,8 @@
 import 'package:Bloomee/model/playlist_onl_model.dart';
+import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/screen/common_views/playlist_view.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -8,10 +10,12 @@ import 'package:responsive_framework/responsive_framework.dart';
 
 class PlaylistCard extends StatelessWidget {
   final PlaylistOnlModel playlist;
+  final SourceEngine sourceEngine;
   final ValueNotifier<bool> hovering = ValueNotifier(false);
   PlaylistCard({
     super.key,
     required this.playlist,
+    required this.sourceEngine,
   });
 
   void setHovering(bool isHovering) {
@@ -34,6 +38,7 @@ class PlaylistCard extends StatelessWidget {
                 MaterialPageRoute(
                     builder: (context) => OnlPlaylistView(
                           playlist: playlist,
+                          sourceEngine: sourceEngine,
                         )),
               );
             },
@@ -54,7 +59,11 @@ class PlaylistCard extends StatelessWidget {
                       },
                       child: Stack(
                         children: [
-                          LoadImageCached(imageUrl: playlist.imageURL),
+                          LoadImageCached(
+                            imageUrl: formatImgURL(
+                                playlist.imageURL, ImageQuality.medium),
+                            fit: BoxFit.fitWidth,
+                          ),
                           ValueListenableBuilder(
                             valueListenable: hovering,
                             builder: (context, child, value) {

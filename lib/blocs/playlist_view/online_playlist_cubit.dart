@@ -1,11 +1,11 @@
-import 'dart:developer';
-
 import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
+import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -66,7 +66,16 @@ class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
         );
         break;
       case SourceEngine.eng_YTV:
-      // TODO: Handle this case.
+        YouTubeServices().fetchPlaylistItems(playlist.sourceId).then((value) {
+          final songs = fromYtVidSongMapList2MediaItemList(value[0]['items']);
+          emit(OnlPlaylistLoaded(
+            playlist: playlist.copyWith(
+              songs: List<MediaItemModel>.from(songs),
+              artists: value[0]['metadata'].author,
+            ),
+          ));
+        });
+        break;
     }
   }
 }

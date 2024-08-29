@@ -115,3 +115,20 @@ List<PlaylistOnlModel> ytmMap2Playlists(Map<String, dynamic> json) {
   }
   return playlists;
 }
+
+List<PlaylistOnlModel> ytvMap2Playlists(Map<String, dynamic> json) {
+  List<PlaylistOnlModel> playlists = [];
+  if (json['playlists'] != null) {
+    json['playlists'].forEach((playlist) {
+      playlists.add(PlaylistOnlModel(
+        source: "youtube",
+        sourceId: playlist['id'],
+        name: playlist['title'],
+        imageURL: playlist['image'],
+        artists: "Unknown",
+        sourceURL: 'https://www.youtube.com/playlist?list=${playlist['id']}',
+      ));
+    });
+  }
+  return playlists;
+}

@@ -238,18 +238,38 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
     last_YTV_search.query = query;
     emit(FetchSearchResultsLoading());
 
-    final searchResults = await YouTubeServices().fetchSearchResults(query);
-    last_YTV_search.mediaItemList =
-        (fromYtVidSongMapList2MediaItemList(searchResults[0]['items']));
-    emit(state.copyWith(
-      mediaItems: List<MediaItemModel>.from(last_YTV_search.mediaItemList),
-      loadingState: LoadingState.loaded,
-      resultType: ResultTypes.songs,
-      hasReachedMax: true,
-      sourceEngine: SourceEngine.eng_YTV,
-    ));
-    log("got all searches ${last_YTV_search.mediaItemList.length}",
-        name: "FetchSearchRes");
+    switch (resultType) {
+      case ResultTypes.playlists:
+        final res =
+            await YouTubeServices().fetchSearchResults(query, playlist: true);
+        final List<PlaylistOnlModel> playlists = ytvMap2Playlists({
+          'playlists': res[0]['items'],
+        });
+        emit(state.copyWith(
+          playlistItems: List<PlaylistOnlModel>.from(playlists),
+          resultType: ResultTypes.playlists,
+          hasReachedMax: true,
+          loadingState: LoadingState.loaded,
+          sourceEngine: SourceEngine.eng_YTV,
+        ));
+        break;
+      case ResultTypes.albums:
+      case ResultTypes.artists:
+      case ResultTypes.songs:
+        final searchResults = await YouTubeServices().fetchSearchResults(query);
+        last_YTV_search.mediaItemList =
+            (fromYtVidSongMapList2MediaItemList(searchResults[0]['items']));
+        emit(state.copyWith(
+          mediaItems: List<MediaItemModel>.from(last_YTV_search.mediaItemList),
+          loadingState: LoadingState.loaded,
+          resultType: ResultTypes.songs,
+          hasReachedMax: true,
+          sourceEngine: SourceEngine.eng_YTV,
+        ));
+        log("got all searches ${last_YTV_search.mediaItemList.length}",
+            name: "FetchSearchRes");
+        break;
+    }
   }
 
   Future<void> searchJISTracks(

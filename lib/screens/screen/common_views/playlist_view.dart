@@ -6,6 +6,7 @@ import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,7 +16,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 class OnlPlaylistView extends StatefulWidget {
   final PlaylistOnlModel playlist;
-  const OnlPlaylistView({super.key, required this.playlist});
+  final SourceEngine sourceEngine;
+  const OnlPlaylistView(
+      {super.key, required this.playlist, required this.sourceEngine});
 
   @override
   State<OnlPlaylistView> createState() => _OnlPlaylistViewState();
@@ -27,9 +30,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
   void initState() {
     onlPlaylistCubit = OnlPlaylistCubit(
       playlist: widget.playlist,
-      sourceEngine: widget.playlist.source == 'saavn'
-          ? SourceEngine.eng_JIS
-          : SourceEngine.eng_YTM,
+      sourceEngine: widget.sourceEngine,
     );
     super.initState();
   }
@@ -77,7 +78,11 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                 child: Hero(
                                   tag: widget.playlist.sourceId,
                                   child: LoadImageCached(
-                                      imageUrl: widget.playlist.imageURL),
+                                    imageUrl: formatImgURL(
+                                        widget.playlist.imageURL,
+                                        ImageQuality.high),
+                                    fit: BoxFit.fitWidth,
+                                  ),
                                 ),
                               ),
                             ),
