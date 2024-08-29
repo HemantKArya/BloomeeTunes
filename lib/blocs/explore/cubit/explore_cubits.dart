@@ -140,7 +140,8 @@ class FetchChartCubit extends Cubit<FetchChartState> {
   Future<void> fetchCharts() async {
     String _path = (await getApplicationDocumentsDirectory()).path;
     BackgroundIsolateBinaryMessenger.ensureInitialized(
-        ServicesBinding.rootIsolateToken!);
+      ServicesBinding.rootIsolateToken!,
+    );
 
     final chartList = await Isolate.run<List<ChartModel>>(() async {
       log(_path, name: "Isolate Path");

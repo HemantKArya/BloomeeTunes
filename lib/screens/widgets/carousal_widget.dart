@@ -1,10 +1,12 @@
 import 'dart:developer';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/plugins/ext_charts/chart_defines.dart';
 import 'package:Bloomee/screens/screen/chart/chart_widget.dart';
 import 'package:Bloomee/screens/screen/chart/show_charts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +28,8 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
   bool _visibility = true;
   // final FetchChartCubit fetchChartCubit;
   List<ChartCubit> chartCubitList = List.empty(growable: true);
+  List<ChartInfo> selectedCharts = List.empty(growable: true);
+  Map<dynamic, dynamic> chartMap = {};
   bool autoSlideCharts = true;
 
   Future<void> initSettings() async {
@@ -37,11 +41,11 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
 
   @override
   void initState() {
-    for (var i in chartInfoList) {
-      chartCubitList.add(ChartCubit(i, context.read<FetchChartCubit>()));
-    }
+    // for (var i in chartInfoList) {
+    //   chartCubitList.add(ChartCubit(i, context.read<FetchChartCubit>()));
+    // }
     initSettings();
-    super.initState();
+
     context.read<SettingsCubit>().stream.listen((event) {
       if (autoSlideCharts != event.autoSlideCharts) {
         autoSlideCharts = event.autoSlideCharts;
@@ -51,14 +55,34 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
           log("Auto Slide Charts Disabled");
         }
       }
+
+      if (!mapEquals(chartMap, event.chartMap)) {
+        selectedCharts.clear();
+        chartCubitList.clear();
+        for (var e in chartInfoList) {
+          if (event.chartMap[e.title] == null ||
+              event.chartMap[e.title] == true) {
+            selectedCharts.add(e);
+            chartCubitList.add(ChartCubit(e, context.read<FetchChartCubit>()));
+          }
+        }
+        if (mounted) {
+          setState(() {
+            log('selected charts: ${selectedCharts.length.toString()}',
+                name: 'ChartCarousel');
+          });
+        }
+      }
+      chartMap = event.chartMap;
     });
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
-        return state.chartMap.values.every((element) => element == false)
+        return selectedCharts.isEmpty
             ? const SizedBox.shrink()
             : Padding(
                 padding: const EdgeInsets.only(top: 20),
@@ -119,19 +143,19 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                         enlargeCenterPage: true,
                       ),
                       items: [
-                        for (int i = 0; i < chartInfoList.length; i++)
-                          if (state.chartMap[chartInfoList[i].title] == null ||
-                              state.chartMap[chartInfoList[i].title] == true)
+                        for (int i = 0; i < selectedCharts.length; i++)
+                          if (state.chartMap[selectedCharts[i].title] == null ||
+                              state.chartMap[selectedCharts[i].title] == true)
                             BlocProvider.value(
                               value: chartCubitList[i],
                               child: GestureDetector(
                                 onTap: () => GoRouter.of(context).pushNamed(
                                     GlobalStrConsts.ChartScreen,
                                     pathParameters: {
-                                      "chartName": chartInfoList[i].title
+                                      "chartName": selectedCharts[i].title
                                     }),
                                 child: ChartWidget(
-                                  chartInfo: chartInfoList[i],
+                                  chartInfo: selectedCharts[i],
                                 ),
                               ),
                             ),
