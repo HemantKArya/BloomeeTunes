@@ -1,6 +1,7 @@
 import 'package:Bloomee/model/artist_onl_model.dart';
 import 'package:Bloomee/screens/screen/common_views/artist_view.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -55,7 +56,9 @@ class ArtistCard extends StatelessWidget {
                         dimension: 160,
                         child: Stack(
                           children: [
-                            LoadImageCached(imageUrl: artist.imageUrl),
+                            LoadImageCached(
+                                imageUrl: formatImgURL(
+                                    artist.imageUrl, ImageQuality.medium)),
                             ValueListenableBuilder(
                               valueListenable: hovering,
                               builder: (context, child, value) {

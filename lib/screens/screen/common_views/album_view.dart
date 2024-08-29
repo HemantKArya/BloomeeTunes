@@ -6,6 +6,7 @@ import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -86,7 +87,10 @@ class _AlbumViewState extends State<AlbumView> {
                                 child: Hero(
                                     tag: widget.album.sourceId,
                                     child: LoadImageCached(
-                                        imageUrl: widget.album.imageURL)),
+                                      imageUrl: formatImgURL(
+                                          widget.album.imageURL,
+                                          ImageQuality.medium),
+                                    )),
                               ),
                             ),
                             Expanded(

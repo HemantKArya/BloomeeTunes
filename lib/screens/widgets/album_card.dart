@@ -1,6 +1,7 @@
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -56,7 +57,10 @@ class AlbumCard extends StatelessWidget {
                           tag: album.sourceId,
                           child: Stack(
                             children: [
-                              LoadImageCached(imageUrl: album.imageURL),
+                              LoadImageCached(
+                                imageUrl: formatImgURL(
+                                    album.imageURL, ImageQuality.medium),
+                              ),
                               ValueListenableBuilder(
                                 valueListenable: hovering,
                                 builder: (context, child, value) {
