@@ -56,85 +56,91 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 80),
-            opacity: _visibility ? 1.0 : 0.0,
-            child: const Padding(
-              padding: EdgeInsets.only(left: 15, top: 10),
-              child: RotatedBox(
-                quarterTurns: 3,
-                child: Row(
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      builder: (context, state) {
+        return state.chartMap.values.every((element) => element == false)
+            ? const SizedBox.shrink()
+            : Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Stack(
                   children: [
-                    // Text(
-                    //   "Featured",
-                    //   style: Default_Theme.secondoryTextStyle.merge(
-                    //       const TextStyle(
-                    //           color: Default_Theme.primaryColor1,
-                    //           fontWeight: FontWeight.bold,
-                    //           fontSize: 19)),
-                    // ),
-                    // const Icon(
-                    //   FontAwesome.bolt_lightning_solid,
-                    //   color: Default_Theme.primaryColor1,
-                    // ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        BlocBuilder<SettingsCubit, SettingsState>(
-          builder: (context, state) {
-            return CarouselSlider(
-              options: CarouselOptions(
-                onPageChanged: (index, _) {
-                  setState(() {
-                    _visibility = index == 0;
-                  });
-                },
-                height: ResponsiveBreakpoints.of(context).isMobile ||
-                        ResponsiveBreakpoints.of(context).isTablet
-                    ? MediaQuery.of(context).size.height * 0.36
-                    : 250,
-                viewportFraction: ResponsiveBreakpoints.of(context).isMobile
-                    ? 0.65
-                    : ResponsiveBreakpoints.of(context).isTablet
-                        ? 0.30
-                        : 0.25,
-                autoPlay: autoSlideCharts,
-                autoPlayInterval: const Duration(milliseconds: 2500),
-                // aspectRatio: 15 / 16,
-                // enableInfiniteScroll: true,
-                enlargeFactor: 0.2,
-                initialPage: 0,
-                pauseAutoPlayOnTouch: true,
-                enlargeCenterPage: true,
-              ),
-              items: [
-                for (int i = 0; i < chartInfoList.length; i++)
-                  if (state.chartMap[chartInfoList[i].title] == null ||
-                      state.chartMap[chartInfoList[i].title] == true)
-                    BlocProvider.value(
-                      value: chartCubitList[i],
-                      child: GestureDetector(
-                        onTap: () => GoRouter.of(context).pushNamed(
-                            GlobalStrConsts.ChartScreen,
-                            pathParameters: {
-                              "chartName": chartInfoList[i].title
-                            }),
-                        child: ChartWidget(
-                          chartInfo: chartInfoList[i],
+                    Positioned(
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 80),
+                        opacity: _visibility ? 1.0 : 0.0,
+                        child: const Padding(
+                          padding: EdgeInsets.only(left: 15, top: 10),
+                          child: RotatedBox(
+                            quarterTurns: 3,
+                            child: Row(
+                              children: [
+                                // Text(
+                                //   "Featured",
+                                //   style: Default_Theme.secondoryTextStyle.merge(
+                                //       const TextStyle(
+                                //           color: Default_Theme.primaryColor1,
+                                //           fontWeight: FontWeight.bold,
+                                //           fontSize: 19)),
+                                // ),
+                                // const Icon(
+                                //   FontAwesome.bolt_lightning_solid,
+                                //   color: Default_Theme.primaryColor1,
+                                // ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
-              ],
-            );
-          },
-        ),
-      ],
+                    CarouselSlider(
+                      options: CarouselOptions(
+                        onPageChanged: (index, _) {
+                          setState(() {
+                            _visibility = index == 0;
+                          });
+                        },
+                        height: ResponsiveBreakpoints.of(context).isMobile ||
+                                ResponsiveBreakpoints.of(context).isTablet
+                            ? MediaQuery.of(context).size.height * 0.36
+                            : 250,
+                        viewportFraction:
+                            ResponsiveBreakpoints.of(context).isMobile
+                                ? 0.65
+                                : ResponsiveBreakpoints.of(context).isTablet
+                                    ? 0.30
+                                    : 0.25,
+                        autoPlay: autoSlideCharts,
+                        autoPlayInterval: const Duration(milliseconds: 2500),
+                        // aspectRatio: 15 / 16,
+                        // enableInfiniteScroll: true,
+                        enlargeFactor: 0.2,
+                        initialPage: 0,
+                        pauseAutoPlayOnTouch: true,
+                        enlargeCenterPage: true,
+                      ),
+                      items: [
+                        for (int i = 0; i < chartInfoList.length; i++)
+                          if (state.chartMap[chartInfoList[i].title] == null ||
+                              state.chartMap[chartInfoList[i].title] == true)
+                            BlocProvider.value(
+                              value: chartCubitList[i],
+                              child: GestureDetector(
+                                onTap: () => GoRouter.of(context).pushNamed(
+                                    GlobalStrConsts.ChartScreen,
+                                    pathParameters: {
+                                      "chartName": chartInfoList[i].title
+                                    }),
+                                child: ChartWidget(
+                                  chartInfo: chartInfoList[i],
+                                ),
+                              ),
+                            ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+      },
     );
   }
 }

@@ -78,10 +78,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               SliverList(
                 delegate: SliverChildListDelegate(
                   [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: CaraouselWidget(),
-                    ),
+                    CaraouselWidget(),
                     Padding(
                       padding: const EdgeInsets.only(top: 15.0),
                       child: SizedBox(
