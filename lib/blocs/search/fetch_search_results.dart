@@ -160,26 +160,79 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
     }
   }
 
-  Future<void> searchYTMTracks(String query) async {
+  Future<void> searchYTMTracks(
+    String query, {
+    ResultTypes resultType = ResultTypes.songs,
+  }) async {
     log("Youtube Music Search", name: "FetchSearchRes");
 
     last_YTM_search.query = query;
-    emit(FetchSearchResultsLoading());
-    final searchResults = await YtMusicService().search(query, filter: "songs");
-    last_YTM_search.mediaItemList =
-        fromYtSongMapList2MediaItemList(searchResults[0]['items']);
-    emit(state.copyWith(
-      mediaItems: List<MediaItemModel>.from(last_YTM_search.mediaItemList),
-      loadingState: LoadingState.loaded,
-      hasReachedMax: true,
-      resultType: ResultTypes.songs,
-      sourceEngine: SourceEngine.eng_YTM,
-    ));
+    emit(FetchSearchResultsLoading(resultType: resultType));
+    switch (resultType) {
+      case ResultTypes.songs:
+        final searchResults =
+            await YtMusicService().search(query, filter: "songs");
+        last_YTM_search.mediaItemList =
+            fromYtSongMapList2MediaItemList(searchResults[0]['items']);
+        emit(state.copyWith(
+          mediaItems: List<MediaItemModel>.from(last_YTM_search.mediaItemList),
+          loadingState: LoadingState.loaded,
+          hasReachedMax: true,
+          resultType: ResultTypes.songs,
+          sourceEngine: SourceEngine.eng_YTM,
+        ));
+        break;
+      case ResultTypes.playlists:
+        final res =
+            await YtMusicService().search(query, filter: "featured_playlists");
+        final playlist = ytmMap2Playlists({
+          'playlists': res.isNotEmpty ? res[0]['items'] : [],
+        });
+        emit(state.copyWith(
+          playlistItems: List<PlaylistOnlModel>.from(playlist),
+          loadingState: LoadingState.loaded,
+          hasReachedMax: true,
+          resultType: ResultTypes.playlists,
+          sourceEngine: SourceEngine.eng_YTM,
+        ));
+        log("Got results: ${playlist.length}", name: "FetchSearchRes");
+        break;
+      case ResultTypes.albums:
+        final res = await YtMusicService().search(query, filter: "albums");
+        final albums = ytmMap2Albums({
+          'albums': res.isNotEmpty ? res[0]['items'] : [],
+        });
+        emit(state.copyWith(
+          albumItems: List<AlbumModel>.from(albums),
+          loadingState: LoadingState.loaded,
+          hasReachedMax: true,
+          resultType: ResultTypes.albums,
+          sourceEngine: SourceEngine.eng_YTM,
+        ));
+        log("Got results: ${albums.length}", name: "FetchSearchRes");
+        break;
+      case ResultTypes.artists:
+        final res = await YtMusicService().search(query, filter: "artists");
+        final artists = ytmMap2Artists({
+          'artists': res.isNotEmpty ? res[0]['items'] : [],
+        });
+        emit(state.copyWith(
+          artistItems: List<ArtistModel>.from(artists),
+          loadingState: LoadingState.loaded,
+          hasReachedMax: true,
+          resultType: ResultTypes.artists,
+          sourceEngine: SourceEngine.eng_YTM,
+        ));
+        log("Got results: ${artists.length}", name: "FetchSearchRes");
+        break;
+    }
+
     log("got all searches ${last_YTM_search.mediaItemList.length}",
         name: "FetchSearchRes");
   }
 
-  Future<void> searchYTVTracks(String query) async {
+  Future<void> searchYTVTracks(String query,
+      {ResultTypes resultType = ResultTypes.songs}) async {
     log("Youtube Video Search", name: "FetchSearchRes");
 
     last_YTV_search.query = query;
@@ -282,10 +335,10 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
       ResultTypes resultType = ResultTypes.songs}) async {
     switch (sourceEngine) {
       case SourceEngine.eng_YTM:
-        searchYTMTracks(query);
+        searchYTMTracks(query, resultType: resultType);
         break;
       case SourceEngine.eng_YTV:
-        searchYTVTracks(query);
+        searchYTVTracks(query, resultType: resultType);
         break;
       case SourceEngine.eng_JIS:
         searchJISTracks(query, resultType: resultType);

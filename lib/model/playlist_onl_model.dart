@@ -70,6 +70,11 @@ class PlaylistOnlModel {
       songs: songs ?? this.songs,
     );
   }
+
+  @override
+  String toString() {
+    return 'PlaylistOnlModel(name: $name, imageURL: $imageURL, artists: $artists, sourceURL: $sourceURL, year: $year, description: $description, )';
+  }
 }
 
 List<PlaylistOnlModel> saavnMap2Playlists(Map<String, dynamic> json) {
@@ -86,6 +91,25 @@ List<PlaylistOnlModel> saavnMap2Playlists(Map<String, dynamic> json) {
         sourceId: playlist['id'],
         year: playlist['year'],
         language: playlist['language'],
+      ));
+    });
+  }
+  return playlists;
+}
+
+List<PlaylistOnlModel> ytmMap2Playlists(Map<String, dynamic> json) {
+  List<PlaylistOnlModel> playlists = [];
+  if (json['playlists'] != null) {
+    json['playlists'].forEach((playlist) {
+      playlists.add(PlaylistOnlModel(
+        name: playlist['title'],
+        imageURL: playlist['image'],
+        sourceURL:
+            'https://music.youtube.com/playlist?list=${(playlist['id'].toString().replaceAll('youtube', '').replaceFirst('VL', ''))}',
+        description: playlist['subtitle'],
+        artists: (playlist['artists'] as List).map((e) => e['name']).join(', '),
+        source: 'ytm',
+        sourceId: playlist['id'],
       ));
     });
   }

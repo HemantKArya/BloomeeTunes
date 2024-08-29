@@ -49,7 +49,7 @@ class AlbumModel {
 
   @override
   String toString() {
-    return 'AlbumModel(name: $name, imageURL: $imageURL, source: $source, sourceId: $sourceId, artists: $artists, year: $year, extra: $extra)';
+    return 'AlbumModel(name: $name, imageURL: $imageURL, source: $source, sourceId: $sourceId, artists: $artists, year: $year, sourceURL: $sourceURL, extra: $extra)';
   }
 
   AlbumModel copyWith({
@@ -104,6 +104,29 @@ List<AlbumModel> saavnMap2Albums(Map<String, dynamic> json) {
           description: album['subtitle'],
           extra: {
             'token': album['token'],
+          }));
+    });
+  }
+  return albums;
+}
+
+List<AlbumModel> ytmMap2Albums(Map<String, dynamic> json) {
+  List<AlbumModel> albums = [];
+  if (json['albums'] != null) {
+    json['albums'].forEach((album) {
+      albums.add(AlbumModel(
+          name: album['title'],
+          imageURL: album['image'],
+          source: 'ytm',
+          sourceId: album['id'],
+          artists: album['artists']?.map((e) => e['name']).join(', ') ??
+              album['artist'],
+          year: album['year'],
+          sourceURL:
+              'https://music.youtube.com/browse/${album['id'].toString().replaceAll('youtube', '').replaceAll('VL', '')}',
+          description: album['subtitle'],
+          extra: {
+            'token': album['id'],
           }));
     });
   }

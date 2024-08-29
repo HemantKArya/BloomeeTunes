@@ -14,6 +14,7 @@ class ArtistModel {
   String? country;
   List<MediaItemModel> songs;
   List<AlbumModel> albums;
+  Map extra;
 
   ArtistModel({
     required this.name,
@@ -26,11 +27,12 @@ class ArtistModel {
     this.country,
     this.songs = const [],
     this.albums = const [],
+    this.extra = const {},
   });
 
   @override
   String toString() {
-    return 'ArtistModel(name: $name, imageUrl: $imageUrl, profileURL: $sourceURL, source: $source, sourceId: $sourceId, description: $description, songs: $songs, albums: $albums)';
+    return 'ArtistModel(name: $name, imageUrl: $imageUrl, profileURL: $sourceURL, source: $source, sourceId: $sourceId, description: $description, songs: $songs, albums: $albums,extra: $extra)';
   }
 
   get playlist {
@@ -58,6 +60,7 @@ class ArtistModel {
     String? country,
     List<MediaItemModel>? songs,
     List<AlbumModel>? albums,
+    Map? extra,
   }) {
     return ArtistModel(
       name: name ?? this.name,
@@ -70,6 +73,7 @@ class ArtistModel {
       country: country ?? this.country,
       songs: songs ?? this.songs,
       albums: albums ?? this.albums,
+      extra: extra ?? this.extra,
     );
   }
 }
@@ -88,6 +92,27 @@ List<ArtistModel> saavnMap2Artists(Map<String, dynamic> json) {
         country: artist['country'],
         description: artist['subtitle'],
       ));
+    });
+  }
+  return artists;
+}
+
+List<ArtistModel> ytmMap2Artists(Map<String, dynamic> json) {
+  List<ArtistModel> artists = [];
+  if (json['artists'] != null) {
+    json['artists'].forEach((artist) {
+      artists.add(ArtistModel(
+          name: artist['title'],
+          imageUrl: artist['image'],
+          source: 'ytm',
+          sourceId: artist['id'].toString().replaceAll('youtube', ''),
+          sourceURL:
+              'https://music.youtube.com/channel/${artist['id'].toString().replaceAll('youtube', '')}',
+          description: artist['subtitle'],
+          extra: {
+            'songBrowseId': artist['songBrowseId'],
+            'songBrowseParams': artist['songBrowseParams'],
+          }));
     });
   }
   return artists;
