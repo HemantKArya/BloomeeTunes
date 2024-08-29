@@ -2,6 +2,7 @@ import 'package:Bloomee/blocs/album_view/album_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -250,6 +251,11 @@ class _AlbumViewState extends State<AlbumView> {
                       itemBuilder: (context, index) {
                         return SongCardWidget(
                           song: state.album.songs[index],
+                          onOptionsTap: () {
+                            showMoreBottomSheet(
+                                context, state.album.songs[index],
+                                showDelete: false);
+                          },
                           onTap: () {
                             if (context
                                         .read<BloomeePlayerCubit>()
