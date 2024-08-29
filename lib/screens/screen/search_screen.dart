@@ -128,374 +128,387 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      onVerticalDragEnd: (DragEndDetails details) =>
-          FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          shadowColor: Colors.black,
-          surfaceTintColor: Default_Theme.themeColor,
-          title: SizedBox(
-            height: 50.0,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-              ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: () {
-                  showSearch(
-                          context: context,
-                          delegate: SearchPageDelegate(
-                              _sourceEngine, resultType.value),
-                          query: _textEditingController.text)
-                      .then((value) {
-                    if (value != null) {
-                      _textEditingController.text = value.toString();
-                    }
-                  });
-                },
-                child: TextField(
-                  controller: _textEditingController,
-                  enabled: false,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Default_Theme.primaryColor1.withOpacity(0.55)),
-                  textInputAction: TextInputAction.search,
-                  decoration: InputDecoration(
-                      filled: true,
-                      suffixIcon: Icon(
-                        MingCute.search_2_fill,
-                        color: Default_Theme.primaryColor1.withOpacity(0.4),
-                      ),
-                      fillColor: Default_Theme.primaryColor2.withOpacity(0.07),
-                      contentPadding:
-                          const EdgeInsets.only(top: 20, left: 15, right: 5),
-                      hintText: "Find your next song obsession...",
-                      hintStyle: TextStyle(
-                        color: Default_Theme.primaryColor1.withOpacity(0.3),
-                        fontFamily: "Unageo",
-                        fontWeight: FontWeight.normal,
-                      ),
-                      disabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(style: BorderStyle.none),
-                          borderRadius: BorderRadius.circular(50)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color:
-                                  Default_Theme.primaryColor1.withOpacity(0.7)),
-                          borderRadius: BorderRadius.circular(50))),
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        onVerticalDragEnd: (DragEndDetails details) =>
+            FocusManager.instance.primaryFocus?.unfocus(),
+        child: Scaffold(
+          appBar: AppBar(
+            shadowColor: Colors.black,
+            surfaceTintColor: Default_Theme.themeColor,
+            title: SizedBox(
+              height: 50.0,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    showSearch(
+                            context: context,
+                            delegate: SearchPageDelegate(
+                                _sourceEngine, resultType.value),
+                            query: _textEditingController.text)
+                        .then((value) {
+                      if (value != null) {
+                        _textEditingController.text = value.toString();
+                      }
+                    });
+                  },
+                  child: TextField(
+                    controller: _textEditingController,
+                    enabled: false,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Default_Theme.primaryColor1.withOpacity(0.55)),
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                        filled: true,
+                        suffixIcon: Icon(
+                          MingCute.search_2_fill,
+                          color: Default_Theme.primaryColor1.withOpacity(0.4),
+                        ),
+                        fillColor:
+                            Default_Theme.primaryColor2.withOpacity(0.07),
+                        contentPadding:
+                            const EdgeInsets.only(top: 20, left: 15, right: 5),
+                        hintText: "Find your next song obsession...",
+                        hintStyle: TextStyle(
+                          color: Default_Theme.primaryColor1.withOpacity(0.3),
+                          fontFamily: "Unageo",
+                          fontWeight: FontWeight.normal,
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(style: BorderStyle.none),
+                            borderRadius: BorderRadius.circular(50)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Default_Theme.primaryColor1
+                                    .withOpacity(0.7)),
+                            borderRadius: BorderRadius.circular(50))),
+                  ),
                 ),
               ),
             ),
+            backgroundColor: Default_Theme.themeColor,
           ),
           backgroundColor: Default_Theme.themeColor,
-        ),
-        backgroundColor: Default_Theme.themeColor,
-        body: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 18, right: 18, top: 5, bottom: 5),
-                child: FutureBuilder(
-                    future: availableSourceEngines(),
-                    builder: (context, snapshot) {
-                      return snapshot.hasData || snapshot.data != null
-                          ? Wrap(
-                              direction: Axis.horizontal,
-                              runSpacing: 8,
-                              alignment: WrapAlignment.start,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                  SizedBox(
-                                    height: 30,
-                                    width: 100,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: ValueListenableBuilder(
-                                          valueListenable: resultType,
-                                          builder: (context, value, child) {
-                                            return DropdownButtonFormField(
-                                              key: UniqueKey(),
-                                              isExpanded: false,
-                                              isDense: true,
-                                              alignment: Alignment.center,
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                              padding: const EdgeInsets.all(0),
-                                              focusColor: Colors.transparent,
-                                              dropdownColor:
-                                                  const Color.fromARGB(
-                                                      255, 15, 15, 15),
-                                              decoration: InputDecoration(
-                                                filled: false,
-                                                fillColor: Default_Theme
-                                                    .primaryColor2
-                                                    .withOpacity(0.07),
-                                                contentPadding:
-                                                    const EdgeInsets.all(0),
-                                                focusColor:
-                                                    Default_Theme.accentColor2,
-                                                border: OutlineInputBorder(
-                                                    borderSide:
-                                                        const BorderSide(
-                                                            style: BorderStyle
-                                                                .none),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20)),
-                                                enabledBorder:
-                                                    OutlineInputBorder(
-                                                        borderSide:
-                                                            const BorderSide(
-                                                                style:
-                                                                    BorderStyle
-                                                                        .none),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20)),
-                                                focusedBorder:
-                                                    OutlineInputBorder(
-                                                        borderSide:
-                                                            const BorderSide(
-                                                                style:
-                                                                    BorderStyle
-                                                                        .none),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20)),
-                                                disabledBorder:
-                                                    OutlineInputBorder(
-                                                        borderSide:
-                                                            const BorderSide(
-                                                                style:
-                                                                    BorderStyle
-                                                                        .none),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20)),
+          body: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 18, right: 18, top: 5, bottom: 5),
+                  child: FutureBuilder(
+                      future: availableSourceEngines(),
+                      builder: (context, snapshot) {
+                        return snapshot.hasData || snapshot.data != null
+                            ? Wrap(
+                                direction: Axis.horizontal,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.start,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                    SizedBox(
+                                      height: 30,
+                                      width: 100,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 8),
+                                        child: ValueListenableBuilder(
+                                            valueListenable: resultType,
+                                            builder: (context, value, child) {
+                                              return DropdownButtonFormField(
+                                                key: UniqueKey(),
+                                                isExpanded: false,
                                                 isDense: true,
-                                              ),
-                                              value: resultType.value.index,
-                                              items: ResultTypes.values
-                                                  .map((e) => DropdownMenuItem(
-                                                        value: e.index,
-                                                        child: SizedBox(
-                                                          height: 32,
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .only(
-                                                              left: 8,
-                                                              top: 2,
-                                                              bottom: 4,
-                                                            ),
-                                                            child: Text(
-                                                              e.val,
-                                                              style: Default_Theme
-                                                                  .secondoryTextStyleMedium
-                                                                  .merge(
-                                                                      const TextStyle(
-                                                                color: Default_Theme
-                                                                    .primaryColor1,
-                                                                fontSize: 13.5,
-                                                              )),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ))
-                                                  .toList(),
-                                              onChanged: (value) {
-                                                resultType.value =
-                                                    ResultTypes.values[value!];
-                                                context
-                                                    .read<
-                                                        FetchSearchResultsCubit>()
-                                                    .checkAndRefreshSearch(
-                                                      query:
-                                                          _textEditingController
-                                                              .text
-                                                              .toString(),
-                                                      sE: _sourceEngine,
-                                                      rT: resultType.value,
-                                                    );
-                                              },
-                                            );
-                                          }),
+                                                alignment: Alignment.center,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                padding:
+                                                    const EdgeInsets.all(0),
+                                                focusColor: Colors.transparent,
+                                                dropdownColor:
+                                                    const Color.fromARGB(
+                                                        255, 15, 15, 15),
+                                                decoration: InputDecoration(
+                                                  filled: false,
+                                                  fillColor: Default_Theme
+                                                      .primaryColor2
+                                                      .withOpacity(0.07),
+                                                  contentPadding:
+                                                      const EdgeInsets.all(0),
+                                                  focusColor: Default_Theme
+                                                      .accentColor2,
+                                                  border: OutlineInputBorder(
+                                                      borderSide:
+                                                          const BorderSide(
+                                                              style: BorderStyle
+                                                                  .none),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20)),
+                                                  enabledBorder:
+                                                      OutlineInputBorder(
+                                                          borderSide:
+                                                              const BorderSide(
+                                                                  style:
+                                                                      BorderStyle
+                                                                          .none),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20)),
+                                                  focusedBorder:
+                                                      OutlineInputBorder(
+                                                          borderSide:
+                                                              const BorderSide(
+                                                                  style:
+                                                                      BorderStyle
+                                                                          .none),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20)),
+                                                  disabledBorder:
+                                                      OutlineInputBorder(
+                                                          borderSide:
+                                                              const BorderSide(
+                                                                  style:
+                                                                      BorderStyle
+                                                                          .none),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20)),
+                                                  isDense: true,
+                                                ),
+                                                value: resultType.value.index,
+                                                items: ResultTypes.values
+                                                    .map(
+                                                        (e) => DropdownMenuItem(
+                                                              value: e.index,
+                                                              child: SizedBox(
+                                                                height: 32,
+                                                                child: Padding(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .only(
+                                                                    left: 8,
+                                                                    top: 2,
+                                                                    bottom: 4,
+                                                                  ),
+                                                                  child: Text(
+                                                                    e.val,
+                                                                    style: Default_Theme
+                                                                        .secondoryTextStyleMedium
+                                                                        .merge(
+                                                                            const TextStyle(
+                                                                      color: Default_Theme
+                                                                          .primaryColor1,
+                                                                      fontSize:
+                                                                          13.5,
+                                                                    )),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ))
+                                                    .toList(),
+                                                onChanged: (value) {
+                                                  resultType.value = ResultTypes
+                                                      .values[value!];
+                                                  context
+                                                      .read<
+                                                          FetchSearchResultsCubit>()
+                                                      .checkAndRefreshSearch(
+                                                        query:
+                                                            _textEditingController
+                                                                .text
+                                                                .toString(),
+                                                        sE: _sourceEngine,
+                                                        rT: resultType.value,
+                                                      );
+                                                },
+                                              );
+                                            }),
+                                      ),
                                     ),
-                                  ),
-                                  for (var sourceEngine in availSourceEngines)
-                                    sourceEngineRadioButton(sourceEngine)
-                                ])
-                          : const SizedBox();
-                    }),
+                                    for (var sourceEngine in availSourceEngines)
+                                      sourceEngineRadioButton(sourceEngine)
+                                  ])
+                            : const SizedBox();
+                      }),
+                ),
               ),
-            ),
-          ],
-          body: BlocBuilder<ConnectivityCubit, ConnectivityState>(
-            builder: (context, state) {
-              return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 600),
-                  child: state == ConnectivityState.disconnected
-                      ? const SignBoardWidget(
-                          icon: MingCute.wifi_off_line,
-                          message: "No internet connection!",
-                        )
-                      : BlocConsumer<FetchSearchResultsCubit,
-                          FetchSearchResultsState>(
-                          builder: (context, state) {
-                            if (state is FetchSearchResultsLoading) {
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                  color: Default_Theme.accentColor2,
-                                ),
-                              );
-                            } else if (state.loadingState ==
-                                LoadingState.loaded) {
-                              if (state.resultType == ResultTypes.songs &&
-                                  state.mediaItems.isNotEmpty) {
-                                log("Search Results: ${state.mediaItems.length}",
-                                    name: "SearchScreen");
-                                return ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: state.hasReachedMax
-                                      ? state.mediaItems.length
-                                      : state.mediaItems.length + 1,
-                                  itemBuilder: (context, index) {
-                                    if (index == state.mediaItems.length) {
-                                      return const Center(
-                                        child: SizedBox(
-                                          height: 30,
-                                          width: 30,
-                                          child: CircularProgressIndicator(
-                                            color: Default_Theme.accentColor2,
+            ],
+            body: BlocBuilder<ConnectivityCubit, ConnectivityState>(
+              builder: (context, state) {
+                return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 600),
+                    child: state == ConnectivityState.disconnected
+                        ? const SignBoardWidget(
+                            icon: MingCute.wifi_off_line,
+                            message: "No internet connection!",
+                          )
+                        : BlocConsumer<FetchSearchResultsCubit,
+                            FetchSearchResultsState>(
+                            builder: (context, state) {
+                              if (state is FetchSearchResultsLoading) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Default_Theme.accentColor2,
+                                  ),
+                                );
+                              } else if (state.loadingState ==
+                                  LoadingState.loaded) {
+                                if (state.resultType == ResultTypes.songs &&
+                                    state.mediaItems.isNotEmpty) {
+                                  log("Search Results: ${state.mediaItems.length}",
+                                      name: "SearchScreen");
+                                  return ListView.builder(
+                                    controller: _scrollController,
+                                    itemCount: state.hasReachedMax
+                                        ? state.mediaItems.length
+                                        : state.mediaItems.length + 1,
+                                    itemBuilder: (context, index) {
+                                      if (index == state.mediaItems.length) {
+                                        return const Center(
+                                          child: SizedBox(
+                                            height: 30,
+                                            width: 30,
+                                            child: CircularProgressIndicator(
+                                              color: Default_Theme.accentColor2,
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(left: 4),
-                                      child: SongCardWidget(
-                                        song: state.mediaItems[index],
-                                        onTap: () {
-                                          if (!listEquals(
+                                        );
+                                      }
+                                      return Padding(
+                                        padding: const EdgeInsets.only(left: 4),
+                                        child: SongCardWidget(
+                                          song: state.mediaItems[index],
+                                          onTap: () {
+                                            if (!listEquals(
+                                                context
+                                                    .read<BloomeePlayerCubit>()
+                                                    .bloomeePlayer
+                                                    .queue
+                                                    .value,
+                                                state.mediaItems)) {
                                               context
                                                   .read<BloomeePlayerCubit>()
                                                   .bloomeePlayer
-                                                  .queue
-                                                  .value,
-                                              state.mediaItems)) {
-                                            context
-                                                .read<BloomeePlayerCubit>()
-                                                .bloomeePlayer
-                                                .loadPlaylist(
-                                                    MediaPlaylist(
-                                                        playlistName: "Search",
-                                                        mediaItems:
-                                                            state.mediaItems),
-                                                    idx: index,
-                                                    doPlay: true);
-                                          } else if (context
+                                                  .loadPlaylist(
+                                                      MediaPlaylist(
+                                                          playlistName:
+                                                              "Search",
+                                                          mediaItems:
+                                                              state.mediaItems),
+                                                      idx: index,
+                                                      doPlay: true);
+                                            } else if (context
+                                                    .read<BloomeePlayerCubit>()
+                                                    .bloomeePlayer
+                                                    .currentMedia !=
+                                                state.mediaItems[index]) {
+                                              context
                                                   .read<BloomeePlayerCubit>()
                                                   .bloomeePlayer
-                                                  .currentMedia !=
-                                              state.mediaItems[index]) {
-                                            context
-                                                .read<BloomeePlayerCubit>()
-                                                .bloomeePlayer
-                                                .prepare4play(
-                                                    idx: index, doPlay: true);
-                                          }
+                                                  .prepare4play(
+                                                      idx: index, doPlay: true);
+                                            }
 
-                                          context.push('/MusicPlayer');
-                                        },
-                                        onOptionsTap: () => showMoreBottomSheet(
-                                            context, state.mediaItems[index]),
+                                            context.push('/MusicPlayer');
+                                          },
+                                          onOptionsTap: () =>
+                                              showMoreBottomSheet(context,
+                                                  state.mediaItems[index]),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                } else if (state.resultType ==
+                                        ResultTypes.albums &&
+                                    state.albumItems.isNotEmpty) {
+                                  return Align(
+                                    alignment: Alignment.topCenter,
+                                    child: SingleChildScrollView(
+                                      physics: const BouncingScrollPhysics(),
+                                      child: Wrap(
+                                        alignment: WrapAlignment.center,
+                                        runSpacing: 10,
+                                        children: [
+                                          for (var album in state.albumItems)
+                                            AlbumCard(album: album)
+                                        ],
                                       ),
-                                    );
-                                  },
-                                );
-                              } else if (state.resultType ==
-                                      ResultTypes.albums &&
-                                  state.albumItems.isNotEmpty) {
-                                return Align(
-                                  alignment: Alignment.topCenter,
-                                  child: SingleChildScrollView(
-                                    physics: const BouncingScrollPhysics(),
-                                    child: Wrap(
-                                      alignment: WrapAlignment.center,
-                                      runSpacing: 10,
-                                      children: [
-                                        for (var album in state.albumItems)
-                                          AlbumCard(album: album)
-                                      ],
                                     ),
-                                  ),
-                                );
-                              } else if (state.resultType ==
-                                      ResultTypes.artists &&
-                                  state.artistItems.isNotEmpty) {
-                                return Align(
-                                  alignment: Alignment.topCenter,
-                                  child: SingleChildScrollView(
-                                    physics: const BouncingScrollPhysics(),
-                                    child: Wrap(
-                                      alignment: WrapAlignment.center,
-                                      runSpacing: 10,
-                                      children: [
-                                        for (var artist in state.artistItems)
-                                          ArtistCard(artist: artist)
-                                      ],
+                                  );
+                                } else if (state.resultType ==
+                                        ResultTypes.artists &&
+                                    state.artistItems.isNotEmpty) {
+                                  return Align(
+                                    alignment: Alignment.topCenter,
+                                    child: SingleChildScrollView(
+                                      physics: const BouncingScrollPhysics(),
+                                      child: Wrap(
+                                        alignment: WrapAlignment.center,
+                                        runSpacing: 10,
+                                        children: [
+                                          for (var artist in state.artistItems)
+                                            ArtistCard(artist: artist)
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              } else if (state.resultType ==
-                                      ResultTypes.playlists &&
-                                  state.playlistItems.isNotEmpty) {
-                                return Align(
-                                  alignment: Alignment.topCenter,
-                                  child: SingleChildScrollView(
-                                    physics: const BouncingScrollPhysics(),
-                                    child: Wrap(
-                                      alignment: WrapAlignment.center,
-                                      runSpacing: 10,
-                                      children: [
-                                        for (var playlist
-                                            in state.playlistItems)
-                                          PlaylistCard(
-                                            playlist: playlist,
-                                            sourceEngine: _sourceEngine,
-                                          )
-                                      ],
+                                  );
+                                } else if (state.resultType ==
+                                        ResultTypes.playlists &&
+                                    state.playlistItems.isNotEmpty) {
+                                  return Align(
+                                    alignment: Alignment.topCenter,
+                                    child: SingleChildScrollView(
+                                      physics: const BouncingScrollPhysics(),
+                                      child: Wrap(
+                                        alignment: WrapAlignment.center,
+                                        runSpacing: 10,
+                                        children: [
+                                          for (var playlist
+                                              in state.playlistItems)
+                                            PlaylistCard(
+                                              playlist: playlist,
+                                              sourceEngine: _sourceEngine,
+                                            )
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  return const SignBoardWidget(
+                                      message:
+                                          "No results found!\nTry another keyword or source engine!",
+                                      icon: MingCute.sweats_line);
+                                }
                               } else {
                                 return const SignBoardWidget(
                                     message:
-                                        "No results found!\nTry another keyword or source engine!",
-                                    icon: MingCute.sweats_line);
+                                        "Search for your favorite songs\nand discover new ones!",
+                                    icon: MingCute.search_2_line);
                               }
-                            } else {
-                              return const SignBoardWidget(
-                                  message:
-                                      "Search for your favorite songs\nand discover new ones!",
-                                  icon: MingCute.search_2_line);
-                            }
-                          },
-                          listener: (BuildContext context,
-                              FetchSearchResultsState state) {
-                            resultType.value = state.resultType;
-                            if (state is! FetchSearchResultsLoaded &&
-                                state is! FetchSearchResultsInitial) {
-                              _sourceEngine =
-                                  state.sourceEngine ?? _sourceEngine;
-                            }
-                          },
-                        ));
-            },
+                            },
+                            listener: (BuildContext context,
+                                FetchSearchResultsState state) {
+                              resultType.value = state.resultType;
+                              if (state is! FetchSearchResultsLoaded &&
+                                  state is! FetchSearchResultsInitial) {
+                                _sourceEngine =
+                                    state.sourceEngine ?? _sourceEngine;
+                              }
+                            },
+                          ));
+              },
+            ),
           ),
         ),
       ),

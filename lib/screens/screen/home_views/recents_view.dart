@@ -14,67 +14,69 @@ class HistoryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Default_Theme.themeColor,
-      appBar: AppBar(
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(
-              MingCute.settings_1_line,
-              color: Default_Theme.primaryColor1,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Default_Theme.themeColor,
+        appBar: AppBar(
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(
+                MingCute.settings_1_line,
+                color: Default_Theme.primaryColor1,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BackupSettings(),
+                  ),
+                );
+              },
             ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const BackupSettings(),
-                ),
-              );
+          ],
+          backgroundColor: Default_Theme.themeColor,
+          surfaceTintColor: Default_Theme.themeColor,
+          foregroundColor: Default_Theme.primaryColor1,
+          title: Text(
+            'History',
+            style: const TextStyle(
+                    color: Default_Theme.primaryColor1,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold)
+                .merge(Default_Theme.secondoryTextStyle),
+          ),
+        ),
+        body: BlocProvider(
+          create: (context) => HistoryCubit(),
+          child: BlocBuilder<HistoryCubit, HistoryState>(
+            builder: (context, state) {
+              return (state is HistoryInitial)
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : ListView.builder(
+                      itemCount: state.mediaPlaylist.mediaItems.length,
+                      shrinkWrap: true,
+                      physics: const BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return SongCardWidget(
+                          song: state.mediaPlaylist.mediaItems[index],
+                          onTap: () {
+                            context
+                                .read<BloomeePlayerCubit>()
+                                .bloomeePlayer
+                                .addQueueItem(
+                                  state.mediaPlaylist.mediaItems[index],
+                                );
+                          },
+                          onOptionsTap: () => showMoreBottomSheet(
+                              context, state.mediaPlaylist.mediaItems[index]),
+                        );
+                      },
+                    );
             },
           ),
-        ],
-        backgroundColor: Default_Theme.themeColor,
-        surfaceTintColor: Default_Theme.themeColor,
-        foregroundColor: Default_Theme.primaryColor1,
-        title: Text(
-          'History',
-          style: const TextStyle(
-                  color: Default_Theme.primaryColor1,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)
-              .merge(Default_Theme.secondoryTextStyle),
-        ),
-      ),
-      body: BlocProvider(
-        create: (context) => HistoryCubit(),
-        child: BlocBuilder<HistoryCubit, HistoryState>(
-          builder: (context, state) {
-            return (state is HistoryInitial)
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : ListView.builder(
-                    itemCount: state.mediaPlaylist.mediaItems.length,
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      return SongCardWidget(
-                        song: state.mediaPlaylist.mediaItems[index],
-                        onTap: () {
-                          context
-                              .read<BloomeePlayerCubit>()
-                              .bloomeePlayer
-                              .addQueueItem(
-                                state.mediaPlaylist.mediaItems[index],
-                              );
-                        },
-                        onOptionsTap: () => showMoreBottomSheet(
-                            context, state.mediaPlaylist.mediaItems[index]),
-                      );
-                    },
-                  );
-          },
         ),
       ),
     );

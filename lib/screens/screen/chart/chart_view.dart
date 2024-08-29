@@ -32,57 +32,59 @@ class _ChartScreenState extends State<ChartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder(
-        future: chartModel,
-        builder: (context, state) {
-          if (state.connectionState == ConnectionState.waiting ||
-              state.data == null) {
-            return const Center(
-              child: SizedBox(
-                  height: 50,
-                  width: 50,
-                  child: CircularProgressIndicator(
-                    color: Default_Theme.accentColor2,
-                  )),
-            );
-          } else if (state.data!.chartItems!.isEmpty) {
-            return Center(
-              child: Text("Error: No Item in Chart",
-                  style: Default_Theme.secondoryTextStyleMedium.merge(
-                      const TextStyle(
-                          fontSize: 24,
-                          color: Color.fromARGB(255, 255, 235, 251)))),
-            );
-          } else {
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                customDiscoverBar(context, state.data!), //AppBar
-                SliverList(
-                    delegate: SliverChildListDelegate([
-                  ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.only(
-                      top: 5,
+    return SafeArea(
+      child: Scaffold(
+        body: FutureBuilder(
+          future: chartModel,
+          builder: (context, state) {
+            if (state.connectionState == ConnectionState.waiting ||
+                state.data == null) {
+              return const Center(
+                child: SizedBox(
+                    height: 50,
+                    width: 50,
+                    child: CircularProgressIndicator(
+                      color: Default_Theme.accentColor2,
+                    )),
+              );
+            } else if (state.data!.chartItems!.isEmpty) {
+              return Center(
+                child: Text("Error: No Item in Chart",
+                    style: Default_Theme.secondoryTextStyleMedium.merge(
+                        const TextStyle(
+                            fontSize: 24,
+                            color: Color.fromARGB(255, 255, 235, 251)))),
+              );
+            } else {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  customDiscoverBar(context, state.data!), //AppBar
+                  SliverList(
+                      delegate: SliverChildListDelegate([
+                    ListView.builder(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.only(
+                        top: 5,
+                      ),
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: state.data!.chartItems!.length,
+                      itemBuilder: (context, index) {
+                        return ChartListTile(
+                          title: state.data!.chartItems![index].name!,
+                          subtitle: state.data!.chartItems![index].subtitle!,
+                          imgUrl: state.data!.chartItems![index].imageUrl!,
+                        );
+                      },
                     ),
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: state.data!.chartItems!.length,
-                    itemBuilder: (context, index) {
-                      return ChartListTile(
-                        title: state.data!.chartItems![index].name!,
-                        subtitle: state.data!.chartItems![index].subtitle!,
-                        imgUrl: state.data!.chartItems![index].imageUrl!,
-                      );
-                    },
-                  ),
-                ]))
-              ],
-            );
-          }
-        },
+                  ]))
+                ],
+              );
+            }
+          },
+        ),
+        backgroundColor: Default_Theme.themeColor,
       ),
-      backgroundColor: Default_Theme.themeColor,
     );
   }
 

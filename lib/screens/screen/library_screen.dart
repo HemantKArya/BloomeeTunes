@@ -17,36 +17,38 @@ class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          customDiscoverBar(context), //AppBar
-          BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-            builder: (context, state) {
-              if (state is LibraryItemsInitial) {
-                return const SliverToBoxAdapter(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              } else if (state is! LibraryItemsInitial) {
-                return ListOfPlaylists(state: state);
-              } else {
-                return const SliverToBoxAdapter(
-                  child: Center(
-                    child: SignBoardWidget(
-                      message: "No Playlists Found!",
-                      icon: MingCute.playlist_fill,
+    return SafeArea(
+      child: Scaffold(
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            customDiscoverBar(context), //AppBar
+            BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+              builder: (context, state) {
+                if (state is LibraryItemsInitial) {
+                  return const SliverToBoxAdapter(
+                    child: Center(
+                      child: CircularProgressIndicator(),
                     ),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
+                  );
+                } else if (state is! LibraryItemsInitial) {
+                  return ListOfPlaylists(state: state);
+                } else {
+                  return const SliverToBoxAdapter(
+                    child: Center(
+                      child: SignBoardWidget(
+                        message: "No Playlists Found!",
+                        icon: MingCute.playlist_fill,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+        backgroundColor: Default_Theme.themeColor,
       ),
-      backgroundColor: Default_Theme.themeColor,
     );
   }
 

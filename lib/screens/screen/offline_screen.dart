@@ -14,55 +14,57 @@ class OfflineScreen extends StatelessWidget {
   const OfflineScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          OfflineCubit(libraryItemsCubit: context.read<LibraryItemsCubit>()),
-      child: Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            customDiscoverBar(context), //AppBar
-            SliverList(
-                delegate: SliverChildListDelegate([
-              BlocBuilder<OfflineCubit, OfflineState>(
-                  builder: (context, state) {
-                if (state is OfflineInitial) {
-                  return const CircularProgressIndicator();
-                } else if (state is OfflineEmpty) {
-                  return const SignBoardWidget(
-                    message: "No Downloads",
-                    icon: FontAwesome.download_solid,
-                  );
-                } else {
-                  return Column(
-                    children: state.songs
-                        .map((e) => SongCardWidget(
-                              song: e,
-                              showOptions: true,
-                              delDownBtn: true,
-                              onTap: () {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .loadPlaylist(
-                                        MediaPlaylist(
-                                            mediaItems: state.songs,
-                                            playlistName: "Offline"),
-                                        idx: state.songs.indexOf(e),
-                                        doPlay: true);
-                              },
-                              onOptionsTap: () {
-                                showMoreBottomSheet(context, e,
-                                    showDelete: false);
-                              },
-                            ))
-                        .toList(),
-                  );
-                }
-              })
-            ]))
-          ],
+    return SafeArea(
+      child: BlocProvider(
+        create: (context) =>
+            OfflineCubit(libraryItemsCubit: context.read<LibraryItemsCubit>()),
+        child: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              customDiscoverBar(context), //AppBar
+              SliverList(
+                  delegate: SliverChildListDelegate([
+                BlocBuilder<OfflineCubit, OfflineState>(
+                    builder: (context, state) {
+                  if (state is OfflineInitial) {
+                    return const CircularProgressIndicator();
+                  } else if (state is OfflineEmpty) {
+                    return const SignBoardWidget(
+                      message: "No Downloads",
+                      icon: FontAwesome.download_solid,
+                    );
+                  } else {
+                    return Column(
+                      children: state.songs
+                          .map((e) => SongCardWidget(
+                                song: e,
+                                showOptions: true,
+                                delDownBtn: true,
+                                onTap: () {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .loadPlaylist(
+                                          MediaPlaylist(
+                                              mediaItems: state.songs,
+                                              playlistName: "Offline"),
+                                          idx: state.songs.indexOf(e),
+                                          doPlay: true);
+                                },
+                                onOptionsTap: () {
+                                  showMoreBottomSheet(context, e,
+                                      showDelete: false);
+                                },
+                              ))
+                          .toList(),
+                    );
+                  }
+                })
+              ]))
+            ],
+          ),
+          backgroundColor: Default_Theme.themeColor,
         ),
-        backgroundColor: Default_Theme.themeColor,
       ),
     );
   }

@@ -39,341 +39,353 @@ class _ArtistViewState extends State<ArtistView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocBuilder<ArtistCubit, ArtistState>(
-        bloc: artistCubit,
-        builder: (context, state) {
-          return DefaultTabController(
-            length: 2,
-            child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                SliverAppBar(
-                  expandedHeight:
-                      ResponsiveBreakpoints.of(context).isMobile ? 220 : 250,
-                  flexibleSpace: LayoutBuilder(builder: (context, constraints) {
-                    return FlexibleSpaceBar(
-                      background: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 8,
-                          right: 8,
-                          top: 34,
-                          bottom: 8,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxHeight: constraints.maxHeight,
-                            minWidth: 350,
+    return SafeArea(
+      child: Scaffold(
+        body: BlocBuilder<ArtistCubit, ArtistState>(
+          bloc: artistCubit,
+          builder: (context, state) {
+            return DefaultTabController(
+              length: 2,
+              child: NestedScrollView(
+                headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                  SliverAppBar(
+                    expandedHeight:
+                        ResponsiveBreakpoints.of(context).isMobile ? 220 : 250,
+                    flexibleSpace:
+                        LayoutBuilder(builder: (context, constraints) {
+                      return FlexibleSpaceBar(
+                        background: Padding(
+                          padding: const EdgeInsets.only(
+                            left: 8,
+                            right: 8,
+                            top: 34,
+                            bottom: 8,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.4,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 8,
-                                    right: 8,
-                                    top: 8,
-                                    bottom: 8,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight: constraints.maxHeight,
+                              minWidth: 350,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth:
+                                        MediaQuery.of(context).size.width * 0.4,
                                   ),
-                                  child: Hero(
-                                      tag: widget.artist.sourceId,
-                                      child: ClipOval(
-                                        child: LoadImageCached(
-                                          imageUrl: formatImgURL(
-                                              widget.artist.imageUrl,
-                                              ImageQuality.medium),
-                                          fit: BoxFit.fitWidth,
-                                        ),
-                                      )),
-                                ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        widget.artist.name,
-                                        maxLines: 3,
-                                        style: Default_Theme
-                                            .secondoryTextStyleMedium
-                                            .merge(
-                                          TextStyle(
-                                            overflow: TextOverflow.ellipsis,
-                                            fontSize: 18,
-                                            color: Default_Theme.primaryColor1
-                                                .withOpacity(0.8),
-                                          ),
-                                        ),
-                                      ),
-                                      state.artist.description != null &&
-                                              state.artist.description != ''
-                                          ? Text(
-                                              state.artist.description ?? "",
-                                              style: Default_Theme
-                                                  .secondoryTextStyle
-                                                  .merge(
-                                                TextStyle(
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  fontSize: 13,
-                                                  color: Default_Theme
-                                                      .primaryColor1
-                                                      .withOpacity(0.5),
-                                                ),
-                                              ),
-                                            )
-                                          : const SizedBox.shrink(),
-                                      FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 5,
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              OutlinedButton.icon(
-                                                style: OutlinedButton.styleFrom(
-                                                  side: const BorderSide(
-                                                    width: 2,
-                                                    color: Default_Theme
-                                                        .accentColor2,
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  if (context
-                                                          .read<
-                                                              BloomeePlayerCubit>()
-                                                          .bloomeePlayer
-                                                          .queueTitle
-                                                          .value !=
-                                                      widget.artist.name) {
-                                                    context
-                                                        .read<
-                                                            BloomeePlayerCubit>()
-                                                        .bloomeePlayer
-                                                        .loadPlaylist(
-                                                            state.artist
-                                                                .playlist,
-                                                            doPlay: true,
-                                                            idx: 0);
-                                                  } else if (!context
-                                                      .read<
-                                                          BloomeePlayerCubit>()
-                                                      .bloomeePlayer
-                                                      .audioPlayer
-                                                      .playing) {
-                                                    context
-                                                        .read<
-                                                            BloomeePlayerCubit>()
-                                                        .bloomeePlayer
-                                                        .play();
-                                                  }
-                                                },
-                                                label: const Text(
-                                                  "Play",
-                                                  style: Default_Theme
-                                                      .secondoryTextStyleMedium,
-                                                ),
-                                                icon: const Icon(
-                                                  MingCute.play_fill,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 5,
-                                                ),
-                                                child: Tooltip(
-                                                  message: "Open Original Link",
-                                                  child: IconButton(
-                                                    onPressed: () {
-                                                      SnackbarService.showMessage(
-                                                          "Opening original artist page.");
-                                                      launchUrl(
-                                                          Uri.parse(state.artist
-                                                              .sourceURL),
-                                                          mode: LaunchMode
-                                                              .externalApplication);
-                                                    },
-                                                    icon: const Icon(
-                                                      MingCute
-                                                          .external_link_line,
-                                                      size: 25,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                SliverToBoxAdapter(
-                  child: TabBar(
-                    labelColor: Default_Theme.primaryColor1,
-                    labelStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Unageo',
-                    ),
-                    dividerColor: Colors.transparent,
-                    unselectedLabelColor:
-                        Default_Theme.primaryColor1.withOpacity(0.5),
-                    indicatorColor: Default_Theme.primaryColor1,
-                    tabs: const [
-                      Tab(
-                        text: "Top Songs",
-                      ),
-                      Tab(
-                        text: "Top Albums",
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              body: (state is ArtistLoaded)
-                  ? TabBarView(
-                      children: [
-                        state.artist.songs.isEmpty
-                            ? const SignBoardWidget(
-                                message: "No song found!",
-                                icon: MingCute.unhappy_fill,
-                              )
-                            : ListView.builder(
-                                itemCount: state.artist.songs.length,
-                                itemBuilder: (context, index) {
-                                  return SongCardWidget(
-                                    song: state.artist.songs[index],
-                                    onOptionsTap: () {
-                                      showMoreBottomSheet(
-                                          context, state.artist.songs[index],
-                                          showDelete: false);
-                                    },
-                                    onTap: () {
-                                      if (context
-                                                  .read<BloomeePlayerCubit>()
-                                                  .bloomeePlayer
-                                                  .queueTitle
-                                                  .value !=
-                                              widget.artist.name ||
-                                          context
-                                                  .read<BloomeePlayerCubit>()
-                                                  .bloomeePlayer
-                                                  .currentMedia !=
-                                              state.artist.songs[index]) {
-                                        context
-                                            .read<BloomeePlayerCubit>()
-                                            .bloomeePlayer
-                                            .loadPlaylist(state.artist.playlist,
-                                                doPlay: true, idx: index);
-                                      } else if (!context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .audioPlayer
-                                          .playing) {
-                                        context
-                                            .read<BloomeePlayerCubit>()
-                                            .bloomeePlayer
-                                            .play();
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
-                        state.artist.albums.isEmpty
-                            ? const SignBoardWidget(
-                                message: "No album found!",
-                                icon: MingCute.unhappy_fill,
-                              )
-                            : ListView.builder(
-                                itemBuilder: (context, index) {
-                                  return Padding(
+                                  child: Padding(
                                     padding: const EdgeInsets.only(
                                       left: 8,
                                       right: 8,
-                                      top: 2,
-                                      bottom: 2,
+                                      top: 8,
+                                      bottom: 8,
                                     ),
-                                    child: ListTile(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => AlbumView(
-                                              album: state.artist.albums[index],
+                                    child: Hero(
+                                        tag: widget.artist.sourceId,
+                                        child: ClipOval(
+                                          child: LoadImageCached(
+                                            imageUrl: formatImgURL(
+                                                widget.artist.imageUrl,
+                                                ImageQuality.medium),
+                                            fit: BoxFit.fitWidth,
+                                          ),
+                                        )),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          widget.artist.name,
+                                          maxLines: 3,
+                                          style: Default_Theme
+                                              .secondoryTextStyleMedium
+                                              .merge(
+                                            TextStyle(
+                                              overflow: TextOverflow.ellipsis,
+                                              fontSize: 18,
+                                              color: Default_Theme.primaryColor1
+                                                  .withOpacity(0.8),
                                             ),
                                           ),
-                                        );
-                                      },
-                                      leading: Hero(
-                                        tag:
-                                            state.artist.albums[index].sourceId,
-                                        child: LoadImageCached(
-                                          imageUrl: state
-                                              .artist.albums[index].imageURL,
                                         ),
-                                      ),
-                                      title: Text(
-                                        maxLines: 1,
-                                        state.artist.albums[index].name,
-                                        style: Default_Theme
-                                            .secondoryTextStyleMedium
-                                            .merge(
-                                          TextStyle(
-                                            fontSize: 14,
-                                            overflow: TextOverflow.ellipsis,
-                                            color: Default_Theme.primaryColor1
-                                                .withOpacity(0.8),
+                                        state.artist.description != null &&
+                                                state.artist.description != ''
+                                            ? Text(
+                                                state.artist.description ?? "",
+                                                style: Default_Theme
+                                                    .secondoryTextStyle
+                                                    .merge(
+                                                  TextStyle(
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    fontSize: 13,
+                                                    color: Default_Theme
+                                                        .primaryColor1
+                                                        .withOpacity(0.5),
+                                                  ),
+                                                ),
+                                              )
+                                            : const SizedBox.shrink(),
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 5,
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                OutlinedButton.icon(
+                                                  style:
+                                                      OutlinedButton.styleFrom(
+                                                    side: const BorderSide(
+                                                      width: 2,
+                                                      color: Default_Theme
+                                                          .accentColor2,
+                                                    ),
+                                                  ),
+                                                  onPressed: () {
+                                                    if (context
+                                                            .read<
+                                                                BloomeePlayerCubit>()
+                                                            .bloomeePlayer
+                                                            .queueTitle
+                                                            .value !=
+                                                        widget.artist.name) {
+                                                      context
+                                                          .read<
+                                                              BloomeePlayerCubit>()
+                                                          .bloomeePlayer
+                                                          .loadPlaylist(
+                                                              state.artist
+                                                                  .playlist,
+                                                              doPlay: true,
+                                                              idx: 0);
+                                                    } else if (!context
+                                                        .read<
+                                                            BloomeePlayerCubit>()
+                                                        .bloomeePlayer
+                                                        .audioPlayer
+                                                        .playing) {
+                                                      context
+                                                          .read<
+                                                              BloomeePlayerCubit>()
+                                                          .bloomeePlayer
+                                                          .play();
+                                                    }
+                                                  },
+                                                  label: const Text(
+                                                    "Play",
+                                                    style: Default_Theme
+                                                        .secondoryTextStyleMedium,
+                                                  ),
+                                                  icon: const Icon(
+                                                    MingCute.play_fill,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                    left: 5,
+                                                  ),
+                                                  child: Tooltip(
+                                                    message:
+                                                        "Open Original Link",
+                                                    child: IconButton(
+                                                      onPressed: () {
+                                                        SnackbarService.showMessage(
+                                                            "Opening original artist page.");
+                                                        launchUrl(
+                                                            Uri.parse(state
+                                                                .artist
+                                                                .sourceURL),
+                                                            mode: LaunchMode
+                                                                .externalApplication);
+                                                      },
+                                                      icon: const Icon(
+                                                        MingCute
+                                                            .external_link_line,
+                                                        size: 25,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        state.artist.albums[index].artists,
-                                        maxLines: 1,
-                                        style: Default_Theme.secondoryTextStyle
-                                            .merge(
-                                          TextStyle(
-                                            fontSize: 12,
-                                            color: Default_Theme.primaryColor1
-                                                .withOpacity(0.5),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
+                                        )
+                                      ],
                                     ),
-                                  );
-                                },
-                                itemCount: state.artist.albums.length,
-                              )
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  SliverToBoxAdapter(
+                    child: TabBar(
+                      labelColor: Default_Theme.primaryColor1,
+                      labelStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Unageo',
+                      ),
+                      dividerColor: Colors.transparent,
+                      unselectedLabelColor:
+                          Default_Theme.primaryColor1.withOpacity(0.5),
+                      indicatorColor: Default_Theme.primaryColor1,
+                      tabs: const [
+                        Tab(
+                          text: "Top Songs",
+                        ),
+                        Tab(
+                          text: "Top Albums",
+                        ),
                       ],
-                    )
-                  : const Center(
-                      child: CircularProgressIndicator(),
                     ),
-            ),
-          );
-        },
+                  ),
+                ],
+                body: (state is ArtistLoaded)
+                    ? TabBarView(
+                        children: [
+                          state.artist.songs.isEmpty
+                              ? const SignBoardWidget(
+                                  message: "No song found!",
+                                  icon: MingCute.unhappy_fill,
+                                )
+                              : ListView.builder(
+                                  itemCount: state.artist.songs.length,
+                                  itemBuilder: (context, index) {
+                                    return SongCardWidget(
+                                      song: state.artist.songs[index],
+                                      onOptionsTap: () {
+                                        showMoreBottomSheet(
+                                            context, state.artist.songs[index],
+                                            showDelete: false);
+                                      },
+                                      onTap: () {
+                                        if (context
+                                                    .read<BloomeePlayerCubit>()
+                                                    .bloomeePlayer
+                                                    .queueTitle
+                                                    .value !=
+                                                widget.artist.name ||
+                                            context
+                                                    .read<BloomeePlayerCubit>()
+                                                    .bloomeePlayer
+                                                    .currentMedia !=
+                                                state.artist.songs[index]) {
+                                          context
+                                              .read<BloomeePlayerCubit>()
+                                              .bloomeePlayer
+                                              .loadPlaylist(
+                                                  state.artist.playlist,
+                                                  doPlay: true,
+                                                  idx: index);
+                                        } else if (!context
+                                            .read<BloomeePlayerCubit>()
+                                            .bloomeePlayer
+                                            .audioPlayer
+                                            .playing) {
+                                          context
+                                              .read<BloomeePlayerCubit>()
+                                              .bloomeePlayer
+                                              .play();
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
+                          state.artist.albums.isEmpty
+                              ? const SignBoardWidget(
+                                  message: "No album found!",
+                                  icon: MingCute.unhappy_fill,
+                                )
+                              : ListView.builder(
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 8,
+                                        right: 8,
+                                        top: 2,
+                                        bottom: 2,
+                                      ),
+                                      child: ListTile(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => AlbumView(
+                                                album:
+                                                    state.artist.albums[index],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        leading: Hero(
+                                          tag: state
+                                              .artist.albums[index].sourceId,
+                                          child: LoadImageCached(
+                                            imageUrl: state
+                                                .artist.albums[index].imageURL,
+                                          ),
+                                        ),
+                                        title: Text(
+                                          maxLines: 1,
+                                          state.artist.albums[index].name,
+                                          style: Default_Theme
+                                              .secondoryTextStyleMedium
+                                              .merge(
+                                            TextStyle(
+                                              fontSize: 14,
+                                              overflow: TextOverflow.ellipsis,
+                                              color: Default_Theme.primaryColor1
+                                                  .withOpacity(0.8),
+                                            ),
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          state.artist.albums[index].artists,
+                                          maxLines: 1,
+                                          style: Default_Theme
+                                              .secondoryTextStyle
+                                              .merge(
+                                            TextStyle(
+                                              fontSize: 12,
+                                              color: Default_Theme.primaryColor1
+                                                  .withOpacity(0.5),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  itemCount: state.artist.albums.length,
+                                )
+                        ],
+                      )
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
