@@ -391,19 +391,43 @@ class YouTubeServices {
     };
   }
 
-  Future<List<Map>> fetchSearchResults(String query) async {
-    final List<Video> searchResults = await yt.search.search(query);
-    final List<Map> videoResult = [];
-    for (final Video vid in searchResults) {
-      final res = await formatVideo(video: vid, quality: 'High', getUrl: false);
-      if (res != null) videoResult.add(res);
-    }
-    return [
-      {
-        'title': 'Videos',
-        'items': videoResult,
+  Future<List<Map>> fetchSearchResults(String query,
+      {bool playlist = false}) async {
+    if (playlist) {
+      final List<SearchResult> searchResults =
+          await yt.search.searchContent(query, filter: TypeFilters.playlist);
+      List<Map> finRes = List.empty(growable: true);
+      for (var plt in searchResults) {
+        if (plt is SearchPlaylist) {
+          finRes.add({
+            'title': plt.title,
+            'image': plt.thumbnails.first.url.toString(),
+            'id': plt.id.toString(),
+            'subtitle': '${plt.videoCount} Views',
+          });
+        }
       }
-    ];
+      return [
+        {
+          'title': 'Playlists',
+          'items': finRes,
+        }
+      ];
+    } else {
+      final List<Video> searchResults = await yt.search.search(query);
+      final List<Map> videoResult = [];
+      for (final Video vid in searchResults) {
+        final res =
+            await formatVideo(video: vid, quality: 'High', getUrl: false);
+        if (res != null) videoResult.add(res);
+      }
+      return [
+        {
+          'title': 'Videos',
+          'items': videoResult,
+        }
+      ];
+    }
   }
 
   Future<List<Map>> fetchPlaylistItems(String id) async {
