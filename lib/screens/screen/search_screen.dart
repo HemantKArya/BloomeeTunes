@@ -12,7 +12,6 @@ import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/search/fetch_search_results.dart';
@@ -419,8 +418,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                                   .prepare4play(
                                                       idx: index, doPlay: true);
                                             }
-
-                                            context.push('/MusicPlayer');
                                           },
                                           onOptionsTap: () =>
                                               showMoreBottomSheet(context,

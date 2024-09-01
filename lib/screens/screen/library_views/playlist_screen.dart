@@ -14,11 +14,9 @@ import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -461,8 +459,6 @@ class PlaylistView extends StatelessWidget {
                                       .bloomeePlayer
                                       .prepare4play(idx: index, doPlay: true);
                                 }
-
-                                context.push('/MusicPlayer');
                               },
                               onOptionsTap: () {
                                 showMoreBottomSheet(context,
