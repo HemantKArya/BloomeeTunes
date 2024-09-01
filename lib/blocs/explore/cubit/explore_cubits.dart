@@ -138,7 +138,7 @@ class FetchChartCubit extends Cubit<FetchChartState> {
   }
 
   Future<void> fetchCharts() async {
-    String _path = (await getApplicationDocumentsDirectory()).path;
+    String _path = (await getApplicationSupportDirectory()).path;
     BackgroundIsolateBinaryMessenger.ensureInitialized(
       ServicesBinding.rootIsolateToken!,
     );
