@@ -11,4 +11,4 @@ PRODUCT_NAME = bloomee
 PRODUCT_BUNDLE_IDENTIFIER = ls.bloomee.musicplayer
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2023 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2023 Bloomee. All rights reserved.
