@@ -42,7 +42,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
   }
 
   void getSelectedCharts(Map sChartMap) {
-    if (!mapEquals(chartMap, sChartMap)) {
+    if (!mapEquals(chartMap, sChartMap) || selectedCharts.isEmpty) {
       selectedCharts.clear();
       chartCubitList.clear();
       for (var e in chartInfoList) {
