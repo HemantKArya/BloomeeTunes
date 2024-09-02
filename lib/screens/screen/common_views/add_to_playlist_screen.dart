@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/widgets/createPlaylist_bottomsheet.dart';
-import 'package:Bloomee/screens/widgets/playlist_tile.dart';
+import 'package:Bloomee/screens/widgets/libitem_tile.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
@@ -205,12 +205,11 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                 context.pop(context);
                               }
                             },
-                            child: SmallPlaylistCard(
-                                playListTitle: finalList[index].playlistName,
-                                coverArt: LoadImageCached(
-                                    imageUrl:
-                                        finalList[index].coverImgUrl ?? "null"),
-                                playListsubTitle:
+                            child: LibItemCard(
+                                title: finalList[index].playlistName,
+                                coverArt:
+                                    finalList[index].coverImgUrl ?? "null",
+                                subtitle:
                                     finalList[index].subTitle ?? "Unverified"),
                           ),
                         );

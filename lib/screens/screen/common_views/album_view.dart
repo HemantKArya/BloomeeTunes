@@ -201,23 +201,36 @@ class _AlbumViewState extends State<AlbumView> {
                                                 padding: const EdgeInsets.only(
                                                   left: 5,
                                                 ),
-                                                child: Tooltip(
-                                                  message: "Open Original Link",
-                                                  child: IconButton(
-                                                    onPressed: () {
-                                                      SnackbarService.showMessage(
-                                                          "Opening original album page.");
-                                                      launchUrl(
-                                                          Uri.parse(state
-                                                              .album.sourceURL),
-                                                          mode: LaunchMode
-                                                              .externalApplication);
-                                                    },
-                                                    icon: const Icon(
-                                                      MingCute
-                                                          .external_link_line,
-                                                      size: 25,
-                                                    ),
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    albumCubit
+                                                        .addToSavedCollections();
+                                                  },
+                                                  icon: state
+                                                          .isSavedToCollections
+                                                      ? const Icon(FontAwesome
+                                                          .heart_solid)
+                                                      : const Icon(
+                                                          FontAwesome.heart),
+                                                  color: Default_Theme
+                                                      .accentColor2,
+                                                ),
+                                              ),
+                                              Tooltip(
+                                                message: "Open Original Link",
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    SnackbarService.showMessage(
+                                                        "Opening original album page.");
+                                                    launchUrl(
+                                                        Uri.parse(state
+                                                            .album.sourceURL),
+                                                        mode: LaunchMode
+                                                            .externalApplication);
+                                                  },
+                                                  icon: const Icon(
+                                                    MingCute.external_link_line,
+                                                    size: 25,
                                                   ),
                                                 ),
                                               ),
@@ -256,7 +269,9 @@ class _AlbumViewState extends State<AlbumView> {
                     ),
                   ),
                 ),
-                (state is AlbumLoaded)
+                (state is AlbumLoaded ||
+                        (state.album.songs.isNotEmpty &&
+                            state is! AlbumLoading))
                     ? SliverList.builder(
                         itemBuilder: (context, index) {
                           return SongCardWidget(

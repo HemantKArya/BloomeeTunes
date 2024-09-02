@@ -7,6 +7,8 @@ import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -20,6 +22,7 @@ class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
     required this.sourceEngine,
   }) : super(OnlPlaylistInitial()) {
     emit(OnlPlaylistLoading(playlist: playlist));
+    checkIsSaved();
     switch (sourceEngine) {
       case SourceEngine.eng_JIS:
         SaavnAPI()
@@ -48,6 +51,7 @@ class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
               artists: plst.artists,
               songs: List<MediaItemModel>.from(songs),
             ),
+            isSavedCollection: state.isSavedCollection,
           ));
         });
         break;
@@ -61,6 +65,7 @@ class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
               playlist: playlist.copyWith(
                 songs: List<MediaItemModel>.from(songs),
               ),
+              isSavedCollection: state.isSavedCollection,
             ));
           },
         );
@@ -73,9 +78,31 @@ class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
               songs: List<MediaItemModel>.from(songs),
               artists: value[0]['metadata'].author,
             ),
+            isSavedCollection: state.isSavedCollection,
           ));
         });
         break;
     }
+  }
+
+  Future<void> checkIsSaved() async {
+    bool isSaved =
+        await BloomeeDBService.isInSavedCollections(playlist.sourceId);
+    if (state.isSavedCollection != isSaved) {
+      emit(
+        state.copyWith(isSavedCollection: isSaved),
+      );
+    }
+  }
+
+  Future<void> addToSavedCollections() async {
+    if (!state.isSavedCollection) {
+      await BloomeeDBService.putOnlPlaylistModel(playlist);
+      SnackbarService.showMessage("Artist added to Library!");
+    } else {
+      await BloomeeDBService.removeFromSavedCollecs(playlist.sourceId);
+      SnackbarService.showMessage("Artist removed from Library!");
+    }
+    checkIsSaved();
   }
 }

@@ -199,24 +199,35 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                                 padding: const EdgeInsets.only(
                                                   left: 5,
                                                 ),
-                                                child: Tooltip(
-                                                  message: "Open Original Link",
-                                                  child: IconButton(
-                                                    onPressed: () {
-                                                      SnackbarService.showMessage(
-                                                          "Opening original album page.");
-                                                      launchUrl(
-                                                          Uri.parse(state
-                                                              .playlist
-                                                              .sourceURL),
-                                                          mode: LaunchMode
-                                                              .externalApplication);
-                                                    },
-                                                    icon: const Icon(
-                                                      MingCute
-                                                          .external_link_line,
-                                                      size: 25,
-                                                    ),
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    onlPlaylistCubit
+                                                        .addToSavedCollections();
+                                                  },
+                                                  icon: state.isSavedCollection
+                                                      ? const Icon(FontAwesome
+                                                          .heart_solid)
+                                                      : const Icon(
+                                                          FontAwesome.heart),
+                                                  color: Default_Theme
+                                                      .accentColor2,
+                                                ),
+                                              ),
+                                              Tooltip(
+                                                message: "Open Original Link",
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    SnackbarService.showMessage(
+                                                        "Opening original album page.");
+                                                    launchUrl(
+                                                        Uri.parse(state.playlist
+                                                            .sourceURL),
+                                                        mode: LaunchMode
+                                                            .externalApplication);
+                                                  },
+                                                  icon: const Icon(
+                                                    MingCute.external_link_line,
+                                                    size: 25,
                                                   ),
                                                 ),
                                               ),
@@ -255,7 +266,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                     ),
                   ),
                 ),
-                (state is OnlPlaylistLoaded)
+                (state is OnlPlaylistLoaded || state.playlist.songs.isNotEmpty)
                     ? SliverList.builder(
                         itemBuilder: (context, index) {
                           return SongCardWidget(

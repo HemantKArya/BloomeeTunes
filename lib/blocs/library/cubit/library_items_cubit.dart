@@ -2,6 +2,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/model/album_onl_model.dart';
+import 'package:Bloomee/model/artist_onl_model.dart';
+import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -13,14 +16,17 @@ part 'library_items_state.dart';
 
 class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   Stream<void>? playlistWatcherDB;
+  Stream<void>? savedCollecsWatcherDB;
   List<PlaylistItemProperties> playlistItems = List.empty();
   BloomeeDBCubit bloomeeDBCubit;
   List<MediaPlaylist> mediaPlaylists = [];
   StreamSubscription? strmSubsDB;
+  StreamSubscription? strmSubsDB2;
   LibraryItemsCubit({
     required this.bloomeeDBCubit,
   }) : super(LibraryItemsInitial()) {
     getAndEmitPlaylists();
+    getAndEmitSavedOnlCollections();
     getDBWatcher();
   }
 
@@ -35,6 +41,10 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
     strmSubsDB = playlistWatcherDB?.listen((event) {
       getAndEmitPlaylists();
     });
+    savedCollecsWatcherDB = await BloomeeDBService.getSavedCollecsWatcher();
+    strmSubsDB2 = savedCollecsWatcherDB?.listen((event) {
+      getAndEmitSavedOnlCollections();
+    });
   }
 
   Future<void> getAndEmitPlaylists() async {
@@ -42,9 +52,43 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
     if (mediaPlaylists.isNotEmpty) {
       playlistItems = mediaPlaylistsDB2ItemProperties(mediaPlaylists);
 
-      emit(LibraryItemsState(playlists: playlistItems));
+      emit(LibraryItemsState(
+        playlists: playlistItems,
+        albums: state.albums,
+        artists: state.artists,
+        playlistsOnl: state.playlistsOnl,
+      ));
     } else {
       emit(LibraryItemsInitial());
+    }
+  }
+
+  Future<void> getAndEmitSavedOnlCollections() async {
+    final _collecs = await BloomeeDBService.getSavedCollections();
+    List<ArtistModel> _artists = [];
+    List<AlbumModel> _albums = [];
+    List<PlaylistOnlModel> _playlists = [];
+    for (var element in _collecs) {
+      switch (element.runtimeType) {
+        case ArtistModel:
+          _artists.add(element as ArtistModel);
+          break;
+        case AlbumModel:
+          _albums.add(element as AlbumModel);
+          break;
+        case PlaylistOnlModel:
+          _playlists.add(element as PlaylistOnlModel);
+          log("${element.runtimeType}");
+          break;
+        default:
+          break;
+      }
+      emit(LibraryItemsState(
+        artists: List<ArtistModel>.from(_artists),
+        albums: List<AlbumModel>.from(_albums),
+        playlistsOnl: List<PlaylistOnlModel>.from(_playlists),
+        playlists: state.playlists,
+      ));
     }
   }
 

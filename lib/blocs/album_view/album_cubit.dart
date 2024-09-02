@@ -5,6 +5,8 @@ import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -16,6 +18,7 @@ class AlbumCubit extends Cubit<AlbumState> {
   AlbumCubit({required this.album, required this.sourceEngine})
       : super(AlbumInitial()) {
     emit(AlbumLoading(album: album));
+    checkIsSaved();
     switch (sourceEngine) {
       case SourceEngine.eng_JIS:
         SaavnAPI().fetchAlbumDetails(album.extra['token']).then(
@@ -26,6 +29,7 @@ class AlbumCubit extends Cubit<AlbumState> {
                   songs: List<MediaItemModel>.from(
                       fromSaavnSongMapList2MediaItemList(value['songs'])),
                 ),
+                isSavedToCollections: state.isSavedToCollections,
               ),
             );
           },
@@ -45,6 +49,7 @@ class AlbumCubit extends Cubit<AlbumState> {
                   artists: value['artist'] ?? album.artists,
                   description: value['subtitle'] ?? album.description,
                 ),
+                isSavedToCollections: state.isSavedToCollections,
               ),
             );
           },
@@ -52,5 +57,25 @@ class AlbumCubit extends Cubit<AlbumState> {
       case SourceEngine.eng_YTV:
       // TODO: Handle this case.
     }
+  }
+
+  Future<void> checkIsSaved() async {
+    bool isSaved = await BloomeeDBService.isInSavedCollections(album.sourceId);
+    if (state.isSavedToCollections != isSaved) {
+      emit(
+        state.copyWith(isSavedToCollections: isSaved),
+      );
+    }
+  }
+
+  Future<void> addToSavedCollections() async {
+    if (!state.isSavedToCollections) {
+      await BloomeeDBService.putOnlAlbumModel(album);
+      SnackbarService.showMessage("Album added to Library!");
+    } else {
+      await BloomeeDBService.removeFromSavedCollecs(album.sourceId);
+      SnackbarService.showMessage("Album removed from Library!");
+    }
+    checkIsSaved();
   }
 }

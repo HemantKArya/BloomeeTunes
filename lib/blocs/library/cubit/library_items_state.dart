@@ -17,20 +17,32 @@ class PlaylistItemProperties extends Equatable {
 
 class LibraryItemsState extends Equatable {
   final List<PlaylistItemProperties> playlists;
+  final List<ArtistModel> artists;
+  final List<AlbumModel> albums;
+  final List<PlaylistOnlModel> playlistsOnl;
   const LibraryItemsState({
     required this.playlists,
+    this.artists = const [],
+    this.albums = const [],
+    this.playlistsOnl = const [],
   });
+
+  @override
+  List<Object?> get props => [playlists, playlistsOnl, albums, artists];
 
   LibraryItemsState copyWith({
     List<PlaylistItemProperties>? playlists,
+    List<ArtistModel>? artists,
+    List<AlbumModel>? albums,
+    List<PlaylistOnlModel>? playlistsOnl,
   }) {
     return LibraryItemsState(
       playlists: playlists ?? this.playlists,
+      artists: artists ?? this.artists,
+      albums: albums ?? this.albums,
+      playlistsOnl: playlistsOnl ?? this.playlistsOnl,
     );
   }
-
-  @override
-  List<Object?> get props => [playlists];
 }
 
 final class LibraryItemsInitial extends LibraryItemsState {

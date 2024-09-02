@@ -7,6 +7,8 @@ import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -20,6 +22,7 @@ class ArtistCubit extends Cubit<ArtistState> {
     required this.sourceEngine,
   }) : super(ArtistInitial()) {
     emit(ArtistLoading(artist: artist));
+    checkIsSaved();
     switch (sourceEngine) {
       case SourceEngine.eng_JIS:
         SaavnAPI()
@@ -33,6 +36,7 @@ class ArtistCubit extends Cubit<ArtistState> {
               description: value['subtitle'] ?? artist.description,
               albums: List<AlbumModel>.from(albums),
             ),
+            isSavedCollection: state.isSavedCollection,
           ));
         });
         break;
@@ -58,6 +62,7 @@ class ArtistCubit extends Cubit<ArtistState> {
                     songs: List<MediaItemModel>.from(songsFull),
                     albums: List<AlbumModel>.from(albums),
                   ),
+                  isSavedCollection: state.isSavedCollection,
                 ),
               );
             });
@@ -69,6 +74,7 @@ class ArtistCubit extends Cubit<ArtistState> {
                   songs: List<MediaItemModel>.from(songs),
                   albums: List<AlbumModel>.from(albums),
                 ),
+                isSavedCollection: state.isSavedCollection,
               ),
             );
           }
@@ -77,5 +83,24 @@ class ArtistCubit extends Cubit<ArtistState> {
       case SourceEngine.eng_YTV:
       // TODO: Handle this case.
     }
+  }
+  Future<void> checkIsSaved() async {
+    bool isSaved = await BloomeeDBService.isInSavedCollections(artist.sourceId);
+    if (state.isSavedCollection != isSaved) {
+      emit(
+        state.copyWith(isSavedCollection: isSaved),
+      );
+    }
+  }
+
+  Future<void> addToSavedCollections() async {
+    if (!state.isSavedCollection) {
+      await BloomeeDBService.putOnlArtistModel(artist);
+      SnackbarService.showMessage("Artist added to Library!");
+    } else {
+      await BloomeeDBService.removeFromSavedCollecs(artist.sourceId);
+      SnackbarService.showMessage("Artist removed from Library!");
+    }
+    checkIsSaved();
   }
 }

@@ -199,25 +199,37 @@ class _ArtistViewState extends State<ArtistView> {
                                                       const EdgeInsets.only(
                                                     left: 5,
                                                   ),
-                                                  child: Tooltip(
-                                                    message:
-                                                        "Open Original Link",
-                                                    child: IconButton(
-                                                      onPressed: () {
-                                                        SnackbarService.showMessage(
-                                                            "Opening original artist page.");
-                                                        launchUrl(
-                                                            Uri.parse(state
-                                                                .artist
-                                                                .sourceURL),
-                                                            mode: LaunchMode
-                                                                .externalApplication);
-                                                      },
-                                                      icon: const Icon(
-                                                        MingCute
-                                                            .external_link_line,
-                                                        size: 25,
-                                                      ),
+                                                  child: IconButton(
+                                                    onPressed: () {
+                                                      artistCubit
+                                                          .addToSavedCollections();
+                                                    },
+                                                    icon: state
+                                                            .isSavedCollection
+                                                        ? const Icon(FontAwesome
+                                                            .heart_solid)
+                                                        : const Icon(
+                                                            FontAwesome.heart),
+                                                    color: Default_Theme
+                                                        .accentColor2,
+                                                  ),
+                                                ),
+                                                Tooltip(
+                                                  message: "Open Original Link",
+                                                  child: IconButton(
+                                                    onPressed: () {
+                                                      SnackbarService.showMessage(
+                                                          "Opening original artist page.");
+                                                      launchUrl(
+                                                          Uri.parse(state.artist
+                                                              .sourceURL),
+                                                          mode: LaunchMode
+                                                              .externalApplication);
+                                                    },
+                                                    icon: const Icon(
+                                                      MingCute
+                                                          .external_link_line,
+                                                      size: 25,
                                                     ),
                                                   ),
                                                 ),
@@ -259,7 +271,7 @@ class _ArtistViewState extends State<ArtistView> {
                     ),
                   ),
                 ],
-                body: (state is ArtistLoaded)
+                body: (state is ArtistLoaded || (state.artist.songs.isNotEmpty))
                     ? TabBarView(
                         children: [
                           state.artist.songs.isEmpty

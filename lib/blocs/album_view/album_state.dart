@@ -2,16 +2,19 @@
 part of 'album_cubit.dart';
 
 class AlbumState extends Equatable {
-  const AlbumState({required this.album});
+  const AlbumState({required this.album, this.isSavedToCollections = false});
   final AlbumModel album;
+  final bool isSavedToCollections;
   @override
-  List<Object> get props => [album, album.songs];
+  List<Object> get props => [album, album.songs, isSavedToCollections];
 
   AlbumState copyWith({
     AlbumModel? album,
+    bool? isSavedToCollections,
   }) {
     return AlbumState(
       album: album ?? this.album,
+      isSavedToCollections: isSavedToCollections ?? this.isSavedToCollections,
     );
   }
 }
@@ -35,5 +38,7 @@ final class AlbumLoading extends AlbumState {
 }
 
 final class AlbumLoaded extends AlbumState {
-  const AlbumLoaded({required AlbumModel album}) : super(album: album);
+  const AlbumLoaded(
+      {required AlbumModel album, super.isSavedToCollections = false})
+      : super(album: album);
 }
