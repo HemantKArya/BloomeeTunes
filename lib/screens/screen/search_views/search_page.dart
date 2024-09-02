@@ -120,6 +120,7 @@ class SearchPageDelegate extends SearchDelegate {
                   Default_Theme.secondoryTextStyle,
                 ),
               ),
+              contentPadding: const EdgeInsets.only(left: 16, right: 8),
               leading: Icon(
                 MingCute.search_line,
                 size: 22,
