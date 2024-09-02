@@ -27,6 +27,28 @@ class LibraryScreen extends StatelessWidget {
             customDiscoverBar(context), //AppBar
             BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
               builder: (context, state) {
+                if (state is LibraryItemsInitial) {
+                  return const SliverToBoxAdapter(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                } else if (state is! LibraryItemsInitial) {
+                  return ListOfPlaylists(state: state);
+                } else {
+                  return const SliverToBoxAdapter(
+                    child: Center(
+                      child: SignBoardWidget(
+                        message: "No Playlists Found!",
+                        icon: MingCute.playlist_fill,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+              builder: (context, state) {
                 return (state is LibraryItemsInitial && state.artists.isEmpty)
                     ? const SliverToBoxAdapter(child: SizedBox.shrink())
                     : SliverList.builder(
@@ -117,28 +139,6 @@ class LibraryScreen extends StatelessWidget {
                         ),
                         itemCount: state.playlistsOnl.length,
                       );
-              },
-            ),
-            BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-              builder: (context, state) {
-                if (state is LibraryItemsInitial) {
-                  return const SliverToBoxAdapter(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                } else if (state is! LibraryItemsInitial) {
-                  return ListOfPlaylists(state: state);
-                } else {
-                  return const SliverToBoxAdapter(
-                    child: Center(
-                      child: SignBoardWidget(
-                        message: "No Playlists Found!",
-                        icon: MingCute.playlist_fill,
-                      ),
-                    ),
-                  );
-                }
               },
             ),
           ],
