@@ -345,6 +345,31 @@ class DownloadDB {
 }
 
 @collection
+class SavedCollectionsDB {
+  Id get isarId => fastHash(title);
+  String title;
+  String sourceId;
+  String source;
+  String type;
+  String coverArt;
+  String sourceURL;
+  String? subtitle;
+  DateTime lastUpdated;
+  String? extra;
+  SavedCollectionsDB({
+    required this.title,
+    required this.type,
+    required this.coverArt,
+    required this.sourceURL,
+    required this.sourceId,
+    required this.source,
+    required this.lastUpdated,
+    this.subtitle,
+    this.extra,
+  });
+}
+
+@collection
 class NotificationDB {
   Id? id = Isar.autoIncrement;
   String title;

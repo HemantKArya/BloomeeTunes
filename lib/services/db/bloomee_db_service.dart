@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/model/album_onl_model.dart';
+import 'package:Bloomee/model/artist_onl_model.dart';
 import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:path/path.dart' as p;
@@ -69,6 +73,7 @@ class BloomeeDBService {
           NotificationDBSchema,
           DownloadDBSchema,
           PlaylistsInfoDBSchema,
+          SavedCollectionsDBSchema,
         ],
         directory: pathSupport,
       );
@@ -1036,4 +1041,174 @@ class BloomeeDBService {
     Isar isarDB = await db;
     return isarDB.notificationDBs.watchLazy();
   }
+
+  static Future<void> putOnlArtistModel(ArtistModel artistModel) async {
+    Isar isarDB = await db;
+    Map extra = Map.from(artistModel.extra);
+    extra["country"] = artistModel.country;
+
+    await isarDB.writeTxn(
+      () => isarDB.savedCollectionsDBs.put(
+        SavedCollectionsDB(
+          type: "artist",
+          coverArt: artistModel.imageUrl,
+          title: artistModel.name,
+          subtitle: artistModel.description,
+          source: artistModel.source,
+          sourceId: artistModel.sourceId,
+          sourceURL: artistModel.sourceURL,
+          lastUpdated: DateTime.now(),
+          extra: jsonEncode(extra),
+        ),
+      ),
+    );
+  }
+
+  static Future<void> putOnlAlbumModel(AlbumModel albumModel) async {
+    Isar isarDB = await db;
+    Map extra = albumModel.extra;
+    extra.addEntries([MapEntry("country", albumModel.country)]);
+    extra.addEntries([MapEntry("artists", albumModel.artists)]);
+    extra.addEntries([MapEntry("genre", albumModel.genre)]);
+    extra.addEntries([MapEntry("language", albumModel.language)]);
+    extra.addEntries([MapEntry("year", albumModel.year)]);
+
+    await isarDB.writeTxn(
+      () => isarDB.savedCollectionsDBs.put(
+        SavedCollectionsDB(
+          type: "album",
+          coverArt: albumModel.imageURL,
+          title: albumModel.name,
+          subtitle: albumModel.description,
+          source: albumModel.source,
+          sourceId: albumModel.sourceId,
+          sourceURL: albumModel.sourceURL,
+          lastUpdated: DateTime.now(),
+          extra: jsonEncode(extra),
+        ),
+      ),
+    );
+  }
+
+  static Future<void> putOnlPlaylistModel(
+      PlaylistOnlModel playlistModel) async {
+    Isar isarDB = await db;
+    Map extra = Map.from(playlistModel.extra);
+    extra.addEntries([MapEntry("artists", playlistModel.artists)]);
+    extra.addEntries([MapEntry("language", playlistModel.language)]);
+    extra.addEntries([MapEntry("year", playlistModel.year)]);
+
+    await isarDB.writeTxn(
+      () => isarDB.savedCollectionsDBs.put(
+        SavedCollectionsDB(
+          type: "playlist",
+          coverArt: playlistModel.imageURL,
+          title: playlistModel.name,
+          subtitle: playlistModel.description,
+          source: playlistModel.source,
+          sourceId: playlistModel.sourceId,
+          sourceURL: playlistModel.sourceURL,
+          lastUpdated: DateTime.now(),
+          extra: jsonEncode(extra),
+        ),
+      ),
+    );
+  }
+
+  static Future<List> getSavedCollections() async {
+    Isar isarDB = await db;
+    final savedCollections = isarDB.savedCollectionsDBs.where().findAllSync();
+    List _savedCollections = [];
+    for (var element in savedCollections) {
+      switch (element.type) {
+        case "artist":
+          _savedCollections.add(formatSavedArtistOnl(element));
+          break;
+        case "album":
+          _savedCollections.add(formatSavedAlbumOnl(element));
+          break;
+        case "playlist":
+          _savedCollections.add(formatSavedPlaylistOnl(element));
+          break;
+        default:
+          break;
+      }
+    }
+    return _savedCollections;
+  }
+
+  static Future<void> removeFromSavedCollecs(String sourceID) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(
+      () => isarDB.savedCollectionsDBs
+          .filter()
+          .sourceIdEqualTo(sourceID)
+          .deleteAllSync(),
+    );
+  }
+
+  static Future<bool> isInSavedCollections(String sourceID) async {
+    bool value = false;
+    Isar isarDB = await db;
+    final item = isarDB.savedCollectionsDBs
+        .filter()
+        .sourceIdEqualTo(sourceID)
+        .findFirstSync();
+    if (item != null) {
+      value = true;
+    }
+    return value;
+  }
+
+  static Future<Stream<void>> getSavedCollecsWatcher() async {
+    Isar isarDB = await db;
+    return isarDB.savedCollectionsDBs.watchLazy(fireImmediately: true);
+  }
+}
+
+ArtistModel formatSavedArtistOnl(SavedCollectionsDB savedCollectionsDB) {
+  Map extra = jsonDecode(savedCollectionsDB.extra ?? "{}");
+  return ArtistModel(
+    name: savedCollectionsDB.title,
+    description: savedCollectionsDB.subtitle,
+    imageUrl: savedCollectionsDB.coverArt,
+    source: savedCollectionsDB.source,
+    sourceId: savedCollectionsDB.sourceId,
+    sourceURL: savedCollectionsDB.sourceURL,
+    country: extra["country"],
+  );
+}
+
+AlbumModel formatSavedAlbumOnl(SavedCollectionsDB savedCollectionsDB) {
+  Map extra = jsonDecode(savedCollectionsDB.extra ?? "{}");
+  return AlbumModel(
+    name: savedCollectionsDB.title,
+    description: savedCollectionsDB.subtitle,
+    imageURL: savedCollectionsDB.coverArt,
+    source: savedCollectionsDB.source,
+    sourceId: savedCollectionsDB.sourceId,
+    sourceURL: savedCollectionsDB.sourceURL,
+    country: extra["country"],
+    artists: extra["artists"],
+    genre: extra["genre"],
+    year: extra["year"],
+    extra: extra,
+    language: extra["language"],
+  );
+}
+
+PlaylistOnlModel formatSavedPlaylistOnl(SavedCollectionsDB savedCollectionsDB) {
+  Map extra = jsonDecode(savedCollectionsDB.extra ?? "{}");
+  return PlaylistOnlModel(
+    name: savedCollectionsDB.title,
+    description: savedCollectionsDB.subtitle,
+    imageURL: savedCollectionsDB.coverArt,
+    source: savedCollectionsDB.source,
+    sourceId: savedCollectionsDB.sourceId,
+    sourceURL: savedCollectionsDB.sourceURL,
+    artists: extra["artists"],
+    language: extra["language"],
+    year: extra["year"],
+    extra: extra,
+  );
 }
