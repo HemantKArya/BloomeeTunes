@@ -4,7 +4,58 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
-Future<Map<String, dynamic>> getLatestVersion() async {
+Future<Map<String, dynamic>> sourceforgeUpdate() async {
+  String platform = Platform.operatingSystem;
+  if (platform == 'linux') {
+    platform = 'linux';
+  } else if (platform == 'android') {
+    platform = 'android';
+  } else {
+    platform = 'win';
+  }
+  const url = 'https://sourceforge.net/projects/bloomee/best_release.json';
+  final userAgent = {
+    'win':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36',
+    'linux':
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36',
+    'android':
+        'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Mobile Safari/537.36',
+  };
+
+  final headers = {
+    'user-agent': userAgent[platform]!,
+  };
+
+  final response = await http.get(Uri.parse(url), headers: headers);
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final releaseUrl = data['release']['url'];
+    final filename = data['release']['filename'];
+    final fileNameParts = filename.split('/');
+    final versionMatch =
+        RegExp(r'v(\d+\.\d+\.\d+)').firstMatch(fileNameParts.last);
+    final buildMatch = RegExp(r'\+(\d+)').firstMatch(fileNameParts.last);
+    final version = versionMatch?.group(1);
+    final build = buildMatch?.group(1);
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    return {
+      'newVer': version ?? '',
+      'newBuild': build ?? '',
+      'download_url': releaseUrl,
+      'currVer': packageInfo.version,
+      'currBuild': packageInfo.buildNumber,
+      'results': true,
+    };
+  } else {
+    return {
+      'results': false,
+    };
+  }
+}
+
+Future<Map<String, dynamic>> githubUpdate() async {
   final response = await http.get(
     Uri.parse(
         'https://api.github.com/repos/HemantKArya/BloomeeTunes/releases/latest'),
@@ -29,6 +80,14 @@ Future<Map<String, dynamic>> getLatestVersion() async {
     return {
       "results": false,
     };
+  }
+}
+
+Future<Map<String, dynamic>> getLatestVersion() async {
+  try {
+    return await sourceforgeUpdate();
+  } catch (e) {
+    return await githubUpdate();
   }
 }
 
