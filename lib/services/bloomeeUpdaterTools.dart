@@ -4,6 +4,34 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
+bool isUpdateAvailable(
+    String currentVer, String currentBuild, String newVer, String newBuild,
+    {bool checkBuild = true}) {
+  List<int> currentVersionParts = currentVer.split('.').map(int.parse).toList();
+  List<int> newVersionParts = newVer.split('.').map(int.parse).toList();
+
+  for (int i = 0; i < currentVersionParts.length; i++) {
+    if (newVersionParts[i] > currentVersionParts[i]) {
+      return true;
+    } else if (newVersionParts[i] < currentVersionParts[i]) {
+      return false;
+    }
+  }
+
+  if (checkBuild) {
+    int currentBuildNumber = int.parse(currentBuild);
+    int newBuildNumber = int.parse(newBuild);
+
+    if (newBuildNumber > currentBuildNumber) {
+      return true;
+    } else if (newBuildNumber < currentBuildNumber) {
+      return false;
+    }
+  }
+
+  return false;
+}
+
 Future<Map<String, dynamic>> sourceforgeUpdate() async {
   String platform = Platform.operatingSystem;
   if (platform == 'linux') {
@@ -46,7 +74,13 @@ Future<Map<String, dynamic>> sourceforgeUpdate() async {
       'download_url': releaseUrl,
       'currVer': packageInfo.version,
       'currBuild': packageInfo.buildNumber,
-      'results': true,
+      'results': isUpdateAvailable(
+        packageInfo.version,
+        packageInfo.buildNumber,
+        version ?? '0.0.0',
+        build ?? '0',
+        checkBuild: platform == 'linux' ? false : true,
+      ),
     };
   } else {
     return {
@@ -56,17 +90,31 @@ Future<Map<String, dynamic>> sourceforgeUpdate() async {
 }
 
 Future<Map<String, dynamic>> githubUpdate() async {
-  final response = await http.get(
-    Uri.parse(
-        'https://api.github.com/repos/HemantKArya/BloomeeTunes/releases/latest'),
-  );
+  http.Response response;
+  try {
+    response = await http.get(
+      Uri.parse(
+          'https://api.github.com/repos/HemantKArya/BloomeeTunes/releases/latest'),
+    );
+  } catch (e) {
+    log('Failed to load latest version!', name: 'UpdaterTools');
+    return {
+      "results": false,
+    };
+  }
 
   if (response.statusCode == 200) {
     Map<String, dynamic> data = json.decode(response.body);
     String newBuildVer = (data['tag_name'] as String).split("+")[1];
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     return {
-      "results": true,
+      "results": isUpdateAvailable(
+        packageInfo.version,
+        packageInfo.buildNumber,
+        data["tag_name"].toString().split("+")[0].replaceFirst("v", ''),
+        newBuildVer,
+        checkBuild: false,
+      ),
       "newBuild": newBuildVer,
       "currBuild": packageInfo.buildNumber,
       "currVer": packageInfo.version,

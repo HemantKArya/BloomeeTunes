@@ -9,21 +9,18 @@ Future<void> updateDialog(BuildContext context) async {
   if (Platform.isAndroid) {
     Map<String, dynamic> _updateData = await getLatestVersion();
     if (_updateData["results"]) {
-      if (int.parse(_updateData["currBuild"]) <
-          int.parse(_updateData["newBuild"])) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return GradientDialog(
-              "New Version of Bloomee🌸 is now available!!\n\nVersion: ${_updateData["newVer"]} + ${_updateData["newBuild"]}",
-              onOk: openURL,
-              okText: "Update Now!",
-              // downloadURL: _updateData["download_url"],
-              downloadURL: "https://bloomee.sourceforge.io/",
-            );
-          },
-        );
-      }
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return GradientDialog(
+            "New Version of Bloomee🌸 is now available!!\n\nVersion: ${_updateData["newVer"]} + ${_updateData["newBuild"]}",
+            onOk: openURL,
+            okText: "Update Now!",
+            // downloadURL: _updateData["download_url"],
+            downloadURL: "https://bloomee.sourceforge.io/",
+          );
+        },
+      );
     }
   }
 }
