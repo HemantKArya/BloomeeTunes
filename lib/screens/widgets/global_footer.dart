@@ -26,7 +26,9 @@ class GlobalFooter extends StatelessWidget {
       backgroundColor: Default_Theme.themeColor,
       drawerScrimColor: Default_Theme.themeColor,
       bottomNavigationBar: SafeArea(
-          child: Wrap(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           const MiniPlayerWidget(),
           Container(
@@ -65,6 +67,7 @@ class VerticalNavBar extends StatelessWidget {
       ],
       selectedIndex: navigationShell.currentIndex,
       minWidth: 65,
+
       onDestinationSelected: (value) {
         navigationShell.goBranch(value);
       },
@@ -108,7 +111,6 @@ class HorizontalNavBar extends StatelessWidget {
         // ),
         GButton(
           icon: MingCute.home_4_fill,
-          iconSize: 27,
           text: "Home",
         ),
         GButton(
