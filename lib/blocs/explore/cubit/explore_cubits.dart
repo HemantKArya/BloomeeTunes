@@ -142,7 +142,7 @@ class FetchChartCubit extends Cubit<FetchChartState> {
     BackgroundIsolateBinaryMessenger.ensureInitialized(
       ServicesBinding.rootIsolateToken!,
     );
-
+    await BloomeeDBService.db;
     final chartList = await Isolate.run<List<ChartModel>>(() async {
       log(_path, name: "Isolate Path");
       List<ChartModel> _chartList = List.empty(growable: true);
