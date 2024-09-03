@@ -15,8 +15,13 @@ import 'package:Bloomee/services/db/GlobalDB.dart';
 
 class BloomeeDBService {
   static late Future<Isar> db;
+  static final BloomeeDBService _instance = BloomeeDBService._internal();
 
-  BloomeeDBService() {
+  factory BloomeeDBService() {
+    return _instance;
+  }
+
+  BloomeeDBService._internal() {
     db = openDB();
     Future.delayed(const Duration(seconds: 30), () async {
       await refreshRecentlyPlayed();
@@ -58,6 +63,29 @@ class BloomeeDBService {
           p.join(pathDoc, 'bloomee_backup_db.isar'),
           p.join(pathSupport, 'bloomee_backup_db.isar'),
         ]);
+      }
+
+      if (!await dbFile.exists() &&
+          await File(p.join(pathDoc, 'default.isar')).exists()) {
+        final _db = Isar.openSync(
+          [
+            MediaPlaylistDBSchema,
+            MediaItemDBSchema,
+            AppSettingsBoolDBSchema,
+            AppSettingsStrDBSchema,
+            RecentlyPlayedDBSchema,
+            ChartsCacheDBSchema,
+            YtLinkCacheDBSchema,
+            NotificationDBSchema,
+            DownloadDBSchema,
+            PlaylistsInfoDBSchema,
+            SavedCollectionsDBSchema,
+          ],
+          directory: pathDoc,
+        );
+        _db.copyToFile(dbFile.path);
+        log("DB Copied to $pathSupport", name: "BloomeeDBService");
+        _db.close();
       }
 
       log(pathSupport, name: "DB");
