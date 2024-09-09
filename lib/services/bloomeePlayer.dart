@@ -100,10 +100,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> check4RelatedSongs() async {
-    log("Checking for related songs: ${queue.value.isNotEmpty && (queue.value.length - currentPlayingIdx) < 3}",
+    log("Checking for related songs: ${queue.value.isNotEmpty && (queue.value.length - currentPlayingIdx) < 2}",
         name: "bloomeePlayer");
     if (queue.value.isNotEmpty &&
-        (queue.value.length - currentPlayingIdx) < 3 &&
+        (queue.value.length - currentPlayingIdx) < 2 &&
         loopMode.value != LoopMode.all) {
       if (currentMedia.extras?["source"] == "saavn") {
         final songs = await SaavnAPI().getRelated(currentMedia.id);
@@ -131,6 +131,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         (queue.value.length - currentPlayingIdx) < 3 &&
         loopMode.value != LoopMode.all) {
       await addQueueItems(relatedSongs.value, atLast: true);
+      fromPlaylist.add(false);
       relatedSongs.add([]);
     }
   }
@@ -184,6 +185,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       {int idx = 0, bool doPlay = false, bool shuffling = false}) async {
     fromPlaylist.add(true);
     queue.add([]);
+    relatedSongs.add([]);
     queue.add(mediaList.mediaItems);
     queueTitle.add(mediaList.playlistName);
     shuffle(shuffling);
@@ -443,7 +445,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> addQueueItem(MediaItem mediaItem,
-      {bool doPlay = true, bool atLast = false}) async {
+      {bool doPlay = true, bool atLast = false, bool single = false}) async {
+    if (single) {
+      queue.add([mediaItem]);
+      queueTitle.add("Queue");
+      relatedSongs.add([]);
+      await prepare4play(idx: 0, doPlay: doPlay);
+      return;
+    }
+
     if (fromPlaylist.value) {
       fromPlaylist.add(false);
       if (!doPlay) {
