@@ -118,8 +118,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
           if (context
               .read<BloomeePlayerCubit>()
               .bloomeePlayer
-              .audioPlayer
-              .shuffleModeEnabled) {
+              .shuffleMode
+              .value) {
             context.read<BloomeePlayerCubit>().bloomeePlayer.shuffle(false);
           } else {
             context.read<BloomeePlayerCubit>().bloomeePlayer.shuffle(true);
@@ -824,8 +824,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
                       stream: context
                           .watch<BloomeePlayerCubit>()
                           .bloomeePlayer
-                          .audioPlayer
-                          .shuffleModeEnabledStream,
+                          .shuffleMode,
                       builder: (context, snapshot) {
                         return Tooltip(
                           message: "Shuffle",

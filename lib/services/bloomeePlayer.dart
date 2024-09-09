@@ -27,6 +27,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   BehaviorSubject<bool> fromPlaylist = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isOffline = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isLinkProcessing = BehaviorSubject<bool>.seeded(false);
+  BehaviorSubject<bool> shuffleMode = BehaviorSubject<bool>.seeded(false);
 
   BehaviorSubject<List<MediaItem>> relatedSongs =
       BehaviorSubject<List<MediaItem>>.seeded([]);
@@ -47,7 +48,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     );
     audioPlayer.setVolume(1);
     audioPlayer.playbackEventStream.listen(_broadcastPlayerEvent);
-    audioPlayer.setShuffleModeEnabled(false);
     audioPlayer.setLoopMode(LoopMode.off);
   }
 
@@ -173,7 +173,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> shuffle(bool shuffle) async {
-    audioPlayer.setShuffleModeEnabled(shuffle);
+    shuffleMode.add(shuffle);
     if (shuffle) {
       shuffleIdx = 0;
       shuffleList = generateRandomIndices(queue.value.length);
@@ -347,7 +347,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   Future<void> playOffsetIdx({int offset = 1}) async {
     if (offset >= 0) {
-      if (audioPlayer.shuffleModeEnabled) {
+      if (shuffleMode.value) {
         if (offset + shuffleIdx < queue.value.length) {
           prepare4play(idx: shuffleList[offset + shuffleIdx], doPlay: true);
           shuffleIdx = shuffleIdx + offset;
@@ -372,7 +372,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> skipToNext() async {
     await loadRelatedSongs();
-    if (!audioPlayer.shuffleModeEnabled) {
+    if (!shuffleMode.value) {
       if (currentPlayingIdx < (queue.value.length - 1)) {
         currentPlayingIdx++;
         prepare4play(idx: currentPlayingIdx);
@@ -403,7 +403,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToPrevious() async {
-    if (!audioPlayer.shuffleModeEnabled) {
+    if (!shuffleMode.value) {
       if (currentPlayingIdx > 0) {
         currentPlayingIdx--;
         prepare4play(idx: currentPlayingIdx);
@@ -475,7 +475,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           await prepare4play(idx: currentPlayingIdx + 1, doPlay: true);
         }
       }
-      shuffle(audioPlayer.shuffleModeEnabled);
+      shuffle(shuffleMode.value);
     }
     queueTitle.add("Queue");
   }
