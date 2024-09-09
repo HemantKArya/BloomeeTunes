@@ -1,6 +1,9 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:Bloomee/model/saavnModel.dart';
+import 'package:Bloomee/model/yt_music_model.dart';
+import 'package:Bloomee/repository/Saavn/saavn_api.dart';
+import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
@@ -10,8 +13,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
-import 'package:rxdart/subjects.dart';
-
 import '../model/MediaPlaylistModel.dart';
 
 List<int> generateRandomIndices(int length) {
@@ -26,7 +27,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   BehaviorSubject<bool> fromPlaylist = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isOffline = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isLinkProcessing = BehaviorSubject<bool>.seeded(false);
-  BehaviorSubject<List<MediaItem>> upNext =
+
+  BehaviorSubject<List<MediaItem>> relatedSongs =
       BehaviorSubject<List<MediaItem>>.seeded([]);
   BehaviorSubject<LoopMode> loopMode =
       BehaviorSubject<LoopMode>.seeded(LoopMode.off);
@@ -97,6 +99,42 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
+  Future<void> check4RelatedSongs() async {
+    log("Checking for related songs: ${queue.value.isNotEmpty && (queue.value.length - currentPlayingIdx) < 3}",
+        name: "bloomeePlayer");
+    if (queue.value.isNotEmpty &&
+        (queue.value.length - currentPlayingIdx) < 3 &&
+        loopMode.value != LoopMode.all) {
+      if (currentMedia.extras?["source"] == "saavn") {
+        final songs = await SaavnAPI().getRelated(currentMedia.id);
+        if (songs['total'] > 0) {
+          final List<MediaItem> temp =
+              fromSaavnSongMapList2MediaItemList(songs['songs']);
+          relatedSongs.add(temp.sublist(1));
+          log("Related Songs: ${songs['total']}");
+        }
+      } else if (currentMedia.extras?["source"].contains("youtube") ?? false) {
+        final songs = await YtMusicService()
+            .getRelated(currentMedia.id.replaceAll('youtube', ''));
+        if (songs['total'] > 0) {
+          final List<MediaItem> temp =
+              fromYtSongMapList2MediaItemList(songs['songs']);
+          relatedSongs.add(temp.sublist(1));
+          log("Related Songs: ${songs['total']}");
+        }
+      }
+    }
+  }
+
+  Future<void> loadRelatedSongs() async {
+    if (relatedSongs.value.isNotEmpty &&
+        (queue.value.length - currentPlayingIdx) < 3 &&
+        loopMode.value != LoopMode.all) {
+      await addQueueItems(relatedSongs.value, atLast: true);
+      relatedSongs.add([]);
+    }
+  }
+
   @override
   Future<void> seek(Duration position) async {
     audioPlayer.seek(position);
@@ -140,12 +178,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       shuffleIdx = 0;
       shuffleList = generateRandomIndices(queue.value.length);
     }
-    updateUpNext();
   }
 
   Future<void> loadPlaylist(MediaPlaylist mediaList,
       {int idx = 0, bool doPlay = false, bool shuffling = false}) async {
     fromPlaylist.add(true);
+    queue.add([]);
     queue.add(mediaList.mediaItems);
     queueTitle.add(mediaList.playlistName);
     shuffle(shuffling);
@@ -240,9 +278,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> skipToQueueItem(int index) {
-    currentPlayingIdx = index;
-    playMediaItem(queue.value[index]);
+  Future<void> skipToQueueItem(int index) async {
+    if (index < queue.value.length) {
+      currentPlayingIdx = index;
+      await playMediaItem(queue.value[index]);
+    } else {
+      await loadRelatedSongs();
+      if (index < queue.value.length) {
+        currentPlayingIdx = index;
+        await playMediaItem(queue.value[index]);
+      }
+    }
 
     log("skipToQueueItem", name: "bloomeePlayer");
     return super.skipToQueueItem(index);
@@ -281,6 +327,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
               }
             }
           });
+          check4RelatedSongs();
         } catch (e) {
           isLinkProcessing.add(false);
           log("Error: $e", name: "bloomeePlayer");
@@ -294,7 +341,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (queue.value.isNotEmpty) {
       currentPlayingIdx = idx;
       await playMediaItem(currentMedia, doPlay: doPlay);
-      updateUpNext();
       BloomeeDBService.putRecentlyPlayed(MediaItem2MediaItemDB(currentMedia));
     }
   }
@@ -305,25 +351,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         if (offset + shuffleIdx < queue.value.length) {
           prepare4play(idx: shuffleList[offset + shuffleIdx], doPlay: true);
           shuffleIdx = shuffleIdx + offset;
-          updateUpNext();
         }
       } else {
         if (currentPlayingIdx + offset < queue.value.length) {
           prepare4play(idx: offset + currentPlayingIdx, doPlay: true);
         }
-      }
-    }
-  }
-
-  Future<void> updateUpNext() async {
-    if (queue.value.isNotEmpty) {
-      if (audioPlayer.shuffleModeEnabled && shuffleList.isNotEmpty) {
-        var temp = shuffleList.sublist(shuffleIdx);
-        List<MediaItem> temp2 = [];
-        temp.map((e) => temp2.add(queue.value[e])).toList();
-        upNext.add(temp2);
-      } else {
-        upNext.add(queue.value.sublist(currentPlayingIdx));
       }
     }
   }
@@ -339,6 +371,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToNext() async {
+    await loadRelatedSongs();
     if (!audioPlayer.shuffleModeEnabled) {
       if (currentPlayingIdx < (queue.value.length - 1)) {
         currentPlayingIdx++;
@@ -445,17 +478,24 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       shuffle(audioPlayer.shuffleModeEnabled);
     }
     queueTitle.add("Queue");
-    updateUpNext();
   }
 
   @override
   Future<void> addQueueItems(List<MediaItem> mediaItems,
-      {String queueName = "Queue"}) async {
-    for (var mediaItem in mediaItems) {
-      await addQueueItem(
-        mediaItem,
-        atLast: true,
-      );
+      {String queueName = "Queue", bool atLast = false}) async {
+    if (!atLast) {
+      for (var mediaItem in mediaItems) {
+        await addQueueItem(
+          mediaItem,
+          atLast: true,
+        );
+      }
+    } else {
+      if (fromPlaylist.value) {
+        fromPlaylist.add(false);
+      }
+      queue.add(queue.value..addAll(mediaItems));
+      queueTitle.add("Queue");
     }
   }
 

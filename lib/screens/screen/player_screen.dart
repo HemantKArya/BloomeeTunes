@@ -22,6 +22,7 @@ import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -400,9 +401,21 @@ class _UpNextPanelState extends State<UpNextPanel> {
       ScrollOffsetListener.create();
 
   StreamSubscription? _mediaItemSub;
+  Stream upNext = Rx.defer(
+    () => Rx.combineLatest2(BehaviorSubject<List<MediaItem>>.seeded([]),
+        BehaviorSubject<List<MediaItem>>.seeded([]), (a, b) => [...a, ...b]),
+    reusable: true,
+  );
 
   @override
   void initState() {
+    upNext = Rx.defer(
+      () => CombineLatestStream.combine2(
+          context.read<BloomeePlayerCubit>().bloomeePlayer.queue,
+          context.read<BloomeePlayerCubit>().bloomeePlayer.relatedSongs,
+          (a, b) => [...a, ...b]),
+      reusable: true,
+    );
     _mediaItemSub = context
         .read<BloomeePlayerCubit>()
         .bloomeePlayer
@@ -518,11 +531,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
             ),
             Expanded(
               child: StreamBuilder(
-                stream: context
-                    .watch<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .queue
-                    .stream,
+                stream: upNext.asBroadcastStream(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     return ScrollablePositionedList.builder(
