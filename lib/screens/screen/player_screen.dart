@@ -54,13 +54,15 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
       }
     });
 
-    BlocProvider.of<BloomeePlayerCubit>(context).stream.listen((state) {
-      if (state.showLyrics) {
-        _tabController.animateTo(1);
-      } else {
-        _tabController.animateTo(0);
-      }
-    });
+    if (mounted) {
+      BlocProvider.of<BloomeePlayerCubit>(context).stream.listen((state) {
+        if (state.showLyrics) {
+          _tabController.animateTo(1);
+        } else {
+          _tabController.animateTo(0);
+        }
+      });
+    }
   }
 
   @override
