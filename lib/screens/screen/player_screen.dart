@@ -40,6 +40,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
     with SingleTickerProviderStateMixin {
   final PanelController _panelController = PanelController();
   late TabController _tabController;
+  StreamSubscription? _showLyricsSub;
 
   @override
   void initState() {
@@ -54,20 +55,22 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
       }
     });
 
-    if (mounted) {
-      BlocProvider.of<BloomeePlayerCubit>(context).stream.listen((state) {
+    _showLyricsSub =
+        BlocProvider.of<BloomeePlayerCubit>(context).stream.listen((state) {
+      if (mounted) {
         if (state.showLyrics) {
           _tabController.animateTo(1);
         } else {
           _tabController.animateTo(0);
         }
-      });
-    }
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _showLyricsSub?.cancel();
     super.dispose();
   }
 
