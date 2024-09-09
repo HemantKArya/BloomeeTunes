@@ -119,6 +119,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                         .bloomeePlayer
                                                         .addQueueItem(
                                                           e,
+                                                          atLast: true,
                                                           doPlay: true,
                                                         );
 
