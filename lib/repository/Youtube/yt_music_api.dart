@@ -341,6 +341,7 @@ class YtMusicService {
         body['params'] = params;
       }
       final List<Map> searchResults = [];
+      dev.log(body.toString(), name: "YTM");
       final res = await sendRequest(endpoints['search']!, body, headers);
       if (!res.containsKey('contents')) {
         Logger.root.info('YtMusic returned no contents');
@@ -422,7 +423,7 @@ class YtMusicService {
                   .toLowerCase();
 
           String views = '';
-          String duration = '';
+          // String duration = '';
           String subtitle = '';
           String year = '';
           String countSongs = '';
@@ -491,7 +492,7 @@ class YtMusicService {
                   countSongs += element['text'].toString();
                 }
               } else if (count == 3) {
-                duration += element['text'].toString();
+                // duration += element['text'].toString();
                 // print(duration);
               }
             }
@@ -1782,6 +1783,160 @@ class YtMusicService {
     } catch (e) {
       dev.log('Error in ytmusic getWatchPlaylist', name: "YTM", error: e);
       return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> getRelated(String id) async {
+    if (headers == null) {
+      await init();
+    }
+    await initLanguage();
+
+    Map body = Map.from(context!);
+    body['isAudioOnly'] = true;
+    body['videoId'] = id;
+    body['enablePersistentPlaylistPanel'] = true;
+    body['tunerSettingValue'] = 'AUTOMIX_SETTING_NORMAL';
+    body['params'] = 'wAEB';
+
+    try {
+      final Map response = await sendRequest(endpoints['next']!, body, headers);
+
+      final String? playlistId = nav(response, [
+        'contents',
+        'singleColumnMusicWatchNextResultsRenderer',
+        'tabbedRenderer',
+        'watchNextTabbedResultsRenderer',
+        'tabs',
+        0,
+        'tabRenderer',
+        'content',
+        'musicQueueRenderer',
+        'content',
+        'playlistPanelRenderer',
+        'contents',
+        1,
+        'automixPreviewVideoRenderer',
+        'content',
+        'automixPlaylistVideoRenderer',
+        'navigationEndpoint',
+        'watchPlaylistEndpoint',
+        'playlistId',
+      ])?.toString();
+
+      List<Map> results = [];
+
+      if (playlistId != null) {
+        body['playlistId'] = playlistId;
+        final Map response =
+            await sendRequest(endpoints['next']!, body, headers);
+        final List items = nav(response, [
+              'contents',
+              'singleColumnMusicWatchNextResultsRenderer',
+              'tabbedRenderer',
+              'watchNextTabbedResultsRenderer',
+              'tabs',
+              0,
+              'tabRenderer',
+              'content',
+              'musicQueueRenderer',
+              'content',
+              'playlistPanelRenderer',
+              'contents'
+            ]) as List? ??
+            [];
+
+        for (int i = 0; i < items.length; i++) {
+          final item = items[i];
+          final String title = nav(item, [
+            'playlistPanelVideoRenderer',
+            'title',
+            'runs',
+            0,
+            'text',
+          ]).toString();
+          final String id = nav(item, [
+            'playlistPanelVideoRenderer',
+            'videoId',
+          ]).toString();
+          final String image = nav(item, [
+            'playlistPanelVideoRenderer',
+            'thumbnail',
+            'thumbnails',
+            0,
+            'url',
+          ]).toString();
+          String artists = '';
+          String album = '';
+          int? year;
+          List subtitle = nav(item, [
+                'playlistPanelVideoRenderer',
+                'longBylineText',
+                'runs',
+              ]) as List? ??
+              [];
+          int count = 0;
+          for (var element in subtitle) {
+            if (element['text'].trim() == '•') {
+              count++;
+            } else {
+              if (count == 0) {
+                artists += element['text'];
+              } else if (count == 1) {
+                album += element['text'];
+              } else {
+                year = int.tryParse(element['text']);
+              }
+            }
+          }
+          final String duration = nav(item, [
+            'playlistPanelVideoRenderer',
+            'lengthText',
+            'runs',
+            0,
+            'text',
+          ]).toString();
+
+          final String type = types[nav(item, [
+                'playlistPanelVideoRenderer',
+                'navigationEndpoint',
+                'watchEndpoint',
+                'watchEndpointMusicSupportedConfigs',
+                'watchEndpointMusicConfig',
+                'musicVideoType',
+              ]).toString()] ??
+              '';
+          final Map details = {
+            'id': 'youtube$id',
+            'title': decodeUnicode(title),
+            'type': types[type] ?? 'song',
+            'artists': decodeUnicode(artists),
+            'artist': decodeUnicode(artists),
+            'album': decodeUnicode(album),
+            'year': year,
+            'image': image,
+            'duration': timeStringToSeconds(duration).toString(),
+            'provider': 'youtube',
+            'perma_url': 'https://music.youtube.com/watch?v=$id',
+            'url': '',
+            'language': "Unknown",
+            'genre': "Unknown",
+          };
+          results.add(details);
+        }
+      }
+      return {
+        'songs': results,
+        'total': results.length,
+        'id': playlistId,
+      };
+    } catch (e) {
+      dev.log('Error in ytmusic getRelated', name: "YTM", error: e);
+      return {
+        'songs': [],
+        'total': 0,
+        'id': '',
+      };
     }
   }
 }

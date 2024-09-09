@@ -55,6 +55,26 @@ class SaavnAPI {
     });
   }
 
+  Future<Map> getRelated(String id) async {
+    final String params = '${endpoints['getReco']}&pid=$id';
+    final response = await getResponse(params, usev4: true);
+    if (response.statusCode == 200) {
+      final List getMain = json.decode(response.body);
+      final List responseList = getMain as List;
+      return {
+        'songs': await formatSongsResponse(responseList, 'song'),
+        'error': '',
+        'total': responseList.length,
+      };
+    } else {
+      return {
+        'songs': List.empty(),
+        'error': response.body,
+        'total': 0,
+      };
+    }
+  }
+
   Future<Map> querySongsSearch(String queryText, {int maxResults = 5}) async {
     final String apiUrl =
         "https://www.jiosaavn.com/api.php?p=1&q=${queryText.replaceAll(' ', '+')}&_format=json&_marker=0&ctx=wap6dot0&n=$maxResults&__call=search.getResults";
