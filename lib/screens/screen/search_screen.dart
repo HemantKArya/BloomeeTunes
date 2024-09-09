@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/widgets/album_card.dart';
 import 'package:Bloomee/screens/widgets/artist_card.dart';
@@ -9,7 +8,6 @@ import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/playlist_card.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -389,35 +387,14 @@ class _SearchScreenState extends State<SearchScreen> {
                                         child: SongCardWidget(
                                           song: state.mediaItems[index],
                                           onTap: () {
-                                            if (!listEquals(
-                                                context
-                                                    .read<BloomeePlayerCubit>()
-                                                    .bloomeePlayer
-                                                    .queue
-                                                    .value,
-                                                state.mediaItems)) {
-                                              context
-                                                  .read<BloomeePlayerCubit>()
-                                                  .bloomeePlayer
-                                                  .loadPlaylist(
-                                                      MediaPlaylist(
-                                                          playlistName:
-                                                              "Search",
-                                                          mediaItems:
-                                                              state.mediaItems),
-                                                      idx: index,
-                                                      doPlay: true);
-                                            } else if (context
-                                                    .read<BloomeePlayerCubit>()
-                                                    .bloomeePlayer
-                                                    .currentMedia !=
-                                                state.mediaItems[index]) {
-                                              context
-                                                  .read<BloomeePlayerCubit>()
-                                                  .bloomeePlayer
-                                                  .prepare4play(
-                                                      idx: index, doPlay: true);
-                                            }
+                                            context
+                                                .read<BloomeePlayerCubit>()
+                                                .bloomeePlayer
+                                                .addQueueItem(
+                                                  state.mediaItems[index],
+                                                  single: true,
+                                                  doPlay: true,
+                                                );
                                           },
                                           onOptionsTap: () =>
                                               showMoreBottomSheet(context,
