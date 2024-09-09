@@ -59,6 +59,7 @@ void showMoreBottomSheet(
                 child: SongCardWidget(
                   song: song,
                   showOptions: false,
+                  showCopyBtn: true,
                   showInfoBtn: true,
                 ),
               ),
@@ -183,28 +184,6 @@ void showMoreBottomSheet(
                   final tmpPath = await BloomeeFileManager.exportMediaItem(
                       MediaItem2MediaItemDB(song));
                   tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  MingCute.clipboard_line,
-                  color: Default_Theme.primaryColor1,
-                  size: 28,
-                ),
-                title: const Text(
-                  'Copy to Clipboard',
-                  style: TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: "Unageo",
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Clipboard.setData(
-                      ClipboardData(text: "${song.title} by ${song.artist}"));
-                  SnackbarService.showMessage("Copied to clipboard",
-                      duration: const Duration(seconds: 2));
                 },
               ),
               (isDownloaded != null && isDownloaded == true)

@@ -5,6 +5,7 @@ import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
@@ -18,6 +19,7 @@ class SongCardWidget extends StatelessWidget {
   final bool? showOptions;
   final bool? showInfoBtn;
   final bool? showPlayBtn;
+  final bool? showCopyBtn;
   final bool? delDownBtn;
   final bool? isWide;
   final VoidCallback? onOptionsTap;
@@ -39,6 +41,7 @@ class SongCardWidget extends StatelessWidget {
     this.onPlayTap,
     this.onTap,
     this.onDelDownTap,
+    this.showCopyBtn,
     this.isWide = false,
     this.trailing,
   }) : super(key: key);
@@ -150,6 +153,29 @@ class SongCardWidget extends StatelessWidget {
                         ),
                         onPressed: () {
                           if (onPlayTap != null) onPlayTap!();
+                        },
+                      ),
+                    )
+                  : const SizedBox(),
+              (showCopyBtn ?? false)
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 2, right: 2),
+                      child: IconButton(
+                        icon: const Icon(
+                          MingCute.copy_2_fill,
+                          size: 30,
+                          color: Default_Theme.primaryColor1,
+                        ),
+                        onPressed: () {
+                          try {
+                            Clipboard.setData(ClipboardData(
+                                text: "${song.title} by ${song.artist}"));
+                            SnackbarService.showMessage("Copied to clipboard",
+                                duration: const Duration(seconds: 2));
+                          } catch (e) {
+                            SnackbarService.showMessage(
+                                "Failed to copy ${song.title}");
+                          }
                         },
                       ),
                     )
