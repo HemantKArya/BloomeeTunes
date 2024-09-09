@@ -461,18 +461,22 @@ class PlaylistView extends StatelessWidget {
                                 }
                               },
                               onOptionsTap: () {
-                                showMoreBottomSheet(context,
-                                    state.mediaPlaylist.mediaItems[index],
-                                    onDelete: () {
-                                  context
-                                      .read<BloomeeDBCubit>()
-                                      .removeMediaFromPlaylist(
-                                        state.mediaPlaylist.mediaItems[index],
-                                        MediaPlaylistDB(
-                                            playlistName: state
-                                                .mediaPlaylist.playlistName),
-                                      );
-                                }, showDelete: true);
+                                showMoreBottomSheet(
+                                  context,
+                                  state.mediaPlaylist.mediaItems[index],
+                                  onDelete: () {
+                                    context
+                                        .read<BloomeeDBCubit>()
+                                        .removeMediaFromPlaylist(
+                                          state.mediaPlaylist.mediaItems[index],
+                                          MediaPlaylistDB(
+                                              playlistName: state
+                                                  .mediaPlaylist.playlistName),
+                                        );
+                                  },
+                                  showDelete: true,
+                                  showSinglePlay: true,
+                                );
                               },
                             );
                           },

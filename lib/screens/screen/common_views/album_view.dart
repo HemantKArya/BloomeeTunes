@@ -278,8 +278,11 @@ class _AlbumViewState extends State<AlbumView> {
                             song: state.album.songs[index],
                             onOptionsTap: () {
                               showMoreBottomSheet(
-                                  context, state.album.songs[index],
-                                  showDelete: false);
+                                context,
+                                state.album.songs[index],
+                                showDelete: false,
+                                showSinglePlay: true,
+                              );
                             },
                             onTap: () {
                               if (context

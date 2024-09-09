@@ -273,8 +273,11 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                             song: state.playlist.songs[index],
                             onOptionsTap: () {
                               showMoreBottomSheet(
-                                  context, state.playlist.songs[index],
-                                  showDelete: false);
+                                context,
+                                state.playlist.songs[index],
+                                showDelete: false,
+                                showSinglePlay: true,
+                              );
                             },
                             onTap: () {
                               if (context

@@ -11,7 +11,6 @@ import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/services/file_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -22,6 +21,7 @@ void showMoreBottomSheet(
   BuildContext context,
   MediaItemModel song, {
   bool showDelete = false,
+  bool showSinglePlay = false,
   VoidCallback? onDelete,
 }) {
   bool? isDownloaded;
@@ -73,6 +73,36 @@ void showMoreBottomSheet(
                   ),
                 ),
               ),
+              (showSinglePlay)
+                  ? ListTile(
+                      leading: const Icon(
+                        MingCute.play_circle_fill,
+                        color: Default_Theme.primaryColor1,
+                        size: 28,
+                      ),
+                      title: const Text(
+                        'Play Now',
+                        style: TextStyle(
+                            color: Default_Theme.primaryColor1,
+                            fontFamily: "Unageo",
+                            fontSize: 17,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context
+                            .read<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .addQueueItem(
+                              song,
+                              doPlay: true,
+                              single: true,
+                            );
+                        SnackbarService.showMessage("Playing ${song.title}",
+                            duration: const Duration(seconds: 2));
+                      },
+                    )
+                  : const SizedBox.shrink(),
               ListTile(
                 leading: const Icon(
                   MingCute.square_arrow_right_line,

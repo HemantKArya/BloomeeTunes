@@ -286,8 +286,11 @@ class _ArtistViewState extends State<ArtistView> {
                                       song: state.artist.songs[index],
                                       onOptionsTap: () {
                                         showMoreBottomSheet(
-                                            context, state.artist.songs[index],
-                                            showDelete: false);
+                                          context,
+                                          state.artist.songs[index],
+                                          showDelete: false,
+                                          showSinglePlay: true,
+                                        );
                                       },
                                       onTap: () {
                                         if (context

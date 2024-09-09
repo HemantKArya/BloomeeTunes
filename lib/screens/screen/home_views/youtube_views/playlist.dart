@@ -475,8 +475,10 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                     isWide: true,
                                                     onOptionsTap: () {
                                                       showMoreBottomSheet(
-                                                          context,
-                                                          mediaitems[index]);
+                                                        context,
+                                                        mediaitems[index],
+                                                        showSinglePlay: true,
+                                                      );
                                                     },
                                                     onTap: () {
                                                       if (!listEquals(
