@@ -39,11 +39,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
-    }
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 
     defaultConfig {
@@ -56,7 +52,6 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        multiDexEnabled true
     }
 
     // include splits for different architectures and universal APK. (arm64-v8a, armeabi-v7a, x86, x86_64)
@@ -118,6 +113,3 @@ flutter {
     source '../..'
 }
 
-dependencies {
-     implementation 'androidx.multidex:multidex:2.0.1'
-}
