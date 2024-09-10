@@ -106,7 +106,7 @@ class _ChartScreenState extends State<ChartScreen> {
         background: Stack(
           children: [
             LayoutBuilder(builder: (context, constraints) {
-              return Container(
+              return SizedBox(
                 width: constraints.maxWidth,
                 child: LoadImageCached(
                   imageUrl: formatImgURL(
