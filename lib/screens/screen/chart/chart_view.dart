@@ -3,10 +3,11 @@ import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:Bloomee/utils/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class ChartScreen extends StatefulWidget {
   final String chartName;
@@ -94,6 +95,19 @@ class _ChartScreenState extends State<ChartScreen> {
       surfaceTintColor: Default_Theme.themeColor,
       backgroundColor: Default_Theme.themeColor,
       expandedHeight: 200,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(
+            right: 10,
+          ),
+          child: IconButton(
+            icon: const Icon(MingCute.external_link_line),
+            onPressed: () {
+              state.url != null ? launch_Url(Uri.parse(state.url!)) : null;
+            },
+          ),
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
         titlePadding:
