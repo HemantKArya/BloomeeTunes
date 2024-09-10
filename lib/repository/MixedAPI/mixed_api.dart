@@ -18,7 +18,7 @@ class MixedAPI {
   }
 
   Future<MediaItemModel?> getYtTrackByMeta(String songName,
-      {useStringMatcher = false}) async {
+      {useStringMatcher = true}) async {
     final ytItems = await YtMusicService().search(songName, filter: "songs");
     List<MediaItemModel> mediaItems =
         fromYtSongMapList2MediaItemList(ytItems[0]['items'] as List);
