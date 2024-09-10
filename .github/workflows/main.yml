@@ -76,7 +76,7 @@ jobs:
               run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.9.9+${{github.run_number}}.zip
             
             - name: Upload Artifacts
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                 name: Release
                 path: |
