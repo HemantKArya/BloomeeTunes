@@ -1790,7 +1790,7 @@ class YtMusicService {
     if (headers == null) {
       await init();
     }
-    await initLanguage();
+    // await initLanguage();
 
     Map body = Map.from(context!);
     body['isAudioOnly'] = true;

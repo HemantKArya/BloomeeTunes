@@ -9,6 +9,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:async/async.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -106,7 +107,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         (queue.value.length - currentPlayingIdx) < 2 &&
         loopMode.value != LoopMode.all) {
       if (currentMedia.extras?["source"] == "saavn") {
-        final songs = await SaavnAPI().getRelated(currentMedia.id);
+        // final songs = await SaavnAPI().getRelated(currentMedia.id);
+        final songs = await compute(SaavnAPI().getRelated, currentMedia.id);
         if (songs['total'] > 0) {
           final List<MediaItem> temp =
               fromSaavnSongMapList2MediaItemList(songs['songs']);
@@ -114,8 +116,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           log("Related Songs: ${songs['total']}");
         }
       } else if (currentMedia.extras?["source"].contains("youtube") ?? false) {
-        final songs = await YtMusicService()
-            .getRelated(currentMedia.id.replaceAll('youtube', ''));
+        // final songs = await YtMusicService()
+        //     .getRelated(currentMedia.id.replaceAll('youtube', ''));
+        final songs = await compute(YtMusicService().getRelated,
+            currentMedia.id.replaceAll('youtube', ''));
         if (songs['total'] > 0) {
           final List<MediaItem> temp =
               fromYtSongMapList2MediaItemList(songs['songs']);
@@ -320,6 +324,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         try {
           await audioPlayer.setAudioSource(value).then((value) async {
             isLinkProcessing.add(false);
+            check4RelatedSongs();
             if (!isPaused || doPlay) {
               log("doPlay", name: "bloomeePlayer");
               await play();
@@ -329,7 +334,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
               }
             }
           });
-          check4RelatedSongs();
         } catch (e) {
           isLinkProcessing.add(false);
           log("Error: $e", name: "bloomeePlayer");
