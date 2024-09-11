@@ -181,7 +181,7 @@ class MiniPlayerCard extends StatelessWidget {
                                 context
                                     .read<BloomeePlayerCubit>()
                                     .bloomeePlayer
-                                    .skipToPrevious();
+                                    .rewind();
                               },
                               icon: const Icon(FontAwesome.rotate_right_solid,
                                   size: 25))
