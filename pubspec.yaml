@@ -21,6 +21,8 @@ version: 2.9.9+0
 environment:
   sdk: '>=3.0.6 <4.0.0'
 
+# isar version for community fork of isar (temporary)
+isar_version: &isar_version 3.1.8
 
 dependencies:
   flutter:
@@ -48,8 +50,14 @@ dependencies:
   go_router: ^10.1.0
   extended_image: ^8.1.0
   easy_debounce: ^2.0.3
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
+
+  isar: 
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
+  isar_flutter_libs: # contains Isar Core
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
+
   path_provider: ^2.1.0
   modal_bottom_sheet: ^3.0.0
   youtube_explode_dart: ^2.0.2
@@ -85,7 +93,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.2
-  isar_generator: ^3.1.0+1
+
+  isar_generator: 
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
+    
   build_runner: ^2.4.8
   flutter_launcher_icons: ^0.13.1
   # icons_launcher: ^2.1.7
