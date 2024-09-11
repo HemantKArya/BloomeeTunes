@@ -124,6 +124,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
 
   Future<void> addToPlaylist(
       MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
+    log("here it is");
     if (mediaPlaylistDB.playlistName != "Null") {
       await bloomeeDBCubit.addMediaItemToPlaylist(mediaItem, mediaPlaylistDB);
       getAndEmitPlaylists();

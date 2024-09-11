@@ -194,18 +194,20 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(top: 8, left: 10),
                           child: InkWell(
-                            onTap: () {
-                              if (currentMediaModel != mediaItemModelNull) {
-                                context.read<LibraryItemsCubit>().addToPlaylist(
-                                    currentMediaModel,
-                                    MediaPlaylistDB(
-                                      playlistName:
-                                          finalList[index].playlistName,
-                                    ));
-                                context.pop(context);
-                              }
-                            },
                             child: LibItemCard(
+                                onTap: () {
+                                  if (currentMediaModel != mediaItemModelNull) {
+                                    context
+                                        .read<LibraryItemsCubit>()
+                                        .addToPlaylist(
+                                            currentMediaModel,
+                                            MediaPlaylistDB(
+                                              playlistName:
+                                                  finalList[index].playlistName,
+                                            ));
+                                    context.pop(context);
+                                  }
+                                },
                                 title: finalList[index].playlistName,
                                 coverArt:
                                     finalList[index].coverImgUrl ?? "null",
