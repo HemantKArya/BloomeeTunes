@@ -75,15 +75,18 @@ class SongInfoScreen extends StatelessWidget {
                     title: "MediaID",
                     subtitle: song.id,
                     icon: MingCute.IDcard_fill),
-                InfoTile(
-                  title: "Original Source",
-                  subtitle: song.extras!["perma_url"] ?? "Unknown",
-                  icon: MingCute.link_3_fill,
-                  onTap: () {
-                    Clipboard.setData(
-                        ClipboardData(text: song.extras!["perma_url"]));
-                    SnackbarService.showMessage("Link Copied to Clipboard.");
-                  },
+                Tooltip(
+                  message: "Copy Link to Clipboard",
+                  child: InfoTile(
+                    title: "Original Source",
+                    subtitle: song.extras!["perma_url"] ?? "Unknown",
+                    icon: MingCute.link_3_fill,
+                    onTap: () {
+                      Clipboard.setData(
+                          ClipboardData(text: song.extras!["perma_url"]));
+                      SnackbarService.showMessage("Link Copied to Clipboard.");
+                    },
+                  ),
                 ),
               ],
             ),
