@@ -36,11 +36,11 @@ void createPlaylistBottomSheet(BuildContext context) {
                     width: constraints.maxWidth,
                     child: ClipRRect(
                       borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(42),
-                          topRight: Radius.circular(42)),
-                      child: SingleChildScrollView(
-                        child: Container(
-                          color: Default_Theme.themeColor,
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40)),
+                      child: Container(
+                        color: Default_Theme.themeColor,
+                        child: SingleChildScrollView(
                           child: Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
