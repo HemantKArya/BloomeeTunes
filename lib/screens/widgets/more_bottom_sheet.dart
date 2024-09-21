@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
@@ -216,45 +218,47 @@ void showMoreBottomSheet(
                   tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
                 },
               ),
-              (isDownloaded != null && isDownloaded == true)
-                  ? ListTile(
-                      leading: const Icon(
-                        MingCute.check_circle_line,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
-                      ),
-                      title: const Text(
-                        'Already Downloaded',
-                        style: TextStyle(
+              Platform.isAndroid
+                  ? (isDownloaded != null && isDownloaded == true)
+                      ? ListTile(
+                          leading: const Icon(
+                            MingCute.check_circle_line,
                             color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        // context.read<DownloaderCubit>().downloadSong(song);
-                      },
-                    )
-                  : ListTile(
-                      leading: const Icon(
-                        MingCute.download_2_fill,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
-                      ),
-                      title: const Text(
-                        'Download',
-                        style: TextStyle(
+                            size: 28,
+                          ),
+                          title: const Text(
+                            'Already Downloaded',
+                            style: TextStyle(
+                                color: Default_Theme.primaryColor1,
+                                fontFamily: "Unageo",
+                                fontSize: 17,
+                                fontWeight: FontWeight.w400),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            // context.read<DownloaderCubit>().downloadSong(song);
+                          },
+                        )
+                      : ListTile(
+                          leading: const Icon(
+                            MingCute.download_2_fill,
                             color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        context.read<DownloaderCubit>().downloadSong(song);
-                      },
-                    ),
+                            size: 28,
+                          ),
+                          title: const Text(
+                            'Download',
+                            style: TextStyle(
+                                color: Default_Theme.primaryColor1,
+                                fontFamily: "Unageo",
+                                fontSize: 17,
+                                fontWeight: FontWeight.w400),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            context.read<DownloaderCubit>().downloadSong(song);
+                          },
+                        )
+                  : const SizedBox.shrink(),
               ListTile(
                 leading: const Icon(
                   MingCute.external_link_line,
