@@ -1,9 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:flutter/services.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class SongInfoScreen extends StatelessWidget {
@@ -77,6 +79,11 @@ class SongInfoScreen extends StatelessWidget {
                   title: "Original Source",
                   subtitle: song.extras!["perma_url"] ?? "Unknown",
                   icon: MingCute.link_3_fill,
+                  onTap: () {
+                    Clipboard.setData(
+                        ClipboardData(text: song.extras!["perma_url"]));
+                    SnackbarService.showMessage("Link Copied to Clipboard.");
+                  },
                 ),
               ],
             ),
@@ -91,16 +98,19 @@ class InfoTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final VoidCallback? onTap;
   const InfoTile({
     Key? key,
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onTap: onTap,
       dense: true,
       leading: Icon(
         icon,
