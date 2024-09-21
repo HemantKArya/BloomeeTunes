@@ -160,46 +160,52 @@ class SongCardWidget extends StatelessWidget {
               (showCopyBtn ?? false)
                   ? Padding(
                       padding: const EdgeInsets.only(left: 2, right: 2),
-                      child: IconButton(
-                        icon: const Icon(
-                          MingCute.copy_2_fill,
-                          size: 30,
-                          color: Default_Theme.primaryColor1,
+                      child: Tooltip(
+                        message: "Copy to clipboard",
+                        child: IconButton(
+                          icon: const Icon(
+                            MingCute.copy_2_fill,
+                            size: 30,
+                            color: Default_Theme.primaryColor1,
+                          ),
+                          onPressed: () {
+                            try {
+                              Clipboard.setData(ClipboardData(
+                                  text: "${song.title} by ${song.artist}"));
+                              SnackbarService.showMessage("Copied to clipboard",
+                                  duration: const Duration(seconds: 2));
+                            } catch (e) {
+                              SnackbarService.showMessage(
+                                  "Failed to copy ${song.title}");
+                            }
+                          },
                         ),
-                        onPressed: () {
-                          try {
-                            Clipboard.setData(ClipboardData(
-                                text: "${song.title} by ${song.artist}"));
-                            SnackbarService.showMessage("Copied to clipboard",
-                                duration: const Duration(seconds: 2));
-                          } catch (e) {
-                            SnackbarService.showMessage(
-                                "Failed to copy ${song.title}");
-                          }
-                        },
                       ),
                     )
                   : const SizedBox(),
               (showInfoBtn ?? false)
                   ? Padding(
                       padding: const EdgeInsets.only(left: 2, right: 2),
-                      child: IconButton(
-                        icon: const Icon(
-                          MingCute.information_line,
-                          size: 30,
-                          color: Default_Theme.primaryColor1,
+                      child: Tooltip(
+                        message: "About this song",
+                        child: IconButton(
+                          icon: const Icon(
+                            MingCute.information_line,
+                            size: 30,
+                            color: Default_Theme.primaryColor1,
+                          ),
+                          onPressed: () {
+                            if (onInfoTap != null) {
+                              onInfoTap!();
+                            } else {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          SongInfoScreen(song: song)));
+                            }
+                          },
                         ),
-                        onPressed: () {
-                          if (onInfoTap != null) {
-                            onInfoTap!();
-                          } else {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        SongInfoScreen(song: song)));
-                          }
-                        },
                       ),
                     )
                   : const SizedBox(),
