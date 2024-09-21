@@ -94,7 +94,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
               }),
           ImportFromBtn(
               btnName: "Music from Youtube-Music",
-              btnIcon: FontAwesome.youtube_brand,
+              btnIcon: FontAwesome.circle_play,
               onClickFunc: () {
                 getIdAndShowBottomSheet(context,
                     hintText: "https://music.youtube.com/watch?v=XXXXXX",
@@ -156,14 +156,13 @@ class ImportFromBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      splashColor: Default_Theme.accentColor1.withOpacity(0.3),
       onTap: onClickFunc,
       title: Text(
         btnName,
         style: const TextStyle(
                 color: Default_Theme.primaryColor1,
-                fontSize: 20,
-                fontWeight: FontWeight.bold)
+                fontSize: 18,
+                fontWeight: FontWeight.w500)
             .merge(Default_Theme.secondoryTextStyle),
       ),
       leading: Icon(
