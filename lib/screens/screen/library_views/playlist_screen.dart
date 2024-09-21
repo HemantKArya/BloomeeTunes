@@ -247,7 +247,7 @@ class PlaylistView extends StatelessWidget {
                                         top: 8,
                                         child: IconButton(
                                           icon: const Icon(
-                                            MingCute.more_1_line,
+                                            MingCute.information_line,
                                           ),
                                           hoverColor: getFBColor(context)[1]
                                               .withOpacity(0.2),
