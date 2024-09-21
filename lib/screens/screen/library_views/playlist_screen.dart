@@ -95,7 +95,7 @@ class PlaylistView extends StatelessWidget {
                                 getFBColor(context)[0].withOpacity(0.6),
                             color: getFBColor(context)[0],
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(
+                              backgroundColor: WidgetStatePropertyAll(
                                   getFBColor(context)[1].withOpacity(0.1)),
                             ),
                             onPressed: () {
@@ -254,7 +254,7 @@ class PlaylistView extends StatelessWidget {
                                           color: getFBColor(context)[0],
                                           style: ButtonStyle(
                                             backgroundColor:
-                                                MaterialStateProperty.all(
+                                                WidgetStatePropertyAll(
                                                     getFBColor(context)[1]
                                                         .withOpacity(0.05)),
                                           ),
