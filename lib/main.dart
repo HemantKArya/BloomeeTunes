@@ -26,7 +26,6 @@ import 'package:Bloomee/routes_and_consts/routes.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:metadata_god/metadata_god.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -113,12 +112,6 @@ Future<void> main() async {
   }
   setHighRefreshRate();
   MetadataGod.initialize();
-  try {
-    dotenv.load(fileName: "assets/.env");
-  } on Exception catch (e) {
-    log("error $e");
-    dotenv.load(mergeWith: io.Platform.environment);
-  }
   setupPlayerCubit();
   runApp(const MyApp());
 }
