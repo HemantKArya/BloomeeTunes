@@ -34,10 +34,6 @@ jobs:
             - name: Install Dependencies
               run: flutter pub get
             
-            - name: Create .env file
-              run: echo "CLIENT_ID = XXXXX\nCLIENT_SECRET = XXXX EOF" > assets/.env
-
-            
             - name: Build App files
               run: flutter build apk --release --build-number ${{github.run_number}}
 
