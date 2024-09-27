@@ -1882,7 +1882,7 @@ class YtMusicService {
             } else {
               if (count == 0) {
                 artists += element['text'];
-              } else if (count == 1) {
+              } else if (count == 1 && subtitle.length>2) {
                 album += element['text'];
               } else {
                 year = int.tryParse(element['text']);
@@ -1906,6 +1906,9 @@ class YtMusicService {
                 'musicVideoType',
               ]).toString()] ??
               '';
+          if (album.contains('views')) {
+            album = '';
+          }
           final Map details = {
             'id': 'youtube$id',
             'title': decodeUnicode(title),
