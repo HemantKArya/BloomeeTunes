@@ -75,6 +75,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         MediaAction.skipToPrevious,
         MediaAction.playPause,
         MediaAction.skipToNext,
+        MediaAction.seek,
       },
       androidCompactActionIndices: const [0, 1, 2],
       updatePosition: audioPlayer.position,
