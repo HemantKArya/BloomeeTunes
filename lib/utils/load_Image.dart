@@ -90,7 +90,6 @@ class _LoadImageCachedState extends State<LoadImageCached> {
   Widget build(BuildContext context) {
     return CachedNetworkImage(
       imageUrl: widget.imageUrl,
-      useOldImageOnUrlChange: true,
       placeholder: (context, url) => Image(
         image: const AssetImage("assets/icons/lazy_loading.png"),
         fit: widget.fit,
@@ -112,10 +111,10 @@ class _LoadImageCachedState extends State<LoadImageCached> {
                 image: AssetImage(widget.placeholderUrl),
                 fit: widget.fit,
               ),
-              fadeInDuration: const Duration(milliseconds: 700),
+              fadeInDuration: const Duration(milliseconds: 300),
               fit: widget.fit,
             ),
-      fadeInDuration: const Duration(milliseconds: 700),
+      fadeInDuration: const Duration(milliseconds: 300),
       fit: widget.fit,
     );
   }
