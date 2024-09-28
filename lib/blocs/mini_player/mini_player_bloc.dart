@@ -1,8 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:developer';
-
-import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
@@ -76,6 +74,7 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
 
     _playerStateSubscription =
         playerCubit.bloomeePlayer.audioPlayer.playerStateStream.listen((event) {
+      log("${event.processingState}", name: "MiniPlayer");
       switch (event.processingState) {
         case ProcessingState.idle:
           add(MiniPlayerInitialEvent());
@@ -97,6 +96,10 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
             if (event.playing) {
               add(MiniPlayerPlayedEvent(
                   playerCubit.bloomeePlayer.currentMedia));
+            } else if (playerCubit.bloomeePlayer.isLinkProcessing.value ==
+                true) {
+              add(MiniPlayerProcessingEvent(
+                  playerCubit.bloomeePlayer.currentMedia));
             } else {
               add(MiniPlayerPausedEvent(
                   playerCubit.bloomeePlayer.currentMedia));
@@ -107,11 +110,6 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
           try {
             add(MiniPlayerCompletedEvent(
                 playerCubit.bloomeePlayer.currentMedia));
-          } catch (e) {}
-          break;
-        case AudioProcessingState.error:
-          try {
-            add(MiniPlayerErrorEvent(playerCubit.bloomeePlayer.currentMedia));
           } catch (e) {}
           break;
       }

@@ -46,6 +46,7 @@ class MiniPlayerWidget extends StatelessWidget {
               ),
             MiniPlayerWorking() => MiniPlayerCard(
                 state: state,
+                isProcessing: state.isBuffering,
               ),
             MiniPlayerError() => const SizedBox(),
             MiniPlayerProcessing() => MiniPlayerCard(
