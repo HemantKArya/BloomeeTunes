@@ -7,8 +7,7 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
   StreamSubscription<ConnectivityResult>? _subscription;
   ConnectivityCubit() : super(ConnectivityState.disconnected) {
     _subscription = Connectivity().onConnectivityChanged.listen((event) {
-      if (event == ConnectivityResult.none ||
-          event == ConnectivityResult.bluetooth) {
+      if (event == ConnectivityResult.none) {
         emit(ConnectivityState.disconnected);
       } else {
         emit(ConnectivityState.connected);
