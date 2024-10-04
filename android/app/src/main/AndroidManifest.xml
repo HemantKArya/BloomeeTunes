@@ -17,6 +17,7 @@
    android:name="${applicationName}" 
    android:hardwareAccelerated="true" 
     android:requestLegacyExternalStorage="true"
+    android:networkSecurityConfig="@xml/network_cfg"
    android:icon="@mipmap/launcher_icon">
     <activity 
     android:name="com.ryanheise.audioservice.AudioServiceActivity" 
