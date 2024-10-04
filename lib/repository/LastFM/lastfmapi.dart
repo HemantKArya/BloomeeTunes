@@ -89,7 +89,6 @@ class LastFmAPI {
 
   // Factory constructor to return the singleton instance
   factory LastFmAPI() {
-    log("starting the lastfm api", name: "LastFmAPI");
     initialize(
       apiKey: null,
       apiSecret: null,

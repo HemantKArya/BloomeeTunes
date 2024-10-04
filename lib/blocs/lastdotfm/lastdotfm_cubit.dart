@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/main.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
@@ -22,6 +21,7 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
   BloomeePlayerCubit playerCubit;
   MediaItemModel lastPlayed = mediaItemModelNull;
   Stopwatch stopwatch = Stopwatch();
+  Stream<dynamic>? playerProgres;
   BehaviorSubject<MediaItemModel> playedMedia =
       BehaviorSubject<MediaItemModel>.seeded(mediaItemModelNull);
 
@@ -31,38 +31,52 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     initializeFromDB();
     songTimeTracker();
   }
+  @override
+  close() async {
+    playedMedia.close();
+    scrobbleSub?.cancel();
+    super.close();
+  }
 
   void songTimeTracker() {
-    bloomeePlayerCubit.progressStreams.listen((event) async {
-      if (bloomeePlayerCubit.bloomeePlayer.audioPlayer.playing &&
+    while (playerCubit.playerInitState != PlayerInitState.initialized) {
+      log("Waiting for player to be intialized.", name: "Last.FM");
+    }
+    scrobbleSub = playerCubit.progressStreams.listen((event) {
+      if (playerCubit.bloomeePlayer.audioPlayer.playing &&
           event.currentPlaybackState.processingState == ProcessingState.ready) {
-        if (lastPlayed != bloomeePlayerCubit.bloomeePlayer.currentMedia ||
+        if (lastPlayed != playerCubit.bloomeePlayer.currentMedia ||
             !stopwatch.isRunning) {
           if (stopwatch.isRunning) {
             stopwatch.stop();
             stopwatch.reset();
           }
           stopwatch.start();
-          lastPlayed = bloomeePlayerCubit.bloomeePlayer.currentMedia;
+          lastPlayed = playerCubit.bloomeePlayer.currentMedia;
         } else if ((stopwatch.elapsed.inSeconds > 30 ||
                 (stopwatch.elapsed.inSeconds /
-                        (bloomeePlayerCubit
-                                    .bloomeePlayer.currentMedia.duration ??
+                        (playerCubit.bloomeePlayer.currentMedia.duration ??
                                 const Duration(
                                     hours:
                                         1)) // if duration is null, set it to 1 hour to avoid division by zero
                             .inSeconds) >
                     0.5) &&
-            bloomeePlayerCubit.bloomeePlayer.currentMedia == lastPlayed &&
-            bloomeePlayerCubit.bloomeePlayer.currentMedia !=
-                playedMedia.value) {
-          playedMedia.add(bloomeePlayerCubit.bloomeePlayer.currentMedia);
-          log("Scrobbling: ${bloomeePlayerCubit.bloomeePlayer.currentMedia.title}",
+            playerCubit.bloomeePlayer.currentMedia == lastPlayed &&
+            playerCubit.bloomeePlayer.currentMedia != playedMedia.value) {
+          playedMedia.add(playerCubit.bloomeePlayer.currentMedia);
+          log("Scrobbling: ${playerCubit.bloomeePlayer.currentMedia.title}",
               name: "Last.FM");
-          final isSuccess = await scrobble(lastPlayed);
-          log("Scrobble ${isSuccess ? "success" : "failed"}!", name: "Last.FM");
+          scrobble(lastPlayed).then(
+            (value) {
+              if (value) {
+                log("Scrobble success.", name: "Last.FM");
+              } else {
+                log("Scrobble failed.", name: "Last.FM");
+              }
+            },
+          );
         }
-      } else if (lastPlayed != bloomeePlayerCubit.bloomeePlayer.currentMedia) {
+      } else if (lastPlayed != playerCubit.bloomeePlayer.currentMedia) {
         stopwatch.stop();
         stopwatch.reset();
       } else {
