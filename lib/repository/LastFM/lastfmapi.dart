@@ -1,7 +1,9 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 import 'dart:developer';
-import 'package:http/http.dart' as http;
+
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 
 class ScrobbleTrack {
   final String artist;
@@ -41,6 +43,33 @@ class ScrobbleTrack {
     }
     return params;
   }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'artist': artist,
+      'trackName': trackName,
+      'timestamp': timestamp,
+      'album': album,
+      'duration': duration,
+      'chosenByUser': chosenByUser,
+    };
+  }
+
+  factory ScrobbleTrack.fromMap(Map<String, dynamic> map) {
+    return ScrobbleTrack(
+      artist: map['artist'] as String,
+      trackName: map['trackName'] as String,
+      timestamp: map['timestamp'] as int,
+      album: map['album'] != null ? map['album'] as String : null,
+      duration: map['duration'] != null ? map['duration'] as int : null,
+      chosenByUser: map['chosenByUser'] as bool,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory ScrobbleTrack.fromJson(Map source) =>
+      ScrobbleTrack.fromMap(source as Map<String, dynamic>);
 }
 
 class LastFmAPI {

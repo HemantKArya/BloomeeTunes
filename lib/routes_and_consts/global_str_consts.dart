@@ -34,4 +34,5 @@ class GlobalStrConsts {
   static const String lFMUISetting = "lastFMUI";
   static const String lFMScrobbleSetting = "lastFMScrobble";
   static const String lFMUsernames = "lastFMUsernames";
+  static const String lFMTrackedCache = "lastFMTrackedCacheForFutureScrobble";
 }

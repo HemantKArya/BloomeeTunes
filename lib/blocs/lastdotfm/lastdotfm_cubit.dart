@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/main.dart';
@@ -97,7 +98,7 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
             apiKey: apiKey, apiSecret: apiSecret, sessionKey: session));
       }
     }
-
+    startUpCheck();
     log("Last.FM Keys from DB: $apiKey, $apiSecret, $session", name: "Last.FM");
   }
 
@@ -136,10 +137,6 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     return token;
   }
 
-  Future<void> check() async {
-    log("key: ${LastFmAPI.apiKey} secret:${LastFmAPI.apiSecret} session: ${LastFmAPI.sessionKey}");
-  }
-
   Future<void> remove() async {
     LastFmAPI.initialized = false;
     LastFmAPI.sessionKey = "";
@@ -151,34 +148,96 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSession, "", "0");
   }
 
+  startUpCheck() async {
+    final lastUnScrobbled = await getLFMTrackedCache();
+    if (lastUnScrobbled.isNotEmpty) {
+      final isSuccess = await scrobbleTrackList(lastUnScrobbled);
+      log("Scrobble ${isSuccess ? "success" : "failed"}!", name: "Last.FM");
+      if (!isSuccess) {
+        lFMCacheTrack(lastUnScrobbled);
+      }
+    }
+  }
+
+  Future<bool> scrobbleTrackList(List<ScrobbleTrack> trackList) async {
+    if (LastFmAPI.initialized) {
+      try {
+        final response = await LastFmAPI.scrobble(trackList);
+        log('Scrobble response: $response', name: 'LastFM API');
+        return response;
+      } catch (e) {
+        log('Scrobble failed: $e', name: 'LastFM API');
+        lFMCacheTrack(trackList);
+      }
+    }
+    return false;
+  }
+
   Future<bool> scrobble(MediaItemModel mediaItem) async {
     final shouldScrobble = await BloomeeDBService.getSettingBool(
         GlobalStrConsts.lFMScrobbleSetting,
         defaultValue: false);
+
     final durationMin = mediaItem.duration?.inMinutes ?? 20000;
     final durationSec = mediaItem.duration?.inSeconds ?? 20000;
-    try {
-      if (LastFmAPI.initialized &&
-          shouldScrobble! &&
-          mediaItem != mediaItemModelNull &&
-          durationMin < 15 &&
-          durationSec > 30) {
-        final response = await LastFmAPI.scrobble([
-          ScrobbleTrack(
-            artist: mediaItem.artist ?? 'Unknown',
-            trackName: mediaItem.title,
-            timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            album: mediaItem.album ?? 'Unknown',
-            duration: mediaItem.duration?.inSeconds ?? 0,
-            chosenByUser: false,
-          ),
-        ]);
-        log('Scrobble response: $response', name: 'LastFM API');
-        return response;
+
+    final track = ScrobbleTrack(
+      artist: mediaItem.artist ?? 'Unknown',
+      trackName: mediaItem.title,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      album: mediaItem.album ?? 'Unknown',
+      duration: mediaItem.duration?.inSeconds ?? 0,
+      chosenByUser: false,
+    );
+    if (shouldScrobble ?? false) {
+      List<ScrobbleTrack> trackList = await getLFMTrackedCache();
+      trackList.add(track);
+      try {
+        if (LastFmAPI.initialized &&
+            mediaItem != mediaItemModelNull &&
+            durationMin < 15 &&
+            durationSec > 30) {
+          final response = await LastFmAPI.scrobble(trackList);
+          log('Scrobble response: $response', name: 'LastFM API');
+          return response;
+        }
+      } catch (e) {
+        log('Scrobble failed: $e', name: 'LastFM API');
+        lFMCacheTrack(trackList);
       }
-    } catch (e) {
-      log('Scrobble failed: $e', name: 'LastFM API');
     }
     return false;
+  }
+
+  void lFMCacheTrack(List<ScrobbleTrack> trackList) {
+    final trackListMap = trackList.map((e) => e.toJson()).toList();
+    BloomeeDBService.getAPICache(GlobalStrConsts.lFMTrackedCache).then((value) {
+      if (value != null && value != "null") {
+        log("Cache found: ${trackListMap.toString()}", name: "Last.FM");
+        final trackList2 = value as List;
+        trackList2.addAll(trackListMap);
+        BloomeeDBService.putAPICache(
+            GlobalStrConsts.lFMTrackedCache, trackList2.toString());
+      } else {
+        log("No cache found", name: "Last.FM");
+        BloomeeDBService.putAPICache(
+            GlobalStrConsts.lFMTrackedCache, trackListMap.toString());
+      }
+    });
+  }
+
+  Future<List<ScrobbleTrack>> getLFMTrackedCache() async {
+    final trackList =
+        await BloomeeDBService.getAPICache(GlobalStrConsts.lFMTrackedCache);
+    await BloomeeDBService.putAPICache(GlobalStrConsts.lFMTrackedCache, "null");
+    if (trackList != null && trackList.isNotEmpty && trackList != "null") {
+      final trackListMap = jsonDecode(trackList) as List;
+      List<ScrobbleTrack> trackListObj = [];
+      for (var element in trackListMap) {
+        trackListObj.add(ScrobbleTrack.fromJson(element));
+      }
+      return trackListObj;
+    }
+    return [];
   }
 }
