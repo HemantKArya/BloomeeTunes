@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:html/parser.dart' show parse;
+import 'package:html/dom.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -44,20 +46,21 @@ Future<Map<String, dynamic>> sourceforgeUpdate() async {
   const url = 'https://sourceforge.net/projects/bloomee/best_release.json';
   final userAgent = {
     'win':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
     'linux':
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3868.146 Safari/537.36 OPR/54.0.4087.46',
     'android':
-        'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Mobile Safari/537.36',
+        'Mozilla/5.0 (Linux; Android 13;) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36',
   };
 
   final headers = {
     'user-agent': userAgent[platform]!,
   };
-
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
   final response = await http.get(Uri.parse(url), headers: headers);
+  log("response status code: ${response.statusCode}", name: 'UpdaterTools');
   if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
+    final data = json.decode(response.body);
     final releaseUrl = data['release']['url'];
     final filename = data['release']['filename'];
     final fileNameParts = filename.split('/');
@@ -66,7 +69,6 @@ Future<Map<String, dynamic>> sourceforgeUpdate() async {
     final buildMatch = RegExp(r'\+(\d+)').firstMatch(fileNameParts.last);
     final version = versionMatch?.group(1);
     final build = buildMatch?.group(1);
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
     return {
       'newVer': version ?? '',
@@ -83,9 +85,12 @@ Future<Map<String, dynamic>> sourceforgeUpdate() async {
       ),
     };
   } else {
-    return {
-      'results': false,
-    };
+    throw Exception('Failed to load latest version!');
+    // return {
+    //   'results': false,
+    //   'currVer': packageInfo.version,
+    //   'currBuild': packageInfo.buildNumber,
+    // };
   }
 }
 

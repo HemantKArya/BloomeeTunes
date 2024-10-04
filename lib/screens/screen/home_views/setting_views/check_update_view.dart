@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:Bloomee/services/bloomeeUpdaterTools.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -28,6 +30,7 @@ class CheckUpdateView extends StatelessWidget {
           future: getLatestVersion(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
+              log("data: ${snapshot.data}");
               if (!snapshot.data?["results"]) {
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
