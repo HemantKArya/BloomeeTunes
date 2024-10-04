@@ -80,7 +80,7 @@ dependencies:
   sliding_up_panel: ^2.0.0+1
   responsive_framework: ^1.4.0
   scrollable_positioned_list: ^0.3.8
-
+  crypto: ^3.0.5
   # linux plugins
   just_audio_media_kit: ^2.0.0
   media_kit_libs_linux: any

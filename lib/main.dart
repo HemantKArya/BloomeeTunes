@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io' as io;
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
+import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
@@ -131,7 +132,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
     // For sharing or opening urls/text coming from outside the app while the app is in the memory
     _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((event) {
       sharedMediaFiles.clear();
@@ -213,7 +213,11 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => LyricsCubit(bloomeePlayerCubit),
-        )
+        ),
+        BlocProvider(
+          create: (context) => LastdotfmCubit(playerCubit: bloomeePlayerCubit),
+          lazy: false,
+        ),
       ],
       child: RepositoryProvider(
         create: (context) => DownloaderCubit(

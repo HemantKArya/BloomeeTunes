@@ -13,6 +13,8 @@ class SettingsState extends Equatable {
   bool autoBackup;
   String historyClearTime;
   bool autoGetCountry;
+  bool lastFMExpore;
+  bool lastFMScrobble;
   String countryCode;
   List<bool> sourceEngineSwitches;
   Map chartMap;
@@ -29,6 +31,8 @@ class SettingsState extends Equatable {
     required this.historyClearTime,
     required this.autoGetCountry,
     required this.countryCode,
+    required this.lastFMExpore,
+    required this.lastFMScrobble,
     required this.sourceEngineSwitches,
     required this.chartMap,
   });
@@ -46,6 +50,8 @@ class SettingsState extends Equatable {
     String? historyClearTime,
     bool? autoGetCountry,
     String? countryCode,
+    bool? lastFMExpore,
+    bool? lastFMScrobble,
     List<bool>? sourceEngineSwitches,
     Map? chartMap,
   }) {
@@ -62,6 +68,8 @@ class SettingsState extends Equatable {
       historyClearTime: historyClearTime ?? this.historyClearTime,
       autoGetCountry: autoGetCountry ?? this.autoGetCountry,
       countryCode: countryCode ?? this.countryCode,
+      lastFMExpore: lastFMExpore ?? this.lastFMExpore,
+      lastFMScrobble: lastFMScrobble ?? this.lastFMScrobble,
       sourceEngineSwitches:
           List.from(sourceEngineSwitches ?? this.sourceEngineSwitches),
       chartMap: Map.from(chartMap ?? this.chartMap),
@@ -84,6 +92,8 @@ class SettingsState extends Equatable {
         countryCode,
         sourceEngineSwitches,
         chartMap,
+        lastFMExpore,
+        lastFMScrobble,
       ];
 }
 
@@ -104,5 +114,7 @@ class SettingsInitial extends SettingsState {
           countryCode: "IN",
           sourceEngineSwitches: SourceEngine.values.map((e) => true).toList(),
           chartMap: {},
+          lastFMExpore: false,
+          lastFMScrobble: true,
         );
 }

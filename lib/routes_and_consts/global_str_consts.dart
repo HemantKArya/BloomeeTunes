@@ -26,4 +26,12 @@ class GlobalStrConsts {
   static const String autoGetCountry = "autoGetCountry";
   static const String countryCode = "countryCode";
   static const String chartShowMap = "chartShowMap";
+
+  // LastFM
+  static const String lFMApiKey = "lastFMKey";
+  static const String lFMSession = "lastFMSession";
+  static const String lFMSecret = "lastFMSecret";
+  static const String lFMUISetting = "lastFMUI";
+  static const String lFMScrobbleSetting = "lastFMScrobble";
+  static const String lFMUsernames = "lastFMUsernames";
 }

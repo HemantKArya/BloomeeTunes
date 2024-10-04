@@ -932,8 +932,9 @@ class BloomeeDBService {
         .findFirstSync();
     if (apiToken != null) {
       if ((apiToken.lastUpdated!.difference(DateTime.now()).inSeconds + 30)
-              .abs() <
-          int.parse(apiToken.settingValue2!)) {
+                  .abs() <
+              int.parse(apiToken.settingValue2!) ||
+          apiToken.settingValue2 == "0") {
         return apiToken.settingValue;
       }
     }

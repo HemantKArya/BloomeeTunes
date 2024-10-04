@@ -4,6 +4,7 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/appui_setting.da
 import 'package:Bloomee/screens/screen/home_views/setting_views/backup_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/lastfm_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/stream_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/updates_setting.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +79,18 @@ class SettingsView extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AppUISettings(),
+                  ),
+                );
+              }),
+          settingListTile(
+              title: "Last.FM Settings",
+              subtitle: "API Key, Secret, and Scrobbling settings.",
+              icon: FontAwesome.lastfm_brand,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LastDotFM(),
                   ),
                 );
               }),

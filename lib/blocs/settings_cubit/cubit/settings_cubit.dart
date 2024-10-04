@@ -14,6 +14,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     autoUpdate();
   }
 
+// Initialize the settings from the database
   void initSettings() {
     BloomeeDBService.getSettingBool(GlobalStrConsts.autoUpdateNotify)
         .then((value) {
@@ -68,6 +69,15 @@ class SettingsCubit extends Cubit<SettingsState> {
     BloomeeDBService.getSettingStr(GlobalStrConsts.historyClearTime)
         .then((value) {
       emit(state.copyWith(historyClearTime: value ?? "30"));
+    });
+
+    BloomeeDBService.getSettingBool(GlobalStrConsts.lFMScrobbleSetting)
+        .then((value) {
+      emit(state.copyWith(lastFMScrobble: value ?? false));
+    });
+
+    BloomeeDBService.getSettingBool(GlobalStrConsts.lFMUISetting).then((value) {
+      emit(state.copyWith(lastFMExpore: value ?? false));
     });
 
     BloomeeDBService.getSettingStr(GlobalStrConsts.backupPath)
@@ -132,6 +142,16 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setCountryCode(String value) {
     BloomeeDBService.putSettingStr(GlobalStrConsts.countryCode, value);
     emit(state.copyWith(countryCode: value));
+  }
+
+  void setLastFMScrobble(bool value) {
+    BloomeeDBService.putSettingBool(GlobalStrConsts.lFMScrobbleSetting, value);
+    emit(state.copyWith(lastFMScrobble: value));
+  }
+
+  void setLastFMExpore(bool value) {
+    BloomeeDBService.putSettingBool(GlobalStrConsts.lFMUISetting, value);
+    emit(state.copyWith(lastFMExpore: value));
   }
 
   void setAutoGetCountry(bool value) {
