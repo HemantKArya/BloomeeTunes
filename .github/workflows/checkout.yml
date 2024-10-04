@@ -39,7 +39,7 @@ jobs:
 
 
             - name: Rename APK file
-              run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v2.10.2+${{github.run_number}}.apk"
+              run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v2.10.3+${{github.run_number}}.apk"
 
             - name: Build Windows App
               run: flutter build windows --release --build-number ${{github.run_number}}
@@ -48,14 +48,14 @@ jobs:
               run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
            
             - name: ZIP build
-              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.10.2+${{github.run_number}}.zip
+              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v2.10.3+${{github.run_number}}.zip
             
             - name: Upload Artifacts
               uses: actions/upload-artifact@v4
               with:
                 name: Release
                 path: |
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.10.2+${{github.run_number}}.apk
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v2.10.3+${{github.run_number}}.apk
                   build/windows/x64/bloomee_tunes_windows_x64_v2.9.9+${{github.run_number}}.zip
 
 
