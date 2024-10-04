@@ -105,11 +105,10 @@ Future<Map<String, dynamic>> githubUpdate() async {
       "results": false,
     };
   }
-
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
   if (response.statusCode == 200) {
     Map<String, dynamic> data = json.decode(response.body);
     String newBuildVer = (data['tag_name'] as String).split("+")[1];
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
     return {
       "results": isUpdateAvailable(
         packageInfo.version,
@@ -129,6 +128,8 @@ Future<Map<String, dynamic>> githubUpdate() async {
   } else {
     log('Failed to load latest version!', name: 'UpdaterTools');
     return {
+      "currBuild": packageInfo.buildNumber,
+      "currVer": packageInfo.version,
       "results": false,
     };
   }
