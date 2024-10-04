@@ -13,16 +13,6 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
   late Stream<ProgressBarStreams> progressStreams;
   BloomeePlayerCubit() : super(BloomeePlayerInitial()) {
     setupPlayer().then((value) => emit(BloomeePlayerState(isReady: true)));
-  }
-
-  void switchShowLyrics({bool? value}) {
-    emit(BloomeePlayerState(
-        isReady: true, showLyrics: value ?? !state.showLyrics));
-  }
-
-  Future<void> setupPlayer() async {
-    bloomeePlayer = await PlayerInitializer().getBloomeeMusicPlayer();
-
     progressStreams = Rx.defer(
       () => Rx.combineLatest3(
           bloomeePlayer.audioPlayer.positionStream,
@@ -32,7 +22,15 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
               currentPos: a, currentPlaybackState: b, currentPlayerState: c)),
       reusable: true,
     );
+  }
 
+  void switchShowLyrics({bool? value}) {
+    emit(BloomeePlayerState(
+        isReady: true, showLyrics: value ?? !state.showLyrics));
+  }
+
+  Future<void> setupPlayer() async {
+    bloomeePlayer = await PlayerInitializer().getBloomeeMusicPlayer();
     bloomeePlayer.audioPlayer.playerStateStream.listen((event) {
       if (event.processingState == ProcessingState.completed &&
           bloomeePlayer.loopMode.value != LoopMode.one) {
