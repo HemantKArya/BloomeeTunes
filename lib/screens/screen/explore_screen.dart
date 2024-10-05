@@ -200,7 +200,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                               );
                                             }).toList(),
                                             category: "Last.Fm Picks",
-                                            columnSize: 4),
+                                            columnSize: 3),
                                       ),
                                     );
                                   } else {
