@@ -79,6 +79,12 @@ class LastFmAPI {
   static String? username;
   static bool initialized = false;
   static const String apiUrl = 'http://ws.audioscrobbler.com/2.0/';
+  static const String userStation = "https://www.last.fm/player/station/user/";
+  static const Map<String, String> userStationEndpoints = {
+    "recommended": "/recommended",
+    "mix": "/mix",
+    "library": "/library",
+  };
 
   // Private constructor
   LastFmAPI._internal() {
@@ -257,6 +263,45 @@ class LastFmAPI {
     } catch (e) {
       log('Error fetching session key: $e', name: 'LastFM API');
       rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getUserRecommendedList() async {
+    if (apiKey == null || username == null) {
+      throw Exception("LastFM API not initialized.");
+    }
+    final url = "$userStation$username${userStationEndpoints['recommended']}";
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch user recommended list');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getUserMixList() async {
+    if (apiKey == null || username == null) {
+      throw Exception("LastFM API not initialized.");
+    }
+    final url = "$userStation$username${userStationEndpoints['mix']}";
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch user mix list');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getUserLibraryList() async {
+    if (apiKey == null || username == null) {
+      throw Exception("LastFM API not initialized.");
+    }
+    final url = "$userStation$username${userStationEndpoints['library']}";
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch user library list');
     }
   }
 }
