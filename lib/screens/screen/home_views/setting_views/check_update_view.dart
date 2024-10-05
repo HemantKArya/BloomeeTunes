@@ -2,6 +2,7 @@ import 'package:Bloomee/services/bloomeeUpdaterTools.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/url_launcher.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class CheckUpdateView extends StatelessWidget {
   const CheckUpdateView({super.key});
@@ -37,7 +38,37 @@ class CheckUpdateView extends StatelessWidget {
                       'Bloomee🌸 is up-to-date!!!',
                       style: const TextStyle(
                               color: Default_Theme.accentColor2, fontSize: 20)
-                          .merge(Default_Theme.tertiaryTextStyle),
+                          .merge(Default_Theme.secondoryTextStyleMedium),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: FilledButton(
+                        onPressed: () {
+                          launch_Url(Uri.parse(
+                              "https://github.com/HemantKArya/Bloomee/releases"));
+                        },
+                        child: SizedBox(
+                          // width: 150,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                FontAwesome.github_alt_brand,
+                                size: 25,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 5),
+                                child: Text(
+                                  "View Latest Pre-Release",
+                                  style: const TextStyle(fontSize: 17).merge(
+                                      Default_Theme.secondoryTextStyleMedium),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                     const Spacer(),
                     Padding(
