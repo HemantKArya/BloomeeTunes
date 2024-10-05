@@ -275,7 +275,7 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
   Future<MediaPlaylist> getRecommendedTracks() async {
     if (!LastFmAPI.initialized) {
       while (!LastFmAPI.initialized) {
-        await Future.delayed(const Duration(seconds: 5));
+        await Future.delayed(const Duration(seconds: 10));
       }
     }
     final response = await LastFmAPI.getUserRecommendedList();
@@ -294,7 +294,6 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
         mediaItems.add(mediaItem);
       }
     }
-    return MediaPlaylist(
-        mediaItems: mediaItems, playlistName: 'Last.FM Recommendations');
+    return MediaPlaylist(mediaItems: mediaItems, playlistName: 'Last.FM Picks');
   }
 }
