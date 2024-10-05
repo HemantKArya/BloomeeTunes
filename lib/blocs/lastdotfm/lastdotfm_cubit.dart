@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
+import 'package:Bloomee/repository/MixedAPI/mixed_api.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
@@ -268,5 +270,31 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
       return trackListObj;
     }
     return [];
+  }
+
+  Future<MediaPlaylist> getRecommendedTracks() async {
+    if (!LastFmAPI.initialized) {
+      while (!LastFmAPI.initialized) {
+        await Future.delayed(const Duration(seconds: 5));
+      }
+    }
+    final response = await LastFmAPI.getUserRecommendedList();
+    List<MediaItemModel> mediaItems = [];
+    for (var track in response['playlist']) {
+      String title = track['name'];
+      List<String> artists = [];
+      if (track['artists'] != null) {
+        for (var aItem in track['artists']) {
+          artists.add(aItem['name']);
+        }
+      }
+      final mediaItem =
+          await MixedAPI().getYtTrackByMeta("$title ${artists.join(' ')}");
+      if (mediaItem != null) {
+        mediaItems.add(mediaItem);
+      }
+    }
+    return MediaPlaylist(
+        mediaItems: mediaItems, playlistName: 'Last.FM Recommendations');
   }
 }

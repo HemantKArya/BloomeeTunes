@@ -1,9 +1,11 @@
 import 'dart:developer';
-
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
+import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
@@ -32,6 +34,8 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   bool isUpdateChecked = false;
   YTMusicCubit yTMusicCubit = YTMusicCubit();
+  Future<MediaPlaylist> lFMData =
+      Future.value(const MediaPlaylist(mediaItems: [], playlistName: ""));
   @override
   void initState() {
     super.initState();
@@ -45,6 +49,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
         }
       }
     });
+  }
+
+  Future<MediaPlaylist> fetchLFMPicks(bool state, BuildContext ctx) async {
+    if (state) {
+      try {
+        final data = await lFMData;
+        if (data.mediaItems.isNotEmpty) {
+          return data;
+        }
+        lFMData = ctx.read<LastdotfmCubit>().getRecommendedTracks();
+        return lFMData;
+      } catch (e) {
+        log(e.toString());
+      }
+    }
+    return const MediaPlaylist(mediaItems: [], playlistName: "");
   }
 
   @override
@@ -141,6 +161,56 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             },
                           ),
                         ),
+                      ),
+                      BlocBuilder<SettingsCubit, SettingsState>(
+                        builder: (context, state) {
+                          if (state.lFMPicks) {
+                            return FutureBuilder(
+                                future: fetchLFMPicks(state.lFMPicks, context),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData &&
+                                      (snapshot.data?.mediaItems.isNotEmpty ??
+                                          false)) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 15.0),
+                                      child: AnimatedSwitcher(
+                                        duration:
+                                            const Duration(milliseconds: 500),
+                                        child: TabSongListWidget(
+                                            list: snapshot.data!.mediaItems
+                                                .map((e) {
+                                              return SongCardWidget(
+                                                song: e,
+                                                onTap: () {
+                                                  context
+                                                      .read<
+                                                          BloomeePlayerCubit>()
+                                                      .bloomeePlayer
+                                                      .loadPlaylist(
+                                                        snapshot.data!,
+                                                        idx: snapshot
+                                                            .data!.mediaItems
+                                                            .indexOf(e),
+                                                        doPlay: true,
+                                                      );
+                                                },
+                                                onOptionsTap: () =>
+                                                    showMoreBottomSheet(
+                                                        context, e),
+                                              );
+                                            }).toList(),
+                                            category: "Last.Fm Picks",
+                                            columnSize: 4),
+                                      ),
+                                    );
+                                  } else {
+                                    return const SizedBox.shrink();
+                                  }
+                                });
+                          } else {
+                            return const SizedBox.shrink();
+                          }
+                        },
                       ),
                       BlocBuilder<YTMusicCubit, YTMusicCubitState>(
                         builder: (context, state) {

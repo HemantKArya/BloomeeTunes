@@ -60,6 +60,24 @@ class _AppUISettingsState extends State<AppUISettings> {
                   onChanged: (value) {
                     context.read<SettingsCubit>().setAutoSlideCharts(value);
                   }),
+              SwitchListTile(
+                  value: state.lFMPicks,
+                  subtitle: Text(
+                    "Suggestions from Last.FM will be shown in the home screen. (Login & Restart required)",
+                    style: TextStyle(
+                            color: Default_Theme.primaryColor1.withOpacity(0.5),
+                            fontSize: 12)
+                        .merge(Default_Theme.secondoryTextStyleMedium),
+                  ),
+                  title: Text(
+                    "Last.FM Suggested Picks",
+                    style: const TextStyle(
+                            color: Default_Theme.primaryColor1, fontSize: 16)
+                        .merge(Default_Theme.secondoryTextStyleMedium),
+                  ),
+                  onChanged: (value) {
+                    context.read<SettingsCubit>().setLastFMExpore(value);
+                  }),
               ExpansionTile(
                 title: Text(
                   "Source Engines",
