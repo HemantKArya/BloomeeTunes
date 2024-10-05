@@ -87,13 +87,10 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     });
   }
 
-  void initialize(String apiKey, String apiSecret, String sessionKey) {
-    emit(LastdotfmIntialized(
-        apiKey: apiKey, apiSecret: apiSecret, sessionKey: sessionKey));
-  }
-
   Future<void> initializeFromDB() async {
     log("Getting Last.FM Keys from DB", name: "Last.FM");
+    final username =
+        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMUsername);
     final apiKey =
         await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMApiKey);
     final apiSecret =
@@ -103,15 +100,21 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
 
     if (apiKey != null &&
         apiSecret != null &&
+        username != null &&
         apiKey.isNotEmpty &&
+        username.isNotEmpty &&
         apiSecret.isNotEmpty) {
       LastFmAPI.setAPIKey(apiKey);
       LastFmAPI.setAPISecret(apiSecret);
       if (session != null && session.isNotEmpty) {
         LastFmAPI.sessionKey = session;
+        LastFmAPI.username = username;
         LastFmAPI.initialized = true;
         emit(LastdotfmIntialized(
-            apiKey: apiKey, apiSecret: apiSecret, sessionKey: session));
+            apiKey: apiKey,
+            apiSecret: apiSecret,
+            sessionKey: session,
+            username: username));
       }
     }
     startUpCheck();
@@ -123,7 +126,10 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
       required String secret,
       required String apiKey}) async {
     try {
-      final session = await LastFmAPI.fetchSessionKey(token);
+      final sessionMap = await LastFmAPI.fetchSessionKey(token);
+      final session = sessionMap["key"]!;
+      final name = sessionMap["name"]!;
+      BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMUsername, name, "0");
       BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSecret, secret, "0");
       BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMApiKey, apiKey, "0");
       BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSession, session, "0");
@@ -131,9 +137,14 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
 
       if (session.isNotEmpty && apiKey.isNotEmpty && secret.isNotEmpty) {
         LastFmAPI.sessionKey = session;
+        LastFmAPI.username = name;
         LastFmAPI.initialized = true;
         emit(LastdotfmIntialized(
-            apiKey: apiKey, apiSecret: secret, sessionKey: session));
+          apiKey: apiKey,
+          apiSecret: secret,
+          sessionKey: session,
+          username: name,
+        ));
       }
     } catch (e) {
       log("Error: $e", name: "Last.FM");
@@ -155,13 +166,15 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
 
   Future<void> remove() async {
     LastFmAPI.initialized = false;
-    LastFmAPI.sessionKey = "";
-    LastFmAPI.apiKey = "";
-    LastFmAPI.apiSecret = "";
+    LastFmAPI.sessionKey = null;
+    LastFmAPI.apiKey = null;
+    LastFmAPI.apiSecret = null;
+    LastFmAPI.username = null;
     emit(LastdotfmInitial());
     BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSecret, "", "0");
     BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMApiKey, "", "0");
     BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSession, "", "0");
+    BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMUsername, "", "0");
   }
 
   startUpCheck() async {

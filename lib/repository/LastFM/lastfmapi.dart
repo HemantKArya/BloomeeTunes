@@ -76,6 +76,7 @@ class LastFmAPI {
   static String? apiKey;
   static String? apiSecret;
   static String? sessionKey;
+  static String? username;
   static bool initialized = false;
   static const String apiUrl = 'http://ws.audioscrobbler.com/2.0/';
 
@@ -126,6 +127,12 @@ class LastFmAPI {
   static void setSession(String session) {
     if (session.isNotEmpty) {
       sessionKey = session;
+    }
+  }
+
+  static void setUsername(String name) {
+    if (name.isNotEmpty) {
+      username = name;
     }
   }
 
@@ -218,7 +225,7 @@ class LastFmAPI {
     return 'http://www.last.fm/api/auth/?api_key=$apiKey&token=$token';
   }
 
-  static Future<String> fetchSessionKey(String token) async {
+  static Future<Map<String, String>> fetchSessionKey(String token) async {
     if (apiKey == null || apiSecret == null) {
       throw Exception("LastFM API not initialized.");
     }
@@ -238,8 +245,12 @@ class LastFmAPI {
 
       if (responseData.containsKey('session')) {
         setSession(responseData['session']['key']);
+        setUsername(responseData['session']['name']);
         initialized = true;
-        return responseData['session']['key'];
+        return {
+          'name': responseData['session']['name'],
+          'key': responseData['session']['key'],
+        };
       } else {
         throw Exception('Failed to retrieve session key');
       }

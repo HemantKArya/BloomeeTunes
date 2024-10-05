@@ -20,6 +20,7 @@ class _LastDotFMState extends State<LastDotFM> {
   final TextEditingController apiKeyController = TextEditingController();
   final TextEditingController apiSecretController = TextEditingController();
   bool authBtnClicked = false;
+  String? username;
   bool getBtnVisible = false;
   String? token;
   @override
@@ -49,6 +50,8 @@ class _LastDotFMState extends State<LastDotFM> {
 
   Future<void> getKeysFromDB() async {
     log("Getting Last.FM Keys from DB", name: "Last.FM");
+    username =
+        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMUsername);
     final apiKey =
         await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMApiKey);
     final apiSecret =
@@ -59,6 +62,7 @@ class _LastDotFMState extends State<LastDotFM> {
     if (apiSecret != null) {
       apiSecretController.text = apiSecret;
     }
+
     log("Last.FM Keys from DB: $apiKey, $apiSecret", name: "Last.FM");
     setState(() {});
   }
@@ -185,12 +189,12 @@ class _LastDotFMState extends State<LastDotFM> {
                         top: 16,
                       ),
                       child: Text(
-                        'Last.FM is Authenticated.',
+                        'Hi, ${state.username},\nLast.FM API is Authenticated.',
                         style: TextStyle(
-                                color:
-                                    Default_Theme.successColor.withOpacity(0.7),
-                                fontSize: 12)
-                            .merge(Default_Theme.secondoryTextStyleMedium),
+                          color: Default_Theme.successColor.withOpacity(0.7),
+                          fontSize: 12,
+                          fontFamily: 'Unageo',
+                        ),
                       ),
                     );
                   } else if (state is LastdotfmFailed) {
