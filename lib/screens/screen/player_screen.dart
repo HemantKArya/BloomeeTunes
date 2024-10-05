@@ -627,49 +627,61 @@ class PlayerCtrlWidgets extends StatelessWidget {
                     }),
               ),
               const Spacer(),
-              FutureBuilder(
-                future: context.read<BloomeeDBCubit>().isLiked(context
-                    .read<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .currentMedia),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data != null) {
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 8.0, bottom: 3),
-                      child: LikeBtnWidget(
-                        isPlaying: true,
-                        isLiked: snapshot.data ?? false,
-                        iconSize: 35,
-                        onLiked: () => context.read<BloomeeDBCubit>().setLike(
-                            context
-                                .read<BloomeePlayerCubit>()
-                                .bloomeePlayer
-                                .currentMedia,
-                            isLiked: true),
-                        onDisliked: () => context
-                            .read<BloomeeDBCubit>()
-                            .setLike(
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .currentMedia,
-                                isLiked: false),
-                      ),
+              StreamBuilder<dynamic>(
+                  stream: context
+                      .watch<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .audioPlayer
+                      .playbackEventStream,
+                  builder: (context, snapshot) {
+                    return FutureBuilder(
+                      future: context.read<BloomeeDBCubit>().isLiked(context
+                          .read<BloomeePlayerCubit>()
+                          .bloomeePlayer
+                          .currentMedia),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          return Padding(
+                            padding:
+                                const EdgeInsets.only(left: 8.0, bottom: 3),
+                            child: LikeBtnWidget(
+                              isPlaying: true,
+                              isLiked: snapshot.data ?? false,
+                              iconSize: 35,
+                              onLiked: () => context
+                                  .read<BloomeeDBCubit>()
+                                  .setLike(
+                                      context
+                                          .read<BloomeePlayerCubit>()
+                                          .bloomeePlayer
+                                          .currentMedia,
+                                      isLiked: true),
+                              onDisliked: () => context
+                                  .read<BloomeeDBCubit>()
+                                  .setLike(
+                                      context
+                                          .read<BloomeePlayerCubit>()
+                                          .bloomeePlayer
+                                          .currentMedia,
+                                      isLiked: false),
+                            ),
+                          );
+                        } else {
+                          return Padding(
+                            padding:
+                                const EdgeInsets.only(left: 8.0, bottom: 3),
+                            child: LikeBtnWidget(
+                              isLiked: false,
+                              isPlaying: true,
+                              iconSize: 35,
+                              onLiked: () {},
+                              onDisliked: () {},
+                            ),
+                          );
+                        }
+                      },
                     );
-                  } else {
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 8.0, bottom: 3),
-                      child: LikeBtnWidget(
-                        isLiked: false,
-                        isPlaying: true,
-                        iconSize: 35,
-                        onLiked: () {},
-                        onDisliked: () {},
-                      ),
-                    );
-                  }
-                },
-              )
+                  })
             ],
           ),
           Padding(
