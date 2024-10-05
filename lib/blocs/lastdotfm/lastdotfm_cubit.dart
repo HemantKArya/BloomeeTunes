@@ -38,10 +38,12 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     super.close();
   }
 
-  void songTimeTracker() {
+  Future<void> songTimeTracker() async {
     while (playerCubit.playerInitState != PlayerInitState.initialized) {
       log("Waiting for player to be intialized.", name: "Last.FM");
+      await Future.delayed(const Duration(seconds: 2));
     }
+
     scrobbleSub = playerCubit.progressStreams.listen((event) {
       if (playerCubit.bloomeePlayer.audioPlayer.playing &&
           event.currentPlaybackState.processingState == ProcessingState.ready) {
