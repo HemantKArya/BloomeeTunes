@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
@@ -106,6 +107,13 @@ class _LastDotFMState extends State<LastDotFM> {
                   ),
                   onChanged: (value) {
                     context.read<SettingsCubit>().setLastFMScrobble(value);
+                    if (value && LastFmAPI.initialized == false) {
+                      SnackbarService.showMessage(
+                          "First Authenticate Last.FM API.");
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        context.read<SettingsCubit>().setLastFMScrobble(false);
+                      });
+                    }
                   }),
 
               // text box for guiding user to get session key and click buttons
@@ -289,6 +297,9 @@ class _LastDotFMState extends State<LastDotFM> {
                             ? ElevatedButton(
                                 onPressed: () {
                                   context.read<LastdotfmCubit>().remove();
+                                  context
+                                      .read<SettingsCubit>()
+                                      .setLastFMScrobble(false);
                                 },
                                 style: ElevatedButton.styleFrom(
                                   disabledBackgroundColor: Default_Theme

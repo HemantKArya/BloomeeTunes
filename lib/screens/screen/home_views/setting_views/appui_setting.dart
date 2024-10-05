@@ -1,6 +1,8 @@
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
 import 'package:Bloomee/screens/screen/chart/show_charts.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -77,6 +79,13 @@ class _AppUISettingsState extends State<AppUISettings> {
                   ),
                   onChanged: (value) {
                     context.read<SettingsCubit>().setLastFMExpore(value);
+                    if (value && LastFmAPI.initialized == false) {
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        context.read<SettingsCubit>().setLastFMExpore(false);
+                      });
+                      SnackbarService.showMessage(
+                          "Please login to Last.FM first.");
+                    }
                   }),
               ExpansionTile(
                 title: Text(
