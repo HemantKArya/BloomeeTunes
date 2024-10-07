@@ -1,0 +1,5 @@
+<h2>😍Last.FM Picks widget, LikeBtn bug, Last.FM Username based sync, etc.</h2><br>
+1. LikeBtn bug fixes. 40d7ffa
+2. Authenticate refix for Lastfm. 5acec6a
+3. Last.fm Picks widget for Home Screen. (Need to authenticate first with your account.) f1bbe72
+4. Updater enhancement. d64cbb6
