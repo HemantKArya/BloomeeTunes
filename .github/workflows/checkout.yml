@@ -9,6 +9,8 @@ on:
       - 'CHANGELOG.md'
       - 'CONTRIBUTING.md'
       - 'CODE_OF_CONDUCT.md'
+      - './fastlane/**'
+      
     branches: main
     
 jobs:
