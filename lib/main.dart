@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
+import 'dart:io';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
@@ -132,28 +133,32 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // For sharing or opening urls/text coming from outside the app while the app is in the memory
-    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((event) {
-      sharedMediaFiles.clear();
-      sharedMediaFiles.addAll(event);
-      log(sharedMediaFiles[0].mimeType.toString(), name: "Shared Files");
-      log(sharedMediaFiles[0].path, name: "Shared Files");
-      processIncomingIntent(sharedMediaFiles);
+    if (Platform.isAndroid) {
+      // For sharing or opening urls/text coming from outside the app while the app is in the memory
+      _intentSub =
+          ReceiveSharingIntent.instance.getMediaStream().listen((event) {
+        sharedMediaFiles.clear();
+        sharedMediaFiles.addAll(event);
+        log(sharedMediaFiles[0].mimeType.toString(), name: "Shared Files");
+        log(sharedMediaFiles[0].path, name: "Shared Files");
+        processIncomingIntent(sharedMediaFiles);
 
-      // Tell the library that we are done processing the intent.
-      ReceiveSharingIntent.instance.reset();
-    });
+        // Tell the library that we are done processing the intent.
+        ReceiveSharingIntent.instance.reset();
+      });
 
-    // For sharing or opening urls/text coming from outside the app while the app is closed
-    ReceiveSharingIntent.instance.getInitialMedia().then((event) {
-      sharedMediaFiles.clear();
-      sharedMediaFiles.addAll(event);
-      log(sharedMediaFiles[0].mimeType.toString(),
-          name: "Shared Files Offline");
-      log(sharedMediaFiles[0].path, name: "Shared Files Offline");
-      processIncomingIntent(sharedMediaFiles);
-      ReceiveSharingIntent.instance.reset();
-    });
+      // For sharing or opening urls/text coming from outside the app while the app is closed
+
+      ReceiveSharingIntent.instance.getInitialMedia().then((event) {
+        sharedMediaFiles.clear();
+        sharedMediaFiles.addAll(event);
+        log(sharedMediaFiles[0].mimeType.toString(),
+            name: "Shared Files Offline");
+        log(sharedMediaFiles[0].path, name: "Shared Files Offline");
+        processIncomingIntent(sharedMediaFiles);
+        ReceiveSharingIntent.instance.reset();
+      });
+    }
   }
 
   @override
