@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
-import 'dart:io';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
@@ -133,7 +132,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    if (Platform.isAndroid) {
+    if (io.Platform.isAndroid) {
       // For sharing or opening urls/text coming from outside the app while the app is in the memory
       _intentSub =
           ReceiveSharingIntent.instance.getMediaStream().listen((event) {
