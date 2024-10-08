@@ -326,7 +326,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           await audioPlayer.setAudioSource(value).then((value) async {
             isLinkProcessing.add(false);
             check4RelatedSongs();
-            if (!isPaused || doPlay) {
+            if (doPlay) {
               log("doPlay", name: "bloomeePlayer");
               await play();
               if (Platform.isWindows && audioPlayer.playing == false) {
@@ -382,10 +382,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (!shuffleMode.value) {
       if (currentPlayingIdx < (queue.value.length - 1)) {
         currentPlayingIdx++;
-        prepare4play(idx: currentPlayingIdx);
+        prepare4play(idx: currentPlayingIdx, doPlay: true);
       } else if (loopMode.value == LoopMode.all) {
         currentPlayingIdx = 0;
-        prepare4play(idx: currentPlayingIdx);
+        prepare4play(idx: currentPlayingIdx, doPlay: true);
       }
     } else {
       if (shuffleIdx < (queue.value.length - 1)) {
@@ -393,10 +393,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         if (shuffleIdx >= shuffleList.length) {
           shuffleIdx = 0;
         }
-        prepare4play(idx: shuffleList[shuffleIdx]);
+        prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
       } else if (loopMode.value == LoopMode.all) {
         shuffleIdx = 0;
-        prepare4play(idx: shuffleList[shuffleIdx]);
+        prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
       }
     }
   }
@@ -413,12 +413,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (!shuffleMode.value) {
       if (currentPlayingIdx > 0) {
         currentPlayingIdx--;
-        prepare4play(idx: currentPlayingIdx);
+        prepare4play(idx: currentPlayingIdx, doPlay: true);
       }
     } else {
       if (shuffleIdx > 0) {
         shuffleIdx--;
-        prepare4play(idx: shuffleList[shuffleIdx]);
+        prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
       }
     }
   }
