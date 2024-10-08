@@ -4,6 +4,7 @@ import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/routes_and_consts/global_conts.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
@@ -86,8 +87,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     ));
   }
 
-  MediaItemModel get currentMedia =>
-      mediaItem2MediaItemModel(queue.value[currentPlayingIdx]);
+  MediaItemModel get currentMedia => queue.value.isNotEmpty
+      ? mediaItem2MediaItemModel(queue.value[currentPlayingIdx])
+      : mediaItemModelNull;
 
   @override
   Future<void> play() async {
