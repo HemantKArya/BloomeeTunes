@@ -78,6 +78,22 @@ class MiniPlayerCard extends StatelessWidget {
       onTap: () {
         context.pushNamed(GlobalStrConsts.playerScreen);
       },
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! < -10) {
+          context.read<BloomeePlayerCubit>().bloomeePlayer.skipToNext();
+        }
+        if (details.primaryVelocity! > 10) {
+          context.read<BloomeePlayerCubit>().bloomeePlayer.skipToPrevious();
+        }
+      },
+      onVerticalDragEnd: (details) {
+        if (details.primaryVelocity! < -10) {
+          context.pushNamed(GlobalStrConsts.playerScreen);
+        }
+        if (details.primaryVelocity! > 10) {
+          // context.read<BloomeePlayerCubit>().bloomeePlayer.stop();
+        }
+      },
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: SizedBox(
