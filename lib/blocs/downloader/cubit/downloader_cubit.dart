@@ -17,7 +17,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/src/foundation/print.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
-
 part 'downloader_state.dart';
 
 class DownTask {
@@ -31,6 +30,7 @@ class DownTask {
       required this.filePath,
       required this.fileName});
 }
+
 Future<bool> storagePermission() async {
   final DeviceInfoPlugin info =
       DeviceInfoPlugin(); // import 'package:device_info_plus/device_info_plus.dart';
@@ -69,19 +69,21 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   static ReceivePort receivePort = ReceivePort();
   DownloaderCubit({required this.connectivityCubit})
       : super(DownloaderInitial()) {
-    initDownloader().then((value) => isInitialized = true);
+    if (!isInitialized && Platform.isAndroid) {
+      initDownloader().then((value) => isInitialized = true);
+    }
   }
 
   Future<void> initDownPath() async {
     downPath = (await BloomeeDBService.getSettingStr(
         GlobalStrConsts.downPathSetting,
-        defaultValue: (await getExternalStorageDirectory())!.path))!;
+        defaultValue: (await getDownloadsDirectory())!.path))!;
   }
 
   Future<String> getDownPath() async {
     return (await BloomeeDBService.getSettingStr(
         GlobalStrConsts.downPathSetting,
-        defaultValue: (await getExternalStorageDirectory())!.path))!;
+        defaultValue: (await getDownloadsDirectory())!.path))!;
   }
 
   Future<void> initDownloader() async {
