@@ -341,7 +341,7 @@ class YtMusicService {
         body['params'] = params;
       }
       final List<Map> searchResults = [];
-      dev.log(body.toString(), name: "YTM");
+      // dev.log(body.toString(), name: "YTM");
       final res = await sendRequest(endpoints['search']!, body, headers);
       if (!res.containsKey('contents')) {
         Logger.root.info('YtMusic returned no contents');
@@ -1014,7 +1014,7 @@ class YtMusicService {
                 'contents',
               ]) as List? ??
               []);
-          dev.log('finalResults: ${finalResults.length}', name: "YTM");
+          // dev.log('finalResults: ${finalResults.length}', name: "YTM");
           isRemaining = nav(response2, [
             "continuationContents",
             'musicPlaylistShelfContinuation'
@@ -1882,7 +1882,7 @@ class YtMusicService {
             } else {
               if (count == 0) {
                 artists += element['text'];
-              } else if (count == 1 && subtitle.length>2) {
+              } else if (count == 1 && subtitle.length > 2) {
                 album += element['text'];
               } else {
                 year = int.tryParse(element['text']);
