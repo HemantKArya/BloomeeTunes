@@ -9,6 +9,7 @@
 <br>
 Bloomee is experimental cross-platform open Source Music player designed to bring you Ad-free tunes from various sources. Dive into a world of limitless music from platforms like YouTube and Jio Saavn, with more sources blooming soon! 🌼🎵
 
+
 ![BloomeeTunesScrnShots](./assets/docs/banner2BloomeScrnShot.png)
 
 ![BloomeeDesktop](./assets/docs/lyricsscrn.png)
@@ -47,6 +48,9 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 <p align="center"><a href="https://github.com/HemantKArya/BloomeeTunes/releases"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" height=40/></a>
 <a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" height=40 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
 </br>
+
+<h3 align="center"> Now you can support me via</h3>
+<p align="center"><a href="https://liberapay.com/hemantkarya/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></p>
 
 
 ### **Contribute to BloomeeTunes! 🎶**
