@@ -29,20 +29,17 @@ class SaavnAPI {
 
   Future<Response> getResponse(String params, {bool usev4 = false}) async {
     Uri url;
+    String param = params;
     if (!usev4) {
-      url = Uri.https(
-        baseUrl,
-        '$apiStr&$params'.replaceAll('&api_version=4', ''),
-      );
-    } else {
-      url = Uri.https(baseUrl, '$apiStr&$params');
+      param.replaceAll('&api_version=4', '');
     }
+    url = Uri.parse('https://$baseUrl$apiStr&$param');
     final String languageHeader = 'L=Hindi';
     headers = {
       'cookie': languageHeader,
-      'Accept': '*/*',
+      'Accept': 'application/json, text/plain, */*',
       'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
     };
     return get(url, headers: headers).onError((error, stackTrace) {
       return Response(
@@ -275,7 +272,7 @@ class SaavnAPI {
         "p=$page&q=$searchQuery&n=$count&${endpoints['getResults']}";
 
     try {
-      final res = await getResponse(params);
+      final res = await getResponse(params, usev4: true);
       if (res.statusCode == 200) {
         final Map getMain = json.decode(res.body) as Map;
         final List responseList = getMain['results'] as List;
