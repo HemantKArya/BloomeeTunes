@@ -219,18 +219,17 @@ Future<Map> formatSearchedAlbumResponse(Map response) async {
     String? artists;
     if (response['music'] != null) {
       artists = response['music'];
+    }
+    if (response['subtitle'] != null) {
+      artists = response['subtitle'];
     } else {
       List<String> artistList = [];
-      if (response['artist']?['music'] != null) {
-        response['artist']['music'].forEach((element) {
-          artistList.add(element[0]);
+      if (response['more_info']?['artistMap']?["artists"] != null) {
+        response['more_info']?['artistMap']?["artists"].forEach((element) {
+          artistList.add(element['name']);
         });
       }
-      if (response['artist']?['singers'] != null) {
-        response['artist']['singers'].forEach((element) {
-          artistList.add(element[0]);
-        });
-      }
+
       artists = artistList.join(', ');
     }
     return {

@@ -347,10 +347,11 @@ class SaavnAPI {
 
   Future<Map<String, dynamic>> fetchAlbumDetails(String token) async {
     final param = '${endpoints['fromToken']!}&token=$token&type=album';
-    final response = await getResponse(param);
+    final response = await getResponse(param, usev4: true);
     if (response.statusCode == 200) {
       final Map getMain = json.decode(response.body) as Map;
-      final List responseList = getMain['songs'] as List;
+      // log(getMain.toString());
+      final List responseList = getMain['list'] as List;
       final Map albumDetails = await formatSearchedAlbumResponse(
         getMain,
       );
