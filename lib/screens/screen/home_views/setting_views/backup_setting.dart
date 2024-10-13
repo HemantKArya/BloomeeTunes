@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -117,8 +119,10 @@ class BackupSettings extends StatelessWidget {
                     }
                   }
                   }*/
-                  final permission = await storagePermission();
-                  debugPrint('permission : $permission');
+                  if (Platform.isAndroid) {
+                    final permission = await storagePermission();
+                    debugPrint('permission : $permission');
+                  }
                   FilePicker.platform.getDirectoryPath().then((value) {
                     if (value != null) {
                       context.read<SettingsCubit>().setBackupPath(value);
