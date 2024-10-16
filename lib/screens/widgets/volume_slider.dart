@@ -92,7 +92,7 @@ class _VolumeDragControllerState extends State<VolumeDragController> {
         if (event is PointerScrollEvent) {
           setState(() {
             _showVolumeController = true;
-            _volume = (_volume - event.scrollDelta.dy / 400).clamp(0.0, 1.0);
+            _volume = (_volume - (event.scrollDelta.dy / 500)).clamp(0.0, 1.0);
           });
           _startTimer();
           setVolume(_volume);
