@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -86,75 +87,89 @@ class _VolumeDragControllerState extends State<VolumeDragController> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onVerticalDragStart: _onDragStart,
-      onVerticalDragUpdate: _updateVolume,
-      onVerticalDragEnd: _onDragEnd,
-      child: LayoutBuilder(builder: (context, constraints) {
-        return Stack(
-          children: <Widget>[
-            widget.child,
-            Positioned(
-              right: 20.0,
-              bottom: 0,
-              top: 0,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: AnimatedOpacity(
-                  opacity: _showVolumeController ? 1.0 : 0.0,
-                  // opacity: 1,
-                  duration: const Duration(milliseconds: 300),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(10.0),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Icon(
-                            (_volume == 0)
-                                ? MingCute.volume_off_fill
-                                : MingCute.volume_fill,
-                            color: Default_Theme.primaryColor2,
-                          ),
-                          RotatedBox(
-                            quarterTurns: -1,
-                            child: SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                inactiveTrackColor: Default_Theme.primaryColor2
-                                    .withOpacity(0.3),
-                                thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 6.0),
-                                overlayShape: const RoundSliderOverlayShape(
-                                    overlayRadius: 16.0),
-                                trackShape: const RoundedRectSliderTrackShape(),
-                                trackHeight: 10.0,
-                              ),
-                              child: Slider(
-                                value: _volume,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _volume = value;
-                                  });
-                                },
-                                min: 0.0,
-                                max: 1.0,
+    return Listener(
+      onPointerSignal: (event) {
+        if (event is PointerScrollEvent) {
+          setState(() {
+            _showVolumeController = true;
+            _volume = (_volume - event.scrollDelta.dy / 400).clamp(0.0, 1.0);
+          });
+          _startTimer();
+          setVolume(_volume);
+        }
+      },
+      child: GestureDetector(
+        onVerticalDragStart: _onDragStart,
+        onVerticalDragUpdate: _updateVolume,
+        onVerticalDragEnd: _onDragEnd,
+        child: LayoutBuilder(builder: (context, constraints) {
+          return Stack(
+            children: <Widget>[
+              widget.child,
+              Positioned(
+                right: 20.0,
+                bottom: 0,
+                top: 0,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: AnimatedOpacity(
+                    opacity: _showVolumeController ? 1.0 : 0.0,
+                    // opacity: 1,
+                    duration: const Duration(milliseconds: 300),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(
+                              (_volume == 0)
+                                  ? MingCute.volume_off_fill
+                                  : MingCute.volume_fill,
+                              color: Default_Theme.primaryColor2,
+                            ),
+                            RotatedBox(
+                              quarterTurns: -1,
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  inactiveTrackColor: Default_Theme
+                                      .primaryColor2
+                                      .withOpacity(0.3),
+                                  thumbShape: const RoundSliderThumbShape(
+                                      enabledThumbRadius: 6.0),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                      overlayRadius: 16.0),
+                                  trackShape:
+                                      const RoundedRectSliderTrackShape(),
+                                  trackHeight: 10.0,
+                                ),
+                                child: Slider(
+                                  value: _volume,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _volume = value;
+                                    });
+                                  },
+                                  min: 0.0,
+                                  max: 1.0,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        );
-      }),
+            ],
+          );
+        }),
+      ),
     );
   }
 }
