@@ -13312,39 +13312,44 @@ const LyricsDBSchema = CollectionSchema(
       name: r'duration',
       type: IsarType.long,
     ),
-    r'isSynced': PropertySchema(
-      id: 3,
-      name: r'isSynced',
-      type: IsarType.bool,
-    ),
-    r'lyrics': PropertySchema(
-      id: 4,
-      name: r'lyrics',
-      type: IsarType.string,
-    ),
     r'mediaID': PropertySchema(
-      id: 5,
+      id: 3,
       name: r'mediaID',
       type: IsarType.string,
     ),
     r'offset': PropertySchema(
-      id: 6,
+      id: 4,
       name: r'offset',
       type: IsarType.long,
     ),
+    r'plainLyrics': PropertySchema(
+      id: 5,
+      name: r'plainLyrics',
+      type: IsarType.string,
+    ),
     r'source': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'source',
       type: IsarType.string,
     ),
     r'sourceId': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'sourceId',
+      type: IsarType.string,
+    ),
+    r'syncedLyrics': PropertySchema(
+      id: 8,
+      name: r'syncedLyrics',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
       id: 9,
       name: r'title',
+      type: IsarType.string,
+    ),
+    r'url': PropertySchema(
+      id: 10,
+      name: r'url',
       type: IsarType.string,
     )
   },
@@ -13375,11 +13380,23 @@ int _lyricsDBEstimateSize(
     }
   }
   bytesCount += 3 + object.artist.length * 3;
-  bytesCount += 3 + object.lyrics.length * 3;
   bytesCount += 3 + object.mediaID.length * 3;
+  bytesCount += 3 + object.plainLyrics.length * 3;
   bytesCount += 3 + object.source.length * 3;
   bytesCount += 3 + object.sourceId.length * 3;
+  {
+    final value = object.syncedLyrics;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.title.length * 3;
+  {
+    final value = object.url;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -13392,13 +13409,14 @@ void _lyricsDBSerialize(
   writer.writeString(offsets[0], object.album);
   writer.writeString(offsets[1], object.artist);
   writer.writeLong(offsets[2], object.duration);
-  writer.writeBool(offsets[3], object.isSynced);
-  writer.writeString(offsets[4], object.lyrics);
-  writer.writeString(offsets[5], object.mediaID);
-  writer.writeLong(offsets[6], object.offset);
-  writer.writeString(offsets[7], object.source);
-  writer.writeString(offsets[8], object.sourceId);
+  writer.writeString(offsets[3], object.mediaID);
+  writer.writeLong(offsets[4], object.offset);
+  writer.writeString(offsets[5], object.plainLyrics);
+  writer.writeString(offsets[6], object.source);
+  writer.writeString(offsets[7], object.sourceId);
+  writer.writeString(offsets[8], object.syncedLyrics);
   writer.writeString(offsets[9], object.title);
+  writer.writeString(offsets[10], object.url);
 }
 
 LyricsDB _lyricsDBDeserialize(
@@ -13411,13 +13429,14 @@ LyricsDB _lyricsDBDeserialize(
     album: reader.readStringOrNull(offsets[0]),
     artist: reader.readString(offsets[1]),
     duration: reader.readLongOrNull(offsets[2]),
-    isSynced: reader.readBool(offsets[3]),
-    lyrics: reader.readString(offsets[4]),
-    mediaID: reader.readString(offsets[5]),
-    offset: reader.readLongOrNull(offsets[6]),
-    source: reader.readString(offsets[7]),
-    sourceId: reader.readString(offsets[8]),
+    mediaID: reader.readString(offsets[3]),
+    offset: reader.readLongOrNull(offsets[4]),
+    plainLyrics: reader.readString(offsets[5]),
+    source: reader.readString(offsets[6]),
+    sourceId: reader.readString(offsets[7]),
+    syncedLyrics: reader.readStringOrNull(offsets[8]),
     title: reader.readString(offsets[9]),
+    url: reader.readStringOrNull(offsets[10]),
   );
   return object;
 }
@@ -13436,19 +13455,21 @@ P _lyricsDBDeserializeProp<P>(
     case 2:
       return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
-    case 4:
       return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readLongOrNull(offset)) as P;
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
       return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -13888,16 +13909,6 @@ extension LyricsDBQueryFilter
     });
   }
 
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> isSyncedEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isSynced',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> isarIdEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -13947,136 +13958,6 @@ extension LyricsDBQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lyrics',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'lyrics',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'lyrics',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'lyrics',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lyrics',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lyrics',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'lyrics',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'lyrics',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lyrics',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> lyricsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lyrics',
-        value: '',
       ));
     });
   }
@@ -14276,6 +14157,138 @@ extension LyricsDBQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> plainLyricsEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'plainLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition>
+      plainLyricsGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'plainLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> plainLyricsLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'plainLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> plainLyricsBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'plainLyrics',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> plainLyricsStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'plainLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> plainLyricsEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'plainLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> plainLyricsContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'plainLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> plainLyricsMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'plainLyrics',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> plainLyricsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'plainLyrics',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition>
+      plainLyricsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'plainLyrics',
+        value: '',
       ));
     });
   }
@@ -14540,6 +14553,157 @@ extension LyricsDBQueryFilter
     });
   }
 
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> syncedLyricsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'syncedLyrics',
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition>
+      syncedLyricsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'syncedLyrics',
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> syncedLyricsEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncedLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition>
+      syncedLyricsGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'syncedLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> syncedLyricsLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'syncedLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> syncedLyricsBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'syncedLyrics',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition>
+      syncedLyricsStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'syncedLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> syncedLyricsEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'syncedLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> syncedLyricsContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'syncedLyrics',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> syncedLyricsMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'syncedLyrics',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition>
+      syncedLyricsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncedLyrics',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition>
+      syncedLyricsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'syncedLyrics',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> titleEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -14669,6 +14833,152 @@ extension LyricsDBQueryFilter
       ));
     });
   }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'url',
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'url',
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'url',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'url',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'url',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'url',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'url',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'url',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'url',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'url',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'url',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterFilterCondition> urlIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'url',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension LyricsDBQueryObject
@@ -14714,30 +15024,6 @@ extension LyricsDBQuerySortBy on QueryBuilder<LyricsDB, LyricsDB, QSortBy> {
     });
   }
 
-  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByIsSynced() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSynced', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByIsSyncedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSynced', Sort.desc);
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByLyrics() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lyrics', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByLyricsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lyrics', Sort.desc);
-    });
-  }
-
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByMediaID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mediaID', Sort.asc);
@@ -14759,6 +15045,18 @@ extension LyricsDBQuerySortBy on QueryBuilder<LyricsDB, LyricsDB, QSortBy> {
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByOffsetDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'offset', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByPlainLyrics() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'plainLyrics', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByPlainLyricsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'plainLyrics', Sort.desc);
     });
   }
 
@@ -14786,6 +15084,18 @@ extension LyricsDBQuerySortBy on QueryBuilder<LyricsDB, LyricsDB, QSortBy> {
     });
   }
 
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortBySyncedLyrics() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncedLyrics', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortBySyncedLyricsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncedLyrics', Sort.desc);
+    });
+  }
+
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -14795,6 +15105,18 @@ extension LyricsDBQuerySortBy on QueryBuilder<LyricsDB, LyricsDB, QSortBy> {
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByUrl() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'url', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> sortByUrlDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'url', Sort.desc);
     });
   }
 }
@@ -14837,18 +15159,6 @@ extension LyricsDBQuerySortThenBy
     });
   }
 
-  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByIsSynced() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSynced', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByIsSyncedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSynced', Sort.desc);
-    });
-  }
-
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isarId', Sort.asc);
@@ -14858,18 +15168,6 @@ extension LyricsDBQuerySortThenBy
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByIsarIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isarId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByLyrics() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lyrics', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByLyricsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lyrics', Sort.desc);
     });
   }
 
@@ -14897,6 +15195,18 @@ extension LyricsDBQuerySortThenBy
     });
   }
 
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByPlainLyrics() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'plainLyrics', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByPlainLyricsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'plainLyrics', Sort.desc);
+    });
+  }
+
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenBySource() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'source', Sort.asc);
@@ -14921,6 +15231,18 @@ extension LyricsDBQuerySortThenBy
     });
   }
 
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenBySyncedLyrics() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncedLyrics', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenBySyncedLyricsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncedLyrics', Sort.desc);
+    });
+  }
+
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -14930,6 +15252,18 @@ extension LyricsDBQuerySortThenBy
   QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByUrl() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'url', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QAfterSortBy> thenByUrlDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'url', Sort.desc);
     });
   }
 }
@@ -14956,19 +15290,6 @@ extension LyricsDBQueryWhereDistinct
     });
   }
 
-  QueryBuilder<LyricsDB, LyricsDB, QDistinct> distinctByIsSynced() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isSynced');
-    });
-  }
-
-  QueryBuilder<LyricsDB, LyricsDB, QDistinct> distinctByLyrics(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lyrics', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<LyricsDB, LyricsDB, QDistinct> distinctByMediaID(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -14979,6 +15300,13 @@ extension LyricsDBQueryWhereDistinct
   QueryBuilder<LyricsDB, LyricsDB, QDistinct> distinctByOffset() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'offset');
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QDistinct> distinctByPlainLyrics(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'plainLyrics', caseSensitive: caseSensitive);
     });
   }
 
@@ -14996,10 +15324,24 @@ extension LyricsDBQueryWhereDistinct
     });
   }
 
+  QueryBuilder<LyricsDB, LyricsDB, QDistinct> distinctBySyncedLyrics(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncedLyrics', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<LyricsDB, LyricsDB, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<LyricsDB, LyricsDB, QDistinct> distinctByUrl(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'url', caseSensitive: caseSensitive);
     });
   }
 }
@@ -15030,18 +15372,6 @@ extension LyricsDBQueryProperty
     });
   }
 
-  QueryBuilder<LyricsDB, bool, QQueryOperations> isSyncedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isSynced');
-    });
-  }
-
-  QueryBuilder<LyricsDB, String, QQueryOperations> lyricsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'lyrics');
-    });
-  }
-
   QueryBuilder<LyricsDB, String, QQueryOperations> mediaIDProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'mediaID');
@@ -15051,6 +15381,12 @@ extension LyricsDBQueryProperty
   QueryBuilder<LyricsDB, int?, QQueryOperations> offsetProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'offset');
+    });
+  }
+
+  QueryBuilder<LyricsDB, String, QQueryOperations> plainLyricsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'plainLyrics');
     });
   }
 
@@ -15066,9 +15402,21 @@ extension LyricsDBQueryProperty
     });
   }
 
+  QueryBuilder<LyricsDB, String?, QQueryOperations> syncedLyricsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncedLyrics');
+    });
+  }
+
   QueryBuilder<LyricsDB, String, QQueryOperations> titleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'title');
+    });
+  }
+
+  QueryBuilder<LyricsDB, String?, QQueryOperations> urlProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'url');
     });
   }
 }
