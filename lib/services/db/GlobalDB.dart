@@ -388,3 +388,30 @@ class NotificationDB {
     this.payload,
   });
 }
+
+@collection
+class LyricsDB {
+  Id get isarId => fastHash(mediaID);
+  String sourceId;
+  String mediaID;
+  String lyrics;
+  bool isSynced;
+  String title;
+  String artist;
+  String source;
+  String? album;
+  int? offset;
+  int? duration;
+  LyricsDB({
+    required this.sourceId,
+    required this.mediaID,
+    required this.lyrics,
+    required this.isSynced,
+    required this.title,
+    required this.artist,
+    required this.source,
+    this.album,
+    this.offset,
+    this.duration,
+  });
+}
