@@ -5,6 +5,7 @@ import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/model/artist_onl_model.dart';
 import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/model/lyrics_models.dart';
 import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
@@ -80,6 +81,7 @@ class BloomeeDBService {
             DownloadDBSchema,
             PlaylistsInfoDBSchema,
             SavedCollectionsDBSchema,
+            LyricsDBSchema,
           ],
           directory: pathDoc,
         );
@@ -102,6 +104,7 @@ class BloomeeDBService {
           DownloadDBSchema,
           PlaylistsInfoDBSchema,
           SavedCollectionsDBSchema,
+          LyricsDBSchema,
         ],
         directory: pathSupport,
       );
@@ -1192,6 +1195,50 @@ class BloomeeDBService {
   static Future<Stream<void>> getSavedCollecsWatcher() async {
     Isar isarDB = await db;
     return isarDB.savedCollectionsDBs.watchLazy(fireImmediately: true);
+  }
+
+  static Future<void> putLyrics(Lyrics lyrics, String mediaID,
+      {int? offset}) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(() => isarDB.lyricsDBs.putSync(LyricsDB(
+          mediaID: mediaID,
+          sourceId: lyrics.id,
+          plainLyrics: lyrics.lyricsPlain,
+          syncedLyrics: lyrics.lyricsSynced,
+          title: lyrics.title,
+          source: "lrcnet",
+          artist: lyrics.artist,
+          album: lyrics.album,
+          duration: double.parse(lyrics.duration ?? "0").toInt(),
+          offset: offset,
+          url: lyrics.url,
+        )));
+  }
+
+  static Future<Lyrics?> getLyrics(String mediaID) async {
+    Isar isarDB = await db;
+    LyricsDB? lyricsDB =
+        isarDB.lyricsDBs.filter().mediaIDEqualTo(mediaID).findFirstSync();
+    if (lyricsDB != null) {
+      return Lyrics(
+        id: lyricsDB.sourceId,
+        title: lyricsDB.title,
+        artist: lyricsDB.artist,
+        album: lyricsDB.album,
+        duration: lyricsDB.duration.toString(),
+        lyricsPlain: lyricsDB.plainLyrics,
+        lyricsSynced: lyricsDB.syncedLyrics,
+        provider: LyricsProvider.lrcnet,
+        url: lyricsDB.url,
+      );
+    }
+    return null;
+  }
+
+  static Future<void> removeLyricsById(String mediaID) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(() =>
+        isarDB.lyricsDBs.filter().mediaIDEqualTo(mediaID).deleteAllSync());
   }
 }
 
