@@ -115,6 +115,21 @@ Future<Map> formatSingleSongResponse(Map response) async {
     // } else {
     //   artistNames.add(response['primary_artists']);
     // }
+    String artists;
+    if (response['more_info']?['music'] != null &&
+        response['more_info']?['music'] != "") {
+      artists = response['more_info']['music'].toString().unescape();
+    } else if (response['more_info']?['artistMap']?["primary_artists"] !=
+        null) {
+      List<String> artistList = [];
+      response['more_info']?['artistMap']?["primary_artists"]
+          .forEach((element) {
+        artistList.add(element['name'].toString().unescape());
+      });
+      artists = artistList.join(', ');
+    } else {
+      artists = response['subtitle'].toString().unescape();
+    }
 
     return {
       'id': response['id'],
@@ -143,14 +158,7 @@ Future<Map> formatSingleSongResponse(Map response) async {
       // 'subtitle': response['subtitle'].toString().unescape(),
       'title': response['song']?.toString().unescape() ??
           response['title']?.toString().unescape(),
-      'artist': response['primary_artists']?.toString().unescape() ??
-          (response['more_info']?['artistMap']?['artists'] as List)
-              .map(
-                (e) => e['name'],
-              )
-              .toList()
-              .join(', ')
-              .unescape(),
+      'artist': artists,
       // 'album_artist': response['more_info'],
       'image': getImageUrl(response['image'].toString()),
       'perma_url': response['perma_url'],
