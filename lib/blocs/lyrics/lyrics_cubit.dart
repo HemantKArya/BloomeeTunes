@@ -36,14 +36,15 @@ class LyricsCubit extends Cubit<LyricsState> {
           if (lyrics.lyricsSynced == "No Lyrics Found") {
             lyrics = lyrics.copyWith(lyricsSynced: null);
           }
+          lyrics = lyrics.copyWith(id: mediaItem.id);
           emit(LyricsLoaded(lyrics, mediaItem));
-          BloomeeDBService.putLyrics(lyrics, mediaItem.id);
+          BloomeeDBService.putLyrics(lyrics);
           log("Lyrics loaded for ID: ${mediaItem.id} Duration: ${lyrics.duration} [Online]",
               name: "LyricsCubit");
         } catch (e) {
           emit(LyricsError(mediaItem));
         }
-      } else {
+      } else if (lyrics.mediaID == mediaItem.id) {
         emit(LyricsLoaded(lyrics, mediaItem));
         log("Lyrics loaded for ID: ${mediaItem.id} Duration: ${lyrics.duration} [Offline]",
             name: "LyricsCubit");
