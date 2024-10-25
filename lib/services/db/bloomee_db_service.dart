@@ -1197,22 +1197,23 @@ class BloomeeDBService {
     return isarDB.savedCollectionsDBs.watchLazy(fireImmediately: true);
   }
 
-  static Future<void> putLyrics(Lyrics lyrics, String mediaID,
-      {int? offset}) async {
-    Isar isarDB = await db;
-    isarDB.writeTxnSync(() => isarDB.lyricsDBs.putSync(LyricsDB(
-          mediaID: mediaID,
-          sourceId: lyrics.id,
-          plainLyrics: lyrics.lyricsPlain,
-          syncedLyrics: lyrics.lyricsSynced,
-          title: lyrics.title,
-          source: "lrcnet",
-          artist: lyrics.artist,
-          album: lyrics.album,
-          duration: double.parse(lyrics.duration ?? "0").toInt(),
-          offset: offset,
-          url: lyrics.url,
-        )));
+  static Future<void> putLyrics(Lyrics lyrics, {int? offset}) async {
+    if (lyrics.mediaID != null) {
+      Isar isarDB = await db;
+      isarDB.writeTxnSync(() => isarDB.lyricsDBs.putSync(LyricsDB(
+            mediaID: lyrics.mediaID!,
+            sourceId: lyrics.id,
+            plainLyrics: lyrics.lyricsPlain,
+            syncedLyrics: lyrics.lyricsSynced,
+            title: lyrics.title,
+            source: "lrcnet",
+            artist: lyrics.artist,
+            album: lyrics.album,
+            duration: double.parse(lyrics.duration ?? "0").toInt(),
+            offset: offset,
+            url: lyrics.url,
+          )));
+    }
   }
 
   static Future<Lyrics?> getLyrics(String mediaID) async {
@@ -1230,6 +1231,7 @@ class BloomeeDBService {
         lyricsSynced: lyricsDB.syncedLyrics,
         provider: LyricsProvider.lrcnet,
         url: lyricsDB.url,
+        mediaID: lyricsDB.mediaID,
       );
     }
     return null;

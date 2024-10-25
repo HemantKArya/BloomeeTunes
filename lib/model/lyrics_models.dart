@@ -18,6 +18,7 @@ class Lyrics {
   final String? url;
   final String? img;
   final String? duration;
+  final String? mediaID;
 
   Lyrics({
     required this.artist,
@@ -31,6 +32,7 @@ class Lyrics {
     this.album,
     this.duration,
     this.parsedLyrics,
+    this.mediaID,
   }) {
     if (lyricsSynced != null) {
       parsedLyrics = ParsedLyrics(
@@ -42,7 +44,7 @@ class Lyrics {
 
   @override
   String toString() {
-    return 'Lyrics{artist: $artist, title: $title, album: $album, lyrics: ${lyricsPlain.substring(0, 15)}, lyricsSynced: ${lyricsSynced?.substring(0, 15)},duration: $duration, url: $url, id: $id, provider: $provider}';
+    return 'Lyrics{artist: $artist, title: $title, album: $album, lyrics: ${lyricsPlain.substring(0, 15)}, lyricsSynced: ${lyricsSynced?.substring(0, 15)},duration: $duration, url: $url, id: $id, mediaID: $mediaID provider: $provider}';
   }
 
   Lyrics copyWith({
@@ -57,6 +59,7 @@ class Lyrics {
     String? url,
     String? img,
     String? duration,
+    String? mediaID,
   }) {
     return Lyrics(
       id: id ?? this.id,
@@ -70,6 +73,7 @@ class Lyrics {
       url: url ?? this.url,
       img: img ?? this.img,
       duration: duration ?? this.duration,
+      mediaID: mediaID ?? this.mediaID,
     );
   }
 }
