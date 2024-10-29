@@ -25,7 +25,7 @@ class LyricsWidget extends StatelessWidget {
               ),
 
             // return condtional widget
-            LyricsLoaded() => loadedLyricsWidget(state),
+            LyricsLoaded() => LoadedLyricsWidget(state: state),
             LyricsError() => const SignBoardWidget(
                 icon: MingCute.music_2_line,
                 message: "No Lyrics Found",
@@ -43,9 +43,39 @@ class LyricsWidget extends StatelessWidget {
   }
 }
 
-Widget loadedLyricsWidget(LyricsState state) {
-  if (state.lyrics.parsedLyrics == null &&
-      state.lyrics.lyricsPlain.isNotEmpty) {
+class LoadedLyricsWidget extends StatelessWidget {
+  final LyricsState state;
+  const LoadedLyricsWidget({
+    super.key,
+    required this.state,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.lyrics.parsedLyrics == null &&
+        state.lyrics.lyricsPlain.isNotEmpty) {
+      return PlainLyricsWidget(state: state);
+    } else if (state.lyrics.parsedLyrics != null) {
+      return SyncedLyricsWidget(
+        state: state,
+      );
+    }
+    return const Center(
+      child: SignBoardWidget(
+          message: "No Lyrics found", icon: MingCute.music_2_line),
+    );
+  }
+}
+
+class PlainLyricsWidget extends StatelessWidget {
+  final LyricsState state;
+  const PlainLyricsWidget({
+    super.key,
+    required this.state,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return ShaderMask(
       shaderCallback: (Rect bounds) {
         return const LinearGradient(
@@ -78,15 +108,7 @@ Widget loadedLyricsWidget(LyricsState state) {
         ),
       ),
     );
-  } else if (state.lyrics.parsedLyrics != null) {
-    return SyncedLyricsWidget(
-      state: state,
-    );
   }
-  return const Center(
-    child: SignBoardWidget(
-        message: "No Lyrics found", icon: MingCute.music_2_line),
-  );
 }
 
 class SyncedLyricsWidget extends StatefulWidget {
