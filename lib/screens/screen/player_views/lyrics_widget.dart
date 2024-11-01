@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/screens/screen/player_views/lyrics_menu.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
@@ -15,30 +17,45 @@ class LyricsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LyricsCubit, LyricsState>(
-      builder: (context, state) {
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: switch (state) {
-            LyricsInitial() => const Center(
-                child: CircularProgressIndicator(),
-              ),
+    return Stack(
+      children: [
+        BlocBuilder<LyricsCubit, LyricsState>(
+          builder: (context, state) {
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: switch (state) {
+                LyricsInitial() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
 
-            // return condtional widget
-            LyricsLoaded() => LoadedLyricsWidget(state: state),
-            LyricsError() => const SignBoardWidget(
-                icon: MingCute.music_2_line,
-                message: "No Lyrics Found",
-              ),
-            LyricsLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
-            LyricsState() => const Center(
-                child: CircularProgressIndicator(),
-              ),
+                // return condtional widget
+                LyricsLoaded() => LoadedLyricsWidget(state: state),
+                LyricsError() => const SignBoardWidget(
+                    icon: MingCute.music_2_line,
+                    message: "No Lyrics Found",
+                  ),
+                LyricsLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                LyricsState() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+              },
+            );
           },
-        );
-      },
+        ),
+        Positioned(
+          right: 3,
+          bottom: 0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: LyricsMenu(),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -62,7 +79,7 @@ class LoadedLyricsWidget extends StatelessWidget {
     }
     return const Center(
       child: SignBoardWidget(
-          message: "No Lyrics found", icon: MingCute.music_2_line),
+          message: "No Lyrics found!", icon: MingCute.music_2_line),
     );
   }
 }
