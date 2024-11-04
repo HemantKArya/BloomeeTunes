@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/screens/screen/player_views/lyrics_menu.dart';
@@ -17,11 +16,11 @@ class LyricsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        BlocBuilder<LyricsCubit, LyricsState>(
-          builder: (context, state) {
-            return AnimatedSwitcher(
+    return BlocBuilder<LyricsCubit, LyricsState>(
+      builder: (context, state) {
+        return Stack(
+          children: [
+            AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               child: switch (state) {
                 LyricsInitial() => const Center(
@@ -41,21 +40,21 @@ class LyricsWidget extends StatelessWidget {
                     child: CircularProgressIndicator(),
                   ),
               },
-            );
-          },
-        ),
-        Positioned(
-          right: 3,
-          bottom: 0,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(20),
             ),
-            child: LyricsMenu(),
-          ),
-        ),
-      ],
+            Positioned(
+              right: 3,
+              bottom: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: LyricsMenu(state: state),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -36,4 +36,38 @@ class LyricsRepository {
     }
     return result;
   }
+
+  static Future<List<Lyrics>> searchLyrics(
+    String title,
+    String artist, {
+    String? album,
+    Duration? duration,
+    LyricsProvider provider = LyricsProvider.none,
+  }) async {
+    List<Lyrics> result;
+    try {
+      switch (provider) {
+        case LyricsProvider.lrcnet:
+          result = await searchLRCNetLyrics(
+            title,
+            artistName: artist,
+            albumName: album,
+          );
+          break;
+        default:
+          result = await searchLRCNetLyrics(
+            title,
+            artistName: artist,
+            albumName: album,
+          );
+      }
+    } catch (e) {
+      result = await searchLRCNetLyrics(
+        title,
+        artistName: artist,
+        albumName: album,
+      );
+    }
+    return result;
+  }
 }

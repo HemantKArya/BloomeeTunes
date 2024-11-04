@@ -1,15 +1,26 @@
+import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/model/lyrics_models.dart';
 import 'package:Bloomee/repository/Lyrics/lyrics.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class LyricsSearchDelegate extends SearchDelegate {
+  final String mediaID;
   @override
   String? get searchFieldLabel => "Lyrics title...";
 
   List<Lyrics> lyrics = [];
+
+  LyricsSearchDelegate(
+      {super.searchFieldLabel,
+      super.searchFieldStyle,
+      super.searchFieldDecorationTheme,
+      super.keyboardType,
+      super.textInputAction,
+      required this.mediaID});
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -113,7 +124,12 @@ class LyricsSearchDelegate extends SearchDelegate {
                       );
                     },
                     child: const Text("View Lyrics")),
-                onTap: () {},
+                onTap: () {
+                  context
+                      .read<LyricsCubit>()
+                      .setLyricsToDB(lyrics[index], mediaID);
+                  Navigator.of(context).pop();
+                },
               );
             },
           );
@@ -181,7 +197,12 @@ class LyricsSearchDelegate extends SearchDelegate {
                       );
                     },
                     child: const Text("View Lyrics")),
-                onTap: () {},
+                onTap: () {
+                  context
+                      .read<LyricsCubit>()
+                      .setLyricsToDB(lyrics[index], mediaID);
+                  Navigator.of(context).pop();
+                },
               );
             },
           );

@@ -52,6 +52,24 @@ class LyricsCubit extends Cubit<LyricsState> {
     }
   }
 
+  void setLyricsToDB(Lyrics lyrics, String mediaID) {
+    final l1 = lyrics.copyWith(mediaID: mediaID);
+    BloomeeDBService.putLyrics(l1).then((v) {
+      emit(LyricsLoaded(l1, state.mediaItem));
+    });
+    log("Lyrics updated for ID: ${l1.mediaID} Duration: ${l1.duration}",
+        name: "LyricsCubit");
+  }
+
+  void deleteLyricsFromDB(MediaItemModel mediaItem) {
+    BloomeeDBService.removeLyricsById(mediaItem.id).then((value) {
+      emit(LyricsInitial());
+      getLyrics(mediaItem);
+
+      log("Lyrics deleted for ID: ${mediaItem.id}", name: "LyricsCubit");
+    });
+  }
+
   @override
   Future<void> close() {
     _mediaItemSubscription?.cancel();

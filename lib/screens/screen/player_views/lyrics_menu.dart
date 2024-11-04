@@ -1,9 +1,13 @@
+import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
+import 'package:Bloomee/screens/screen/player_views/lyrics_search.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class LyricsMenu extends StatefulWidget {
-  const LyricsMenu({super.key});
+  final LyricsState state;
+  const LyricsMenu({super.key, required this.state});
 
   @override
   State<LyricsMenu> createState() => _LyricsMenuState();
@@ -29,7 +33,15 @@ class _LyricsMenuState extends State<LyricsMenu> {
       ),
       menuChildren: <Widget>[
         MenuItemButton(
-          onPressed: () {},
+          onPressed: () {
+            showSearch(
+              context: context,
+              delegate:
+                  LyricsSearchDelegate(mediaID: widget.state.mediaItem.id),
+              query:
+                  "${widget.state.mediaItem.title} ${widget.state.mediaItem.artist}",
+            );
+          },
           child: const Row(
             children: <Widget>[
               Icon(
@@ -44,7 +56,11 @@ class _LyricsMenuState extends State<LyricsMenu> {
           ),
         ),
         MenuItemButton(
-          onPressed: () {},
+          onPressed: () {
+            context
+                .read<LyricsCubit>()
+                .deleteLyricsFromDB(widget.state.mediaItem);
+          },
           child: const Row(
             children: <Widget>[
               Icon(
@@ -53,7 +69,7 @@ class _LyricsMenuState extends State<LyricsMenu> {
                 size: 18,
               ),
               SizedBox(width: 8),
-              Text('Research Lyrics Auto',
+              Text('Reset Lyrics',
                   style: TextStyle(color: Colors.white, fontSize: 13)),
             ],
           ),
