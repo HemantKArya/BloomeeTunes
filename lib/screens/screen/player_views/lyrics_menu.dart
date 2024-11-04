@@ -74,21 +74,28 @@ class _LyricsMenuState extends State<LyricsMenu> {
             ],
           ),
         ),
-        MenuItemButton(
-          onPressed: () {},
-          child: const Row(
-            children: <Widget>[
-              Icon(
-                MingCute.time_line,
-                color: Colors.white,
-                size: 18,
-              ),
-              SizedBox(width: 8),
-              Text('Offset Lyrics',
-                  style: TextStyle(color: Colors.white, fontSize: 13)),
-            ],
-          ),
-        ),
+        // MenuItemButton(
+        //   onPressed: () {
+        //     showFloatingModalBottomSheet(
+        //       context: context,
+        //       builder: (context) {
+        //         return Container();
+        //       },
+        //     );
+        //   },
+        //   child: const Row(
+        //     children: <Widget>[
+        //       Icon(
+        //         MingCute.time_line,
+        //         color: Colors.white,
+        //         size: 18,
+        //       ),
+        //       SizedBox(width: 8),
+        //       Text('Offset Lyrics',
+        //           style: TextStyle(color: Colors.white, fontSize: 13)),
+        //     ],
+        //   ),
+        // ),
       ],
       builder: (_, MenuController controller, Widget? child) {
         return IconButton(
