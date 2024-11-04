@@ -128,7 +128,8 @@ class LibraryScreen extends StatelessWidget {
                                                       .source ==
                                                   "ytm"
                                               ? SourceEngine.eng_YTM
-                                              : (state.playlistsOnl[index] ==
+                                              : (state.playlistsOnl[index]
+                                                          .source ==
                                                       'saavn'
                                                   ? SourceEngine.eng_JIS
                                                   : SourceEngine.eng_YTV),
