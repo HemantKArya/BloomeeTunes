@@ -105,6 +105,11 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(state.copyWith(countryCode: value ?? "IN"));
     });
 
+    BloomeeDBService.getSettingBool(GlobalStrConsts.autoSaveLyrics)
+        .then((value) {
+      emit(state.copyWith(autoSaveLyrics: value ?? true));
+    });
+
     for (var eg in SourceEngine.values) {
       BloomeeDBService.getSettingBool(eg.value).then((value) {
         List<bool> switches = List.from(state.sourceEngineSwitches);
@@ -142,6 +147,11 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setCountryCode(String value) {
     BloomeeDBService.putSettingStr(GlobalStrConsts.countryCode, value);
     emit(state.copyWith(countryCode: value));
+  }
+
+  void setAutoSaveLyrics(bool value) {
+    BloomeeDBService.putSettingBool(GlobalStrConsts.autoSaveLyrics, value);
+    emit(state.copyWith(autoSaveLyrics: value));
   }
 
   void setLastFMScrobble(bool value) {

@@ -5,6 +5,7 @@ import 'package:Bloomee/model/lyrics_models.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/repository/Lyrics/lyrics.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -36,9 +37,16 @@ class LyricsCubit extends Cubit<LyricsState> {
           if (lyrics.lyricsSynced == "No Lyrics Found") {
             lyrics = lyrics.copyWith(lyricsSynced: null);
           }
-          lyrics = lyrics.copyWith(id: mediaItem.id);
+          lyrics = lyrics.copyWith(mediaID: mediaItem.id);
           emit(LyricsLoaded(lyrics, mediaItem));
-          BloomeeDBService.putLyrics(lyrics);
+          BloomeeDBService.getSettingBool(GlobalStrConsts.autoSaveLyrics)
+              .then((value) {
+            if ((value ?? true) && lyrics != null) {
+              BloomeeDBService.putLyrics(lyrics);
+              log("Lyrics saved for ID: ${mediaItem.id} Duration: ${lyrics.duration}",
+                  name: "LyricsCubit");
+            }
+          });
           log("Lyrics loaded for ID: ${mediaItem.id} Duration: ${lyrics.duration} [Online]",
               name: "LyricsCubit");
         } catch (e) {
