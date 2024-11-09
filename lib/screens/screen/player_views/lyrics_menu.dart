@@ -130,9 +130,9 @@ class _LyricsMenuState extends State<LyricsMenu> {
             },
             icon: const Icon(
               MingCute.settings_3_fill,
-              color: Default_Theme.primaryColor1,
               size: 20,
             ),
+            color: Default_Theme.primaryColor1.withOpacity(0.9),
           ),
         );
       },
