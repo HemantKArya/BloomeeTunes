@@ -74,6 +74,25 @@ class _LyricsMenuState extends State<LyricsMenu> {
             ],
           ),
         ),
+        MenuItemButton(
+          onPressed: () {
+            context
+                .read<LyricsCubit>()
+                .setLyricsToDB(widget.state.lyrics, widget.state.mediaItem.id);
+          },
+          child: const Row(
+            children: <Widget>[
+              Icon(
+                MingCute.save_2_fill,
+                color: Colors.white,
+                size: 18,
+              ),
+              SizedBox(width: 8),
+              Text('Save Lyrics',
+                  style: TextStyle(color: Colors.white, fontSize: 13)),
+            ],
+          ),
+        ),
         // MenuItemButton(
         //   onPressed: () {
         //     showFloatingModalBottomSheet(
@@ -98,19 +117,22 @@ class _LyricsMenuState extends State<LyricsMenu> {
         // ),
       ],
       builder: (_, MenuController controller, Widget? child) {
-        return IconButton(
-          focusNode: _buttonFocusNode,
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-          icon: const Icon(
-            MingCute.more_1_fill,
-            color: Default_Theme.primaryColor1,
-            size: 20,
+        return Tooltip(
+          message: 'Lyrics Menu',
+          child: IconButton(
+            focusNode: _buttonFocusNode,
+            onPressed: () {
+              if (controller.isOpen) {
+                controller.close();
+              } else {
+                controller.open();
+              }
+            },
+            icon: const Icon(
+              MingCute.settings_3_fill,
+              color: Default_Theme.primaryColor1,
+              size: 20,
+            ),
           ),
         );
       },
