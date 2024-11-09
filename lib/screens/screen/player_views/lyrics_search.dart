@@ -181,9 +181,47 @@ class LyricsSearchDelegate extends SearchDelegate {
                         context: context,
                         builder: (context) {
                           return AlertDialog(
-                            title: Text(lyrics[index].title),
+                            title: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(lyrics[index].title,
+                                    style: Default_Theme
+                                        .secondoryTextStyleMedium
+                                        .copyWith(
+                                      color: Default_Theme.primaryColor1
+                                          .withOpacity(0.8),
+                                    )),
+                                Text(lyrics[index].artist,
+                                    style: TextStyle(
+                                      color: Default_Theme.primaryColor1
+                                          .withOpacity(0.6),
+                                      fontSize: 12,
+                                    ).merge(
+                                      Default_Theme.secondoryTextStyle,
+                                    )),
+                                Text(
+                                    "Synced: ${lyrics[index].lyricsSynced == null ? "No" : "Yes"}",
+                                    style: TextStyle(
+                                      color: const Color.fromARGB(
+                                              255, 139, 255, 191)
+                                          .withOpacity(0.7),
+                                      fontSize: 12,
+                                    ).merge(
+                                      Default_Theme.secondoryTextStyleMedium,
+                                    )),
+                              ],
+                            ),
                             content: SingleChildScrollView(
-                                child: Text(lyrics[index].lyricsPlain)),
+                                child: Text(
+                              lyrics[index].lyricsPlain,
+                              style: Default_Theme.secondoryTextStyleMedium
+                                  .copyWith(
+                                color: Default_Theme.primaryColor1
+                                    .withOpacity(0.7),
+                              ),
+                            )),
                             actions: [
                               TextButton(
                                 onPressed: () {
