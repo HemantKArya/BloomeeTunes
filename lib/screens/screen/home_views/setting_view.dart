@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/appui_setting.dart';
-import 'package:Bloomee/screens/screen/home_views/setting_views/backup_setting.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/storage_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/lastfm_setting.dart';
