@@ -236,11 +236,22 @@ class BackupSettings extends StatelessWidget {
                   context.read<SettingsCubit>().setAutoBackup(value);
                 },
               ),
-              // SettingTile(
-              //   title: "Reset Settings",
-              //   subtitle: "Reset all settings to default.",
-              //   onTap: () {},
-              // ),
+              SwitchListTile(
+                  title: Text("Auto Save Lyrics",
+                      style: const TextStyle(
+                              color: Default_Theme.primaryColor1, fontSize: 16)
+                          .merge(Default_Theme.secondoryTextStyleMedium)),
+                  subtitle: Text(
+                      "Automatically save lyrics of the song when played.",
+                      style: TextStyle(
+                              color:
+                                  Default_Theme.primaryColor1.withOpacity(0.5),
+                              fontSize: 12)
+                          .merge(Default_Theme.secondoryTextStyleMedium)),
+                  value: state.autoSaveLyrics,
+                  onChanged: (value) {
+                    context.read<SettingsCubit>().setAutoSaveLyrics(value);
+                  }),
             ],
           );
         },
