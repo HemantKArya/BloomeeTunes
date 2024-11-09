@@ -64,7 +64,7 @@ class _LyricsMenuState extends State<LyricsMenu> {
           child: const Row(
             children: <Widget>[
               Icon(
-                MingCute.search_fill,
+                MingCute.delete_fill,
                 color: Colors.white,
                 size: 18,
               ),
