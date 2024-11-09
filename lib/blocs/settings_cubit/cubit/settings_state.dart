@@ -121,6 +121,6 @@ class SettingsInitial extends SettingsState {
           chartMap: {},
           lFMPicks: false,
           lastFMScrobble: true,
-          autoSaveLyrics: true,
+          autoSaveLyrics: false,
         );
 }

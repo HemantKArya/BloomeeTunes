@@ -107,7 +107,7 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     BloomeeDBService.getSettingBool(GlobalStrConsts.autoSaveLyrics)
         .then((value) {
-      emit(state.copyWith(autoSaveLyrics: value ?? true));
+      emit(state.copyWith(autoSaveLyrics: value ?? false));
     });
 
     for (var eg in SourceEngine.values) {

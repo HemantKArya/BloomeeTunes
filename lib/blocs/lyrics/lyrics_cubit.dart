@@ -41,7 +41,7 @@ class LyricsCubit extends Cubit<LyricsState> {
           emit(LyricsLoaded(lyrics, mediaItem));
           BloomeeDBService.getSettingBool(GlobalStrConsts.autoSaveLyrics)
               .then((value) {
-            if ((value ?? true) && lyrics != null) {
+            if ((value ?? false) && lyrics != null) {
               BloomeeDBService.putLyrics(lyrics);
               log("Lyrics saved for ID: ${mediaItem.id} Duration: ${lyrics.duration}",
                   name: "LyricsCubit");
