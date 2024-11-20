@@ -602,9 +602,10 @@ class PlayerCtrlWidgets extends StatelessWidget {
                               // overflow: TextOverflow.ellipsis,
                               style: Default_Theme.secondoryTextStyle.merge(
                                   const TextStyle(
-                                      fontSize: 24,
+                                      fontSize: 22,
+                                      fontFamily: "NotoSans",
+                                      fontWeight: FontWeight.w700,
                                       overflow: TextOverflow.ellipsis,
-                                      fontWeight: FontWeight.bold,
                                       color: Default_Theme.primaryColor1)),
                             ),
                           ),
@@ -617,6 +618,8 @@ class PlayerCtrlWidgets extends StatelessWidget {
                               style: Default_Theme.secondoryTextStyle.merge(
                                   TextStyle(
                                       fontSize: 15,
+                                      fontFamily: "NotoSans",
+                                      fontWeight: FontWeight.w500,
                                       overflow: TextOverflow.ellipsis,
                                       color: Default_Theme.primaryColor1
                                           .withOpacity(0.7))),
