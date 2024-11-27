@@ -280,38 +280,45 @@ class ExternalMediaImporter {
             artURL: data["imgUrl"].toString(),
           );
           for (var (e as Map) in tracks) {
-            title = (e['track']['name']).toString();
-            artists = (e['track']['artists'] as List)
-                .map((e) => e['name'])
-                .toList()
-                .join(", ");
-            log("$title by $artists", name: "Playlist Importer");
-            if (title.isNotEmpty) {
-              MediaItemModel? mediaItem;
-              // final country = await getCountry();
-              // if (sourceEngineCountries[SourceEngine.eng_JIS]!
-              //     .contains(country)) {
-              //   log("Getting from MixedAPI", name: "Playlist Importer");
-              //   mediaItem =
-              //       await MixedAPI().getTrackMixed("$title $artists".trim());
-              // } else {
-              log("Getting from YTM", name: "Playlist Importer");
-              mediaItem =
-                  await MixedAPI().getYtTrackByMeta("$title $artists".trim());
-              // }
-              if (mediaItem != null) {
-                BloomeeDBService.addMediaItem(
-                    MediaItem2MediaItemDB(mediaItem), playlistTitle);
-                yield ImporterState(
-                  totalItems: totalItems,
-                  importedItems: i,
-                  failedItems: 0,
-                  isDone: false,
-                  isFailed: false,
-                  message: "Importing($i/$totalItems): ${mediaItem.title}",
-                );
-                i++;
+            try {
+              title = (e['track']['name']).toString();
+              artists = (e['track']['artists'] as List)
+                  .map((e) => e['name'])
+                  .toList()
+                  .join(", ");
+              log("$title by $artists", name: "Playlist Importer");
+              if (title.isNotEmpty) {
+                MediaItemModel? mediaItem;
+                // final country = await getCountry();
+                // if (sourceEngineCountries[SourceEngine.eng_JIS]!
+                //     .contains(country)) {
+                //   log("Getting from MixedAPI", name: "Playlist Importer");
+                //   mediaItem =
+                //       await MixedAPI().getTrackMixed("$title $artists".trim());
+                // } else {
+                log("Getting from YTM", name: "Playlist Importer");
+                mediaItem = await MixedAPI().getYtTrackByMeta(
+                    "$title $artists".trim(),
+                    useStringMatcher: false);
+                // }
+                if (mediaItem != null) {
+                  BloomeeDBService.addMediaItem(
+                      MediaItem2MediaItemDB(mediaItem), playlistTitle);
+                  yield ImporterState(
+                    totalItems: totalItems,
+                    importedItems: i,
+                    failedItems: 0,
+                    isDone: false,
+                    isFailed: false,
+                    message: "Importing($i/$totalItems): ${mediaItem.title}",
+                  );
+                  i++;
+                  log("Added: ${mediaItem.title}", name: "Playlist Importer");
+                }
               }
+            } catch (e) {
+              log(e.toString());
+              continue;
             }
           }
           yield ImporterState(
@@ -341,7 +348,7 @@ class ExternalMediaImporter {
           failedItems: 0,
           isDone: false,
           isFailed: true,
-          message: "Failed to import Playlist",
+          message: "Failed to import Playlist ${e.toString()}",
         );
         log(e.toString(), name: "Playlist Importer");
       }
