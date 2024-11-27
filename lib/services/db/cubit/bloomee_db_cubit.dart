@@ -53,10 +53,10 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
     // rankIndex = rankIndex.toSet().toList();
     // orgMediaList.toSet().toList();
     List<MediaItemDB> reorderedList = orgMediaList;
-    orgMediaList.forEach((element) {
-      log('orgMEdia - ${element.id} - ${element.title}',
-          name: "BloomeeDBCubit");
-    });
+    // orgMediaList.forEach((element) {
+    //   log('orgMEdia - ${element.id} - ${element.title}',
+    //       name: "BloomeeDBCubit");
+    // });
     log(rankIndex.toString(), name: "BloomeeDBCubit");
     if (rankIndex.length == orgMediaList.length) {
       reorderedList = rankIndex
