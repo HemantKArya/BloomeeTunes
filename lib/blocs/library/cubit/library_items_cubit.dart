@@ -97,7 +97,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
     List<PlaylistItemProperties> _playlists = List.empty(growable: true);
     if (_mediaPlaylists.isNotEmpty) {
       for (var element in _mediaPlaylists) {
-        log(element.playlistName, name: "LibCubit");
+        // log(element.playlistName, name: "LibCubit");
         _playlists.add(
           PlaylistItemProperties(
             playlistName: element.playlistName,
