@@ -11,14 +11,24 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:path/path.dart' as p;
 import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 
 class BloomeeDBService {
   static late Future<Isar> db;
+  static late String appSuppDir;
+  static late String appDocDir;
   static final BloomeeDBService _instance = BloomeeDBService._internal();
 
-  factory BloomeeDBService() {
+  BloomeeDBService get instance => _instance;
+
+  factory BloomeeDBService({String? appSuppdir, String? appDocDir}) {
+    if (appSuppdir != null) {
+      appSuppDir = appSuppdir;
+    }
+    if (appDocDir != null) {
+      appDocDir = appDocDir;
+    }
+
     return _instance;
   }
 
@@ -52,22 +62,19 @@ class BloomeeDBService {
 
   static Future<Isar> openDB() async {
     if (Isar.instanceNames.isEmpty) {
-      String pathSupport = (await getApplicationSupportDirectory()).path;
-      String pathDoc = (await getApplicationDocumentsDirectory()).path;
-
       //check if DB exists in support directory
-      final File dbFile = File(p.join(pathSupport, 'default.isar'));
+      final File dbFile = File(p.join(appSuppDir, 'default.isar'));
       if (!await dbFile.exists()) {
         // check for backup and restore
         await checkAndRestoreDB(dbFile.path, [
-          p.join(pathDoc, 'default.isar'),
-          p.join(pathDoc, 'bloomee_backup_db.isar'),
-          p.join(pathSupport, 'bloomee_backup_db.isar'),
+          p.join(appDocDir, 'default.isar'),
+          p.join(appDocDir, 'bloomee_backup_db.isar'),
+          p.join(appSuppDir, 'bloomee_backup_db.isar'),
         ]);
       }
 
       if (!await dbFile.exists() &&
-          await File(p.join(pathDoc, 'default.isar')).exists()) {
+          await File(p.join(appDocDir, 'default.isar')).exists()) {
         final _db = Isar.openSync(
           [
             MediaPlaylistDBSchema,
@@ -83,14 +90,14 @@ class BloomeeDBService {
             SavedCollectionsDBSchema,
             LyricsDBSchema,
           ],
-          directory: pathDoc,
+          directory: appDocDir,
         );
         _db.copyToFile(dbFile.path);
-        log("DB Copied to $pathSupport", name: "BloomeeDBService");
+        log("DB Copied to $appSuppDir", name: "BloomeeDBService");
         _db.close();
       }
 
-      log(pathSupport, name: "DB");
+      log(appSuppDir, name: "DB");
       return Isar.openSync(
         [
           MediaPlaylistDBSchema,
@@ -106,7 +113,7 @@ class BloomeeDBService {
           SavedCollectionsDBSchema,
           LyricsDBSchema,
         ],
-        directory: pathSupport,
+        directory: appSuppDir,
       );
     }
     return Future.value(Isar.getInstance());
@@ -120,7 +127,7 @@ class BloomeeDBService {
         backUpDir = await getSettingStr(GlobalStrConsts.backupPath);
       } catch (e) {
         log(e.toString(), name: "DB");
-        backUpDir = (await getApplicationDocumentsDirectory()).path;
+        backUpDir = appDocDir;
       }
 
       final File backUpFile = File('$backUpDir/bloomee_backup_db.isar');
@@ -146,7 +153,7 @@ class BloomeeDBService {
         backUpDir = await getSettingStr(GlobalStrConsts.backupPath);
       } catch (e) {
         log(e.toString(), name: "DB");
-        backUpDir = (await getApplicationDocumentsDirectory()).path;
+        backUpDir = appDocDir;
       }
 
       final dbFile = File('$backUpDir/bloomee_backup_db.isar');
@@ -162,20 +169,19 @@ class BloomeeDBService {
   static Future<bool> restoreDB() async {
     try {
       final isar = await db;
-      final dbDirectory = await getApplicationSupportDirectory();
 
       String? backUpDir;
       try {
         backUpDir = await getSettingStr(GlobalStrConsts.backupPath);
       } catch (e) {
         log(e.toString(), name: "DB");
-        backUpDir = (await getApplicationDocumentsDirectory()).path;
+        backUpDir = appDocDir;
       }
 
       await isar.close();
 
       final dbFile = File('$backUpDir/bloomee_backup_db.isar');
-      final dbPath = File('${dbDirectory.path}/default.isar');
+      final dbPath = File('$appSuppDir/default.isar');
 
       if (await dbFile.exists()) {
         await dbFile.copy(dbPath.path);
