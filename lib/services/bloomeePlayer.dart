@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'dart:io';
+import 'dart:isolate';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
@@ -8,13 +8,15 @@ import 'package:Bloomee/routes_and_consts/global_conts.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/ytbg_service.dart';
 import 'package:async/async.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import '../model/MediaPlaylistModel.dart';
 
 List<int> generateRandomIndices(int length) {
@@ -44,13 +46,54 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   CancelableOperation<AudioSource?> getLinkOperation =
       CancelableOperation.fromFuture(Future.value());
 
+  final ReceivePort receivePortYt = ReceivePort();
+  SendPort? sendPortYt;
+
   BloomeeMusicPlayer() {
+    initBgYt();
     audioPlayer = AudioPlayer(
       handleInterruptions: true,
     );
     audioPlayer.setVolume(1);
     audioPlayer.playbackEventStream.listen(_broadcastPlayerEvent);
     audioPlayer.setLoopMode(LoopMode.off);
+  }
+
+  void initBgYt() async {
+    BackgroundIsolateBinaryMessenger.ensureInitialized(
+      ServicesBinding.rootIsolateToken!,
+    );
+    final appDocPath = (await getApplicationDocumentsDirectory()).path;
+    final appSuppPath = (await getApplicationSupportDirectory()).path;
+
+    receivePortYt.listen(
+      (dynamic data) {
+        if (data is SendPort) {
+          sendPortYt = data;
+        }
+        log('Received data: $data', name: "IsolateBG");
+        if (data is Map) {
+          if (data["link"] != null) {
+            final audioSource = AudioSource.uri(Uri.parse(data["link"]));
+            playAudioSource(audioSource: audioSource, mediaId: data["mediaId"]);
+          } else {
+            log("Link not found for vidId: ${data["id"]}",
+                name: "bloomeePlayer");
+            SnackbarService.showMessage(
+                "Link not found for vidId: ${data["id"]}");
+          }
+        }
+      },
+    );
+
+    await Isolate.spawn(
+      ytbgIsolate,
+      [
+        appDocPath,
+        appSuppPath,
+        receivePortYt.sendPort,
+      ],
+    );
   }
 
   void _broadcastPlayerEvent(PlaybackEvent event) {
@@ -211,13 +254,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     log("paused", name: "bloomeePlayer");
   }
 
-  Future<String?> latestYtLink(String id) async {
+  Future<String?> latestYtLink(
+      {required String id, required String mediaId}) async {
     final vidInfo = await BloomeeDBService.getYtLinkCache(id);
     if (vidInfo != null) {
       if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
           vidInfo.expireAt) {
         log("Link expired for vidId: $id", name: "bloomeePlayer");
-        return await refreshYtLink(id);
+        refreshYtLink(id: id, mediaId: mediaId);
       } else {
         log("Link found in cache for vidId: $id", name: "bloomeePlayer");
         String kurl = vidInfo.lowQURL!;
@@ -236,32 +280,29 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       }
     } else {
       log("No cache found for vidId: $id", name: "bloomeePlayer");
-      return await refreshYtLink(id);
+      refreshYtLink(id: id, mediaId: mediaId);
     }
+    return null;
   }
 
-  Future<String?> refreshYtLink(String id) async {
+  Future<void> refreshYtLink(
+      {required String id, required String mediaId}) async {
     // String quality = "Low";
     await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
         .then((value) {
       log('Play quality: $value', name: "bloomeePlayer");
-      // if (value != null) {
-      //   if (value == "High") {
-      //     quality = "High";
-      //   } else {
-      //     quality = "Low";
-      //   }
-      // }
     });
-    final vidMap = await YouTubeServices().refreshLink(id, quality: "Low");
-    if (vidMap != null) {
-      return vidMap["url"] as String;
-    } else {
-      return null;
-    }
+
+    sendPortYt?.send(
+      {
+        "mediaId": mediaId,
+        "id": id,
+        "quality": "Low",
+      },
+    );
   }
 
-  Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
+  Future<AudioSource?> getAudioSource(MediaItem mediaItem) async {
     final _down = await BloomeeDBService.getDownloadDB(
         mediaItem2MediaItemModel(mediaItem));
     if (_down != null) {
@@ -275,9 +316,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log("Playing online", name: "bloomeePlayer");
       if (mediaItem.extras?["source"] == "youtube") {
         final id = mediaItem.id.replaceAll("youtube", '');
-        final tempStrmLink = await latestYtLink(id);
+        final tempStrmLink = await latestYtLink(id: id, mediaId: mediaItem.id);
         if (tempStrmLink != null) {
           return AudioSource.uri(Uri.parse(tempStrmLink));
+        } else {
+          return null;
         }
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
@@ -303,6 +346,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     return super.skipToQueueItem(index);
   }
 
+  Future<void> playAudioSource({
+    required AudioSource audioSource,
+    required String mediaId,
+  }) async {
+    if (mediaItem.value?.id == mediaId) {
+      await audioPlayer.setAudioSource(audioSource);
+      isLinkProcessing.add(false);
+      await play();
+    }
+  }
+
   @override
   Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
     updateMediaItem(mediaItem);
@@ -311,39 +365,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.pause();
     audioPlayer.seek(Duration.zero);
 
-    if (!getLinkOperation.isCompleted) {
-      await getLinkOperation.cancel();
+    final audioSource = await getAudioSource(mediaItem);
+    if (audioSource != null) {
+      await playAudioSource(audioSource: audioSource, mediaId: mediaItem.id);
     }
-    getLinkOperation = CancelableOperation.fromFuture(
-      getAudioSource(mediaItem),
-      onCancel: () {
-        log("skipping....", name: "bloomeePlayer");
-        return;
-      },
-    );
-
-    getLinkOperation.then((value) async {
-      if (value != null) {
-        try {
-          await audioPlayer.setAudioSource(value).then((value) async {
-            isLinkProcessing.add(false);
-            check4RelatedSongs();
-            if (doPlay) {
-              log("doPlay", name: "bloomeePlayer");
-              await play();
-              if (Platform.isWindows && audioPlayer.playing == false) {
-                // temp fix for windows (first play not working)
-                await play();
-              }
-            }
-          });
-        } catch (e) {
-          isLinkProcessing.add(false);
-          log("Error: $e", name: "bloomeePlayer");
-          SnackbarService.showMessage("Error in playing this song: $e");
-        }
-      }
-    });
+    await check4RelatedSongs();
   }
 
   Future<void> prepare4play({int idx = 0, bool doPlay = false}) async {
