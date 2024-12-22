@@ -9,7 +9,9 @@ import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/blocs/timer/timer_bloc.dart';
+import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/shortcuts_intents.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/services/file_manager.dart';
@@ -29,6 +31,7 @@ import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:metadata_god/metadata_god.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
@@ -102,6 +105,13 @@ void setupPlayerCubit() {
   bloomeePlayerCubit = BloomeePlayerCubit();
 }
 
+Future<void> initServices() async {
+  String appDocPath = (await getApplicationDocumentsDirectory()).path;
+  String appSuppPath = (await getApplicationSupportDirectory()).path;
+  BloomeeDBService(appDocDir: appDocPath, appSuppdir: appSuppPath);
+  YouTubeServices(appDocPath: appDocPath, appSuppPath: appSuppPath);
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
@@ -111,6 +121,7 @@ Future<void> main() async {
       windows: false,
     );
   }
+  await initServices();
   setHighRefreshRate();
   MetadataGod.initialize();
   setupPlayerCubit();
