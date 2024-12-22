@@ -2,12 +2,40 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:html_unescape/html_unescape_small.dart';
 import 'package:http/http.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 class YouTubeServices {
+  // Singleton instance
+  static final YouTubeServices _instance = YouTubeServices._internal();
+  late String appDocPath;
+  late String appSuppPath;
+
+  // Private constructor
+  YouTubeServices._internal();
+
+  YouTubeServices get instance => _instance;
+
+  // Factory constructor
+  factory YouTubeServices({String? appDocPath, String? appSuppPath}) {
+    if (appDocPath != null) {
+      _instance.appDocPath = appDocPath;
+    }
+    if (appSuppPath != null) {
+      _instance.appSuppPath = appSuppPath;
+    }
+    if (appDocPath != null && appSuppPath != null) {
+      {
+        BloomeeDBService(
+          appDocDir: appDocPath,
+          appSuppdir: appSuppPath,
+        );
+      }
+    }
+    return _instance;
+  }
+
   static const String searchAuthority = 'www.youtube.com';
   static const Map paths = {
     'search': '/results',
@@ -28,7 +56,7 @@ class YouTubeServices {
 
   Future<Video?> getVideoFromId(String id) async {
     try {
-      final Video result = await compute(yt.videos.get, id);
+      final Video result = await yt.videos.get(id);
       return result;
     } catch (e) {
       log('Error while getting video from id ${e.toString()}',
