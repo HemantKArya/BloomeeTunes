@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'dart:isolate';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
@@ -354,6 +355,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       await audioPlayer.setAudioSource(audioSource);
       isLinkProcessing.add(false);
       await play();
+      if (Platform.isWindows && audioPlayer.playing == false) {
+        // temp fix for windows (first play not working)
+        await play();
+      }
     }
   }
 
