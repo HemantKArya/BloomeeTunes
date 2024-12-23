@@ -1,5 +1,5 @@
 name: Bloomee
-description: A open source Free Music Player.
+description: An Open source Free Music Player.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -16,7 +16,7 @@ dependencies:
     sdk: flutter
 
   device_info_plus: ^10.1.0
-  equatable: ^2.0.5
+  equatable: ^2.0.7
   icons_plus: ^5.0.0
   cached_network_image: ^3.3.1
   flutter_bloc: ^8.1.6
@@ -29,9 +29,9 @@ dependencies:
   carousel_slider: ^5.0.0
   palette_generator: ^0.3.3+2
   audio_video_progress_bar: ^1.0.1
-  just_audio: ^0.9.40
-  just_audio_windows: ^0.2.1
-  audio_service: ^0.18.13
+  just_audio: ^0.9.42
+  just_audio_windows: ^0.2.2
+  audio_service: ^0.18.16
   audio_session: ^0.1.16
   rxdart: ^0.27.7
   go_router: ^10.1.0
@@ -69,9 +69,9 @@ dependencies:
   scrollable_positioned_list: ^0.3.8
   crypto: ^3.0.5
   # linux plugins
-  just_audio_media_kit: ^2.0.0
+  just_audio_media_kit: ^2.0.6
   media_kit_libs_linux: any
-  audio_service_mpris: ^0.1.5
+  audio_service_mpris: ^0.2.0
   # mime: ^1.0.5
 
 
