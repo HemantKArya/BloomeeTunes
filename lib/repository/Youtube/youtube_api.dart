@@ -98,7 +98,11 @@ class YouTubeServices {
       return null;
     }
     // String quality = quality;
-    final Map? data = await formatVideo(video: res, quality: quality);
+    final Map? data = await formatVideo(
+      video: res,
+      quality: quality,
+      checkCache: false,
+    );
     return data;
   }
 
@@ -346,6 +350,7 @@ class YouTubeServices {
     required String quality,
     Map? data,
     bool getUrl = true,
+    bool checkCache = true,
     // bool preferM4a = true,
   }) async {
     if (video.duration?.inSeconds == null) return null;
@@ -354,24 +359,32 @@ class YouTubeServices {
     String expireAt = '0';
     if (getUrl) {
       // check cache first
-      final ytCache = await BloomeeDBService.getYtLinkCache(video.id.value);
-      if (ytCache != null) {
-        if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
-            ytCache.expireAt) {
-          // cache expired
-          urls = await getUri(video);
+      if (checkCache) {
+        final ytCache = await BloomeeDBService.getYtLinkCache(video.id.value);
+        if (ytCache != null) {
+          if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
+              ytCache.expireAt) {
+            // cache expired
+            urls = await getUri(video);
+          } else {
+            // giving cache link
+            log('cache found for ${video.id.value}', name: "YoutubeAPI");
+            urls = [
+              quality == 'High'
+                  ? ytCache.highQURL
+                  : (ytCache.lowQURL ?? ytCache.highQURL)
+            ];
+          }
         } else {
-          // giving cache link
-          log('cache found for ${video.id.value}', name: "YoutubeAPI");
-          urls = [
-            quality == 'High'
-                ? ytCache.highQURL
-                : (ytCache.lowQURL ?? ytCache.highQURL)
-          ];
+          //cache not present
+          urls = await getUri(video);
         }
       } else {
-        //cache not present
         urls = await getUri(video);
+        return {
+          'id': video.id.value,
+          'url': ((quality == 'High') ? urls.last : urls.first),
+        };
       }
 
       finalUrl = ((quality == 'High') ? urls.last : urls.first);
