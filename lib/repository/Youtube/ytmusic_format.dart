@@ -1,6 +1,5 @@
+import 'dart:developer';
 import 'dart:io';
-
-import 'package:logging/logging.dart';
 
 Future<String> getSongUrl(
   String id,
@@ -34,7 +33,7 @@ List formatChartItems(List itemsList) {
 
     return result;
   } catch (e) {
-    Logger.root.severe('Error in formatChartItems: $e');
+    log('Error in formatChartItems: $e');
     return List.empty();
   }
 }
@@ -65,7 +64,7 @@ List formatItems(List itemsList) {
 
     return result;
   } catch (e) {
-    Logger.root.severe('Error in formatItems: $e');
+    log('Error in formatItems: $e');
     return List.empty();
   }
 }
@@ -102,7 +101,7 @@ List formatHeadItems(List itemsList) {
 
     return result;
   } catch (e) {
-    Logger.root.severe('Error in formatHeadItems: $e');
+    log('Error in formatHeadItems: $e');
     return List.empty();
   }
 }
@@ -128,69 +127,94 @@ List formatVideoItems(List itemsList) {
 
     return result;
   } catch (e) {
-    Logger.root.severe('Error in formatVideoItems: $e');
+    log('Error in formatVideoItems: $e');
     return List.empty();
   }
 }
 
 Future<List> formatHomeSections(List items) async {
   List result = [];
-  for (Map e in items) {
-    if (e['compactStationRenderer'] != null) {
-      result.add({
-        'title': e['compactStationRenderer']['title']['simpleText'],
-        'type': 'playlist',
-        'subtitle': e['compactStationRenderer']['description']['simpleText'],
-        'count': e['compactStationRenderer']['videoCountText']['runs'][0]
-            ['text'],
-        'id':
-            'youtube${e['compactStationRenderer']['navigationEndpoint']['watchPlaylistEndpoint']['playlistId']}',
-        'firstItemId':
-            'youtube${e['compactStationRenderer']['navigationEndpoint']['watchPlaylistEndpoint']['videoId']}',
-        'image': e['compactStationRenderer']['thumbnail']['thumbnails'][0]
-            ['url'],
-        'images': [
-          e['compactStationRenderer']['thumbnail']['thumbnails'][0]['url'],
-          e['compactStationRenderer']['thumbnail']['thumbnails'][1]['url'],
-          e['compactStationRenderer']['thumbnail']['thumbnails'][2]['url'],
-        ],
-        'provider': 'youtube'
-      });
-    } else if (e['gridPlaylistRenderer'] != null) {
-      result.add({
-        'title': e['gridPlaylistRenderer']['title']['runs'][0]['text'],
-        'type': 'chart',
-        'subtitle': e['gridPlaylistRenderer']['shortBylineText']['runs'][0]
-            ['text'],
-        'count': e['gridPlaylistRenderer']['videoCountText']['runs'][0]['text'],
-        'id':
-            'youtube${e['gridPlaylistRenderer']['navigationEndpoint']['watchEndpoint']['playlistId']}',
-        'firstItemId':
-            'youtube${e['gridPlaylistRenderer']['navigationEndpoint']['watchEndpoint']['videoId']}',
-        'image': e['gridPlaylistRenderer']['thumbnail']['thumbnails'][0]['url'],
-        'images': e['gridPlaylistRenderer']['thumbnail']['thumbnails']
-            .map((e) => e['url'])
-            .toList(),
-        'provider': 'youtube',
-      });
-    } else if (e['gridVideoRenderer'] != null) {
-      result.add({
-        'title': e['gridVideoRenderer']['title']['simpleText'],
-        'type': 'video',
-        'subtitle': e['gridVideoRenderer']['shortBylineText']['runs'][0]
-            ['text'],
-        'artist': e['gridVideoRenderer']['shortBylineText']['runs'][0]['text'],
-        'count': e['gridVideoRenderer']['shortViewCountText']['simpleText'],
-        'id': 'youtube${e['gridVideoRenderer']['videoId']}',
-        'firstItemId': 'youtube${e['gridVideoRenderer']['videoId']}',
-        'image': e['gridVideoRenderer']['thumbnail']['thumbnails'].last['url'],
-        'images': e['gridVideoRenderer']['thumbnail']['thumbnails']
-            .map((e) => e['url'])
-            .toList(),
-        'url': await getSongUrl('youtube${e['gridVideoRenderer']['videoId']}'),
-        'provider': 'youtube'
-      });
+  try {
+    for (Map e in items) {
+      if (e['lockupViewModel'] != null) {
+        result.add({
+          'title': e['lockupViewModel']['metadata']['lockupMetadataViewModel']
+              ['title']['content'],
+          'type': 'playlist',
+          'subtitle': e['lockupViewModel']['metadata']
+                      ['lockupMetadataViewModel']['metadata']
+                  ['contentMetadataViewModel']['metadataRows'][0]
+              ['metadataParts'][0]['text']['content'],
+          'count': e['lockupViewModel']['contentImage']
+                          ['collectionThumbnailViewModel']['primaryThumbnail']
+                      ['thumbnailViewModel']['overlays'][0]
+                  ['thumbnailOverlayBadgeViewModel']['thumbnailBadges'][0]
+              ['thumbnailBadgeViewModel']['text'],
+          'id': 'youtube${e['lockupViewModel']['contentId']}',
+          // 'firstItemId':
+          //     'youtube${e['lockupViewModel']['navigationEndpoint']['watchPlaylistEndpoint']['videoId']}',
+          'image': e['lockupViewModel']['contentImage']
+                  ['collectionThumbnailViewModel']['primaryThumbnail']
+              ['thumbnailViewModel']['image']['sources'][0]['url'],
+          'isWide': (e['lockupViewModel']['contentImage']
+                          ['collectionThumbnailViewModel']['primaryThumbnail']
+                      ['thumbnailViewModel']['image']['sources'][0]['width'] !=
+                  e['lockupViewModel']['contentImage']
+                          ['collectionThumbnailViewModel']['primaryThumbnail']
+                      ['thumbnailViewModel']['image']['sources'][0]['height'])
+              ? true
+              : false,
+          'images': e['lockupViewModel']['contentImage']
+                      ['collectionThumbnailViewModel']['primaryThumbnail']
+                  ['thumbnailViewModel']['image']['sources']
+              .map((e) => e['url'])
+              .toList(),
+          'provider': 'youtube'
+        });
+      } else if (e['gridPlaylistRenderer'] != null) {
+        result.add({
+          'title': e['gridPlaylistRenderer']['title']['runs'][0]['text'],
+          'type': 'chart',
+          'subtitle': e['gridPlaylistRenderer']['shortBylineText']['runs'][0]
+              ['text'],
+          'count': e['gridPlaylistRenderer']['videoCountText']['runs'][0]
+              ['text'],
+          'id':
+              'youtube${e['gridPlaylistRenderer']['navigationEndpoint']['watchEndpoint']['playlistId']}',
+          'firstItemId':
+              'youtube${e['gridPlaylistRenderer']['navigationEndpoint']['watchEndpoint']['videoId']}',
+          'image': e['gridPlaylistRenderer']['thumbnail']['thumbnails'][0]
+              ['url'],
+          'images': e['gridPlaylistRenderer']['thumbnail']['thumbnails']
+              .map((e) => e['url'])
+              .toList(),
+          'provider': 'youtube',
+        });
+      } else if (e['gridVideoRenderer'] != null) {
+        result.add({
+          'title': e['gridVideoRenderer']['title']['simpleText'],
+          'type': 'video',
+          'isWide': true,
+          'subtitle': e['gridVideoRenderer']['shortBylineText']['runs'][0]
+              ['text'],
+          'artist': e['gridVideoRenderer']['shortBylineText']['runs'][0]
+              ['text'],
+          'count': e['gridVideoRenderer']['shortViewCountText']['simpleText'],
+          'id': 'youtube${e['gridVideoRenderer']['videoId']}',
+          'firstItemId': 'youtube${e['gridVideoRenderer']['videoId']}',
+          'image':
+              e['gridVideoRenderer']['thumbnail']['thumbnails'].last['url'],
+          'images': e['gridVideoRenderer']['thumbnail']['thumbnails']
+              .map((e) => e['url'])
+              .toList(),
+          'url':
+              await getSongUrl('youtube${e['gridVideoRenderer']['videoId']}'),
+          'provider': 'youtube'
+        });
+      }
     }
+  } catch (e) {
+    log('Error in formatHomeSections: $e');
   }
 
   return result;

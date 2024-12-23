@@ -266,9 +266,9 @@ class YtMusicService {
         return {};
       }
       final String searchResults =
-          RegExp(r'(\"contents\":{.*?}),\"metadata\"', dotAll: true)
+          RegExp(r'ytInitialData = (\{[\s\S]*?\});\s*</script>', dotAll: true)
               .firstMatch(response.body)![1]!;
-      final Map data = json.decode('{$searchResults}') as Map;
+      final Map data = json.decode(searchResults) as Map;
       // dev.log("data: ${json.encode(data)}", name: "YTM");
       final List result = data['contents']['twoColumnBrowseResultsRenderer']
               ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
