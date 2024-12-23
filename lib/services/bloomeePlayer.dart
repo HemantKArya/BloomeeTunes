@@ -10,7 +10,6 @@ import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/ytbg_service.dart';
-import 'package:async/async.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -44,9 +43,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   bool isPaused = false;
 
-  CancelableOperation<AudioSource?> getLinkOperation =
-      CancelableOperation.fromFuture(Future.value());
-
   final ReceivePort receivePortYt = ReceivePort();
   SendPort? sendPortYt;
 
@@ -72,7 +68,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         if (data is SendPort) {
           sendPortYt = data;
         }
-        log('Received data: $data', name: "IsolateBG");
+
         if (data is Map) {
           if (data["link"] != null) {
             final audioSource = AudioSource.uri(Uri.parse(data["link"]));
