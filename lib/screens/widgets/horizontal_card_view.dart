@@ -87,24 +87,19 @@ class HorizontalCardView extends StatelessWidget {
                   // Navigator.pushNamed(context, '/album', arguments: data["items"][i]);
                 }
               },
-              itemExtent: ((data["items"][0]['type'] == "video" ||
-                          data["items"][0]['type'] == "chart")
-                      ? 250
-                      : 150) +
-                  20,
+              itemExtent:
+                  ((data["items"][0]['isWide'] == true) ? 250 : 150) + 20,
               children: [
                 for (int i = 0; i < data['items'].length; i++)
                   SquareImgCard(
                     imgPath: data["items"][i]["image"].toString(),
                     title: data["items"][i]["title"].toString(),
                     subtitle: data["items"][i]["subtitle"].toString(),
-                    isWide: (data["items"][i]['type'] == "video" ||
-                            data["items"][i]['type'] == "chart")
-                        ? true
-                        : false,
+                    isWide: data["items"][i]['isWide'],
                     tag: (data["items"][i]['type'] == "playlist" ||
                             data["items"][i]['type'] == "chart")
-                        ? '${data["items"][i]["count"]} Tracks'
+                        ? '${data["items"][i]["count"]}'
+                            .replaceAll('songs', 'Tracks')
                         : data["items"][i]["count"].toString(),
                     isList: (data["items"][i]['type'] == "playlist" ||
                             data["items"][i]['type'] == "chart")
