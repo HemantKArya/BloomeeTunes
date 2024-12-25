@@ -21,12 +21,12 @@ class BloomeeDBService {
 
   BloomeeDBService get instance => _instance;
 
-  factory BloomeeDBService({String? appSuppdir, String? appDocDir}) {
-    if (appSuppdir != null) {
-      appSuppDir = appSuppdir;
+  factory BloomeeDBService({String? appSuppPath, String? appDocPath}) {
+    if (appSuppPath != null) {
+      appSuppDir = appSuppPath;
     }
-    if (appDocDir != null) {
-      appDocDir = appDocDir;
+    if (appDocPath != null) {
+      appDocDir = appDocPath;
     }
 
     return _instance;

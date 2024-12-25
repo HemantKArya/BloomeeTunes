@@ -28,8 +28,8 @@ class YouTubeServices {
     if (appDocPath != null && appSuppPath != null) {
       {
         BloomeeDBService(
-          appDocDir: appDocPath,
-          appSuppdir: appSuppPath,
+          appDocPath: appDocPath,
+          appSuppPath: appSuppPath,
         );
       }
     }
@@ -383,6 +383,7 @@ class YouTubeServices {
         urls = await getUri(video);
         return {
           'id': video.id.value,
+          'perma_url': video.url,
           'url': ((quality == 'High') ? urls.last : urls.first),
         };
       }

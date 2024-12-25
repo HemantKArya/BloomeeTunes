@@ -108,7 +108,7 @@ void setupPlayerCubit() {
 Future<void> initServices() async {
   String appDocPath = (await getApplicationDocumentsDirectory()).path;
   String appSuppPath = (await getApplicationSupportDirectory()).path;
-  BloomeeDBService(appDocDir: appDocPath, appSuppdir: appSuppPath);
+  BloomeeDBService(appDocPath: appDocPath, appSuppPath: appSuppPath);
   YouTubeServices(appDocPath: appDocPath, appSuppPath: appSuppPath);
 }
 
