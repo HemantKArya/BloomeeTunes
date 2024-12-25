@@ -1,22 +1,43 @@
 import 'dart:developer';
 import 'dart:isolate';
+import 'package:Bloomee/repository/Youtube/yt_streams.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:async/async.dart';
-import 'package:Bloomee/repository/Youtube/youtube_api.dart';
+
+Future<void> cacheYtStreams({
+  required String id,
+  required String hURL,
+  required String lURL,
+}) async {
+  final expireAt = RegExp('expire=(.*?)&').firstMatch(lURL)!.group(1) ??
+      (DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600 * 5.5).toString();
+
+  try {
+    BloomeeDBService.putYtLinkCache(
+      id,
+      lURL,
+      hURL,
+      int.parse(expireAt),
+    );
+    log("Cached: $id, ExpireAt: $expireAt", name: "CacheYtStreams");
+  } catch (e) {
+    log(e.toString(), name: "CacheYtStreams");
+  }
+}
 
 Future<void> ytbgIsolate(List<dynamic> opts) async {
-  final String appDocPath = opts[0] as String;
-  final String appSuppPath = opts[1] as String;
+  final appDocPath = opts[0] as String;
+  final appSupPath = opts[1] as String;
   final SendPort port = opts[2] as SendPort;
 
-  CancelableOperation<Map?> canOprn =
+  BloomeeDBService(appDocPath: appDocPath, appSuppPath: appSupPath);
+
+  CancelableOperation<YtStreams?> canOprn =
       CancelableOperation.fromFuture(Future.value(null));
 
   final ReceivePort receivePort = ReceivePort();
   port.send(receivePort.sendPort);
-  final yt = YouTubeServices(
-    appDocPath: appDocPath,
-    appSuppPath: appSuppPath,
-  );
 
   receivePort.listen(
     (dynamic data) async {
@@ -32,24 +53,48 @@ Future<void> ytbgIsolate(List<dynamic> opts) async {
         // Map? refreshedToken = await yt.refreshLink(data["id"], quality: 'Low');
         await canOprn.cancel();
         canOprn = CancelableOperation.fromFuture(
-          yt.refreshLink(data["id"], quality: data["quality"]),
+          YtStreams.fetch(data['id']),
           onCancel: () {
             log("Operation Cancelled-${data['id']}", name: "IsolateBG");
           },
         );
+        int quality = 2;
+        await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
+            .then(
+          (value) {
+            if (value != null) {
+              switch (value) {
+                case "Low":
+                  quality = 1;
+                  break;
 
-        Map? refreshedToken = await canOprn.value;
+                case "High":
+                  quality = 2;
+                  break;
+                default:
+                  quality = 2;
+              }
+            }
+          },
+        );
+        YtStreams? refreshedToken = await canOprn.value;
 
         var time2 = DateTime.now().millisecondsSinceEpoch;
-        log("Time taken: ${time2 - time}ms", name: "IsolateBG");
-        if (refreshedToken != null) {
+        log("Time taken: ${time2 - time}ms, quality: $quality",
+            name: "IsolateBG");
+        if (refreshedToken != null && refreshedToken.hmStreamingData[0]) {
           port.send(
             {
               "mediaId": data["mediaId"],
               "id": data["id"],
               "quality": data["quality"],
-              "link": refreshedToken["url"],
+              "link": refreshedToken.hmStreamingData[quality],
             },
+          );
+          cacheYtStreams(
+            id: data["id"],
+            hURL: refreshedToken.hmStreamingData[2],
+            lURL: refreshedToken.hmStreamingData[1],
           );
         } else {
           port.send(
