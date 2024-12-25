@@ -1,16 +1,22 @@
 import 'dart:developer';
 import 'dart:isolate';
-import 'package:Bloomee/repository/Youtube/yt_streams.dart';
 import 'package:async/async.dart';
+import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 
 Future<void> ytbgIsolate(List<dynamic> opts) async {
+  final String appDocPath = opts[0] as String;
+  final String appSuppPath = opts[1] as String;
   final SendPort port = opts[2] as SendPort;
 
-  CancelableOperation<YtStreams?> canOprn =
+  CancelableOperation<Map?> canOprn =
       CancelableOperation.fromFuture(Future.value(null));
 
   final ReceivePort receivePort = ReceivePort();
   port.send(receivePort.sendPort);
+  final yt = YouTubeServices(
+    appDocPath: appDocPath,
+    appSuppPath: appSuppPath,
+  );
 
   receivePort.listen(
     (dynamic data) async {
@@ -26,13 +32,13 @@ Future<void> ytbgIsolate(List<dynamic> opts) async {
         // Map? refreshedToken = await yt.refreshLink(data["id"], quality: 'Low');
         await canOprn.cancel();
         canOprn = CancelableOperation.fromFuture(
-          YtStreams.fetch(data['id']),
+          yt.refreshLink(data["id"], quality: data["quality"]),
           onCancel: () {
             log("Operation Cancelled-${data['id']}", name: "IsolateBG");
           },
         );
 
-        YtStreams? refreshedToken = await canOprn.value;
+        Map? refreshedToken = await canOprn.value;
 
         var time2 = DateTime.now().millisecondsSinceEpoch;
         log("Time taken: ${time2 - time}ms", name: "IsolateBG");
@@ -42,7 +48,7 @@ Future<void> ytbgIsolate(List<dynamic> opts) async {
               "mediaId": data["mediaId"],
               "id": data["id"],
               "quality": data["quality"],
-              "link": refreshedToken.highestBitrateOpusAudio.url,
+              "link": refreshedToken["url"],
             },
           );
         } else {
