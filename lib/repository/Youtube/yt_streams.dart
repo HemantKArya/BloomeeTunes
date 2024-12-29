@@ -117,8 +117,10 @@ class YtStreams {
 
   Audio get highestBitrateAudio => sortByBitrate[0];
 
-  Audio get highestQualityAudio =>
-      audioFormats.lastWhere((item) => item.itag == 251 || item.itag == 140);
+  Audio get highestQualityAudio => audioFormats.lastWhere(
+        (item) => item.itag == 251 || item.itag == 140,
+        orElse: () => sortByBitrate.first,
+      );
 
   Audio get highestBitrateMp4aAudio =>
       audioFormats.lastWhere((item) => item.itag == 140 || item.itag == 139,
@@ -129,7 +131,8 @@ class YtStreams {
           orElse: () => highestBitrateMp4aAudio);
 
   Audio get lowQualityAudio =>
-      audioFormats.lastWhere((item) => item.itag == 249 || item.itag == 139);
+      audioFormats.lastWhere((item) => item.itag == 249 || item.itag == 139,
+          orElse: () => audioFormats.last);
 
   List<Audio> get sortByBitrate {
     final audioFormatsCopy = audioFormats.toList();
