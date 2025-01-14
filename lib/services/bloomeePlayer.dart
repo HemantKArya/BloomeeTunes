@@ -354,6 +354,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         (error, stackTrace) {
           log("Error: $error", name: "bloomeePlayer");
           SnackbarService.showMessage("Failed to load song!");
+          stop();
         },
       );
       await play();
