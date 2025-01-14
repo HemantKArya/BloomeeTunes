@@ -352,9 +352,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       isLinkProcessing.add(false);
       await audioPlayer.setAudioSource(audioSource).then((v) {}).onError(
         (error, stackTrace) {
-          log("Error: $error", name: "bloomeePlayer");
-          SnackbarService.showMessage("Failed to load song!");
-          stop();
+          log(error.runtimeType.toString());
+          if (error is PlayerException) {
+            log("Error: ${error.message}", name: "bloomeePlayer");
+            SnackbarService.showMessage(
+                "Failed to load song: ${error.message}");
+            stop();
+          }
         },
       );
       await play();
