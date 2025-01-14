@@ -74,10 +74,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
             final audioSource = AudioSource.uri(Uri.parse(data["link"]));
             playAudioSource(audioSource: audioSource, mediaId: data["mediaId"]);
           } else {
+            isLinkProcessing.add(false);
             log("Link not found for vidId: ${data["id"]}",
                 name: "bloomeePlayer");
-            SnackbarService.showMessage(
-                "Link not found for vidId: ${data["id"]}");
+            SnackbarService.showMessage("Failed to load song: ${data["id"]}");
+            if (currentMedia.id == 'youtube${data["id"]}') {
+              stop();
+            }
           }
         }
       },
@@ -262,17 +265,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       } else {
         log("Link found in cache for vidId: $id", name: "bloomeePlayer");
         String kurl = vidInfo.lowQURL!;
-        // await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
-        //     .then((value) {
-        //   log("Play quality: $value", name: "bloomeePlayer");
-        //   if (value != null) {
-        //     if (value == "High") {
-        //       kurl = vidInfo.highQURL;
-        //     } else {
-        //       kurl = vidInfo.lowQURL!;
-        //     }
-        //   }
-        // });
+        await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
+            .then((value) {
+          log("Play quality: $value", name: "bloomeePlayer");
+          if (value != null) {
+            if (value == "High") {
+              kurl = vidInfo.highQURL;
+            } else {
+              kurl = vidInfo.lowQURL!;
+            }
+          }
+        });
         return kurl;
       }
     } else {
@@ -294,7 +297,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       {
         "mediaId": mediaId,
         "id": id,
-        "quality": "Low",
       },
     );
   }
@@ -348,8 +350,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     required String mediaId,
   }) async {
     if (mediaItem.value?.id == mediaId) {
-      await audioPlayer.setAudioSource(audioSource);
       isLinkProcessing.add(false);
+      await audioPlayer.setAudioSource(audioSource).then((v) {}).onError(
+        (error, stackTrace) {
+          log("Error: $error", name: "bloomeePlayer");
+          SnackbarService.showMessage("Failed to load song!");
+        },
+      );
       await play();
       if (Platform.isWindows && audioPlayer.playing == false) {
         // temp fix for windows (first play not working)

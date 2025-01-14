@@ -7,17 +7,24 @@ import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'mini_player_event.dart';
 part 'mini_player_state.dart';
 
 class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
-  StreamSubscription<PlayerState>? _playerStateSubscription;
-  StreamSubscription<bool>? _linkState;
+  StreamSubscription? _playerStateSubscription;
   BloomeePlayerCubit playerCubit;
+  Stream? combinedStream;
   MiniPlayerBloc({
     required this.playerCubit,
   }) : super(MiniPlayerInitial()) {
+    combinedStream = Rx.combineLatest2(
+      playerCubit.bloomeePlayer.audioPlayer.playerStateStream,
+      playerCubit.bloomeePlayer.isLinkProcessing,
+      (PlayerState playerState, bool isLinkProcessing) =>
+          [playerState, isLinkProcessing],
+    );
     listenToPlayer();
     on<MiniPlayerPlayedEvent>(played);
     on<MiniPlayerPausedEvent>(paused);
@@ -60,30 +67,25 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
   }
 
   void listenToPlayer() {
-    _linkState = playerCubit.bloomeePlayer.isLinkProcessing.listen((value) {
-      if (value) {
-        try {
-          add(MiniPlayerProcessingEvent(
-              playerCubit.bloomeePlayer.currentMedia));
-          log("Processing link.", name: "MiniPlayer");
-        } catch (e) {
-          log(e.toString(), name: "MiniPlayer");
-        }
-      }
-    });
-
     _playerStateSubscription =
-        playerCubit.bloomeePlayer.audioPlayer.playerStateStream.listen((event) {
-      log("${event.processingState}", name: "MiniPlayer");
-      switch (event.processingState) {
+        combinedStream?.asBroadcastStream().listen((event) {
+      var state = event[0] as PlayerState;
+      var isLinkProcessing = event[1] as bool;
+
+      log("$state", name: "MiniPlayer");
+      switch (state.processingState) {
         case ProcessingState.idle:
-          add(MiniPlayerInitialEvent());
-          break;
-        case ProcessingState.loading:
-          try {
+          if (isLinkProcessing) {
             add(MiniPlayerProcessingEvent(
                 playerCubit.bloomeePlayer.currentMedia));
-          } catch (e) {}
+          } else {
+            add(MiniPlayerInitialEvent());
+          }
+          break;
+        case ProcessingState.loading:
+          add(MiniPlayerProcessingEvent(
+              playerCubit.bloomeePlayer.currentMedia));
+
           break;
         case ProcessingState.buffering:
           try {
@@ -93,11 +95,13 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
           break;
         case ProcessingState.ready:
           try {
-            if (event.playing) {
+            if (isLinkProcessing) {
+              add(MiniPlayerProcessingEvent(
+                  playerCubit.bloomeePlayer.currentMedia));
+            } else if (state.playing) {
               add(MiniPlayerPlayedEvent(
                   playerCubit.bloomeePlayer.currentMedia));
-            } else if (playerCubit.bloomeePlayer.isLinkProcessing.value ==
-                true) {
+            } else if (event[1] == true) {
               add(MiniPlayerProcessingEvent(
                   playerCubit.bloomeePlayer.currentMedia));
             } else {
@@ -119,7 +123,6 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
   @override
   Future<void> close() {
     _playerStateSubscription?.cancel();
-    _linkState?.cancel();
     return super.close();
   }
 }
