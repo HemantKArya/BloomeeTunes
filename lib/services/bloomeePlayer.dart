@@ -350,21 +350,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }) async {
     if (mediaItem.value?.id == mediaId) {
       isLinkProcessing.add(false);
-      await audioPlayer.setAudioSource(audioSource).then((v) {}).onError(
-        (error, stackTrace) {
-          log(error.runtimeType.toString());
-          if (error is PlayerException) {
-            log("Error: ${error.message}", name: "bloomeePlayer");
-            SnackbarService.showMessage(
-                "Failed to load song: ${error.message}");
-            stop();
-          }
-        },
-      );
-      await play();
-      if (Platform.isWindows && audioPlayer.playing == false) {
-        // temp fix for windows (first play not working)
+      try {
+        await audioPlayer.setAudioSource(audioSource);
         await play();
+        if (Platform.isWindows && audioPlayer.playing == false) {
+          // temp fix for windows (first play not working)
+          await play();
+        }
+      } catch (e) {
+        log("Error: $e", name: "bloomeePlayer");
+        SnackbarService.showMessage("Failed to play song: $e");
+        await stop();
       }
     }
   }
