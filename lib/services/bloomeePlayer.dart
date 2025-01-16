@@ -359,8 +359,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         }
       } catch (e) {
         log("Error: $e", name: "bloomeePlayer");
-        SnackbarService.showMessage("Failed to play song: $e");
-        await stop();
+        if (e is PlayerException) {
+          SnackbarService.showMessage("Failed to play song: $e");
+          await stop();
+        }
       }
     }
   }
