@@ -32,15 +32,15 @@ android {
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
-    productFlavors {
-        // debug flavor 
-        flavorDimensions "default"
-        dev {
-            dimension "default"
-            applicationIdSuffix ".dev"
-            versionNameSuffix "-dev"
-        }
-    }
+    // flavorDimensions "flavors"
+    // productFlavors {
+    //     // debug flavor 
+    //     dev {
+    //         dimension "flavors"
+    //         applicationIdSuffix ".dev"
+    //         versionNameSuffix "-dev"
+    //     }
+    // }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
