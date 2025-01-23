@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'dart:isolate';
-import 'package:Bloomee/repository/Youtube/yt_streams.dart';
+import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:async/async.dart';
@@ -32,8 +32,12 @@ Future<void> ytbgIsolate(List<dynamic> opts) async {
   final SendPort port = opts[2] as SendPort;
 
   BloomeeDBService(appDocPath: appDocPath, appSuppPath: appSupPath);
+  final yt = YouTubeServices(
+    appDocPath: appDocPath,
+    appSuppPath: appSupPath,
+  );
 
-  CancelableOperation<YtStreams?> canOprn =
+  CancelableOperation<Map?> canOprn =
       CancelableOperation.fromFuture(Future.value(null));
 
   final ReceivePort receivePort = ReceivePort();
@@ -50,15 +54,18 @@ Future<void> ytbgIsolate(List<dynamic> opts) async {
       }*/
       if (data is Map) {
         var time = DateTime.now().millisecondsSinceEpoch;
-        // Map? refreshedToken = await yt.refreshLink(data["id"], quality: 'Low');
+
         await canOprn.cancel();
         canOprn = CancelableOperation.fromFuture(
-          YtStreams.fetch(data['id']),
+          yt.refreshLink(data["id"], quality: 'Low'),
           onCancel: () {
             log("Operation Cancelled-${data['id']}", name: "IsolateBG");
           },
         );
+
+        Map? refreshedUrl = await canOprn.value;
         int quality = 2;
+
         await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
             .then(
           (value) {
@@ -77,24 +84,24 @@ Future<void> ytbgIsolate(List<dynamic> opts) async {
             }
           },
         );
-        YtStreams? refreshedToken = await canOprn.value;
+        // YtStreams? refreshedToken = await canOprn.value;
 
         var time2 = DateTime.now().millisecondsSinceEpoch;
         log("Time taken: ${time2 - time}ms, quality: $quality",
             name: "IsolateBG");
-        if (refreshedToken != null && refreshedToken.hmStreamingData[0]) {
+        if (refreshedUrl!['qurls'][0] == true) {
           port.send(
             {
               "mediaId": data["mediaId"],
               "id": data["id"],
               "quality": data["quality"],
-              "link": refreshedToken.hmStreamingData[quality],
+              "link": refreshedUrl['qurls'][quality],
             },
           );
           cacheYtStreams(
             id: data["id"],
-            hURL: refreshedToken.hmStreamingData[2],
-            lURL: refreshedToken.hmStreamingData[1],
+            hURL: refreshedUrl['qurls'][2],
+            lURL: refreshedUrl['qurls'][1],
           );
         } else {
           port.send(

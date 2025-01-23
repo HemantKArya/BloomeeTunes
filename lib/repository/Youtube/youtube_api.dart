@@ -93,17 +93,29 @@ class YouTubeServices {
   }
 
   Future<Map?> refreshLink(String id, {String quality = 'Low'}) async {
-    final Video? res = await getVideoFromId(id);
-    if (res == null) {
-      return null;
+    try {
+      final StreamManifest manifest =
+          await yt.videos.streamsClient.getManifest(id);
+      final List<AudioOnlyStreamInfo> sortedStreamInfo =
+          manifest.audioOnly.sortByBitrate();
+
+      Map<String, dynamic> data = {
+        'id': id,
+        'qurls': [
+          true,
+          sortedStreamInfo.first.url.toString(),
+          sortedStreamInfo.last.url.toString(),
+        ],
+      };
+
+      return data;
+    } catch (e) {
+      log('Error in refreshLink: $e', name: "YoutubeAPI");
     }
-    // String quality = quality;
-    final Map? data = await formatVideo(
-      video: res,
-      quality: quality,
-      checkCache: false,
-    );
-    return data;
+    return {
+      'id': id,
+      'qurls': [false, '', ''],
+    };
   }
 
   Future<Playlist> getPlaylistDetails(String id) async {
