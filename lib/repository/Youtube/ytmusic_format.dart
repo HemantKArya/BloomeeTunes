@@ -135,7 +135,8 @@ List formatVideoItems(List itemsList) {
 Future<List> formatHomeSections(List items) async {
   List result = [];
   try {
-    for (Map e in items) {
+    for (Map v in items) {
+      final e = v['richItemRenderer']['content'];
       if (e['lockupViewModel'] != null) {
         result.add({
           'title': e['lockupViewModel']['metadata']['lockupMetadataViewModel']

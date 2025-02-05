@@ -271,16 +271,16 @@ class YtMusicService {
       final Map data = json.decode(searchResults) as Map;
       // dev.log("data: ${json.encode(data)}", name: "YTM");
       final List result = data['contents']['twoColumnBrowseResultsRenderer']
-              ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
+              ['tabs'][0]['tabRenderer']['content']['richGridRenderer']
           ['contents'] as List;
       // dev.log("result: $result", name: "YTM");
       final List headResult = data['header']['carouselHeaderRenderer']
           ['contents'][0]['carouselItemRenderer']['carouselItems'] as List;
 
       final List shelfRenderer = result.map((element) {
-        return element['itemSectionRenderer']['contents'][0]['shelfRenderer'];
+        return element['richSectionRenderer']['content']['richShelfRenderer'];
       }).toList();
-      // dev.log("${shelfRenderer.toString()}");
+      // dev.log("${shelfRenderer.first}", name: "YTM");
       final List finalResult = [];
 
       for (Map element in shelfRenderer) {
@@ -288,8 +288,7 @@ class YtMusicService {
 
         try {
           // dev.log("Inside loop: ${title}", name: "YTM");
-          List playlistItems = await formatHomeSections(
-              element['content']['horizontalListRenderer']['items']);
+          List playlistItems = await formatHomeSections(element['contents']);
 
           if (playlistItems.isNotEmpty) {
             finalResult.add({
