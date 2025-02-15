@@ -18,6 +18,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import '../model/MediaPlaylistModel.dart';
+import 'package:Bloomee/main.dart';
+import 'package:dart_discord_rpc/dart_discord_rpc.dart';
 
 List<int> generateRandomIndices(int length) {
   List<int> indices = List<int>.generate(length, (i) => i);
@@ -96,9 +98,30 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     );
   }
 
-  void _broadcastPlayerEvent(PlaybackEvent event) {
+void _broadcastPlayerEvent(PlaybackEvent event) {
     bool isPlaying = audioPlayer.playing;
-    // log(event.playing.toString(), name: "bloomeePlayer-event");
+    
+     // Update Discord RPC
+    if (currentMedia != mediaItemModelNull && 
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      try {
+        discordRPC?.updatePresence(
+          DiscordPresence(
+            details: currentMedia.title,
+            state: isPlaying 
+              ? "Playing - ${currentMedia.artist ?? 'Unknown Artist'}"
+              : "Paused - ${currentMedia.artist ?? 'Unknown Artist'}",
+            largeImageKey: "bloomeetunes_logo",
+            largeImageText: "BloomeeTunes",
+            startTimeStamp: isPlaying ? DateTime.now().millisecondsSinceEpoch : null
+          ),
+        );
+      } catch (e) {
+        print("Discord RPC Error: $e");
+      }
+    }
+
+    // Rest of your existing code
     playbackState.add(PlaybackState(
       // Which buttons should appear in the notification now
       controls: [
@@ -139,6 +162,25 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (isLinkProcessing.value == false) {
       await audioPlayer.play();
       isPaused = false;
+      
+      // Update Discord status
+      if (currentMedia != mediaItemModelNull) {
+        try {
+           discordRPC?.updatePresence(
+          DiscordPresence(
+            details: currentMedia.title,
+            state: !isPaused
+              ? "Playing - ${currentMedia.artist ?? 'Unknown Artist'}"
+              : "Paused - ${currentMedia.artist ?? 'Unknown Artist'}",
+            largeImageKey: "bloomeetunes_logo",
+            largeImageText: "BloomeeTunes",
+            startTimeStamp: !isPaused ? DateTime.now().millisecondsSinceEpoch : null
+          ),
+        );
+        } catch (e) {
+          print("Discord RPC Error: $e");
+        }
+      }
     } else {
       log("Link is in process...", name: "bloomeePlayer");
       SnackbarService.showMessage("Fetching Media Wait...");
@@ -246,12 +288,29 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     // if (doPlay) play();
   }
 
-  @override
-  Future<void> pause() async {
-    await audioPlayer.pause();
-    isPaused = true;
-    log("paused", name: "bloomeePlayer");
+@override
+Future<void> pause() async {
+  await audioPlayer.pause();
+  isPaused = true;
+  
+  if (currentMedia != mediaItemModelNull && 
+      (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    try {
+     discordRPC?.updatePresence(
+        DiscordPresence(
+          details: currentMedia.title,
+          state: "Paused - ${currentMedia.artist ?? 'Unknown Artist'}",
+          largeImageKey: "bloomeetunes_logo",
+          largeImageText: "BloomeeTunes"
+        ),
+      );
+    } catch (e) {
+      print("Discord RPC Error: $e");
+    }
   }
+  
+  log("paused", name: "bloomeePlayer");
+}
 
   Future<String?> latestYtLink(
       {required String id, required String mediaId}) async {
@@ -439,12 +498,19 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
-  @override
-  Future<void> stop() async {
+@override
+Future<void> stop() async {
     // log("Called Stop!!");
-    audioPlayer.stop();
-    super.stop();
+  audioPlayer.stop();
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    try {
+     discordRPC?.clearPresence();
+    } catch (e) {
+      print("Discord RPC Error: $e");
+    }
   }
+  super.stop();
+}
 
   @override
   Future<void> skipToPrevious() async {
@@ -461,21 +527,35 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
-  @override
-  Future<void> onTaskRemoved() {
-    super.stop();
-    audioPlayer.dispose();
-    return super.onTaskRemoved();
+@override
+Future<void> onTaskRemoved() async {
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    try {
+     discordRPC?.clearPresence();
+    } catch (e) {
+      print("Discord RPC Error: $e");
+    }
   }
+  super.stop();
+  audioPlayer.dispose();
+  return super.onTaskRemoved();
+}
 
-  @override
-  Future<void> onNotificationDeleted() {
-    audioPlayer.dispose();
-    audioPlayer.stop();
-    super.stop();
-
-    return super.onNotificationDeleted();
+@override
+Future<void> onNotificationDeleted() async {
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    try {
+     discordRPC?.clearPresence();
+    } catch (e) {
+      print("Discord RPC Error: $e");
+    }
   }
+  audioPlayer.dispose();
+  audioPlayer.stop();
+  super.stop();
+
+  return super.onNotificationDeleted();
+}
 
   @override
   Future<void> insertQueueItem(int index, MediaItem mediaItem) async {

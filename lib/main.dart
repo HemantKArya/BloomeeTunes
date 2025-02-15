@@ -36,6 +36,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:dart_discord_rpc/dart_discord_rpc.dart';
 
 void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
   if (isUrl(sharedMediaFiles[0].path)) {
@@ -112,6 +113,8 @@ Future<void> initServices() async {
   YouTubeServices(appDocPath: appDocPath, appSuppPath: appSuppPath);
 }
 
+DiscordRPC? discordRPC;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
@@ -125,6 +128,19 @@ Future<void> main() async {
   setHighRefreshRate();
   MetadataGod.initialize();
   setupPlayerCubit();
+  print("Before initializing Discord RPC");
+  if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
+    try {
+      DiscordRPC.initialize();
+      discordRPC = DiscordRPC(
+        applicationId: '1339113296405725235',
+      );
+      discordRPC?.start(autoRegister: true);
+    } catch (e) {
+      print('Failed to initialize Discord RPC: $e');
+    }
+  }
+  print("After initializing Discord RPC");
   runApp(const MyApp());
 }
 
@@ -171,13 +187,21 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  @override
-  void dispose() {
-    _intentSub.cancel();
-    bloomeePlayerCubit.bloomeePlayer.audioPlayer.dispose();
-    bloomeePlayerCubit.close();
-    super.dispose();
+@override
+void dispose() {
+  _intentSub.cancel();
+  bloomeePlayerCubit.bloomeePlayer.audioPlayer.dispose();
+  bloomeePlayerCubit.close();
+  if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
+    try {
+      discordRPC?.clearPresence();
+      discordRPC = null;
+    } catch (e) {
+      print('Failed to dispose Discord RPC: $e');
+    }
   }
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {

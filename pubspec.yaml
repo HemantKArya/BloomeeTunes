@@ -9,12 +9,14 @@ environment:
   sdk: '>=3.0.6 <4.0.0'
 
 # isar version for community fork of isar (temporary)
-isar_version: &isar_version 3.1.8
+isar_version: 3.1.8  # Directly specify the version
 
 dependencies:
   flutter:
     sdk: flutter
-
+  ffi: ^2.0.1
+  path: ^1.8.3
+  
   device_info_plus: ^10.1.0
   equatable: ^2.0.7
   icons_plus: ^5.0.0
@@ -39,10 +41,10 @@ dependencies:
   easy_debounce: ^2.0.3
 
   isar: 
-    version: *isar_version
+    version:  3.1.8  # Directly specify the version
     hosted: https://pub.isar-community.dev/
   isar_flutter_libs: # contains Isar Core
-    version: *isar_version
+    version:  3.1.8  # Directly specify the version
     hosted: https://pub.isar-community.dev/
 
   path_provider: ^2.1.0
@@ -68,12 +70,16 @@ dependencies:
   responsive_framework: ^1.4.0
   scrollable_positioned_list: ^0.3.8
   crypto: ^3.0.5
+  dart_discord_rpc: ^0.0.2
   # linux plugins
   just_audio_media_kit: ^2.0.6
   media_kit_libs_linux: any
   audio_service_mpris: ^0.2.0
+ 
   # mime: ^1.0.5
 
+dependency_overrides:
+  ffi: ^1.1.2  # Override to make dart_discord_rpc work
 
 dev_dependencies:
   flutter_test:
@@ -81,7 +87,7 @@ dev_dependencies:
   flutter_lints: ^2.0.2
 
   isar_generator: 
-    version: *isar_version
+    version:  3.1.8  # Directly specify the version
     hosted: https://pub.isar-community.dev/
     
   build_runner: ^2.4.8
