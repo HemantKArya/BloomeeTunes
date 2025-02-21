@@ -28,6 +28,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
+import '../../blocs/mini_player/mini_player_bloc.dart';
 import 'player_views/lyrics_widget.dart';
 
 class AudioPlayerView extends StatefulWidget {
@@ -770,50 +771,113 @@ class PlayerCtrlWidgets extends StatelessWidget {
                       size: 30,
                     ),
                   ),
-                  StreamBuilder(
-                      stream: context
-                          .watch<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .isLinkProcessing,
-                      builder: (context, snapshot2) {
-                        return snapshot2.hasData && snapshot2.data == true
-                            ? Container(
-                                decoration: const BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: Default_Theme.accentColor2,
-                                        spreadRadius: 1,
-                                        blurRadius: 20)
-                                  ],
-                                  shape: BoxShape.circle,
-                                  color: Default_Theme.accentColor2,
+                  //Play Pause btn
+                  BlocBuilder<MiniPlayerBloc, MiniPlayerState>(
+                    builder: (context, state) {
+                      switch (state) {
+                        case MiniPlayerInitial():
+                          return Container(
+                              decoration: const BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Default_Theme.accentColor2,
+                                      spreadRadius: 1,
+                                      blurRadius: 20)
+                                ],
+                                shape: BoxShape.circle,
+                                color: Default_Theme.accentColor2,
+                              ),
+                              width: 75,
+                              height: 75,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 35,
+                                  height: 35,
+                                  child: CircularProgressIndicator(
+                                    color: Default_Theme.primaryColor1,
+                                  ),
                                 ),
-                                width: 75,
-                                height: 75,
-                                child: const Center(
-                                  child: SizedBox(
+                              ));
+                        case MiniPlayerCompleted():
+                          return Container(
+                              decoration: const BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Default_Theme.accentColor2,
+                                      spreadRadius: 1,
+                                      blurRadius: 20)
+                                ],
+                                shape: BoxShape.circle,
+                                color: Default_Theme.accentColor2,
+                              ),
+                              width: 75,
+                              height: 75,
+                              child: const Center(
+                                child: SizedBox(
                                     width: 35,
                                     height: 35,
-                                    child: CircularProgressIndicator(
+                                    child: Icon(
+                                      MingCute.repeat_fill,
                                       color: Default_Theme.primaryColor1,
-                                    ),
+                                    )),
+                              ));
+                        case MiniPlayerWorking():
+                          return PlayPauseButton(
+                            size: 75,
+                            onPause: () => musicPlayer.pause(),
+                            onPlay: () => musicPlayer.play(),
+                            isPlaying: state.isPlaying,
+                          );
+                        case MiniPlayerError():
+                          return Container(
+                              decoration: const BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Default_Theme.accentColor2,
+                                      spreadRadius: 1,
+                                      blurRadius: 20)
+                                ],
+                                shape: BoxShape.circle,
+                                color: Default_Theme.accentColor2,
+                              ),
+                              width: 75,
+                              height: 75,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 35,
+                                  height: 35,
+                                  child: Icon(
+                                    MingCute.warning_line,
+                                    color: Default_Theme.primaryColor1,
                                   ),
-                                ))
-                            : StreamBuilder<PlayerState>(
-                                stream: context
-                                    .watch<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .audioPlayer
-                                    .playerStateStream,
-                                builder: (context, snapshot) {
-                                  return PlayPauseButton(
-                                    size: 75,
-                                    onPause: () => musicPlayer.pause(),
-                                    onPlay: () => musicPlayer.play(),
-                                    isPlaying: snapshot.data?.playing ?? false,
-                                  );
-                                });
-                      }),
+                                ),
+                              ));
+                        case MiniPlayerProcessing():
+                          return Container(
+                              decoration: const BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Default_Theme.accentColor2,
+                                      spreadRadius: 1,
+                                      blurRadius: 20)
+                                ],
+                                shape: BoxShape.circle,
+                                color: Default_Theme.accentColor2,
+                              ),
+                              width: 75,
+                              height: 75,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 35,
+                                  height: 35,
+                                  child: CircularProgressIndicator(
+                                    color: Default_Theme.primaryColor1,
+                                  ),
+                                ),
+                              ));
+                      }
+                    },
+                  ),
                   IconButton(
                     padding: const EdgeInsets.all(5),
                     constraints: const BoxConstraints(),
