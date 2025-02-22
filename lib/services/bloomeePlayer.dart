@@ -1,19 +1,15 @@
 import 'dart:developer';
-import 'dart:isolate';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/services/ytbg_service.dart';
+import 'package:Bloomee/utils/ytstream_source.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import '../model/MediaPlaylistModel.dart';
@@ -43,11 +39,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   bool isPaused = false;
 
-  final ReceivePort receivePortYt = ReceivePort();
-  SendPort? sendPortYt;
+  // final ReceivePort receivePortYt = ReceivePort();
+  // SendPort? sendPortYt;
 
   BloomeeMusicPlayer() {
-    initBgYt();
+    // initBgYt();
     audioPlayer = AudioPlayer(
       handleInterruptions: true,
     );
@@ -57,48 +53,48 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.setAudioSource(_playlist, preload: false);
   }
 
-  void initBgYt() async {
-    BackgroundIsolateBinaryMessenger.ensureInitialized(
-      ServicesBinding.rootIsolateToken!,
-    );
-    final appDocPath = (await getApplicationDocumentsDirectory()).path;
-    final appSuppPath = (await getApplicationSupportDirectory()).path;
+  // void initBgYt() async {
+  //   BackgroundIsolateBinaryMessenger.ensureInitialized(
+  //     ServicesBinding.rootIsolateToken!,
+  //   );
+  //   final appDocPath = (await getApplicationDocumentsDirectory()).path;
+  //   final appSuppPath = (await getApplicationSupportDirectory()).path;
 
-    receivePortYt.listen(
-      (dynamic data) async {
-        if (data is SendPort) {
-          sendPortYt = data;
-        }
+  //   receivePortYt.listen(
+  //     (dynamic data) async {
+  //       if (data is SendPort) {
+  //         sendPortYt = data;
+  //       }
 
-        if (data is Map) {
-          if (data["link"] != null) {
-            if (data["mediaId"] == currentMedia.id) {
-              final audioSource = AudioSource.uri(Uri.parse(data["link"]));
-              await playAudioSource(
-                  audioSource: audioSource, mediaId: data["mediaId"]);
-            }
-          } else {
-            isLinkProcessing.add(false);
-            log("Link not found for vidId: ${data["id"]}",
-                name: "bloomeePlayer");
-            SnackbarService.showMessage("Failed to load song: ${data["id"]}");
-            if (currentMedia.id == 'youtube${data["id"]}') {
-              stop();
-            }
-          }
-        }
-      },
-    );
+  //       if (data is Map) {
+  //         if (data["link"] != null) {
+  //           if (data["mediaId"] == currentMedia.id) {
+  //             final audioSource = AudioSource.uri(Uri.parse(data["link"]));
+  //             await playAudioSource(
+  //                 audioSource: audioSource, mediaId: data["mediaId"]);
+  //           }
+  //         } else {
+  //           isLinkProcessing.add(false);
+  //           log("Link not found for vidId: ${data["id"]}",
+  //               name: "bloomeePlayer");
+  //           SnackbarService.showMessage("Failed to load song: ${data["id"]}");
+  //           if (currentMedia.id == 'youtube${data["id"]}') {
+  //             stop();
+  //           }
+  //         }
+  //       }
+  //     },
+  //   );
 
-    await Isolate.spawn(
-      ytbgIsolate,
-      [
-        appDocPath,
-        appSuppPath,
-        receivePortYt.sendPort,
-      ],
-    );
-  }
+  //   await Isolate.spawn(
+  //     ytbgIsolate,
+  //     [
+  //       appDocPath,
+  //       appSuppPath,
+  //       receivePortYt.sendPort,
+  //     ],
+  //   );
+  // }
 
   void _broadcastPlayerEvent(PlaybackEvent event) {
     bool isPlaying = audioPlayer.playing;
@@ -258,54 +254,54 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     log("paused", name: "bloomeePlayer");
   }
 
-  Future<String?> latestYtLink(
-      {required String id, required String mediaId}) async {
-    final vidInfo = await BloomeeDBService.getYtLinkCache(id);
-    if (vidInfo != null) {
-      if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
-          vidInfo.expireAt) {
-        log("Link expired for vidId: $id", name: "bloomeePlayer");
-        await refreshYtLink(id: id, mediaId: mediaId);
-      } else {
-        log("Link found in cache for vidId: $id", name: "bloomeePlayer");
-        String kurl = vidInfo.lowQURL!;
-        await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
-            .then((value) {
-          log("Play quality: $value", name: "bloomeePlayer");
-          if (value != null) {
-            if (value == "High") {
-              kurl = vidInfo.highQURL;
-            } else {
-              kurl = vidInfo.lowQURL!;
-            }
-          }
-        });
-        return kurl;
-      }
-    } else {
-      log("No cache found for vidId: $id", name: "bloomeePlayer");
-      await refreshYtLink(id: id, mediaId: mediaId);
-    }
-    return null;
-  }
+  // Future<String?> latestYtLink(
+  //     {required String id, required String mediaId}) async {
+  //   final vidInfo = await BloomeeDBService.getYtLinkCache(id);
+  //   if (vidInfo != null) {
+  //     if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
+  //         vidInfo.expireAt) {
+  //       log("Link expired for vidId: $id", name: "bloomeePlayer");
+  //       await refreshYtLink(id: id, mediaId: mediaId);
+  //     } else {
+  //       log("Link found in cache for vidId: $id", name: "bloomeePlayer");
+  //       String kurl = vidInfo.lowQURL!;
+  //       await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
+  //           .then((value) {
+  //         log("Play quality: $value", name: "bloomeePlayer");
+  //         if (value != null) {
+  //           if (value == "High") {
+  //             kurl = vidInfo.highQURL;
+  //           } else {
+  //             kurl = vidInfo.lowQURL!;
+  //           }
+  //         }
+  //       });
+  //       return kurl;
+  //     }
+  //   } else {
+  //     log("No cache found for vidId: $id", name: "bloomeePlayer");
+  //     await refreshYtLink(id: id, mediaId: mediaId);
+  //   }
+  //   return null;
+  // }
 
-  Future<void> refreshYtLink(
-      {required String id, required String mediaId}) async {
-    // String quality = "Low";
-    await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
-        .then((value) {
-      log('Play quality: $value', name: "bloomeePlayer");
-    });
+  // Future<void> refreshYtLink(
+  //     {required String id, required String mediaId}) async {
+  //   // String quality = "Low";
+  //   await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
+  //       .then((value) {
+  //     log('Play quality: $value', name: "bloomeePlayer");
+  //   });
 
-    sendPortYt?.send(
-      {
-        "mediaId": mediaId,
-        "id": id,
-      },
-    );
-  }
+  //   sendPortYt?.send(
+  //     {
+  //       "mediaId": mediaId,
+  //       "id": id,
+  //     },
+  //   );
+  // }
 
-  Future<AudioSource?> getAudioSource(MediaItem mediaItem) async {
+  Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
     final _down = await BloomeeDBService.getDownloadDB(
         mediaItem2MediaItemModel(mediaItem));
     if (_down != null) {
@@ -319,12 +315,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log("Playing online", name: "bloomeePlayer");
       if (mediaItem.extras?["source"] == "youtube") {
         final id = mediaItem.id.replaceAll("youtube", '');
-        final tempStrmLink = await latestYtLink(id: id, mediaId: mediaItem.id);
-        if (tempStrmLink != null) {
-          return AudioSource.uri(Uri.parse(tempStrmLink));
-        } else {
-          return null;
-        }
+        return YouTubeAudioSource(videoId: id, quality: "high");
+        // final tempStrmLink = await latestYtLink(id: id, mediaId: mediaItem.id);
+        // if (tempStrmLink != null) {
+        //   return AudioSource.uri(Uri.parse(tempStrmLink));
+        // } else {
+        //   return null;
+        // }
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
       log('Playing: $kurl', name: "bloomeePlayer");
@@ -383,9 +380,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.seek(Duration.zero);
 
     final audioSource = await getAudioSource(mediaItem);
-    if (audioSource != null) {
-      await playAudioSource(audioSource: audioSource, mediaId: mediaItem.id);
-    }
+    await playAudioSource(audioSource: audioSource, mediaId: mediaItem.id);
     await check4RelatedSongs();
   }
 
