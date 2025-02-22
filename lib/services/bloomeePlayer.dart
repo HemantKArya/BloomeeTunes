@@ -55,13 +55,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.playbackEventStream.listen(_broadcastPlayerEvent);
     audioPlayer.setLoopMode(LoopMode.off);
     audioPlayer.setAudioSource(_playlist, preload: false);
-    audioPlayer.positionStream.listen((event) {
-      if (audioPlayer.duration != null &&
-          event.inMilliseconds > audioPlayer.duration!.inMilliseconds &&
-          loopMode.value != LoopMode.one) {
-        skipToNext();
-      }
-    });
   }
 
   void initBgYt() async {
