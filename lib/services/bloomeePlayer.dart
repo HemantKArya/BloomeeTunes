@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:io';
 import 'dart:isolate';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
@@ -40,6 +39,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   int currentPlayingIdx = 0;
   int shuffleIdx = 0;
   List<int> shuffleList = [];
+  final _playlist = ConcatenatingAudioSource(children: []);
 
   bool isPaused = false;
 
@@ -54,6 +54,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.setVolume(1);
     audioPlayer.playbackEventStream.listen(_broadcastPlayerEvent);
     audioPlayer.setLoopMode(LoopMode.off);
+    audioPlayer.setAudioSource(_playlist, preload: false);
+    audioPlayer.positionStream.listen((event) {
+      if (audioPlayer.duration != null &&
+          event.inMilliseconds > audioPlayer.duration!.inMilliseconds &&
+          loopMode.value != LoopMode.one) {
+        skipToNext();
+      }
+    });
   }
 
   void initBgYt() async {
@@ -71,8 +79,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
         if (data is Map) {
           if (data["link"] != null) {
-            final audioSource = AudioSource.uri(Uri.parse(data["link"]));
-            playAudioSource(audioSource: audioSource, mediaId: data["mediaId"]);
+            if (data["mediaId"] == currentMedia.id) {
+              final audioSource = AudioSource.uri(Uri.parse(data["link"]));
+              playAudioSource(
+                  audioSource: audioSource, mediaId: data["mediaId"]);
+            }
           } else {
             isLinkProcessing.add(false);
             log("Link not found for vidId: ${data["id"]}",
@@ -349,14 +360,16 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     required String mediaId,
   }) async {
     if (mediaItem.value?.id == mediaId) {
+      await pause();
+      await seek(Duration.zero);
       isLinkProcessing.add(false);
       try {
-        await audioPlayer.setAudioSource(audioSource);
-        await play();
-        if (Platform.isWindows && audioPlayer.playing == false) {
-          // temp fix for windows (first play not working)
-          await play();
+        if (_playlist.children.isNotEmpty) {
+          await _playlist.clear();
         }
+        await _playlist.add(audioSource);
+        await audioPlayer.load();
+        await play();
       } catch (e) {
         log("Error: $e", name: "bloomeePlayer");
         if (e is PlayerException) {
