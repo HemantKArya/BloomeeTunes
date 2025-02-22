@@ -115,10 +115,10 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
-  if (io.Platform.isLinux) {
+  if (io.Platform.isLinux || io.Platform.isWindows) {
     JustAudioMediaKit.ensureInitialized(
       linux: true,
-      windows: false,
+      windows: true,
     );
   }
   await initServices();
