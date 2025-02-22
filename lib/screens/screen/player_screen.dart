@@ -817,8 +817,9 @@ class PlayerCtrlWidgets extends StatelessWidget {
                                     width: 35,
                                     height: 35,
                                     child: Icon(
-                                      MingCute.repeat_fill,
+                                      FontAwesome.rotate_right_solid,
                                       color: Default_Theme.primaryColor1,
+                                      size: 35,
                                     )),
                               ));
                         case MiniPlayerWorking():
