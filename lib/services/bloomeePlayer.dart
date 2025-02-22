@@ -65,7 +65,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     final appSuppPath = (await getApplicationSupportDirectory()).path;
 
     receivePortYt.listen(
-      (dynamic data) {
+      (dynamic data) async {
         if (data is SendPort) {
           sendPortYt = data;
         }
@@ -74,7 +74,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           if (data["link"] != null) {
             if (data["mediaId"] == currentMedia.id) {
               final audioSource = AudioSource.uri(Uri.parse(data["link"]));
-              playAudioSource(
+              await playAudioSource(
                   audioSource: audioSource, mediaId: data["mediaId"]);
             }
           } else {
@@ -177,6 +177,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         }
       }
     }
+    loadRelatedSongs();
   }
 
   Future<void> loadRelatedSongs() async {
@@ -264,7 +265,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
           vidInfo.expireAt) {
         log("Link expired for vidId: $id", name: "bloomeePlayer");
-        refreshYtLink(id: id, mediaId: mediaId);
+        await refreshYtLink(id: id, mediaId: mediaId);
       } else {
         log("Link found in cache for vidId: $id", name: "bloomeePlayer");
         String kurl = vidInfo.lowQURL!;
@@ -283,7 +284,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       }
     } else {
       log("No cache found for vidId: $id", name: "bloomeePlayer");
-      refreshYtLink(id: id, mediaId: mediaId);
+      await refreshYtLink(id: id, mediaId: mediaId);
     }
     return null;
   }
@@ -337,7 +338,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       currentPlayingIdx = index;
       await playMediaItem(queue.value[index]);
     } else {
-      await loadRelatedSongs();
+      // await loadRelatedSongs();
       if (index < queue.value.length) {
         currentPlayingIdx = index;
         await playMediaItem(queue.value[index]);
@@ -362,7 +363,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         }
         await _playlist.add(audioSource);
         await audioPlayer.load();
-        await play();
+        if (mediaItem.value?.id == mediaId) await play();
       } catch (e) {
         log("Error: $e", name: "bloomeePlayer");
         if (e is PlayerException) {
@@ -422,7 +423,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToNext() async {
-    await loadRelatedSongs();
+    // await loadRelatedSongs();
     if (!shuffleMode.value) {
       if (currentPlayingIdx < (queue.value.length - 1)) {
         currentPlayingIdx++;
@@ -560,6 +561,35 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> removeQueueItemAt(int index) async {
-    queue.value.removeAt(index);
+    if (index < queue.value.length) {
+      List<MediaItem> temp = queue.value;
+      temp.removeAt(index);
+      queue.add(temp);
+
+      if (currentPlayingIdx == index) {
+        if (index < queue.value.length) {
+          prepare4play(idx: index, doPlay: true);
+        } else if (index > 0) {
+          prepare4play(idx: index - 1, doPlay: true);
+        } else {
+          // stop();
+        }
+      } else if (currentPlayingIdx > index) {
+        currentPlayingIdx--;
+      }
+    }
+  }
+
+  Future<void> moveQueueItem(int oldIndex, int newIndex) async {
+    final item = queue.value.removeAt(oldIndex);
+    queue.value.insert(newIndex, item);
+
+    if (currentPlayingIdx == oldIndex) {
+      currentPlayingIdx = newIndex;
+    } else if (currentPlayingIdx > oldIndex && currentPlayingIdx <= newIndex) {
+      currentPlayingIdx--;
+    } else if (currentPlayingIdx < oldIndex && currentPlayingIdx >= newIndex) {
+      currentPlayingIdx++;
+    }
   }
 }
