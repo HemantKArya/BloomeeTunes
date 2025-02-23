@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:developer';
+import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
@@ -19,11 +20,12 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
   MiniPlayerBloc({
     required this.playerCubit,
   }) : super(MiniPlayerInitial()) {
-    combinedStream = Rx.combineLatest2(
+    combinedStream = Rx.combineLatest3(
       playerCubit.bloomeePlayer.audioPlayer.playerStateStream,
       playerCubit.bloomeePlayer.isLinkProcessing,
-      (PlayerState playerState, bool isLinkProcessing) =>
-          [playerState, isLinkProcessing],
+      playerCubit.bloomeePlayer.mediaItem,
+      (PlayerState playerState, bool isLinkProcessing, MediaItem? mediaItem) =>
+          [playerState, isLinkProcessing, mediaItem],
     );
     listenToPlayer();
     on<MiniPlayerPlayedEvent>(played);
@@ -71,49 +73,45 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
         combinedStream?.asBroadcastStream().listen((event) {
       var state = event[0] as PlayerState;
       var isLinkProcessing = event[1] as bool;
+      var mediaItem = event[2] as MediaItem?;
+      if (mediaItem == null) return;
+
+      var mediaItem2 = mediaItem2MediaItemModel(mediaItem);
 
       log("$state", name: "MiniPlayer");
       switch (state.processingState) {
         case ProcessingState.idle:
           if (isLinkProcessing) {
-            add(MiniPlayerProcessingEvent(
-                playerCubit.bloomeePlayer.currentMedia));
+            add(MiniPlayerProcessingEvent(mediaItem2));
           } else {
             add(MiniPlayerInitialEvent());
           }
           break;
         case ProcessingState.loading:
-          add(MiniPlayerProcessingEvent(
-              playerCubit.bloomeePlayer.currentMedia));
+          add(MiniPlayerProcessingEvent(mediaItem2));
 
           break;
         case ProcessingState.buffering:
           try {
-            add(MiniPlayerBufferingEvent(
-                playerCubit.bloomeePlayer.currentMedia));
+            add(MiniPlayerBufferingEvent(mediaItem2));
           } catch (e) {}
           break;
         case ProcessingState.ready:
           try {
             if (isLinkProcessing) {
-              add(MiniPlayerProcessingEvent(
-                  playerCubit.bloomeePlayer.currentMedia));
+              add(MiniPlayerProcessingEvent(mediaItem2));
             } else if (state.playing) {
-              add(MiniPlayerPlayedEvent(
-                  playerCubit.bloomeePlayer.currentMedia));
+              add(MiniPlayerPlayedEvent(mediaItem2));
             } else if (event[1] == true) {
-              add(MiniPlayerProcessingEvent(
-                  playerCubit.bloomeePlayer.currentMedia));
+              add(MiniPlayerProcessingEvent(mediaItem2));
             } else {
-              add(MiniPlayerPausedEvent(
-                  playerCubit.bloomeePlayer.currentMedia));
+              add(MiniPlayerPausedEvent(mediaItem2));
             }
           } catch (e) {}
           break;
         case ProcessingState.completed:
           try {
-            add(MiniPlayerCompletedEvent(
-                playerCubit.bloomeePlayer.currentMedia));
+            add(MiniPlayerCompletedEvent(mediaItem2));
           } catch (e) {}
           break;
       }
