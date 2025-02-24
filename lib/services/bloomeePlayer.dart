@@ -390,6 +390,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> addQueueItem(MediaItem mediaItem, {bool doPlay = true}) async {
+    if (queue.value.any((e) => e.id == mediaItem.id)) return;
     queueTitle.add("Queue");
     queue.add(queue.value..add(mediaItem));
     if (doPlay || queue.value.length == 1) {
@@ -424,6 +425,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   Future<void> addPlayNextItem(MediaItem mediaItem) async {
     if (queue.value.isNotEmpty) {
+      // check if mediaItem is already exist return if it is
+      if (queue.value.any((e) => e.id == mediaItem.id)) return;
       queue.add(queue.value..insert(currentPlayingIdx + 1, mediaItem));
     } else {
       updateQueue([mediaItem], doPlay: true);

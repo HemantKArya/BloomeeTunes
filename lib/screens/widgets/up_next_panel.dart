@@ -1,14 +1,10 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:ui';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/theme_data/default.dart';
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import 'song_tile.dart';
@@ -26,61 +22,16 @@ class UpNextPanel extends StatefulWidget {
 }
 
 class _UpNextPanelState extends State<UpNextPanel> {
-  final ItemScrollController _scrollController = ItemScrollController();
-
-  final ItemPositionsListener _itemPositionsListener =
-      ItemPositionsListener.create();
-
-  final ScrollOffsetController _scrollOffsetController =
-      ScrollOffsetController();
-
-  final ScrollOffsetListener _scrollOffsetListener =
-      ScrollOffsetListener.create();
-
   StreamSubscription? _mediaItemSub;
-  Stream upNext = Rx.defer(
-    () => Rx.combineLatest2(BehaviorSubject<List<MediaItem>>.seeded([]),
-        BehaviorSubject<List<MediaItem>>.seeded([]), (a, b) => [...a, ...b]),
-    reusable: true,
-  );
 
   @override
   void initState() {
-    // upNext = Rx.defer(
-    //   () => CombineLatestStream.combine2(
-    //       context.read<BloomeePlayerCubit>().bloomeePlayer.queue,
-    //       context.read<BloomeePlayerCubit>().bloomeePlayer.relatedSongs,
-    //       (a, b) => [...a, ...b]),
-    //   reusable: true,
-    // );
     _mediaItemSub = context
         .read<BloomeePlayerCubit>()
         .bloomeePlayer
         .mediaItem
         .listen((value) {
-      if (value != null && mounted) {
-        // at first the scrollablepositionedlist is not ready
-        // try {
-        //   _scrollController.scrollTo(
-        //       index: context
-        //           .read<BloomeePlayerCubit>()
-        //           .bloomeePlayer
-        //           .currentPlayingIdx,
-        //       duration: const Duration(milliseconds: 500),
-        //       curve: Curves.easeInOut);
-        // } catch (e) {
-        //   log(e.toString(), name: "UpNextPanel");
-        //   Future.delayed(const Duration(milliseconds: 500), () {
-        //     _scrollController.scrollTo(
-        //         index: context
-        //             .read<BloomeePlayerCubit>()
-        //             .bloomeePlayer
-        //             .currentPlayingIdx,
-        //         duration: const Duration(milliseconds: 500),
-        //         curve: Curves.easeInOut);
-        //   });
-        // }
-      }
+      if (value != null && mounted) {}
     });
     super.initState();
   }
@@ -172,18 +123,13 @@ class _UpNextPanelState extends State<UpNextPanel> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     return ReorderableListView.builder(
-                      // itemScrollController: _scrollController,
-                      // itemPositionsListener: _itemPositionsListener,
-                      // scrollOffsetController: _scrollOffsetController,
-                      // scrollOffsetListener: _scrollOffsetListener,
                       padding: const EdgeInsets.only(top: 5),
                       physics: const BouncingScrollPhysics(),
                       itemCount: snapshot.data?.length ?? 0,
-                      shrinkWrap: true,
                       // physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
                         return Dismissible(
-                          key: Key(snapshot.data![index].id),
+                          key: ValueKey(snapshot.data?[index].id),
                           onDismissed: (direction) {
                             context
                                 .read<BloomeePlayerCubit>()
@@ -204,9 +150,6 @@ class _UpNextPanelState extends State<UpNextPanel> {
                         );
                       },
                       onReorder: (int oldIndex, int newIndex) {
-                        if (oldIndex < newIndex) {
-                          newIndex -= 1;
-                        }
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
