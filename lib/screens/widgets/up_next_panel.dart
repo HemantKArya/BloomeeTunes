@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -136,17 +137,22 @@ class _UpNextPanelState extends State<UpNextPanel> {
                                 .bloomeePlayer
                                 .removeQueueItemAt(index);
                           },
-                          child: SongCardWidget(
-                              showOptions: false,
-                              onTap: () {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .skipToQueueItem(index);
-                              },
-                              //
-                              song: mediaItem2MediaItemModel(
-                                  snapshot.data![index])),
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              right: Platform.isAndroid ? 8 : 32,
+                            ),
+                            child: SongCardWidget(
+                                showOptions: false,
+                                onTap: () {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .skipToQueueItem(index);
+                                },
+                                //
+                                song: mediaItem2MediaItemModel(
+                                    snapshot.data![index])),
+                          ),
                         );
                       },
                       onReorder: (int oldIndex, int newIndex) {
