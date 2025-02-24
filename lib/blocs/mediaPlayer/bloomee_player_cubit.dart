@@ -1,8 +1,5 @@
-import 'dart:io';
 import 'package:Bloomee/services/audio_service_initializer.dart';
 import 'package:bloc/bloc.dart';
-import 'package:easy_debounce/easy_debounce.dart';
-import 'package:easy_debounce/easy_throttle.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
@@ -37,26 +34,11 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
               currentPos: a, currentPlaybackState: b, currentPlayerState: c)),
       reusable: true,
     );
-
-    // Trigger skipToNext when the current song ends.
-    final endingOffset =
-        Platform.isWindows ? 200 : (Platform.isLinux ? 700 : 0);
-    bloomeePlayer.audioPlayer.positionStream.listen((event) {
-      if (bloomeePlayer.audioPlayer.duration != null &&
-          bloomeePlayer.audioPlayer.duration?.inSeconds != 0 &&
-          event.inMilliseconds >
-              bloomeePlayer.audioPlayer.duration!.inMilliseconds -
-                  endingOffset &&
-          bloomeePlayer.loopMode.value != LoopMode.one) {
-        EasyThrottle.throttle('skipNext', const Duration(milliseconds: 2000),
-            () async => await bloomeePlayer.skipToNext());
-      }
-    });
   }
 
   @override
   Future<void> close() {
-    EasyDebounce.cancelAll();
+    // EasyDebounce.cancelAll();
     bloomeePlayer.stop();
     bloomeePlayer.audioPlayer.dispose();
     return super.close();
