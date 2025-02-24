@@ -20,12 +20,11 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
   MiniPlayerBloc({
     required this.playerCubit,
   }) : super(MiniPlayerInitial()) {
-    combinedStream = Rx.combineLatest3(
+    combinedStream = Rx.combineLatest2(
       playerCubit.bloomeePlayer.audioPlayer.playerStateStream,
-      playerCubit.bloomeePlayer.isLinkProcessing,
       playerCubit.bloomeePlayer.mediaItem,
-      (PlayerState playerState, bool isLinkProcessing, MediaItem? mediaItem) =>
-          [playerState, isLinkProcessing, mediaItem],
+      (PlayerState playerState, MediaItem? mediaItem) =>
+          [playerState, mediaItem],
     );
     listenToPlayer();
     on<MiniPlayerPlayedEvent>(played);
@@ -72,8 +71,7 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
     _playerStateSubscription =
         combinedStream?.asBroadcastStream().listen((event) {
       var state = event[0] as PlayerState;
-      var isLinkProcessing = event[1] as bool;
-      var mediaItem = event[2] as MediaItem?;
+      var mediaItem = event[1] as MediaItem?;
       if (mediaItem == null) return;
 
       var mediaItem2 = mediaItem2MediaItemModel(mediaItem);
@@ -81,11 +79,7 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
       log("$state", name: "MiniPlayer");
       switch (state.processingState) {
         case ProcessingState.idle:
-          if (isLinkProcessing) {
-            add(MiniPlayerProcessingEvent(mediaItem2));
-          } else {
-            add(MiniPlayerInitialEvent());
-          }
+          add(MiniPlayerInitialEvent());
           break;
         case ProcessingState.loading:
           add(MiniPlayerProcessingEvent(mediaItem2));
@@ -98,12 +92,8 @@ class MiniPlayerBloc extends Bloc<MiniPlayerEvent, MiniPlayerState> {
           break;
         case ProcessingState.ready:
           try {
-            if (isLinkProcessing) {
-              add(MiniPlayerProcessingEvent(mediaItem2));
-            } else if (state.playing) {
+            if (state.playing) {
               add(MiniPlayerPlayedEvent(mediaItem2));
-            } else if (event[1] == true) {
-              add(MiniPlayerProcessingEvent(mediaItem2));
             } else {
               add(MiniPlayerPausedEvent(mediaItem2));
             }
