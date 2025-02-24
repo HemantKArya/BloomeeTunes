@@ -37,6 +37,7 @@ class BloomeeDBService {
     Future.delayed(const Duration(seconds: 30), () async {
       await refreshRecentlyPlayed();
       await purgeUnassociatedMediaItems();
+      await deleteAllYTLinks();
     });
   }
 
@@ -194,6 +195,12 @@ class BloomeeDBService {
     }
     BloomeeDBService();
     return false;
+  }
+
+  // Will be removed in future versions
+  static Future<void> deleteAllYTLinks() async {
+    Isar isarDB = await db;
+    isarDB.writeTxn(() => isarDB.ytLinkCacheDBs.clear());
   }
 
   static Future<int?> addMediaItem(
