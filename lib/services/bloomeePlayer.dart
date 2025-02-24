@@ -5,6 +5,7 @@ import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/ytstream_source.dart';
@@ -240,10 +241,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           tag: mediaItem);
     } else {
       isOffline.add(false);
-      log("Playing online", name: "bloomeePlayer");
       if (mediaItem.extras?["source"] == "youtube") {
+        String? quality =
+            await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality);
+        quality = quality ?? "high";
+        quality = quality.toLowerCase();
         final id = mediaItem.id.replaceAll("youtube", '');
-        return YouTubeAudioSource(videoId: id, quality: "high", tag: mediaItem);
+        return YouTubeAudioSource(
+            videoId: id, quality: quality, tag: mediaItem);
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
       log('Playing: $kurl', name: "bloomeePlayer");
