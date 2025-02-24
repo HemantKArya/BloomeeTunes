@@ -95,11 +95,7 @@ void showMoreBottomSheet(
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .addQueueItem(
-                              song,
-                              doPlay: true,
-                              single: true,
-                            );
+                            .updateQueue([song], doPlay: true);
                         SnackbarService.showMessage("Playing ${song.title}",
                             duration: const Duration(seconds: 2));
                       },
@@ -124,7 +120,7 @@ void showMoreBottomSheet(
                   context
                       .read<BloomeePlayerCubit>()
                       .bloomeePlayer
-                      .addQueueItem(song, doPlay: false);
+                      .addPlayNextItem(song);
                   SnackbarService.showMessage("Added to Next in Queue",
                       duration: const Duration(seconds: 2));
                 },
@@ -148,7 +144,7 @@ void showMoreBottomSheet(
                   context
                       .read<BloomeePlayerCubit>()
                       .bloomeePlayer
-                      .addQueueItem(song, atLast: true, doPlay: false);
+                      .addQueueItem(song);
                   SnackbarService.showMessage("Added to Queue",
                       duration: const Duration(seconds: 2));
                 },

@@ -390,11 +390,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                             context
                                                 .read<BloomeePlayerCubit>()
                                                 .bloomeePlayer
-                                                .addQueueItem(
-                                                  state.mediaItems[index],
-                                                  single: true,
-                                                  doPlay: true,
-                                                );
+                                                .updateQueue(
+                                              [state.mediaItems[index]],
+                                              doPlay: true,
+                                            );
                                           },
                                           onOptionsTap: () =>
                                               showMoreBottomSheet(context,

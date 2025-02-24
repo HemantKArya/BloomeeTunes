@@ -431,34 +431,17 @@ class PlaylistView extends StatelessWidget {
                                   state.mediaPlaylist.mediaItems[index]),
                               song: state.mediaPlaylist.mediaItems[index],
                               onTap: () {
-                                if (!listEquals(
-                                    context
-                                        .read<BloomeePlayerCubit>()
-                                        .bloomeePlayer
-                                        .queue
-                                        .value,
-                                    state.mediaPlaylist.mediaItems)) {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .bloomeePlayer
-                                      .loadPlaylist(
-                                          MediaPlaylist(
-                                              mediaItems: state
-                                                  .mediaPlaylist.mediaItems,
-                                              playlistName: state
-                                                  .mediaPlaylist.playlistName),
-                                          idx: index,
-                                          doPlay: true);
-                                } else if (context
-                                        .read<BloomeePlayerCubit>()
-                                        .bloomeePlayer
-                                        .currentMedia !=
-                                    state.mediaPlaylist.mediaItems[index]) {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .bloomeePlayer
-                                      .prepare4play(idx: index, doPlay: true);
-                                }
+                                context
+                                    .read<BloomeePlayerCubit>()
+                                    .bloomeePlayer
+                                    .loadPlaylist(
+                                        MediaPlaylist(
+                                            mediaItems:
+                                                state.mediaPlaylist.mediaItems,
+                                            playlistName: state
+                                                .mediaPlaylist.playlistName),
+                                        idx: index,
+                                        doPlay: true);
                               },
                               onOptionsTap: () {
                                 showMoreBottomSheet(

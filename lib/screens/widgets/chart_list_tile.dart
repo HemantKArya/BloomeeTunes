@@ -54,7 +54,7 @@ class ChartListTile extends StatelessWidget {
               context
                   .read<BloomeePlayerCubit>()
                   .bloomeePlayer
-                  .addQueueItem(mediaItem, single: true, doPlay: true);
+                  .updateQueue([mediaItem], doPlay: true);
               return;
             }
           } catch (e) {

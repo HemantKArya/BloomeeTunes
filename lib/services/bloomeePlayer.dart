@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
@@ -8,6 +9,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/ytstream_source.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
@@ -25,7 +27,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   late AudioPlayer audioPlayer;
   BehaviorSubject<bool> fromPlaylist = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isOffline = BehaviorSubject<bool>.seeded(false);
-  BehaviorSubject<bool> isLinkProcessing = BehaviorSubject<bool>.seeded(false);
+  // BehaviorSubject<bool> isLinkProcessing = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> shuffleMode = BehaviorSubject<bool>.seeded(false);
 
   BehaviorSubject<List<MediaItem>> relatedSongs =
@@ -51,54 +53,39 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.playbackEventStream.listen(_broadcastPlayerEvent);
     audioPlayer.setLoopMode(LoopMode.off);
     audioPlayer.setAudioSource(_playlist, preload: false);
+
+    // Update the current media item when the audio player changes to the next
+    Rx.combineLatest2(
+      audioPlayer.sequenceStream,
+      audioPlayer.currentIndexStream,
+      (sequence, index) {
+        if (sequence == null || sequence.isEmpty) return null;
+        return sequence[index ?? 0].tag as MediaItem;
+      },
+    ).whereType<MediaItem>().listen(mediaItem.add);
+
+    // Trigger skipToNext when the current song ends.
+    final endingOffset =
+        Platform.isWindows ? 200 : (Platform.isLinux ? 700 : 0);
+    audioPlayer.positionStream.listen((event) {
+      if (audioPlayer.duration != null &&
+          audioPlayer.duration?.inSeconds != 0 &&
+          event.inMilliseconds >
+              audioPlayer.duration!.inMilliseconds - endingOffset &&
+          loopMode.value != LoopMode.one) {
+        EasyThrottle.throttle('skipNext', const Duration(milliseconds: 2000),
+            () async => await skipToNext());
+      }
+    });
+
+    // Refresh shuffle list when queue changes
+    queue.listen((e) {
+      shuffleList = generateRandomIndices(e.length);
+    });
   }
-
-  // void initBgYt() async {
-  //   BackgroundIsolateBinaryMessenger.ensureInitialized(
-  //     ServicesBinding.rootIsolateToken!,
-  //   );
-  //   final appDocPath = (await getApplicationDocumentsDirectory()).path;
-  //   final appSuppPath = (await getApplicationSupportDirectory()).path;
-
-  //   receivePortYt.listen(
-  //     (dynamic data) async {
-  //       if (data is SendPort) {
-  //         sendPortYt = data;
-  //       }
-
-  //       if (data is Map) {
-  //         if (data["link"] != null) {
-  //           if (data["mediaId"] == currentMedia.id) {
-  //             final audioSource = AudioSource.uri(Uri.parse(data["link"]));
-  //             await playAudioSource(
-  //                 audioSource: audioSource, mediaId: data["mediaId"]);
-  //           }
-  //         } else {
-  //           isLinkProcessing.add(false);
-  //           log("Link not found for vidId: ${data["id"]}",
-  //               name: "bloomeePlayer");
-  //           SnackbarService.showMessage("Failed to load song: ${data["id"]}");
-  //           if (currentMedia.id == 'youtube${data["id"]}') {
-  //             stop();
-  //           }
-  //         }
-  //       }
-  //     },
-  //   );
-
-  //   await Isolate.spawn(
-  //     ytbgIsolate,
-  //     [
-  //       appDocPath,
-  //       appSuppPath,
-  //       receivePortYt.sendPort,
-  //     ],
-  //   );
-  // }
 
   void _broadcastPlayerEvent(PlaybackEvent event) {
     bool isPlaying = audioPlayer.playing;
-    // log(event.playing.toString(), name: "bloomeePlayer-event");
     playbackState.add(PlaybackState(
       // Which buttons should appear in the notification now
       controls: [
@@ -136,13 +123,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> play() async {
-    if (isLinkProcessing.value == false) {
-      await audioPlayer.play();
-      isPaused = false;
-    } else {
-      log("Link is in process...", name: "bloomeePlayer");
-      SnackbarService.showMessage("Fetching Media Wait...");
-    }
+    await audioPlayer.play();
+    isPaused = false;
   }
 
   Future<void> check4RelatedSongs() async {
@@ -152,7 +134,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         (queue.value.length - currentPlayingIdx) < 2 &&
         loopMode.value != LoopMode.all) {
       if (currentMedia.extras?["source"] == "saavn") {
-        // final songs = await SaavnAPI().getRelated(currentMedia.id);
         final songs = await compute(SaavnAPI().getRelated, currentMedia.id);
         if (songs['total'] > 0) {
           final List<MediaItem> temp =
@@ -161,8 +142,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           log("Related Songs: ${songs['total']}");
         }
       } else if (currentMedia.extras?["source"].contains("youtube") ?? false) {
-        // final songs = await YtMusicService()
-        //     .getRelated(currentMedia.id.replaceAll('youtube', ''));
         final songs = await compute(YtMusicService().getRelated,
             currentMedia.id.replaceAll('youtube', ''));
         if (songs['total'] > 0) {
@@ -209,11 +188,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
-  @override
-  Future<void> updateMediaItem(MediaItem mediaItem) async {
-    super.mediaItem.add(mediaItem);
-  }
-
   void setLoopMode(LoopMode loopMode) {
     if (loopMode == LoopMode.one) {
       audioPlayer.setLoopMode(LoopMode.one);
@@ -238,8 +212,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     relatedSongs.add([]);
     queue.add(mediaList.mediaItems);
     queueTitle.add(mediaList.playlistName);
-    shuffle(shuffling);
-    if (shuffling) {
+    shuffle(shuffling || shuffleMode.value);
+    if (shuffling || shuffleMode.value) {
       await prepare4play(idx: shuffleList[shuffleIdx], doPlay: doPlay);
     } else {
       await prepare4play(idx: idx, doPlay: doPlay);
@@ -254,53 +228,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     log("paused", name: "bloomeePlayer");
   }
 
-  // Future<String?> latestYtLink(
-  //     {required String id, required String mediaId}) async {
-  //   final vidInfo = await BloomeeDBService.getYtLinkCache(id);
-  //   if (vidInfo != null) {
-  //     if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
-  //         vidInfo.expireAt) {
-  //       log("Link expired for vidId: $id", name: "bloomeePlayer");
-  //       await refreshYtLink(id: id, mediaId: mediaId);
-  //     } else {
-  //       log("Link found in cache for vidId: $id", name: "bloomeePlayer");
-  //       String kurl = vidInfo.lowQURL!;
-  //       await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
-  //           .then((value) {
-  //         log("Play quality: $value", name: "bloomeePlayer");
-  //         if (value != null) {
-  //           if (value == "High") {
-  //             kurl = vidInfo.highQURL;
-  //           } else {
-  //             kurl = vidInfo.lowQURL!;
-  //           }
-  //         }
-  //       });
-  //       return kurl;
-  //     }
-  //   } else {
-  //     log("No cache found for vidId: $id", name: "bloomeePlayer");
-  //     await refreshYtLink(id: id, mediaId: mediaId);
-  //   }
-  //   return null;
-  // }
-
-  // Future<void> refreshYtLink(
-  //     {required String id, required String mediaId}) async {
-  //   // String quality = "Low";
-  //   await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality)
-  //       .then((value) {
-  //     log('Play quality: $value', name: "bloomeePlayer");
-  //   });
-
-  //   sendPortYt?.send(
-  //     {
-  //       "mediaId": mediaId,
-  //       "id": id,
-  //     },
-  //   );
-  // }
-
   Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
     final _down = await BloomeeDBService.getDownloadDB(
         mediaItem2MediaItemModel(mediaItem));
@@ -309,23 +236,18 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       SnackbarService.showMessage("Playing Offline",
           duration: const Duration(seconds: 1));
       isOffline.add(true);
-      return AudioSource.uri(Uri.file('${_down.filePath}/${_down.fileName}'));
+      return AudioSource.uri(Uri.file('${_down.filePath}/${_down.fileName}'),
+          tag: mediaItem);
     } else {
       isOffline.add(false);
       log("Playing online", name: "bloomeePlayer");
       if (mediaItem.extras?["source"] == "youtube") {
         final id = mediaItem.id.replaceAll("youtube", '');
-        return YouTubeAudioSource(videoId: id, quality: "high");
-        // final tempStrmLink = await latestYtLink(id: id, mediaId: mediaItem.id);
-        // if (tempStrmLink != null) {
-        //   return AudioSource.uri(Uri.parse(tempStrmLink));
-        // } else {
-        //   return null;
-        // }
+        return YouTubeAudioSource(videoId: id, quality: "high", tag: mediaItem);
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
       log('Playing: $kurl', name: "bloomeePlayer");
-      return AudioSource.uri(Uri.parse(kurl!));
+      return AudioSource.uri(Uri.parse(kurl!), tag: mediaItem);
     }
   }
 
@@ -350,35 +272,26 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     required AudioSource audioSource,
     required String mediaId,
   }) async {
-    if (mediaItem.value?.id == mediaId) {
-      await pause();
-      await seek(Duration.zero);
-      isLinkProcessing.add(false);
-      try {
-        if (_playlist.children.isNotEmpty) {
-          await _playlist.clear();
-        }
-        await _playlist.add(audioSource);
-        await audioPlayer.load();
-        if (mediaItem.value?.id == mediaId) await play();
-      } catch (e) {
-        log("Error: $e", name: "bloomeePlayer");
-        if (e is PlayerException) {
-          SnackbarService.showMessage("Failed to play song: $e");
-          await stop();
-        }
+    await pause();
+    await seek(Duration.zero);
+    try {
+      if (_playlist.children.isNotEmpty) {
+        await _playlist.clear();
+      }
+      await _playlist.add(audioSource);
+      await audioPlayer.load();
+      if (!audioPlayer.playing) await play();
+    } catch (e) {
+      log("Error: $e", name: "bloomeePlayer");
+      if (e is PlayerException) {
+        SnackbarService.showMessage("Failed to play song: $e");
+        await stop();
       }
     }
   }
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
-    updateMediaItem(mediaItem);
-
-    isLinkProcessing.add(true);
-    audioPlayer.pause();
-    audioPlayer.seek(Duration.zero);
-
     final audioSource = await getAudioSource(mediaItem);
     await playAudioSource(audioSource: audioSource, mediaId: mediaItem.id);
     await check4RelatedSongs();
@@ -389,21 +302,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       currentPlayingIdx = idx;
       await playMediaItem(currentMedia, doPlay: doPlay);
       BloomeeDBService.putRecentlyPlayed(MediaItem2MediaItemDB(currentMedia));
-    }
-  }
-
-  Future<void> playOffsetIdx({int offset = 1}) async {
-    if (offset >= 0) {
-      if (shuffleMode.value) {
-        if (offset + shuffleIdx < queue.value.length) {
-          prepare4play(idx: shuffleList[offset + shuffleIdx], doPlay: true);
-          shuffleIdx = shuffleIdx + offset;
-        }
-      } else {
-        if (currentPlayingIdx + offset < queue.value.length) {
-          prepare4play(idx: offset + currentPlayingIdx, doPlay: true);
-        }
-      }
     }
   }
 
@@ -418,7 +316,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToNext() async {
-    // await loadRelatedSongs();
     if (!shuffleMode.value) {
       if (currentPlayingIdx < (queue.value.length - 1)) {
         currentPlayingIdx++;
@@ -430,9 +327,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     } else {
       if (shuffleIdx < (queue.value.length - 1)) {
         shuffleIdx++;
-        if (shuffleIdx >= shuffleList.length) {
-          shuffleIdx = 0;
-        }
         prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
       } else if (loopMode.value == LoopMode.all) {
         shuffleIdx = 0;
@@ -475,64 +369,39 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     audioPlayer.dispose();
     audioPlayer.stop();
     super.stop();
-
     return super.onNotificationDeleted();
   }
 
   @override
   Future<void> insertQueueItem(int index, MediaItem mediaItem) async {
+    List<MediaItem> temp = queue.value;
     if (index < queue.value.length) {
-      queue.value.insert(index, mediaItem);
+      temp.insert(index, mediaItem);
     } else {
-      queue.add(queue.value..add(mediaItem));
+      temp.add(mediaItem);
+    }
+    queue.add(temp);
+
+    // Adjust the currentPlayingIdx
+    if (currentPlayingIdx >= index) {
+      currentPlayingIdx++;
     }
   }
 
   @override
-  Future<void> addQueueItem(MediaItem mediaItem,
-      {bool doPlay = true, bool atLast = false, bool single = false}) async {
-    if (single) {
-      queue.add([mediaItem]);
-      queueTitle.add("Queue");
-      relatedSongs.add([]);
-      await prepare4play(idx: 0, doPlay: doPlay);
-      return;
-    }
-
-    if (fromPlaylist.value) {
-      fromPlaylist.add(false);
-      if (!doPlay) {
-        queue.add([currentMedia, mediaItem]);
-        currentPlayingIdx = 0;
-        if (audioPlayer.processingState == ProcessingState.completed) {
-          queue.add([mediaItem]);
-          await prepare4play(idx: 0, doPlay: doPlay);
-        }
-      } else {
-        queue.add([mediaItem]);
-        await prepare4play(idx: 0, doPlay: doPlay);
-      }
-    } else {
-      if (atLast) {
-        queue.add(queue.value..add(mediaItem));
-      } else if (currentPlayingIdx >= queue.value.length - 1 ||
-          queue.value.isEmpty) {
-        queue.add(queue.value..add(mediaItem));
-        if (doPlay) {
-          await prepare4play(idx: queue.value.length - 1, doPlay: doPlay);
-        } else if (audioPlayer.processingState == ProcessingState.completed ||
-            queue.value.length == 1) {
-          await prepare4play(idx: queue.value.length - 1, doPlay: doPlay);
-        }
-      } else {
-        queue.add(queue.value..insert(currentPlayingIdx + 1, mediaItem));
-        if (doPlay) {
-          await prepare4play(idx: currentPlayingIdx + 1, doPlay: true);
-        }
-      }
-      shuffle(shuffleMode.value);
-    }
+  Future<void> addQueueItem(MediaItem mediaItem, {bool doPlay = true}) async {
     queueTitle.add("Queue");
+    queue.add(queue.value..add(mediaItem));
+    if (doPlay || queue.value.length == 1) {
+      prepare4play(idx: queue.value.length - 1, doPlay: true);
+    }
+  }
+
+  @override
+  Future<void> updateQueue(List<MediaItem> newQueue,
+      {bool doPlay = false}) async {
+    queue.add(newQueue);
+    await prepare4play(idx: 0, doPlay: doPlay);
   }
 
   @override
@@ -542,7 +411,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       for (var mediaItem in mediaItems) {
         await addQueueItem(
           mediaItem,
-          atLast: true,
         );
       }
     } else {
@@ -551,6 +419,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       }
       queue.add(queue.value..addAll(mediaItems));
       queueTitle.add("Queue");
+    }
+  }
+
+  Future<void> addPlayNextItem(MediaItem mediaItem) async {
+    if (queue.value.isNotEmpty) {
+      queue.add(queue.value..insert(currentPlayingIdx + 1, mediaItem));
+    } else {
+      updateQueue([mediaItem], doPlay: true);
     }
   }
 
@@ -576,14 +452,22 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> moveQueueItem(int oldIndex, int newIndex) async {
-    final item = queue.value.removeAt(oldIndex);
-    queue.value.insert(newIndex, item);
+    log("Moving from $oldIndex to $newIndex", name: "bloomeePlayer");
+    List<MediaItem> temp = queue.value;
+    if (oldIndex < newIndex) {
+      newIndex--;
+    }
 
+    final item = temp.removeAt(oldIndex);
+    temp.insert(newIndex, item);
+    queue.add(temp);
+
+    // update the currentPlayingIdx
     if (currentPlayingIdx == oldIndex) {
       currentPlayingIdx = newIndex;
-    } else if (currentPlayingIdx > oldIndex && currentPlayingIdx <= newIndex) {
+    } else if (oldIndex < currentPlayingIdx && newIndex >= currentPlayingIdx) {
       currentPlayingIdx--;
-    } else if (currentPlayingIdx < oldIndex && currentPlayingIdx >= newIndex) {
+    } else if (oldIndex > currentPlayingIdx && newIndex <= currentPlayingIdx) {
       currentPlayingIdx++;
     }
   }

@@ -481,41 +481,18 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                       );
                                                     },
                                                     onTap: () {
-                                                      if (!listEquals(
-                                                          context
-                                                              .read<
-                                                                  BloomeePlayerCubit>()
-                                                              .bloomeePlayer
-                                                              .queue
-                                                              .value,
-                                                          mediaitems)) {
-                                                        context
-                                                            .read<
-                                                                BloomeePlayerCubit>()
-                                                            .bloomeePlayer
-                                                            .loadPlaylist(
-                                                                MediaPlaylist(
-                                                                    mediaItems:
-                                                                        mediaitems,
-                                                                    playlistName:
-                                                                        "${widget.title} - Youtube"),
-                                                                idx: index,
-                                                                doPlay: true);
-                                                        // context.read<BloomeePlayerCubit>().bloomeePlayer.play();
-                                                      } else if (context
-                                                              .read<
-                                                                  BloomeePlayerCubit>()
-                                                              .bloomeePlayer
-                                                              .currentMedia !=
-                                                          mediaitems[index]) {
-                                                        context
-                                                            .read<
-                                                                BloomeePlayerCubit>()
-                                                            .bloomeePlayer
-                                                            .prepare4play(
-                                                                idx: index,
-                                                                doPlay: true);
-                                                      }
+                                                      context
+                                                          .read<
+                                                              BloomeePlayerCubit>()
+                                                          .bloomeePlayer
+                                                          .loadPlaylist(
+                                                              MediaPlaylist(
+                                                                  mediaItems:
+                                                                      mediaitems,
+                                                                  playlistName:
+                                                                      "${widget.title} - Youtube"),
+                                                              idx: index,
+                                                              doPlay: true);
                                                     },
                                                   );
                                                 },
