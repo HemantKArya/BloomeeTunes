@@ -18,7 +18,7 @@ bool isUpdateAvailable(
     }
   }
 
-  if (checkBuild || !Platform.isLinux) {
+  if (checkBuild && !Platform.isLinux) {
     int currentBuildNumber = int.parse(currentBuild);
     int newBuildNumber = int.parse(newBuild);
     if (currentBuildNumber > 1000) {
