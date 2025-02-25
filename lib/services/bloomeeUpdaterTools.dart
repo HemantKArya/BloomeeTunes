@@ -21,6 +21,9 @@ bool isUpdateAvailable(
   if (checkBuild) {
     int currentBuildNumber = int.parse(currentBuild);
     int newBuildNumber = int.parse(newBuild);
+    if (currentBuildNumber > 1000) {
+      currentBuildNumber = currentBuildNumber % 1000;
+    }
 
     if (newBuildNumber > currentBuildNumber) {
       return true;
@@ -73,7 +76,9 @@ Future<Map<String, dynamic>> sourceforgeUpdate() async {
       'newBuild': build ?? '',
       'download_url': releaseUrl,
       'currVer': packageInfo.version,
-      'currBuild': packageInfo.buildNumber,
+      'currBuild': int.parse(packageInfo.buildNumber) > 1000
+          ? int.parse(packageInfo.buildNumber) % 1000
+          : packageInfo.buildNumber,
       'results': isUpdateAvailable(
         packageInfo.version,
         packageInfo.buildNumber,
@@ -118,7 +123,9 @@ Future<Map<String, dynamic>> githubUpdate() async {
         checkBuild: false,
       ),
       "newBuild": newBuildVer,
-      "currBuild": packageInfo.buildNumber,
+      "currBuild": int.parse(packageInfo.buildNumber) > 1000
+          ? int.parse(packageInfo.buildNumber) % 1000
+          : packageInfo.buildNumber,
       "currVer": packageInfo.version,
       "newVer": data["tag_name"].toString().split("+")[0].replaceFirst("v", ''),
       // "download_url": extractUpUrl(data),
@@ -128,7 +135,9 @@ Future<Map<String, dynamic>> githubUpdate() async {
   } else {
     log('Failed to load latest version!', name: 'UpdaterTools');
     return {
-      "currBuild": packageInfo.buildNumber,
+      "currBuild": int.parse(packageInfo.buildNumber) > 1000
+          ? int.parse(packageInfo.buildNumber) % 1000
+          : packageInfo.buildNumber,
       "currVer": packageInfo.version,
       "results": false,
     };

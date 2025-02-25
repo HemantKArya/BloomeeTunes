@@ -70,7 +70,7 @@ class About extends StatelessWidget {
                     final PackageInfo packageInfo =
                         snapshot.data as PackageInfo;
                     return Text(
-                      "v${packageInfo.version}+${packageInfo.buildNumber}",
+                      "v${packageInfo.version}+${int.parse(packageInfo.buildNumber) % 1000}",
                       style: TextStyle(
                         color: Default_Theme.primaryColor2.withOpacity(0.5),
                         fontSize: 15,
