@@ -118,13 +118,13 @@ flutter {
 
 
 
-ext.abiCodes = ["x86_64": 1, "armeabi-v7a": 2, "arm64-v8a": 3, "x86": 4]
-android.applicationVariants.all { variant ->
-  variant.outputs.each { output ->
-  def abi = output.getFilter(com.android.build.OutputFile.ABI)
-    def abiVersionCode = project.ext.abiCodes.get(abi)
-    if (abiVersionCode != null) {
-      output.versionCodeOverride = variant.versionCode
-    }
-  }
-}
+// ext.abiCodes = ["x86_64": 1, "armeabi-v7a": 2, "arm64-v8a": 3, "x86": 4]
+// android.applicationVariants.all { variant ->
+//   variant.outputs.each { output ->
+//   def abi = output.getFilter(com.android.build.OutputFile.ABI)
+//     def abiVersionCode = project.ext.abiCodes.get(abi)
+//     if (abiVersionCode != null) {
+//       output.versionCodeOverride = variant.versionCode
+//     }
+//   }
+// }
