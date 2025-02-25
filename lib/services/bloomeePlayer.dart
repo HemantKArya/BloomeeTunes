@@ -214,11 +214,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     queue.add(mediaList.mediaItems);
     queueTitle.add(mediaList.playlistName);
     shuffle(shuffling || shuffleMode.value);
-    if (shuffling || shuffleMode.value) {
-      await prepare4play(idx: shuffleList[shuffleIdx], doPlay: doPlay);
-    } else {
-      await prepare4play(idx: idx, doPlay: doPlay);
-    }
+    await prepare4play(idx: idx, doPlay: doPlay);
     // if (doPlay) play();
   }
 
