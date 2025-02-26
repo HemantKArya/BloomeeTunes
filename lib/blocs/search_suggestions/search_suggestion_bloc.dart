@@ -39,6 +39,9 @@ class SearchSuggestionBloc
 
   Future<List<String>> getOnlineSearchSuggestions(String query) async {
     List<String> searchSuggestions;
+    if (query.isEmpty || query.replaceAll(" ", "").isEmpty) {
+      return [];
+    }
     try {
       searchSuggestions = await YouTubeServices()
           .getSearchSuggestions(query: query) as List<String>;
@@ -50,7 +53,7 @@ class SearchSuggestionBloc
 
   Future<List<Map<String, String>>> getPastSearches(String query) async {
     List<Map<String, String>> searchSuggestions;
-    if (query.isEmpty) {
+    if (query.isEmpty || query.replaceAll(" ", "").isEmpty) {
       List<Map<String, String>> res =
           await BloomeeDBService.getLastSearches(limit: 10);
       searchSuggestions = res;
