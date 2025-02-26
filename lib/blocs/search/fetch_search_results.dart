@@ -372,15 +372,4 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
   void clearSearch() {
     emit(FetchSearchResultsInitial());
   }
-
-  Future<List<String>> getSearchSuggestions(String query) async {
-    List<String> searchSuggestions;
-    try {
-      searchSuggestions = await YouTubeServices()
-          .getSearchSuggestions(query: query) as List<String>;
-    } catch (e) {
-      searchSuggestions = [];
-    }
-    return searchSuggestions;
-  }
 }

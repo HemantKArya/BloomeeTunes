@@ -90,6 +90,7 @@ class BloomeeDBService {
             PlaylistsInfoDBSchema,
             SavedCollectionsDBSchema,
             LyricsDBSchema,
+            SearchHistoryDBSchema,
           ],
           directory: appDocDir,
         );
@@ -113,6 +114,7 @@ class BloomeeDBService {
           PlaylistsInfoDBSchema,
           SavedCollectionsDBSchema,
           LyricsDBSchema,
+          SearchHistoryDBSchema,
         ],
         directory: appSuppDir,
       );
@@ -201,6 +203,61 @@ class BloomeeDBService {
   static Future<void> deleteAllYTLinks() async {
     Isar isarDB = await db;
     isarDB.writeTxn(() => isarDB.ytLinkCacheDBs.clear());
+  }
+
+  static Future<void> putSearchHistory(String searchQuery) async {
+    Isar isarDB = await db;
+    isarDB.writeTxnSync(() => isarDB.searchHistoryDBs.putSync(SearchHistoryDB(
+          query: searchQuery,
+          lastSearched: DateTime.now(),
+        )));
+  }
+
+  static Future<List<Map<String, String>>> getLastSearches(
+      {int limit = 10}) async {
+    Isar isarDB = await db;
+    List<Map<String, String>> searchHistory = [];
+    List<SearchHistoryDB> searchHistoryDB = isarDB.searchHistoryDBs
+        .where()
+        .sortByLastSearchedDesc()
+        .limit(limit)
+        .findAllSync();
+    for (var element in searchHistoryDB) {
+      searchHistory.add({
+        "query": element.query,
+        "id": element.isarId.toString(),
+      });
+    }
+    return searchHistory;
+  }
+
+  static Future<List<Map<String, String>>> getSimilarSearches(
+      String query) async {
+    Isar isarDB = await db;
+    List<Map<String, String>> searchHistory = [];
+    List<SearchHistoryDB> searchHistoryDB = isarDB.searchHistoryDBs
+        .filter()
+        .queryContains(query)
+        .sortByLastSearchedDesc()
+        .limit(3)
+        .findAllSync();
+    for (var element in searchHistoryDB) {
+      searchHistory.add({
+        "query": element.query,
+        "id": element.isarId.toString(),
+      });
+    }
+    return searchHistory;
+  }
+
+  static Future<void> clearSearchHistory() async {
+    Isar isarDB = await db;
+    isarDB.writeTxn(() => isarDB.searchHistoryDBs.clear());
+  }
+
+  static Future<void> removeSearchHistory(String id) async {
+    Isar isarDB = await db;
+    isarDB.writeTxn(() => isarDB.searchHistoryDBs.delete(int.parse(id)));
   }
 
   static Future<int?> addMediaItem(

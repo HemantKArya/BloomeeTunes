@@ -414,3 +414,14 @@ class LyricsDB {
     this.url,
   });
 }
+
+@collection
+class SearchHistoryDB {
+  Id get isarId => fastHash(query);
+  String query;
+  DateTime lastSearched;
+  SearchHistoryDB({
+    required this.query,
+    required this.lastSearched,
+  });
+}

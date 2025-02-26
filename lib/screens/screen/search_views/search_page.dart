@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/search/fetch_search_results.dart';
@@ -46,6 +48,7 @@ class SearchPageDelegate extends SearchDelegate {
       context
           .read<FetchSearchResultsCubit>()
           .search(query, sourceEngine: sourceEngine, resultType: resultType);
+      BloomeeDBService.putSearchHistory(query);
     }
     close(context, query);
   }
@@ -92,58 +95,124 @@ class SearchPageDelegate extends SearchDelegate {
   @override
   Widget buildSuggestions(BuildContext context) {
     // final List<String> suggestionList = [];
+    context.read<SearchSuggestionBloc>().add(SearchSuggestionFetch(query));
 
-    return FutureBuilder(
-      future:
-          context.read<FetchSearchResultsCubit>().getSearchSuggestions(query),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data == null) {
-          return const Center(
-              child: CircularProgressIndicator(
-            color: Default_Theme.accentColor2,
-          ));
-        } else if (snapshot.data!.isEmpty) {
-          return const Center(
-            child: SignBoardWidget(
-                message: "No Suggestions found!", icon: MingCute.look_up_line),
-          );
-        }
-        List<String> suggestionList = snapshot.data!;
-        return ListView.builder(
-          itemCount: suggestionList.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(
-                suggestionList[index],
-                style:
-                    const TextStyle(color: Default_Theme.primaryColor1).merge(
-                  Default_Theme.secondoryTextStyle,
+    return BlocBuilder<SearchSuggestionBloc, SearchSuggestionState>(
+      builder: (context, state) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
+            ),
+            child: switch (state) {
+              SearchSuggestionLoading() => const Center(
+                  child: CircularProgressIndicator(
+                    color: Default_Theme.accentColor2,
+                  ),
                 ),
-              ),
-              contentPadding: const EdgeInsets.only(left: 16, right: 8),
-              leading: Icon(
-                MingCute.search_line,
-                size: 22,
-                color: Default_Theme.primaryColor1.withOpacity(0.5),
-              ),
-              trailing: IconButton(
-                onPressed: () {
-                  query = suggestionList[index];
-                  // only update the query and not show the results
-                },
-                icon: Icon(
-                  MingCute.arrow_left_up_line,
-                  color: Default_Theme.primaryColor1.withOpacity(0.5),
-                  size: 22,
+              SearchSuggestionLoaded() => state.suggestionList.isEmpty &&
+                      state.dbSuggestionList.isEmpty
+                  ? const Center(
+                      child: SignBoardWidget(
+                        message: "No Suggestions found!",
+                        icon: MingCute.look_up_line,
+                      ),
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListView(
+                          shrinkWrap: true,
+                          physics:
+                              const NeverScrollableScrollPhysics(), // Disable inner scrolling
+                          children: state.dbSuggestionList
+                              .map(
+                                (e) => ListTile(
+                                  title: Text(
+                                    e.values.first,
+                                    style: const TextStyle(
+                                      color: Default_Theme.primaryColor1,
+                                    ).merge(Default_Theme.secondoryTextStyle),
+                                  ),
+                                  contentPadding:
+                                      const EdgeInsets.only(left: 16, right: 8),
+                                  leading: Icon(
+                                    MingCute.history_line,
+                                    size: 22,
+                                    color: Default_Theme.primaryColor1
+                                        .withOpacity(0.5),
+                                  ),
+                                  trailing: IconButton(
+                                    onPressed: () {
+                                      context.read<SearchSuggestionBloc>().add(
+                                          SearchSuggestionClear(
+                                              e.values.first));
+                                    },
+                                    icon: Icon(
+                                      MingCute.close_fill,
+                                      color: Default_Theme.primaryColor1
+                                          .withOpacity(0.5),
+                                      size: 22,
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    query = e.values.first;
+                                    showResults(context);
+                                  },
+                                ),
+                              )
+                              .toList(),
+                        ),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics:
+                              const NeverScrollableScrollPhysics(), // Disable inner scrolling
+                          itemBuilder: (BuildContext context, int index) {
+                            return ListTile(
+                              title: Text(
+                                state.suggestionList[index],
+                                style: const TextStyle(
+                                  color: Default_Theme.primaryColor1,
+                                ).merge(Default_Theme.secondoryTextStyle),
+                              ),
+                              contentPadding:
+                                  const EdgeInsets.only(left: 16, right: 8),
+                              leading: Icon(
+                                MingCute.search_line,
+                                size: 22,
+                                color: Default_Theme.primaryColor1
+                                    .withOpacity(0.5),
+                              ),
+                              trailing: IconButton(
+                                onPressed: () {
+                                  query = state.suggestionList[index];
+                                  // only update the query and not show the results
+                                },
+                                icon: Icon(
+                                  MingCute.arrow_left_up_line,
+                                  color: Default_Theme.primaryColor1
+                                      .withOpacity(0.5),
+                                  size: 22,
+                                ),
+                              ),
+                              onTap: () {
+                                query = state.suggestionList[index];
+                                showResults(context);
+                              },
+                            );
+                          },
+                          itemCount: state.suggestionList.length,
+                        ),
+                      ],
+                    ),
+              _ => const Center(
+                  child: SignBoardWidget(
+                    message: "No Suggestions found!",
+                    icon: MingCute.look_up_line,
+                  ),
                 ),
-              ),
-              onTap: () {
-                query = suggestionList[index];
-                showResults(context);
-                // Show the search results based on the selected suggestion.
-              },
-            );
-          },
+            },
+          ),
         );
       },
     );
