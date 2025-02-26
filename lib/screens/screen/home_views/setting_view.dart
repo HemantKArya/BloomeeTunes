@@ -5,7 +5,7 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/storage_setting.
 import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/lastfm_setting.dart';
-import 'package:Bloomee/screens/screen/home_views/setting_views/stream_setting.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/player_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/updates_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -59,14 +59,14 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "Stream Quality",
-              subtitle: "Select the quality of the stream",
+              title: "Player Settings",
+              subtitle: "Stream quality, Auto Play, etc.",
               icon: MingCute.airpods_fill,
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const StreamingSettings(),
+                    builder: (context) => const PlayerSettings(),
                   ),
                 );
               }),

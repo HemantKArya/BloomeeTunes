@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class StreamingSettings extends StatelessWidget {
-  const StreamingSettings({super.key});
+class PlayerSettings extends StatelessWidget {
+  const PlayerSettings({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class StreamingSettings extends StatelessWidget {
         surfaceTintColor: Default_Theme.themeColor,
         centerTitle: true,
         title: Text(
-          'Audio Streaming',
+          'Audio Player',
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 20,
@@ -87,6 +87,27 @@ class StreamingSettings extends StatelessWidget {
                 ),
                 onTap: () {},
               ),
+              SwitchListTile(
+                  value: state.autoPlay,
+                  title: Text(
+                    "Auto Play",
+                    style: const TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ).merge(Default_Theme.secondoryTextStyle),
+                  ),
+                  subtitle: Text(
+                    "Automatically add similar songs to the queue.",
+                    style: TextStyle(
+                      color: Default_Theme.primaryColor1.withOpacity(0.5),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    context.read<SettingsCubit>().setAutoPlay(value);
+                  }),
             ],
           );
         },

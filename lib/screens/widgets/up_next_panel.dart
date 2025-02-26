@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/screens/widgets/toogle_btn.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -113,9 +115,68 @@ class _UpNextPanelState extends State<UpNextPanel> {
                 left: 8,
                 right: 8,
               ),
-              child: Divider(
-                color: Default_Theme.primaryColor2.withOpacity(0.5),
-                thickness: 1.5,
+              child: Column(
+                children: [
+                  Divider(
+                    color: Default_Theme.primaryColor2.withOpacity(0.5),
+                    thickness: 1.5,
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: StreamBuilder<List>(
+                            stream: context
+                                .read<BloomeePlayerCubit>()
+                                .bloomeePlayer
+                                .queue,
+                            builder: (context, snapshot) {
+                              return Text(
+                                  "${snapshot.data?.length ?? 0} Items in Queue",
+                                  style: Default_Theme.secondoryTextStyleMedium
+                                      .merge(TextStyle(
+                                          color: Default_Theme.primaryColor2
+                                              .withOpacity(0.5),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold)));
+                            }),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, bottom: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: BlocBuilder<SettingsCubit, SettingsState>(
+                                builder: (context, state) {
+                                  return ToggleButton(
+                                    label: "Auto Play",
+                                    initialState: state.autoPlay,
+                                    onChanged: (val) async {
+                                      await context
+                                          .read<SettingsCubit>()
+                                          .setAutoPlay(val);
+                                      if (val) {
+                                        context
+                                            .read<BloomeePlayerCubit>()
+                                            .bloomeePlayer
+                                            .check4RelatedSongs();
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
             Expanded(

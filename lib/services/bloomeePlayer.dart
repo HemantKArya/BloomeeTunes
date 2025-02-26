@@ -131,6 +131,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> check4RelatedSongs() async {
     log("Checking for related songs: ${queue.value.isNotEmpty && (queue.value.length - currentPlayingIdx) < 2}",
         name: "bloomeePlayer");
+    final autoPlay =
+        await BloomeeDBService.getSettingBool(GlobalStrConsts.autoPlay);
+    if (autoPlay != null && !autoPlay) return;
     if (queue.value.isNotEmpty &&
         (queue.value.length - currentPlayingIdx) < 2 &&
         loopMode.value != LoopMode.all) {

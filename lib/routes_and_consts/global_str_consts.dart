@@ -27,6 +27,7 @@ class GlobalStrConsts {
   static const String countryCode = "countryCode";
   static const String chartShowMap = "chartShowMap";
   static const String autoSaveLyrics = "autoSaveLyrics";
+  static const String autoPlay = "autoPlaySimilarItems";
 
   // LastFM
   static const String lFMApiKey = "lastFMKey";

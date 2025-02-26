@@ -76,6 +76,12 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(state.copyWith(lastFMScrobble: value ?? false));
     });
 
+    BloomeeDBService.getSettingBool(
+      GlobalStrConsts.autoPlay,
+    ).then((value) {
+      emit(state.copyWith(autoPlay: value ?? true));
+    });
+
     BloomeeDBService.getSettingBool(GlobalStrConsts.lFMUIPicks).then((value) {
       emit(state.copyWith(lFMPicks: value ?? false));
     });
@@ -134,6 +140,11 @@ class SettingsCubit extends Cubit<SettingsState> {
     BloomeeDBService.putSettingStr(
         GlobalStrConsts.chartShowMap, jsonEncode(chartMap));
     emit(state.copyWith(chartMap: Map.from(chartMap)));
+  }
+
+  Future<void> setAutoPlay(bool value) async {
+    await BloomeeDBService.putSettingBool(GlobalStrConsts.autoPlay, value);
+    emit(state.copyWith(autoPlay: value));
   }
 
   void autoUpdate() {
