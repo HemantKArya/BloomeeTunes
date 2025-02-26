@@ -79,7 +79,7 @@ class HorizontalCardView extends StatelessWidget {
                         await context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .addQueueItem(value, doPlay: true);
+                            .addQueueItem(value);
                       }
                     });
                     break;

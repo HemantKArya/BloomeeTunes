@@ -390,11 +390,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> addQueueItem(MediaItem mediaItem, {bool doPlay = true}) async {
+  Future<void> addQueueItem(
+    MediaItem mediaItem,
+  ) async {
     if (queue.value.any((e) => e.id == mediaItem.id)) return;
     queueTitle.add("Queue");
     queue.add(queue.value..add(mediaItem));
-    if (doPlay || queue.value.length == 1) {
+    if (queue.value.length == 1) {
       prepare4play(idx: queue.value.length - 1, doPlay: true);
     }
   }

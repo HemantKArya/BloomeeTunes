@@ -45,8 +45,9 @@ void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
         ExternalMediaImporter.sfyMediaImporter(sharedMediaFiles[0].path)
             .then((value) async {
           if (value != null) {
-            await bloomeePlayerCubit.bloomeePlayer
-                .addQueueItem(value, doPlay: true);
+            await bloomeePlayerCubit.bloomeePlayer.addQueueItem(
+              value,
+            );
           }
         });
         break;
@@ -63,8 +64,9 @@ void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
         ExternalMediaImporter.ytMediaImporter(sharedMediaFiles[0].path)
             .then((value) async {
           if (value != null) {
-            await bloomeePlayerCubit.bloomeePlayer
-                .addQueueItem(value, doPlay: true);
+            await bloomeePlayerCubit.bloomeePlayer.addQueueItem(
+              value,
+            );
           }
         });
         break;
