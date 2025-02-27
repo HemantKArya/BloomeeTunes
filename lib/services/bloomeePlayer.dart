@@ -40,8 +40,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   List<int> shuffleList = [];
   final _playlist = ConcatenatingAudioSource(children: []);
 
-  bool isPaused = false;
-
   // final ReceivePort receivePortYt = ReceivePort();
   // SendPort? sendPortYt;
 
@@ -125,7 +123,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     await audioPlayer.play();
-    isPaused = false;
   }
 
   Future<void> check4RelatedSongs() async {
@@ -224,8 +221,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> pause() async {
     await audioPlayer.pause();
-    isPaused = true;
-    log("paused", name: "bloomeePlayer");
   }
 
   Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
