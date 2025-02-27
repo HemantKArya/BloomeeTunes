@@ -31,6 +31,12 @@ class Default_Theme {
       surface: themeColor,
     ),
     iconTheme: const IconThemeData(color: primaryColor1),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStateProperty.all(accentColor2),
+      interactive: true,
+      radius: const Radius.circular(10),
+      thickness: WidgetStateProperty.all(5),
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: themeColor,
       // elevation: 0,
