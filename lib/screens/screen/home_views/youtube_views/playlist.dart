@@ -134,22 +134,26 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                         slivers: [
                                           SliverAppBar(
                                             actions: [
-                                              IconButton(
-                                                onPressed: () {
-                                                  Share.share(
-                                                      "${widget.title} - ${widget.subtitle} \nhttps://youtube.com/playlist?list=${widget.id.replaceAll("youtube", "")}",
-                                                      subject:
-                                                          "Youtube Playlist");
-                                                },
-                                                padding:
-                                                    const EdgeInsets.all(2),
-                                                constraints:
-                                                    const BoxConstraints(),
-                                                icon: const Icon(
-                                                  MingCute.share_forward_line,
-                                                  color: Default_Theme
-                                                      .primaryColor1,
-                                                  size: 25,
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 10.0),
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    Share.share(
+                                                        "${widget.title} - ${widget.subtitle} \nhttps://youtube.com/playlist?list=${widget.id.replaceAll("youtube", "")}",
+                                                        subject:
+                                                            "Youtube Playlist");
+                                                  },
+                                                  padding:
+                                                      const EdgeInsets.all(5),
+                                                  constraints:
+                                                      const BoxConstraints(),
+                                                  icon: const Icon(
+                                                    MingCute.share_forward_line,
+                                                    color: Default_Theme
+                                                        .primaryColor1,
+                                                    size: 25,
+                                                  ),
                                                 ),
                                               ),
                                             ],
