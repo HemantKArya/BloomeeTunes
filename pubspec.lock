@@ -101,10 +101,10 @@ packages:
     dependency: transitive
     description:
       name: bloc
-      sha256: "106842ad6569f0b60297619e9e0b1885c2fb9bf84812935490e6c5275777804e"
+      sha256: "52c10575f4445c61dd9e0cafcc6356fdd827c4c64dd7945ef3c4105f6b6ac189"
       url: "https://pub.dev"
     source: hosted
-    version: "8.1.4"
+    version: "9.0.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -450,10 +450,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_bloc
-      sha256: b594505eac31a0518bdcb4b5b79573b8d9117b193cc80cc12e17d639b10aa27a
+      sha256: "153856bdaac302bbdc58a1d1403d50c40557254aa05eaeed40515d88a25a526b"
       url: "https://pub.dev"
     source: hosted
-    version: "8.1.6"
+    version: "9.0.0"
   flutter_cache_manager:
     dependency: transitive
     description:
