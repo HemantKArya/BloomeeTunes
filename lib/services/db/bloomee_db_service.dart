@@ -37,6 +37,7 @@ class BloomeeDBService {
     Future.delayed(const Duration(seconds: 30), () async {
       await refreshRecentlyPlayed();
       await purgeUnassociatedMediaItems();
+      await limitSearchHistory();
       await deleteAllYTLinks();
     });
   }
@@ -207,10 +208,20 @@ class BloomeeDBService {
 
   static Future<void> putSearchHistory(String searchQuery) async {
     Isar isarDB = await db;
-    isarDB.writeTxnSync(() => isarDB.searchHistoryDBs.putSync(SearchHistoryDB(
-          query: searchQuery,
-          lastSearched: DateTime.now(),
-        )));
+    // check if already exist
+    SearchHistoryDB? _searchHistoryDB = isarDB.searchHistoryDBs
+        .filter()
+        .queryEqualTo(searchQuery)
+        .findFirstSync();
+    if (_searchHistoryDB != null) {
+      isarDB.writeTxn(() => isarDB.searchHistoryDBs
+          .put(_searchHistoryDB..lastSearched = DateTime.now()));
+    } else {
+      isarDB.writeTxnSync(() => isarDB.searchHistoryDBs.putSync(SearchHistoryDB(
+            query: searchQuery,
+            lastSearched: DateTime.now(),
+          )));
+    }
   }
 
   static Future<List<Map<String, String>>> getLastSearches(
@@ -250,14 +261,26 @@ class BloomeeDBService {
     return searchHistory;
   }
 
-  static Future<void> clearSearchHistory() async {
+  static Future<void> limitSearchHistory() async {
+    // limit search history to 100 items
     Isar isarDB = await db;
-    isarDB.writeTxn(() => isarDB.searchHistoryDBs.clear());
+    List<SearchHistoryDB> searchHistoryDB =
+        isarDB.searchHistoryDBs.where().sortByLastSearchedDesc().findAllSync();
+    if (searchHistoryDB.length > 100) {
+      final idsToDelete =
+          searchHistoryDB.sublist(100).map((e) => e.isarId).toList();
+      isarDB.writeTxn(() => isarDB.searchHistoryDBs.deleteAll(idsToDelete));
+    }
   }
 
   static Future<void> removeSearchHistory(String id) async {
     Isar isarDB = await db;
     isarDB.writeTxn(() => isarDB.searchHistoryDBs.delete(int.parse(id)));
+  }
+
+  static Future<void> clearAllSearchHistory() async {
+    Isar isarDB = await db;
+    isarDB.writeTxn(() => isarDB.searchHistoryDBs.clear());
   }
 
   static Future<int?> addMediaItem(
