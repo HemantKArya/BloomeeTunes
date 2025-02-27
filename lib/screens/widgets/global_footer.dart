@@ -9,37 +9,46 @@ import '../../theme_data/default.dart';
 class GlobalFooter extends StatelessWidget {
   const GlobalFooter({super.key, required this.navigationShell});
   final StatefulNavigationShell navigationShell;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ResponsiveBreakpoints.of(context).isMobile
-          ? navigationShell
-          : Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: VerticalNavBar(navigationShell: navigationShell),
-                ),
-                Expanded(child: navigationShell),
-              ],
+    return PopScope(
+      canPop: navigationShell.currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          navigationShell.goBranch(0);
+        }
+      },
+      child: Scaffold(
+        body: ResponsiveBreakpoints.of(context).isMobile
+            ? navigationShell
+            : Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: VerticalNavBar(navigationShell: navigationShell),
+                  ),
+                  Expanded(child: navigationShell),
+                ],
+              ),
+        backgroundColor: Default_Theme.themeColor,
+        drawerScrimColor: Default_Theme.themeColor,
+        bottomNavigationBar: SafeArea(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const MiniPlayerWidget(),
+            Container(
+              color: Colors.transparent,
+              margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              child: ResponsiveBreakpoints.of(context).isMobile
+                  ? HorizontalNavBar(navigationShell: navigationShell)
+                  : const Wrap(),
             ),
-      backgroundColor: Default_Theme.themeColor,
-      drawerScrimColor: Default_Theme.themeColor,
-      bottomNavigationBar: SafeArea(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const MiniPlayerWidget(),
-          Container(
-            color: Colors.transparent,
-            margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-            child: ResponsiveBreakpoints.of(context).isMobile
-                ? HorizontalNavBar(navigationShell: navigationShell)
-                : const Wrap(),
-          ),
-        ],
-      )),
+          ],
+        )),
+      ),
     );
   }
 }
