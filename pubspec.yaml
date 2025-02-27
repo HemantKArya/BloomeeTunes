@@ -33,7 +33,7 @@ dependencies:
   audio_service: ^0.18.16
   audio_session: ^0.1.16
   rxdart: ^0.27.7
-  go_router: ^10.1.0
+  go_router: ^14.8.1
   extended_image: ^8.1.0
   easy_debounce: ^2.0.3
 
