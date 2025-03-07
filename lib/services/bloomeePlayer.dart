@@ -16,6 +16,8 @@ import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import '../model/MediaPlaylistModel.dart';
+import 'package:Bloomee/main.dart';
+import 'package:Bloomee/services/discord_service.dart';
 
 List<int> generateRandomIndices(int length) {
   List<int> indices = List<int>.generate(length, (i) => i);
@@ -126,6 +128,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> play() async {
     await audioPlayer.play();
     isPaused = false;
+    if (currentMedia != mediaItemModelNull) {
+      DiscordService.updatePresence(
+        title: currentMedia.title,
+        artist: currentMedia.artist ?? 'Unknown Artist',
+        isPlaying: true,
+      );
+    }
   }
 
   Future<void> check4RelatedSongs() async {
@@ -225,6 +234,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> pause() async {
     await audioPlayer.pause();
     isPaused = true;
+    if (currentMedia != mediaItemModelNull) {
+    DiscordService.updatePresence(
+      title: currentMedia.title,
+      artist: currentMedia.artist ?? 'Unknown Artist',
+      isPlaying: false,
+    );
+  }
     log("paused", name: "bloomeePlayer");
   }
 
@@ -343,6 +359,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> stop() async {
     // log("Called Stop!!");
     audioPlayer.stop();
+    DiscordService.clearPresence();
     super.stop();
   }
 
@@ -363,6 +380,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onTaskRemoved() {
+    DiscordService.clearPresence();  
     super.stop();
     audioPlayer.dispose();
     return super.onTaskRemoved();
@@ -370,8 +388,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onNotificationDeleted() {
-    audioPlayer.dispose();
+    DiscordService.clearPresence(); 
     audioPlayer.stop();
+    audioPlayer.dispose(); 
     super.stop();
     return super.onNotificationDeleted();
   }
