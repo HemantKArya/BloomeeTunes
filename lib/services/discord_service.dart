@@ -53,12 +53,14 @@ class DiscordService {
 
   /// Clears Discord presence
   static void clearPresence() {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     try {
       _discordRPC?.clearPresence();
       print(" Cleared Discord Presence");
     } catch (e) {
       print(" Failed to clear Discord RPC: $e");
     }
+  }
   }
 }
 
