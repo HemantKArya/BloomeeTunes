@@ -83,9 +83,4 @@ final List<ChartInfo> chartInfoList = [
       imgUrl: billboardRandomIMGs.getImage(),
       title: BillboardCharts.JAPAN_HOT_100.title,
       url: BillboardCharts.JAPAN_HOT_100),
-  ChartInfo(
-      chartFunction: getBillboardChart,
-      imgUrl: billboardRandomIMGs.getImage(),
-      title: BillboardCharts.TIK_TOK_BILLBOARD_TOP_50.title,
-      url: BillboardCharts.TIK_TOK_BILLBOARD_TOP_50),
 ];
