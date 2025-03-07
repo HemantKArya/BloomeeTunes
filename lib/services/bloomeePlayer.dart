@@ -125,7 +125,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     await audioPlayer.play();
-    isPaused = false;
     if (currentMedia != mediaItemModelNull) {
       DiscordService.updatePresence(
         title: currentMedia.title,
@@ -231,7 +230,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> pause() async {
     await audioPlayer.pause();
-    isPaused = true;
     if (currentMedia != mediaItemModelNull) {
       DiscordService.updatePresence(
         title: currentMedia.title,
