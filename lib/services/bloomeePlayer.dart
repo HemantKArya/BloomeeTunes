@@ -16,7 +16,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import '../model/MediaPlaylistModel.dart';
-import 'package:Bloomee/main.dart';
 import 'package:Bloomee/services/discord_service.dart';
 
 List<int> generateRandomIndices(int length) {
@@ -125,13 +124,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     await audioPlayer.play();
-    if (currentMedia != mediaItemModelNull) {
-      DiscordService.updatePresence(
-        title: currentMedia.title,
-        artist: currentMedia.artist ?? 'Unknown Artist',
-        isPlaying: true,
-      );
-    }
+
+    DiscordService.updatePresence(
+      mediaItem: currentMedia,
+      isPlaying: true,
+    );
   }
 
   Future<void> check4RelatedSongs() async {
@@ -230,13 +227,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> pause() async {
     await audioPlayer.pause();
-    if (currentMedia != mediaItemModelNull) {
-      DiscordService.updatePresence(
-        title: currentMedia.title,
-        artist: currentMedia.artist ?? 'Unknown Artist',
-        isPlaying: false,
-      );
-    }
+    DiscordService.updatePresence(
+      mediaItem: currentMedia,
+      isPlaying: false,
+    );
     log("paused", name: "bloomeePlayer");
   }
 
