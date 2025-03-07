@@ -17,9 +17,8 @@ void main() {
     expect(bb.chartItems!.isNotEmpty, true);
   });
 
-  test("Billboard Charts TikTok Billboard Top 50", () async {
-    final bb =
-        await getBillboardChart(BillboardCharts.TIK_TOK_BILLBOARD_TOP_50);
+  test("Billboard Charts Billboard 200", () async {
+    final bb = await getBillboardChart(BillboardCharts.BILLBOARD_200);
     expect(bb.chartItems != null, true);
     expect(bb.chartItems!.isNotEmpty, true);
   });
