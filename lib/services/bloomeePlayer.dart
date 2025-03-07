@@ -359,9 +359,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> stop() async {
     // log("Called Stop!!");
     audioPlayer.stop();
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     DiscordService.clearPresence();
-  }
     super.stop();
   }
 
@@ -382,11 +380,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onTaskRemoved() {
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    audioPlayer.dispose();
     DiscordService.clearPresence();  
-    return super.onTaskRemoved();
-  }
     super.stop();
     audioPlayer.dispose();
     return super.onTaskRemoved();
@@ -394,14 +388,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onNotificationDeleted() {
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    audioPlayer.dispose();
-    DiscordService.clearPresence();  
-    return super.onTaskRemoved();
-  }
-  
-    audioPlayer.dispose();
+    DiscordService.clearPresence(); 
     audioPlayer.stop();
+    audioPlayer.dispose(); 
     super.stop();
     return super.onNotificationDeleted();
   }
