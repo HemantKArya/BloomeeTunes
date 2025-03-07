@@ -19,8 +19,6 @@ class BillboardChartLinks {
   static const String HOT_100 = 'https://www.billboard.com/charts/hot-100/';
   static const String BILLBOARD_200 =
       'https://www.billboard.com/charts/billboard-200/';
-  static const String TIK_TOK_BILLBOARD_TOP_50 =
-      'https://www.billboard.com/charts/tiktok-billboard-top-50/';
   static const String SOCIAL_50 = 'https://www.billboard.com/charts/social-50/';
   static const String STREAMING_SONGS =
       'https://www.billboard.com/charts/streaming-songs/';
@@ -61,9 +59,6 @@ class BillboardCharts {
       ChartURL(title: "Billboard\nHot 100", url: BillboardChartLinks.HOT_100);
   static final ChartURL BILLBOARD_200 =
       ChartURL(title: "Billboard\n200", url: BillboardChartLinks.BILLBOARD_200);
-  static final ChartURL TIK_TOK_BILLBOARD_TOP_50 = ChartURL(
-      title: "Billboard\nTikTok Top 50",
-      url: BillboardChartLinks.TIK_TOK_BILLBOARD_TOP_50);
   static final ChartURL SOCIAL_50 = ChartURL(
       title: "Billboard\nSocial 50", url: BillboardChartLinks.SOCIAL_50);
   static final ChartURL STREAMING_SONGS = ChartURL(
