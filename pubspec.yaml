@@ -67,12 +67,17 @@ dependencies:
   responsive_framework: ^1.4.0
   scrollable_positioned_list: ^0.3.8
   crypto: ^3.0.5
+  dart_discord_rpc: ^0.0.2
+
   # linux plugins
   just_audio_media_kit: ^2.0.6
   media_kit_libs_linux: any
   media_kit_libs_windows_audio: any
   audio_service_mpris: ^0.2.0
   # mime: ^1.0.5
+
+dependency_overrides:
+  ffi: ^1.1.2  # Override to make dart_discord_rpc work
 
 
 dev_dependencies:

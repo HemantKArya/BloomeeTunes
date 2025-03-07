@@ -37,6 +37,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:Bloomee/services/discord_service.dart';
 
 void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
   if (isUrl(sharedMediaFiles[0].path)) {
@@ -128,6 +129,7 @@ Future<void> main() async {
   setHighRefreshRate();
   MetadataGod.initialize();
   setupPlayerCubit();
+  DiscordService.initialize();
   runApp(const MyApp());
 }
 
@@ -179,6 +181,9 @@ class _MyAppState extends State<MyApp> {
     _intentSub.cancel();
     bloomeePlayerCubit.bloomeePlayer.audioPlayer.dispose();
     bloomeePlayerCubit.close();
+    if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
+      DiscordService.clearPresence();
+    }
     super.dispose();
   }
 
