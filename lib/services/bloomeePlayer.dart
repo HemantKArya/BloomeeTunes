@@ -115,6 +115,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       speed: audioPlayer.speed,
       // playing: audioPlayer.playerState.playing,
     ));
+
+    DiscordService.updatePresence(
+      mediaItem: currentMedia,
+      isPlaying: isPlaying,
+    );
   }
 
   MediaItemModel get currentMedia => queue.value.isNotEmpty
@@ -124,11 +129,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     await audioPlayer.play();
-
-    DiscordService.updatePresence(
-      mediaItem: currentMedia,
-      isPlaying: true,
-    );
   }
 
   Future<void> check4RelatedSongs() async {
@@ -227,10 +227,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> pause() async {
     await audioPlayer.pause();
-    DiscordService.updatePresence(
-      mediaItem: currentMedia,
-      isPlaying: false,
-    );
     log("paused", name: "bloomeePlayer");
   }
 
