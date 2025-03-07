@@ -193,6 +193,7 @@ Future<ChartModel> getBillboardChart(ChartURL url) async {
     //       name: "Billboard");
     //   return chart;
     // }
+    log('Error while getting data from:${url.url}', name: "Billboard");
     throw Exception("Error: $e");
   }
 }
