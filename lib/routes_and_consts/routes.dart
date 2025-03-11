@@ -48,14 +48,6 @@ class GlobalRoutes {
         },
       ),
       GoRoute(
-        name: GlobalStrConsts.playlistView,
-        // parentNavigatorKey: globalRouterKey,
-        path: '/PlaylistView',
-        builder: (context, state) {
-          return const PlaylistView();
-        },
-      ),
-      GoRoute(
         path: '/AddToPlaylist',
         parentNavigatorKey: globalRouterKey,
         name: GlobalStrConsts.addToPlaylistScreen,
@@ -93,16 +85,21 @@ class GlobalRoutes {
                   builder: (context, state) => const LibraryScreen(),
                   routes: [
                     GoRoute(
-                      path: "ImportMediaFromPlatforms",
+                      path: GlobalStrConsts.ImportMediaFromPlatforms,
                       name: GlobalStrConsts.ImportMediaFromPlatforms,
                       builder: (context, state) =>
                           const ImportMediaFromPlatformsView(),
-                    )
+                    ),
+                    GoRoute(
+                      name: GlobalStrConsts.playlistView,
+                      path: GlobalStrConsts.playlistView,
+                      builder: (context, state) {
+                        return const PlaylistView();
+                      },
+                    ),
                   ]),
             ]),
             StatefulShellBranch(routes: [
-              // create stateful shell branch for search screen
-
               GoRoute(
                 name: GlobalStrConsts.searchScreen,
                 path: '/Search',
