@@ -247,8 +247,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         quality = quality ?? "high";
         quality = quality.toLowerCase();
         final id = mediaItem.id.replaceAll("youtube", '');
-        return YouTubeAudioSource(
-            videoId: id, quality: quality, tag: mediaItem);
+        final autoSource = AutoYouTubeAudioSource(
+            videoId: id, quality: quality, mediaItem: mediaItem);
+        return autoSource.getAudioSource();
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
       log('Playing: $kurl', name: "bloomeePlayer");
