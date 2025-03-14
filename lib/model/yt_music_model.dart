@@ -51,3 +51,27 @@ List<MediaItemModel> fromYtSongMapList2MediaItemList(List<dynamic> songList) {
       .toList();
   return mediaList;
 }
+
+MediaItemModel ytmMap2MediaItem(Map song) {
+  return MediaItemModel(
+      id: song["videoId"],
+      title: song["title"],
+      album: song["album"],
+      artist: song["artists"],
+      artUri: Uri.parse(song["thumbnail"]),
+      genre: song["type"],
+      duration: Duration(seconds: int.parse(song["duration"])),
+      extras: {
+        "url": song["perma_url"],
+        "source": "youtube",
+        "perma_url": song["perma_url"],
+        "subtitle": song["subtitle"],
+        "artists_map": song["artists_map"]
+      });
+}
+
+List<MediaItemModel> ytmMapList2MediaItemList(List songList) {
+  List<MediaItemModel> mediaList = [];
+  mediaList = songList.map((e) => ytmMap2MediaItem(e)).toList();
+  return mediaList;
+}

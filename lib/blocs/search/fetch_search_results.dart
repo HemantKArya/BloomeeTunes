@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 import 'package:Bloomee/model/playlist_onl_model.dart';
+import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/model/album_onl_model.dart';
@@ -12,7 +13,6 @@ import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
-import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
 
 enum LoadingState { initial, loading, loaded, noInternet }
 
@@ -136,7 +136,9 @@ final class FetchSearchResultsLoaded extends FetchSearchResultsState {
 //------------------------------------------------------------------------
 
 class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
-  FetchSearchResultsCubit() : super(FetchSearchResultsInitial());
+  FetchSearchResultsCubit() : super(FetchSearchResultsInitial()) {
+    YTMusic();
+  }
 
   LastSearch last_YTM_search =
       LastSearch(query: "", sourceEngine: SourceEngine.eng_YTM);
@@ -170,24 +172,42 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
     emit(FetchSearchResultsLoading(resultType: resultType));
     switch (resultType) {
       case ResultTypes.songs:
-        final searchResults =
-            await YtMusicService().search(query, filter: "songs");
-        last_YTM_search.mediaItemList =
-            fromYtSongMapList2MediaItemList(searchResults[0]['items']);
-        emit(state.copyWith(
-          mediaItems: List<MediaItemModel>.from(last_YTM_search.mediaItemList),
-          loadingState: LoadingState.loaded,
-          hasReachedMax: true,
-          resultType: ResultTypes.songs,
-          sourceEngine: SourceEngine.eng_YTM,
-        ));
+        final searchResults = await YTMusic().searchYtm(query, type: "songs");
+        if (searchResults == null) {
+          emit(state.copyWith(
+            mediaItems: [],
+            loadingState: LoadingState.loaded,
+            hasReachedMax: true,
+            resultType: ResultTypes.songs,
+            sourceEngine: SourceEngine.eng_YTM,
+          ));
+          return;
+        } else {
+          last_YTM_search.mediaItemList =
+              ytmMapList2MediaItemList(searchResults['songs']);
+          emit(state.copyWith(
+            mediaItems:
+                List<MediaItemModel>.from(last_YTM_search.mediaItemList),
+            loadingState: LoadingState.loaded,
+            hasReachedMax: true,
+            resultType: ResultTypes.songs,
+            sourceEngine: SourceEngine.eng_YTM,
+          ));
+        }
         break;
       case ResultTypes.playlists:
-        final res =
-            await YtMusicService().search(query, filter: "featured_playlists");
-        final playlist = ytmMap2Playlists({
-          'playlists': res.isNotEmpty ? res[0]['items'] : [],
-        });
+        final res = await YTMusic().searchYtm(query, type: "playlists");
+        if (res == null) {
+          emit(state.copyWith(
+            playlistItems: [],
+            loadingState: LoadingState.loaded,
+            hasReachedMax: true,
+            resultType: ResultTypes.playlists,
+            sourceEngine: SourceEngine.eng_YTM,
+          ));
+          return;
+        }
+        final playlist = ytmMap2Playlists(res['playlists']);
         emit(state.copyWith(
           playlistItems: List<PlaylistOnlModel>.from(playlist),
           loadingState: LoadingState.loaded,
@@ -198,10 +218,18 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
         log("Got results: ${playlist.length}", name: "FetchSearchRes");
         break;
       case ResultTypes.albums:
-        final res = await YtMusicService().search(query, filter: "albums");
-        final albums = ytmMap2Albums({
-          'albums': res.isNotEmpty ? res[0]['items'] : [],
-        });
+        final res = await YTMusic().searchYtm(query, type: "albums");
+        if (res == null) {
+          emit(state.copyWith(
+            albumItems: [],
+            loadingState: LoadingState.loaded,
+            hasReachedMax: true,
+            resultType: ResultTypes.albums,
+            sourceEngine: SourceEngine.eng_YTM,
+          ));
+          return;
+        }
+        final albums = ytmMap2Albums(res['albums']);
         emit(state.copyWith(
           albumItems: List<AlbumModel>.from(albums),
           loadingState: LoadingState.loaded,
@@ -212,10 +240,18 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
         log("Got results: ${albums.length}", name: "FetchSearchRes");
         break;
       case ResultTypes.artists:
-        final res = await YtMusicService().search(query, filter: "artists");
-        final artists = ytmMap2Artists({
-          'artists': res.isNotEmpty ? res[0]['items'] : [],
-        });
+        final res = await YTMusic().searchYtm(query, type: "artists");
+        if (res == null) {
+          emit(state.copyWith(
+            artistItems: [],
+            loadingState: LoadingState.loaded,
+            hasReachedMax: true,
+            resultType: ResultTypes.artists,
+            sourceEngine: SourceEngine.eng_YTM,
+          ));
+          return;
+        }
+        final artists = ytmMap2Artists(res['artists']);
         emit(state.copyWith(
           artistItems: List<ArtistModel>.from(artists),
           loadingState: LoadingState.loaded,

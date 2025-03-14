@@ -4,7 +4,7 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
@@ -36,22 +36,24 @@ class AlbumCubit extends Cubit<AlbumState> {
         );
         break;
       case SourceEngine.eng_YTM:
-        YtMusicService()
-            .getAlbumDetails(album.sourceId.replaceAll("youtube", ''))
-            .then(
+        YTMusic().getAlbumFull(album.sourceId.replaceAll("youtube", '')).then(
           (value) {
-            final List<MediaItemModel> songs =
-                fromYtSongMapList2MediaItemList(value['songs']);
-            emit(
-              AlbumLoaded(
-                album: album.copyWith(
-                  songs: List<MediaItemModel>.from(songs),
-                  artists: value['artist'] ?? album.artists,
-                  description: value['subtitle'] ?? album.description,
+            if (value != null) {
+              final List<MediaItemModel> songs =
+                  ytmMapList2MediaItemList(value['songs']);
+              emit(
+                AlbumLoaded(
+                  album: album.copyWith(
+                    songs: List<MediaItemModel>.from(songs),
+                    artists: value['artists'] ?? album.artists,
+                    description: value['subtitle'] ?? album.description,
+                  ),
+                  isSavedToCollections: state.isSavedToCollections,
                 ),
-                isSavedToCollections: state.isSavedToCollections,
-              ),
-            );
+              );
+            } else {
+              // pass;
+            }
           },
         );
       case SourceEngine.eng_YTV:

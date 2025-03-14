@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/model/artist_onl_model.dart';
 import 'package:Bloomee/model/saavnModel.dart';
@@ -6,7 +5,7 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
@@ -41,37 +40,25 @@ class ArtistCubit extends Cubit<ArtistState> {
         });
         break;
       case SourceEngine.eng_YTM:
-        YtMusicService().getArtistDetails(artist.sourceId).then((value) {
-          log(value['songBrowseId'].toString());
+        YTMusic().getArtistFull(artist.sourceId).then((value) {
           List<AlbumModel> albums = [];
-          if (value['albums'] != null) {
-            albums = ytmMap2Albums({
-              'albums': value['albums'],
-            });
-          }
-          if (value['songBrowseId'] != null) {
-            log('inside more');
-            YtMusicService()
-                .getPlaylist(
-                    value['songBrowseId'].toString().replaceAll('VL', ''))
-                .then((v2) {
-              final songsFull = fromYtSongMapList2MediaItemList(v2['songs']);
-              emit(
-                ArtistLoaded(
-                  artist: artist.copyWith(
-                    songs: List<MediaItemModel>.from(songsFull),
-                    albums: List<AlbumModel>.from(albums),
-                  ),
-                  isSavedCollection: state.isSavedCollection,
-                ),
-              );
-            });
-          } else {
-            final songs = fromYtSongMapList2MediaItemList(value['songs']);
+          if (value != null && value['albums'] != null) {
+            albums = ytmMap2Albums(value['albums']);
             emit(
               ArtistLoaded(
                 artist: artist.copyWith(
-                  songs: List<MediaItemModel>.from(songs),
+                  albums: List<AlbumModel>.from(albums),
+                ),
+                isSavedCollection: state.isSavedCollection,
+              ),
+            );
+          }
+          if (value != null && value['songs'] != null) {
+            final songsFull = ytmMapList2MediaItemList(value['songs']);
+            emit(
+              ArtistLoaded(
+                artist: artist.copyWith(
+                  songs: List<MediaItemModel>.from(songsFull),
                   albums: List<AlbumModel>.from(albums),
                 ),
                 isSavedCollection: state.isSavedCollection,

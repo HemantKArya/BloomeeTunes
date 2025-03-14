@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -149,13 +149,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           log("Related Songs: ${songs['total']}");
         }
       } else if (currentMedia.extras?["source"].contains("youtube") ?? false) {
-        final songs = await compute(YtMusicService().getRelated,
-            currentMedia.id.replaceAll('youtube', ''));
-        if (songs['total'] > 0) {
-          final List<MediaItem> temp =
-              fromYtSongMapList2MediaItemList(songs['songs']);
+        final songs = await YTMusic()
+            .getRelatedSongs(currentMedia.id.replaceAll('youtube', ''));
+        if (songs.isNotEmpty) {
+          final List<MediaItem> temp = ytmMapList2MediaItemList(songs);
           relatedSongs.add(temp.sublist(1));
-          log("Related Songs: ${songs['total']}");
+          log("Related Songs: ${songs.length}");
         }
       }
     }

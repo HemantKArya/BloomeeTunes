@@ -8,7 +8,7 @@ class AlbumModel {
   String source;
   String sourceId;
   String artists;
-  String year;
+  String? year;
   String? genre;
   String? country;
   String sourceURL;
@@ -23,7 +23,7 @@ class AlbumModel {
     required this.source,
     required this.sourceId,
     required this.artists,
-    required this.year,
+    this.year,
     required this.sourceURL,
     this.genre,
     this.country,
@@ -110,25 +110,22 @@ List<AlbumModel> saavnMap2Albums(Map<String, dynamic> json) {
   return albums;
 }
 
-List<AlbumModel> ytmMap2Albums(Map<String, dynamic> json) {
+List<AlbumModel> ytmMap2Albums(List<Map> items) {
   List<AlbumModel> albums = [];
-  if (json['albums'] != null) {
-    json['albums'].forEach((album) {
+  for (var item in items) {
+    try {
       albums.add(AlbumModel(
-          name: album['title'],
-          imageURL: album['image'],
-          source: 'ytm',
-          sourceId: album['id'],
-          artists: album['artists']?.map((e) => e['name']).join(', ') ??
-              album['artist'],
-          year: album['year'],
-          sourceURL:
-              'https://music.youtube.com/browse/${album['id'].toString().replaceAll('youtube', '').replaceAll('VL', '')}',
-          description: album['subtitle'],
-          extra: {
-            'token': album['id'],
-          }));
-    });
+        name: item['title'],
+        imageURL: item['thumbnail'],
+        source: 'youtube',
+        sourceId: item['browseId'],
+        artists: item['artists'],
+        sourceURL: item['perma_url'],
+        description: item['subtitle'],
+      ));
+    } catch (e) {
+      print(e);
+    }
   }
   return albums;
 }

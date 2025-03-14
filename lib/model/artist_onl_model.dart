@@ -97,23 +97,17 @@ List<ArtistModel> saavnMap2Artists(Map<String, dynamic> json) {
   return artists;
 }
 
-List<ArtistModel> ytmMap2Artists(Map<String, dynamic> json) {
+List<ArtistModel> ytmMap2Artists(List<Map> items) {
   List<ArtistModel> artists = [];
-  if (json['artists'] != null) {
-    json['artists'].forEach((artist) {
-      artists.add(ArtistModel(
-          name: artist['title'],
-          imageUrl: artist['image'],
-          source: 'ytm',
-          sourceId: artist['id'].toString().replaceAll('youtube', ''),
-          sourceURL:
-              'https://music.youtube.com/channel/${artist['id'].toString().replaceAll('youtube', '')}',
-          description: artist['subtitle'],
-          extra: {
-            'songBrowseId': artist['songBrowseId'],
-            'songBrowseParams': artist['songBrowseParams'],
-          }));
-    });
+  for (var artist in items) {
+    artists.add(ArtistModel(
+      name: artist['title'],
+      imageUrl: artist['thumbnail'],
+      source: 'ytm',
+      sourceId: artist['browseId'],
+      sourceURL: artist['perma_url'],
+      description: artist['subtitle'],
+    ));
   }
   return artists;
 }

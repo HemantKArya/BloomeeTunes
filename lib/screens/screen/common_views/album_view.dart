@@ -48,7 +48,7 @@ class _AlbumViewState extends State<AlbumView> {
                   expandedHeight:
                       ResponsiveBreakpoints.of(context).isMobile ? 220 : 250,
                   flexibleSpace: LayoutBuilder(builder: (context, constraints) {
-                    String subtitle = widget.album.year;
+                    String subtitle = widget.album.description ?? "";
                     if (widget.album.genre != null &&
                         widget.album.genre != "Unknown") {
                       subtitle += ' - ${widget.album.genre!}';

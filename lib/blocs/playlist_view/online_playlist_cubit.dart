@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -6,7 +8,7 @@ import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
-import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
@@ -56,17 +58,19 @@ class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
         });
         break;
       case SourceEngine.eng_YTM:
-        YtMusicService()
-            .getPlaylist(playlist.sourceId.replaceAll("youtubeVL", ""))
+        YTMusic()
+            .getPlaylistFull(playlist.sourceId.replaceAll("youtubeVL", ""))
             .then(
           (value) {
-            final songs = fromYtSongMapList2MediaItemList(value['songs']);
-            emit(OnlPlaylistLoaded(
-              playlist: playlist.copyWith(
-                songs: List<MediaItemModel>.from(songs),
-              ),
-              isSavedCollection: state.isSavedCollection,
-            ));
+            if (value != null && value['songs'] != null) {
+              final songs = ytmMapList2MediaItemList(value['songs']);
+              emit(OnlPlaylistLoaded(
+                playlist: playlist.copyWith(
+                  songs: List<MediaItemModel>.from(songs),
+                ),
+                isSavedCollection: state.isSavedCollection,
+              ));
+            }
           },
         );
         break;

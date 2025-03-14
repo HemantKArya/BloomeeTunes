@@ -97,21 +97,17 @@ List<PlaylistOnlModel> saavnMap2Playlists(Map<String, dynamic> json) {
   return playlists;
 }
 
-List<PlaylistOnlModel> ytmMap2Playlists(Map<String, dynamic> json) {
+List<PlaylistOnlModel> ytmMap2Playlists(List<Map> items) {
   List<PlaylistOnlModel> playlists = [];
-  if (json['playlists'] != null) {
-    json['playlists'].forEach((playlist) {
-      playlists.add(PlaylistOnlModel(
-        name: playlist['title'],
-        imageURL: playlist['image'],
-        sourceURL:
-            'https://music.youtube.com/playlist?list=${(playlist['id'].toString().replaceAll('youtube', '').replaceFirst('VL', ''))}',
-        description: playlist['subtitle'],
-        artists: (playlist['artists'] as List).map((e) => e['name']).join(', '),
-        source: 'ytm',
-        sourceId: playlist['id'],
-      ));
-    });
+  for (var playlist in items) {
+    playlists.add(PlaylistOnlModel(
+      source: "youtube",
+      sourceId: playlist['playlistId'],
+      name: playlist['title'],
+      imageURL: playlist['thumbnail'],
+      sourceURL: playlist['perma_url'],
+      artists: playlist['subtitle'],
+    ));
   }
   return playlists;
 }

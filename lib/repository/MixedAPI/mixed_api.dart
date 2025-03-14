@@ -3,7 +3,7 @@ import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
 import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/yt_music_api.dart';
+import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart' as fw;
 import 'package:fuzzywuzzy/ratios/partial_ratio.dart';
 import 'package:fuzzywuzzy/ratios/simple_ratio.dart';
@@ -19,9 +19,10 @@ class MixedAPI {
 
   Future<MediaItemModel?> getYtTrackByMeta(String songName,
       {useStringMatcher = true}) async {
-    final ytItems = await YtMusicService().search(songName, filter: "songs");
+    final ytItems = await YTMusic().searchYtm(songName, type: "songs");
+    if (ytItems == null) return null;
     List<MediaItemModel> mediaItems =
-        fromYtSongMapList2MediaItemList(ytItems[0]['items'] as List);
+        ytmMapList2MediaItemList(ytItems['songs'] as List);
     if (mediaItems.length == 1) {
       return mediaItems[0];
     }
@@ -79,14 +80,15 @@ class MixedAPI {
   }
 
   Future<MediaItemModel?> getTrackMixed(String songName) async {
-    final ytItems = await YtMusicService().search(songName, filter: "songs");
+    final ytItems = await YTMusic().searchYtm(songName, type: "songs");
     // log(ytItems.toString());
     final jsItems = await SaavnAPI()
         .fetchSongSearchResults(searchQuery: songName, count: 2);
     String? ytTitle;
     String? jsTitle;
 
-    if (ytItems.isEmpty &&
+    if (ytItems == null &&
+        ytItems?['songs'].isEmpty &&
         (jsItems.isEmpty || jsItems['songs'].toList().isEmpty)) {
       log("No results found!", name: "MixedAPI");
       return null;
@@ -95,7 +97,7 @@ class MixedAPI {
     var jsItem;
     var ytItem;
     int idx = 0;
-    if (ytItems.isNotEmpty) {
+    if (ytItems != null && ytItems["songs"].isNotEmpty) {
       ytItem = ytItems[0]["items"][0];
 
       ytTitle = "${ytItem!['title']} ${ytItem['artist']}";
