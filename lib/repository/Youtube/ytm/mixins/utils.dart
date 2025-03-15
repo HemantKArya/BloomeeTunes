@@ -462,6 +462,28 @@ Map<String, dynamic> handleMusicResponsiveListItemRenderer(Map item,
   if (itemresult['duration'] == null && dur != null) {
     itemresult['duration'] = getDuration(dur).toString();
   }
+  if (itemresult['artists'] == null &&
+      nav(flexColumns[1], [
+            'musicResponsiveListItemFlexColumnRenderer',
+            'text',
+            'runs',
+            0,
+            'text'
+          ]) !=
+          null) {
+    itemresult['artists'] = [
+      {
+        'name': nav(flexColumns[1], [
+          'musicResponsiveListItemFlexColumnRenderer',
+          'text',
+          'runs',
+          0,
+          'text'
+        ]),
+        'endpoint': "Unknown"
+      }
+    ];
+  }
   return itemresult;
 }
 
