@@ -336,8 +336,6 @@ class _ArtistViewState extends State<ArtistView> {
                                       padding: const EdgeInsets.only(
                                         left: 8,
                                         right: 8,
-                                        top: 2,
-                                        bottom: 2,
                                       ),
                                       child: ListTile(
                                         onTap: () {
@@ -369,20 +367,22 @@ class _ArtistViewState extends State<ArtistView> {
                                               fontSize: 14,
                                               overflow: TextOverflow.ellipsis,
                                               color: Default_Theme.primaryColor1
-                                                  .withOpacity(0.8),
+                                                  .withOpacity(0.9),
                                             ),
                                           ),
                                         ),
                                         subtitle: Text(
-                                          state.artist.albums[index].artists,
+                                          state.artist.albums[index]
+                                                  .description ??
+                                              "",
                                           maxLines: 1,
                                           style: Default_Theme
-                                              .secondoryTextStyle
+                                              .secondoryTextStyleMedium
                                               .merge(
                                             TextStyle(
                                               fontSize: 12,
                                               color: Default_Theme.primaryColor1
-                                                  .withOpacity(0.5),
+                                                  .withOpacity(0.6),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),

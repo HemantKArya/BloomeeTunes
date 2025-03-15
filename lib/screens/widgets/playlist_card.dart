@@ -57,40 +57,45 @@ class PlaylistCard extends StatelessWidget {
                       onExit: (event) {
                         setHovering(false);
                       },
-                      child: Stack(
-                        children: [
-                          LoadImageCached(
-                            imageUrl: formatImgURL(
-                                playlist.imageURL, ImageQuality.medium),
-                            fit: BoxFit.fitWidth,
-                          ),
-                          ValueListenableBuilder(
-                            valueListenable: hovering,
-                            builder: (context, child, value) {
-                              return Positioned.fill(
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  color: hovering.value
-                                      ? Colors.black.withOpacity(0.5)
-                                      : Colors.transparent,
-                                  child: Center(
-                                    child: AnimatedOpacity(
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      opacity: hovering.value ? 1 : 0,
-                                      child: const Icon(
-                                        MingCute.play_circle_line,
-                                        color: Colors.white,
-                                        size: 50,
+                      child: LayoutBuilder(builder: (context, constraints2) {
+                        return Stack(
+                          children: [
+                            SizedBox.square(
+                              dimension: constraints2.maxWidth,
+                              child: LoadImageCached(
+                                imageUrl: formatImgURL(
+                                    playlist.imageURL, ImageQuality.medium),
+                                fit: BoxFit.fitWidth,
+                              ),
+                            ),
+                            ValueListenableBuilder(
+                              valueListenable: hovering,
+                              builder: (context, child, value) {
+                                return Positioned.fill(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    color: hovering.value
+                                        ? Colors.black.withOpacity(0.5)
+                                        : Colors.transparent,
+                                    child: Center(
+                                      child: AnimatedOpacity(
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        opacity: hovering.value ? 1 : 0,
+                                        child: const Icon(
+                                          MingCute.play_circle_line,
+                                          color: Colors.white,
+                                          size: 50,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      }),
                     ),
                   ),
                   Padding(
