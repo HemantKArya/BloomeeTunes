@@ -66,12 +66,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     // Trigger skipToNext when the current song ends.
     final endingOffset =
-        Platform.isWindows ? 200 : (Platform.isLinux ? 700 : 0);
+        Platform.isWindows ? 200 : (Platform.isLinux ? 700 : 200);
     audioPlayer.positionStream.listen((event) {
-      if (audioPlayer.duration != null &&
-          audioPlayer.duration?.inSeconds != 0 &&
-          event.inMilliseconds >
-              audioPlayer.duration!.inMilliseconds - endingOffset &&
+      //check if the current queue is empty and if it is, add related songs
+      EasyThrottle.throttle('loadRelatedSongs', const Duration(seconds: 5),
+          () async => check4RelatedSongs());
+      if (((audioPlayer.duration != null &&
+              audioPlayer.duration?.inSeconds != 0 &&
+              event.inMilliseconds >
+                  audioPlayer.duration!.inMilliseconds - endingOffset)) &&
           loopMode.value != LoopMode.one) {
         EasyThrottle.throttle('skipNext', const Duration(milliseconds: 2000),
             () async => await skipToNext());
@@ -113,7 +116,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       playing: isPlaying,
       bufferedPosition: audioPlayer.bufferedPosition,
       speed: audioPlayer.speed,
-      // playing: audioPlayer.playerState.playing,
     ));
 
     DiscordService.updatePresence(
