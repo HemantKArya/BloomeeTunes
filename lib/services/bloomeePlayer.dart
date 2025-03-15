@@ -299,10 +299,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
-    final t1 = DateTime.now().millisecondsSinceEpoch;
     final audioSource = await getAudioSource(mediaItem);
-    final t2 = DateTime.now().millisecondsSinceEpoch;
-    log("Time taken to get audio source: ${t2 - t1}ms", name: "bloomeePlayer");
     await playAudioSource(audioSource: audioSource, mediaId: mediaItem.id);
     await check4RelatedSongs();
   }
