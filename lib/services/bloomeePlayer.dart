@@ -247,9 +247,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         quality = quality ?? "high";
         quality = quality.toLowerCase();
         final id = mediaItem.id.replaceAll("youtube", '');
-        final autoSource = AutoYouTubeAudioSource(
-            videoId: id, quality: quality, mediaItem: mediaItem);
-        return autoSource.getAudioSource();
+        return YouTubeAudioSource(
+            videoId: id, quality: quality, tag: mediaItem);
       }
       String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
       log('Playing: $kurl', name: "bloomeePlayer");
@@ -298,7 +297,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
+    final t1 = DateTime.now().millisecondsSinceEpoch;
     final audioSource = await getAudioSource(mediaItem);
+    final t2 = DateTime.now().millisecondsSinceEpoch;
+    log("Time taken to get audio source: ${t2 - t1}ms", name: "bloomeePlayer");
     await playAudioSource(audioSource: audioSource, mediaId: mediaItem.id);
     await check4RelatedSongs();
   }

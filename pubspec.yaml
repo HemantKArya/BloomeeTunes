@@ -46,7 +46,11 @@ dependencies:
 
   path_provider: ^2.1.0
   modal_bottom_sheet: ^3.0.0
-  youtube_explode_dart: ^2.3.10
+  youtube_explode_dart:
+    # path: ../youtube_explode_dart
+    git:
+      url: https://github.com/HemantKArya/youtube_explode_dart.git
+      ref: master
   html_unescape: ^2.0.0
   marquee: ^2.2.3
   string_similarity: ^2.0.0

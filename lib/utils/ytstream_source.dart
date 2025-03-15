@@ -2,59 +2,66 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
-class AutoYouTubeAudioSource {
+class YouTubeAudioSource extends StreamAudioSource {
   final String videoId;
   final String quality; // 'high' or 'low'
   final YoutubeExplode ytExplode;
-  final MediaItem mediaItem;
-  late final Future<AudioSource> audioSourceFuture;
 
-  AutoYouTubeAudioSource({
+  YouTubeAudioSource({
     required this.videoId,
     required this.quality,
-    required this.mediaItem,
-  }) : ytExplode = YoutubeExplode() {
-    audioSourceFuture = _initialize();
-  }
+    super.tag,
+  }) : ytExplode = YoutubeExplode();
 
-  Future<AudioSource> _initialize() async {
-    AudioOnlyStreamInfo? audioStream;
+  Future<AudioOnlyStreamInfo> getStreamInfo() async {
     final cachedStreams = await getStreamFromCache(videoId);
-    // Get the manifest for the video.
-    if (cachedStreams == null) {
-      StreamManifest manifest =
-          await ytExplode.videos.streamsClient.getManifest(
-        videoId,
-        requireWatchPage: false,
-      );
-      List<AudioOnlyStreamInfo> supportedStreams =
-          manifest.audioOnly.sortByBitrate();
-      // Add the streams to cache
-      await cacheYtStreams(
-        id: videoId,
-        hURL: supportedStreams.last,
-        lURL: supportedStreams.first,
-      );
-      // Choose high quality (highest bitrate) or low (lowest bitrate)
-      audioStream = quality == 'high'
-          ? (supportedStreams.isNotEmpty ? supportedStreams.last : null)
-          : (supportedStreams.isNotEmpty ? supportedStreams.first : null);
-    } else {
-      audioStream = quality == 'high' ? cachedStreams[1] : cachedStreams[0];
+    if (cachedStreams != null) {
+      return quality == 'high' ? cachedStreams[1] : cachedStreams[0];
     }
+    final manifest = await ytExplode.videos.streamsClient
+        .getManifest(videoId, requireWatchPage: false);
+    final supportedStreams = manifest.audioOnly.sortByBitrate();
+    final audioStream = quality == 'high'
+        ? supportedStreams.lastOrNull
+        : supportedStreams.firstOrNull;
     if (audioStream == null) {
       throw Exception('No audio stream available for this video.');
     }
-    final kurl = audioStream.url.toString();
-    return AudioSource.uri(Uri.parse(kurl), tag: mediaItem);
+    return audioStream;
   }
 
-  Future<AudioSource> getAudioSource() async {
-    return audioSourceFuture;
+  @override
+  Future<StreamAudioResponse> request([int? start, int? end]) async {
+    try {
+      final t1 = DateTime.now().millisecondsSinceEpoch;
+      final audioStream = await getStreamInfo();
+      final t2 = DateTime.now().millisecondsSinceEpoch;
+
+      start ??= 0;
+      if (end != null && end > audioStream.size.totalBytes) {
+        end = audioStream.size.totalBytes;
+      }
+
+      final stream = ytExplode.videos.streams.get(
+        audioStream,
+        start: start,
+        end: end,
+      );
+      dev.log('Time taken to get stream: ${t2 - t1}ms', name: 'YTStream');
+      return StreamAudioResponse(
+        sourceLength: audioStream.size.totalBytes,
+        contentLength:
+            end != null ? end - start : audioStream.size.totalBytes - start,
+        offset: start,
+        stream: stream,
+        contentType: audioStream.codec.mimeType,
+      );
+    } catch (e) {
+      throw Exception('Failed to load audio: $e');
+    }
   }
 }
 
