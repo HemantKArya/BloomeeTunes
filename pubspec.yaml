@@ -18,7 +18,7 @@ dependencies:
   device_info_plus: ^10.1.0
   equatable: ^2.0.7
   icons_plus: ^5.0.0
-  cached_network_image: ^3.3.1
+  cached_network_image: ^3.4.1
   flutter_bloc: ^9.0.0
   dart_des: ^1.0.2
   http: ^1.2.2
@@ -34,7 +34,6 @@ dependencies:
   audio_session: ^0.1.16
   rxdart: ^0.27.7
   go_router: ^14.8.1
-  extended_image: ^8.1.0
   easy_debounce: ^2.0.3
 
   isar: 
