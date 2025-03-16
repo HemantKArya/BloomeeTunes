@@ -20,7 +20,7 @@ import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
-import '../widgets/carousal_widget.dart';
+import 'chart/carousal_widget.dart';
 import '../widgets/horizontal_card_view.dart';
 import '../widgets/tabList_widget.dart';
 import 'package:badges/badges.dart' as badges;

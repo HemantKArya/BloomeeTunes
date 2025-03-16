@@ -27,18 +27,16 @@ class CaraouselWidget extends StatefulWidget {
 
 class _CaraouselWidgetState extends State<CaraouselWidget> {
   bool _visibility = true;
-  // final FetchChartCubit fetchChartCubit;
   List<ChartCubit> chartCubitList = List.empty(growable: true);
   List<ChartInfo> selectedCharts = List.empty(growable: true);
   Map<dynamic, dynamic> chartMap = {};
-  bool autoSlideCharts = true;
+  ValueNotifier<bool> autoSlideCharts = ValueNotifier(true);
   StreamSubscription? ss;
 
   Future<void> initSettings() async {
-    autoSlideCharts = await BloomeeDBService.getSettingBool(
+    autoSlideCharts.value = await BloomeeDBService.getSettingBool(
             GlobalStrConsts.autoSlideCharts) ??
         true;
-    setState(() {});
   }
 
   void getSelectedCharts(Map sChartMap) {
@@ -66,9 +64,9 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
     initSettings();
     getSelectedCharts(context.read<SettingsCubit>().state.chartMap);
     ss = context.read<SettingsCubit>().stream.listen((event) {
-      if (autoSlideCharts != event.autoSlideCharts) {
-        autoSlideCharts = event.autoSlideCharts;
-        if (autoSlideCharts) {
+      if (autoSlideCharts.value != event.autoSlideCharts) {
+        autoSlideCharts.value = event.autoSlideCharts;
+        if (autoSlideCharts.value) {
           log("Auto Slide Charts Enabled");
         } else {
           log("Auto Slide Charts Disabled");
@@ -82,6 +80,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
   @override
   void dispose() {
     ss?.cancel();
+    autoSlideCharts.dispose();
     super.dispose();
   }
 
@@ -123,50 +122,62 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                         ),
                       ),
                     ),
-                    CarouselSlider(
-                      options: CarouselOptions(
-                        onPageChanged: (index, _) {
-                          setState(() {
-                            _visibility = index == 0;
-                          });
-                        },
-                        height: ResponsiveBreakpoints.of(context).isMobile ||
-                                ResponsiveBreakpoints.of(context).isTablet
-                            ? MediaQuery.of(context).size.height * 0.36
-                            : 250,
-                        viewportFraction:
-                            ResponsiveBreakpoints.of(context).isMobile
-                                ? 0.65
-                                : ResponsiveBreakpoints.of(context).isTablet
-                                    ? 0.30
-                                    : 0.25,
-                        autoPlay: autoSlideCharts,
-                        autoPlayInterval: const Duration(milliseconds: 2500),
-                        // aspectRatio: 15 / 16,
-                        // enableInfiniteScroll: true,
-                        enlargeFactor: 0.2,
-                        initialPage: 0,
-                        pauseAutoPlayOnTouch: true,
-                        enlargeCenterPage: true,
-                      ),
-                      items: [
-                        for (int i = 0; i < selectedCharts.length; i++)
-                          if (state.chartMap[selectedCharts[i].title] == null ||
-                              state.chartMap[selectedCharts[i].title] == true)
-                            BlocProvider.value(
-                              value: chartCubitList[i],
-                              child: GestureDetector(
-                                onTap: () => GoRouter.of(context).pushNamed(
-                                    GlobalStrConsts.ChartScreen,
-                                    pathParameters: {
-                                      "chartName": selectedCharts[i].title
-                                    }),
-                                child: ChartWidget(
-                                  chartInfo: selectedCharts[i],
+                    ValueListenableBuilder<bool>(
+                      valueListenable: autoSlideCharts,
+                      builder: (context, autoPlay, child) {
+                        return CarouselSlider.builder(
+                          itemCount: selectedCharts.length,
+                          itemBuilder: (context, index, realIndex) {
+                            if (state.chartMap[selectedCharts[index].title] ==
+                                    null ||
+                                state.chartMap[selectedCharts[index].title] ==
+                                    true) {
+                              return BlocProvider.value(
+                                value: chartCubitList[index],
+                                child: GestureDetector(
+                                  onTap: () => GoRouter.of(context).pushNamed(
+                                      GlobalStrConsts.ChartScreen,
+                                      pathParameters: {
+                                        "chartName": selectedCharts[index].title
+                                      }),
+                                  child: ChartWidget(
+                                    chartInfo: selectedCharts[index],
+                                  ),
                                 ),
-                              ),
-                            ),
-                      ],
+                              );
+                            } else {
+                              return const SizedBox.shrink();
+                            }
+                          },
+                          options: CarouselOptions(
+                            onPageChanged: (index, _) {
+                              setState(() {
+                                _visibility = index == 0;
+                              });
+                            },
+                            height: ResponsiveBreakpoints.of(context)
+                                        .isMobile ||
+                                    ResponsiveBreakpoints.of(context).isTablet
+                                ? MediaQuery.of(context).size.height * 0.36
+                                : 250,
+                            viewportFraction:
+                                ResponsiveBreakpoints.of(context).isMobile
+                                    ? 0.65
+                                    : ResponsiveBreakpoints.of(context).isTablet
+                                        ? 0.30
+                                        : 0.25,
+                            autoPlay: autoPlay,
+                            autoPlayInterval:
+                                const Duration(milliseconds: 2500),
+                            // aspectRatio: 15 / 16,
+                            // enableInfiniteScroll: true,
+                            enlargeFactor: 0.2,
+                            initialPage: 0,
+                            pauseAutoPlayOnTouch: true,
+                            enlargeCenterPage: true,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

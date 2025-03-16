@@ -12,6 +12,7 @@ class ChartWidget extends StatefulWidget {
   final ChartInfo chartInfo;
 
   const ChartWidget({
+    super.key,
     required this.chartInfo,
   });
 
@@ -32,7 +33,7 @@ class TextColorPair {
 // create list of color pair which have some light colors with text color, use proffessinoal colors like pastel colors
 final List<TextColorPair> colorPair = [
   TextColorPair(
-    color1: Color.fromARGB(255, 223, 63, 0).withOpacity(0.9),
+    color1: const Color.fromARGB(255, 223, 63, 0).withOpacity(0.9),
     color2: const Color.fromARGB(255, 205, 135, 23).withOpacity(0.7),
   ),
   TextColorPair(
@@ -40,12 +41,12 @@ final List<TextColorPair> colorPair = [
     color2: const Color.fromARGB(255, 205, 132, 23).withOpacity(0.7),
   ),
   TextColorPair(
-    color1: Color.fromARGB(255, 6, 85, 159).withOpacity(0.9),
-    color2: Color.fromARGB(255, 28, 105, 220).withOpacity(0.7),
+    color1: const Color.fromARGB(255, 6, 85, 159).withOpacity(0.9),
+    color2: const Color.fromARGB(255, 28, 105, 220).withOpacity(0.7),
   ),
   TextColorPair(
-    color1: Color.fromARGB(255, 222, 8, 125).withOpacity(0.9),
-    color2: Color.fromARGB(255, 223, 38, 72).withOpacity(0.7),
+    color1: const Color.fromARGB(255, 222, 8, 125).withOpacity(0.9),
+    color2: const Color.fromARGB(255, 223, 38, 72).withOpacity(0.7),
   ),
 ];
 
