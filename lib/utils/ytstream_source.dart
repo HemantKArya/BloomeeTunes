@@ -21,7 +21,7 @@ class YouTubeAudioSource extends StreamAudioSource {
     if (cachedStreams != null) {
       return quality == 'high' ? cachedStreams[1] : cachedStreams[0];
     }
-    final manifest = await ytExplode.videos.streamsClient
+    final manifest = await ytExplode.videos.streams
         .getManifest(videoId, requireWatchPage: false);
     final supportedStreams = manifest.audioOnly.sortByBitrate();
     final audioStream = quality == 'high'
