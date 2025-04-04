@@ -50,9 +50,9 @@ class YouTubeAudioSource extends StreamAudioSource {
   @override
   Future<StreamAudioResponse> request([int? start, int? end]) async {
     try {
-      final t1 = DateTime.now().millisecondsSinceEpoch;
+      // final t1 = DateTime.now().millisecondsSinceEpoch;
       final audioStream = await getStreamInfo();
-      final t2 = DateTime.now().millisecondsSinceEpoch;
+      // final t2 = DateTime.now().millisecondsSinceEpoch;
 
       start ??= 0;
       if (end != null && end > audioStream.size.totalBytes) {
@@ -64,7 +64,7 @@ class YouTubeAudioSource extends StreamAudioSource {
         start: start,
         end: end,
       );
-      dev.log('Time taken to get stream: ${t2 - t1}ms', name: 'YTStream');
+      // dev.log('Time taken to get stream: ${t2 - t1}ms', name: 'YTStream');
       return StreamAudioResponse(
         sourceLength: audioStream.size.totalBytes,
         contentLength:
@@ -107,7 +107,7 @@ Future<List<AudioOnlyStreamInfo>?> getStreamFromCache(String id) async {
   if (cache != null) {
     final expireAt = cache.expireAt;
     if (expireAt > DateTime.now().millisecondsSinceEpoch ~/ 1000) {
-      dev.log("Cache found: $id", name: "CacheYtStreams");
+      // dev.log("Cache found: $id", name: "CacheYtStreams");
       return [
         AudioOnlyStreamInfo.fromJson(jsonDecode(cache.lowQURL!)),
         AudioOnlyStreamInfo.fromJson(jsonDecode(cache.highQURL)),
