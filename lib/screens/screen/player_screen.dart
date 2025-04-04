@@ -46,10 +46,10 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
     super.initState();
     // set value switchLyrics if tab is changed
     _tabController.addListener(() {
-      if (_tabController.index == 1) {
-        context.read<BloomeePlayerCubit>().switchShowLyrics(value: true);
-      } else {
-        context.read<BloomeePlayerCubit>().switchShowLyrics(value: false);
+      final isLyricsTab = _tabController.index == 1;
+      final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
+      if (bloomeePlayerCubit.state.showLyrics != isLyricsTab) {
+        bloomeePlayerCubit.switchShowLyrics(value: isLyricsTab);
       }
     });
 
@@ -74,8 +74,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
 
   @override
   Widget build(BuildContext context) {
-    BloomeeMusicPlayer musicPlayer =
-        context.read<BloomeePlayerCubit>().bloomeePlayer;
+    final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
+    final musicPlayer = bloomeePlayerCubit.bloomeePlayer;
     return Shortcuts(
       shortcuts: {
         LogicalKeySet(LogicalKeyboardKey.keyS): const ShuffleIntent(),
@@ -89,39 +89,26 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
         actions: {
           ShuffleIntent:
               CallbackAction<ShuffleIntent>(onInvoke: (ShuffleIntent intent) {
-            if (context
-                .read<BloomeePlayerCubit>()
-                .bloomeePlayer
-                .shuffleMode
-                .value) {
-              context.read<BloomeePlayerCubit>().bloomeePlayer.shuffle(false);
+            if (musicPlayer.shuffleMode.value) {
+              musicPlayer.shuffle(false);
             } else {
-              context.read<BloomeePlayerCubit>().bloomeePlayer.shuffle(true);
+              musicPlayer.shuffle(true);
             }
             return null;
           }),
           LoopPlaylistIntent: CallbackAction<LoopPlaylistIntent>(
               onInvoke: (LoopPlaylistIntent intent) {
-            context
-                .read<BloomeePlayerCubit>()
-                .bloomeePlayer
-                .setLoopMode(LoopMode.all);
+            musicPlayer.setLoopMode(LoopMode.all);
             return null;
           }),
           LoopOffIntent:
               CallbackAction<LoopOffIntent>(onInvoke: (LoopOffIntent intent) {
-            context
-                .read<BloomeePlayerCubit>()
-                .bloomeePlayer
-                .setLoopMode(LoopMode.off);
+            musicPlayer.setLoopMode(LoopMode.off);
             return null;
           }),
           LoopSingleIntent: CallbackAction<LoopSingleIntent>(
               onInvoke: (LoopSingleIntent intent) {
-            context
-                .read<BloomeePlayerCubit>()
-                .bloomeePlayer
-                .setLoopMode(LoopMode.one);
+            musicPlayer.setLoopMode(LoopMode.one);
             return null;
           }),
           TimerIntent:
@@ -150,12 +137,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
               actions: [
                 IconButton(
                     onPressed: () {
-                      showMoreBottomSheet(
-                          context,
-                          context
-                              .read<BloomeePlayerCubit>()
-                              .bloomeePlayer
-                              .currentMedia);
+                      showMoreBottomSheet(context, musicPlayer.currentMedia);
                     },
                     icon: const Icon(MingCute.more_2_fill,
                         size: 25, color: Default_Theme.primaryColor1))
@@ -172,10 +154,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                         .merge(Default_Theme.secondoryTextStyle),
                   ),
                   StreamBuilder<String>(
-                      stream: context
-                          .watch<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .queueTitle,
+                      stream: bloomeePlayerCubit.bloomeePlayer.queueTitle,
                       builder: (context, snapshot) {
                         return Text(
                           snapshot.data ?? "Unknown",
@@ -243,7 +222,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.92,
+              height: constraints.maxHeight *
+                  0.92, // Use constraints instead of MediaQuery
               child: Stack(
                 children: [
                   Positioned(
@@ -338,11 +318,12 @@ class CoverImageVolSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     return VolumeDragController(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(25),
         child: StreamBuilder<MediaItem?>(
-            stream: context.watch<BloomeePlayerCubit>().bloomeePlayer.mediaItem,
+            stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
             builder: (context, snapshot) {
               return LayoutBuilder(builder: (context, constraints) {
                 return ConstrainedBox(
@@ -376,6 +357,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.92,
       // height: MediaQuery.of(context).size.width * 0.92,
@@ -387,10 +369,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
               Expanded(
                 flex: 7,
                 child: StreamBuilder<MediaItem?>(
-                    stream: context
-                        .watch<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .mediaItem,
+                    stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
                     builder: (context, snapshot) {
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -434,17 +413,12 @@ class PlayerCtrlWidgets extends StatelessWidget {
               ),
               const Spacer(),
               StreamBuilder<dynamic>(
-                  stream: context
-                      .watch<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .audioPlayer
-                      .playbackEventStream,
+                  stream: bloomeePlayerCubit
+                      .bloomeePlayer.audioPlayer.playbackEventStream,
                   builder: (context, snapshot) {
                     return FutureBuilder(
-                      future: context.read<BloomeeDBCubit>().isLiked(context
-                          .read<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .currentMedia),
+                      future: context.read<BloomeeDBCubit>().isLiked(
+                          bloomeePlayerCubit.bloomeePlayer.currentMedia),
                       builder: (context, snapshot) {
                         if (snapshot.hasData && snapshot.data != null) {
                           return Padding(
@@ -457,18 +431,14 @@ class PlayerCtrlWidgets extends StatelessWidget {
                               onLiked: () => context
                                   .read<BloomeeDBCubit>()
                                   .setLike(
-                                      context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .currentMedia,
+                                      bloomeePlayerCubit
+                                          .bloomeePlayer.currentMedia,
                                       isLiked: true),
                               onDisliked: () => context
                                   .read<BloomeeDBCubit>()
                                   .setLike(
-                                      context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .currentMedia,
+                                      bloomeePlayerCubit
+                                          .bloomeePlayer.currentMedia,
                                       isLiked: false),
                             ),
                           );
@@ -493,7 +463,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: StreamBuilder<ProgressBarStreams>(
-                stream: context.watch<BloomeePlayerCubit>().progressStreams,
+                stream: bloomeePlayerCubit.progressStreams,
                 builder: (context, snapshot) {
                   return ProgressBar(
                     progress: snapshot.data?.currentPos ?? Duration.zero,
@@ -696,10 +666,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
                     ),
                   ),
                   StreamBuilder<bool>(
-                      stream: context
-                          .watch<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .shuffleMode,
+                      stream: bloomeePlayerCubit.bloomeePlayer.shuffleMode,
                       builder: (context, snapshot) {
                         return Tooltip(
                           message: "Shuffle",
@@ -718,11 +685,8 @@ class PlayerCtrlWidgets extends StatelessWidget {
                               size: 30,
                             ),
                             onPressed: () {
-                              context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .shuffle(
-                                      (snapshot.data ?? false) ? false : true);
+                              bloomeePlayerCubit.bloomeePlayer.shuffle(
+                                  (snapshot.data ?? false) ? false : true);
                             },
                           ),
                         );
@@ -742,112 +706,54 @@ class PlayerCtrlWidgets extends StatelessWidget {
                   children: [
                     Tooltip(
                       message: "Loop",
-                      child: PopupMenuButton(
-                        color: const Color.fromARGB(255, 17, 17, 17),
-                        surfaceTintColor: const Color.fromARGB(255, 19, 19, 19),
-                        padding: const EdgeInsets.all(5),
-                        itemBuilder: (BuildContext context) => [
-                          PopupMenuItem(
-                            value: 0,
-                            child: Text(
-                              "Off",
-                              style: Default_Theme.secondoryTextStyle.merge(
-                                const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Default_Theme.primaryColor1,
-                                    fontSize: 14),
-                              ),
+                      child: StreamBuilder<LoopMode>(
+                        stream: context
+                            .watch<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .loopMode,
+                        builder: (context, snapshot) {
+                          final loopMode = snapshot.data ?? LoopMode.off;
+                          return PopupMenuButton(
+                            itemBuilder: (BuildContext context) => [
+                              const PopupMenuItem(value: 0, child: Text("Off")),
+                              const PopupMenuItem(
+                                  value: 1, child: Text("Loop One")),
+                              const PopupMenuItem(
+                                  value: 2, child: Text("Loop All")),
+                            ],
+                            child: Icon(
+                              loopMode == LoopMode.off
+                                  ? MingCute.repeat_line
+                                  : loopMode == LoopMode.one
+                                      ? MingCute.repeat_one_line
+                                      : MingCute.repeat_fill,
+                              color: loopMode == LoopMode.off
+                                  ? Default_Theme.primaryColor1
+                                  : Default_Theme.accentColor1,
                             ),
-                          ),
-                          PopupMenuItem(
-                            value: 1,
-                            child: Text(
-                              "Loop One",
-                              style: Default_Theme.secondoryTextStyle.merge(
-                                const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Default_Theme.primaryColor1,
-                                    fontSize: 14),
-                              ),
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 2,
-                            child: Text(
-                              "Loop All",
-                              style: Default_Theme.secondoryTextStyle.merge(
-                                const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Default_Theme.primaryColor1,
-                                    fontSize: 14),
-                              ),
-                            ),
-                          )
-                        ],
-                        child: Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: StreamBuilder<LoopMode>(
-                              stream: context
-                                  .watch<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .loopMode,
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  switch (snapshot.data) {
-                                    case LoopMode.off:
-                                      return const Icon(
-                                        MingCute.repeat_line,
-                                        color: Default_Theme.primaryColor1,
-                                        size: 30,
-                                      );
-                                    case LoopMode.one:
-                                      return const Icon(
-                                        MingCute.repeat_one_line,
-                                        color: Default_Theme.accentColor1,
-                                        size: 30,
-                                      );
-                                    case LoopMode.all:
-                                      return const Icon(
-                                        MingCute.repeat_fill,
-                                        color: Default_Theme.accentColor1,
-                                        size: 30,
-                                      );
-                                    case null:
-                                      return const Icon(
-                                        MingCute.repeat_line,
-                                        color: Default_Theme.primaryColor1,
-                                        size: 30,
-                                      );
-                                  }
-                                }
-                                return const Icon(
-                                  MingCute.repeat_line,
-                                  color: Default_Theme.primaryColor1,
-                                  size: 30,
-                                );
-                              }),
-                        ),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 0:
-                              context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .setLoopMode(LoopMode.off);
-                              break;
-                            case 1:
-                              context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .setLoopMode(LoopMode.one);
-                              break;
-                            case 2:
-                              context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .setLoopMode(LoopMode.all);
-                              break;
-                          }
+                            onSelected: (value) {
+                              switch (value) {
+                                case 0:
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .setLoopMode(LoopMode.off);
+                                  break;
+                                case 1:
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .setLoopMode(LoopMode.one);
+                                  break;
+                                case 2:
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .setLoopMode(LoopMode.all);
+                                  break;
+                              }
+                            },
+                          );
                         },
                       ),
                     ),
@@ -876,10 +782,8 @@ class PlayerCtrlWidgets extends StatelessWidget {
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold))),
                                 onPressed: () {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .switchShowLyrics(
-                                          value: !state.showLyrics);
+                                  bloomeePlayerCubit.switchShowLyrics(
+                                      value: !state.showLyrics);
                                 },
                               ),
                             ),
@@ -899,10 +803,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
                           MaterialTapTargetSize.shrinkWrap, // the '2023' part
                     ),
                     icon: StreamBuilder<MediaItem?>(
-                        stream: context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .mediaItem,
+                        stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
                         builder: (context, snapshot) {
                           if (snapshot.hasData &&
                               snapshot.data?.extras?['perma_url'] != null) {
@@ -927,12 +828,20 @@ class PlayerCtrlWidgets extends StatelessWidget {
                             size: 30,
                           );
                         }),
-                    onPressed: () {
-                      launchUrlString(context
+                    onPressed: () async {
+                      final url = context
                           .read<BloomeePlayerCubit>()
                           .bloomeePlayer
                           .currentMedia
-                          .extras?['perma_url']);
+                          .extras?['perma_url'];
+                      if (url != null && await canLaunchUrlString(url)) {
+                        await launchUrlString(url);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Unable to open the link")),
+                        );
+                      }
                     },
                   ),
                 )
@@ -945,42 +854,49 @@ class PlayerCtrlWidgets extends StatelessWidget {
   }
 }
 
-class AmbientImgShadowWidget extends StatelessWidget {
+class AmbientImgShadowWidget extends StatefulWidget {
   final AsyncSnapshot<MediaItem?> snapshot;
   const AmbientImgShadowWidget({super.key, required this.snapshot});
 
   @override
+  State<AmbientImgShadowWidget> createState() => _AmbientImgShadowWidgetState();
+}
+
+class _AmbientImgShadowWidgetState extends State<AmbientImgShadowWidget> {
+  Color? cachedColor;
+
+  @override
+  void didUpdateWidget(covariant AmbientImgShadowWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.snapshot.data?.artUri != oldWidget.snapshot.data?.artUri) {
+      _fetchPalette();
+    }
+  }
+
+  void _fetchPalette() async {
+    final palette = await getPalleteFromImage(
+        widget.snapshot.data?.artUri?.toString() ?? "");
+    if (mounted) {
+      setState(() {
+        cachedColor = palette.dominantColor?.color ??
+            const Color.fromARGB(255, 68, 252, 255);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: getPalleteFromImage(context
-          .read<BloomeePlayerCubit>()
-          .bloomeePlayer
-          .currentMedia
-          .artUri
-          .toString()),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return Container(
-            decoration: BoxDecoration(color: Colors.transparent, boxShadow: [
-              BoxShadow(
-                  color: snapshot.data?.dominantColor?.color ??
-                      const Color.fromARGB(255, 68, 252, 255),
-                  blurRadius: 120,
-                  spreadRadius: 30)
-            ]),
-          );
-        } else {
-          return Container(
-            decoration:
-                const BoxDecoration(color: Colors.transparent, boxShadow: [
-              BoxShadow(
-                  color: Color.fromARGB(39, 68, 252, 255),
-                  blurRadius: 120,
-                  spreadRadius: 30)
-            ]),
-          );
-        }
-      },
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        boxShadow: [
+          BoxShadow(
+            color: cachedColor ?? const Color.fromARGB(39, 68, 252, 255),
+            blurRadius: 120,
+            spreadRadius: 30,
+          ),
+        ],
+      ),
     );
   }
 }
