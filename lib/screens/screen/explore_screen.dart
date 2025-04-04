@@ -54,9 +54,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Future<MediaPlaylist> fetchLFMPicks(bool state, BuildContext ctx) async {
     if (state) {
       try {
-        final data = await lFMData;
-        if (data.mediaItems.isNotEmpty) {
-          return data;
+        if ((await lFMData).mediaItems.isNotEmpty) {
+          return lFMData;
         }
         lFMData = ctx.read<LastdotfmCubit>().getRecommendedTracks();
         return lFMData;
@@ -89,7 +88,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           body: RefreshIndicator(
             onRefresh: () async {
               await yTMusicCubit.fetchYTMusic();
-              log("Refreshed");
             },
             child: CustomScrollView(
               shrinkWrap: true,
@@ -247,19 +245,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Widget ytSection(Map<String, List<dynamic>> ytmData) {
-    List<Widget> ytList = List.empty(growable: true);
-    // log(ytmData.toString());
-
-    for (var value in (ytmData["body"]!)) {
-      // log(value.toString());
-      ytList.add(HorizontalCardView(data: value));
-    }
-    return ListView(
+    return ListView.builder(
       shrinkWrap: true,
       itemExtent: 275,
       padding: const EdgeInsets.only(top: 0),
       physics: const NeverScrollableScrollPhysics(),
-      children: ytList,
+      itemCount: ytmData["body"]!.length,
+      itemBuilder: (context, index) {
+        return HorizontalCardView(data: ytmData["body"]![index]);
+      },
     );
   }
 
