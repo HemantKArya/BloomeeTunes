@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:Bloomee/screens/widgets/paging_scroll.dart';
 import 'package:flutter/material.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 import '../../theme_data/default.dart';
@@ -42,11 +44,13 @@ class CategoryLabel extends StatelessWidget {
 class ColumnsCards extends StatelessWidget {
   final List<Widget> list;
   final int columnSize;
+  final ScrollController scrollController; // Added scrollController
 
   const ColumnsCards({
     Key? key,
     required this.list,
     required this.columnSize,
+    required this.scrollController, // Added scrollController
   }) : super(key: key);
 
   @override
@@ -76,18 +80,23 @@ class ColumnsCards extends StatelessWidget {
       },
     );
 
-    return SizedBox(
-      height: 70 * columnSize.toDouble() + 10,
-      child: ListView(
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        physics: PagingScrollPhysics(
-          itemCount: cards.length,
-          viewSize: MediaQuery.of(context).size.width - 40,
+    return Stack(
+      children: [
+        SizedBox(
+          height: 70 * columnSize.toDouble() + 10,
+          child: ListView(
+            controller: scrollController, // Use the passed scrollController
+            shrinkWrap: true,
+            scrollDirection: Axis.horizontal,
+            physics: PagingScrollPhysics(
+              itemCount: cards.length,
+              viewSize: MediaQuery.of(context).size.width - 40,
+            ),
+            itemExtent: itemWidth,
+            children: cards,
+          ),
         ),
-        itemExtent: itemWidth,
-        children: cards,
-      ),
+      ],
     );
   }
 }
@@ -106,12 +115,55 @@ class TabSongListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final ScrollController scrollController = ScrollController();
+    final double itemWidth =
+        ResponsiveBreakpoints.of(context).smallerOrEqualTo(TABLET)
+            ? (MediaQuery.of(context).size.width - 40) * 0.88
+            : (MediaQuery.of(context).size.width - 40) * 0.48;
+
+    return Column(
       children: [
-        CategoryLabel(category: category),
-        Expanded(
-          child: ColumnsCards(list: list, columnSize: columnSize),
+        if (Platform.isWindows || Platform.isLinux)
+          Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(MingCute.left_line),
+                  onPressed: () {
+                    scrollController.animateTo(
+                      scrollController.offset - itemWidth,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(MingCute.right_line),
+                  onPressed: () {
+                    scrollController.animateTo(
+                      scrollController.offset + itemWidth,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CategoryLabel(category: category),
+            Expanded(
+              child: ColumnsCards(
+                list: list,
+                columnSize: columnSize,
+                scrollController: scrollController, // Pass scrollController
+              ),
+            ),
+          ],
         ),
       ],
     );
