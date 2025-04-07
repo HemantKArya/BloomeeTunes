@@ -228,7 +228,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       }
                                     },
                                   )
-                                : ytSection(state.ytmData),
+                                : ListView.builder(
+                                    shrinkWrap: true,
+                                    itemExtent: 275,
+                                    padding: const EdgeInsets.only(top: 0),
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: state.ytmData["body"]!.length,
+                                    itemBuilder: (context, index) {
+                                      return HorizontalCardView(
+                                          data: state.ytmData["body"]![index]);
+                                    },
+                                  ),
                           );
                         },
                       ),
@@ -241,19 +252,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           backgroundColor: Default_Theme.themeColor,
         ),
       ),
-    );
-  }
-
-  Widget ytSection(Map<String, List<dynamic>> ytmData) {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemExtent: 275,
-      padding: const EdgeInsets.only(top: 0),
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: ytmData["body"]!.length,
-      itemBuilder: (context, index) {
-        return HorizontalCardView(data: ytmData["body"]![index]);
-      },
     );
   }
 
