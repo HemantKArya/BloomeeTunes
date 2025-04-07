@@ -51,6 +51,7 @@ final List<TextColorPair> colorPair = [
 ];
 
 class _ChartWidgetState extends State<ChartWidget> {
+  late final cachedClipPath;
   final _random = Random();
   TextColorPair _color = colorPair[0];
   @override
@@ -58,6 +59,22 @@ class _ChartWidgetState extends State<ChartWidget> {
     setState(() {
       _color = colorPair[_random.nextInt(colorPair.length)];
     });
+
+    cachedClipPath = ClipPath(
+      clipper: ChartCardClipper(),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomRight,
+            end: Alignment.topLeft,
+            colors: [
+              _color.color1,
+              _color.color2,
+            ],
+          ),
+        ),
+      ),
+    );
     super.initState();
   }
 
@@ -80,47 +97,21 @@ class _ChartWidgetState extends State<ChartWidget> {
             BlocBuilder<ChartCubit, ChartState>(
               bloc: BlocProvider.of<ChartCubit>(context),
               builder: (context, state) {
+                final cachedImage = LoadImageCached(
+                    imageUrl: state.coverImg, fit: BoxFit.cover);
                 return AnimatedSwitcher(
                   duration: const Duration(seconds: 1),
                   child: state is ChartInitial
-                      ? Stack(children: [
-                          Container(
-                            color: const Color.fromARGB(255, 52, 0, 147)
-                                .withOpacity(0.5),
-                          ),
-                          const Center(
-                            child: Icon(MingCute.music_2_fill,
-                                size: 80, color: Colors.white),
-                          ),
-                        ])
+                      ? const PlaceholderWidget()
                       : SizedBox(
                           height: constraints.maxHeight,
                           width: constraints.maxWidth,
-                          child: LoadImageCached(
-                            imageUrl: state.coverImg,
-                            fit: BoxFit.cover,
-                          )),
+                          child: cachedImage),
                 );
               },
             ),
             Positioned(
-              child: ClipPath(
-                clipper: ChartCardClipper(),
-                child: Container(
-                  // color: Color.fromARGB(255, 255, 35, 196).withOpacity(0.5),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomRight,
-                      end: Alignment.topLeft,
-                      colors: [
-                        _color.color1,
-                        _color.color2,
-                      ],
-                    ),
-                  ),
-                  // color: _color.backgroundColor.withOpacity(0.7),
-                ),
-              ),
+              child: cachedClipPath,
             ),
             Positioned(
               bottom: 4,
@@ -157,6 +148,24 @@ class _ChartWidgetState extends State<ChartWidget> {
         }),
       ),
     );
+  }
+}
+
+class PlaceholderWidget extends StatelessWidget {
+  const PlaceholderWidget({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(children: [
+      Container(
+        color: const Color.fromARGB(255, 52, 0, 147).withOpacity(0.5),
+      ),
+      const Center(
+        child: Icon(MingCute.music_2_fill, size: 80, color: Colors.white),
+      ),
+    ]);
   }
 }
 
