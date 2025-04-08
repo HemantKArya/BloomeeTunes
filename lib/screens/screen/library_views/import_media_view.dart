@@ -4,7 +4,7 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/external_list_importer.dart';
-import 'package:Bloomee/services/file_manager.dart';
+import 'package:Bloomee/services/import_export_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -117,24 +117,64 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
                     importType: ImportType.youtubeMusicPlaylist);
               }),
           ImportFromBtn(
-              btnName: "Import Playlist from Storage",
-              btnIcon: FontAwesome.file,
+              btnName: "Import Bloomee Files",
+              btnIcon: MingCute.file_import_fill,
               onClickFunc: () {
-                FilePicker.platform.pickFiles().then((value) {
-                  if (value != null) {
-                    log(value.files[0].path.toString(), name: "Import File");
-                    if (value.files[0].path != null) {
-                      if (value.files[0].path!.endsWith('.blm')) {
-                        BloomeeFileManager.importPlaylist(value.files[0].path!);
-                        SnackbarService.showMessage(
-                            "Started Importing Playlist");
-                      } else {
-                        log("Invalid File Format", name: "Import File");
-                        SnackbarService.showMessage("Invalid File Format");
-                      }
-                    }
-                  }
-                });
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text(
+                      "Note",
+                      style: TextStyle(
+                        color: Default_Theme.primaryColor2,
+                      ),
+                    ),
+                    content: const Text(
+                      "You can only import files created by Bloomee. \nIf your file is from another source, it will not work. Continue anyway?",
+                      style: TextStyle(
+                        color: Default_Theme.primaryColor2,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                          FilePicker.platform.pickFiles().then((value) {
+                            if (value != null) {
+                              log(value.files[0].path.toString(),
+                                  name: "Import File");
+                              if (value.files[0].path != null) {
+                                if (value.files[0].path!.endsWith('.blm') ||
+                                    value.files[0].path!.endsWith('.json')) {
+                                  SnackbarService.showMessage(
+                                      "Importing MediaItems..");
+                                  ImportExportService.importJSON(
+                                          value.files[0].path!)
+                                      .then((v) {
+                                    SnackbarService.showMessage(
+                                        "Process: Importing completed.");
+                                  });
+                                } else {
+                                  log("Invalid File Format",
+                                      name: "Import File");
+                                  SnackbarService.showMessage(
+                                      "Invalid File Format");
+                                }
+                              }
+                            }
+                          });
+                        },
+                        child: const Text("OK"),
+                      ),
+                    ],
+                  ),
+                );
               }),
         ],
       ),

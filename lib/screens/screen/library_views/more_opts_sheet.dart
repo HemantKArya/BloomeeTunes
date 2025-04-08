@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
@@ -5,11 +7,13 @@ import 'package:Bloomee/screens/screen/library_views/playlist_edit_view.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/theme_data/default.dart';
-import 'package:Bloomee/services/file_manager.dart';
+import 'package:Bloomee/services/import_export_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 void showPlaylistOptsInrSheet(
@@ -65,18 +69,40 @@ void showPlaylistOptsInrSheet(
                   // ),
                   PltOptBtn(
                     icon: MingCute.share_2_line,
-                    title: "Share Playlist",
+                    title: "Share file",
                     onPressed: () async {
                       Navigator.pop(context);
                       SnackbarService.showMessage(
                           "Preparing ${mediaPlaylist.playlistName} for share");
-                      final _tmpPath = await BloomeeFileManager.exportPlaylist(
+                      final _tmpPath = await ImportExportService.exportPlaylist(
                           mediaPlaylist.playlistName);
                       _tmpPath != null
                           ? Share.shareXFiles([XFile(_tmpPath)])
                           : null;
                     },
                   ),
+                  if (!Platform.isAndroid)
+                    PltOptBtn(
+                      icon: MingCute.file_export_line,
+                      title: "Export File",
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        String? path =
+                            await FilePicker.platform.getDirectoryPath();
+                        if (path == null || path == "/") {
+                          path =
+                              (await getDownloadsDirectory())?.path.toString();
+                        }
+                        SnackbarService.showMessage(
+                            "Preparing ${mediaPlaylist.playlistName} for export.");
+                        final _tmpPath =
+                            await ImportExportService.exportPlaylist(
+                          mediaPlaylist.playlistName,
+                          filePath: path,
+                        );
+                        SnackbarService.showMessage("Exported to: $_tmpPath");
+                      },
+                    ),
                 ],
               ),
             ),
@@ -159,13 +185,35 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                       Navigator.pop(context);
                       SnackbarService.showMessage(
                           "Preparing $playlistName for share");
-                      final _tmpPath =
-                          await BloomeeFileManager.exportPlaylist(playlistName);
+                      final _tmpPath = await ImportExportService.exportPlaylist(
+                          playlistName);
                       _tmpPath != null
                           ? Share.shareXFiles([XFile(_tmpPath)])
                           : null;
                     },
                   ),
+                  if (!Platform.isAndroid)
+                    PltOptBtn(
+                      icon: MingCute.file_export_line,
+                      title: "Export File",
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        String? path =
+                            await FilePicker.platform.getDirectoryPath();
+                        if (path == null || path == "/") {
+                          path =
+                              (await getDownloadsDirectory())?.path.toString();
+                        }
+                        SnackbarService.showMessage(
+                            "Preparing $playlistName for export.");
+                        final _tmpPath =
+                            await ImportExportService.exportPlaylist(
+                          playlistName,
+                          filePath: path,
+                        );
+                        SnackbarService.showMessage("Exported to: $_tmpPath");
+                      },
+                    ),
                   PltOptBtn(
                     title: 'Delete Playlist',
                     icon: MingCute.delete_2_fill,

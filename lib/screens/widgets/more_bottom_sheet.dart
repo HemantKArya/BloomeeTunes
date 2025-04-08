@@ -11,7 +11,7 @@ import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
-import 'package:Bloomee/services/file_manager.dart';
+import 'package:Bloomee/services/import_export_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -209,7 +209,7 @@ void showMoreBottomSheet(
                   Navigator.pop(context);
                   SnackbarService.showMessage(
                       "Preparing ${song.title} for share.");
-                  final tmpPath = await BloomeeFileManager.exportMediaItem(
+                  final tmpPath = await ImportExportService.exportMediaItem(
                       MediaItem2MediaItemDB(song));
                   tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
                 },

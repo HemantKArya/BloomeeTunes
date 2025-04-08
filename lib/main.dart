@@ -15,7 +15,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/shortcuts_intents.dart';
 import 'package:Bloomee/theme_data/default.dart';
-import 'package:Bloomee/services/file_manager.dart';
+import 'package:Bloomee/services/import_export_service.dart';
 import 'package:Bloomee/utils/external_list_importer.dart';
 import 'package:Bloomee/utils/ticker.dart';
 import 'package:Bloomee/utils/url_checker.dart';
@@ -85,11 +85,11 @@ void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
 }
 
 Future<void> importItems(String path) async {
-  bool _res = await BloomeeFileManager.importMediaItem(path);
+  bool _res = await ImportExportService.importMediaItem(path);
   if (_res) {
     SnackbarService.showMessage("Media Item Imported");
   } else {
-    _res = await BloomeeFileManager.importPlaylist(path);
+    _res = await ImportExportService.importPlaylist(path);
     if (_res) {
       SnackbarService.showMessage("Playlist Imported");
     } else {
