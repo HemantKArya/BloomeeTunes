@@ -10,7 +10,6 @@ import 'package:icons_plus/icons_plus.dart';
 
 class HorizontalCardView extends StatelessWidget {
   final Map<String, dynamic> data;
-  final CarouselController carouselController = CarouselController();
   final ScrollController _scrollController = ScrollController();
 
   HorizontalCardView({
