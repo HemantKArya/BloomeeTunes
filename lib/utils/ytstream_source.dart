@@ -1,9 +1,27 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as dev;
+import 'dart:isolate';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+
+Future<AudioOnlyStreamInfo> getStreamInfoBG(
+    String videoId, RootIsolateToken? token, String quality) async {
+  BackgroundIsolateBinaryMessenger.ensureInitialized(token!);
+  final ytExplode = YoutubeExplode();
+  final manifest = await ytExplode.videos.streams.getManifest(videoId,
+      requireWatchPage: true, ytClients: [YoutubeApiClient.androidVr]);
+  final supportedStreams = manifest.audioOnly.sortByBitrate();
+  final audioStream = quality == 'high'
+      ? supportedStreams.lastOrNull
+      : supportedStreams.firstOrNull;
+  if (audioStream == null) {
+    throw Exception('No audio stream available for this video.');
+  }
+  return audioStream;
+}
 
 class YouTubeAudioSource extends StreamAudioSource {
   final String videoId;
@@ -16,26 +34,25 @@ class YouTubeAudioSource extends StreamAudioSource {
     super.tag,
   }) : ytExplode = YoutubeExplode();
 
+  Future<AudioOnlyStreamInfo> getStreamInfo() async {
+    final cachedStreams = await getStreamFromCache(videoId);
+    if (cachedStreams != null) {
+      return quality == 'high' ? cachedStreams[1] : cachedStreams[0];
+    }
+    final vidId = videoId;
+    final qlty = quality;
+    final token = RootIsolateToken.instance;
+    final audioStream =
+        await Isolate.run(() => getStreamInfoBG(vidId, token, qlty));
+    return audioStream;
+  }
+
   @override
   Future<StreamAudioResponse> request([int? start, int? end]) async {
     try {
-      AudioStreamInfo? audioStream;
       // final t1 = DateTime.now().millisecondsSinceEpoch;
-      final cachedStreams = await getStreamFromCache(videoId);
-      if (cachedStreams != null) {
-        audioStream = quality == 'high' ? cachedStreams[1] : cachedStreams[0];
-      } else {
-        final manifest = await ytExplode.videos.streams.getManifest(videoId,
-            requireWatchPage: true, ytClients: [YoutubeApiClient.androidVr]);
-        final supportedStreams = manifest.audioOnly.sortByBitrate();
-        audioStream = quality == 'high'
-            ? supportedStreams.lastOrNull
-            : supportedStreams.firstOrNull;
-      }
-
-      if (audioStream == null) {
-        throw Exception('No audio stream available for this video.');
-      }
+      final audioStream = await getStreamInfo();
+      // final t2 = DateTime.now().millisecondsSinceEpoch;
 
       start ??= 0;
       if (end != null && end > audioStream.size.totalBytes) {
