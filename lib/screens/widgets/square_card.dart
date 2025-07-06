@@ -116,22 +116,22 @@ class SquareImgCard extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Default_Theme.primaryColor1)
-                  .merge(Default_Theme.secondoryTextStyle),
+              style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Default_Theme.primaryColor1,
+                  height: 1.0)),
             ),
             Text(
               subtitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Default_Theme.primaryColor2.withOpacity(0.8))
-                  .merge(Default_Theme.secondoryTextStyle),
+              style: Default_Theme.secondoryTextStyle.merge(TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Default_Theme.primaryColor2.withOpacity(0.8),
+                  height: 1.0)),
             ),
           ],
         ),
