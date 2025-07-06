@@ -59,79 +59,81 @@ class HorizontalCardView extends StatelessWidget {
                   .merge(Default_Theme.secondoryTextStyle),
             ),
           ),
-          SizedBox(
-            height: 220,
-            child: Row(
-              children: [
-                if (Platform.isWindows || Platform.isLinux)
-                  IconButton(
-                    icon: const Icon(MingCute.left_line),
-                    onPressed: _scrollToPrevious,
-                  ),
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: data['items'].length,
-                    itemBuilder: (context, i) {
-                      return GestureDetector(
-                        onTap: () {
-                          switch (data["items"][i]['type']) {
-                            case "playlist":
-                            case "chart":
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => YoutubePlaylist(
-                                    imgPath: data["items"][i]["image"],
-                                    title: data["items"][i]["title"],
-                                    subtitle: data["items"][i]["subtitle"],
-                                    type: data["items"][i]["type"],
-                                    id: data["items"][i]["id"],
+          Expanded(
+            child: SizedBox(
+              height: 220,
+              child: Row(
+                children: [
+                  if (Platform.isWindows || Platform.isLinux)
+                    IconButton(
+                      icon: const Icon(MingCute.left_line),
+                      onPressed: _scrollToPrevious,
+                    ),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: data['items'].length,
+                      itemBuilder: (context, i) {
+                        return GestureDetector(
+                          onTap: () {
+                            switch (data["items"][i]['type']) {
+                              case "playlist":
+                              case "chart":
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => YoutubePlaylist(
+                                      imgPath: data["items"][i]["image"],
+                                      title: data["items"][i]["title"],
+                                      subtitle: data["items"][i]["subtitle"],
+                                      type: data["items"][i]["type"],
+                                      id: data["items"][i]["id"],
+                                    ),
                                   ),
-                                ),
-                              );
-                              break;
-                            case "video":
-                              ExternalMediaImporter.ytMediaImporter(
-                                      'https://youtu.be/${(data["items"][i]["id"] as String).replaceAll("youtube", "")}')
-                                  .then((value) async {
-                                if (value != null) {
-                                  await context
-                                      .read<BloomeePlayerCubit>()
-                                      .bloomeePlayer
-                                      .addQueueItem(value);
-                                }
-                              });
-                              break;
-                            default:
-                          }
-                        },
-                        child: SquareImgCard(
-                          imgPath: data["items"][i]["image"].toString(),
-                          title: data["items"][i]["title"].toString(),
-                          subtitle: data["items"][i]["subtitle"].toString(),
-                          isWide: data["items"][i]['isWide'],
-                          tag: (data["items"][i]['type'] == "playlist" ||
-                                  data["items"][i]['type'] == "chart")
-                              ? '${data["items"][i]["count"]}'
-                                  .replaceAll('songs', 'Tracks')
-                              : data["items"][i]["count"].toString(),
-                          isList: (data["items"][i]['type'] == "playlist" ||
-                                  data["items"][i]['type'] == "chart")
-                              ? true
-                              : false,
-                        ),
-                      );
-                    },
+                                );
+                                break;
+                              case "video":
+                                ExternalMediaImporter.ytMediaImporter(
+                                        'https://youtu.be/${(data["items"][i]["id"] as String).replaceAll("youtube", "")}')
+                                    .then((value) async {
+                                  if (value != null) {
+                                    await context
+                                        .read<BloomeePlayerCubit>()
+                                        .bloomeePlayer
+                                        .addQueueItem(value);
+                                  }
+                                });
+                                break;
+                              default:
+                            }
+                          },
+                          child: SquareImgCard(
+                            imgPath: data["items"][i]["image"].toString(),
+                            title: data["items"][i]["title"].toString(),
+                            subtitle: data["items"][i]["subtitle"].toString(),
+                            isWide: data["items"][i]['isWide'],
+                            tag: (data["items"][i]['type'] == "playlist" ||
+                                    data["items"][i]['type'] == "chart")
+                                ? '${data["items"][i]["count"]}'
+                                    .replaceAll('songs', 'Tracks')
+                                : data["items"][i]["count"].toString(),
+                            isList: (data["items"][i]['type'] == "playlist" ||
+                                    data["items"][i]['type'] == "chart")
+                                ? true
+                                : false,
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                if (Platform.isWindows || Platform.isLinux)
-                  IconButton(
-                    icon: const Icon(MingCute.right_line),
-                    onPressed: _scrollToNext,
-                  ),
-              ],
+                  if (Platform.isWindows || Platform.isLinux)
+                    IconButton(
+                      icon: const Icon(MingCute.right_line),
+                      onPressed: _scrollToNext,
+                    ),
+                ],
+              ),
             ),
           )
         ],
