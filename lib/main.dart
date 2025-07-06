@@ -31,7 +31,6 @@ import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubi
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'package:metadata_god/metadata_god.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -127,7 +126,6 @@ Future<void> main() async {
   }
   await initServices();
   setHighRefreshRate();
-  MetadataGod.initialize();
   setupPlayerCubit();
   DiscordService.initialize();
   runApp(const MyApp());
@@ -154,9 +152,11 @@ class _MyAppState extends State<MyApp> {
           ReceiveSharingIntent.instance.getMediaStream().listen((event) {
         sharedMediaFiles.clear();
         sharedMediaFiles.addAll(event);
-        log(sharedMediaFiles[0].mimeType.toString(), name: "Shared Files");
-        log(sharedMediaFiles[0].path, name: "Shared Files");
-        processIncomingIntent(sharedMediaFiles);
+        if (sharedMediaFiles.isNotEmpty) {
+          log(sharedMediaFiles[0].mimeType.toString(), name: "Shared Files");
+          log(sharedMediaFiles[0].path, name: "Shared Files");
+          processIncomingIntent(sharedMediaFiles);
+        }
 
         // Tell the library that we are done processing the intent.
         ReceiveSharingIntent.instance.reset();
@@ -167,10 +167,12 @@ class _MyAppState extends State<MyApp> {
       ReceiveSharingIntent.instance.getInitialMedia().then((event) {
         sharedMediaFiles.clear();
         sharedMediaFiles.addAll(event);
-        log(sharedMediaFiles[0].mimeType.toString(),
-            name: "Shared Files Offline");
-        log(sharedMediaFiles[0].path, name: "Shared Files Offline");
-        processIncomingIntent(sharedMediaFiles);
+        if (sharedMediaFiles.isNotEmpty) {
+          log(sharedMediaFiles[0].mimeType.toString(),
+              name: "Shared Files Offline");
+          log(sharedMediaFiles[0].path, name: "Shared Files Offline");
+          processIncomingIntent(sharedMediaFiles);
+        }
         ReceiveSharingIntent.instance.reset();
       });
     }

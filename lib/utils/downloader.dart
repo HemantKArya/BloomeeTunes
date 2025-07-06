@@ -8,7 +8,6 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:metadata_god/metadata_god.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image/image.dart' as img;
@@ -134,32 +133,32 @@ class BloomeeDownloader {
     // final imgPath =
     //     await downloadFile(song.artUri.toString(), "${song.id}.jpg");
     // log("Image downloaded for ${imgPath}", name: "BloomeeDownloader");
-    try {
-      await MetadataGod.writeMetadata(
-          file: filePath,
-          metadata: Metadata(
-            title: song.title,
-            artist: song.artist,
-            album: song.album,
-            genre: song.genre,
-            picture: Picture(
-              data: (await getSquareImg(
-                  await getImgBytes(song.artUri.toString())))!,
-              mimeType: 'image/jpeg',
-            ),
-          ));
-    } catch (e) {
-      log("Failed to tag with image ${song.title} by ${song.artist}",
-          error: e, name: "BloomeeDownloader");
-      await MetadataGod.writeMetadata(
-          file: filePath,
-          metadata: Metadata(
-            title: song.title,
-            artist: song.artist,
-            album: song.album,
-            genre: song.genre,
-          ));
-    }
+    // try {
+    // await MetadataGod.writeMetadata(
+    //     file: filePath,
+    //     metadata: Metadata(
+    //       title: song.title,
+    //       artist: song.artist,
+    //       album: song.album,
+    //       genre: song.genre,
+    //       picture: Picture(
+    //         data: (await getSquareImg(
+    //             await getImgBytes(song.artUri.toString())))!,
+    //         mimeType: 'image/jpeg',
+    //       ),
+    //     ));
+    // } catch (e) {
+    //   log("Failed to tag with image ${song.title} by ${song.artist}",
+    //       error: e, name: "BloomeeDownloader");
+    // await MetadataGod.writeMetadata(
+    //     file: filePath,
+    //     metadata: Metadata(
+    //       title: song.title,
+    //       artist: song.artist,
+    //       album: song.album,
+    //       genre: song.genre,
+    //     ));
+    // }
     // deleteFile(imgPath!);
   }
 
