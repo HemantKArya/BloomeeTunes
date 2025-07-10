@@ -252,8 +252,13 @@ class _MyAppState extends State<MyApp> {
         child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
           builder: (context, state) {
             if (state is BloomeePlayerInitial) {
-              return const SizedBox(
-                  width: 50, height: 50, child: CircularProgressIndicator());
+              return const Center(
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: CircularProgressIndicator(),
+                ),
+              );
             } else {
               return MaterialApp.router(
                 shortcuts: {

@@ -46,6 +46,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 .read<BloomeeDBCubit>()
                 .getSettingBool(GlobalStrConsts.autoUpdateNotify) ??
             false) {
+          if (!mounted) return;
           updateDialog(context);
         }
       }
@@ -59,7 +60,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
         if (data.mediaItems.isNotEmpty) {
           return data;
         }
-        lFMData = ctx.read<LastdotfmCubit>().getRecommendedTracks();
+
+        if (ctx.mounted) {
+          lFMData = ctx.read<LastdotfmCubit>().getRecommendedTracks();
+        }
         return (await lFMData);
       } catch (e) {
         log(e.toString(), name: "ExploreScreen");
