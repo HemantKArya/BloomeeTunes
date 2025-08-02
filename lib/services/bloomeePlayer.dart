@@ -1,105 +1,41 @@
 import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
-import 'package:Bloomee/model/saavnModel.dart';
-import 'package:Bloomee/model/yt_music_model.dart';
-import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/utils/ytstream_source.dart';
+import 'package:Bloomee/services/player/audio_source_manager.dart';
+import 'package:Bloomee/services/player/player_error_handler.dart';
+import 'package:Bloomee/services/player/connectivity_manager.dart';
+import 'package:Bloomee/services/player/queue_manager.dart';
+import 'package:Bloomee/services/player/related_songs_manager.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:easy_debounce/easy_throttle.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import '../model/MediaPlaylistModel.dart';
 import 'package:Bloomee/services/discord_service.dart';
 
-// Static method for compute operation
-Future<Map> _getRelatedSongs(String songId) async {
-  return await SaavnAPI().getRelated(songId);
-}
-
-List<int> generateRandomIndices(int length) {
-  List<int> indices = List<int>.generate(length, (i) => i);
-  indices.shuffle();
-  return indices;
-}
-
-enum PlayerErrorType {
-  networkError,
-  sourceError,
-  playbackError,
-  bufferingError,
-  permissionError,
-  unknownError,
-}
-
-class PlayerError {
-  final PlayerErrorType type;
-  final String message;
-  final dynamic originalError;
-  final DateTime timestamp;
-  final MediaItem? failedMediaItem;
-
-  PlayerError({
-    required this.type,
-    required this.message,
-    this.originalError,
-    this.failedMediaItem,
-  }) : timestamp = DateTime.now();
-
-  @override
-  String toString() => 'PlayerError(type: $type, message: $message)';
-}
-
-class RetryConfig {
-  final int maxRetries;
-  final Duration initialDelay;
-  final double backoffMultiplier;
-  final Duration maxDelay;
-
-  const RetryConfig({
-    this.maxRetries = 3,
-    this.initialDelay = const Duration(seconds: 1),
-    this.backoffMultiplier = 2.0,
-    this.maxDelay = const Duration(seconds: 30),
-  });
-}
-
 class BloomeeMusicPlayer extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   late AudioPlayer audioPlayer;
+
+  // Modular components
+  late AudioSourceManager _audioSourceManager;
+  late PlayerErrorHandler _errorHandler;
+  late ConnectivityManager _connectivityManager;
+  late QueueManager _queueManager;
+  late RelatedSongsManager _relatedSongsManager;
+
   BehaviorSubject<bool> fromPlaylist = BehaviorSubject<bool>.seeded(false);
   BehaviorSubject<bool> isOffline = BehaviorSubject<bool>.seeded(false);
-  BehaviorSubject<bool> shuffleMode = BehaviorSubject<bool>.seeded(false);
-  BehaviorSubject<bool> isConnected = BehaviorSubject<bool>.seeded(true);
-  BehaviorSubject<PlayerError?> lastError =
-      BehaviorSubject<PlayerError?>.seeded(null);
-
-  BehaviorSubject<List<MediaItem>> relatedSongs =
-      BehaviorSubject<List<MediaItem>>.seeded([]);
   BehaviorSubject<LoopMode> loopMode =
       BehaviorSubject<LoopMode>.seeded(LoopMode.off);
 
-  int currentPlayingIdx = 0;
-  int shuffleIdx = 0;
-  List<int> shuffleList = [];
   final _playlist = ConcatenatingAudioSource(children: []);
 
   // Flag to track if player is disposed
   bool _isDisposed = false;
-
-  // Error handling and retry mechanism
-  final Map<String, int> _retryAttempts = {};
-  final Map<String, DateTime> _lastRetryTime = {};
-  final RetryConfig _retryConfig = const RetryConfig();
-  Timer? _reconnectionTimer;
-  Timer? _connectivityTimer;
 
   // Stream subscriptions for proper cleanup
   StreamSubscription? _playbackEventSubscription;
@@ -109,22 +45,43 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   StreamSubscription? _mediaItemSubscription;
   StreamSubscription? _connectivitySubscription;
 
-  // Cache for audio sources to avoid repeated network calls
-  final Map<String, AudioSource> _audioSourceCache = {};
-  final Map<String, DateTime> _cacheTimestamps = {};
-  static const Duration _cacheExpiry = Duration(hours: 1);
-  static const int _maxCacheSize = 50;
-
-  // final ReceivePort receivePortYt = ReceivePort();
-  // SendPort? sendPortYt;
+  // Expose properties from modular components
+  BehaviorSubject<bool> get shuffleMode => _queueManager.shuffleMode;
+  BehaviorSubject<bool> get isConnected => _connectivityManager.isConnected;
+  BehaviorSubject<PlayerError?> get lastError => _errorHandler.lastError;
+  BehaviorSubject<List<MediaItem>> get relatedSongs =>
+      _relatedSongsManager.relatedSongs;
 
   BloomeeMusicPlayer() {
     audioPlayer = AudioPlayer(
       handleInterruptions: true,
     );
+    _initializeModules();
     _initializePlayer();
-    _setupErrorHandling();
-    _startConnectivityMonitoring();
+  }
+
+  void _initializeModules() {
+    // Initialize all modular components
+    _audioSourceManager = AudioSourceManager();
+    _errorHandler = PlayerErrorHandler();
+    _connectivityManager = ConnectivityManager();
+    _queueManager = QueueManager();
+    _relatedSongsManager = RelatedSongsManager();
+
+    // Setup callbacks between modules
+    _errorHandler.onSkipToNext = () => skipToNext();
+    _errorHandler.onRetryCurrentTrack = () => _retryCurrentTrack();
+    _errorHandler.onClearCachedSource =
+        (mediaId) => _audioSourceManager.clearCachedSource(mediaId);
+
+    _connectivityManager.onNetworkReconnected =
+        () => _handleNetworkReconnection();
+
+    _queueManager.onPrepareToPlay =
+        (idx, doPlay) => _prepare4play(idx: idx, doPlay: doPlay);
+
+    _relatedSongsManager.onAddQueueItems =
+        (items, {bool atLast = false}) => addQueueItems(items, atLast: atLast);
   }
 
   void _initializePlayer() {
@@ -138,7 +95,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _playerStateSubscription = audioPlayer.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.idle &&
           state.playing == false &&
-          lastError.value != null) {
+          _errorHandler.lastError.value != null) {
         _handlePlaybackFailure();
       }
     });
@@ -165,221 +122,54 @@ class BloomeeMusicPlayer extends BaseAudioHandler
               event.inMilliseconds >
                   audioPlayer.duration!.inMilliseconds - endingOffset)) &&
           loopMode.value != LoopMode.one &&
-          queue.value.isNotEmpty) {
+          _queueManager.queue.value.isNotEmpty) {
         // Add safety check for queue
         EasyThrottle.throttle('skipNext', const Duration(milliseconds: 2000),
             () async => skipToNext());
       }
     });
 
-    // Refresh shuffle list when queue changes
-    _queueSubscription = queue.listen((e) {
-      shuffleList = generateRandomIndices(e.length);
+    // Refresh shuffle list when queue changes - delegate to queue manager
+    _queueSubscription = _queueManager.queue.listen((e) {
+      queue.add(e); // Sync with base audio handler queue
     });
-  }
-
-  void _setupErrorHandling() {
-    // Listen to audio player errors
-    audioPlayer.playbackEventStream.listen((event) {
-      if (event.processingState == ProcessingState.idle &&
-          audioPlayer.playing == false &&
-          lastError.value?.type == PlayerErrorType.playbackError) {
-        _scheduleRetry();
-      }
-    });
-  }
-
-  void _startConnectivityMonitoring() {
-    // For now, we'll use a simple network check
-    _connectivityTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      _checkNetworkConnectivity();
-    });
-  }
-
-  Future<void> _checkNetworkConnectivity() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      final wasConnected = isConnected.value;
-      final nowConnected = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-
-      isConnected.add(nowConnected);
-
-      if (!wasConnected && nowConnected) {
-        log('Network reconnected, attempting to resume playback',
-            name: 'bloomeePlayer');
-        _handleNetworkReconnection();
-      }
-    } catch (e) {
-      isConnected.add(false);
-      log('Network connectivity check failed: $e', name: 'bloomeePlayer');
-    }
-  }
-
-  void _handleNetworkReconnection() {
-    if (lastError.value?.type == PlayerErrorType.networkError &&
-        queue.value.isNotEmpty) {
-      _clearAudioSourceCache();
-      _retryCurrentTrack();
-    }
-  }
-
-  void _clearAudioSourceCache() {
-    _audioSourceCache.clear();
-    _cacheTimestamps.clear();
-  }
-
-  Future<void> _retryCurrentTrack() async {
-    if (queue.value.isNotEmpty && currentPlayingIdx < queue.value.length) {
-      final currentItem = queue.value[currentPlayingIdx];
-      log('Retrying current track: ${currentItem.title}',
-          name: 'bloomeePlayer');
-
-      try {
-        lastError.add(null); // Clear previous error
-        await playMediaItem(currentItem, doPlay: true);
-      } catch (e) {
-        log('Retry failed: $e', name: 'bloomeePlayer');
-        _handleError(
-            PlayerErrorType.playbackError, 'Retry failed: $e', currentItem, e);
-      }
-    }
-  }
-
-  void _scheduleRetry() {
-    final currentItem =
-        queue.value.isNotEmpty ? queue.value[currentPlayingIdx] : null;
-    if (currentItem == null) return;
-
-    final itemId = currentItem.id;
-    final attempts = _retryAttempts[itemId] ?? 0;
-
-    if (attempts >= _retryConfig.maxRetries) {
-      log('Max retry attempts reached for ${currentItem.title}',
-          name: 'bloomeePlayer');
-      _skipToNextOnError();
-      return;
-    }
-
-    final delay = _calculateRetryDelay(attempts);
-    _retryAttempts[itemId] = attempts + 1;
-    _lastRetryTime[itemId] = DateTime.now();
-
-    _reconnectionTimer?.cancel();
-    _reconnectionTimer = Timer(delay, () async {
-      log('Retrying playback for ${currentItem.title} (attempt ${attempts + 1})',
-          name: 'bloomeePlayer');
-      await _retryCurrentTrack();
-    });
-  }
-
-  Duration _calculateRetryDelay(int attempts) {
-    final delay =
-        _retryConfig.initialDelay * (attempts * _retryConfig.backoffMultiplier);
-    return delay > _retryConfig.maxDelay ? _retryConfig.maxDelay : delay;
   }
 
   void _handlePlaybackFailure() {
-    if (queue.value.isNotEmpty && currentPlayingIdx < queue.value.length) {
-      final currentItem = queue.value[currentPlayingIdx];
-      _handleError(PlayerErrorType.playbackError,
+    if (_queueManager.queue.value.isNotEmpty &&
+        _queueManager.currentPlayingIdx < _queueManager.queue.value.length) {
+      final currentItem =
+          _queueManager.queue.value[_queueManager.currentPlayingIdx];
+      _errorHandler.handleError(PlayerErrorType.playbackError,
           'Playback failed unexpectedly', currentItem);
     }
   }
 
-  void _skipToNextOnError() async {
-    SnackbarService.showMessage('Failed to play current song, skipping to next',
-        duration: const Duration(seconds: 3));
-
-    if (queue.value.length > 1) {
-      await skipToNext();
-    } else {
-      await stop();
+  void _handleNetworkReconnection() {
+    if (_errorHandler.lastError.value?.type == PlayerErrorType.networkError &&
+        _queueManager.queue.value.isNotEmpty) {
+      _audioSourceManager.clearAllCache();
+      _retryCurrentTrack();
     }
   }
 
-  void _handleError(PlayerErrorType type, String message, MediaItem? mediaItem,
-      [dynamic originalError]) {
-    final error = PlayerError(
-      type: type,
-      message: message,
-      failedMediaItem: mediaItem,
-      originalError: originalError,
-    );
+  Future<void> _retryCurrentTrack() async {
+    if (_queueManager.queue.value.isNotEmpty &&
+        _queueManager.currentPlayingIdx < _queueManager.queue.value.length) {
+      final currentItem =
+          _queueManager.queue.value[_queueManager.currentPlayingIdx];
+      log('Retrying current track: ${currentItem.title}',
+          name: 'bloomeePlayer');
 
-    lastError.add(error);
-    log('Player error: $error', name: 'bloomeePlayer');
-
-    // Show user-friendly error message
-    String userMessage = _getUserFriendlyErrorMessage(type, message);
-    SnackbarService.showMessage(userMessage,
-        duration: const Duration(seconds: 4));
-
-    // Handle specific error types
-    switch (type) {
-      case PlayerErrorType.networkError:
-        if (!isConnected.value) {
-          userMessage = 'No internet connection. Will retry when connected.';
-        } else {
-          _scheduleRetry();
-        }
-        break;
-      case PlayerErrorType.sourceError:
-        _clearCachedSource(mediaItem?.id);
-        _scheduleRetry();
-        break;
-      case PlayerErrorType.playbackError:
-        _scheduleRetry();
-        break;
-      case PlayerErrorType.bufferingError:
-        // Try lower quality or skip
-        _scheduleRetry();
-        break;
-      default:
-        _scheduleRetry();
+      try {
+        _errorHandler.clearError(); // Clear previous error
+        await playMediaItem(currentItem, doPlay: true);
+      } catch (e) {
+        log('Retry failed: $e', name: 'bloomeePlayer');
+        _errorHandler.handleError(
+            PlayerErrorType.playbackError, 'Retry failed: $e', currentItem, e);
+      }
     }
-  }
-
-  String _getUserFriendlyErrorMessage(PlayerErrorType type, String message) {
-    switch (type) {
-      case PlayerErrorType.networkError:
-        return 'Network connection issue. Retrying...';
-      case PlayerErrorType.sourceError:
-        return 'Song source unavailable. Trying alternative...';
-      case PlayerErrorType.playbackError:
-        return 'Playback issue detected. Retrying...';
-      case PlayerErrorType.bufferingError:
-        return 'Buffering problem. Retrying...';
-      case PlayerErrorType.permissionError:
-        return 'Permission denied. Please check app permissions.';
-      default:
-        return 'Unexpected error occurred. Retrying...';
-    }
-  }
-
-  void _clearCachedSource(String? mediaId) {
-    if (mediaId != null) {
-      _audioSourceCache.remove(mediaId);
-      _cacheTimestamps.remove(mediaId);
-    }
-  }
-
-  bool _isCacheExpired(String mediaId) {
-    final timestamp = _cacheTimestamps[mediaId];
-    if (timestamp == null) return true;
-    return DateTime.now().difference(timestamp) > _cacheExpiry;
-  }
-
-  void _addToCache(String mediaId, AudioSource source) {
-    // Remove oldest entry if cache is full
-    if (_audioSourceCache.length >= _maxCacheSize) {
-      final oldestEntry = _cacheTimestamps.entries
-          .reduce((a, b) => a.value.isBefore(b.value) ? a : b);
-      _audioSourceCache.remove(oldestEntry.key);
-      _cacheTimestamps.remove(oldestEntry.key);
-    }
-
-    _audioSourceCache[mediaId] = source;
-    _cacheTimestamps[mediaId] = DateTime.now();
   }
 
   void _broadcastPlayerEvent(PlaybackEvent event) {
@@ -420,10 +210,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   MediaItemModel get currentMedia {
-    if (queue.value.isEmpty || currentPlayingIdx >= queue.value.length) {
+    if (_queueManager.queue.value.isEmpty ||
+        _queueManager.currentPlayingIdx >= _queueManager.queue.value.length) {
       return mediaItemModelNull;
     }
-    return mediaItem2MediaItemModel(queue.value[currentPlayingIdx]);
+    return mediaItem2MediaItemModel(
+        _queueManager.queue.value[_queueManager.currentPlayingIdx]);
   }
 
   @override
@@ -436,43 +228,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> check4RelatedSongs() async {
-    log("Checking for related songs: ${queue.value.isNotEmpty && (queue.value.length - currentPlayingIdx) < 2}",
-        name: "bloomeePlayer");
-    final autoPlay =
-        await BloomeeDBService.getSettingBool(GlobalStrConsts.autoPlay);
-    if (autoPlay != null && !autoPlay) return;
-    if (queue.value.isNotEmpty &&
-        (queue.value.length - currentPlayingIdx) < 2 &&
-        loopMode.value != LoopMode.all) {
-      if (currentMedia.extras?["source"] == "saavn") {
-        final songs = await compute(_getRelatedSongs, currentMedia.id);
-        if (songs['total'] > 0) {
-          final List<MediaItem> temp =
-              fromSaavnSongMapList2MediaItemList(songs['songs']);
-          relatedSongs.add(temp.sublist(1));
-          log("Related Songs: ${songs['total']}");
-        }
-      } else if (currentMedia.extras?["source"].contains("youtube") ?? false) {
-        final songs = await YTMusic()
-            .getRelatedSongs(currentMedia.id.replaceAll('youtube', ''));
-        if (songs.isNotEmpty) {
-          final List<MediaItem> temp = ytmMapList2MediaItemList(songs);
-          relatedSongs.add(temp.sublist(1));
-          log("Related Songs: ${songs.length}");
-        }
-      }
-    }
-    loadRelatedSongs();
-  }
-
-  Future<void> loadRelatedSongs() async {
-    if (relatedSongs.value.isNotEmpty &&
-        (queue.value.length - currentPlayingIdx) < 3 &&
-        loopMode.value != LoopMode.all) {
-      await addQueueItems(relatedSongs.value, atLast: true);
-      fromPlaylist.add(false);
-      relatedSongs.add([]);
-    }
+    await _relatedSongsManager.checkForRelatedSongs(
+      currentMedia: _queueManager.currentMediaItem!,
+      queue: _queueManager.queue.value,
+      currentPlayingIdx: _queueManager.currentPlayingIdx,
+      loopMode: loopMode.value,
+    );
   }
 
   @override
@@ -508,23 +269,16 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> shuffle(bool shuffle) async {
-    shuffleMode.add(shuffle);
-    if (shuffle) {
-      shuffleIdx = 0;
-      shuffleList = generateRandomIndices(queue.value.length);
-    }
+    await _queueManager.shuffle(shuffle);
   }
 
   Future<void> loadPlaylist(MediaPlaylist mediaList,
       {int idx = 0, bool doPlay = false, bool shuffling = false}) async {
     fromPlaylist.add(true);
-    queue.add([]);
-    relatedSongs.add([]);
-    queue.add(mediaList.mediaItems);
+    _relatedSongsManager.clearRelatedSongs();
+    await _queueManager.loadPlaylist(mediaList,
+        idx: idx, doPlay: doPlay, shuffling: shuffling);
     queueTitle.add(mediaList.playlistName);
-    shuffle(shuffling || shuffleMode.value);
-    await prepare4play(idx: idx, doPlay: doPlay);
-    // if (doPlay) play();
   }
 
   @override
@@ -533,91 +287,24 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     log("paused", name: "bloomeePlayer");
   }
 
-  PlayerErrorType _categorizeError(dynamic error) {
-    if (error is SocketException ||
-        error is TimeoutException ||
-        error is HttpException) {
-      return PlayerErrorType.networkError;
-    } else if (error is FormatException ||
-        error is ArgumentError ||
-        error.toString().toLowerCase().contains('format') ||
-        error.toString().toLowerCase().contains('source')) {
-      return PlayerErrorType.sourceError;
-    } else if (error is PlayerException) {
-      return PlayerErrorType.playbackError;
-    } else if (error.toString().toLowerCase().contains('permission')) {
-      return PlayerErrorType.permissionError;
-    } else if (error.toString().toLowerCase().contains('buffer')) {
-      return PlayerErrorType.bufferingError;
-    }
-    return PlayerErrorType.unknownError;
-  }
-
   Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
-    final mediaId = mediaItem.id;
-
-    // Check cache first (if not expired)
-    if (_audioSourceCache.containsKey(mediaId) && !_isCacheExpired(mediaId)) {
-      log('Using cached audio source for ${mediaItem.title}',
-          name: "bloomeePlayer");
-      return _audioSourceCache[mediaId]!;
-    }
-
     try {
-      // Check for offline version first
-      final _down = await BloomeeDBService.getDownloadDB(
-          mediaItem2MediaItemModel(mediaItem));
-      if (_down != null) {
-        log("Playing Offline: ${mediaItem.title}", name: "bloomeePlayer");
-        SnackbarService.showMessage("Playing Offline",
-            duration: const Duration(seconds: 1));
+      final audioSource = await _audioSourceManager.getAudioSource(mediaItem,
+          isConnected: _connectivityManager.isConnected.value);
+
+      // Check if it's an offline source (file URI)
+      if (audioSource.toString().contains('file://')) {
         isOffline.add(true);
-        final audioSource = AudioSource.uri(
-            Uri.file('${_down.filePath}/${_down.fileName}'),
-            tag: mediaItem);
-
-        // Cache offline source (it won't expire)
-        _addToCache(mediaId, audioSource);
-
-        return audioSource;
-      }
-
-      // Check network connectivity before attempting online playback
-      if (!isConnected.value) {
-        throw Exception('No network connection available');
-      }
-
-      isOffline.add(false);
-      AudioSource audioSource;
-
-      if (mediaItem.extras?["source"] == "youtube") {
-        String? quality =
-            await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality);
-        quality = quality ?? "high";
-        quality = quality.toLowerCase();
-        final id = mediaItem.id.replaceAll("youtube", '');
-
-        audioSource =
-            YouTubeAudioSource(videoId: id, quality: quality, tag: mediaItem);
       } else {
-        String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
-        if (kurl == null || kurl.isEmpty) {
-          throw Exception('Failed to get stream URL');
-        }
-
-        log('Playing: $kurl', name: "bloomeePlayer");
-        audioSource = AudioSource.uri(Uri.parse(kurl), tag: mediaItem);
+        isOffline.add(false);
       }
-
-      // Cache the audio source
-      _addToCache(mediaId, audioSource);
 
       return audioSource;
     } catch (e) {
       log('Error getting audio source for ${mediaItem.title}: $e',
           name: "bloomeePlayer");
 
-      final errorType = _categorizeError(e);
+      final errorType = _errorHandler.categorizeError(e);
       String errorMessage;
 
       switch (errorType) {
@@ -640,23 +327,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           errorMessage = 'Unknown error loading song';
       }
 
-      _handleError(errorType, errorMessage, mediaItem, e);
+      _errorHandler.handleError(errorType, errorMessage, mediaItem, e);
       rethrow;
     }
   }
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    if (index >= queue.value.length) {
-      log("skipToQueueItem: Invalid index $index, queue length: ${queue.value.length}",
-          name: "bloomeePlayer");
-      return super.skipToQueueItem(index);
-    }
-
-    currentPlayingIdx = index;
-    await playMediaItem(queue.value[index]);
-
-    log("skipToQueueItem: Moved to index $index", name: "bloomeePlayer");
+    await _queueManager.skipToQueueItem(index);
     return super.skipToQueueItem(index);
   }
 
@@ -680,9 +358,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       }
 
       // Clear any previous errors on successful playback
-      lastError.add(null);
-      _retryAttempts.remove(mediaId);
-      _lastRetryTime.remove(mediaId);
+      _errorHandler.clearError();
+      _errorHandler.clearRetryAttempts(mediaId);
 
       log('Successfully started playback for $mediaId', name: "bloomeePlayer");
     } catch (e) {
@@ -705,19 +382,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           errorMessage = 'Playback failed: ${e.message}';
         }
 
-        final currentItem =
-            queue.value.isNotEmpty ? queue.value[currentPlayingIdx] : null;
-        _handleError(errorType, errorMessage, currentItem, e);
+        final currentItem = _queueManager.currentMediaItem;
+        _errorHandler.handleError(errorType, errorMessage, currentItem, e);
 
         // For critical errors, try to recover
         if (errorType == PlayerErrorType.sourceError) {
-          _clearCachedSource(mediaId);
+          _audioSourceManager.clearCachedSource(mediaId);
         }
       } else {
-        final currentItem =
-            queue.value.isNotEmpty ? queue.value[currentPlayingIdx] : null;
-        _handleError(PlayerErrorType.unknownError, 'Unexpected playback error',
-            currentItem, e);
+        final currentItem = _queueManager.currentMediaItem;
+        _errorHandler.handleError(PlayerErrorType.unknownError,
+            'Unexpected playback error', currentItem, e);
       }
 
       rethrow;
@@ -746,21 +421,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
-  Future<void> prepare4play({int idx = 0, bool doPlay = false}) async {
-    if (queue.value.isEmpty) {
-      log('Cannot prepare4play: queue is empty', name: 'bloomeePlayer');
+  Future<void> _prepare4play({int idx = 0, bool doPlay = false}) async {
+    final currentItem = _queueManager.currentMediaItem;
+    if (currentItem == null) {
+      log('Cannot prepare4play: no current media item', name: 'bloomeePlayer');
       return;
     }
 
-    if (idx >= queue.value.length) {
-      log('Index $idx is out of bounds, queue length: ${queue.value.length}',
-          name: 'bloomeePlayer');
-      idx = queue.value.length - 1; // Use last valid index
-    }
-
-    currentPlayingIdx = idx;
-    await playMediaItem(currentMedia, doPlay: doPlay);
-    BloomeeDBService.putRecentlyPlayed(MediaItem2MediaItemDB(currentMedia));
+    await playMediaItem(currentItem, doPlay: doPlay);
+    BloomeeDBService.putRecentlyPlayed(MediaItem2MediaItemDB(currentItem));
   }
 
   @override
@@ -768,61 +437,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (audioPlayer.processingState == ProcessingState.ready) {
       await audioPlayer.seek(Duration.zero);
     } else if (audioPlayer.processingState == ProcessingState.completed) {
-      await prepare4play(idx: currentPlayingIdx);
+      await _prepare4play(idx: _queueManager.currentPlayingIdx);
     }
   }
 
   @override
   Future<void> skipToNext() async {
-    // Check if queue is valid before proceeding
-    if (queue.value.isEmpty) {
-      log('Cannot skip to next: queue is empty', name: 'bloomeePlayer');
-      return;
-    }
-
-    if (!shuffleMode.value) {
-      if (currentPlayingIdx < (queue.value.length - 1)) {
-        currentPlayingIdx++;
-        await prepare4play(idx: currentPlayingIdx, doPlay: true);
-      } else if (loopMode.value == LoopMode.all) {
-        currentPlayingIdx = 0;
-        await prepare4play(idx: currentPlayingIdx, doPlay: true);
-      } else {
-        // End of queue reached and no loop mode
-        log('End of queue reached, no more items to skip to',
-            name: 'bloomeePlayer');
-        return;
-      }
-    } else {
-      if (shuffleList.isEmpty) {
-        log('Cannot skip in shuffle mode: shuffle list is empty',
-            name: 'bloomeePlayer');
-        return;
-      }
-
-      if (shuffleIdx < (shuffleList.length - 1)) {
-        shuffleIdx++;
-        await prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
-      } else if (loopMode.value == LoopMode.all) {
-        shuffleIdx = 0;
-        await prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
-      } else {
-        // End of shuffle list reached and no loop mode
-        log('End of shuffle list reached, no more items to skip to',
-            name: 'bloomeePlayer');
-        return;
-      }
-    }
-
-    // Only call super.skipToNext() if we have a valid queue and current item
-    try {
-      if (queue.value.isNotEmpty && currentPlayingIdx < queue.value.length) {
-        await super.skipToNext();
-      }
-    } catch (e) {
-      log('Error calling super.skipToNext(): $e', name: 'bloomeePlayer');
-      // Don't rethrow as this is just a notification to the audio service
-    }
+    await _queueManager.skipToNext();
+    // return super.skipToNext();
   }
 
   @override
@@ -835,47 +457,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToPrevious() async {
-    // Check if queue is valid before proceeding
-    if (queue.value.isEmpty) {
-      log('Cannot skip to previous: queue is empty', name: 'bloomeePlayer');
-      return;
-    }
-
-    if (!shuffleMode.value) {
-      if (currentPlayingIdx > 0) {
-        currentPlayingIdx--;
-        await prepare4play(idx: currentPlayingIdx, doPlay: true);
-      } else {
-        // Already at the beginning
-        log('Already at the beginning of queue', name: 'bloomeePlayer');
-        return;
-      }
-    } else {
-      if (shuffleList.isEmpty) {
-        log('Cannot skip in shuffle mode: shuffle list is empty',
-            name: 'bloomeePlayer');
-        return;
-      }
-
-      if (shuffleIdx > 0) {
-        shuffleIdx--;
-        await prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
-      } else {
-        // Already at the beginning of shuffle list
-        log('Already at the beginning of shuffle list', name: 'bloomeePlayer');
-        return;
-      }
-    }
-
-    // Only call super.skipToPrevious() if we have a valid queue and current item
-    try {
-      if (queue.value.isNotEmpty && currentPlayingIdx < queue.value.length) {
-        await super.skipToPrevious();
-      }
-    } catch (e) {
-      log('Error calling super.skipToPrevious(): $e', name: 'bloomeePlayer');
-      // Don't rethrow as this is just a notification to the audio service
-    }
+    await _queueManager.skipToPrevious();
+    // return super.skipToPrevious();
   }
 
   @override
@@ -896,10 +479,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     log('Cleaning up player resources', name: 'bloomeePlayer');
 
-    // Cancel timers and subscriptions
-    _reconnectionTimer?.cancel();
-    _connectivityTimer?.cancel();
-
     // Cancel all stream subscriptions
     await _playbackEventSubscription?.cancel();
     await _playerStateSubscription?.cancel();
@@ -908,10 +487,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     await _mediaItemSubscription?.cancel();
     await _connectivitySubscription?.cancel();
 
-    // Clear caches
-    _clearAudioSourceCache();
-    _retryAttempts.clear();
-    _lastRetryTime.clear();
+    // Dispose modular components
+    _audioSourceManager.clearAllCache();
+    _errorHandler.dispose();
+    _connectivityManager.dispose();
+    _queueManager.dispose();
+    _relatedSongsManager.dispose();
 
     // Clear Discord presence
     DiscordService.clearPresence();
@@ -928,10 +509,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     try {
       await fromPlaylist.close();
       await isOffline.close();
-      await shuffleMode.close();
-      await isConnected.close();
-      await lastError.close();
-      await relatedSongs.close();
       await loopMode.close();
     } catch (e) {
       log('Error closing behavior subjects: $e', name: 'bloomeePlayer');
@@ -942,20 +519,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> insertQueueItem(int index, MediaItem mediaItem) async {
-    final currentQueue = List<MediaItem>.from(queue.value);
-    if (index < currentQueue.length) {
-      currentQueue.insert(index, mediaItem);
-    } else {
-      currentQueue.add(mediaItem);
-    }
-    queue.add(currentQueue);
-
-    // Adjust the currentPlayingIdx
-    if (currentPlayingIdx >= index) {
-      currentPlayingIdx++;
-    }
-
-    // Sync with audio service queue
+    await _queueManager.insertQueueItem(index, mediaItem);
     try {
       await super.insertQueueItem(index, mediaItem);
     } catch (e) {
@@ -965,97 +529,33 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> addQueueItem(
-    MediaItem mediaItem,
-  ) async {
-    if (queue.value.any((e) => e.id == mediaItem.id)) return;
-    queueTitle.add("Queue");
-
-    final newQueue = List<MediaItem>.from(queue.value)..add(mediaItem);
-    queue.add(newQueue);
-
-    if (newQueue.length == 1) {
-      await prepare4play(idx: 0, doPlay: true);
-    }
+  Future<void> addQueueItem(MediaItem mediaItem) async {
+    await _queueManager.addQueueItem(mediaItem);
   }
 
   @override
   Future<void> updateQueue(List<MediaItem> newQueue,
       {bool doPlay = false}) async {
-    queue.add(newQueue);
-    await prepare4play(idx: 0, doPlay: doPlay);
+    await _queueManager.updateQueue(newQueue, doPlay: doPlay);
   }
 
   @override
   Future<void> addQueueItems(List<MediaItem> mediaItems,
       {String queueName = "Queue", bool atLast = false}) async {
-    if (!atLast) {
-      for (var mediaItem in mediaItems) {
-        await addQueueItem(
-          mediaItem,
-        );
-      }
-    } else {
-      if (fromPlaylist.value) {
-        fromPlaylist.add(false);
-      }
-      final newQueue = List<MediaItem>.from(queue.value)..addAll(mediaItems);
-      queue.add(newQueue);
-      queueTitle.add("Queue");
-    }
+    await _queueManager.addQueueItems(mediaItems,
+        queueName: queueName, atLast: atLast);
   }
 
   Future<void> addPlayNextItem(MediaItem mediaItem) async {
-    if (queue.value.isNotEmpty) {
-      // check if mediaItem is already exist return if it is
-      if (queue.value.any((e) => e.id == mediaItem.id)) return;
-      final newQueue = List<MediaItem>.from(queue.value)
-        ..insert(currentPlayingIdx + 1, mediaItem);
-      queue.add(newQueue);
-    } else {
-      updateQueue([mediaItem], doPlay: true);
-    }
+    await _queueManager.addPlayNextItem(mediaItem);
   }
 
   @override
   Future<void> removeQueueItemAt(int index) async {
-    if (index < queue.value.length) {
-      final newQueue = List<MediaItem>.from(queue.value);
-      newQueue.removeAt(index);
-      queue.add(newQueue);
-
-      if (currentPlayingIdx == index) {
-        if (index < newQueue.length) {
-          await prepare4play(idx: index, doPlay: true);
-        } else if (index > 0) {
-          await prepare4play(idx: index - 1, doPlay: true);
-        } else {
-          // stop();
-        }
-      } else if (currentPlayingIdx > index) {
-        currentPlayingIdx--;
-      }
-    }
+    await _queueManager.removeQueueItemAt(index);
   }
 
   Future<void> moveQueueItem(int oldIndex, int newIndex) async {
-    log("Moving from $oldIndex to $newIndex", name: "bloomeePlayer");
-    final newQueue = List<MediaItem>.from(queue.value);
-    if (oldIndex < newIndex) {
-      newIndex--;
-    }
-
-    final item = newQueue.removeAt(oldIndex);
-    newQueue.insert(newIndex, item);
-    queue.add(newQueue);
-
-    // update the currentPlayingIdx
-    if (currentPlayingIdx == oldIndex) {
-      currentPlayingIdx = newIndex;
-    } else if (oldIndex < currentPlayingIdx && newIndex >= currentPlayingIdx) {
-      currentPlayingIdx--;
-    } else if (oldIndex > currentPlayingIdx && newIndex <= currentPlayingIdx) {
-      currentPlayingIdx++;
-    }
+    await _queueManager.moveQueueItem(oldIndex, newIndex);
   }
 }
