@@ -1191,7 +1191,8 @@ class BloomeeDBService {
 
   static Future<void> putOnlAlbumModel(AlbumModel albumModel) async {
     Isar isarDB = await db;
-    Map extra = albumModel.extra;
+    Map extra =
+        Map.from(albumModel.extra); // Create a modifiable copy of the map
     extra.addEntries([MapEntry("country", albumModel.country)]);
     extra.addEntries([MapEntry("artists", albumModel.artists)]);
     extra.addEntries([MapEntry("genre", albumModel.genre)]);
