@@ -228,6 +228,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> check4RelatedSongs() async {
+    if (_queueManager.currentMediaItem == null) {
+      log('No current media item available for related songs check',
+          name: 'bloomeePlayer');
+      return;
+    }
+
     await _relatedSongsManager.checkForRelatedSongs(
       currentMedia: _queueManager.currentMediaItem!,
       queue: _queueManager.queue.value,
