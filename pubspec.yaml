@@ -59,7 +59,7 @@ dependencies:
   badges: ^3.1.2
   flutter_displaymode: ^0.6.0
   connectivity_plus: ^5.0.2
-  share_plus: ^7.2.2
+  share_plus: ^11.0.0
   file_picker: ^8.0.0+1
   fuzzywuzzy: ^1.1.6
   numberpicker: ^2.1.2
@@ -71,13 +71,15 @@ dependencies:
   scrollable_positioned_list: ^0.3.8
   crypto: ^3.0.5
   dart_discord_rpc: ^0.0.2
+  metadata_god: ^1.0.0
+  mime: ^2.0.0
 
   # linux plugins
   just_audio_media_kit: ^2.0.6
   media_kit_libs_linux: any
   media_kit_libs_windows_audio: any
   audio_service_mpris: ^0.2.0
-  # mime: ^1.0.5
+  
 
 dependency_overrides:
   ffi: ^1.1.2  # Override to make dart_discord_rpc work
