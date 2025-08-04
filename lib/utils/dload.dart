@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 import 'audio_tagger.dart';
 
@@ -186,6 +187,11 @@ class DownloadEngine {
     final segmentCount = (contentLength / segmentSize).ceil();
     final segments = <Future<void>>[];
     int totalDownloaded = 0;
+
+    // Get the temporary directory path in the main isolate
+    final tempDir = await getTemporaryDirectory();
+    final tempDirPath = tempDir.path;
+
     for (int i = 0; i < segmentCount; i++) {
       final start = i * segmentSize;
       final end = min(start + segmentSize - 1, contentLength - 1);
@@ -198,6 +204,7 @@ class DownloadEngine {
         'end': end,
         'targetPath': task.targetPath,
         'segmentIndex': i,
+        'tempDirPath': tempDirPath, // Pass the temp directory path
         'sendPort': receivePort.sendPort,
       });
       receivePort.listen((data) {
@@ -227,13 +234,14 @@ class DownloadEngine {
     final sendPort = args['sendPort'] as SendPort;
     final targetPath = args['targetPath'] as String;
     final segmentIndex = args['segmentIndex'] as int;
+    final tempDirPath =
+        args['tempDirPath'] as String; // Receive the temp directory path
 
     // Extract only the file name from the targetPath
     final fileName = path.basename(targetPath);
 
-    // Use the system's temporary directory for storing parts
-    final tempDir = Directory.systemTemp;
-    final tempFile = File('${tempDir.path}/$fileName.part$segmentIndex');
+    // Use the passed temp directory path for storing parts
+    final tempFile = File('$tempDirPath/$fileName.part$segmentIndex');
 
     try {
       final request = http.Request('GET', uri);
@@ -271,7 +279,7 @@ class DownloadEngine {
     try {
       final targetFile = File(targetPath);
       final writer = targetFile.openWrite();
-      final tempDir = Directory.systemTemp; // Use the temp directory
+      final tempDir = (await getTemporaryDirectory()); // Use the temp directory
 
       // Extract only the file name from the targetPath
       final fileName = path.basename(targetPath);
