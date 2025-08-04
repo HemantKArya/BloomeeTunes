@@ -136,14 +136,7 @@ class DownloadingCardWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            status.state.name.toUpperCase(),
-            style: TextStyle(
-              color: _getStatusColor(status.state),
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
+          _getStatusText(status.state),
           const SizedBox(height: 4),
           Text(
             '${(status.progress * 100).toStringAsFixed(0)}%',
@@ -155,6 +148,47 @@ class DownloadingCardWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _getStatusText(DownloadState state) {
+    switch (state) {
+      case DownloadState.completed:
+        return const Text(
+          "Completed",
+          style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 12,
+              fontWeight: FontWeight.bold),
+        );
+      case DownloadState.failed:
+        return const Text(
+          "Failed",
+          style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 12,
+              fontWeight: FontWeight.bold),
+        );
+      case DownloadState.queued:
+        return const Text(
+          "Queued",
+          style: TextStyle(
+              color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold),
+        );
+      case DownloadState.fetchingMetadata:
+        return const Text(
+          "Fetching Metadata",
+          style: TextStyle(
+              color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+        );
+      case DownloadState.downloading:
+        return const Text(
+          "Downloading",
+          style: TextStyle(
+              color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   Widget _getStatusIcon(DownloadState state) {
@@ -177,6 +211,13 @@ class DownloadingCardWidget extends StatelessWidget {
           color: Colors.white,
           size: 20,
           key: ValueKey('queued'),
+        );
+      case DownloadState.fetchingMetadata:
+        return const Icon(
+          Icons.info_outline,
+          color: Colors.white,
+          size: 20,
+          key: ValueKey('fetchingMetadata'),
         );
       case DownloadState.downloading:
         return const Icon(

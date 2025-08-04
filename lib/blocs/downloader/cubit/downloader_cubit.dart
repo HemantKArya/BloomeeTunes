@@ -167,8 +167,51 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       return;
     }
 
+    // Get directory for both placeholder and actual download
+    final directory = await getApplicationDocumentsDirectory();
+
+    // Create placeholder task immediately to show resolving state
+    final sanitizedTitle =
+        song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
+    final tempFileName = "$sanitizedTitle.temp";
+
+    final placeholderTask = DownloadTask(
+      url: "placeholder", // Will be filled later
+      originalUrl: song.extras!['perma_url'],
+      fileName: tempFileName,
+      targetPath: path.join(directory.path, tempFileName),
+      maxRetries: 3,
+      audioMetadata: null, // Will be filled later
+      song: song,
+    );
+
+    final placeholderProgress = DownloadProgress(
+      task: placeholderTask,
+      status: const DownloadStatus(
+        state: DownloadState.resolving,
+        message: "Resolving download URL...",
+      ),
+    );
+
+    _activeDownloads.insert(0, placeholderProgress);
+    _emitUpdatedState();
+
+    SnackbarService.showMessage("Preparing download for ${song.title}...");
+
     try {
-      final directory = await getApplicationDocumentsDirectory();
+      // Update status to fetching metadata
+      final index = _activeDownloads.indexWhere(
+          (item) => item.task.originalUrl == song.extras!['perma_url']);
+      if (index != -1) {
+        _activeDownloads[index] = DownloadProgress(
+          task: placeholderTask,
+          status: const DownloadStatus(
+            state: DownloadState.fetchingMetadata,
+            // message: "Fetching metadata...",
+          ),
+        );
+        _emitUpdatedState();
+      }
 
       String downloadUrl;
       String fileName;
@@ -235,6 +278,10 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         );
       }
 
+      // Remove the placeholder from active downloads before adding the real task
+      _activeDownloads.removeWhere(
+          (item) => item.task.originalUrl == song.extras!['perma_url']);
+
       _downloadEngine.addDownload(
         url: downloadUrl,
         originalUrl: song.extras!['perma_url'],
@@ -249,6 +296,12 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     } catch (e) {
       log("Failed to prepare download for ${song.title}",
           error: e, name: "DownloaderCubit");
+
+      // Remove the placeholder on error
+      _activeDownloads.removeWhere(
+          (item) => item.task.originalUrl == song.extras!['perma_url']);
+      _emitUpdatedState();
+
       SnackbarService.showMessage("Error: Could not process URL.");
     }
   }
