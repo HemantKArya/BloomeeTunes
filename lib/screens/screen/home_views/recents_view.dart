@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/history/cubit/history_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/storage_setting.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -66,9 +67,14 @@ class HistoryView extends StatelessWidget {
                             context
                                 .read<BloomeePlayerCubit>()
                                 .bloomeePlayer
-                                .addQueueItem(
-                                  state.mediaPlaylist.mediaItems[index],
-                                );
+                                .loadPlaylist(
+                                    MediaPlaylist(
+                                        mediaItems:
+                                            state.mediaPlaylist.mediaItems,
+                                        playlistName:
+                                            state.mediaPlaylist.playlistName),
+                                    idx: index,
+                                    doPlay: true);
                           },
                           onOptionsTap: () => showMoreBottomSheet(
                               context, state.mediaPlaylist.mediaItems[index]),
