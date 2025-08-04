@@ -1,5 +1,3 @@
-// lib/dload.dart
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -29,7 +27,7 @@ class DownloadStatus {
   final double progress;
   final String? message;
   final int retryAttempt;
-  final String? filePath; // <-- NEW: The final path of the completed file.
+  final String? filePath;
 
   const DownloadStatus({
     required this.state,
@@ -184,7 +182,7 @@ class DownloadEngine {
     if (contentLength <= 0) {
       throw Exception('File has zero or invalid size.');
     }
-    final segmentSize = 1024 * 1024;
+    const segmentSize = 1024 * 1024;
     final segmentCount = (contentLength / segmentSize).ceil();
     final segments = <Future<void>>[];
     int totalDownloaded = 0;
@@ -229,7 +227,13 @@ class DownloadEngine {
     final sendPort = args['sendPort'] as SendPort;
     final targetPath = args['targetPath'] as String;
     final segmentIndex = args['segmentIndex'] as int;
-    final tempFile = File('$targetPath.part$segmentIndex');
+
+    // Extract only the file name from the targetPath
+    final fileName = path.basename(targetPath);
+
+    // Use the system's temporary directory for storing parts
+    final tempDir = Directory.systemTemp;
+    final tempFile = File('${tempDir.path}/$fileName.part$segmentIndex');
 
     try {
       final request = http.Request('GET', uri);
@@ -243,7 +247,7 @@ class DownloadEngine {
       }
 
       final fileSink = tempFile.openWrite();
-      await response.stream.listen(
+      response.stream.listen(
         (chunk) {
           fileSink.add(chunk);
           sendPort.send(chunk.length);
@@ -267,8 +271,13 @@ class DownloadEngine {
     try {
       final targetFile = File(targetPath);
       final writer = targetFile.openWrite();
+      final tempDir = Directory.systemTemp; // Use the temp directory
+
+      // Extract only the file name from the targetPath
+      final fileName = path.basename(targetPath);
+
       for (int i = 0; i < segmentCount; i++) {
-        final segmentFile = File('$targetPath.part$i');
+        final segmentFile = File('${tempDir.path}/$fileName.part$i');
         if (await segmentFile.exists()) {
           await writer.addStream(segmentFile.openRead());
           await segmentFile.delete();
