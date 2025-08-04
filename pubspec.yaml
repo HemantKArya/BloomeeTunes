@@ -63,7 +63,6 @@ dependencies:
   file_picker: ^8.0.0+1
   fuzzywuzzy: ^1.1.6
   numberpicker: ^2.1.2
-  flutter_downloader: ^1.11.6
   permission_handler: ^11.3.1
   receive_sharing_intent: ^1.8.0
   sliding_up_panel: ^2.0.0+1

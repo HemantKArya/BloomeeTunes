@@ -470,14 +470,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.0"
-  flutter_downloader:
-    dependency: "direct main"
-    description:
-      name: flutter_downloader
-      sha256: b6da5495b6258aa7c243d0f0a5281e3430b385bccac11cc508f981e653b25aa6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.11.8"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
