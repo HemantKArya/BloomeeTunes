@@ -1049,6 +1049,19 @@ class BloomeeDBService {
       mediaId: mediaItem.id,
     );
     Isar isarDB = await db;
+    DownloadDB? _downloadDB = isarDB.downloadDBs
+        .filter()
+        .mediaIdEqualTo(mediaItem.id)
+        .findFirstSync();
+    if (_downloadDB != null) {
+      // update existing downloadDB
+      _downloadDB.fileName = fileName;
+      _downloadDB.filePath = filePath;
+      _downloadDB.lastDownloaded = lastDownloaded;
+      isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(_downloadDB));
+      log("Updated DownloadDB for ${mediaItem.title}", name: "DB");
+      return;
+    }
     isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(downloadDB));
     addMediaItem(
         MediaItem2MediaItemDB(mediaItem), GlobalStrConsts.downloadPlaylist);
