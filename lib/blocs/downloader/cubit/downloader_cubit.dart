@@ -1,214 +1,224 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:ui';
-
+import 'package:Bloomee/model/saavnModel.dart';
+import 'package:Bloomee/utils/audio_tagger.dart';
+import 'package:Bloomee/utils/dload.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
+import 'package:metadata_god/metadata_god.dart';
+import 'package:path/path.dart' as path;
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/utils/downloader.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/src/foundation/print.dart';
-import 'package:device_info_plus/device_info_plus.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 part 'downloader_state.dart';
 
-class DownTask {
-  final String taskId;
-  final MediaItemModel song;
-  final String filePath;
-  final String fileName;
-  DownTask(
-      {required this.taskId,
-      required this.song,
-      required this.filePath,
-      required this.fileName});
-}
-
-Future<bool> storagePermission() async {
-  final DeviceInfoPlugin info =
-      DeviceInfoPlugin(); // import 'package:device_info_plus/device_info_plus.dart';
-  final AndroidDeviceInfo androidInfo = await info.androidInfo;
-  debugPrint('releaseVersion : ${androidInfo.version.release}');
-  final int androidVersion = int.parse(androidInfo.version.release);
-  bool havePermission = false;
-
-  if (androidVersion >= 13) {
-    final request = await [
-      Permission.videos,
-      Permission.photos,
-      //..... as needed
-    ].request(); //import 'package:permission_handler/permission_handler.dart';
-
-    havePermission =
-        request.values.every((status) => status == PermissionStatus.granted);
-  } else {
-    final status = await Permission.storage.request();
-    havePermission = status.isGranted;
-  }
-
-  if (!havePermission) {
-    // if no permission then open app-setting
-    await openAppSettings();
-  }
-
-  return havePermission;
-}
-
 class DownloaderCubit extends Cubit<DownloaderState> {
-  static bool isInitialized = false;
-  ConnectivityCubit connectivityCubit;
-  static List<DownTask> downloadedSongs = List.empty(growable: true);
-  static late String downPath;
-  static ReceivePort receivePort = ReceivePort();
+  final ConnectivityCubit connectivityCubit;
+  final DownloadEngine _downloadEngine = DownloadEngine();
+  final List<DownloadProgress> _activeDownloads = [];
+  final YoutubeExplode _yt = YoutubeExplode();
+
   DownloaderCubit({required this.connectivityCubit})
       : super(DownloaderInitial()) {
-    if (!isInitialized && Platform.isAndroid) {
-      initDownloader().then((value) => isInitialized = true);
-    }
+    _downloadEngine.onTaskAdded = _handleNewTask;
+    MetadataGod.initialize();
   }
 
-  Future<void> initDownPath() async {
-    downPath = (await BloomeeDBService.getSettingStr(
-        GlobalStrConsts.downPathSetting,
-        defaultValue: (await getDownloadsDirectory())!.path))!;
-  }
+  void _handleNewTask(DownloadTask task) {
+    final newItem = DownloadProgress(
+      task: task,
+      status: const DownloadStatus(
+          state: DownloadState.queued, message: "In Queue"),
+    );
+    _activeDownloads.insert(0, newItem);
 
-  Future<String> getDownPath() async {
-    return (await BloomeeDBService.getSettingStr(
-        GlobalStrConsts.downPathSetting,
-        defaultValue: (await getDownloadsDirectory())!.path))!;
-  }
+    emit(DownloaderTasksUpdated(List.from(_activeDownloads)));
 
-  Future<void> initDownloader() async {
-    await initDownPath();
-    await FlutterDownloader.initialize(
-        debug:
-            true, // optional: set to false to disable printing logs to console (default: true)
-        ignoreSsl:
-            true // option: set to false to disable working with http links (default: false)
-        );
+    task.statusStream.listen((status) {
+      final index = _activeDownloads
+          .indexWhere((item) => item.task.originalUrl == task.originalUrl);
+      if (index != -1) {
+        _activeDownloads[index] = DownloadProgress(task: task, status: status);
 
-    bool isSuccess = IsolateNameServer.registerPortWithName(
-        receivePort.sendPort, "download_port");
-    if (!isSuccess) {
-      IsolateNameServer.removePortNameMapping("download_port");
-      IsolateNameServer.registerPortWithName(
-          receivePort.sendPort, "download_port");
-    }
-    FlutterDownloader.registerCallback(callback);
+        if (status.state == DownloadState.completed) {
+          // Pass the completed task to the handler
+          _onDownloadComplete(task);
+        } else if (status.state == DownloadState.failed) {
+          _onDownloadFailed(task);
+        }
 
-    receivePort.listen((dynamic data) async {
-      final String taskId = data[0];
-      final int status = data[1];
-      // final int progress = data[2];
-      DownTask? _task;
-      try {
-        _task =
-            downloadedSongs.firstWhere((element) => element.taskId == taskId);
-      } catch (e) {
-        log("Task not found", error: e, name: "DownloaderCubit");
-      }
-      if (_task != null) {
-        if (status == DownloadTaskStatus.complete.index) {
-          downloadedSongs.remove(_task);
-          log("Downloaded ${_task.song.title}", name: "DownloaderCubit");
-          if (_task.song.extras!['source'] != 'youtube') {
-            File file = File(_task.filePath);
-            if (file.existsSync()) {
-              await file.rename(_task.filePath.replaceAll(".mp4", ".m4a"));
-              log("Renamed ${_task.fileName} to ${_task.fileName.replaceAll(".mp4", ".m4a")}",
-                  name: "DownloaderCubit");
-            }
-          }
-          // try {
-          //   await Future.delayed(const Duration(milliseconds: 500), () async {
-          //     await BloomeeDownloader.songTagger(_task!.song,
-          //         "${(await getExternalStorageDirectory())!.path}/${_task.song.title} by ${_task.song.artist}.m4a");
-          //   });
-          // } catch (e) {
-          //   log("Failed to tag ${_task.song.title}",
-          //       error: e, name: "DownloaderCubit");
-          // }
-          BloomeeDBService.putDownloadDB(
-              fileName: _task.fileName,
-              filePath: _task.filePath,
-              lastDownloaded: DateTime.now(),
-              mediaItem: _task.song);
-          SnackbarService.showMessage("Downloaded ${_task.song.title}");
-        } else if (status == DownloadTaskStatus.failed.index) {
-          downloadedSongs.remove(_task);
-          SnackbarService.showMessage("Failed to download ${_task.song.title}");
-          log("Failed to download ${_task.song.title}",
-              name: "DownloaderCubit");
-        } else {}
+        emit(DownloaderTasksUpdated(List.from(_activeDownloads)));
       }
     });
   }
 
-  Future<void> downloadSong(MediaItemModel song) async {
-    /*final hasStorageAccess =
-        Platform.isAndroid ? await Permission.storage.isGranted : true;
-    if (!hasStorageAccess) {
-      await Permission.storage.request();
-      if (!await Permission.storage.isGranted) {
-        SnackbarService.showMessage("Storage permission denied!");
-        return;
+  /// --- NEW: Handles saving metadata to the database after completion ---
+  void _onDownloadComplete(DownloadTask task) async {
+    log("Downloaded ${task.fileName}", name: "DownloaderCubit");
+    SnackbarService.showMessage(
+        "Downloaded ${task.audioMetadata?.title ?? task.fileName}");
+
+    // Only save to DB if it was a song with a MediaItemModel
+    final downloadDirectory = path.dirname(task.targetPath);
+    await BloomeeDBService.putDownloadDB(
+        fileName: task.fileName,
+        filePath: downloadDirectory,
+        lastDownloaded: DateTime.now(),
+        mediaItem: task.song);
+    log("Saved metadata for ${task.fileName} to the database.",
+        name: "DownloaderCubit");
+
+    // Remove the task from the active downloads list
+    _activeDownloads
+        .removeWhere((item) => item.task.originalUrl == task.originalUrl);
+    emit(DownloaderTasksUpdated(List.from(_activeDownloads)));
+  }
+
+  void _onDownloadFailed(DownloadTask task) {
+    log("Failed to download ${task.fileName}", name: "DownloaderCubit");
+    SnackbarService.showMessage(
+        "Failed to download ${task.audioMetadata?.title ?? task.fileName}");
+
+    // Remove the task from the active downloads list
+    _activeDownloads
+        .removeWhere((item) => item.task.originalUrl == task.originalUrl);
+    emit(DownloaderTasksUpdated(List.from(_activeDownloads)));
+  }
+
+  /// --- NEW: Checks the database and filesystem for an existing download ---
+  Future<bool> _isAlreadyDownloaded(MediaItemModel song) async {
+    final dbRecord = await BloomeeDBService.getDownloadDB(song);
+    if (dbRecord != null) {
+      final file = File(path.join(dbRecord.filePath, dbRecord.fileName));
+      if (await file.exists()) {
+        log("${song.title} is already downloaded and file exists.",
+            name: "DownloaderCubit");
+        return true; // The download exists in DB and on disk.
+      } else {
+        // The record is stale (in DB but file is missing), so remove it.
+        log("Stale DB record found for ${song.title}. Removing.",
+            name: "DownloaderCubit");
+        await BloomeeDBService.removeDownloadDB(song);
+        return false;
       }
     }
-    }*/
-    final permission = await storagePermission();
-    debugPrint('permission : $permission');
-    // check if song is already added to download queue
-    if (isInitialized &&
-        connectivityCubit.state == ConnectivityState.connected) {
-      if (downloadedSongs.any(
-          (element) => element.song.extras!['url'] == song.extras!['url'])) {
-        log("${song.title} already added to download queue",
-            name: "DownloaderCubit");
-        SnackbarService.showMessage(
-            "${song.title} already added to download queue");
-        return;
-      }
-      downPath = await getDownPath();
-      String fileName;
-      if (song.extras!['source'] != 'youtube') {
-        fileName = "${song.title} by ${song.artist}.mp4"
-            .replaceAll('?', '-')
-            .replaceAll('/', '-');
-      } else {
-        fileName = "${song.title} by ${song.artist}.m4a"
-            .replaceAll('?', '-')
-            .replaceAll('/', '-');
-      }
-      fileName = await BloomeeDownloader.getValidFileName(fileName, downPath);
-      log('downloading $fileName', name: "DownloaderCubit");
-      final String? taskId = await BloomeeDownloader.downloadSong(song,
-          fileName: fileName, filePath: downPath);
-      if (taskId != null) {
-        SnackbarService.showMessage("Added ${song.title} to download queue");
+    return false; // No record found in the database.
+  }
 
-        downloadedSongs.add(DownTask(
-            taskId: taskId,
-            song: song,
-            filePath: downPath,
-            fileName: fileName));
+  /// The main public method to initiate a new download.
+  Future<void> downloadSong(MediaItemModel song) async {
+    if (connectivityCubit.state != ConnectivityState.connected) {
+      SnackbarService.showMessage("No internet connection.");
+      return;
+    }
+
+    // --- NEW: Perform pre-download checks ---
+    if (_activeDownloads
+        .any((item) => item.task.originalUrl == song.extras!['perma_url'])) {
+      SnackbarService.showMessage("${song.title} is already in the queue.");
+      return;
+    }
+
+    if (await _isAlreadyDownloaded(song)) {
+      SnackbarService.showMessage("${song.title} is already downloaded.");
+      return;
+    }
+
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+
+      String downloadUrl;
+      String fileName;
+      AudioMetadata? metadata;
+
+      if (song.extras!['source'] == 'youtube' ||
+          (song.extras!['perma_url'].toString()).contains('youtube')) {
+        final video = await _yt.videos.get(song.id.replaceAll("youtube", ""));
+        var manifest = await _yt.videos.streams.getManifest(video.id);
+        AudioOnlyStreamInfo? audioStreamInfo;
+        await BloomeeDBService.getSettingStr(GlobalStrConsts.ytDownQuality)
+            .then((quality) {
+          if (quality == "High") {
+            audioStreamInfo = manifest.audioOnly
+                .where(
+                  (stream) => stream.container == StreamContainer.mp4,
+                )
+                .withHighestBitrate();
+          } else {
+            audioStreamInfo = manifest.audioOnly
+                .where(
+                  (stream) => stream.container == StreamContainer.mp4,
+                )
+                .sortByBitrate()
+                .first;
+          }
+        });
+        audioStreamInfo ??= manifest.audioOnly.withHighestBitrate();
+
+        if (audioStreamInfo == null) {
+          throw Exception("No suitable audio stream found for ${video.title}");
+        }
+
+        downloadUrl = audioStreamInfo!.url.toString();
+        final sanitizedTitle =
+            song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
+        fileName = '$sanitizedTitle.${audioStreamInfo!.container.name}';
+        metadata = AudioMetadata(
+          title: song.title,
+          artist: song.artist ?? "Unknown Artist",
+          album: song.album ?? "Unknown Album",
+          artworkUrl: formatImgURL(song.artUri.toString(), ImageQuality.high),
+          duration: song.duration,
+        );
+      } else {
+        downloadUrl = song.extras!['url'];
+        final quality =
+            await BloomeeDBService.getSettingStr(GlobalStrConsts.downQuality);
+        if (quality == "High") {
+          downloadUrl =
+              (await getJsQualityURL(downloadUrl, isStreaming: false))!;
+        } else {
+          downloadUrl =
+              (await getJsQualityURL(downloadUrl, isStreaming: false))!;
+        }
+        final sanitizedTitle =
+            song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
+        fileName = '$sanitizedTitle by ${song.artist}.m4a';
+        metadata = AudioMetadata(
+          title: song.title,
+          artist: song.artist ?? "Unknown Artist",
+          album: song.album ?? "Unknown Album",
+          artworkUrl: formatImgURL(song.artUri.toString(), ImageQuality.high),
+        );
       }
-    } else {
-      SnackbarService.showMessage(
-          "No internet connection or download service not initialized");
+
+      _downloadEngine.addDownload(
+        url: downloadUrl,
+        originalUrl: song.extras!['perma_url'],
+        directory: directory.path,
+        fileName: fileName,
+        maxRetries: 3,
+        audioMetadata: metadata,
+        song: song,
+      );
+
+      SnackbarService.showMessage("Added ${song.title} to download queue");
+    } catch (e) {
+      log("Failed to prepare download for ${song.title}",
+          error: e, name: "DownloaderCubit");
+      SnackbarService.showMessage("Error: Could not process URL.");
     }
   }
-}
 
-@pragma('vm:entry-point')
-Future callback(String taskId, int status, int progress) async {
-  final SendPort? send = IsolateNameServer.lookupPortByName('download_port');
-  send?.send([taskId, status, progress]);
+  @override
+  Future<void> close() {
+    _yt.close();
+    return super.close();
+  }
 }
