@@ -1,0 +1,207 @@
+import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
+import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/utils/dload.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
+import 'package:Bloomee/utils/load_Image.dart';
+import 'package:flutter/material.dart';
+import 'package:icons_plus/icons_plus.dart';
+
+class DownloadingCardWidget extends StatelessWidget {
+  final DownloadProgress downloadProgress;
+  final VoidCallback? onCancelTap;
+
+  const DownloadingCardWidget({
+    Key? key,
+    required this.downloadProgress,
+    this.onCancelTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final song = downloadProgress.task.song;
+    final status = downloadProgress.status;
+    final progress = status.progress;
+
+    return SizedBox(
+      height: 70,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Row(
+          children: [
+            _buildCoverArt(context, song, status, progress),
+            const SizedBox(width: 10),
+            _buildSongInfo(song, status, progress),
+            _buildActionButtons(status),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCoverArt(BuildContext context, MediaItemModel song,
+      DownloadStatus status, double progress) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(
+            width: 55,
+            height: 55,
+            child: LoadImageCached(
+              imageUrl: formatImgURL(
+                song.artUri.toString(),
+                ImageQuality.low,
+              ),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Container(
+          width: 55,
+          height: 55,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.black.withOpacity(0.5),
+          ),
+        ),
+        SizedBox(
+          width: 40,
+          height: 40,
+          child: CircularProgressIndicator(
+            value: progress,
+            backgroundColor: Default_Theme.primaryColor2.withOpacity(0.2),
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(Default_Theme.accentColor2),
+            strokeWidth: 5,
+          ),
+        ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            );
+          },
+          child: _getStatusIcon(status.state),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSongInfo(
+      MediaItemModel song, DownloadStatus status, double progress) {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            song.title,
+            textAlign: TextAlign.start,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: Default_Theme.tertiaryTextStyle.merge(
+              const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Default_Theme.primaryColor1,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            status.message ?? song.artist ?? "Unknown Artist",
+            textAlign: TextAlign.start,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: Default_Theme.tertiaryTextStyle.merge(
+              TextStyle(
+                color: Default_Theme.primaryColor1.withOpacity(0.8),
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(DownloadStatus status) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            status.state.name.toUpperCase(),
+            style: TextStyle(
+              color: _getStatusColor(status.state),
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${(status.progress * 100).toStringAsFixed(0)}%',
+            style: Default_Theme.secondoryTextStyle.copyWith(
+              fontSize: 12,
+              color: Default_Theme.primaryColor1.withOpacity(0.8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _getStatusIcon(DownloadState state) {
+    switch (state) {
+      case DownloadState.completed:
+        return const Icon(
+          Icons.check_circle,
+          color: Colors.greenAccent,
+          key: ValueKey('completed'),
+        );
+      case DownloadState.failed:
+        return const Icon(
+          Icons.error,
+          color: Colors.redAccent,
+          key: ValueKey('failed'),
+        );
+      case DownloadState.queued:
+        return const Icon(
+          MingCute.sandglass_line,
+          color: Colors.white,
+          size: 20,
+          key: ValueKey('queued'),
+        );
+      case DownloadState.downloading:
+        return const Icon(
+          Icons.arrow_downward,
+          color: Colors.white,
+          size: 20,
+          key: ValueKey('downloading'),
+        );
+      default:
+        return const SizedBox.shrink(key: ValueKey('default'));
+    }
+  }
+
+  Color _getStatusColor(DownloadState state) {
+    switch (state) {
+      case DownloadState.queued:
+        return Colors.orange;
+      case DownloadState.downloading:
+        return Colors.blue;
+      case DownloadState.completed:
+        return Colors.green;
+      case DownloadState.failed:
+        return Colors.red;
+      default:
+        return Default_Theme.primaryColor2;
+    }
+  }
+}

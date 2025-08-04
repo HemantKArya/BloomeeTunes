@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/model/saavnModel.dart';
 import 'package:Bloomee/utils/audio_tagger.dart';
 import 'package:Bloomee/utils/dload.dart';
@@ -20,14 +22,47 @@ part 'downloader_state.dart';
 
 class DownloaderCubit extends Cubit<DownloaderState> {
   final ConnectivityCubit connectivityCubit;
+  final LibraryItemsCubit libraryItemsCubit;
   final DownloadEngine _downloadEngine = DownloadEngine();
   final List<DownloadProgress> _activeDownloads = [];
   final YoutubeExplode _yt = YoutubeExplode();
+  StreamSubscription? _librarySubscription;
+  List<MediaItemModel> _downloadedSongs = [];
 
-  DownloaderCubit({required this.connectivityCubit})
-      : super(DownloaderInitial()) {
+  DownloaderCubit({
+    required this.connectivityCubit,
+    required this.libraryItemsCubit,
+  }) : super(DownloaderInitial()) {
     _downloadEngine.onTaskAdded = _handleNewTask;
     MetadataGod.initialize();
+    _setupLibrarySubscription();
+    _loadDownloadedSongs();
+  }
+
+  void _setupLibrarySubscription() {
+    _librarySubscription = libraryItemsCubit.stream.listen((event) {
+      log("LibraryItemsCubit event: ${event.playlists.length}",
+          name: "DownloaderCubit");
+      _loadDownloadedSongs();
+    });
+  }
+
+  Future<void> _loadDownloadedSongs() async {
+    final list = await BloomeeDBService.getDownloadedSongs();
+    _downloadedSongs = List<MediaItemModel>.from(list);
+    _emitUpdatedState();
+  }
+
+  void _emitUpdatedState() {
+    emit(DownloaderTasksUpdated(
+      List.from(_activeDownloads),
+      List.from(_downloadedSongs),
+    ));
+  }
+
+  /// Public method to refresh downloaded songs
+  Future<void> refreshDownloadedSongs() async {
+    await _loadDownloadedSongs();
   }
 
   void _handleNewTask(DownloadTask task) {
@@ -38,7 +73,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     );
     _activeDownloads.insert(0, newItem);
 
-    emit(DownloaderTasksUpdated(List.from(_activeDownloads)));
+    _emitUpdatedState();
 
     task.statusStream.listen((status) {
       final index = _activeDownloads
@@ -53,7 +88,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
           _onDownloadFailed(task);
         }
 
-        emit(DownloaderTasksUpdated(List.from(_activeDownloads)));
+        _emitUpdatedState();
       }
     });
   }
@@ -77,7 +112,9 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     // Remove the task from the active downloads list
     _activeDownloads
         .removeWhere((item) => item.task.originalUrl == task.originalUrl);
-    emit(DownloaderTasksUpdated(List.from(_activeDownloads)));
+
+    // Reload downloaded songs to include the newly completed download
+    await _loadDownloadedSongs();
   }
 
   void _onDownloadFailed(DownloadTask task) {
@@ -88,7 +125,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     // Remove the task from the active downloads list
     _activeDownloads
         .removeWhere((item) => item.task.originalUrl == task.originalUrl);
-    emit(DownloaderTasksUpdated(List.from(_activeDownloads)));
+    _emitUpdatedState();
   }
 
   /// --- NEW: Checks the database and filesystem for an existing download ---
@@ -218,6 +255,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
   @override
   Future<void> close() {
+    _librarySubscription?.cancel();
     _yt.close();
     return super.close();
   }

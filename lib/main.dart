@@ -242,141 +242,141 @@ class _MyAppState extends State<MyApp> {
           create: (context) => LastdotfmCubit(playerCubit: bloomeePlayerCubit),
           lazy: false,
         ),
-      ],
-      child: RepositoryProvider(
-        create: (context) => DownloaderCubit(
-            connectivityCubit: context.read<ConnectivityCubit>()),
-        lazy: false,
-        child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
-          builder: (context, state) {
-            if (state is BloomeePlayerInitial) {
-              return const Center(
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            } else {
-              return MaterialApp.router(
-                shortcuts: {
-                  LogicalKeySet(LogicalKeyboardKey.space):
-                      const PlayPauseIntent(),
-                  LogicalKeySet(LogicalKeyboardKey.mediaPlayPause):
-                      const PlayPauseIntent(),
-                  LogicalKeySet(LogicalKeyboardKey.arrowLeft):
-                      const PreviousIntent(),
-                  LogicalKeySet(LogicalKeyboardKey.arrowRight):
-                      const NextIntent(),
-                  LogicalKeySet(LogicalKeyboardKey.keyR): const RepeatIntent(),
-                  LogicalKeySet(LogicalKeyboardKey.keyL): const LikeIntent(),
-                  LogicalKeySet(LogicalKeyboardKey.arrowRight,
-                      LogicalKeyboardKey.alt): const NSecForwardIntent(),
-                  LogicalKeySet(
-                          LogicalKeyboardKey.arrowLeft, LogicalKeyboardKey.alt):
-                      const NSecBackwardIntent(),
-                  LogicalKeySet(LogicalKeyboardKey.arrowUp):
-                      const VolumeUpIntent(),
-                  LogicalKeySet(LogicalKeyboardKey.arrowDown):
-                      const VolumeDownIntent(),
-                },
-                actions: {
-                  PlayPauseIntent: CallbackAction(onInvoke: (intent) {
-                    if (context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .audioPlayer
-                        .playing) {
-                      context
-                          .read<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .audioPlayer
-                          .pause();
-                    } else {
-                      context
-                          .read<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .audioPlayer
-                          .play();
-                    }
-                    return null;
-                  }),
-                  NextIntent: CallbackAction(onInvoke: (intent) {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .skipToNext();
-                    return null;
-                  }),
-                  PreviousIntent: CallbackAction(onInvoke: (intent) {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .skipToPrevious();
-                    return null;
-                  }),
-                  NSecForwardIntent: CallbackAction(onInvoke: (intent) {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .seekNSecForward(const Duration(seconds: 5));
-                    return null;
-                  }),
-                  NSecBackwardIntent: CallbackAction(onInvoke: (intent) {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .seekNSecBackward(const Duration(seconds: 5));
-                    return null;
-                  }),
-                  VolumeUpIntent: CallbackAction(onInvoke: (intent) {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .audioPlayer
-                        .setVolume((context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .audioPlayer
-                                    .volume +
-                                0.1)
-                            .clamp(0.0, 1.0));
-                    return null;
-                  }),
-                  VolumeDownIntent: CallbackAction(onInvoke: (intent) {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .audioPlayer
-                        .setVolume((context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .audioPlayer
-                                    .volume -
-                                0.1)
-                            .clamp(0.0, 1.0));
-                    return null;
-                  }),
-                },
-                builder: (context, child) => ResponsiveBreakpoints.builder(
-                  child: child!,
-                  breakpoints: [
-                    const Breakpoint(start: 0, end: 450, name: MOBILE),
-                    const Breakpoint(start: 451, end: 800, name: TABLET),
-                    const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-                    const Breakpoint(
-                        start: 1921, end: double.infinity, name: '4K'),
-                  ],
-                ),
-                scaffoldMessengerKey: SnackbarService.messengerKey,
-                routerConfig: GlobalRoutes.globalRouter,
-                theme: Default_Theme().defaultThemeData,
-                scrollBehavior: CustomScrollBehavior(),
-                debugShowCheckedModeBanner: false,
-              );
-            }
-          },
+        BlocProvider(
+          create: (context) => DownloaderCubit(
+            connectivityCubit: context.read<ConnectivityCubit>(),
+            libraryItemsCubit: context.read<LibraryItemsCubit>(),
+          ),
+          lazy: false,
         ),
+      ],
+      child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
+        builder: (context, state) {
+          if (state is BloomeePlayerInitial) {
+            return const Center(
+              child: SizedBox(
+                width: 50,
+                height: 50,
+                child: CircularProgressIndicator(),
+              ),
+            );
+          } else {
+            return MaterialApp.router(
+              shortcuts: {
+                LogicalKeySet(LogicalKeyboardKey.space):
+                    const PlayPauseIntent(),
+                LogicalKeySet(LogicalKeyboardKey.mediaPlayPause):
+                    const PlayPauseIntent(),
+                LogicalKeySet(LogicalKeyboardKey.arrowLeft):
+                    const PreviousIntent(),
+                LogicalKeySet(LogicalKeyboardKey.arrowRight):
+                    const NextIntent(),
+                LogicalKeySet(LogicalKeyboardKey.keyR): const RepeatIntent(),
+                LogicalKeySet(LogicalKeyboardKey.keyL): const LikeIntent(),
+                LogicalKeySet(
+                        LogicalKeyboardKey.arrowRight, LogicalKeyboardKey.alt):
+                    const NSecForwardIntent(),
+                LogicalKeySet(
+                        LogicalKeyboardKey.arrowLeft, LogicalKeyboardKey.alt):
+                    const NSecBackwardIntent(),
+                LogicalKeySet(LogicalKeyboardKey.arrowUp):
+                    const VolumeUpIntent(),
+                LogicalKeySet(LogicalKeyboardKey.arrowDown):
+                    const VolumeDownIntent(),
+              },
+              actions: {
+                PlayPauseIntent: CallbackAction(onInvoke: (intent) {
+                  if (context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .audioPlayer
+                      .playing) {
+                    context
+                        .read<BloomeePlayerCubit>()
+                        .bloomeePlayer
+                        .audioPlayer
+                        .pause();
+                  } else {
+                    context
+                        .read<BloomeePlayerCubit>()
+                        .bloomeePlayer
+                        .audioPlayer
+                        .play();
+                  }
+                  return null;
+                }),
+                NextIntent: CallbackAction(onInvoke: (intent) {
+                  context.read<BloomeePlayerCubit>().bloomeePlayer.skipToNext();
+                  return null;
+                }),
+                PreviousIntent: CallbackAction(onInvoke: (intent) {
+                  context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .skipToPrevious();
+                  return null;
+                }),
+                NSecForwardIntent: CallbackAction(onInvoke: (intent) {
+                  context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .seekNSecForward(const Duration(seconds: 5));
+                  return null;
+                }),
+                NSecBackwardIntent: CallbackAction(onInvoke: (intent) {
+                  context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .seekNSecBackward(const Duration(seconds: 5));
+                  return null;
+                }),
+                VolumeUpIntent: CallbackAction(onInvoke: (intent) {
+                  context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .audioPlayer
+                      .setVolume((context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .audioPlayer
+                                  .volume +
+                              0.1)
+                          .clamp(0.0, 1.0));
+                  return null;
+                }),
+                VolumeDownIntent: CallbackAction(onInvoke: (intent) {
+                  context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .audioPlayer
+                      .setVolume((context
+                                  .read<BloomeePlayerCubit>()
+                                  .bloomeePlayer
+                                  .audioPlayer
+                                  .volume -
+                              0.1)
+                          .clamp(0.0, 1.0));
+                  return null;
+                }),
+              },
+              builder: (context, child) => ResponsiveBreakpoints.builder(
+                child: child!,
+                breakpoints: [
+                  const Breakpoint(start: 0, end: 450, name: MOBILE),
+                  const Breakpoint(start: 451, end: 800, name: TABLET),
+                  const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                  const Breakpoint(
+                      start: 1921, end: double.infinity, name: '4K'),
+                ],
+              ),
+              scaffoldMessengerKey: SnackbarService.messengerKey,
+              routerConfig: GlobalRoutes.globalRouter,
+              theme: Default_Theme().defaultThemeData,
+              scrollBehavior: CustomScrollBehavior(),
+              debugShowCheckedModeBanner: false,
+            );
+          }
+        },
       ),
     );
   }

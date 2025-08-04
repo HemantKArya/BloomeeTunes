@@ -15,19 +15,30 @@ class DownloadProgress with EquatableMixin {
 
 abstract class DownloaderState extends Equatable {
   final List<DownloadProgress> downloads;
+  final List<MediaItemModel> downloaded;
 
-  const DownloaderState({this.downloads = const []});
+  const DownloaderState(
+      {this.downloads = const [], this.downloaded = const []});
 
   @override
-  List<Object> get props => [downloads];
+  List<Object> get props => [downloads, downloaded];
 }
 
 /// The initial state of the downloader cubit.
 class DownloaderInitial extends DownloaderState {}
 
+/// State when both downloads and downloaded songs are loaded
+class DownloaderLoaded extends DownloaderState {
+  const DownloaderLoaded({
+    required List<DownloadProgress> downloads,
+    required List<MediaItemModel> downloaded,
+  }) : super(downloads: downloads, downloaded: downloaded);
+}
+
 /// This state is emitted whenever there is an update to any download's
 /// status, progress, or when a new download is added.
 class DownloaderTasksUpdated extends DownloaderState {
-  const DownloaderTasksUpdated(List<DownloadProgress> downloads)
-      : super(downloads: downloads);
+  const DownloaderTasksUpdated(
+      List<DownloadProgress> downloads, List<MediaItemModel> downloaded)
+      : super(downloads: downloads, downloaded: downloaded);
 }
