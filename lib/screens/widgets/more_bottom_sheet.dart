@@ -217,12 +217,12 @@ void showMoreBottomSheet(
               (isDownloaded != null && isDownloaded == true)
                   ? ListTile(
                       leading: const Icon(
-                        MingCute.check_circle_line,
+                        Icons.offline_pin_rounded,
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
                       title: const Text(
-                        'Already Downloaded',
+                        'Available Offline',
                         style: TextStyle(
                             color: Default_Theme.primaryColor1,
                             fontFamily: "Unageo",

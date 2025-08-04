@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/shortcuts_intents.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
@@ -412,6 +414,41 @@ class PlayerCtrlWidgets extends StatelessWidget {
                     }),
               ),
               const Spacer(),
+              Tooltip(
+                message: "Available Offline",
+                child: StreamBuilder<MediaItem?>(
+                  stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
+                  builder: (context, mediaSnapshot) {
+                    final currentMedia = mediaSnapshot.data;
+                    if (currentMedia == null) return const SizedBox.shrink();
+                    return FutureBuilder(
+                      future: BloomeeDBService.getDownloadDB(
+                          mediaItem2MediaItemModel(currentMedia)),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          return Padding(
+                            padding:
+                                const EdgeInsets.only(right: 0.0, bottom: 3),
+                            child: IconButton(
+                              iconSize: 25,
+                              icon: Icon(
+                                Icons.offline_pin_rounded,
+                                color: Default_Theme.primaryColor1
+                                    .withOpacity(0.5),
+                              ),
+                              onPressed: () {
+                                // bloomeePlayerCubit.bloomeePlayer.toggleDownload();
+                              },
+                            ),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    );
+                  },
+                ),
+              ),
               StreamBuilder<dynamic>(
                   stream: bloomeePlayerCubit
                       .bloomeePlayer.audioPlayer.playbackEventStream,
@@ -423,11 +460,11 @@ class PlayerCtrlWidgets extends StatelessWidget {
                         if (snapshot.hasData && snapshot.data != null) {
                           return Padding(
                             padding:
-                                const EdgeInsets.only(left: 8.0, bottom: 3),
+                                const EdgeInsets.only(left: 0.0, bottom: 3),
                             child: LikeBtnWidget(
                               isPlaying: true,
                               isLiked: snapshot.data ?? false,
-                              iconSize: 35,
+                              iconSize: 25,
                               onLiked: () => context
                                   .read<BloomeeDBCubit>()
                                   .setLike(
@@ -445,11 +482,11 @@ class PlayerCtrlWidgets extends StatelessWidget {
                         } else {
                           return Padding(
                             padding:
-                                const EdgeInsets.only(left: 8.0, bottom: 3),
+                                const EdgeInsets.only(left: 0.0, bottom: 3),
                             child: LikeBtnWidget(
                               isLiked: false,
                               isPlaying: true,
-                              iconSize: 35,
+                              iconSize: 25,
                               onLiked: () {},
                               onDisliked: () {},
                             ),
