@@ -1112,7 +1112,17 @@ class BloomeeDBService {
   static Future<List<MediaItemModel>> getDownloadedSongs() async {
     Isar isarDB = await db;
     List<DownloadDB> _downloadedSongs =
-        isarDB.downloadDBs.where().findAllSync();
+        isarDB.downloadDBs.where(sort: Sort.desc).findAllSync();
+    // Sort downloaded songs by last downloaded date
+    _downloadedSongs.sort((a, b) {
+      final aDate = a.lastDownloaded;
+      final bDate = b.lastDownloaded;
+      if (aDate == null && bDate == null) return 0;
+      if (aDate == null) return 1;
+      if (bDate == null) return -1;
+      return bDate.compareTo(aDate);
+    });
+
     List<MediaItemModel> _mediaItems = List.empty(growable: true);
     for (var element in _downloadedSongs) {
       if (File("${element.filePath}/${element.fileName}").existsSync()) {
