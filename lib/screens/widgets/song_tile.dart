@@ -164,8 +164,8 @@ class SongCardWidget extends StatelessWidget {
                         message: "Copy to clipboard",
                         child: IconButton(
                           icon: const Icon(
-                            MingCute.copy_2_fill,
-                            size: 30,
+                            Icons.copy_outlined,
+                            size: 25,
                             color: Default_Theme.primaryColor1,
                           ),
                           onPressed: () {
