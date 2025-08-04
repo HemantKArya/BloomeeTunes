@@ -77,8 +77,6 @@ void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
           importItems(
               Uri.parse(sharedMediaFiles[0].path).toFilePath().toString());
         }
-      default:
-        log("Invalid URL");
     }
   }
 }
