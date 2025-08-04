@@ -595,12 +595,37 @@ class PlayerCtrlWidgets extends StatelessWidget {
                                     )),
                               ));
                         case MiniPlayerWorking():
-                          return PlayPauseButton(
-                            size: 75,
-                            onPause: () => musicPlayer.pause(),
-                            onPlay: () => musicPlayer.play(),
-                            isPlaying: state.isPlaying,
-                          );
+                          if (state.isBuffering) {
+                            return Container(
+                                decoration: const BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Default_Theme.accentColor2,
+                                        spreadRadius: 1,
+                                        blurRadius: 20)
+                                  ],
+                                  shape: BoxShape.circle,
+                                  color: Default_Theme.accentColor2,
+                                ),
+                                width: 75,
+                                height: 75,
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 35,
+                                    height: 35,
+                                    child: CircularProgressIndicator(
+                                      color: Default_Theme.primaryColor1,
+                                    ),
+                                  ),
+                                ));
+                          } else {
+                            return PlayPauseButton(
+                              size: 75,
+                              onPause: () => musicPlayer.pause(),
+                              onPlay: () => musicPlayer.play(),
+                              isPlaying: state.isPlaying,
+                            );
+                          }
                         case MiniPlayerError():
                           return Container(
                               decoration: const BoxDecoration(
