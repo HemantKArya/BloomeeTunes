@@ -214,47 +214,46 @@ void showMoreBottomSheet(
                   tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
                 },
               ),
-              Platform.isAndroid
-                  ? (isDownloaded != null && isDownloaded == true)
-                      ? ListTile(
-                          leading: const Icon(
-                            MingCute.check_circle_line,
+              (isDownloaded != null && isDownloaded == true)
+                  ? ListTile(
+                      leading: const Icon(
+                        MingCute.check_circle_line,
+                        color: Default_Theme.primaryColor1,
+                        size: 28,
+                      ),
+                      title: const Text(
+                        'Already Downloaded',
+                        style: TextStyle(
                             color: Default_Theme.primaryColor1,
-                            size: 28,
-                          ),
-                          title: const Text(
-                            'Already Downloaded',
-                            style: TextStyle(
-                                color: Default_Theme.primaryColor1,
-                                fontFamily: "Unageo",
-                                fontSize: 17,
-                                fontWeight: FontWeight.w400),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            // context.read<DownloaderCubit>().downloadSong(song);
-                          },
-                        )
-                      : ListTile(
-                          leading: const Icon(
-                            MingCute.download_2_fill,
+                            fontFamily: "Unageo",
+                            fontSize: 17,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        // context.read<DownloaderCubit>().downloadSong(song);
+                      },
+                    )
+                  : ListTile(
+                      leading: const Icon(
+                        MingCute.download_2_fill,
+                        color: Default_Theme.primaryColor1,
+                        size: 28,
+                      ),
+                      title: const Text(
+                        'Download',
+                        style: TextStyle(
                             color: Default_Theme.primaryColor1,
-                            size: 28,
-                          ),
-                          title: const Text(
-                            'Download',
-                            style: TextStyle(
-                                color: Default_Theme.primaryColor1,
-                                fontFamily: "Unageo",
-                                fontSize: 17,
-                                fontWeight: FontWeight.w400),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            context.read<DownloaderCubit>().downloadSong(song);
-                          },
-                        )
-                  : const SizedBox.shrink(),
+                            fontFamily: "Unageo",
+                            fontSize: 17,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.read<DownloaderCubit>().downloadSong(song);
+                      },
+                    ),
+              // : const SizedBox.shrink(),
               ListTile(
                 leading: const Icon(
                   MingCute.external_link_line,
