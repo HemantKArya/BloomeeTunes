@@ -71,8 +71,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     // Setup callbacks between modules
     _errorHandler.onSkipToNext = () => skipToNext();
     _errorHandler.onRetryCurrentTrack = () => _retryCurrentTrack();
-    _errorHandler.onClearCachedSource =
-        (mediaId) => _audioSourceManager.clearCachedSource(mediaId);
 
     _connectivityManager.onNetworkReconnected =
         () => _handleNetworkReconnection();
@@ -148,7 +146,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   void _handleNetworkReconnection() {
     if (_errorHandler.lastError.value?.type == PlayerErrorType.networkError &&
         _queueManager.queue.value.isNotEmpty) {
-      _audioSourceManager.clearAllCache();
       _retryCurrentTrack();
     }
   }
@@ -393,7 +390,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
         // For critical errors, try to recover
         if (errorType == PlayerErrorType.sourceError) {
-          _audioSourceManager.clearCachedSource(mediaId);
+          // _audioSourceManager.clearCachedSource(mediaId);
         }
       } else {
         final currentItem = _queueManager.currentMediaItem;
@@ -494,7 +491,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     await _connectivitySubscription?.cancel();
 
     // Dispose modular components
-    _audioSourceManager.clearAllCache();
     _errorHandler.dispose();
     _connectivityManager.dispose();
     _queueManager.dispose();
