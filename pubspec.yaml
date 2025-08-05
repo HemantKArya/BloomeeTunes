@@ -18,7 +18,6 @@ dependencies:
   device_info_plus: ^10.1.0
   equatable: ^2.0.7
   icons_plus: ^5.0.0
-  # due to metadata god
   cached_network_image: ^3.3.1
   flutter_bloc: ^9.0.0
   dart_des: ^1.0.2
@@ -30,9 +29,6 @@ dependencies:
   carousel_slider: ^5.0.0
   palette_generator: ^0.3.3+2
   audio_video_progress_bar: ^1.0.1
-  just_audio: ^0.9.42
-  audio_service: ^0.18.16
-  audio_session: ^0.1.16
   rxdart: ^0.27.7
   go_router: ^14.8.1
   easy_debounce: ^2.0.3
@@ -73,11 +69,17 @@ dependencies:
   metadata_god: ^1.0.0
   mime: ^2.0.0
 
-  # linux plugins
+
+  # audio service dependencies
+  audio_service: ^0.18.16
+  audio_session: ^0.1.16
+  just_audio: ^0.9.42
   just_audio_media_kit: ^2.0.6
   media_kit_libs_linux: any
-  media_kit_libs_windows_audio: any
   audio_service_mpris: ^0.2.0
+  media_kit_libs_windows_audio: any
+  audio_service_win: ^0.0.1
+
   
 
 dependency_overrides:
