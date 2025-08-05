@@ -128,10 +128,12 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                         return CarouselSlider.builder(
                           itemCount: selectedCharts.length,
                           itemBuilder: (context, index, realIndex) {
-                            if (state.chartMap[selectedCharts[index].title] ==
-                                    null ||
-                                state.chartMap[selectedCharts[index].title] ==
-                                    true) {
+                            if (index < selectedCharts.length &&
+                                (state.chartMap[selectedCharts[index].title] ==
+                                        null ||
+                                    state.chartMap[
+                                            selectedCharts[index].title] ==
+                                        true)) {
                               return BlocProvider.value(
                                 value: chartCubitList[index],
                                 child: GestureDetector(
