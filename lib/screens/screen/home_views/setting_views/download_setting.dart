@@ -126,39 +126,39 @@ class _DownloadSettingsState extends State<DownloadSettings> {
                 ),
                 onTap: () {},
               ),
-              SettingTile(
-                title: "Download Folder",
-                subtitle: state.downPath,
-                trailing: IconButton(
-                  icon: const Icon(
-                    MingCute.refresh_1_line,
-                    color: Default_Theme.primaryColor1,
-                  ),
-                  onPressed: () {
-                    context.read<SettingsCubit>().resetDownPath();
-                  },
-                ),
-                onTap: () async {
-                  /*final hasStorageAccess = Platform.isAndroid
-                      ? await Permission.storage.isGranted
-                      : true;
-                  if (!hasStorageAccess) {
-                    await Permission.storage.request();
-                    if (!await Permission.storage.isGranted) {
-                      SnackbarService.showMessage("Storage permission denied!");
-                      return;
-                    }
-                  }
-                  }*/
-                  final permission = await storagePermission();
-                  debugPrint('permission : $permission');
-                  FilePicker.platform.getDirectoryPath().then((value) {
-                    if (value != null) {
-                      context.read<SettingsCubit>().setDownPath(value);
-                    }
-                  });
-                },
-              ),
+              // SettingTile(
+              //   title: "Download Folder",
+              //   subtitle: state.downPath,
+              //   trailing: IconButton(
+              //     icon: const Icon(
+              //       MingCute.refresh_1_line,
+              //       color: Default_Theme.primaryColor1,
+              //     ),
+              //     onPressed: () {
+              //       context.read<SettingsCubit>().resetDownPath();
+              //     },
+              //   ),
+              //   onTap: () async {
+              //     /*final hasStorageAccess = Platform.isAndroid
+              //         ? await Permission.storage.isGranted
+              //         : true;
+              //     if (!hasStorageAccess) {
+              //       await Permission.storage.request();
+              //       if (!await Permission.storage.isGranted) {
+              //         SnackbarService.showMessage("Storage permission denied!");
+              //         return;
+              //       }
+              //     }
+              //     }*/
+              //     final permission = await storagePermission();
+              //     debugPrint('permission : $permission');
+              //     FilePicker.platform.getDirectoryPath().then((value) {
+              //       if (value != null) {
+              //         context.read<SettingsCubit>().setDownPath(value);
+              //       }
+              //     });
+              //   },
+              // ),
             ],
           );
         },
