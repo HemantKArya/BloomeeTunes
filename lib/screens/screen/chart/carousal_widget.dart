@@ -166,8 +166,8 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                                 ResponsiveBreakpoints.of(context).isMobile
                                     ? 0.65
                                     : ResponsiveBreakpoints.of(context).isTablet
-                                        ? 0.30
-                                        : 0.25,
+                                        ? 0.40
+                                        : 0.30,
                             autoPlay: autoPlay,
                             autoPlayInterval:
                                 const Duration(milliseconds: 2500),
@@ -176,7 +176,11 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                             enlargeFactor: 0.2,
                             initialPage: 0,
                             pauseAutoPlayOnTouch: true,
-                            enlargeCenterPage: true,
+                            padEnds: true,
+                            enlargeCenterPage:
+                                ResponsiveBreakpoints.of(context).isMobile
+                                    ? true
+                                    : false,
                           ),
                         );
                       },
