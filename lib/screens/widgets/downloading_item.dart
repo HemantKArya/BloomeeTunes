@@ -63,7 +63,7 @@ class DownloadingCardWidget extends StatelessWidget {
           height: 55,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withOpacity(0.6),
           ),
         ),
         SizedBox(
@@ -228,21 +228,6 @@ class DownloadingCardWidget extends StatelessWidget {
         );
       default:
         return const SizedBox.shrink(key: ValueKey('default'));
-    }
-  }
-
-  Color _getStatusColor(DownloadState state) {
-    switch (state) {
-      case DownloadState.queued:
-        return Colors.orange;
-      case DownloadState.downloading:
-        return Colors.blue;
-      case DownloadState.completed:
-        return Colors.green;
-      case DownloadState.failed:
-        return Colors.red;
-      default:
-        return Default_Theme.primaryColor2;
     }
   }
 }
