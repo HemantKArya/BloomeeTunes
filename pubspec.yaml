@@ -72,6 +72,7 @@ dependencies:
   scrollable_positioned_list: ^0.3.8
   crypto: ^3.0.5
   dart_discord_rpc: ^0.0.2
+  shared_preferences: ^2.2.2
 
   # linux plugins
   just_audio_media_kit: ^2.0.6

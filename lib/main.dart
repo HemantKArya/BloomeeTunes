@@ -38,6 +38,7 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:Bloomee/services/discord_service.dart';
+import 'package:Bloomee/screens/screen/splash_screen.dart';
 
 void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
   if (isUrl(sharedMediaFiles[0].path)) {
@@ -145,9 +146,12 @@ class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   late StreamSubscription _intentSub;
   final sharedMediaFiles = <SharedMediaFile>[];
+  bool _showSplash = true;
+
   @override
   void initState() {
     super.initState();
+
     if (io.Platform.isAndroid) {
       // For sharing or opening urls/text coming from outside the app while the app is in the memory
       _intentSub =
@@ -189,6 +193,20 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Show splash screen first
+    if (_showSplash) {
+      return MaterialApp(
+        home: SplashScreen(
+          onContinue: () {
+            setState(() {
+              _showSplash = false;
+            });
+          },
+        ),
+        debugShowCheckedModeBanner: false,
+      );
+    }
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(

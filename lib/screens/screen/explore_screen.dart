@@ -8,6 +8,7 @@ import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
+import 'package:Bloomee/screens/screen/music_reels_screen.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -133,10 +134,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           context
                                               .read<BloomeePlayerCubit>()
                                               .bloomeePlayer
-                                              .updateQueue(
-                                            [e],
-                                            doPlay: true,
-                                          );
+                                              .loadPlaylist(
+                                                state.mediaPlaylist,
+                                                idx: state
+                                                    .mediaPlaylist.mediaItems
+                                                    .indexOf(e),
+                                                doPlay: true,
+                                              );
                                         },
                                         onOptionsTap: () =>
                                             showMoreBottomSheet(context, e),
@@ -260,6 +264,31 @@ class CustomDiscoverBar extends StatelessWidget {
           const SettingsIcon(),
         ],
       ),
+    );
+  }
+}
+
+class MusicReelsIcon extends StatelessWidget {
+  const MusicReelsIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      padding: const EdgeInsets.all(5),
+      constraints: const BoxConstraints(),
+      onPressed: () {
+        final playerCubit = context.read<BloomeePlayerCubit>();
+        final previousIndex = playerCubit.bloomeePlayer.currentPlayingIdx;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                MusicReelsScreen(previousIndex: previousIndex),
+          ),
+        );
+      },
+      icon: const Icon(MingCute.music_2_line,
+          color: Default_Theme.primaryColor1, size: 30.0),
     );
   }
 }

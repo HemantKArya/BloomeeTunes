@@ -11,6 +11,8 @@ import 'package:Bloomee/screens/screen/library_views/playlist_screen.dart';
 import 'package:Bloomee/screens/screen/offline_screen.dart';
 import 'package:Bloomee/screens/screen/search_screen.dart';
 import 'package:Bloomee/screens/screen/chart/chart_view.dart';
+import 'package:Bloomee/screens/screen/welcome_screen.dart';
+import 'package:Bloomee/screens/screen/music_reels_screen.dart';
 
 class GlobalRoutes {
   static final globalRouterKey = GlobalKey<NavigatorState>();
@@ -19,6 +21,12 @@ class GlobalRoutes {
     initialLocation: '/Explore',
     navigatorKey: globalRouterKey,
     routes: [
+      GoRoute(
+        name: GlobalStrConsts.welcomeScreen,
+        path: '/welcome',
+        parentNavigatorKey: globalRouterKey,
+        builder: (context, state) => const WelcomeScreen(),
+      ),
       GoRoute(
         name: GlobalStrConsts.playerScreen,
         path: "/MusicPlayer",
@@ -52,6 +60,34 @@ class GlobalRoutes {
         parentNavigatorKey: globalRouterKey,
         name: GlobalStrConsts.addToPlaylistScreen,
         builder: (context, state) => const AddToPlaylistScreen(),
+      ),
+      GoRoute(
+        name: GlobalStrConsts.musicReelsScreen,
+        path: "/MusicReels",
+        parentNavigatorKey: globalRouterKey,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            child: const MusicReelsScreen(previousIndex: 0),
+            transitionDuration: const Duration(milliseconds: 500),
+            reverseTransitionDuration: const Duration(milliseconds: 500),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              final tween = Tween(begin: begin, end: end);
+              final curvedAnimation = CurvedAnimation(
+                parent: animation,
+                reverseCurve: Curves.easeIn,
+                curve: Curves.easeInOut,
+              );
+              final offsetAnimation = curvedAnimation.drive(tween);
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+          );
+        },
       ),
       StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>

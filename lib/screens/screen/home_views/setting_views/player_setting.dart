@@ -108,6 +108,81 @@ class PlayerSettings extends StatelessWidget {
                   onChanged: (value) {
                     context.read<SettingsCubit>().setAutoPlay(value);
                   }),
+              SettingTile(
+                title: "Up Next Queue Limit",
+                subtitle:
+                    "Maximum number of songs in up next queue (0 = unlimited)",
+                trailing: DropdownButton<int>(
+                  value: state.upNextQueueLimit ?? 50,
+                  style: const TextStyle(
+                    color: Default_Theme.primaryColor1,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ).merge(Default_Theme.secondoryTextStyle),
+                  underline: const SizedBox(),
+                  onChanged: (int? newValue) {
+                    if (newValue != null) {
+                      context
+                          .read<SettingsCubit>()
+                          .setUpNextQueueLimit(newValue);
+                    }
+                  },
+                  items: <int>[0, 25, 50, 100, 200, 500]
+                      .map<DropdownMenuItem<int>>((int value) {
+                    return DropdownMenuItem<int>(
+                      value: value,
+                      child: Text(
+                        value == 0 ? "Unlimited" : value.toString(),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                onTap: () {},
+              ),
+              SwitchListTile(
+                  value: state.useModernSeekbar ?? true,
+                  title: Text(
+                    "Modern Waveform Seekbar",
+                    style: const TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ).merge(Default_Theme.secondoryTextStyle),
+                  ),
+                  subtitle: Text(
+                    "Use animated waveform seekbar instead of classic progress bar.",
+                    style: TextStyle(
+                      color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    context.read<SettingsCubit>().setUseModernSeekbar(value);
+                  }),
+              SwitchListTile(
+                  value: state.enableCoverAnimation ?? true,
+                  title: Text(
+                    "Cover Image Animation",
+                    style: const TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ).merge(Default_Theme.secondoryTextStyle),
+                  ),
+                  subtitle: Text(
+                    "Enable floating animation for cover image when music is playing.",
+                    style: TextStyle(
+                      color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    context
+                        .read<SettingsCubit>()
+                        .setEnableCoverAnimation(value);
+                  }),
             ],
           );
         },

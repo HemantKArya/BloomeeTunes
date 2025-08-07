@@ -6,10 +6,12 @@ class GlobalStrConsts {
   static const String mainScreen = "MainPage";
   static const String testScreen = "TestPage";
   static const String playerScreen = "MusicPlayer";
+  static const String musicReelsScreen = "MusicReels";
   static const String playlistView = "PlaylistView";
   static const String addToPlaylistScreen = "AddToPlaylist";
   static const String ImportMediaFromPlatforms = "ImportMediaFromPlatforms";
   static const String ChartScreen = "ChartScreen";
+  static const String welcomeScreen = "WelcomeScreen";
 
   static const String autoUpdateNotify = "auto_update_notify";
   static const String autoSlideCharts = "auto_slide_charts";
@@ -28,6 +30,9 @@ class GlobalStrConsts {
   static const String chartShowMap = "chartShowMap";
   static const String autoSaveLyrics = "autoSaveLyrics";
   static const String autoPlay = "autoPlaySimilarItems";
+  static const String upNextQueueLimit = "upNextQueueLimit";
+  static const String useModernSeekbar = "useModernSeekbar";
+  static const String enableCoverAnimation = "enableCoverAnimation";
 
   // LastFM
   static const String lFMApiKey = "lastFMKey";
