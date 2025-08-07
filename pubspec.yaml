@@ -118,8 +118,8 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  adaptive_icon_background: "assets/icons/bloomee_new_logo_gradient_bg.png"
-  adaptive_icon_foreground: "assets/icons/BloomeeTunes4ZoomedOut.png"
+  adaptive_icon_background: "assets/icons/bloomee_light_gradient.png"
+  adaptive_icon_foreground: "assets/icons/BloomeeTunes4ZoomedOut2.png"
   image_path: "assets/icons/BloomeeLogoFG.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
 
