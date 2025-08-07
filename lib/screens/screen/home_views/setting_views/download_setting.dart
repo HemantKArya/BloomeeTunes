@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
 import 'package:file_picker/file_picker.dart';
@@ -126,39 +128,35 @@ class _DownloadSettingsState extends State<DownloadSettings> {
                 ),
                 onTap: () {},
               ),
-              // SettingTile(
-              //   title: "Download Folder",
-              //   subtitle: state.downPath,
-              //   trailing: IconButton(
-              //     icon: const Icon(
-              //       MingCute.refresh_1_line,
-              //       color: Default_Theme.primaryColor1,
-              //     ),
-              //     onPressed: () {
-              //       context.read<SettingsCubit>().resetDownPath();
-              //     },
-              //   ),
-              //   onTap: () async {
-              //     /*final hasStorageAccess = Platform.isAndroid
-              //         ? await Permission.storage.isGranted
-              //         : true;
-              //     if (!hasStorageAccess) {
-              //       await Permission.storage.request();
-              //       if (!await Permission.storage.isGranted) {
-              //         SnackbarService.showMessage("Storage permission denied!");
-              //         return;
-              //       }
-              //     }
-              //     }*/
-              //     final permission = await storagePermission();
-              //     debugPrint('permission : $permission');
-              //     FilePicker.platform.getDirectoryPath().then((value) {
-              //       if (value != null) {
-              //         context.read<SettingsCubit>().setDownPath(value);
-              //       }
-              //     });
-              //   },
-              // ),
+              SettingTile(
+                title: "Download Folder",
+                subtitle: state.downPath,
+                trailing: Platform.isAndroid
+                    ? null
+                    : IconButton(
+                        icon: const Icon(
+                          MingCute.refresh_1_line,
+                          color: Default_Theme.primaryColor1,
+                        ),
+                        onPressed: () {
+                          context.read<SettingsCubit>().resetDownPath();
+                        },
+                      ),
+                onTap: Platform.isAndroid
+                    ? null
+                    : () async {
+                        if (Platform.isAndroid) {
+                          // Check for storage permission
+                          final permission = await storagePermission();
+                          debugPrint('permission : $permission');
+                        }
+                        FilePicker.platform.getDirectoryPath().then((value) {
+                          if (value != null) {
+                            context.read<SettingsCubit>().setDownPath(value);
+                          }
+                        });
+                      },
+              ),
             ],
           );
         },

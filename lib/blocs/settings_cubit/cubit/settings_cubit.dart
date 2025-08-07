@@ -26,19 +26,19 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(state.copyWith(autoSlideCharts: value ?? true));
     });
 
-    // Directory dir = Directory('/storage/emulated/0/Music');
-    String? path;
-
     BloomeeDBService.getSettingStr(GlobalStrConsts.downPathSetting)
         .then((value) async {
-      await getDownloadsDirectory().then((value) {
-        if (value != null) {
-          path = value.path;
-        }
-      });
-      emit(state.copyWith(
-          downPath: (value ?? path) ??
-              (await getApplicationDocumentsDirectory()).path));
+      String path;
+      if (value != null) {
+        path = value;
+      } else {
+        path = ((await getDownloadsDirectory()) ??
+                (await getApplicationDocumentsDirectory()))
+            .path;
+        setDownPath(path);
+        log("Download path set to: $path", name: 'SettingsCubit');
+      }
+      emit(state.copyWith(downPath: path));
     });
 
     BloomeeDBService.getSettingStr(GlobalStrConsts.downQuality,
@@ -238,21 +238,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   Future<void> resetDownPath() async {
-    String? path;
+    String path;
+    path = ((await getDownloadsDirectory()) ??
+            (await getApplicationDocumentsDirectory()))
+        .path;
 
-    await getDownloadsDirectory().then((value) {
-      if (value != null) {
-        path = value.path;
-        log(path.toString(), name: 'SettingsCubit');
-      }
-    });
-
-    if (path != null) {
-      BloomeeDBService.putSettingStr(GlobalStrConsts.downPathSetting, path!);
-      emit(state.copyWith(downPath: path));
-      log(path.toString(), name: 'SettingsCubit');
-    } else {
-      log("Path is null", name: 'SettingsCubit');
-    }
+    setDownPath(path);
+    log("Download path reset to: $path", name: 'SettingsCubit');
   }
 }

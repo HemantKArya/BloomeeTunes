@@ -39,6 +39,23 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     _loadDownloadedSongs();
   }
 
+  Future<Directory> _getDownloadDirectory() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      // For Android and iOS, use the internal storage's downloads directory
+      final directory = (await getDownloadsDirectory()) ??
+          await getApplicationDocumentsDirectory();
+      return directory;
+    }
+    // For other platforms, use the application documents directory by default
+    // This can be adjusted based on your requirements
+    final path =
+        await BloomeeDBService.getSettingStr(GlobalStrConsts.downPathSetting);
+    if (path != null) {
+      return Directory(path);
+    }
+    return await getApplicationDocumentsDirectory();
+  }
+
   void _setupLibrarySubscription() {
     _librarySubscription = libraryItemsCubit.stream.listen((event) {
       log("LibraryItemsCubit event: ${event.playlists.length}",
@@ -168,7 +185,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     }
 
     // Get directory for both placeholder and actual download
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = await _getDownloadDirectory();
 
     // Create placeholder task immediately to show resolving state
     final sanitizedTitle =
@@ -248,7 +265,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         downloadUrl = audioStreamInfo!.url.toString();
         final sanitizedTitle =
             song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
-        fileName = '$sanitizedTitle.${audioStreamInfo!.container.name}';
+        fileName =
+            '$sanitizedTitle by ${song.artist} - ${song.id}.${audioStreamInfo!.container.name}';
         metadata = AudioMetadata(
           title: song.title,
           artist: song.artist ?? "Unknown Artist",
@@ -269,7 +287,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         }
         final sanitizedTitle =
             song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
-        fileName = '$sanitizedTitle by ${song.artist}.m4a';
+        fileName = '$sanitizedTitle by ${song.artist} - ${song.id}.m4a';
         metadata = AudioMetadata(
           title: song.title,
           artist: song.artist ?? "Unknown Artist",
