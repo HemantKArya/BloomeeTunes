@@ -38,6 +38,7 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 - [x] 🔓 Open Source
 - [x] 💿 Play Automatic Related Songs
 - [x] 🎸 Share your playlists with others
+- [x] 🎸 Added Insta like reel scrolling page for Songs
 - [ ] 🎼 AI-Generated Playlist
 - [ ] 💡 AI-Based Recommendations
 - [ ] 🆎 Multi-Language support

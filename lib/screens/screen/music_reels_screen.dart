@@ -47,6 +47,11 @@ class _MusicReelsScreenState extends State<MusicReelsScreen> {
     super.dispose();
   }
 
+  // Listen to player index changes and auto-scroll PageView
+  void _listenToPlayerIndexChanges() {
+    // We'll use StreamBuilder in the build method instead
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -66,38 +71,62 @@ class _MusicReelsScreenState extends State<MusicReelsScreen> {
                 ),
               );
             }
-            return Stack(
-              children: [
-                PageView.builder(
-                  controller: _pageController,
-                  scrollDirection: Axis.vertical,
-                  itemCount: queue.length,
-                  onPageChanged: (index) async {
-                    if (_isPageAnimating) return;
-                    setState(() {
-                      _isPageAnimating = true;
-                    });
-                    final player =
-                        context.read<BloomeePlayerCubit>().bloomeePlayer;
-                    if (index > player.currentPlayingIdx) {
-                      await player.skipToNext();
-                    } else if (index < player.currentPlayingIdx) {
-                      await player.skipToPrevious();
+            return StreamBuilder<int>(
+              stream: Stream.periodic(const Duration(milliseconds: 100),
+                  (_) => player.currentPlayingIdx),
+              builder: (context, snapshot) {
+                final newIndex = snapshot.data ?? currentIdx;
+
+                // Auto-scroll PageView when player index changes
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted &&
+                      _pageController.hasClients &&
+                      !_isPageAnimating) {
+                    final currentPage = _pageController.page?.round() ?? 0;
+                    if (currentPage != newIndex) {
+                      _pageController.animateToPage(
+                        newIndex,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
                     }
-                    setState(() {
-                      _isPageAnimating = false;
-                    });
-                    HapticFeedback.lightImpact();
-                  },
-                  itemBuilder: (context, index) {
-                    return MusicReelCard(
-                      song: queue[index],
-                      isActive: index == currentIdx,
-                    );
-                  },
-                ),
-                // Removed _ReelsLyricsWidget overlay here
-              ],
+                  }
+                });
+
+                return Stack(
+                  children: [
+                    PageView.builder(
+                      controller: _pageController,
+                      scrollDirection: Axis.vertical,
+                      itemCount: queue.length,
+                      onPageChanged: (index) async {
+                        if (_isPageAnimating) return;
+                        setState(() {
+                          _isPageAnimating = true;
+                        });
+                        final player =
+                            context.read<BloomeePlayerCubit>().bloomeePlayer;
+                        if (index > player.currentPlayingIdx) {
+                          await player.skipToNext();
+                        } else if (index < player.currentPlayingIdx) {
+                          await player.skipToPrevious();
+                        }
+                        setState(() {
+                          _isPageAnimating = false;
+                        });
+                        HapticFeedback.lightImpact();
+                      },
+                      itemBuilder: (context, index) {
+                        return MusicReelCard(
+                          song: queue[index],
+                          isActive: index == currentIdx,
+                        );
+                      },
+                    ),
+                    // Removed _ReelsLyricsWidget overlay here
+                  ],
+                );
+              },
             );
           },
         ),
