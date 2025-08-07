@@ -8,6 +8,7 @@ import 'package:Bloomee/services/player/player_error_handler.dart';
 import 'package:Bloomee/services/player/connectivity_manager.dart';
 import 'package:Bloomee/services/player/queue_manager.dart';
 import 'package:Bloomee/services/player/related_songs_manager.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:just_audio/just_audio.dart';
@@ -104,7 +105,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       audioPlayer.currentIndexStream,
       (sequence, index) {
         if (sequence == null || sequence.isEmpty) return null;
-        return sequence[index ?? 0].tag as MediaItem;
+        MediaItem item = sequence[index ?? 0].tag as MediaItem;
+        final artUri = Uri.parse(
+            formatImgURL(item.artUri.toString(), ImageQuality.medium));
+        item = item.copyWith(artUri: artUri);
+        return item;
       },
     ).whereType<MediaItem>().listen(mediaItem.add);
 
