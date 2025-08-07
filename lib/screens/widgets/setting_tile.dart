@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class SettingTile extends StatelessWidget {
   final String title;
   final String subtitle;
-  final Function onTap;
+  final Function? onTap;
   final Widget? trailing;
 
   const SettingTile({
@@ -20,6 +20,7 @@ class SettingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      enabled: onTap != null,
       title: Text(
         title,
         style: const TextStyle(color: Default_Theme.primaryColor1, fontSize: 16)
@@ -33,7 +34,7 @@ class SettingTile extends StatelessWidget {
             .merge(Default_Theme.secondoryTextStyleMedium),
       ),
       onTap: () {
-        onTap();
+        onTap?.call();
       },
       dense: true,
       trailing: trailing,
