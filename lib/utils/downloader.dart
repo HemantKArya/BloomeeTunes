@@ -89,35 +89,67 @@ class BloomeeDownloader {
 
   static Future<String?> downloadSong(MediaItemModel song,
       {required String fileName, required String filePath}) async {
+    print("🔽 DEBUG: BloomeeDownloader.downloadSong() started");
+    print("🔽 DEBUG: fileName: $fileName, filePath: $filePath");
+
     final String? taskId;
+    print("🔽 DEBUG: Checking if song already downloaded...");
+
     if (!(await alreadyDownloaded(song))) {
+      print("🔽 DEBUG: Song not downloaded yet, proceeding with download");
       try {
         String? kURL;
+        print("🔽 DEBUG: Song source: ${song.extras!['source']}");
+        print("🔽 DEBUG: Song perma_url: ${song.extras!['perma_url']}");
+
         if (song.extras!['source'] == 'youtube' ||
             (song.extras!['perma_url'].toString()).contains('youtube')) {
-          kURL = await latestYtLink(song.id.replaceAll("youtube", ""));
+          print("🔽 DEBUG: YouTube source detected, getting latest YT link...");
+          final videoId = song.id.replaceAll("youtube", "");
+          print("🔽 DEBUG: Video ID: $videoId");
+          kURL = await latestYtLink(videoId);
+          print("🔽 DEBUG: YouTube URL obtained: $kURL");
         } else {
+          print("🔽 DEBUG: Non-YouTube source, using direct URL");
           kURL = song.extras!['url'];
+          print("🔽 DEBUG: Original URL: $kURL");
           kURL = await getJsQualityURL(kURL!, isStreaming: false);
+          print("🔽 DEBUG: Quality URL: $kURL");
         }
 
+        if (kURL == null) {
+          print("🔽 DEBUG: ERROR - kURL is null, cannot proceed with download");
+          return null;
+        }
+
+        print("🔽 DEBUG: Starting FlutterDownloader.enqueue...");
+        print("🔽 DEBUG: Final URL: $kURL");
+        print("🔽 DEBUG: Save directory: $filePath");
+        print("🔽 DEBUG: File name: $fileName");
+
         taskId = await FlutterDownloader.enqueue(
-          url: kURL!,
+          url: kURL,
           savedDir: filePath,
           fileName: fileName,
           showNotification: true,
           openFileFromNotification: false,
         );
 
+        print("🔽 DEBUG: FlutterDownloader.enqueue completed");
+        print("🔽 DEBUG: Task ID received: $taskId");
+
         return taskId;
       } catch (e) {
+        print("🔽 DEBUG: Exception in downloadSong: $e");
         log("Failed to add ${song.title} to download queue",
             error: e, name: "BloomeeDownloader");
       }
     } else {
+      print("🔽 DEBUG: Song already downloaded, skipping");
       log("${song.title} is already downloaded. Skipping download");
       SnackbarService.showMessage("${song.title} is already downloaded");
     }
+    print("🔽 DEBUG: Returning null from downloadSong");
     return null;
   }
 
@@ -170,13 +202,18 @@ class BloomeeDownloader {
   }
 
   static Future<String?> latestYtLink(String id) async {
+    print("🔽 DEBUG: latestYtLink() called for ID: $id");
     final vidInfo = await BloomeeDBService.getYtLinkCache(id);
+
     if (vidInfo != null) {
+      print("🔽 DEBUG: Cache found for video ID: $id");
       if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
           vidInfo.expireAt) {
+        print("🔽 DEBUG: Cache expired, refreshing link...");
         log("Link expired for vidId: $id", name: "BloomeeDownloader");
         return await refreshYtLink(id);
       } else {
+        print("🔽 DEBUG: Cache valid, using cached link");
         log("Link found in cache for vidId: $id", name: "BloomeeDownloader");
         String kurl = vidInfo.lowQURL!;
         await BloomeeDBService.getSettingStr(GlobalStrConsts.ytDownQuality)
@@ -184,20 +221,25 @@ class BloomeeDownloader {
           if (value != null) {
             if (value == "High") {
               kurl = vidInfo.highQURL;
+              print("🔽 DEBUG: Using high quality URL");
             } else {
               kurl = vidInfo.lowQURL!;
+              print("🔽 DEBUG: Using low quality URL");
             }
           }
         });
+        print("🔽 DEBUG: Returning cached URL: $kurl");
         return kurl;
       }
     } else {
+      print("🔽 DEBUG: No cache found, refreshing link...");
       log("No cache found for vidId: $id", name: "BloomeeDownloader");
       return await refreshYtLink(id);
     }
   }
 
   static Future<String?> refreshYtLink(String id) async {
+    print("🔽 DEBUG: refreshYtLink() called for ID: $id");
     String quality = "Low";
     await BloomeeDBService.getSettingStr(GlobalStrConsts.ytDownQuality)
         .then((value) {
@@ -209,10 +251,33 @@ class BloomeeDownloader {
         }
       }
     });
+    print("🔽 DEBUG: Download quality setting: $quality");
+
+    print("🔽 DEBUG: Calling YouTubeServices().refreshLink()...");
     final vidMap = await YouTubeServices().refreshLink(id, quality: quality);
+
     if (vidMap != null) {
-      return vidMap["url"] as String;
+      print("🔽 DEBUG: YouTube link refresh successful");
+      print("🔽 DEBUG: vidMap contents: $vidMap");
+
+      final qurls = vidMap["qurls"];
+      if (qurls != null && qurls is List && qurls.length >= 3) {
+        final isSuccess = qurls[0] as bool;
+        if (isSuccess) {
+          final url =
+              quality == "High" ? qurls[2] as String : qurls[1] as String;
+          print("🔽 DEBUG: Refreshed URL ($quality quality): $url");
+          return url;
+        } else {
+          print("🔽 DEBUG: ERROR - YouTube link extraction failed");
+          return null;
+        }
+      } else {
+        print("🔽 DEBUG: ERROR - Invalid qurls format: $qurls");
+        return null;
+      }
     } else {
+      print("🔽 DEBUG: YouTube link refresh failed - vidMap is null");
       return null;
     }
   }

@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/widgets/album_card.dart';
 import 'package:Bloomee/screens/widgets/artist_card.dart';
@@ -365,42 +367,111 @@ class _SearchScreenState extends State<SearchScreen> {
                                     state.mediaItems.isNotEmpty) {
                                   log("Search Results: ${state.mediaItems.length}",
                                       name: "SearchScreen");
-                                  return ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: state.hasReachedMax
-                                        ? state.mediaItems.length
-                                        : state.mediaItems.length + 1,
-                                    itemBuilder: (context, index) {
-                                      if (index == state.mediaItems.length) {
-                                        return const Center(
-                                          child: SizedBox(
-                                            height: 30,
-                                            width: 30,
-                                            child: CircularProgressIndicator(
-                                              color: Default_Theme.accentColor2,
+                                  return Column(
+                                    children: [
+                                      // Play All Button
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        child: SizedBox(
+                                          width: double.infinity,
+                                          height: 48,
+                                          child: ElevatedButton.icon(
+                                            onPressed: () {
+                                              final playlist = MediaPlaylist(
+                                                mediaItems: state.mediaItems,
+                                                playlistName: "Search Results",
+                                              );
+                                              context
+                                                  .read<BloomeePlayerCubit>()
+                                                  .bloomeePlayer
+                                                  .loadPlaylist(
+                                                    playlist,
+                                                    idx: 0,
+                                                    doPlay: true,
+                                                  );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Default_Theme.accentColor2,
+                                              foregroundColor:
+                                                  Default_Theme.primaryColor1,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(24),
+                                              ),
+                                            ),
+                                            icon: const Icon(
+                                                Icons.play_arrow_rounded),
+                                            label: Text(
+                                              'Play All (${state.mediaItems.length} songs)',
+                                              style: Default_Theme
+                                                  .secondoryTextStyleMedium
+                                                  .copyWith(
+                                                color:
+                                                    Default_Theme.primaryColor1,
+                                              ),
                                             ),
                                           ),
-                                        );
-                                      }
-                                      return Padding(
-                                        padding: const EdgeInsets.only(left: 4),
-                                        child: SongCardWidget(
-                                          song: state.mediaItems[index],
-                                          onTap: () {
-                                            context
-                                                .read<BloomeePlayerCubit>()
-                                                .bloomeePlayer
-                                                .updateQueue(
-                                              [state.mediaItems[index]],
-                                              doPlay: true,
+                                        ),
+                                      ),
+                                      // Songs List
+                                      Expanded(
+                                        child: ListView.builder(
+                                          controller: _scrollController,
+                                          itemCount: state.hasReachedMax
+                                              ? state.mediaItems.length
+                                              : state.mediaItems.length + 1,
+                                          itemBuilder: (context, index) {
+                                            if (index ==
+                                                state.mediaItems.length) {
+                                              return const Center(
+                                                child: SizedBox(
+                                                  height: 30,
+                                                  width: 30,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    color: Default_Theme
+                                                        .accentColor2,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 4),
+                                              child: SongCardWidget(
+                                                song: state.mediaItems[index],
+                                                onTap: () {
+                                                  // Add all search results to queue starting from selected song
+                                                  final playlist =
+                                                      MediaPlaylist(
+                                                    mediaItems:
+                                                        state.mediaItems,
+                                                    playlistName:
+                                                        "Search Results",
+                                                  );
+                                                  context
+                                                      .read<
+                                                          BloomeePlayerCubit>()
+                                                      .bloomeePlayer
+                                                      .loadPlaylist(
+                                                        playlist,
+                                                        idx: index,
+                                                        doPlay: true,
+                                                      );
+                                                },
+                                                onOptionsTap: () =>
+                                                    showMoreBottomSheet(
+                                                        context,
+                                                        state
+                                                            .mediaItems[index]),
+                                              ),
                                             );
                                           },
-                                          onOptionsTap: () =>
-                                              showMoreBottomSheet(context,
-                                                  state.mediaItems[index]),
                                         ),
-                                      );
-                                    },
+                                      ),
+                                    ],
                                   );
                                 } else if (state.resultType ==
                                         ResultTypes.albums &&

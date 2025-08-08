@@ -10,6 +10,7 @@ import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -79,11 +80,17 @@ class MiniPlayerCard extends StatelessWidget {
         context.pushNamed(GlobalStrConsts.playerScreen);
       },
       onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity! < -10) {
+        // Improved gesture sensitivity and feedback
+        if (details.primaryVelocity! < -200) {
+          // Swipe left - Next song
+          HapticFeedback.mediumImpact();
           context.read<BloomeePlayerCubit>().bloomeePlayer.skipToNext();
-        }
-        if (details.primaryVelocity! > 10) {
+          _showGestureHint(context, "Next Song", Icons.skip_next);
+        } else if (details.primaryVelocity! > 200) {
+          // Swipe right - Previous song
+          HapticFeedback.mediumImpact();
           context.read<BloomeePlayerCubit>().bloomeePlayer.skipToPrevious();
+          _showGestureHint(context, "Previous Song", Icons.skip_previous);
         }
       },
       onVerticalDragEnd: (details) {
@@ -117,8 +124,8 @@ class MiniPlayerCard extends StatelessWidget {
                     sigmaX: 18,
                   ),
                   child: Container(
-                    color: Colors.black.withOpacity(
-                        0.5), // Keep the container color transparent
+                    color: Colors.black.withValues(
+                        alpha: 0.5), // Keep the container color transparent
                   ),
                 ),
               ),
@@ -162,7 +169,7 @@ class MiniPlayerCard extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12.5,
                                   color: Default_Theme.primaryColor1
-                                      .withOpacity(0.7))),
+                                      .withValues(alpha: 0.7))),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -244,32 +251,83 @@ class MiniPlayerCard extends StatelessWidget {
                       icon: const Icon(FontAwesome.plus_solid, size: 25)),
                 ],
               ),
+              // Glass-type progress overlay
               isCompleted
                   ? const SizedBox()
-                  : Positioned.fill(
-                      bottom: 2,
-                      left: 8,
-                      right: 8,
-                      top: 68,
-                      child: StreamBuilder<ProgressBarStreams>(
-                          stream: context
-                              .watch<BloomeePlayerCubit>()
-                              .progressStreams,
-                          builder: (context, snapshot) {
-                            try {
-                              if (snapshot.hasData) {
-                                return ProgressBar(
-                                    thumbRadius: 0,
-                                    barHeight: 4,
-                                    baseBarColor: Colors.transparent,
-                                    timeLabelLocation: TimeLabelLocation.none,
-                                    progress: snapshot.data!.currentPos,
-                                    total: snapshot
-                                        .data!.currentPlaybackState.duration!);
-                              }
-                            } catch (e) {}
-                            return const SizedBox();
-                          }),
+                  : StreamBuilder<ProgressBarStreams>(
+                      stream:
+                          context.watch<BloomeePlayerCubit>().progressStreams,
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) return const SizedBox();
+
+                        final progress =
+                            snapshot.data!.currentPos.inMilliseconds;
+                        final total = snapshot.data!.currentPlaybackState
+                                .duration?.inMilliseconds ??
+                            1;
+                        final progressRatio = progress / total;
+
+                        return Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(8)),
+                            child: Stack(
+                              children: [
+                                // Glass progress overlay
+                                Positioned(
+                                  left: 0,
+                                  right: MediaQuery.of(context).size.width *
+                                      (1 - progressRatio),
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Default_Theme.accentColor1
+                                              .withValues(alpha: 0.25),
+                                          Default_Theme.accentColor2
+                                              .withValues(alpha: 0.18),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          right: BorderSide(
+                                            color: Default_Theme.accentColor1
+                                                .withValues(alpha: 0.5),
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                // Subtle progress line at bottom
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Container(
+                                    height: 2,
+                                    child: LinearProgressIndicator(
+                                      value: progressRatio,
+                                      backgroundColor: Colors.transparent,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Default_Theme.accentColor1
+                                            .withValues(alpha: 0.8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     )
             ],
           ),
@@ -277,4 +335,33 @@ class MiniPlayerCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// Helper function to show gesture feedback
+void _showGestureHint(BuildContext context, String message, IconData icon) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Default_Theme.primaryColor1, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            message,
+            style: const TextStyle(
+              color: Default_Theme.primaryColor1,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Default_Theme.accentColor2.withValues(alpha: 0.9),
+      duration: const Duration(milliseconds: 800),
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+  );
 }

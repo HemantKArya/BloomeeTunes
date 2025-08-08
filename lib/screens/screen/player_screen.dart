@@ -4,11 +4,14 @@ import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
+import 'package:Bloomee/screens/widgets/download_button_widget.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:Bloomee/services/shortcuts_intents.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:Bloomee/screens/widgets/animated_seekbar.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -175,7 +178,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                     ? SlidingUpPanel(
                         controller: _panelController,
                         minHeight: 52,
-                        maxHeight: MediaQuery.of(context).size.height * 0.40,
+                        maxHeight: MediaQuery.of(context).size.height * 0.85,
                         // backdropColor: Colors.transparent,
                         color: Colors.transparent,
                         backdropTapClosesPanel: true,
@@ -312,36 +315,110 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
   }
 }
 
-class CoverImageVolSlider extends StatelessWidget {
+class CoverImageVolSlider extends StatefulWidget {
   final BoxConstraints constraints;
   const CoverImageVolSlider({super.key, required this.constraints});
+
+  @override
+  State<CoverImageVolSlider> createState() => _CoverImageVolSliderState();
+}
+
+class _CoverImageVolSliderState extends State<CoverImageVolSlider>
+    with TickerProviderStateMixin {
+  late AnimationController _floatController;
+  late Animation<double> _floatAnimation;
+  StreamSubscription? _playingStateSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize animation controller
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 2500),
+      vsync: this,
+    );
+
+    // Initialize animation
+    _floatAnimation = Tween<double>(
+      begin: 0.0,
+      end: 15.0,
+    ).animate(CurvedAnimation(
+      parent: _floatController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Listen to playing state changes after initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
+        _playingStateSub = bloomeePlayerCubit
+            .bloomeePlayer.audioPlayer.playingStream
+            .listen((isPlaying) {
+          if (mounted) {
+            final settingsCubit = context.read<SettingsCubit>();
+            if (isPlaying &&
+                (settingsCubit.state.enableCoverAnimation ?? true)) {
+              _floatController.repeat(reverse: true);
+            } else {
+              _floatController.stop();
+              _floatController.reset();
+            }
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _floatController.dispose();
+    _playingStateSub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     return VolumeDragController(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(25),
-        child: StreamBuilder<MediaItem?>(
-            stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
-            builder: (context, snapshot) {
-              return LayoutBuilder(builder: (context, constraints) {
-                return ConstrainedBox(
-                  constraints: BoxConstraints(
-                      maxWidth: constraints.maxWidth * 0.98,
-                      maxHeight: constraints.maxHeight * 0.98),
-                  child: LoadImageCached(
-                      imageUrl: formatImgURL(
-                          (snapshot.data?.artUri ?? "").toString(),
-                          ImageQuality.high),
-                      fallbackUrl: formatImgURL(
-                        (snapshot.data?.artUri ?? "").toString(),
-                        ImageQuality.medium,
-                      ),
-                      fit: BoxFit.fitWidth),
-                );
-              });
-            }),
+      child: GestureDetector(
+        onTap: () {
+          // Quick float animation on tap
+          _floatController.forward().then((_) {
+            _floatController.reverse();
+          });
+        },
+        child: AnimatedBuilder(
+          animation: _floatAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, -(_floatAnimation.value)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: StreamBuilder<MediaItem?>(
+                    stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
+                    builder: (context, snapshot) {
+                      return LayoutBuilder(builder: (context, constraints) {
+                        return ConstrainedBox(
+                          constraints: BoxConstraints(
+                              maxWidth: constraints.maxWidth * 0.98,
+                              maxHeight: constraints.maxHeight * 0.98),
+                          child: LoadImageCached(
+                              imageUrl: formatImgURL(
+                                  (snapshot.data?.artUri ?? "").toString(),
+                                  ImageQuality.high),
+                              fallbackUrl: formatImgURL(
+                                (snapshot.data?.artUri ?? "").toString(),
+                                ImageQuality.medium,
+                              ),
+                              fit: BoxFit.fitWidth),
+                        );
+                      });
+                    }),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -421,38 +498,60 @@ class PlayerCtrlWidgets extends StatelessWidget {
                           bloomeePlayerCubit.bloomeePlayer.currentMedia),
                       builder: (context, snapshot) {
                         if (snapshot.hasData && snapshot.data != null) {
-                          return Padding(
-                            padding:
-                                const EdgeInsets.only(left: 8.0, bottom: 3),
-                            child: LikeBtnWidget(
-                              isPlaying: true,
-                              isLiked: snapshot.data ?? false,
-                              iconSize: 35,
-                              onLiked: () => context
-                                  .read<BloomeeDBCubit>()
-                                  .setLike(
-                                      bloomeePlayerCubit
-                                          .bloomeePlayer.currentMedia,
-                                      isLiked: true),
-                              onDisliked: () => context
-                                  .read<BloomeeDBCubit>()
-                                  .setLike(
-                                      bloomeePlayerCubit
-                                          .bloomeePlayer.currentMedia,
-                                      isLiked: false),
-                            ),
+                          return Row(
+                            children: [
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 8.0, bottom: 3),
+                                child: LikeBtnWidget(
+                                  isPlaying: true,
+                                  isLiked: snapshot.data ?? false,
+                                  iconSize: 35,
+                                  onLiked: () => context
+                                      .read<BloomeeDBCubit>()
+                                      .setLike(
+                                          bloomeePlayerCubit
+                                              .bloomeePlayer.currentMedia,
+                                          isLiked: true),
+                                  onDisliked: () => context
+                                      .read<BloomeeDBCubit>()
+                                      .setLike(
+                                          bloomeePlayerCubit
+                                              .bloomeePlayer.currentMedia,
+                                          isLiked: false),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              DownloadButtonWidget(
+                                song: bloomeePlayerCubit
+                                    .bloomeePlayer.currentMedia,
+                                size: 35,
+                                color: Default_Theme.primaryColor1,
+                              ),
+                            ],
                           );
                         } else {
-                          return Padding(
-                            padding:
-                                const EdgeInsets.only(left: 8.0, bottom: 3),
-                            child: LikeBtnWidget(
-                              isLiked: false,
-                              isPlaying: true,
-                              iconSize: 35,
-                              onLiked: () {},
-                              onDisliked: () {},
-                            ),
+                          return Row(
+                            children: [
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 8.0, bottom: 3),
+                                child: LikeBtnWidget(
+                                  isLiked: false,
+                                  isPlaying: true,
+                                  iconSize: 35,
+                                  onLiked: () {},
+                                  onDisliked: () {},
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              DownloadButtonWidget(
+                                song: bloomeePlayerCubit
+                                    .bloomeePlayer.currentMedia,
+                                size: 35,
+                                color: Default_Theme.primaryColor1,
+                              ),
+                            ],
                           );
                         }
                       },
@@ -465,38 +564,69 @@ class PlayerCtrlWidgets extends StatelessWidget {
             child: StreamBuilder<ProgressBarStreams>(
                 stream: bloomeePlayerCubit.progressStreams,
                 builder: (context, snapshot) {
-                  return ProgressBar(
-                    progress: snapshot.data?.currentPos ?? Duration.zero,
-                    total: snapshot.data?.currentPlaybackState.duration ??
-                        Duration.zero,
-                    buffered:
-                        snapshot.data?.currentPlaybackState.bufferedPosition ??
-                            Duration.zero,
-                    onSeek: (value) {
-                      musicPlayer.seek(value);
+                  return BlocBuilder<SettingsCubit, SettingsState>(
+                    builder: (context, settingsState) {
+                      if (settingsState.useModernSeekbar ?? true) {
+                        return AnimatedWaveformSeekbar(
+                          progress: snapshot.data?.currentPos ?? Duration.zero,
+                          total: snapshot.data?.currentPlaybackState.duration ??
+                              Duration.zero,
+                          buffered: snapshot.data?.currentPlaybackState
+                                  .bufferedPosition ??
+                              Duration.zero,
+                          onSeek: (value) {
+                            musicPlayer.seek(value);
+                          },
+                          isPlaying:
+                              snapshot.data?.currentPlayerState.playing ??
+                                  false,
+                          activeColor: Default_Theme.accentColor1,
+                          inactiveColor: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.3),
+                          bufferedColor:
+                              Default_Theme.accentColor1.withValues(alpha: 0.4),
+                          height: 45,
+                          waveformBars: 60,
+                        );
+                      } else {
+                        return ProgressBar(
+                          progress: snapshot.data?.currentPos ?? Duration.zero,
+                          total: snapshot.data?.currentPlaybackState.duration ??
+                              Duration.zero,
+                          buffered: snapshot.data?.currentPlaybackState
+                                  .bufferedPosition ??
+                              Duration.zero,
+                          onSeek: (value) {
+                            musicPlayer.seek(value);
+                          },
+                          timeLabelPadding: 5,
+                          timeLabelTextStyle: Default_Theme.secondoryTextStyle
+                              .merge(TextStyle(
+                                  fontSize: 15,
+                                  color: Default_Theme.primaryColor1
+                                      .withValues(alpha: 0.7))),
+                          timeLabelLocation: TimeLabelLocation.above,
+                          baseBarColor: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.1),
+                          progressBarColor:
+                              snapshot.data?.currentPlayerState.playing ?? false
+                                  ? Default_Theme.accentColor1
+                                  : Default_Theme.accentColor2,
+                          thumbRadius: 5,
+                          thumbColor:
+                              snapshot.data?.currentPlayerState.playing ?? false
+                                  ? Default_Theme.accentColor1
+                                  : Default_Theme.accentColor2,
+                          bufferedBarColor:
+                              snapshot.data?.currentPlayerState.playing ?? false
+                                  ? Default_Theme.accentColor1
+                                      .withValues(alpha: 0.2)
+                                  : Default_Theme.accentColor2
+                                      .withValues(alpha: 0.2),
+                          barHeight: 4,
+                        );
+                      }
                     },
-                    timeLabelPadding: 5,
-                    timeLabelTextStyle: Default_Theme.secondoryTextStyle.merge(
-                        TextStyle(
-                            fontSize: 15,
-                            color:
-                                Default_Theme.primaryColor1.withOpacity(0.7))),
-                    timeLabelLocation: TimeLabelLocation.above,
-                    baseBarColor: Default_Theme.primaryColor2.withOpacity(0.1),
-                    progressBarColor:
-                        snapshot.data?.currentPlayerState.playing ?? false
-                            ? Default_Theme.accentColor1
-                            : Default_Theme.accentColor2,
-                    thumbRadius: 5,
-                    thumbColor:
-                        snapshot.data?.currentPlayerState.playing ?? false
-                            ? Default_Theme.accentColor1
-                            : Default_Theme.accentColor2,
-                    bufferedBarColor:
-                        snapshot.data?.currentPlayerState.playing ?? false
-                            ? Default_Theme.accentColor1.withOpacity(0.2)
-                            : Default_Theme.accentColor2.withOpacity(0.2),
-                    barHeight: 4,
                   );
                 }),
           ),

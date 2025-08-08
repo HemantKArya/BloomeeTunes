@@ -82,6 +82,21 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(state.copyWith(autoPlay: value ?? true));
     });
 
+    BloomeeDBService.getSettingStr(GlobalStrConsts.upNextQueueLimit)
+        .then((value) {
+      emit(state.copyWith(upNextQueueLimit: int.tryParse(value ?? "50") ?? 50));
+    });
+
+    BloomeeDBService.getSettingBool(GlobalStrConsts.useModernSeekbar)
+        .then((value) {
+      emit(state.copyWith(useModernSeekbar: value ?? true));
+    });
+
+    BloomeeDBService.getSettingBool(GlobalStrConsts.enableCoverAnimation)
+        .then((value) {
+      emit(state.copyWith(enableCoverAnimation: value ?? true));
+    });
+
     BloomeeDBService.getSettingBool(GlobalStrConsts.lFMUIPicks).then((value) {
       emit(state.copyWith(lFMPicks: value ?? false));
     });
@@ -145,6 +160,24 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setAutoPlay(bool value) async {
     await BloomeeDBService.putSettingBool(GlobalStrConsts.autoPlay, value);
     emit(state.copyWith(autoPlay: value));
+  }
+
+  Future<void> setUpNextQueueLimit(int value) async {
+    await BloomeeDBService.putSettingStr(
+        GlobalStrConsts.upNextQueueLimit, value.toString());
+    emit(state.copyWith(upNextQueueLimit: value));
+  }
+
+  Future<void> setUseModernSeekbar(bool value) async {
+    await BloomeeDBService.putSettingBool(
+        GlobalStrConsts.useModernSeekbar, value);
+    emit(state.copyWith(useModernSeekbar: value));
+  }
+
+  Future<void> setEnableCoverAnimation(bool value) async {
+    await BloomeeDBService.putSettingBool(
+        GlobalStrConsts.enableCoverAnimation, value);
+    emit(state.copyWith(enableCoverAnimation: value));
   }
 
   void autoUpdate() {

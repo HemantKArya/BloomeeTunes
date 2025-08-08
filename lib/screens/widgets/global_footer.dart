@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/screens/screen/music_reels_screen.dart';
 import 'package:Bloomee/screens/widgets/mini_player_widget.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import '../../theme_data/default.dart';
+import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GlobalFooter extends StatelessWidget {
   const GlobalFooter({super.key, required this.navigationShell});
@@ -70,15 +73,34 @@ class VerticalNavBar extends StatelessWidget {
         NavigationRailDestination(
             icon: Icon(MingCute.book_5_fill), label: Text('Library')),
         NavigationRailDestination(
+            icon: Icon(MingCute.music_2_fill), label: Text('Reels')),
+        NavigationRailDestination(
             icon: Icon(MingCute.search_2_fill), label: Text('Search')),
         NavigationRailDestination(
             icon: Icon(MingCute.folder_download_fill), label: Text('Offline')),
       ],
       selectedIndex: navigationShell.currentIndex,
       minWidth: 65,
-
-      onDestinationSelected: (value) {
-        navigationShell.goBranch(value);
+      onDestinationSelected: (value) async {
+        if (value == 2) {
+          int previousIndex = navigationShell.currentIndex;
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                final playerCubit = context.read<BloomeePlayerCubit>();
+                final previousIndex =
+                    playerCubit.bloomeePlayer.currentPlayingIdx;
+                return MusicReelsScreen(previousIndex: previousIndex);
+              },
+            ),
+          );
+          if (result is int) {
+            navigationShell.goBranch(result);
+          }
+        } else {
+          navigationShell.goBranch(value > 2 ? value - 1 : value);
+        }
       },
       groupAlignment: 0.0,
       // selectedIconTheme: IconThemeData(color: Default_Theme.accentColor2),
@@ -102,43 +124,62 @@ class HorizontalNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GNav(
-      gap: 7.0,
-      tabBackgroundColor: Default_Theme.accentColor2.withOpacity(0.22),
-      color: Default_Theme.primaryColor2,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      activeColor: Default_Theme.accentColor2,
-      textStyle: Default_Theme.secondoryTextStyleMedium.merge(
-          const TextStyle(color: Default_Theme.accentColor2, fontSize: 18)),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      backgroundColor: Default_Theme.themeColor.withOpacity(0.3),
-      tabs: const [
-        // GButton(
-        //   icon: MingCute.home_4_fill,
-        //   iconSize: 27,
-        //   text: "Test",
-        // ),
-        GButton(
-          icon: MingCute.home_4_fill,
-          text: "Home",
-        ),
-        GButton(
-          icon: MingCute.book_5_fill,
-          text: "Library",
-        ),
-        GButton(
-          icon: MingCute.search_2_fill,
-          text: "Search",
-        ),
-        GButton(
-          icon: MingCute.folder_download_fill,
-          text: "Offline",
-        ),
-      ],
-      selectedIndex: navigationShell.currentIndex,
-      onTabChange: (value) {
-        navigationShell.goBranch(value);
-      },
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Default_Theme.themeColor.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: GNav(
+        gap: 0,
+        tabBackgroundColor: Default_Theme.accentColor2.withOpacity(0.22),
+        color: Default_Theme.primaryColor2,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        activeColor: Default_Theme.accentColor2,
+        iconSize: 26,
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+        duration: const Duration(milliseconds: 400),
+        tabs: const [
+          GButton(
+            icon: MingCute.home_4_fill,
+            iconSize: 26,
+          ),
+          GButton(
+            icon: MingCute.book_5_fill,
+            iconSize: 26,
+          ),
+          GButton(
+            icon: MingCute.music_2_fill,
+            iconSize: 26,
+          ),
+          GButton(
+            icon: MingCute.search_2_fill,
+            iconSize: 26,
+          ),
+          GButton(
+            icon: MingCute.folder_download_fill,
+            iconSize: 26,
+          ),
+        ],
+        selectedIndex: navigationShell.currentIndex,
+        onTabChange: (value) {
+          if (value == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  final playerCubit = context.read<BloomeePlayerCubit>();
+                  final previousIndex =
+                      playerCubit.bloomeePlayer.currentPlayingIdx;
+                  return MusicReelsScreen(previousIndex: previousIndex);
+                },
+              ),
+            );
+          } else {
+            navigationShell.goBranch(value > 2 ? value - 1 : value);
+          }
+        },
+      ),
     );
   }
 }

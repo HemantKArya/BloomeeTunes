@@ -54,7 +54,7 @@ dependencies:
   html_unescape: ^2.0.0
   marquee: ^2.2.3
   string_similarity: ^2.0.0
-  package_info_plus: ^4.2.0
+  package_info_plus: ^8.0.0
   url_launcher: ^6.3.0
   badges: ^3.1.2
   flutter_displaymode: ^0.6.0
@@ -72,6 +72,7 @@ dependencies:
   scrollable_positioned_list: ^0.3.8
   crypto: ^3.0.5
   dart_discord_rpc: ^0.0.2
+  shared_preferences: ^2.2.2
 
   # linux plugins
   just_audio_media_kit: ^2.0.6

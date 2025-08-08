@@ -1,8 +1,9 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
+    id "org.jetbrains.kotlin.android"
     id "dev.flutter.flutter-gradle-plugin"
 }
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -10,7 +11,6 @@ if (localPropertiesFile.exists()) {
         localProperties.load(reader)
     }
 }
-
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
@@ -22,48 +22,34 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-
 def keystoreProperties = new Properties()
-   def keystorePropertiesFile = rootProject.file('key.properties')
-   
+def keystorePropertiesFile = rootProject.file('key.properties')
 
 android {
     namespace "ls.bloomee.musicplayer"
-    compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
-
-    // flavorDimensions "flavors"
-    // productFlavors {
-    //     // debug flavor 
-    //     dev {
-    //         dimension "flavors"
-    //         applicationIdSuffix ".dev"
-    //         versionNameSuffix "-dev"
-    //     }
-    // }
+    compileSdkVersion 35
+    // ndkVersion removed - let it use the latest available automatically
+    
+    println("🔍 DEBUG: App build.gradle - Using latest NDK automatically")
+    println("🔍 DEBUG: App namespace: ls.bloomee.musicplayer")
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = '17'
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "ls.bloomee.musicplayer"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        // minSdkVersion flutter.minSdkVersion
         minSdkVersion 21
-        targetSdkVersion flutter.targetSdkVersion
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
 
-    // include splits for different architectures and universal APK. (arm64-v8a, armeabi-v7a, x86, x86_64)
     splits {
         abi {
             enable true
@@ -73,58 +59,39 @@ android {
         }
     }
 
-    // Removing DEPENDENCY_INFO_BLOCK from the build.gradle file (For FOSS compliance)
     dependenciesInfo {
-        // Disables dependency metadata when building APKs.
         includeInApk = false
-        // Disables dependency metadata when building Android App Bundles.
         includeInBundle = false
     }
 
-       signingConfigs {
-
-if (keystorePropertiesFile.exists()) {
-       keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-          release {
-           keyAlias keystoreProperties['keyAlias']
-           keyPassword keystoreProperties['keyPassword']
-           storeFile rootProject.file('bloomee.jks')
-           storePassword keystoreProperties['storePassword']
-       }
-
-       }
-
-   }
-   buildTypes {
-       release {
-        if (keystorePropertiesFile.exists()) {
-            println("keystorePropertiesFile exists")
-            signingConfig signingConfigs.release
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile rootProject.file('bloomee.jks')
+                storePassword keystoreProperties['storePassword']
+            }
         }
-        else {
-            println("keystorePropertiesFile does not exist")
-            signingConfig signingConfigs.debug
-        }
-        // signingConfig signingConfigs.debug
-        //    signingConfig signingConfigs.release
-       }
-   }
+    }
 
+    buildTypes {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                println("keystorePropertiesFile exists")
+                signingConfig signingConfigs.release
+            } else {
+                println("keystorePropertiesFile does not exist")
+                signingConfig signingConfigs.debug
+            }
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
 }
 
 flutter {
     source '../..'
 }
-
-
-
-// ext.abiCodes = ["x86_64": 1, "armeabi-v7a": 2, "arm64-v8a": 3, "x86": 4]
-// android.applicationVariants.all { variant ->
-//   variant.outputs.each { output ->
-//   def abi = output.getFilter(com.android.build.OutputFile.ABI)
-//     def abiVersionCode = project.ext.abiCodes.get(abi)
-//     if (abiVersionCode != null) {
-//       output.versionCodeOverride = variant.versionCode
-//     }
-//   }
-// }
