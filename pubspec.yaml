@@ -54,7 +54,7 @@ dependencies:
   html_unescape: ^2.0.0
   marquee: ^2.2.3
   string_similarity: ^2.0.0
-  package_info_plus: ^4.2.0
+  package_info_plus: ^8.0.0
   url_launcher: ^6.3.0
   badges: ^3.1.2
   flutter_displaymode: ^0.6.0

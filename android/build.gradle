@@ -1,3 +1,15 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25"
+        println("🔍 DEBUG: Updated Kotlin version to 1.9.25 for better compatibility")
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -6,29 +18,46 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
-subprojects {
 
-    // ============
-    // added for isarDB issue (verifyResource issue when building)
-    //  afterEvaluate { project ->
-    //     if (project.plugins.hasPlugin("com.android.application") ||
-    //             project.plugins.hasPlugin("com.android.library")) {
-    //         project.android {
-    //             compileSdkVersion 34
-    //             buildToolsVersion "34.0.0"
-    //         }
-    //     }
-    // }
-    // ============
-    
+subprojects {
     afterEvaluate { project ->
+        println("🔍 DEBUG: Evaluating project: ${project.name}")
+        println("🔍 DEBUG: Project path: ${project.path}")
+        
         if (project.plugins.hasPlugin("com.android.application") ||
                 project.plugins.hasPlugin("com.android.library")) {
+            println("🔍 DEBUG: ${project.name} has Android plugin")
+            
             project.android {
-                compileSdkVersion 34
+                compileSdkVersion 35
+                // Let NDK use latest version automatically - no hardcoded version
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
                     targetCompatibility JavaVersion.VERSION_17
+                }
+                
+                // Fix for metadata_god namespace issue
+                if (project.name == "metadata_god") {
+                    println("🔧 DEBUG: Applying comprehensive fix for metadata_god")
+                    namespace = "com.ryanheise.metadata_god"
+                    
+                    // Create a custom AndroidManifest.xml for metadata_god
+                    def customManifestDir = new File(project.buildDir, "generated/custom_manifest")
+                    def customManifest = new File(customManifestDir, "AndroidManifest.xml")
+                    
+                    project.tasks.register("generateCustomManifest") {
+                        doLast {
+                            customManifestDir.mkdirs()
+                            customManifest.text = '''<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+</manifest>'''
+                            println("🔧 DEBUG: Generated custom manifest for metadata_god")
+                        }
+                    }
+                    
+                    project.android.sourceSets.main.manifest.srcFile customManifest
+                    project.tasks.named("preBuild").configure {
+                        dependsOn("generateCustomManifest")
+                    }
                 }
             }
         }
@@ -38,7 +67,6 @@ subprojects {
             }
         }
     }
-    
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     project.evaluationDependsOn(':app')
 }
