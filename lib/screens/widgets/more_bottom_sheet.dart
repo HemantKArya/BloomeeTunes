@@ -250,8 +250,15 @@ void showMoreBottomSheet(
                                 fontWeight: FontWeight.w400),
                           ),
                           onTap: () {
+                            print(
+                                "🔽 DEBUG: Download button clicked for song: ${song.title}");
+                            print("🔽 DEBUG: Song ID: ${song.id}");
+                            print("🔽 DEBUG: Song Artist: ${song.artist}");
+                            print("🔽 DEBUG: Starting download process...");
                             Navigator.pop(context);
                             context.read<DownloaderCubit>().downloadSong(song);
+                            print(
+                                "🔽 DEBUG: Download request sent to DownloaderCubit");
                           },
                         )
                   : const SizedBox.shrink(),

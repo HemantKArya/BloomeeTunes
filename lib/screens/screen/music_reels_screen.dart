@@ -2,6 +2,8 @@ import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/widgets/animated_seekbar.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
+import 'package:Bloomee/screens/widgets/download_button_widget.dart';
+import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
@@ -11,7 +13,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:Bloomee/screens/screen/player_views/lyrics_widget.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 
 class MusicReelsScreen extends StatefulWidget {
@@ -193,9 +194,26 @@ class _MusicReelCardState extends State<MusicReelCard> {
           child: SafeArea(
             child: Column(
               children: [
-                // Top Controls
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
+                // Top Controls with better background
+                Container(
+                  margin: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -231,9 +249,9 @@ class _MusicReelCardState extends State<MusicReelCard> {
                         ),
                         tooltip: 'Show Queue',
                       ),
-                      Text(
+                      const Text(
                         "Bloomee Reels",
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Default_Theme.accentColor2,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -265,10 +283,112 @@ class _MusicReelCardState extends State<MusicReelCard> {
                         child: _ReelsDoubleLineLyricsWidget(song: widget.song),
                       ),
                       const SizedBox(width: 12),
-                      // Play/Pause button (right side)
+                      // Right side controls (Favourite, Download, Play/Pause)
                       Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
+                          // Favourite and Download buttons (vertical)
+                          Column(
+                            children: [
+                              // Favourite Button
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Default_Theme.accentColor1
+                                        .withValues(alpha: 0.3),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.4),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: StreamBuilder<dynamic>(
+                                  stream: context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .audioPlayer
+                                      .playbackEventStream,
+                                  builder: (context, snapshot) {
+                                    return FutureBuilder(
+                                      future: context
+                                          .read<BloomeeDBCubit>()
+                                          .isLiked(mediaItem2MediaItemModel(
+                                              widget.song)),
+                                      builder: (context, snapshot) {
+                                        final isLiked = snapshot.data ?? false;
+                                        return GestureDetector(
+                                          onTap: () {
+                                            HapticFeedback.lightImpact();
+                                            if (isLiked) {
+                                              context
+                                                  .read<BloomeeDBCubit>()
+                                                  .setLike(
+                                                      mediaItem2MediaItemModel(
+                                                          widget.song),
+                                                      isLiked: false);
+                                            } else {
+                                              context
+                                                  .read<BloomeeDBCubit>()
+                                                  .setLike(
+                                                      mediaItem2MediaItemModel(
+                                                          widget.song),
+                                                      isLiked: true);
+                                            }
+                                          },
+                                          child: Icon(
+                                            isLiked
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color: isLiked
+                                                ? Default_Theme.accentColor1
+                                                : Default_Theme.primaryColor1,
+                                            size: 28,
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Download Button
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Default_Theme.accentColor1
+                                        .withValues(alpha: 0.3),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.4),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: DownloadButtonWidget(
+                                  song: mediaItem2MediaItemModel(widget.song),
+                                  size: 28,
+                                  color: Default_Theme.primaryColor1,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Play/Pause button
                           StreamBuilder<bool>(
                             stream: context
                                 .read<BloomeePlayerCubit>()

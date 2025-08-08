@@ -4,6 +4,7 @@ import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
+import 'package:Bloomee/screens/widgets/download_button_widget.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:Bloomee/services/shortcuts_intents.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
@@ -497,38 +498,60 @@ class PlayerCtrlWidgets extends StatelessWidget {
                           bloomeePlayerCubit.bloomeePlayer.currentMedia),
                       builder: (context, snapshot) {
                         if (snapshot.hasData && snapshot.data != null) {
-                          return Padding(
-                            padding:
-                                const EdgeInsets.only(left: 8.0, bottom: 3),
-                            child: LikeBtnWidget(
-                              isPlaying: true,
-                              isLiked: snapshot.data ?? false,
-                              iconSize: 35,
-                              onLiked: () => context
-                                  .read<BloomeeDBCubit>()
-                                  .setLike(
-                                      bloomeePlayerCubit
-                                          .bloomeePlayer.currentMedia,
-                                      isLiked: true),
-                              onDisliked: () => context
-                                  .read<BloomeeDBCubit>()
-                                  .setLike(
-                                      bloomeePlayerCubit
-                                          .bloomeePlayer.currentMedia,
-                                      isLiked: false),
-                            ),
+                          return Row(
+                            children: [
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 8.0, bottom: 3),
+                                child: LikeBtnWidget(
+                                  isPlaying: true,
+                                  isLiked: snapshot.data ?? false,
+                                  iconSize: 35,
+                                  onLiked: () => context
+                                      .read<BloomeeDBCubit>()
+                                      .setLike(
+                                          bloomeePlayerCubit
+                                              .bloomeePlayer.currentMedia,
+                                          isLiked: true),
+                                  onDisliked: () => context
+                                      .read<BloomeeDBCubit>()
+                                      .setLike(
+                                          bloomeePlayerCubit
+                                              .bloomeePlayer.currentMedia,
+                                          isLiked: false),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              DownloadButtonWidget(
+                                song: bloomeePlayerCubit
+                                    .bloomeePlayer.currentMedia,
+                                size: 35,
+                                color: Default_Theme.primaryColor1,
+                              ),
+                            ],
                           );
                         } else {
-                          return Padding(
-                            padding:
-                                const EdgeInsets.only(left: 8.0, bottom: 3),
-                            child: LikeBtnWidget(
-                              isLiked: false,
-                              isPlaying: true,
-                              iconSize: 35,
-                              onLiked: () {},
-                              onDisliked: () {},
-                            ),
+                          return Row(
+                            children: [
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 8.0, bottom: 3),
+                                child: LikeBtnWidget(
+                                  isLiked: false,
+                                  isPlaying: true,
+                                  iconSize: 35,
+                                  onLiked: () {},
+                                  onDisliked: () {},
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              DownloadButtonWidget(
+                                song: bloomeePlayerCubit
+                                    .bloomeePlayer.currentMedia,
+                                size: 35,
+                                color: Default_Theme.primaryColor1,
+                              ),
+                            ],
                           );
                         }
                       },

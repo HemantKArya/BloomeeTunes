@@ -107,7 +107,9 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     receivePort.listen((dynamic data) async {
       final String taskId = data[0];
       final int status = data[1];
-      // final int progress = data[2];
+      final int progress = data[2];
+      print(
+          "🔽 DEBUG: Download progress - TaskID: $taskId, Status: $status, Progress: $progress%");
       DownTask? _task;
       try {
         _task =
@@ -116,7 +118,17 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         log("Task not found", error: e, name: "DownloaderCubit");
       }
       if (_task != null) {
+        // Emit progress state
+        emit(DownloadProgress(
+          taskId: taskId,
+          songId: _task.song.id,
+          progress: progress,
+          status: status,
+        ));
+
         if (status == DownloadTaskStatus.complete.index) {
+          print("🔽 DEBUG: Download completed for: ${_task.song.title}");
+          print("🔽 DEBUG: File path: ${_task.filePath}");
           downloadedSongs.remove(_task);
           log("Downloaded ${_task.song.title}", name: "DownloaderCubit");
           if (_task.song.extras!['source'] != 'youtube') {
@@ -142,8 +154,12 @@ class DownloaderCubit extends Cubit<DownloaderState> {
               lastDownloaded: DateTime.now(),
               mediaItem: _task.song);
           SnackbarService.showMessage("Downloaded ${_task.song.title}");
+          emit(DownloadCompleted(songId: _task.song.id, success: true));
         } else if (status == DownloadTaskStatus.failed.index) {
+          print("🔽 DEBUG: Download failed for: ${_task.song.title}");
+          print("🔽 DEBUG: Task ID: ${_task.taskId}");
           downloadedSongs.remove(_task);
+          emit(DownloadCompleted(songId: _task.song.id, success: false));
           SnackbarService.showMessage("Failed to download ${_task.song.title}");
           log("Failed to download ${_task.song.title}",
               name: "DownloaderCubit");
@@ -153,6 +169,12 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   }
 
   Future<void> downloadSong(MediaItemModel song) async {
+    print("🔽 DEBUG: DownloaderCubit.downloadSong() called");
+    print(
+        "🔽 DEBUG: Song details - Title: ${song.title}, Artist: ${song.artist}");
+    print("🔽 DEBUG: Song URL: ${song.extras?['url']}");
+    print("🔽 DEBUG: Song Source: ${song.extras?['source']}");
+
     /*final hasStorageAccess =
         Platform.isAndroid ? await Permission.storage.isGranted : true;
     if (!hasStorageAccess) {
@@ -163,20 +185,32 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       }
     }
     }*/
+    print("🔽 DEBUG: Checking storage permission...");
     final permission = await storagePermission();
+    print("🔽 DEBUG: Storage permission result: $permission");
     debugPrint('permission : $permission');
     // check if song is already added to download queue
+    print("🔽 DEBUG: Checking download conditions...");
+    print("🔽 DEBUG: isInitialized: $isInitialized");
+    print("🔽 DEBUG: Connectivity state: ${connectivityCubit.state}");
+
     if (isInitialized &&
         connectivityCubit.state == ConnectivityState.connected) {
+      print("🔽 DEBUG: Download conditions met, proceeding...");
+
       if (downloadedSongs.any(
           (element) => element.song.extras!['url'] == song.extras!['url'])) {
+        print("🔽 DEBUG: Song already in download queue, skipping...");
         log("${song.title} already added to download queue",
             name: "DownloaderCubit");
         SnackbarService.showMessage(
             "${song.title} already added to download queue");
         return;
       }
+      print("🔽 DEBUG: Getting download path...");
       downPath = await getDownPath();
+      print("🔽 DEBUG: Download path: $downPath");
+
       String fileName;
       if (song.extras!['source'] != 'youtube') {
         fileName = "${song.title} by ${song.artist}.mp4"
@@ -187,11 +221,19 @@ class DownloaderCubit extends Cubit<DownloaderState> {
             .replaceAll('?', '-')
             .replaceAll('/', '-');
       }
+      print("🔽 DEBUG: Initial filename: $fileName");
+
       fileName = await BloomeeDownloader.getValidFileName(fileName, downPath);
+      print("🔽 DEBUG: Final filename: $fileName");
+
       log('downloading $fileName', name: "DownloaderCubit");
+      print("🔽 DEBUG: Starting actual download process...");
+
       final String? taskId = await BloomeeDownloader.downloadSong(song,
           fileName: fileName, filePath: downPath);
+
       if (taskId != null) {
+        print("🔽 DEBUG: Download task created successfully with ID: $taskId");
         SnackbarService.showMessage("Added ${song.title} to download queue");
 
         downloadedSongs.add(DownTask(
@@ -199,8 +241,15 @@ class DownloaderCubit extends Cubit<DownloaderState> {
             song: song,
             filePath: downPath,
             fileName: fileName));
+        print(
+            "🔽 DEBUG: Download task added to queue. Total tasks: ${downloadedSongs.length}");
+      } else {
+        print("🔽 DEBUG: Failed to create download task - taskId is null");
       }
     } else {
+      print("🔽 DEBUG: Download failed - conditions not met");
+      print(
+          "🔽 DEBUG: isInitialized: $isInitialized, connectivity: ${connectivityCubit.state}");
       SnackbarService.showMessage(
           "No internet connection or download service not initialized");
     }
