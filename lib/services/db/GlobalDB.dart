@@ -26,6 +26,27 @@ class MediaPlaylistDB {
 
   @override
   int get hashCode => playlistName.hashCode;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'playlistName': playlistName,
+      'lastUpdated': lastUpdated?.millisecondsSinceEpoch,
+    };
+  }
+
+  factory MediaPlaylistDB.fromMap(Map<String, dynamic> map) {
+    return MediaPlaylistDB(
+      playlistName: map['playlistName'] ?? '',
+      lastUpdated: map['lastUpdated'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'])
+          : null,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory MediaPlaylistDB.fromJson(String source) =>
+      MediaPlaylistDB.fromMap(json.decode(source));
 }
 
 @collection
@@ -187,6 +208,7 @@ class MediaItemDB {
       'permaURL': permaURL,
       'language': language,
       'isLiked': isLiked,
+      'mediaInPlaylists': mediaInPlaylistsDB.map((e) => e.toJson()).toList()
     };
   }
 
@@ -253,6 +275,31 @@ class AppSettingsStrDB {
 
   @override
   int get hashCode => settingName.hashCode ^ settingValue.hashCode;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'settingName': settingName,
+      'settingValue': settingValue,
+      'settingValue2': settingValue2,
+      'lastUpdated': lastUpdated?.millisecondsSinceEpoch,
+    };
+  }
+
+  factory AppSettingsStrDB.fromMap(Map<String, dynamic> map) {
+    return AppSettingsStrDB(
+      settingName: map['settingName'] ?? '',
+      settingValue: map['settingValue'] ?? '',
+      settingValue2: map['settingValue2'],
+      lastUpdated: map['lastUpdated'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'])
+          : null,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory AppSettingsStrDB.fromJson(String source) =>
+      AppSettingsStrDB.fromMap(json.decode(source));
 }
 
 @collection
@@ -275,6 +322,25 @@ class AppSettingsBoolDB {
 
   @override
   int get hashCode => settingName.hashCode ^ settingValue.hashCode;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'settingName': settingName,
+      'settingValue': settingValue,
+    };
+  }
+
+  factory AppSettingsBoolDB.fromMap(Map<String, dynamic> map) {
+    return AppSettingsBoolDB(
+      settingName: map['settingName'] ?? '',
+      settingValue: map['settingValue'] ?? false,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory AppSettingsBoolDB.fromJson(String source) =>
+      AppSettingsBoolDB.fromMap(json.decode(source));
 }
 
 @collection
@@ -308,6 +374,25 @@ class RecentlyPlayedDB {
     required this.lastPlayed,
   });
   IsarLink<MediaItemDB> mediaItem = IsarLink<MediaItemDB>();
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'lastPlayed': lastPlayed.millisecondsSinceEpoch,
+    };
+  }
+
+  factory RecentlyPlayedDB.fromMap(Map<String, dynamic> map) {
+    return RecentlyPlayedDB(
+      id: map['id'],
+      lastPlayed: DateTime.fromMillisecondsSinceEpoch(map['lastPlayed']),
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory RecentlyPlayedDB.fromJson(String source) =>
+      RecentlyPlayedDB.fromMap(json.decode(source));
 }
 
 @collection
@@ -364,6 +449,39 @@ class SavedCollectionsDB {
     this.subtitle,
     this.extra,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'sourceId': sourceId,
+      'source': source,
+      'type': type,
+      'coverArt': coverArt,
+      'sourceURL': sourceURL,
+      'subtitle': subtitle,
+      'lastUpdated': lastUpdated.millisecondsSinceEpoch,
+      'extra': extra,
+    };
+  }
+
+  factory SavedCollectionsDB.fromMap(Map<String, dynamic> map) {
+    return SavedCollectionsDB(
+      title: map['title'] ?? '',
+      sourceId: map['sourceId'] ?? '',
+      source: map['source'] ?? '',
+      type: map['type'] ?? '',
+      coverArt: map['coverArt'] ?? '',
+      sourceURL: map['sourceURL'] ?? '',
+      subtitle: map['subtitle'],
+      lastUpdated: DateTime.fromMillisecondsSinceEpoch(map['lastUpdated']),
+      extra: map['extra'],
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory SavedCollectionsDB.fromJson(String source) =>
+      SavedCollectionsDB.fromMap(json.decode(source));
 }
 
 @collection
@@ -424,4 +542,23 @@ class SearchHistoryDB {
     required this.query,
     required this.lastSearched,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'query': query,
+      'lastSearched': lastSearched.millisecondsSinceEpoch,
+    };
+  }
+
+  factory SearchHistoryDB.fromMap(Map<String, dynamic> map) {
+    return SearchHistoryDB(
+      query: map['query'] ?? '',
+      lastSearched: DateTime.fromMillisecondsSinceEpoch(map['lastSearched']),
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory SearchHistoryDB.fromJson(String source) =>
+      SearchHistoryDB.fromMap(json.decode(source));
 }

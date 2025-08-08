@@ -9,15 +9,29 @@ import 'package:Bloomee/model/lyrics_models.dart';
 import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/services/db/backup_validator.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:isar/isar.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
+import 'package:path_provider/path_provider.dart';
 
 class BloomeeDBService {
   static late Future<Isar> db;
   static late String appSuppDir;
   static late String appDocDir;
   static final BloomeeDBService _instance = BloomeeDBService._internal();
+
+  // Standard Playlists
+  static const downloadPlaylist = '_DOWNLOADS';
+  static const recentlyPlayedPlaylist = 'recently_played';
+  static const likedPlaylist = 'Liked';
+
+  static final standardPlaylists = [
+    downloadPlaylist,
+    recentlyPlayedPlaylist,
+    likedPlaylist,
+  ];
 
   BloomeeDBService get instance => _instance;
 
@@ -40,6 +54,18 @@ class BloomeeDBService {
       await limitSearchHistory();
       await deleteAllYTLinks();
     });
+  }
+
+  /// Get the database backup file path
+  static Future<String> getDbBackupFilePath() async {
+    String? backupPath;
+
+    backupPath = await getSettingStr(GlobalStrConsts.backupPath);
+    // if (backupPath == null || backupPath.isEmpty || backupPath == appDocDir) {
+    backupPath = (await getDownloadsDirectory())?.path ?? appDocDir;
+    backupPath = p.join(backupPath, 'bloomeeBackup', 'bloomee_backup_db.json');
+    // }
+    return backupPath;
   }
 
   // check for DB backup and restore automatically, when there is no DB
@@ -123,44 +149,67 @@ class BloomeeDBService {
     return Future.value(Isar.getInstance());
   }
 
-  static Future<bool> createBackUp() async {
+  static Future<String?> createBackUp() async {
     try {
       final isar = await db;
-      String? backUpDir;
-      try {
-        backUpDir = await getSettingStr(GlobalStrConsts.backupPath);
-      } catch (e) {
-        log(e.toString(), name: "DB");
-        backUpDir = appDocDir;
+      final packageInfo = await PackageInfo.fromPlatform();
+      String backupFilePath = await getDbBackupFilePath();
+
+      final File backUpFile = File(backupFilePath);
+      final bSettings = await isar.appSettingsBoolDBs.where().findAll();
+      final sSettings = await isar.appSettingsStrDBs.where().findAll();
+      final playlists = await isar.mediaPlaylistDBs.where().findAll();
+      final searchHistory = await isar.searchHistoryDBs.where().findAll();
+      final savedCollections = await isar.savedCollectionsDBs.where().findAll();
+      final plInfo = await isar.playlistsInfoDBs.where().findAll();
+      final mediaItemsInPlaylists = <MediaItemDB>{};
+      for (var playlist in playlists) {
+        mediaItemsInPlaylists.addAll(playlist.mediaItems);
       }
 
-      final File backUpFile = File('$backUpDir/bloomee_backup_db.isar');
+      final mediaItems = mediaItemsInPlaylists.toList();
+
       if (await backUpFile.exists()) {
+        await backUpFile.delete();
+      } else {
+        await backUpFile.create(recursive: true);
         await backUpFile.delete();
       }
 
-      await isar.copyToFile('$backUpDir/bloomee_backup_db.isar');
+      final jsonString = jsonEncode({
+        "_meta": {
+          'generated_by': 'Bloomee - Open Source Music Streaming Application',
+          'version':
+              'v${packageInfo.version}+${int.parse(packageInfo.buildNumber) % 1000}',
+          "created_at": DateTime.now().toIso8601String(),
+          "note":
+              "This file is an automatically generated full backup of Bloomee. It includes playlists, search history, settings, and other app data. Manual modification is strongly discouraged and may cause data corruption. For help, visit: https://github.com/HemantKArya/BloomeeTunes."
+        },
+        "b_settings": bSettings.map((e) => e.toJson()).toList(),
+        "s_settings": sSettings.map((e) => e.toJson()).toList(),
+        "playlists": playlists.map((e) => e.toJson()).toList(),
+        "search_history": searchHistory.map((e) => e.toJson()).toList(),
+        "saved_collections": savedCollections.map((e) => e.toJson()).toList(),
+        "pl_info": plInfo.map((e) => e.toJson()).toList(),
+        "media_items": mediaItems.map((e) => e.toJson()).toList(),
+      });
+
+      await backUpFile.writeAsString(jsonString);
 
       log("Backup created successfully ${backUpFile.path}",
           name: "BloomeeDBService");
-      return true;
+      return backUpFile.path;
     } catch (e) {
       log("Failed to create backup", error: e, name: "BloomeeDBService");
     }
-    return false;
+    return null;
   }
 
   static Future<bool> backupExists() async {
     try {
-      String? backUpDir;
-      try {
-        backUpDir = await getSettingStr(GlobalStrConsts.backupPath);
-      } catch (e) {
-        log(e.toString(), name: "DB");
-        backUpDir = appDocDir;
-      }
+      String backupFile = await getDbBackupFilePath();
 
-      final dbFile = File('$backUpDir/bloomee_backup_db.isar');
+      final dbFile = File(backupFile);
       if (dbFile.existsSync()) {
         return true;
       }
@@ -170,34 +219,104 @@ class BloomeeDBService {
     return false;
   }
 
-  static Future<bool> restoreDB() async {
-    try {
-      final isar = await db;
+  static Future<Map<String, dynamic>> restoreDB(
+    String? path, {
+    // bool settings = true,
+    bool mediaItems = true,
+    bool searchHistory = true,
+  }) async {
+    final isar = await db;
+    final filePath = path ?? await getDbBackupFilePath();
+    final checkResults = await verifyBackupFile(filePath);
+    final backupFile = File(filePath);
 
-      String? backUpDir;
-      try {
-        backUpDir = await getSettingStr(GlobalStrConsts.backupPath);
-      } catch (e) {
-        log(e.toString(), name: "DB");
-        backUpDir = appDocDir;
+    if (checkResults["isValid"] == true && backupFile.existsSync()) {
+      final jsonString = await backupFile.readAsString();
+      final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      await isar.writeTxn(() async {
+        // if (jsonMap.containsKey("b_settings") &&
+        //     jsonMap["b_settings"] != null &&
+        //     settings) {
+        //   for (var item in jsonMap["b_settings"]) {
+        //     await isar.appSettingsBoolDBs.put(AppSettingsBoolDB.fromJson(item));
+        //   }
+        // }
+        // if (jsonMap.containsKey("s_settings") &&
+        //     jsonMap["s_settings"] != null &&
+        //     settings) {
+        //   for (var item in jsonMap["s_settings"]) {
+        //     await isar.appSettingsStrDBs.put(AppSettingsStrDB.fromJson(item));
+        //   }
+        // }
+        if (jsonMap.containsKey("playlists") &&
+            jsonMap["playlists"] != null &&
+            mediaItems) {
+          for (var item in jsonMap["playlists"]) {
+            if (standardPlaylists
+                .contains(MediaPlaylistDB.fromJson(item).playlistName)) {
+              continue;
+            }
+            await isar.mediaPlaylistDBs.put(MediaPlaylistDB.fromJson(item));
+          }
+        }
+        if (jsonMap.containsKey("search_history") &&
+            jsonMap["search_history"] != null &&
+            searchHistory) {
+          for (var item in jsonMap["search_history"]) {
+            await isar.searchHistoryDBs.put(SearchHistoryDB.fromJson(item));
+          }
+        }
+        if (jsonMap.containsKey("saved_collections") &&
+            jsonMap["saved_collections"] != null &&
+            mediaItems) {
+          for (var item in jsonMap["saved_collections"]) {
+            await isar.savedCollectionsDBs
+                .put(SavedCollectionsDB.fromJson(item));
+          }
+        }
+        if (jsonMap.containsKey("pl_info") &&
+            jsonMap["pl_info"] != null &&
+            mediaItems) {
+          for (var item in jsonMap["pl_info"]) {
+            await isar.playlistsInfoDBs.put(PlaylistsInfoDB.fromJson(item));
+          }
+        }
+      });
+      if (jsonMap.containsKey("media_items") &&
+          jsonMap["media_items"] != null &&
+          mediaItems) {
+        for (var item in jsonMap["media_items"]) {
+          final mediaItemDB = MediaItemDB.fromJson(item);
+          for (var playlistJson in jsonDecode(item)["mediaInPlaylists"]) {
+            final playlistMap = jsonDecode(playlistJson);
+            final playlistName = playlistMap["playlistName"];
+            if (playlistName != null &&
+                ![downloadPlaylist, recentlyPlayedPlaylist]
+                    .contains(playlistName)) {
+              await addMediaItem(mediaItemDB, playlistName);
+            }
+          }
+        }
       }
-
-      await isar.close();
-
-      final dbFile = File('$backUpDir/bloomee_backup_db.isar');
-      final dbPath = File('$appSuppDir/default.isar');
-
-      if (await dbFile.exists()) {
-        await dbFile.copy(dbPath.path);
-        log("Successfully restored", name: "BloomeeDBService");
-        BloomeeDBService();
-        return true;
-      }
-    } catch (e) {
-      log("Restoring DB failed", error: e, name: "BloomeeDBService");
+      log("DB restored successfully", name: "BloomeeDBService");
+      return {"success": true};
     }
-    BloomeeDBService();
-    return false;
+    return {"success": false, "errors": checkResults["errors"]};
+  }
+
+  static Future<void> resetDB() async {
+    Isar isarDB = await db;
+    isarDB.writeTxn(() async {
+      await isarDB.appSettingsBoolDBs.clear();
+      await isarDB.appSettingsStrDBs.clear();
+      await isarDB.mediaPlaylistDBs.clear();
+      await isarDB.searchHistoryDBs.clear();
+      await isarDB.savedCollectionsDBs.clear();
+      await isarDB.playlistsInfoDBs.clear();
+      await isarDB.mediaItemDBs.clear();
+      await isarDB.recentlyPlayedDBs.clear();
+      log("DB reset successfully", name: "BloomeeDBService");
+    });
   }
 
   // Will be removed in future versions
@@ -923,7 +1042,7 @@ class BloomeeDBService {
         }
       }
     }
-    isarDB.writeTxnSync(() => isarDB.recentlyPlayedDBs.deleteAllSync(ids));
+    isarDB.writeTxn(() => isarDB.recentlyPlayedDBs.deleteAll(ids));
   }
 
   static Future<MediaPlaylist> getRecentlyPlayed({int limit = 0}) async {

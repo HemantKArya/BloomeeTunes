@@ -88,14 +88,11 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     BloomeeDBService.getSettingStr(GlobalStrConsts.backupPath)
         .then((value) async {
-      if (value == null || value == "") {
-        await BloomeeDBService.putSettingStr(GlobalStrConsts.backupPath,
-            (await getApplicationDocumentsDirectory()).path);
-        emit(state.copyWith(
-            backupPath: (await getApplicationDocumentsDirectory()).path));
-      } else {
-        emit(state.copyWith(backupPath: value));
-      }
+      final defaultBackUpDir = await BloomeeDBService.getDbBackupFilePath();
+
+      await BloomeeDBService.putSettingStr(
+          GlobalStrConsts.backupPath, defaultBackUpDir);
+      emit(state.copyWith(backupPath: defaultBackUpDir));
     });
 
     BloomeeDBService.getSettingBool(GlobalStrConsts.autoBackup).then((value) {
