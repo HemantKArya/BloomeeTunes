@@ -732,6 +732,12 @@ class BloomeeDBService {
     return isarDB.mediaPlaylistDBs.watchLazy(fireImmediately: true);
   }
 
+  static Future<Stream<void>> getPlaylistWatcher(
+      MediaPlaylistDB mediaPlaylistDB) async {
+    Isar isarDB = await db;
+    return isarDB.mediaPlaylistDBs.watchObject(mediaPlaylistDB.isarId);
+  }
+
   static Future<int?> createPlaylistInfo(
     String playlistName, {
     String? artURL,
