@@ -21,14 +21,16 @@ class GlobalFooter extends StatelessWidget {
       },
       child: Scaffold(
         body: ResponsiveBreakpoints.of(context).isMobile
-            ? navigationShell
+            ? _AnimatedPageView(navigationShell: navigationShell)
             : Row(
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 4),
                     child: VerticalNavBar(navigationShell: navigationShell),
                   ),
-                  Expanded(child: navigationShell),
+                  Expanded(
+                    child: _AnimatedPageView(navigationShell: navigationShell),
+                  ),
                 ],
               ),
         backgroundColor: Default_Theme.themeColor,
@@ -49,6 +51,77 @@ class GlobalFooter extends StatelessWidget {
           ],
         )),
       ),
+    );
+  }
+}
+
+class _AnimatedPageView extends StatefulWidget {
+  const _AnimatedPageView({required this.navigationShell});
+  final StatefulNavigationShell navigationShell;
+
+  @override
+  State<_AnimatedPageView> createState() => _AnimatedPageViewState();
+}
+
+class _AnimatedPageViewState extends State<_AnimatedPageView>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
+  int _previousIndex = 0;
+  bool _isInitialLoad = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 1.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+    _previousIndex = widget.navigationShell.currentIndex;
+
+    // Start animation immediately for initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _animationController.forward();
+        _isInitialLoad = false;
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedPageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.navigationShell.currentIndex != _previousIndex &&
+        !_isInitialLoad) {
+      _previousIndex = widget.navigationShell.currentIndex;
+      _animationController.reset();
+      _animationController.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return SlideTransition(
+          position: _slideAnimation,
+          child: widget.navigationShell,
+        );
+      },
     );
   }
 }
