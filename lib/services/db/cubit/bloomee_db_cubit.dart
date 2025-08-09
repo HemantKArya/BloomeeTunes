@@ -50,25 +50,35 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   List<MediaItemDB> reorderByRank(
       List<MediaItemDB> orgMediaList, List<int> rankIndex) {
-    // rankIndex = rankIndex.toSet().toList();
-    // orgMediaList.toSet().toList();
-    List<MediaItemDB> reorderedList = orgMediaList;
-    // orgMediaList.forEach((element) {
-    //   log('orgMEdia - ${element.id} - ${element.title}',
-    //       name: "BloomeeDBCubit");
-    // });
-    log(rankIndex.toString(), name: "BloomeeDBCubit");
-    if (rankIndex.length == orgMediaList.length) {
-      reorderedList = rankIndex
-          .map((e) => orgMediaList.firstWhere(
-                (element) => e == element.id,
-              ))
-          .map((e) => e)
-          .toList();
-      log('ranklist length - ${rankIndex.length} org length - ${orgMediaList.length}',
+    // Ensure rankIndex and orgMediaList are unique and non-null
+    if (orgMediaList.isEmpty || rankIndex.isEmpty) {
+      log('Error: One or both input lists are empty.', name: "BloomeeDBCubit");
+      return orgMediaList;
+    }
+
+    if (rankIndex.length != orgMediaList.length) {
+      log('Error: Mismatch in lengths of rankIndex and orgMediaList.',
           name: "BloomeeDBCubit");
+      return orgMediaList;
+    }
+
+    try {
+      // Create a map for quick lookup of MediaItemDB by id
+      final mediaMap = {for (var item in orgMediaList) item.id: item};
+
+      // Reorder the list based on rankIndex
+      final reorderedList = rankIndex.map((id) {
+        if (!mediaMap.containsKey(id)) {
+          throw StateError('ID $id not found in orgMediaList.');
+        }
+        return mediaMap[id]!;
+      }).toList();
+
+      log('Reordered list created successfully.', name: "BloomeeDBCubit");
       return reorderedList;
-    } else {
+    } catch (e, stackTrace) {
+      log('Error during reordering: $e',
+          name: "BloomeeDBCubit", stackTrace: stackTrace);
       return orgMediaList;
     }
   }
