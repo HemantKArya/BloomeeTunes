@@ -1,3 +1,6 @@
+import 'package:Bloomee/model/album_onl_model.dart';
+import 'package:Bloomee/model/artist_onl_model.dart';
+import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/screens/screen/common_views/artist_view.dart';
@@ -5,6 +8,7 @@ import 'package:Bloomee/screens/screen/common_views/playlist_view.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,177 +21,190 @@ import 'package:icons_plus/icons_plus.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            customDiscoverBar(context), //AppBar
-            BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-              builder: (context, state) {
-                if (state is LibraryItemsInitial) {
-                  return const SliverToBoxAdapter(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                } else if (state is! LibraryItemsInitial) {
-                  return ListOfPlaylists(state: state);
-                } else {
-                  return const SliverToBoxAdapter(
+    return Scaffold(
+      backgroundColor: Default_Theme.themeColor,
+      body: SafeArea(
+        child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+          builder: (context, state) {
+            // Handle loading and error states first for a clean UI
+            if (state is LibraryItemsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state is LibraryItemsError) {
+              return Center(
+                child: SignBoardWidget(
+                  message: state.message,
+                  icon: Icons.error_outline_rounded,
+                ),
+              );
+            }
+
+            // Handle the loaded but completely empty state
+            if (state.playlists.isEmpty &&
+                state.artists.isEmpty &&
+                state.albums.isEmpty &&
+                state.playlistsOnl.isEmpty) {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  customDiscoverBar(context),
+                  const SliverFillRemaining(
+                    // Use SliverFillRemaining to center content
                     child: Center(
                       child: SignBoardWidget(
-                        message: "No Playlists Found!",
+                        message:
+                            "Your library is feeling lonely. Add some tunes to brighten it up!",
                         icon: MingCute.playlist_fill,
                       ),
                     ),
-                  );
-                }
-              },
-            ),
-            BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-              builder: (context, state) {
-                return (state is LibraryItemsInitial && state.artists.isEmpty)
-                    ? const SliverToBoxAdapter(child: SizedBox.shrink())
-                    : SliverList.builder(
-                        itemBuilder: (context, index) => SizedBox(
-                          height: 80,
-                          child: LibItemCard(
-                            title: state.artists[index].name,
-                            coverArt: state.artists[index].imageUrl,
-                            subtitle:
-                                'Artist - ${state.artists[index].source == "ytm" ? SourceEngine.eng_YTM.value : (state.artists[index].source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
-                            type: LibItemTypes.artist,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ArtistView(
-                                          artist: state.artists[index],
-                                        )),
-                              );
-                            },
-                          ),
-                        ),
-                        itemCount: state.artists.length,
-                      );
-              },
-            ),
-            BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-              builder: (context, state) {
-                return (state is LibraryItemsInitial && state.albums.isEmpty)
-                    ? const SliverToBoxAdapter(child: SizedBox.shrink())
-                    : SliverList.builder(
-                        itemBuilder: (context, index) => SizedBox(
-                          height: 80,
-                          child: LibItemCard(
-                            title: state.albums[index].name,
-                            coverArt: state.albums[index].imageURL,
-                            subtitle:
-                                'Album - ${state.albums[index].source == "ytm" ? SourceEngine.eng_YTM.value : (state.albums[index].source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
-                            type: LibItemTypes.album,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => AlbumView(
-                                          album: state.albums[index],
-                                        )),
-                              );
-                            },
-                          ),
-                        ),
-                        itemCount: state.albums.length,
-                      );
-              },
-            ),
-            BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-              builder: (context, state) {
-                return (state is LibraryItemsInitial &&
-                        state.playlistsOnl.isEmpty)
-                    ? const SliverToBoxAdapter(child: SizedBox.shrink())
-                    : SliverList.builder(
-                        itemBuilder: (context, index) => SizedBox(
-                          height: 80,
-                          child: LibItemCard(
-                            title: state.playlistsOnl[index].name,
-                            coverArt: state.playlistsOnl[index].imageURL,
-                            subtitle:
-                                'Playlist - ${state.playlistsOnl[index].source == "ytm" ? SourceEngine.eng_YTM.value : (state.playlistsOnl[index].source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
-                            type: LibItemTypes.onlPlaylist,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => OnlPlaylistView(
-                                          playlist: state.playlistsOnl[index],
-                                          sourceEngine: state
-                                                      .playlistsOnl[index]
-                                                      .source ==
-                                                  "ytm"
-                                              ? SourceEngine.eng_YTM
-                                              : (state.playlistsOnl[index]
-                                                          .source ==
-                                                      'saavn'
-                                                  ? SourceEngine.eng_JIS
-                                                  : SourceEngine.eng_YTV),
-                                        )),
-                              );
-                            },
-                          ),
-                        ),
-                        itemCount: state.playlistsOnl.length,
-                      );
-              },
-            ),
-          ],
+                  ),
+                ],
+              );
+            }
+
+            // Main UI when data is loaded and not empty
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                customDiscoverBar(context),
+                if (state.playlists.isNotEmpty)
+                  _ListOfPlaylists(playlists: state.playlists),
+                if (state.artists.isNotEmpty)
+                  _buildArtistList(context, state.artists),
+                if (state.albums.isNotEmpty)
+                  _buildAlbumList(context, state.albums),
+                if (state.playlistsOnl.isNotEmpty)
+                  _buildOnlinePlaylistList(context, state.playlistsOnl),
+              ],
+            );
+          },
         ),
-        backgroundColor: Default_Theme.themeColor,
       ),
+    );
+  }
+
+  Widget _buildArtistList(BuildContext context, List<ArtistModel> artists) {
+    return SliverList.builder(
+      itemCount: artists.length,
+      itemBuilder: (context, index) {
+        final artist = artists[index];
+        return SizedBox(
+          height: 80,
+          child: LibItemCard(
+            title: artist.name,
+            coverArt: artist.imageUrl,
+            subtitle:
+                'Artist - ${artist.source == "ytm" ? SourceEngine.eng_YTM.value : (artist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
+            type: LibItemTypes.artist,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ArtistView(artist: artist)),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAlbumList(BuildContext context, List<AlbumModel> albums) {
+    return SliverList.builder(
+      itemCount: albums.length,
+      itemBuilder: (context, index) {
+        final album = albums[index];
+        return SizedBox(
+          height: 80,
+          child: LibItemCard(
+            title: album.name,
+            coverArt: album.imageURL,
+            subtitle:
+                'Album - ${album.source == "ytm" ? SourceEngine.eng_YTM.value : (album.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
+            type: LibItemTypes.album,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => AlbumView(album: album)),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOnlinePlaylistList(
+      BuildContext context, List<PlaylistOnlModel> playlists) {
+    return SliverList.builder(
+      itemCount: playlists.length,
+      itemBuilder: (context, index) {
+        final playlist = playlists[index];
+        return SizedBox(
+          height: 80,
+          child: LibItemCard(
+            title: playlist.name,
+            coverArt: playlist.imageURL,
+            subtitle:
+                'Playlist - ${playlist.source == "ytm" ? SourceEngine.eng_YTM.value : (playlist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
+            type: LibItemTypes.onlPlaylist,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OnlPlaylistView(
+                    playlist: playlist,
+                    sourceEngine: playlist.source == "ytm"
+                        ? SourceEngine.eng_YTM
+                        : (playlist.source == 'saavn'
+                            ? SourceEngine.eng_JIS
+                            : SourceEngine.eng_YTV),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
   SliverAppBar customDiscoverBar(BuildContext context) {
     return SliverAppBar(
       floating: true,
+      pinned: false, // Set to false if you don't want it to stick at the top
       surfaceTintColor: Default_Theme.themeColor,
       backgroundColor: Default_Theme.themeColor,
       title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Library",
-              style: Default_Theme.primaryTextStyle.merge(const TextStyle(
-                  fontSize: 34, color: Default_Theme.primaryColor1))),
+          Text(
+            "Library",
+            style: Default_Theme.primaryTextStyle.merge(
+              const TextStyle(
+                fontSize: 34,
+                color: Default_Theme.primaryColor1,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           const Spacer(),
-          OverflowBar(
-            children: [
-              IconButton(
-                  padding: const EdgeInsets.all(5),
-                  constraints: const BoxConstraints(),
-                  style: const ButtonStyle(
-                    tapTargetSize:
-                        MaterialTapTargetSize.shrinkWrap, // the '2023' part
-                  ),
-                  onPressed: () {
-                    createPlaylistBottomSheet(context);
-                  },
-                  icon: const Icon(MingCute.add_fill,
-                      size: 25, color: Default_Theme.primaryColor1)),
-              IconButton(
-                  padding: const EdgeInsets.all(5),
-                  constraints: const BoxConstraints(),
-                  style: const ButtonStyle(
-                    tapTargetSize:
-                        MaterialTapTargetSize.shrinkWrap, // the '2023' part
-                  ),
-                  onPressed: () {
-                    context.pushNamed(GlobalStrConsts.ImportMediaFromPlatforms);
-                  },
-                  icon: const Icon(FontAwesome.file_import_solid,
-                      size: 25, color: Default_Theme.primaryColor1))
-            ],
+          IconButton(
+            padding: const EdgeInsets.all(8),
+            onPressed: () => createPlaylistBottomSheet(context),
+            icon: const Icon(MingCute.add_fill,
+                size: 25, color: Default_Theme.primaryColor1),
+          ),
+          IconButton(
+            padding: const EdgeInsets.all(8),
+            onPressed: () =>
+                context.pushNamed(GlobalStrConsts.ImportMediaFromPlatforms),
+            icon: const Icon(FontAwesome.file_import_solid,
+                size: 22, color: Default_Theme.primaryColor1),
           ),
         ],
       ),
@@ -195,46 +212,39 @@ class LibraryScreen extends StatelessWidget {
   }
 }
 
-class ListOfPlaylists extends StatefulWidget {
-  final LibraryItemsState state;
-  const ListOfPlaylists({super.key, required this.state});
+class _ListOfPlaylists extends StatelessWidget {
+  final List<PlaylistItemProperties> playlists;
+  const _ListOfPlaylists({required this.playlists});
 
-  @override
-  State<ListOfPlaylists> createState() => _ListOfPlaylistsState();
-}
-
-class _ListOfPlaylistsState extends State<ListOfPlaylists> {
   @override
   Widget build(BuildContext context) {
     return SliverList.builder(
-        // itemExtent: 80,
-        itemCount: widget.state.playlists.length,
-        itemBuilder: (context, index) {
-          if (widget.state.playlists[index].playlistName == "recently_played" ||
-              widget.state.playlists[index].playlistName ==
-                  GlobalStrConsts.downloadPlaylist) {
-            return const SizedBox.shrink();
-          } else {
-            return LibItemCard(
-                onSecondaryTap: () {
-                  showPlaylistOptsExtSheet(
-                      context, widget.state.playlists[index].playlistName);
-                },
-                onTap: () {
-                  context.read<CurrentPlaylistCubit>().setupPlaylist(
-                      widget.state.playlists[index].playlistName);
-                  context.pushNamed(
-                    GlobalStrConsts.playlistView,
-                  );
-                },
-                onLongPress: () {
-                  showPlaylistOptsExtSheet(
-                      context, widget.state.playlists[index].playlistName);
-                },
-                title: widget.state.playlists[index].playlistName,
-                coverArt: widget.state.playlists[index].coverImgUrl.toString(),
-                subtitle: widget.state.playlists[index].subTitle ?? "Unknown");
-          }
-        });
+      itemCount: playlists.length,
+      itemBuilder: (context, index) {
+        final playlist = playlists[index];
+        // Filter out specific playlists directly in the builder
+        if (playlist.playlistName == BloomeeDBService.recentlyPlayedPlaylist ||
+            playlist.playlistName == BloomeeDBService.downloadPlaylist) {
+          return const SizedBox.shrink();
+        }
+
+        return LibItemCard(
+          onTap: () {
+            context
+                .read<CurrentPlaylistCubit>()
+                .setupPlaylist(playlist.playlistName);
+            context.pushNamed(GlobalStrConsts.playlistView);
+          },
+          onSecondaryTap: () =>
+              showPlaylistOptsExtSheet(context, playlist.playlistName),
+          onLongPress: () {
+            showPlaylistOptsExtSheet(context, playlist.playlistName);
+          },
+          title: playlist.playlistName,
+          coverArt: playlist.coverImgUrl.toString(),
+          subtitle: playlist.subTitle ?? "Unknown",
+        );
+      },
+    );
   }
 }

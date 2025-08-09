@@ -173,7 +173,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
           Expanded(
             child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
               builder: (context, state) {
-                if (state is LibraryItemsInitial) {
+                if (state is LibraryItemsLoading) {
                   return const SignBoardWidget(
                       message: "No Playlists Yet",
                       icon: MingCute.playlist_line);

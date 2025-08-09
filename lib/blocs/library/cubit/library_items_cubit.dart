@@ -15,108 +15,96 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'library_items_state.dart';
 
 class LibraryItemsCubit extends Cubit<LibraryItemsState> {
-  Stream<void>? playlistWatcherDB;
-  Stream<void>? savedCollecsWatcherDB;
-  List<PlaylistItemProperties> playlistItems = List.empty();
-  BloomeeDBCubit bloomeeDBCubit;
-  List<MediaPlaylist> mediaPlaylists = [];
-  StreamSubscription? strmSubsDB;
-  StreamSubscription? strmSubsDB2;
+  StreamSubscription? playlistWatcherDB;
+  StreamSubscription? savedCollecsWatcherDB;
+  final BloomeeDBCubit bloomeeDBCubit;
+
   LibraryItemsCubit({
     required this.bloomeeDBCubit,
-  }) : super(LibraryItemsInitial()) {
-    getAndEmitPlaylists();
-    getAndEmitSavedOnlCollections();
-    getDBWatcher();
+  }) : super(LibraryItemsLoading()) {
+    // Start with a loading state
+    _initialize();
   }
 
   @override
   Future<void> close() {
-    strmSubsDB?.cancel();
+    playlistWatcherDB?.cancel();
+    savedCollecsWatcherDB?.cancel();
     return super.close();
   }
 
-  Future<void> getDBWatcher() async {
-    playlistWatcherDB = await BloomeeDBService.getPlaylistsWatcher();
-    strmSubsDB = playlistWatcherDB?.listen((event) {
+  Future<void> _initialize() async {
+    // Initial fetch
+    await Future.wait([
+      getAndEmitPlaylists(),
+      getAndEmitSavedOnlCollections(),
+    ]);
+
+    // Setup watchers for subsequent updates
+    _getDBWatchers();
+  }
+
+  Future<void> _getDBWatchers() async {
+    playlistWatcherDB =
+        (await BloomeeDBService.getPlaylistsWatcher()).listen((_) {
       getAndEmitPlaylists();
     });
-    savedCollecsWatcherDB = await BloomeeDBService.getSavedCollecsWatcher();
-    strmSubsDB2 = savedCollecsWatcherDB?.listen((event) {
+    savedCollecsWatcherDB =
+        (await BloomeeDBService.getSavedCollecsWatcher()).listen((_) {
       getAndEmitSavedOnlCollections();
     });
   }
 
   Future<void> getAndEmitPlaylists() async {
-    mediaPlaylists = await BloomeeDBService.getPlaylists4Library();
-    if (mediaPlaylists.isNotEmpty) {
-      playlistItems = mediaPlaylistsDB2ItemProperties(mediaPlaylists);
+    try {
+      final mediaPlaylists = await BloomeeDBService.getPlaylists4Library();
+      final playlistItems = mediaPlaylistsDB2ItemProperties(mediaPlaylists);
 
-      emit(LibraryItemsState(
-        playlists: playlistItems,
-        albums: state.albums,
-        artists: state.artists,
-        playlistsOnl: state.playlistsOnl,
-      ));
-    } else {
-      emit(LibraryItemsInitial());
+      // When emitting, copy existing parts of the state to avoid losing data
+      emit(state.copyWith(playlists: playlistItems));
+    } catch (e) {
+      log("Error fetching playlists: $e", name: "LibraryItemsCubit");
+      emit(const LibraryItemsError("Failed to load your playlists."));
     }
   }
 
   Future<void> getAndEmitSavedOnlCollections() async {
-    final _collecs = await BloomeeDBService.getSavedCollections();
-    List<ArtistModel> _artists = [];
-    List<AlbumModel> _albums = [];
-    List<PlaylistOnlModel> _playlists = [];
-    for (var element in _collecs) {
-      switch (element.runtimeType) {
-        case ArtistModel:
-          _artists.add(element as ArtistModel);
-          break;
-        case AlbumModel:
-          _albums.add(element as AlbumModel);
-          break;
-        case PlaylistOnlModel:
-          _playlists.add(element as PlaylistOnlModel);
-          log("${element.runtimeType}");
-          break;
-        default:
-          break;
-      }
-      emit(LibraryItemsState(
-        artists: List<ArtistModel>.from(_artists),
-        albums: List<AlbumModel>.from(_albums),
-        playlistsOnl: List<PlaylistOnlModel>.from(_playlists),
-        playlists: state.playlists,
+    try {
+      final collections = await BloomeeDBService.getSavedCollections();
+      final artists = collections.whereType<ArtistModel>().toList();
+      final albums = collections.whereType<AlbumModel>().toList();
+      final onlinePlaylists =
+          collections.whereType<PlaylistOnlModel>().toList();
+
+      emit(state.copyWith(
+        artists: artists,
+        albums: albums,
+        playlistsOnl: onlinePlaylists,
       ));
+    } catch (e) {
+      log("Error fetching saved collections: $e", name: "LibraryItemsCubit");
+      emit(const LibraryItemsError("Failed to load your saved items."));
     }
   }
 
   List<PlaylistItemProperties> mediaPlaylistsDB2ItemProperties(
-      List<MediaPlaylist> _mediaPlaylists) {
-    List<PlaylistItemProperties> _playlists = List.empty(growable: true);
-    if (_mediaPlaylists.isNotEmpty) {
-      for (var element in _mediaPlaylists) {
-        // log(element.playlistName, name: "LibCubit");
-        _playlists.add(
-          PlaylistItemProperties(
-            playlistName: element.playlistName,
-            subTitle: "${element.mediaItems.length} Items",
-            coverImgUrl: element.imgUrl ??
-                (element.mediaItems.isNotEmpty
-                    ? element.mediaItems.first.artUri?.toString()
-                    : null),
-          ),
-        );
-      }
-    }
-    return _playlists;
+      List<MediaPlaylist> mediaPlaylists) {
+    return mediaPlaylists
+        .map((element) => PlaylistItemProperties(
+              playlistName: element.playlistName,
+              subTitle: "${element.mediaItems.length} Items",
+              coverImgUrl: element.imgUrl ??
+                  (element.mediaItems.isNotEmpty
+                      ? element.mediaItems.first.artUri?.toString()
+                      : null),
+            ))
+        .toList();
   }
 
   void removePlaylist(MediaPlaylistDB mediaPlaylistDB) {
     if (mediaPlaylistDB.playlistName != "Null") {
       BloomeeDBService.removePlaylist(mediaPlaylistDB);
-      // getAndEmitPlaylists();
+      // The watcher will automatically trigger a state update.
       SnackbarService.showMessage(
           "Playlist ${mediaPlaylistDB.playlistName} removed");
     }
@@ -126,11 +114,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
       MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
     if (mediaPlaylistDB.playlistName != "Null") {
       await bloomeeDBCubit.addMediaItemToPlaylist(mediaItem, mediaPlaylistDB);
-      getAndEmitPlaylists();
-      // log("Added to playlist - ${mediaPlaylistDB.playlistName} - $_tempID",
-      //     name: "libItemCubit");
-      // SnackbarService.showMessage(
-      //     "Added ${mediaItem.title} to ${mediaPlaylistDB.playlistName}");
+      // The watcher will automatically trigger a state update.
     }
   }
 
@@ -138,7 +122,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
       MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB) {
     if (mediaPlaylistDB.playlistName != "Null") {
       bloomeeDBCubit.removeMediaFromPlaylist(mediaItem, mediaPlaylistDB);
-      getAndEmitPlaylists();
+      // The watcher will automatically trigger a state update.
       SnackbarService.showMessage(
           "Removed ${mediaItem.title} from ${mediaPlaylistDB.playlistName}");
     }
@@ -146,18 +130,13 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
 
   Future<List<MediaItemModel>?> getPlaylist(String playlistName) async {
     try {
-      final _playlist =
+      final playlist =
           await BloomeeDBService.getPlaylistItemsByName(playlistName);
 
-      if (_playlist != null) {
-        final mediaItems =
-            _playlist.map((e) => MediaItemDB2MediaItem(e)).toList();
-        return mediaItems;
-      }
+      return playlist?.map((e) => MediaItemDB2MediaItem(e)).toList();
     } catch (e) {
       log("Error in getting playlist: $e", name: "libItemCubit");
       return null;
     }
-    return null;
   }
 }
