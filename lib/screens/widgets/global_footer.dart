@@ -74,7 +74,7 @@ class _AnimatedPageViewState extends State<_AnimatedPageView>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 180),
       vsync: this,
     );
     _slideAnimation = Tween<Offset>(
