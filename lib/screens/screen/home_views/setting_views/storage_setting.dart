@@ -167,8 +167,7 @@ class BackupSettings extends StatelessWidget {
               ),
               SettingTile(
                 title: "Restore Backup",
-                subtitle:
-                    "Restore your data and settings from a backup location.",
+                subtitle: "Restore your data and settings from a backup file.",
                 onTap: () {
                   _onRestoreTap(context);
                 },
