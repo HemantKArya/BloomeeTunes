@@ -49,10 +49,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
   Widget build(BuildContext context) {
     // context.read<AddToPlaylistCubit>().getAndEmitPlaylists();
     return Scaffold(
-      backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
-        backgroundColor: Default_Theme.themeColor,
-        foregroundColor: Default_Theme.primaryColor1,
         centerTitle: true,
         title: Text(
           'Add to Playlist',

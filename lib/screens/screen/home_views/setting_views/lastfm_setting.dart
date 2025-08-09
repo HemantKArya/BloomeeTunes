@@ -71,11 +71,7 @@ class _LastDotFMState extends State<LastDotFM> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
-        backgroundColor: Default_Theme.themeColor,
-        foregroundColor: Default_Theme.primaryColor1,
-        surfaceTintColor: Default_Theme.themeColor,
         centerTitle: true,
         title: Text(
           'Last.FM Settings',

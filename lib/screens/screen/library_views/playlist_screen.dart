@@ -72,7 +72,6 @@ class PlaylistView extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: true,
-        backgroundColor: Default_Theme.themeColor,
         body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
           builder: (context, state) {
             const double maxExtent = 300;

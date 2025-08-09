@@ -19,11 +19,7 @@ class NotificationView extends StatelessWidget {
         }
       },
       child: Scaffold(
-        backgroundColor: Default_Theme.themeColor,
         appBar: AppBar(
-          backgroundColor: Default_Theme.themeColor,
-          foregroundColor: Default_Theme.primaryColor1,
-          surfaceTintColor: Default_Theme.themeColor,
           centerTitle: true,
           actions: [
             IconButton(

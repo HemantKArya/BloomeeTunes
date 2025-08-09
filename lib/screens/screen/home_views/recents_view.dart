@@ -17,7 +17,6 @@ class HistoryView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Default_Theme.themeColor,
         appBar: AppBar(
           centerTitle: true,
           actions: [
@@ -36,9 +35,6 @@ class HistoryView extends StatelessWidget {
               },
             ),
           ],
-          backgroundColor: Default_Theme.themeColor,
-          surfaceTintColor: Default_Theme.themeColor,
-          foregroundColor: Default_Theme.primaryColor1,
           title: Text(
             'History',
             style: const TextStyle(
