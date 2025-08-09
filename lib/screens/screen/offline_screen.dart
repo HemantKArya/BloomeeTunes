@@ -149,12 +149,26 @@ class _OfflineScreenState extends State<OfflineScreen> {
         child: _isSearch ? _buildSearchField() : _buildTitle(),
       ),
       actions: [
-        IconButton(
-          icon: Icon(
-            _isSearch ? Icons.close : Icons.search,
-            color: Default_Theme.primaryColor1,
+        !_isSearch
+            ? Tooltip(
+                message: "Refresh Downloads",
+                child: IconButton(
+                  icon: const Icon(MingCute.refresh_2_line),
+                  onPressed: () {
+                    context.read<DownloaderCubit>().refreshDownloadedSongs();
+                  },
+                ),
+              )
+            : const SizedBox.shrink(),
+        Tooltip(
+          message: _isSearch ? "Close Search" : "Search",
+          child: IconButton(
+            icon: Icon(
+              _isSearch ? Icons.close : Icons.search,
+              color: Default_Theme.primaryColor1,
+            ),
+            onPressed: _toggleSearch,
           ),
-          onPressed: _toggleSearch,
         ),
       ],
     );
