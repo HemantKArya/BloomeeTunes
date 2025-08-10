@@ -42,24 +42,29 @@ class ArtistCubit extends Cubit<ArtistState> {
       case SourceEngine.eng_YTM:
         YTMusic().getArtistFull(artist.sourceId).then((value) {
           List<AlbumModel> albums = [];
-          if (value != null && value['albums'] != null) {
-            albums = ytmMap2Albums(value['albums']);
-            emit(
-              ArtistLoaded(
-                artist: artist.copyWith(
-                  albums: List<AlbumModel>.from(albums),
-                ),
-                isSavedCollection: state.isSavedCollection,
-              ),
-            );
-          }
-          if (value != null && value['songs'] != null) {
-            final songsFull = ytmMapList2MediaItemList(value['songs']);
+          List<MediaItemModel> songsFull = [];
+          if (value != null) {
+            if (value['albums'] != null) {
+              albums = ytmMap2Albums(value['albums']);
+            }
+            if (value['songs'] != null) {
+              songsFull = ytmMapList2MediaItemList(value['songs']);
+            }
             emit(
               ArtistLoaded(
                 artist: artist.copyWith(
                   songs: List<MediaItemModel>.from(songsFull),
                   albums: List<AlbumModel>.from(albums),
+                ),
+                isSavedCollection: state.isSavedCollection,
+              ),
+            );
+          } else {
+            emit(
+              ArtistLoaded(
+                artist: artist.copyWith(
+                  songs: [],
+                  albums: [],
                 ),
                 isSavedCollection: state.isSavedCollection,
               ),
