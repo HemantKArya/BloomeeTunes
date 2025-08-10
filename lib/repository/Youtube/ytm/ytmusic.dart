@@ -196,7 +196,6 @@ class YTMusic extends YTMusicServices
       List<Map> songsList = [];
       for (var item in songs["sections"].first["contents"]) {
         try {
-          log("Retrieved song list ${item}", name: "YTMusic");
           songsList.add({
             "title": item["title"],
             "album": item["album"]["name"],
