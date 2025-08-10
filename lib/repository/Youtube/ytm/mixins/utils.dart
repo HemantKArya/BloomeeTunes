@@ -480,7 +480,7 @@ Map<String, dynamic> handleMusicResponsiveListItemRenderer(Map item,
           0,
           'text'
         ]),
-        'endpoint': "Unknown"
+        'endpoint': null
       }
     ];
   }
@@ -628,7 +628,7 @@ handlePlaylistPanelVideoRenderer(Map item) {
     itemresult['artists'] = [
       {
         'name': nav(item, ['longBylineText', 'runs', 0, 'text']),
-        'endpoint': "Unknown"
+        'endpoint': null
       }
     ];
   }
