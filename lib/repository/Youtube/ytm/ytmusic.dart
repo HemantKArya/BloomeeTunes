@@ -163,108 +163,110 @@ class YTMusic extends YTMusicServices
     });
 
     Map? results;
+    results = {
+      "title": artistDetails["header"]["title"],
+      "subtitle": artistDetails["header"]["subtitle"],
+      "description": artistDetails["header"]["description"],
+      "thumbnail": artistDetails["header"]["thumbnails"].first["url"],
+      "playlistId": artistDetails["header"]["playlistId"],
+      "channelId": artistDetails["header"]["channelId"],
+      "browseId": browseId,
+      "perma_url":
+          "https://music.youtube.com/channel/${artistDetails["header"]["channelId"]}",
+    };
+
+    // Get song browse id
+    String? songListId;
     try {
-      results = {
-        "title": artistDetails["header"]["title"],
-        "subtitle": artistDetails["header"]["subtitle"],
-        "description": artistDetails["header"]["description"],
-        "thumbnail": artistDetails["header"]["thumbnails"].first["url"],
-        "playlistId": artistDetails["header"]["playlistId"],
-        "channelId": artistDetails["header"]["channelId"],
-        "browseId": browseId,
-        "perma_url":
-            "https://music.youtube.com/channel/${artistDetails["header"]["channelId"]}",
-      };
-
-      // Get song browse id
-      String? songListId;
-      try {
-        for (var item in artistDetails["sections"]) {
-          if (item["title"] == "Songs") {
-            if (item["trailing"] == null) continue;
-            songListId = item["trailing"]["endpoint"]["browseId"];
-            break;
-          }
+      for (var item in artistDetails["sections"]) {
+        if (item["title"] == "Top songs") {
+          if (item["trailing"] == null) continue;
+          songListId = item["trailing"]["endpoint"]["browseId"];
+          break;
         }
-      } catch (e) {
-        log(e.toString(), name: "YTMusic");
-      }
-      // Get songs using browseid
-      if (songListId != null) {
-        final songs = await super.browse(body: {
-          "browseId": songListId,
-        });
-        List<Map> songsList = [];
-        for (var item in songs["sections"].first["contents"]) {
-          try {
-            songsList.add({
-              "title": item["title"],
-              "album": item["album"]["name"],
-              "artists": item["artists"] != null
-                  ? item["artists"].map((e) => e["name"]).toList().join(", ")
-                  : "Unknown",
-              "artists_map": item["artists"] != null
-                  ? item["artists"]
-                      .map((e) => {
-                            "name": e["name"],
-                            "browseId": e["endpoint"]["browseId"],
-                          })
-                      .toList()
-                  : [],
-              "videoId": item["videoId"],
-              "thumbnail": item["thumbnails"].first["url"],
-              "duration": item["duration"],
-              "type": item["type"],
-              "perma_url":
-                  "https://music.youtube.com/watch?v=${item["videoId"]}",
-            });
-          } catch (e) {
-            log(e.toString(), name: "YTMusic");
-          }
-        }
-        results["songs"] = songsList;
-      }
-      // get albums or singles browse id
-      String? albumListId;
-      try {
-        for (var item in artistDetails["sections"]) {
-          if (item["title"].toString().contains("Albums") ||
-              item["title"].toString().contains("Singles")) {
-            if (item["trailing"] == null) continue;
-            albumListId = item["trailing"]["endpoint"]["browseId"];
-            break;
-          }
-        }
-      } catch (e) {
-        log(e.toString(), name: "YTMusic");
-      }
-
-      // Get albums using browseid
-      if (albumListId != null) {
-        final albums = await super.browse(body: {
-          "browseId": albumListId,
-        });
-        List<Map> albumsList = [];
-        for (var item in albums["sections"].first["contents"]) {
-          try {
-            albumsList.add({
-              "title": item["title"],
-              "artists": albums['header']['title'],
-              "thumbnail": item["thumbnails"].first["url"],
-              "type": item["type"],
-              "browseId": item["endpoint"]["browseId"],
-              "perma_url":
-                  "https://music.youtube.com/browse/${item["endpoint"]["browseId"]}",
-              "subtitle": item["subtitle"],
-            });
-          } catch (e) {
-            log(e.toString(), name: "YTMusic");
-          }
-        }
-        results["albums"] = albumsList;
       }
     } catch (e) {
       log(e.toString(), name: "YTMusic");
+    }
+    // Get songs using browseid
+    if (songListId != null) {
+      final songs = await super.browse(body: {
+        "browseId": songListId,
+      });
+      List<Map> songsList = [];
+      for (var item in songs["sections"].first["contents"]) {
+        try {
+          log("Retrieved song list ${item}", name: "YTMusic");
+          songsList.add({
+            "title": item["title"],
+            "album": item["album"]["name"],
+            "artists": item["artists"] != null
+                ? item["artists"].map((e) => e["name"]).toList().join(", ")
+                : "Unknown",
+            "artists_map": item["artists"] != null
+                ? item["artists"]
+                    .map((e) => {
+                          "name": e["name"],
+                          "browseId": e["endpoint"] != null
+                              ? e["endpoint"]["browseId"]
+                              : null,
+                        })
+                    .toList()
+                : [],
+            "videoId": item["videoId"],
+            "thumbnail": item["thumbnails"].first["url"],
+            "duration": item["duration"],
+            "type": item["type"],
+            "perma_url": "https://music.youtube.com/watch?v=${item["videoId"]}",
+          });
+        } catch (e) {
+          log(e.toString(), name: "YTMusic");
+        }
+      }
+      results["songs"] = songsList;
+    } else {
+      log("Failed to retrieve song list id", name: "YTMusic");
+    }
+    // get albums or singles browse id
+    String? albumListId;
+    try {
+      for (var item in artistDetails["sections"]) {
+        if (item["title"].toString().contains("Albums") ||
+            item["title"].toString().contains("Singles")) {
+          if (item["trailing"] == null) continue;
+          albumListId = item["trailing"]["endpoint"]["browseId"];
+          break;
+        }
+      }
+    } catch (e) {
+      log(e.toString(), name: "YTMusic");
+    }
+
+    // Get albums using browseid
+    if (albumListId != null) {
+      final albums = await super.browse(body: {
+        "browseId": albumListId,
+      });
+      List<Map> albumsList = [];
+      for (var item in albums["sections"].first["contents"]) {
+        try {
+          albumsList.add({
+            "title": item["title"],
+            "artists": albums['header']['title'],
+            "thumbnail": item["thumbnails"].first["url"],
+            "type": item["type"],
+            "browseId": item["endpoint"]["browseId"],
+            "perma_url":
+                "https://music.youtube.com/browse/${item["endpoint"]["browseId"]}",
+            "subtitle": item["subtitle"],
+          });
+        } catch (e) {
+          log(e.toString(), name: "YTMusic");
+        }
+      }
+      results["albums"] = albumsList;
+    } else {
+      log("Failed to retrieve album list id", name: "YTMusic");
     }
     return results;
   }
