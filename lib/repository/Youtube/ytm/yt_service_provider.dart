@@ -1,13 +1,19 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:http/http.dart';
 import 'helpers.dart';
 
 abstract class YTMusicServices {
+  // A private Completer to track the initialization status
+  late final Future<void> _initFuture;
+
   YTMusicServices() : super() {
-    init();
+    _initFuture = _init();
   }
-  Future<void> init() async {
+
+  // Make init private and return a Future
+  Future<void> _init() async {
     headers = await initializeHeaders();
     context = await initializeContext();
 
@@ -15,6 +21,9 @@ abstract class YTMusicServices {
       headers['X-Goog-Visitor-Id'] = await getVisitorId(headers) ?? '';
     }
   }
+
+  // Expose the Future so that dependent code can await it
+  Future<void> get initializationComplete => _initFuture;
 
   refreshContext() async {
     context = await initializeContext();
@@ -34,7 +43,6 @@ abstract class YTMusicServices {
     if (matches != null) {
       final ytcfg = json.decode(matches.group(1).toString());
       visitorId = ytcfg['VISITOR_DATA']?.toString();
-      // await Hive.box('SETTINGS').put('VISITOR_ID', visitorId);
       visitorId != null
           ? await BloomeeDBService.putAPICache("VISITOR_ID", visitorId)
           : null;
@@ -56,14 +64,39 @@ abstract class YTMusicServices {
 
   Future<Response> sendGetRequest(
     String url,
-    Map<String, String>? headers,
-  ) async {
+    Map<String, String>? headers, {
+    int retryCount = 3,
+  }) async {
+    // Ensure initialization is complete before sending a request
+    await _initFuture;
     final Uri uri = Uri.parse(url);
-    final Response response = await get(uri, headers: headers);
-    return response;
+    while (retryCount > 0) {
+      try {
+        final Response response = await get(uri, headers: headers);
+        if (response.statusCode == 200) {
+          return response;
+        } else {
+          log('Request failed with status: ${response.statusCode}, body: ${response.body}',
+              name: 'YTMusicServices.sendGetRequest');
+        }
+      } catch (e) {
+        log('Request failed with exception: $e',
+            name: 'YTMusicServices.sendGetRequest');
+      }
+
+      retryCount--;
+      if (retryCount > 0) {
+        await Future.delayed(
+            const Duration(seconds: 2)); // Wait before retrying
+      }
+    }
+
+    throw Exception('Failed to fetch data after multiple retries');
   }
 
   Future<Response> addPlayingStats(String videoId, Duration time) async {
+    // Ensure initialization is complete before sending a request
+    await _initFuture;
     final Uri uri = Uri.parse(
         'https://music.youtube.com/api/stats/watchtime?ns=yt&ver=2&c=WEB_REMIX&cmt=${(time.inMilliseconds / 1000)}&docid=$videoId');
     final Response response = await get(uri, headers: headers);
@@ -78,33 +111,53 @@ abstract class YTMusicServices {
     if (matches != null) {
       final ytcfg = json.decode(matches.group(1).toString());
       visitorId = ytcfg['VISITOR_DATA']?.toString();
-      // await Hive.box('SETTINGS').put('VISITOR_ID', visitorId);
       visitorId != null
           ? await BloomeeDBService.putAPICache("VISITOR_ID", visitorId)
           : null;
     }
-    // return await Hive.box('SETTINGS').get('VISITOR_ID');
     return await BloomeeDBService.getAPICache("VISITOR_ID");
   }
 
-  Future<Map> sendRequest(String endpoint, Map<String, dynamic> body,
-      {Map<String, String>? headers, String additionalParams = ''}) async {
-    //
+  Future<Map> sendRequest(
+    String endpoint,
+    Map<String, dynamic> body, {
+    Map<String, String>? headers,
+    String additionalParams = '',
+    int retryCount = 3,
+  }) async {
+    // Ensure initialization is complete before sending a request
+    await _initFuture;
     body = {...body, ...context};
-
     this.headers.addAll(headers ?? {});
     final Uri uri = Uri.parse(httpsYtmDomain +
         baseApiEndpoint +
         endpoint +
         ytmParams +
         additionalParams);
-    final response =
-        await post(uri, headers: this.headers, body: jsonEncode(body));
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body) as Map;
-    } else {
-      return {};
+    while (retryCount > 0) {
+      try {
+        final response =
+            await post(uri, headers: this.headers, body: jsonEncode(body));
+
+        if (response.statusCode == 200) {
+          return json.decode(response.body) as Map;
+        } else {
+          log('Request failed with status: ${response.statusCode}, body: ${response.body}',
+              name: 'YTMusicServices.sendRequest');
+        }
+      } catch (e) {
+        log('Request failed with exception: $e',
+            name: 'YTMusicServices.sendRequest');
+      }
+
+      retryCount--;
+      if (retryCount > 0) {
+        await Future.delayed(
+            const Duration(seconds: 2)); // Wait before retrying
+      }
     }
+
+    return {};
   }
 }
