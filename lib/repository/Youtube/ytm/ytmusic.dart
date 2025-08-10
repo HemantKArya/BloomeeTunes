@@ -179,7 +179,7 @@ class YTMusic extends YTMusicServices
     String? songListId;
     try {
       for (var item in artistDetails["sections"]) {
-        if (item["title"] == "Top songs") {
+        if (item["title"] == "Top songs" || item["title"] == "Songs") {
           if (item["trailing"] == null) continue;
           songListId = item["trailing"]["endpoint"]["browseId"];
           break;
