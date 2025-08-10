@@ -8,11 +8,37 @@ String decodeEscapeSequences(String encodedString) {
       (match) => String.fromCharCode(int.parse(match.group(1)!, radix: 16)));
 }
 
+Future<Response> getRequest(Uri link, {int retryCount = 3}) async {
+  for (int attempt = 1; attempt <= retryCount; attempt++) {
+    try {
+      final Response response = await get(link);
+      if (response.statusCode == 200) {
+        return response;
+      } else {
+        dev.log(
+            'Attempt $attempt: Request failed with status: ${response.statusCode}, body: ${response.body}',
+            name: 'YTMusicServices.getRequest');
+      }
+    } catch (e) {
+      dev.log('Attempt $attempt: Error in getRequest: $e',
+          name: 'YTMusicServices.getRequest');
+    }
+
+    if (attempt < retryCount) {
+      await Future.delayed(const Duration(seconds: 1)); // Wait before retrying
+    }
+  }
+
+  dev.log('All $retryCount attempts failed. Throwing an exception.',
+      name: 'YTMusicServices.getRequest');
+  throw Exception('Failed to fetch data after $retryCount attempts.');
+}
+
 Future<Map<String, List>> getMusicHome({String countryCode = "IN"}) async {
   final Uri link =
       Uri.https('www.youtube.com', '/music', {'hl': 'en', 'gl': countryCode});
   try {
-    final Response response = await get(link);
+    final Response response = await getRequest(link);
     if (response.statusCode != 200) {
       return {};
     }
