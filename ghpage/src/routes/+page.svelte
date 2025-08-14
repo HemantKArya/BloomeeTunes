@@ -377,8 +377,9 @@ background: linear-gradient(45deg, #ff5258, #ffd48e);
 			background: rgba(16, 11, 33, 0.15); 
 			backdrop-filter: blur(25px); 
 			border-radius: 15px; 
-			margin: 10px; 
-			min-height: calc(100vh - 140px); /* Account for progress dots and margins */
+			/* reduce horizontal margins and let sections size to their content on mobile */
+			margin: 10px 12px; 
+			min-height: auto; /* allow section height to fit content on small screens */
 			transform: none;
 			opacity: 1;
 			pointer-events: auto;

@@ -101,8 +101,9 @@
 		width: 100%;
 		/* Set a max-width for very large screens to keep it elegant */
 		max-width: 500px; 
-		margin: 3rem auto;
-		padding: 1rem 0; /* Vertical padding, no horizontal padding */
+		/* reduce vertical margin so stacked sections are closer on mobile */
+		margin: 1rem auto;
+		padding: 0.5rem 0; /* smaller vertical padding */
 		
 		/* --- Scrollbar Fix --- */
 		/* Flexbox helps create a reliable container */
@@ -115,7 +116,7 @@
 
 	.awards-container {
 		width: 100%;
-		height: 220px;
+		height: 200px; /* slightly reduced to tighten vertical rhythm */
 		position: relative;
 		perspective: 1200px; /* Default perspective for large screens */
 	}
@@ -169,6 +170,9 @@
 		.awards-wrapper {
 			max-width: 400px;
 		}
+		.awards-container {
+			height: 190px;
+		}
 	}
 	
 	@media (max-width: 600px) {
@@ -176,12 +180,12 @@
 			max-width: 320px;
 		}
 		.awards-container {
-			height: 180px;
+			height: 160px; /* reduce for small phones */
 			perspective: 800px; /* Reduce perspective depth on mobile */
 		}
 		.carousel-item {
-			height: 150px;
-			top: 15px;
+			height: 130px;
+			top: 12px;
 		}
 	}
 </style>

@@ -28,12 +28,14 @@
 <style>
   .about-developer {
     text-align: center;
-    padding: 2rem;
-    background: rgba(16, 11, 33, 0.15);
-    color: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(25px);
-    border-radius: 15px;
-    margin: 10px;
+    /* Reduce top padding so title sits closer to the section top */
+    padding: 0.6rem 1rem;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.95);
+    /* remove internal backdrop and corner radius to avoid double-panel look */
+    backdrop-filter: none;
+    border-radius: 0;
+    margin: 6px 10px;
   }
 
   .about-developer h2 {
@@ -43,7 +45,8 @@
   background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 1rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.6rem;
   }
 
   .about-subtitle {
@@ -132,7 +135,7 @@
 
   @media (max-width: 768px) {
     .about-developer {
-      padding: 1.5rem;
+      padding: 0.8rem 0.8rem;
     }
 
     .about-developer h2 {

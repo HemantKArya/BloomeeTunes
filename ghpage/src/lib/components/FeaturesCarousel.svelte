@@ -128,7 +128,7 @@
 	.features-wrapper {
 		width: 100%;
 		max-width: 600px; /* Constrains the component on large screens */
-		margin: 2rem auto;
+		margin: 1rem auto; /* reduced vertical margin to avoid large gaps on mobile */
 		padding: 0 1rem;
 		box-sizing: border-box;
 		display: flex;
@@ -143,10 +143,10 @@
 	*/
 	.features-container {
 		width: 100%;
-		height: 220px;
+		height: 200px; /* adjusted height for better mobile experience */
 		position: relative;
 		perspective: 1000px;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1rem; /* reduced margin to avoid large gaps on mobile */
 	}
 
 	.features-carousel {
@@ -175,7 +175,7 @@
 		text-align: center;
 		gap: 0.8rem;
 		width: 100%;
-		height: 100%;
+			height: 160px; /* adjusted height for better mobile experience */
 		padding: 1rem;
 		border-radius: 15px;
 		background: rgba(30, 30, 45, 0.4);
@@ -227,10 +227,10 @@
 
 	/* --- Responsive Adjustments --- */
 	@media (max-width: 500px) {
-		.features-container {
-			height: 200px;
-			perspective: 600px;
-		}
+			.features-container {
+				height: 170px; /* slightly shorter on very small screens */
+				perspective: 600px;
+			}
 
 		.feature-cell {
 			height: 160px;

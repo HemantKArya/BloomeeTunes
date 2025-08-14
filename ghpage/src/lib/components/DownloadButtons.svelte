@@ -45,7 +45,8 @@
 
 <style>
 	.download-section { 
-		margin-bottom: 2rem; 
+		/* reduce bottom margin so following section (About) sits closer on mobile */
+		margin-bottom: 1rem; 
 		/* Add horizontal padding to prevent elements from touching the screen edges */
 		padding: 0 1rem;
 	}
@@ -112,23 +113,25 @@
 		align-items: center;
 		justify-content: flex-start;
 		gap: 1rem;
-		background: #000;
+		/* Use the same translucent panel styling as other sections to avoid a 'disabled' solid block look */
+		background: rgba(16, 11, 33, 0.15);
+		border: 1px solid rgba(255,255,255,0.06);
 		color: #fff;
 		padding: 0.8rem 1.2rem;
 		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 		text-decoration: none;
 		transition: transform 0.3s ease, box-shadow 0.3s ease;
 		/* Flexible sizing for different screens */
 		flex: 1 1 280px;
 		max-width: 260px;
-		min-height: 64px;
+		min-height: 56px; /* slightly smaller min height */
 		box-sizing: border-box; /* Ensures padding is included in the total width/height */
 	}
 
 	.custom-btn:hover {
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-		transform: translateY(-2px);
+		box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+		transform: translateY(-4px);
 	}
 
 	.custom-btn .fa-github {
@@ -185,18 +188,20 @@
 		.download-btn i { font-size: 1.1rem; }
 		.download-btn span { font-size: 0.8rem; }
 
-		/* Stack the custom buttons vertically on mobile */
+		/* Stack the custom buttons vertically on mobile and reduce their top margin */
 		.custom-download-buttons {
 			flex-direction: column;
-			gap: 1rem;
+			gap: 0.8rem;
 			/* Ensure the container and its children stretch properly */
 			align-items: stretch;
+			margin-top: 1rem; /* reduce space above download buttons */
 		}
-
+		
 		.custom-btn {
-			max-height: 0.3rem;
 			width: 100%;
 			max-width: none;
+			/* When stacked vertically, don't let buttons flex-grow and stretch the height */
+			flex: 0 0 auto;
 		}
 	}
 </style>
