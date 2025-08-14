@@ -1,0 +1,22 @@
+{
+  "lock": "./deno.lock",
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run npm:vite dev",
+    "build": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run npm:vite build",
+    "build:gh-pages": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run --env=NODE_ENV=production npm:vite build",
+    "preview": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run npm:vite preview",
+    "prepare": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run npm:svelte-kit sync",
+    "deploy": "deno task build:gh-pages && deno run --allow-net --allow-read --allow-write --allow-env --allow-run npm:gh-pages -d build"
+  },
+  "imports": {
+    "@sveltejs/adapter-static": "npm:@sveltejs/adapter-static@^3.0.8",
+    "@sveltejs/kit": "npm:@sveltejs/kit@^2.22.0", 
+    "@sveltejs/vite-plugin-svelte": "npm:@sveltejs/vite-plugin-svelte@6",
+    "@tailwindcss/vite": "npm:@tailwindcss/vite@4",
+    "gh-pages": "npm:gh-pages@^6.3.0",
+    "svelte": "npm:svelte@5",
+    "tailwindcss": "npm:tailwindcss@4",
+    "vite": "npm:vite@^7.0.4"
+  }
+}

@@ -1,0 +1,45 @@
+/* Tailwind (optional, currently unused) */
+@import 'tailwindcss';
+
+:root {
+	--bg-color-deep: #0a0613;
+	--bg-color-mid: #140b21;
+	--text-primary: #ffffff;
+	--text-secondary: #c3b8d9;
+	--accent-color: #a754f8;
+	--accent-gradient: linear-gradient(45deg, #b86ffc, #8e66ff);
+	--glass-bg: rgba(255, 255, 255, 0.05);
+	--glass-border: rgba(255, 255, 255, 0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body, #svelte { height: 100%; }
+
+/* Prevent page scroll; sections handle wheel/swipe themselves */
+html, body { overflow: hidden; overscroll-behavior: none; }
+
+/* Avoid accidental horizontal scrollbars anywhere */
+* { scrollbar-width: thin; }
+body { overflow-x: hidden; }
+
+/* Mobile-specific improvements */
+@media (max-width: 992px) {
+  html, body { 
+    overflow: hidden; 
+    height: 100vh;
+    position: fixed;
+    width: 100%;
+  }
+  
+  #svelte {
+    height: 100vh;
+    overflow: hidden;
+  }
+}
+
+body {
+	font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+	background-color: var(--bg-color-deep);
+	color: var(--text-primary);
+}
