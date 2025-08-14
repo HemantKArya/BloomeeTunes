@@ -9,7 +9,7 @@
 </script>
 
 <div class="support-container" class:highlighted>
-	<h3>Support the Next Update 🥂</h3>
+	<h3>Buy a coffee 🍵</h3>
 	<div class="support-buttons">
 		{#each buttons as button}
 			<a href={button.href} class="support-btn {button.type}" target="_blank" rel="noopener noreferrer">
@@ -26,10 +26,10 @@
 
 <style>
 	.support-container h3 { 
-		font-size: 1rem;
-		font-family: 'IBM Plex Sans', sans-serif; 
+		font-size: 1.2rem;
+		font-family: 'Borel', sans-serif; 
 		font-weight: 500; 
-		color: var(--text-secondary); 
+		color: #ffffff; 
 		margin-bottom: 1rem; 
 	}
 	

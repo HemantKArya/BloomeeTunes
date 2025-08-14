@@ -12,26 +12,29 @@
 	}
 </script>
 
-<div class="stats-container">
+<!-- <div class="stats-container"> -->
 	<!-- Support Us Button -->
-	<button class="support-btn" on:click={handleSupportClick}>
+	<!-- <button class="support-btn" on:click={handleSupportClick}>
 		<i class="fa-solid fa-hand-holding-dollar support-icon"></i>
 		<span class="support-text">Support Us</span>
-	</button>
+	</button> -->
 	
 	<!-- GitHub Button -->
-	<button class="github-btn" on:click={handleGithubClick}>
+	<!-- <button class="github-btn" on:click={handleGithubClick}>
 		<i class="fa-brands fa-github github-icon"></i>
 		<span class="github-text">GitHub</span>
-	</button>
-</div>
+	</button> -->
+<!-- </div> -->
 
 <style>
 	.stats-container { 
 		display: flex; 
-		gap: 0.8rem; 
-		margin-bottom: 2rem; 
-		justify-content: flex-start;
+		gap: 1rem; /* slightly larger gap between buttons */
+		margin-top: 1.8rem; /* space from elements above */
+		margin-bottom: 1.8rem; 
+		justify-content: left; /* center horizontally */
+		align-items: left; /* center vertically */
+		width: 100%;
 	}
 	
 	/* Support Button Styles */
@@ -157,7 +160,8 @@
 		.stats-container {
 			justify-content: center;
 			flex-wrap: wrap;
-			gap: 0.8rem;
+			gap: 0.9rem;
+			padding-top: 0.6rem; /* small extra space on mobile */
 		}
 		
 		.support-btn, .github-btn {

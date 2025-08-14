@@ -4,7 +4,6 @@
 	import AssetFigure from '$lib/components/AssetFigure.svelte';
 	import ProgressDots from '$lib/components/ProgressDots.svelte';
 	import Stats from '$lib/components/Stats.svelte';
-	import PlatformSupport from '$lib/components/PlatformSupport.svelte';
 	import SupportButtons from '$lib/components/SupportButtons.svelte';
 	import FeaturesCarousel from '$lib/components/FeaturesCarousel.svelte';
 	import AwardsGrid from '$lib/components/AwardsGrid.svelte';
@@ -179,9 +178,8 @@
 
 
 			
-			<Stats on:supportClick={handleSupportClick} />
-			<PlatformSupport />
 			<SupportButtons highlighted={supportHighlighted} />
+			<Stats on:supportClick={handleSupportClick} />
 		</section>
 		<section id="section-1" class="content-section {active === 1 ? 'active' : ''}" aria-hidden={active !== 1}>
 			<h2>SourceForge Recognition</h2>
@@ -373,6 +371,7 @@ background: linear-gradient(45deg, #ff5258, #ffd48e);
 		.content-section { 
 			position: relative; 
 			padding: 20px 15px; 
+			padding-top: 34px; /* push content slightly down on mobile so buttons sit nearer center */
 			justify-content: flex-start; 
 			background: rgba(16, 11, 33, 0.15); 
 			backdrop-filter: blur(25px); 
