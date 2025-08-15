@@ -327,8 +327,9 @@ class About extends StatelessWidget {
             FutureBuilder<PackageInfo>(
               future: PackageInfo.fromPlatform(),
               builder: (context, snapshot) {
-                final ver =
-                    snapshot.hasData ? 'v${snapshot.data!.version}' : 'v2.11.6';
+                final ver = snapshot.hasData
+                    ? 'v${snapshot.data!.version}+${snapshot.data!.buildNumber}'
+                    : 'Not able to retrieve version';
                 return Text(ver,
                     style: const TextStyle(
                         color: kSecondaryTextColor, fontSize: 12));
