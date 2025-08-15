@@ -289,7 +289,7 @@ class About extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         const Text(
-          'Choose a payment gateway on the next page — PayPal, Liberapay or Razorpay (UPI).',
+          'New payment options are now available - PayPal, Liberapay or Razorpay (UPI).',
           textAlign: TextAlign.center,
           style: TextStyle(color: kSecondaryTextColor, fontSize: 14),
         ),
