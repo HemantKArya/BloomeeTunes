@@ -189,9 +189,10 @@ class About extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 35),
-              // Use Wrap to prevent overflow on small screens
+              // Use Wrap to prevent overflow on small screens; center wrapped items
               Wrap(
-                alignment: WrapAlignment.spaceBetween,
+                alignment: WrapAlignment.center,
+                runAlignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 runSpacing: 12.0, // Spacing when items wrap to the next line
                 spacing: 12.0, // Horizontal spacing
@@ -200,7 +201,7 @@ class About extends StatelessWidget {
                   _InfoPill(
                       icon: Icons.shield_outlined,
                       text: 'Maintainer',
-                      tooltip: 'Follow on GitHub',
+                      tooltip: 'Follow him on GitHub',
                       onTap: () {
                         launchUrl(Uri.parse('https://github.com/HemantKArya'),
                             mode: LaunchMode.externalApplication);
@@ -209,7 +210,7 @@ class About extends StatelessWidget {
                   _InfoPill(
                       icon: Icons.email_outlined,
                       text: 'Contact',
-                      tooltip: 'Send an email for business inquiries',
+                      tooltip: 'Send a business inquiry',
                       onTap: () {
                         launchUrl(
                             Uri.parse('mailto:iamhemantindia@protonmail.com'));
@@ -218,7 +219,7 @@ class About extends StatelessWidget {
                   _InfoPill(
                       icon: FontAwesome.instagram_brand,
                       text: 'Follow',
-                      tooltip: 'Open Instagram profile @iamhemantindia',
+                      tooltip: 'Follow on Instagram',
                       onTap: () {
                         launchUrl(
                             Uri.parse('https://instagram.com/iamhemantindia'),
@@ -237,6 +238,15 @@ class About extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.0),
+          child: Text(
+            "“Enjoying Bloomee? A small tip keeps it blooming.” 🌸",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: kSecondaryTextColor, fontSize: 14),
+          ),
+        ),
+        const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
             gradient: kButtonGradient,
@@ -273,7 +283,7 @@ class About extends StatelessWidget {
                     Icon(Icons.favorite, color: kPrimaryTextColor, size: 18),
                     SizedBox(width: 10),
                     Text(
-                      "Support Bloomee",
+                      "I'll help",
                       style: TextStyle(
                         color: kPrimaryTextColor,
                         fontSize: 15,
@@ -289,7 +299,7 @@ class About extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         const Text(
-          'New payment options are now available - PayPal, Liberapay or Razorpay (UPI).',
+          'I want Bloomee to keep improving.',
           textAlign: TextAlign.center,
           style: TextStyle(color: kSecondaryTextColor, fontSize: 14),
         ),
