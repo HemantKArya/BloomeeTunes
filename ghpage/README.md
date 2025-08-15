@@ -1,4 +1,4 @@
-# Bloomee Github Page
+# BloomeeTunes Github Page
 
 A small, fast Svelte site used to host BloomeeTunes on GitHub Pages. This file shows just what you need to run, build, and deploy.
 
@@ -41,4 +41,3 @@ npm run build    # produces ghpage/build
 
 ---
 
-Need it shorter or want GitHub Actions example? Tell me which and I’ll trim further.
