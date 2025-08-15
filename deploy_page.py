@@ -11,7 +11,14 @@ Improvements:
 """
 
 from pathlib import Path
-import shutil, subprocess, tempfile, time, sys, os, signal, platform
+import shutil
+import subprocess
+import tempfile
+import time
+import sys
+import os
+import signal
+import platform
 from datetime import datetime
 
 # ---------- CONFIG ----------
@@ -264,6 +271,33 @@ def copy_build(src: Path, dst: Path):
                 dest.unlink()
             shutil.copy2(item, dest)
 
+
+def copy_changelogs_into_build(repo_root: Path):
+    """Copy top-level changelog files (CHANGELOG*, e.g. CHANGELOG.md) into the build dir.
+
+    This ensures changelog(s) are included in the deployed site. Returns True if any
+    files were copied, False otherwise.
+    """
+    build_dir = (repo_root / BUILD_DIR).resolve()
+    if not build_dir.exists():
+        log(f"⚠️ Build directory not found: {build_dir} — skipping changelog copy.")
+        return False
+
+    copied_any = False
+    for p in repo_root.glob("CHANGELOG*"):
+        if p.is_file():
+            dest = build_dir / p.name
+            try:
+                shutil.copy2(p, dest)
+                log(f"📄 Copied changelog {p.name} -> {dest}")
+                copied_any = True
+            except Exception as e:
+                log(f"⚠️ Failed to copy changelog {p} -> {dest}: {e}")
+
+    if not copied_any:
+        log("ℹ️ No changelog files found at repo root to copy.")
+    return copied_any
+
 def commit_and_push(wt: Path):
     # run_stream(["git", "config", "user.name", "ghpage-deployer"], cwd=wt, check=False)
     # run_stream(["git", "config", "user.email", "ghpage-deployer@example.com"], cwd=wt, check=False)
@@ -318,6 +352,12 @@ def main():
     except Exception as e:
         log(f"❌ Build step failed: {e}")
         return 1
+
+    # Copy changelogs into the build folder (if any) so they get deployed too
+    try:
+        copy_changelogs_into_build(repo_root)
+    except Exception as e:
+        log(f"⚠️ Failed while copying changelogs: {e}")
 
     # Prepare temp worktree (from HEAD) and unique orphan branch
     try:
