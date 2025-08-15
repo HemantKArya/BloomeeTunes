@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:Bloomee/screens/widgets/gradient_alert_widget.dart';
@@ -6,23 +7,29 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 Future<void> updateDialog(BuildContext context) async {
-  if (Platform.isAndroid) {
-    Map<String, dynamic> _updateData = await getLatestVersion();
-    if (_updateData["results"]) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return GradientDialog(
-            "New Version of Bloomee🌸 is now available!!\n\nVersion: ${_updateData["newVer"]} + ${_updateData["newBuild"]}",
-            onOk: openURL,
-            okText: "Update Now!",
-            // downloadURL: _updateData["download_url"],
-            downloadURL: "https://bloomee.sourceforge.io/",
-          );
-        },
-      );
-    }
+  // if (Platform.isAndroid) {
+  Map<String, dynamic> _updateData = await getLatestVersion();
+  log("Update data fetched: $_updateData");
+  if (_updateData["results"]) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return GradientDialog(
+          "Update Available",
+          content:
+              "New Version of Bloomee🌸 is now available!!\n\nVersion: ${_updateData["newVer"]} + ${_updateData["newBuild"]}",
+          presetIndex: 0,
+          actions: [
+            GradientDialogAction('Later', onPressed: () {}, isText: true),
+            GradientDialogAction('Update Now', onPressed: () {
+              openURL("https://bloomee.sourceforge.io/");
+            }),
+          ],
+        );
+      },
+    );
   }
+  // }
 }
 
 Future<void> openURL(String url) async {
