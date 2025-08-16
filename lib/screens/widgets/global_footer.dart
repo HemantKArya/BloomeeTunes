@@ -66,31 +66,42 @@ class _AnimatedPageView extends StatefulWidget {
 class _AnimatedPageViewState extends State<_AnimatedPageView>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
-  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
   int _previousIndex = 0;
-  bool _isInitialLoad = true;
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 180),
+      // A shorter duration for a faster animation
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 1.0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+
+    // Fade animation
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        // A curve that starts fast and slows down for a smooth feel
+        curve: Curves.easeOutCubic,
+      ),
+    );
+
+    // Scale (zoom) animation
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+
     _previousIndex = widget.navigationShell.currentIndex;
 
-    // Start animation immediately for initial load
+    // Trigger the animation on the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _animationController.forward();
-        _isInitialLoad = false;
       }
     });
   }
@@ -98,9 +109,9 @@ class _AnimatedPageViewState extends State<_AnimatedPageView>
   @override
   void didUpdateWidget(_AnimatedPageView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.navigationShell.currentIndex != _previousIndex &&
-        !_isInitialLoad) {
+    if (widget.navigationShell.currentIndex != _previousIndex) {
       _previousIndex = widget.navigationShell.currentIndex;
+      // Reset and restart the animation for subsequent page changes
       _animationController.reset();
       _animationController.forward();
     }
@@ -114,14 +125,12 @@ class _AnimatedPageViewState extends State<_AnimatedPageView>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return SlideTransition(
-          position: _slideAnimation,
-          child: widget.navigationShell,
-        );
-      },
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: widget.navigationShell,
+      ),
     );
   }
 }
@@ -149,12 +158,10 @@ class VerticalNavBar extends StatelessWidget {
       ],
       selectedIndex: navigationShell.currentIndex,
       minWidth: 65,
-
       onDestinationSelected: (value) {
         navigationShell.goBranch(value);
       },
       groupAlignment: 0.0,
-      // selectedIconTheme: IconThemeData(color: Default_Theme.accentColor2),
       unselectedIconTheme:
           const IconThemeData(color: Default_Theme.primaryColor2),
       indicatorColor: Default_Theme.accentColor2,
@@ -186,11 +193,6 @@ class HorizontalNavBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       backgroundColor: Default_Theme.themeColor.withOpacity(0.3),
       tabs: const [
-        // GButton(
-        //   icon: MingCute.home_4_fill,
-        //   iconSize: 27,
-        //   text: "Test",
-        // ),
         GButton(
           icon: MingCute.home_4_fill,
           text: "Home",
