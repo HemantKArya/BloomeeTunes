@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -211,21 +213,20 @@ Future<Map<String, dynamic>> githubUpdate(
 
 /// New public API: try GitHub first, then SourceForge; return a consistent map.
 Future<Map<String, dynamic>> getAppUpdates() async {
+  // Try GitHub first, then SourceForge, produce an `updates` map and attach changelogs.
+  Map<String, dynamic> updates;
   try {
-    // Try GitHub first
-    final gh = await githubUpdate();
-    return gh;
+    updates = await githubUpdate();
   } catch (e) {
     log('GitHub check failed, trying SourceForge: $e', name: 'UpdaterTools');
     try {
-      final sf = await sourceforgeUpdate();
-      return sf;
+      updates = await sourceforgeUpdate();
     } catch (e2) {
       log('SourceForge check failed: $e2', name: 'UpdaterTools');
       // Final fallback: return structured failure map with current info
       try {
         final packageInfo = await PackageInfo.fromPlatform();
-        return {
+        updates = {
           'results': false,
           'error': 'Failed to check remote releases',
           'currVer': packageInfo.version,
@@ -233,7 +234,7 @@ Future<Map<String, dynamic>> getAppUpdates() async {
           'source': 'none',
         };
       } catch (e3) {
-        return {
+        updates = {
           'results': false,
           'error':
               'Failed to check remote releases and failed to read local package info',
@@ -241,6 +242,53 @@ Future<Map<String, dynamic>> getAppUpdates() async {
         };
       }
     }
+  }
+
+  try {
+    // Contains the latest changelog read by the user. [eg. v2.11.6+171] (can be null)
+    final readChangelogs =
+        await BloomeeDBService.getSettingStr(GlobalStrConsts.readChangelogs);
+    final currVer = "v${updates['currVer']}";
+    final newVer = "v${updates['newVer']}";
+
+    log('Current version: $currVer, New version: $newVer, Read changelogs: $readChangelogs',
+        name: 'UpdaterTools');
+
+    if (currVer == newVer &&
+        (readChangelogs == null || readChangelogs != currVer)) {
+      final changelogText = await fetchChangelog();
+      updates['changelogs'] = changelogText;
+    } else {
+      updates['changelogs'] = null;
+    }
+  } catch (e, st) {
+    log('Attaching changelog failed: $e\n$st', name: 'UpdaterTools');
+    updates['changelogs'] = null;
+  }
+
+  // log('Update check completed: $updates', name: 'UpdaterTools');
+
+  return updates;
+}
+
+/// Fetch the project's CHANGELOG.md from the hosted GitHub Pages site.
+/// Returns the changelog text on success, or null on any failure.
+Future<String?> fetchChangelog(
+    {Duration timeout = const Duration(seconds: 6)}) async {
+  const changelogUrl =
+      'https://hemantkarya.github.io/BloomeeTunes/CHANGELOG.md';
+  try {
+    final response = await http.get(Uri.parse(changelogUrl)).timeout(timeout);
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      log('Changelog fetch returned status ${response.statusCode}',
+          name: 'UpdaterTools');
+      return null;
+    }
+  } catch (e, st) {
+    log('Failed to fetch changelog: $e\n$st', name: 'UpdaterTools');
+    return null;
   }
 }
 

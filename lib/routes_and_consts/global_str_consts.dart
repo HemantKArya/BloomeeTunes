@@ -37,4 +37,7 @@ class GlobalStrConsts {
   static const String lFMScrobbleSetting = "lastFMScrobble";
   static const String lFMUsername = "lastFMUsernames";
   static const String lFMTrackedCache = "lastFMTrackedCacheForFutureScrobble";
+
+  /// Whether the user has read the changelogs.[eg. v2.11.6+171]
+  static const String readChangelogs = "readChangelogs";
 }
