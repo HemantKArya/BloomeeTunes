@@ -1,55 +1,22 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:math' as math;
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:http/http.dart';
 import 'helpers.dart';
 
-abstract class YTMusicServices {
-  // A private Completer to track the initialization status
-  late final Future<void> _initFuture;
+/// Tracks the initialization lifecycle for the service.
+enum InitState { uninitialized, initializing, initialized, failed }
 
-  YTMusicServices() : super() {
-    _initFuture = _init();
-  }
-
-  // Make init private and return a Future
-  Future<void> _init() async {
-    headers = await initializeHeaders();
-    context = await initializeContext();
-
-    if (!headers.containsKey('X-Goog-Visitor-Id')) {
-      headers['X-Goog-Visitor-Id'] = await getVisitorId(headers) ?? '';
-    }
-  }
-
-  // Expose the Future so that dependent code can await it
-  Future<void> get initializationComplete => _initFuture;
-
-  refreshContext() async {
-    context = await initializeContext();
-  }
-
-  Future<void> refreshHeaders() async {
-    headers = await initializeHeaders();
-  }
-
-  Future<void> resetVisitorId() async {
-    Map<String, String> newHeaders = Map.from(headers);
-    newHeaders.remove('X-Goog-Visitor-Id');
-    final response = await sendGetRequest(httpsYtmDomain, newHeaders);
-    final reg = RegExp(r'ytcfg\.set\s*\(\s*({.+?})\s*\)\s*;');
-    RegExpMatch? matches = reg.firstMatch(response.body);
-    String? visitorId;
-    if (matches != null) {
-      final ytcfg = json.decode(matches.group(1).toString());
-      visitorId = ytcfg['VISITOR_DATA']?.toString();
-      visitorId != null
-          ? await BloomeeDBService.putAPICache("VISITOR_ID", visitorId)
-          : null;
-    }
-    refreshHeaders();
-  }
-
+/// Lightweight service wrapper for interacting with YouTube Music endpoints.
+///
+/// Responsibilities:
+/// - Initialize and maintain required headers/context.
+/// - Send requests with built-in retry/backoff.
+/// - Provide helpers like `addPlayingStats` and `getVisitorId`.
+class YTMusicServices {
+  // API configuration
   static const ytmDomain = 'music.youtube.com';
   static const httpsYtmDomain = 'https://music.youtube.com';
   static const baseApiEndpoint = '/youtubei/v1/';
@@ -62,45 +29,145 @@ abstract class YTMusicServices {
   int? signatureTimestamp;
   Map<String, dynamic> context = {};
 
-  Future<Response> sendGetRequest(
-    String url,
-    Map<String, String>? headers, {
-    int retryCount = 3,
-  }) async {
-    // Ensure initialization is complete before sending a request
-    await _initFuture;
-    final Uri uri = Uri.parse(url);
-    while (retryCount > 0) {
-      try {
-        final Response response = await get(uri, headers: headers);
-        if (response.statusCode == 200) {
-          return response;
-        } else {
-          log('Request failed with status: ${response.statusCode}, body: ${response.body}',
-              name: 'YTMusicServices.sendGetRequest');
-        }
-      } catch (e) {
-        log('Request failed with exception: $e',
-            name: 'YTMusicServices.sendGetRequest');
+  // Public state and sync helpers
+  InitState initState = InitState.uninitialized;
+  Completer<void>? _initCompleter;
+
+  /// Initialize headers/context. Safe to call multiple times; concurrent
+  /// callers will wait for the same initialization run.
+  Future<void> init() async {
+    if (initState == InitState.initializing) return _initCompleter?.future;
+    if (initState == InitState.initialized) return;
+
+    initState = InitState.initializing;
+    _initCompleter = Completer<void>();
+
+    try {
+      headers = await initializeHeaders();
+      context = await initializeContext();
+
+      if (!headers.containsKey('X-Goog-Visitor-Id')) {
+        headers['X-Goog-Visitor-Id'] = await getVisitorId(headers) ?? '';
       }
 
-      retryCount--;
-      if (retryCount > 0) {
-        await Future.delayed(
-            const Duration(seconds: 2)); // Wait before retrying
-      }
+      initState = InitState.initialized;
+      log('YTMusicServices initialized successfully.', name: 'YTMusicServices');
+      _initCompleter?.complete();
+    } catch (e, stackTrace) {
+      initState = InitState.failed;
+      log('YTMusicServices initialization failed: $e',
+          name: 'YTMusicServices', error: e, stackTrace: stackTrace);
+      _initCompleter?.completeError(e);
+      rethrow;
     }
-
-    throw Exception('Failed to fetch data after multiple retries');
   }
 
+  /// Ensure the service is initialized before use.
+  Future<void> _ensureInitialized() async {
+    if (initState != InitState.initialized) {
+      log('Service not initialized. Calling init()...',
+          name: 'YTMusicServices');
+      await init();
+    }
+  }
+
+  Future<void> refreshContext() async {
+    await _ensureInitialized();
+    context = await initializeContext();
+  }
+
+  Future<void> refreshHeaders() async {
+    await _ensureInitialized();
+    headers = await initializeHeaders();
+  }
+
+  /// Generic retry with exponential backoff + jitter.
+  /// Keeps retries and timing centralized for easier tuning.
+  Future<T> _executeWithRetry<T>(
+    Future<T> Function() action, {
+    int maxRetries = 3,
+    String requestName = 'Request',
+  }) async {
+    int attempt = 1;
+    final random = math.Random();
+
+    while (true) {
+      try {
+        return await action();
+      } catch (e) {
+        if (attempt > maxRetries) {
+          log('Request failed after $maxRetries attempts. Giving up.',
+              name: 'YTMusicServices.$requestName');
+          rethrow;
+        }
+
+        // Exponential backoff: 1s, 2s, 4s...
+        final delayInSeconds = math.pow(2, attempt - 1).toInt();
+        // Jitter: Add a random delay (up to 1s) to prevent thundering herd.
+        final jitterInMs = random.nextInt(1000);
+        final totalDelay =
+            Duration(seconds: delayInSeconds, milliseconds: jitterInMs);
+
+        log(
+          'Attempt $attempt failed for $requestName. Retrying in ${totalDelay.inSeconds}s...',
+          name: 'YTMusicServices',
+          error: e,
+        );
+
+        await Future.delayed(totalDelay);
+        attempt++;
+      }
+    }
+  }
+
+  Future<Response> sendGetRequest(
+    String url,
+    Map<String, String>? headers,
+  ) {
+    return _executeWithRetry(() async {
+      await _ensureInitialized();
+      final Uri uri = Uri.parse(url);
+      final response = await get(uri, headers: headers);
+      if (response.statusCode >= 400) {
+        throw HttpException('HTTP Error: ${response.statusCode}', uri: uri);
+      }
+      return response;
+    }, requestName: 'sendGetRequest($url)');
+  }
+
+  Future<Map> sendRequest(
+    String endpoint,
+    Map<String, dynamic> body, {
+    Map<String, String>? headers,
+    String additionalParams = '',
+  }) {
+    return _executeWithRetry(() async {
+      await _ensureInitialized();
+      final fullBody = {...body, ...context};
+      final requestHeaders = {...this.headers, ...(headers ?? {})};
+
+      final Uri uri = Uri.parse(httpsYtmDomain +
+          baseApiEndpoint +
+          endpoint +
+          ytmParams +
+          additionalParams);
+
+      final response =
+          await post(uri, headers: requestHeaders, body: jsonEncode(fullBody));
+
+      if (response.statusCode >= 400) {
+        throw HttpException('HTTP Error: ${response.statusCode}', uri: uri);
+      }
+      return json.decode(response.body) as Map;
+    }, requestName: 'sendRequest($endpoint)');
+  }
+
+  /// Send playback stats. This is treated as best-effort (no retries).
   Future<Response> addPlayingStats(String videoId, Duration time) async {
-    // Ensure initialization is complete before sending a request
-    await _initFuture;
-    final Uri uri = Uri.parse(
+    await _ensureInitialized();
+    final uri = Uri.parse(
         'https://music.youtube.com/api/stats/watchtime?ns=yt&ver=2&c=WEB_REMIX&cmt=${(time.inMilliseconds / 1000)}&docid=$videoId');
-    final Response response = await get(uri, headers: headers);
-    return response;
+    return get(uri, headers: headers);
   }
 
   Future<String?> getVisitorId(Map<String, String>? headers) async {
@@ -111,53 +178,20 @@ abstract class YTMusicServices {
     if (matches != null) {
       final ytcfg = json.decode(matches.group(1).toString());
       visitorId = ytcfg['VISITOR_DATA']?.toString();
-      visitorId != null
-          ? await BloomeeDBService.putAPICache("VISITOR_ID", visitorId)
-          : null;
+      if (visitorId != null) {
+        await BloomeeDBService.putAPICache("VISITOR_ID", visitorId);
+      }
     }
     return await BloomeeDBService.getAPICache("VISITOR_ID");
   }
+}
 
-  Future<Map> sendRequest(
-    String endpoint,
-    Map<String, dynamic> body, {
-    Map<String, String>? headers,
-    String additionalParams = '',
-    int retryCount = 3,
-  }) async {
-    // Ensure initialization is complete before sending a request
-    await _initFuture;
-    body = {...body, ...context};
-    this.headers.addAll(headers ?? {});
-    final Uri uri = Uri.parse(httpsYtmDomain +
-        baseApiEndpoint +
-        endpoint +
-        ytmParams +
-        additionalParams);
+// Simple HTTP exception type so callers can inspect the URI and message.
+class HttpException implements Exception {
+  final String message;
+  final Uri? uri;
+  HttpException(this.message, {this.uri});
 
-    while (retryCount > 0) {
-      try {
-        final response =
-            await post(uri, headers: this.headers, body: jsonEncode(body));
-
-        if (response.statusCode == 200) {
-          return json.decode(response.body) as Map;
-        } else {
-          log('Request failed with status: ${response.statusCode}, body: ${response.body}',
-              name: 'YTMusicServices.sendRequest');
-        }
-      } catch (e) {
-        log('Request failed with exception: $e',
-            name: 'YTMusicServices.sendRequest');
-      }
-
-      retryCount--;
-      if (retryCount > 0) {
-        await Future.delayed(
-            const Duration(seconds: 2)); // Wait before retrying
-      }
-    }
-
-    return {};
-  }
+  @override
+  String toString() => 'HttpException: $message, Uri: $uri';
 }
