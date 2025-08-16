@@ -6,13 +6,10 @@ import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
-import 'package:Bloomee/utils/app_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/screen/home_views/notification_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_view.dart';
@@ -40,17 +37,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!isUpdateChecked) {
-        if (await context
-                .read<BloomeeDBCubit>()
-                .getSettingBool(GlobalStrConsts.autoUpdateNotify) ??
-            false) {
-          if (!mounted) return;
-          updateDialog(context);
-        }
-      }
-    });
   }
 
   Future<MediaPlaylist> fetchLFMPicks(bool state, BuildContext ctx) async {

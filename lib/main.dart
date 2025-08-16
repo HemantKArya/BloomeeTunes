@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
+import 'package:Bloomee/blocs/global_events/global_events_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
@@ -11,6 +12,7 @@ import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/blocs/timer/timer_bloc.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
+import 'package:Bloomee/screens/widgets/global_event_listener.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/shortcuts_intents.dart';
@@ -249,6 +251,10 @@ class _MyAppState extends State<MyApp> {
           ),
           lazy: false,
         ),
+        BlocProvider(
+          create: (context) => GlobalEventsCubit(),
+          lazy: false,
+        ),
       ],
       child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
         builder: (context, state) {
@@ -360,7 +366,10 @@ class _MyAppState extends State<MyApp> {
                 }),
               },
               builder: (context, child) => ResponsiveBreakpoints.builder(
-                child: child!,
+                child: GlobalEventListener(
+                  child: child!,
+                  navigatorKey: GlobalRoutes.globalRouterKey,
+                ),
                 breakpoints: [
                   const Breakpoint(start: 0, end: 450, name: MOBILE),
                   const Breakpoint(start: 451, end: 800, name: TABLET),
