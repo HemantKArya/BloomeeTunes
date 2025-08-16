@@ -3,8 +3,7 @@
 ### Added
 - **Windows Media Controls**: Implemented native media controls for Windows for a better desktop experience with `audio_service_win`.
 - **Search in Downloads**: Added search functionality to the offline/downloads screen.
-- **Animated Page Transitions**: Introduced animations for smoother navigation between pages.
-
+- **Changelog**: Added `CHANGELOG.md` for release notes and version history.
 
 ### Changed
 - **Downloader Overhaul**: The download manager has been completely rewritten from the ground up, removing the `flutter_downloader` dependency. This new implementation enables downloads on desktop platforms and shows live progress on the downloads screen.
