@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class BackupSettings extends StatelessWidget {
   const BackupSettings({super.key});
@@ -153,6 +154,27 @@ class BackupSettings extends StatelessWidget {
                   BloomeeDBService.createBackUp().then((value) {
                     if (value != null) {
                       SnackbarService.showMessage("Backup created at $value");
+                      if (Platform.isAndroid) {
+                        // Temporary workaround for Android
+                        try {
+                          final file = XFile(value);
+                          SharePlus.instance
+                              .share(
+                            ShareParams(
+                              files: [file],
+                              text: 'Bloomee backup file',
+                              subject: 'Bloomee Backup',
+                            ),
+                          )
+                              .catchError((e) {
+                            SnackbarService.showMessage(
+                                'Failed to share backup: $e');
+                          });
+                        } catch (e) {
+                          SnackbarService.showMessage(
+                              'Failed to share backup: $e');
+                        }
+                      }
                     } else {
                       SnackbarService.showMessage("Backup Failed!");
                     }
