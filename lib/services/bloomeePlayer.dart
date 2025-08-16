@@ -291,7 +291,16 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> pause() async {
+    if (_isDisposed) {
+      log('Cannot pause: player is disposed', name: 'bloomeePlayer');
+      return;
+    }
     await audioPlayer.pause();
+    // If the audio player is playing, pause it [Temporary bug]
+    if (audioPlayer.playing) {
+      audioPlayer.pause();
+    }
+
     log("paused", name: "bloomeePlayer");
   }
 
