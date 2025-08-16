@@ -1,4 +1,6 @@
+import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
@@ -236,9 +238,29 @@ class ChangelogScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
+            onPressed: () async {
+              await Navigator.of(context).maybePop();
+              Navigator.of(context).push(PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const About(),
+                transitionsBuilder: (_, animation, secondaryAnimation, child) {
+                  final offsetAnimation = Tween<Offset>(
+                    begin: const Offset(0, 0.1),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeOut));
+                  final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+                      .chain(CurveTween(curve: Curves.easeOut));
+                  return SlideTransition(
+                    position: animation.drive(offsetAnimation),
+                    child: FadeTransition(
+                      opacity: animation.drive(fadeAnimation),
+                      child: child,
+                    ),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 280),
+              ));
+            }),
       ),
       body: FutureBuilder<PackageInfo?>(
         // Always attempt to load PackageInfo so badges & expansion ranges work in both modes.
