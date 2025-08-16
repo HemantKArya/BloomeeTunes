@@ -6,10 +6,12 @@ import 'dart:ui';
 import 'dart:math';
 
 // Color palette
-const Color kBackgroundColor = Color(0xFF19131E);
+// Darken background slightly for higher contrast against foreground elements
+const Color kBackgroundColor = Color(0xFF0B0710);
 const Color kPrimaryTextColor = Colors.white;
 const Color kSecondaryTextColor = Color(0xFFC3B9CF);
-const Color kCardBackgroundColor = Color.fromRGBO(40, 32, 50, 0.3);
+// Make the frosted card a bit less translucent so it reads clearer on darkbg
+const Color kCardBackgroundColor = Color.fromRGBO(40, 32, 50, 0.18);
 
 // Gradients
 const Gradient kTitleGradient = LinearGradient(
@@ -218,8 +220,8 @@ class About extends StatelessWidget {
                   // Short label 'Instagram' opens Instagram profile
                   _InfoPill(
                       icon: FontAwesome.instagram_brand,
-                      text: 'Follow',
-                      tooltip: 'Follow on Instagram',
+                      text: 'Instagram',
+                      tooltip: 'Updates and creative highlights',
                       onTap: () {
                         launchUrl(
                             Uri.parse('https://instagram.com/iamhemantindia'),
@@ -475,6 +477,8 @@ class _ParticleBackgroundState extends State<ParticleBackground>
   late List<Particle> _particles;
   final int _numberOfParticles = 40; // Reduced for a more subtle effect
   final Random _random = Random();
+  // track time between frames for smooth motion (seconds)
+  late double _lastTickSeconds;
 
   @override
   void initState() {
@@ -482,6 +486,7 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     _controller =
         AnimationController(vsync: this, duration: const Duration(seconds: 1))
           ..repeat();
+    _lastTickSeconds = DateTime.now().millisecondsSinceEpoch / 1000.0;
     _particles =
         List.generate(_numberOfParticles, (index) => _createParticle());
   }
@@ -490,12 +495,14 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     return Particle(
       position: Offset(_random.nextDouble(), _random.nextDouble()),
       radius: _random.nextDouble() * 1.5 + 0.5,
-      velocity: Offset((_random.nextDouble() - 0.5) * 0.00005,
-          (_random.nextDouble() - 0.5) * 0.00005),
-      lifespan: _random.nextDouble() * 10 + 5,
+      // velocities are in normalized units per second (x: left/right, y: up/down)
+      // give a gentle upward bias so particles slowly drift up the screen
+      velocity: Offset((_random.nextDouble() - 0.5) * 0.01,
+          -(_random.nextDouble() * 0.02 + 0.002)),
+      lifespan: _random.nextDouble() * 8 + 4, // 4..12s
       isSharp: _random.nextDouble() > 0.4,
-      maxLifespan: 1,
-    )..maxLifespan = _random.nextDouble() * 10 + 5;
+      maxLifespan: 0.0,
+    )..maxLifespan = _random.nextDouble() * 8 + 4;
   }
 
   @override
@@ -509,15 +516,37 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     return AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
+          // compute actual delta time (seconds) since last frame for smooth
+          final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+          final dt = (now - _lastTickSeconds).clamp(0.0, 0.05);
+          _lastTickSeconds = now;
+
           for (var p in _particles) {
-            p.lifespan -= 1 / 60;
-            p.position += p.velocity;
+            // decrease lifespan by real time
+            p.lifespan -= dt;
+            // move according to velocity (velocity is per-second)
+            p.position = Offset(p.position.dx + p.velocity.dx * dt,
+                p.position.dy + p.velocity.dy * dt);
+
+            // when particle dies, respawn at bottom with new random life/velocity
             if (p.lifespan <= 0) {
-              p.position = Offset(_random.nextDouble(), 1.1);
-              p.lifespan = _random.nextDouble() * 10 + 5;
+              p.position = Offset(
+                  _random.nextDouble(), 1.02 + _random.nextDouble() * 0.06);
+              p.lifespan = _random.nextDouble() * 8 + 4;
               p.maxLifespan = p.lifespan;
+              // slight variation so new particle isn't identical
+              p.velocity = Offset((_random.nextDouble() - 0.5) * 0.01,
+                  -(_random.nextDouble() * 0.02 + 0.002));
             }
-            if (p.position.dy < -0.1) p.position = Offset(p.position.dx, 1.1);
+
+            // wrap horizontally
+            if (p.position.dx < -0.1) p.position = Offset(1.1, p.position.dy);
+            if (p.position.dx > 1.1) p.position = Offset(-0.1, p.position.dy);
+            // if particle floats too far above, move it back to bottom to keep counts stable
+            if (p.position.dy < -0.2) {
+              p.position =
+                  Offset(p.position.dx, 1.02 + _random.nextDouble() * 0.06);
+            }
           }
           return CustomPaint(
               size: Size.infinite, painter: ParticlePainter(_particles));
@@ -533,8 +562,9 @@ class ParticlePainter extends CustomPainter {
     final rect = Rect.fromCircle(
         center: size.center(Offset.zero), radius: size.width * 0.9);
     final bgPaint = Paint()
+      // Use a deeper radial tint with slightly higher opacity so edges stay dark
       ..shader = RadialGradient(colors: [
-        const Color(0xFF4A2F45).withOpacity(0.4),
+        const Color(0xFF2A1726).withOpacity(0.6),
         kBackgroundColor.withOpacity(0)
       ]).createShader(rect);
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
@@ -544,7 +574,8 @@ class ParticlePainter extends CustomPainter {
       final progress = 1.0 - (p.lifespan / p.maxLifespan);
       final opacity = max(0.0, -4 * (progress - 0.5) * (progress - 0.5) + 1);
 
-      paint.color = Colors.white.withOpacity(opacity * 0.6);
+      // Lower particle brightness so they don't wash out the dark background
+      paint.color = Colors.white.withOpacity(opacity * 0.35);
       paint.maskFilter =
           p.isSharp ? null : MaskFilter.blur(BlurStyle.normal, p.radius * 2);
 
@@ -562,7 +593,7 @@ class ParticlePainter extends CustomPainter {
 class Particle {
   Offset position;
   final double radius;
-  final Offset velocity;
+  Offset velocity;
   double lifespan;
   double maxLifespan;
   final bool isSharp;
