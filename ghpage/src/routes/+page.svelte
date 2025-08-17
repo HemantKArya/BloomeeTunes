@@ -182,7 +182,7 @@
 			<Stats on:supportClick={handleSupportClick} />
 		</section>
 		<section id="section-1" class="content-section {active === 1 ? 'active' : ''}" aria-hidden={active !== 1}>
-			<h2>SourceForge Recognition</h2>
+			<h2>SourceForge Awards</h2>
 			<p class="section-subtitle">Proudly recognized by SourceForge community - achieved out of 500,000+ open source projects.</p>
 			<AwardsGrid />
 		</section>
