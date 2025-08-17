@@ -11,6 +11,7 @@ on:
       - 'CODE_OF_CONDUCT.md'
       - './fastlane/**'
       - './github/FUNDING.yml'
+      - './ghpage/**'
 
     branches: main
     
