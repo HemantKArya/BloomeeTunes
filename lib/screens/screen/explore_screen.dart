@@ -7,6 +7,7 @@ import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -246,6 +247,7 @@ class CustomDiscoverBar extends StatelessWidget {
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),
           const NotificationIcon(),
+          const SiteIcon(),
           const TimerIcon(),
           const SettingsIcon(),
         ],
@@ -341,6 +343,24 @@ class SettingsIcon extends StatelessWidget {
       },
       icon: const Icon(MingCute.settings_3_line,
           color: Default_Theme.primaryColor1, size: 30.0),
+    );
+  }
+}
+
+class SiteIcon extends StatelessWidget {
+  const SiteIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      padding: const EdgeInsets.all(5),
+      constraints: const BoxConstraints(),
+      onPressed: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => const About()));
+      },
+      icon: const Icon(MingCute.flower_4_fill,
+          color: Default_Theme.primaryColor1, size: 28.0),
     );
   }
 }
