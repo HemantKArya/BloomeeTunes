@@ -217,14 +217,14 @@ class About extends StatelessWidget {
                         launchUrl(
                             Uri.parse('mailto:iamhemantindia@protonmail.com'));
                       }),
-                  // Short label 'Instagram' opens Instagram profile
+                  // Short label 'Linkedin' opens Linkedin profile
                   _InfoPill(
-                      icon: FontAwesome.instagram_brand,
-                      text: 'Instagram',
+                      icon: FontAwesome.linkedin_brand,
+                      text: 'Linkedin',
                       tooltip: 'Updates and creative highlights',
                       onTap: () {
                         launchUrl(
-                            Uri.parse('https://instagram.com/iamhemantindia'),
+                            Uri.parse('https://linkedin.com/in/iamhemantindia'),
                             mode: LaunchMode.externalApplication);
                       }),
                 ],
@@ -252,7 +252,8 @@ class About extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             gradient: kButtonGradient,
-            borderRadius: BorderRadius.circular(30.0),
+            // slightly larger radius for a more prominent pill
+            borderRadius: BorderRadius.circular(34.0),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFFDE6262).withOpacity(0.5),
@@ -264,7 +265,8 @@ class About extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(28.0),
+              // increase the ink response radius to match the larger pill
+              borderRadius: BorderRadius.circular(32.0),
               onTap: () {
                 launchUrl(
                   Uri.parse("https://hemantkarya.github.io/BloomeeTunes/"),
@@ -272,23 +274,24 @@ class About extends StatelessWidget {
                 );
               },
               child: Container(
+                // increased padding for a larger touch target
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 44, vertical: 16),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28.0),
+                  borderRadius: BorderRadius.circular(32.0),
                   border: Border.all(color: Colors.white.withOpacity(0.15)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(Icons.favorite, color: kPrimaryTextColor, size: 18),
+                    Icon(Icons.favorite, color: kPrimaryTextColor, size: 20),
                     SizedBox(width: 10),
                     Text(
                       "I'll help",
                       style: TextStyle(
                         color: kPrimaryTextColor,
-                        fontSize: 15,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         fontFamily: 'Gilroy',
                       ),
