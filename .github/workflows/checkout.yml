@@ -10,7 +10,8 @@ on:
       - 'CONTRIBUTING.md'
       - 'CODE_OF_CONDUCT.md'
       - './fastlane/**'
-      
+      - './github/FUNDING.yml'
+
     branches: main
     
 jobs:
