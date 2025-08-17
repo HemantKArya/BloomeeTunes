@@ -1,0 +1,34 @@
+<h2>🎧 Version 2.12.3</h2>
+
+<p>I've been hard at work on some major improvements! This release brings a completely new download system, a more reliable backup and restore process, and a ton of UI refinements and fixes.</p>
+
+<h3>✨ What's New</h3>
+<ul>
+	<li><strong>New Home Page for Bloomee</strong>: <a href="https://hemantkarya.github.io/BloomeeTunes">https://hemantkarya.github.io/BloomeeTunes</a></li>
+	<li><strong>Windows Media Controls</strong>: Get a better desktop experience with native Windows media controls.</li>
+	<li><strong>Downloads Reworked</strong>: The download manager has been completely rewritten — it's faster, more reliable, and now supports downloads on desktop platforms.</li>
+	<li><strong>Backup &amp; Restore</strong>: The backup system was rebuilt to use a more stable JSON format. Your data is now safer than ever.</li>
+	<li><strong>Search in Downloads</strong>: You can now search through your downloaded content.</li>
+	<li><strong>In-App Changelog</strong>: See whats new after every update with the new "What's New" viewer.</li>
+	<li><strong>UI/UX Enhancements</strong>: New logos, icons, and improved color schemes across the app.</li>
+</ul>
+
+<h3>🎨 Changes &amp; Improvements</h3>
+<ul>
+	<li><strong>Player &amp; Library Management</strong>: Core audio player refactored for better performance and stability.</li>
+	<li><strong>Android Backup Sharing</strong>: Export and share backup files more easily on Android.</li>
+	<li><strong>YouTube Service</strong>: Reliability improvements and multiple bug fixes for the YouTube service.</li>
+	<li><strong>Dependency Upgrades</strong>: Updated to the latest Flutter, <code>flutter_bloc</code>, and Android Gradle Plugin versions.</li>
+</ul>
+
+<h3>🐛 Bug Fixes</h3>
+<ul>
+	<li>Fixed an issue with the "like" button on album views.</li>
+	<li>Resolved a bug preventing clicks on "Recently Played" items.</li>
+	<li>Corrected loading problems on YouTube Music artist pages.</li>
+	<li>Addressed various UI bugs, including carousel alignment, button states, and contrast issues.</li>
+	<li>Fixed a bug where play/pause wouldn't respond on the first press.</li>
+</ul>
+
+<p>Thank you for using Bloomee — enjoy the update!</p>
+
