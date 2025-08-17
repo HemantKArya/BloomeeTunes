@@ -1,4 +1,4 @@
-## [2.12.2] - 2025-08-17
+## [2.12.3] - 2025-08-17
 
 ### Added
 - **Windows Media Controls**: Implemented native media controls for Windows for a better desktop experience with `audio_service_win`.
