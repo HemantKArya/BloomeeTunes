@@ -9,7 +9,7 @@
 </script>
 
 <div class="support-container" class:highlighted>
-	<h3>Buy a coffee 🍵</h3>
+	<h3>Buy me a coffee 🍵</h3>
 	<div class="support-buttons">
 		{#each buttons as button}
 			<a href={button.href} class="support-btn {button.type}" target="_blank" rel="noopener noreferrer">
