@@ -56,6 +56,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   BehaviorSubject<PlayerError?> get lastError => _errorHandler.lastError;
   BehaviorSubject<List<MediaItem>> get relatedSongs =>
       _relatedSongsManager.relatedSongs;
+  @override
+  BehaviorSubject<String> get queueTitle => _queueManager.queueTitle;
 
   BloomeeMusicPlayer() {
     audioPlayer = AudioPlayer(
