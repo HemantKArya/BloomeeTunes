@@ -150,9 +150,14 @@ class _VolumeDragControllerState extends State<VolumeDragController> {
                                 child: Slider(
                                   value: _volume,
                                   onChanged: (value) {
-                                    setState(() {
-                                      _volume = value;
-                                    });
+                                    // update local UI, audio player and keep the
+                                    // volume controller visible while interacting
+                                    setVolume(value);
+                                    _startTimer();
+                                  },
+                                  onChangeEnd: (value) {
+                                    // ensure hide timer restarts when user lifts finger
+                                    _startTimer();
                                   },
                                   min: 0.0,
                                   max: 1.0,
