@@ -462,11 +462,11 @@ Future<void> _onRestoreTap(BuildContext context) async {
                   fontSize: 18,
                   fontWeight: FontWeight.bold))),
           content: Text(
-            "This will overwrite the parts you selected in the app with data from the backup file:\n\n"
+            "This will overwrite and merge the parts you selected in the app with data from the backup file:\n\n"
             "${options.restoreMediaItems ? "• Media items\n" : ""}"
             "${options.restoreSearchHistory ? "• Search history\n" : ""}"
             // "${options.restoreSettings ? "• Settings & preferences\n" : ""}\n"
-            "Your current data will be modified. Are you sure you want to proceed?",
+            "Your current data will be modified/merged. Are you sure you want to proceed?",
             style: Default_Theme.secondoryTextStyle
                 .merge(const TextStyle(color: Colors.white70, fontSize: 14)),
           ),
