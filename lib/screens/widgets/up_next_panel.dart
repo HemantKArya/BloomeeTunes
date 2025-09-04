@@ -214,8 +214,12 @@ class _UpNextPanelState extends State<UpNextPanel> {
                                     .skipToQueueItem(index);
                               },
                               onOptionsTap: () {
-                                // Show the shared bottom sheet used across the app
-                                showMoreBottomSheet(context, songModel);
+                                showMoreBottomSheet(
+                                  context,
+                                  songModel,
+                                  showAddToQueue: false,
+                                  showPlayNext: false,
+                                );
                               },
                               //
                               song: songModel,
