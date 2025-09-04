@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/player/audio_source_manager.dart';
 import 'package:Bloomee/services/player/player_error_handler.dart';
 import 'package:Bloomee/services/player/connectivity_manager.dart';
@@ -16,6 +15,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/model/songModel.dart';
 import '../model/MediaPlaylistModel.dart';
 import 'package:Bloomee/services/discord_service.dart';
+import 'package:Bloomee/services/player/recently_played_tracker.dart';
 
 class BloomeeMusicPlayer extends BaseAudioHandler
     with SeekHandler, QueueHandler {
@@ -38,6 +38,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   // Flag to track if player is disposed
   bool _isDisposed = false;
 
+  // Recently played tracker: records plays only after a continuous
+  // playback threshold (default 15s)
+  late RecentlyPlayedTracker _recentlyPlayedTracker;
+
   // Stream subscriptions for proper cleanup
   StreamSubscription? _playbackEventSubscription;
   StreamSubscription? _playerStateSubscription;
@@ -59,6 +63,23 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     );
     _initializeModules();
     _initializePlayer();
+    // Initialize recently played tracker with default threshold
+    _recentlyPlayedTracker = RecentlyPlayedTracker(
+      audioPlayer,
+      () => _queueManager.currentMediaItem,
+    );
+  }
+
+  /// Configure how many continuous seconds are required before a track is
+  /// added to Recently Played. Default is 15.
+  void setRecentlyPlayedThresholdSeconds(int seconds) {
+    _recentlyPlayedTracker.setThresholdSeconds(seconds);
+  }
+
+  /// Configure percentage (0..1) of track duration required before a track
+  /// is added to Recently Played. Default is 0.4 (40%).
+  void setRecentlyPlayedPercentThreshold(double percent) {
+    _recentlyPlayedTracker.setPercentThreshold(percent);
   }
 
   void _initializeModules() {
@@ -466,7 +487,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
 
     await playMediaItem(currentItem, doPlay: doPlay);
-    BloomeeDBService.putRecentlyPlayed(MediaItem2MediaItemDB(currentItem));
   }
 
   @override
@@ -529,6 +549,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _connectivityManager.dispose();
     _queueManager.dispose();
     _relatedSongsManager.dispose();
+    await _recentlyPlayedTracker.dispose();
 
     // Clear Discord presence
     DiscordService.clearPresence();
