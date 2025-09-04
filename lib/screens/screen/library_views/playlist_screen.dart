@@ -15,7 +15,6 @@ import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -341,7 +340,7 @@ class PlaylistView extends StatelessWidget {
 
                                       if (allDownloaded) {
                                         return Tooltip(
-                                          message: 'All downloaded',
+                                          message: 'Available Offline',
                                           child: Container(
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
@@ -383,8 +382,9 @@ class PlaylistView extends StatelessWidget {
                                           ),
                                         ),
                                         onPressed: () async {
-                                          final count = state
-                                              .mediaPlaylist.mediaItems.length;
+                                          final items =
+                                              state.mediaPlaylist.mediaItems;
+                                          final count = items.length;
                                           final confirmed =
                                               await showDialog<bool>(
                                             context: context,
@@ -402,22 +402,41 @@ class PlaylistView extends StatelessWidget {
                                                           context, false),
                                                   child: const Text('Cancel'),
                                                 ),
-                                                TextButton(
+                                                ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Default_Theme
+                                                            .accentColor2,
+                                                    foregroundColor:
+                                                        Default_Theme
+                                                            .primaryColor2,
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: 14,
+                                                      vertical: 10,
+                                                    ),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              18),
+                                                    ),
+                                                    elevation: 0,
+                                                  ),
                                                   onPressed: () =>
                                                       Navigator.pop(
                                                           context, true),
-                                                  child: const Text('Download'),
+                                                  child: const Text(
+                                                      'Download All'),
                                                 ),
                                               ],
                                             ),
                                           );
                                           if (confirmed == true) {
-                                            for (final song in state
-                                                .mediaPlaylist.mediaItems) {
-                                              context
-                                                  .read<DownloaderCubit>()
-                                                  .downloadSong(song);
-                                            }
+                                            // Show a progress dialog and enqueue items slowly
+                                            await _showAddToDownloadProgress(
+                                                context, items);
                                             SnackbarService.showMessage(
                                                 'Added $count songs to download queue');
                                           }
@@ -425,26 +444,29 @@ class PlaylistView extends StatelessWidget {
                                       );
                                     }),
                                     // --- END: DOWNLOAD / DOWNLOADED INDICATOR ---
-                                    IconButton(
-                                        onPressed: () {
-                                          context
-                                              .read<BloomeePlayerCubit>()
-                                              .bloomeePlayer
-                                              .loadPlaylist(
-                                                  MediaPlaylist(
-                                                      mediaItems: state
-                                                          .mediaPlaylist
-                                                          .mediaItems,
-                                                      playlistName: state
-                                                          .mediaPlaylist
-                                                          .playlistName),
-                                                  doPlay: true,
-                                                  shuffling: true);
-                                        },
-                                        padding: EdgeInsets.zero,
-                                        icon: Icon(MingCute.shuffle_line,
-                                            color: Default_Theme.primaryColor1
-                                                .withOpacity(0.8))),
+                                    Tooltip(
+                                      message: 'Shuffle',
+                                      child: IconButton(
+                                          onPressed: () {
+                                            context
+                                                .read<BloomeePlayerCubit>()
+                                                .bloomeePlayer
+                                                .loadPlaylist(
+                                                    MediaPlaylist(
+                                                        mediaItems: state
+                                                            .mediaPlaylist
+                                                            .mediaItems,
+                                                        playlistName: state
+                                                            .mediaPlaylist
+                                                            .playlistName),
+                                                    doPlay: true,
+                                                    shuffling: true);
+                                          },
+                                          padding: EdgeInsets.zero,
+                                          icon: Icon(MingCute.shuffle_line,
+                                              color: Default_Theme.primaryColor1
+                                                  .withOpacity(0.8))),
+                                    ),
                                     Padding(
                                       padding: const EdgeInsets.only(
                                           right: 2, left: 5),
@@ -537,14 +559,17 @@ class PlaylistView extends StatelessWidget {
                                         },
                                       ),
                                     ),
-                                    IconButton(
-                                        onPressed: () {
-                                          showPlaylistOptsInrSheet(
-                                              context, state.mediaPlaylist);
-                                        },
-                                        icon: Icon(MingCute.more_2_line,
-                                            color: Default_Theme.primaryColor1
-                                                .withOpacity(0.8))),
+                                    Tooltip(
+                                      message: 'More Options',
+                                      child: IconButton(
+                                          onPressed: () {
+                                            showPlaylistOptsInrSheet(
+                                                context, state.mediaPlaylist);
+                                          },
+                                          icon: Icon(MingCute.more_2_line,
+                                              color: Default_Theme.primaryColor1
+                                                  .withOpacity(0.8))),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -631,6 +656,95 @@ class PlaylistView extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+
+  Future<void> _showAddToDownloadProgress(
+      BuildContext context, List<MediaItemModel> items) async {
+    if (items.isEmpty) return;
+
+    // Use a dialog with StatefulBuilder to update progress
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        int completed = 0;
+        String currentTitle = '';
+        void Function(void Function()) setStateRef = (_) {};
+
+        // Start the enqueue process after the dialog is built
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          for (final song in items) {
+            // update current title and rebuild
+            setStateRef(() {
+              currentTitle = song.title;
+            });
+
+            // enqueue the song via cubit
+            try {
+              context.read<DownloaderCubit>().downloadSong(song);
+            } catch (_) {}
+
+            // small delay so UI remains responsive and progress is visible
+            await Future.delayed(const Duration(milliseconds: 180));
+
+            setStateRef(() {
+              completed++;
+            });
+          }
+
+          // close dialog when done
+          if (dialogCtx.mounted) Navigator.of(dialogCtx).pop();
+        });
+
+        return StatefulBuilder(builder: (sbCtx, sbSetState) {
+          // capture setState so the enqueue loop can update the dialog
+          setStateRef = sbSetState;
+
+          final double progress =
+              items.isEmpty ? 0 : (completed / items.length).clamp(0.0, 1.0);
+
+          return AlertDialog(
+            backgroundColor: Default_Theme.themeColor,
+            contentPadding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
+            content: SizedBox(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Adding to download queue',
+                    style: Default_Theme.secondoryTextStyleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${completed}/${items.length} ${completed == 1 ? 'item' : 'items'}',
+                    style: Default_Theme.secondoryTextStyle,
+                  ),
+                  const SizedBox(height: 12),
+                  LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor:
+                        Default_Theme.primaryColor1.withOpacity(0.12),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        Default_Theme.primaryColor1.withOpacity(0.95)),
+                    minHeight: 6,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    currentTitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Default_Theme.secondoryTextStyle
+                        .merge(const TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
     );
   }
 }
