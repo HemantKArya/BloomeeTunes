@@ -22,6 +22,8 @@ void showMoreBottomSheet(
   MediaItemModel song, {
   bool showDelete = false,
   bool showSinglePlay = false,
+  bool showAddToQueue = true,
+  bool showPlayNext = true,
   VoidCallback? onDelete,
 }) {
   bool? isDownloaded;
@@ -99,54 +101,58 @@ void showMoreBottomSheet(
                       },
                     )
                   : const SizedBox.shrink(),
-              ListTile(
-                leading: const Icon(
-                  MingCute.square_arrow_right_line,
-                  color: Default_Theme.primaryColor1,
-                  size: 28,
-                ),
-                title: const Text(
-                  'Play Next',
-                  style: TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: "Unageo",
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .addPlayNextItem(song);
-                  SnackbarService.showMessage("Added to Next in Queue",
-                      duration: const Duration(seconds: 2));
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  MingCute.playlist_2_line,
-                  color: Default_Theme.primaryColor1,
-                  size: 28,
-                ),
-                title: const Text(
-                  'Add to Queue',
-                  style: TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: "Unageo",
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .addQueueItem(song);
-                  SnackbarService.showMessage("Added to Queue",
-                      duration: const Duration(seconds: 2));
-                },
-              ),
+              (showPlayNext)
+                  ? ListTile(
+                      leading: const Icon(
+                        MingCute.square_arrow_right_line,
+                        color: Default_Theme.primaryColor1,
+                        size: 28,
+                      ),
+                      title: const Text(
+                        'Play Next',
+                        style: TextStyle(
+                            color: Default_Theme.primaryColor1,
+                            fontFamily: "Unageo",
+                            fontSize: 17,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context
+                            .read<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .addPlayNextItem(song);
+                        SnackbarService.showMessage("Added to Next in Queue",
+                            duration: const Duration(seconds: 2));
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              (showAddToQueue)
+                  ? ListTile(
+                      leading: const Icon(
+                        MingCute.playlist_2_line,
+                        color: Default_Theme.primaryColor1,
+                        size: 28,
+                      ),
+                      title: const Text(
+                        'Add to Queue',
+                        style: TextStyle(
+                            color: Default_Theme.primaryColor1,
+                            fontFamily: "Unageo",
+                            fontSize: 17,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context
+                            .read<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .addQueueItem(song);
+                        SnackbarService.showMessage("Added to Queue",
+                            duration: const Duration(seconds: 2));
+                      },
+                    )
+                  : const SizedBox.shrink(),
               ListTile(
                 leading: const Icon(
                   MingCute.heart_fill,
