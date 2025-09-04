@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import 'song_tile.dart';
+import 'more_bottom_sheet.dart';
 
 class UpNextPanel extends StatefulWidget {
   const UpNextPanel({
@@ -190,6 +191,8 @@ class _UpNextPanelState extends State<UpNextPanel> {
                       itemCount: snapshot.data?.length ?? 0,
                       // physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
+                        final songModel =
+                            mediaItem2MediaItemModel(snapshot.data![index]);
                         return Dismissible(
                           key: ValueKey(snapshot.data?[index].id),
                           onDismissed: (direction) {
@@ -203,16 +206,20 @@ class _UpNextPanelState extends State<UpNextPanel> {
                               right: Platform.isAndroid ? 8 : 32,
                             ),
                             child: SongCardWidget(
-                                showOptions: false,
-                                onTap: () {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .bloomeePlayer
-                                      .skipToQueueItem(index);
-                                },
-                                //
-                                song: mediaItem2MediaItemModel(
-                                    snapshot.data![index])),
+                              showOptions: true,
+                              onTap: () {
+                                context
+                                    .read<BloomeePlayerCubit>()
+                                    .bloomeePlayer
+                                    .skipToQueueItem(index);
+                              },
+                              onOptionsTap: () {
+                                // Show the shared bottom sheet used across the app
+                                showMoreBottomSheet(context, songModel);
+                              },
+                              //
+                              song: songModel,
+                            ),
                           ),
                         );
                       },
