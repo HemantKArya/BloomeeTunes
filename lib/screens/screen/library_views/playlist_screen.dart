@@ -4,6 +4,7 @@ import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
+import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/playPause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
@@ -284,19 +285,146 @@ class PlaylistView extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                  child: Text(
-                                    "${state.mediaPlaylist.isAlbum ? "Album" : "Playlist"} • ${state.mediaPlaylist.mediaItems.length} Songs \nby ${state.mediaPlaylist.artists ?? 'You'}",
-                                    style: Default_Theme.secondoryTextStyle
-                                        .merge(TextStyle(
-                                      color: Default_Theme.primaryColor1
-                                          .withOpacity(0.8),
-                                      fontSize: 12,
-                                    )),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              "${state.mediaPlaylist.isAlbum ? 'Album' : 'Playlist'} • ${state.mediaPlaylist.mediaItems.length} Songs",
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Default_Theme
+                                                  .secondoryTextStyle
+                                                  .merge(TextStyle(
+                                                color: Default_Theme
+                                                    .primaryColor1
+                                                    .withOpacity(0.9),
+                                                fontSize: 12,
+                                              )),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'by ${state.mediaPlaylist.artists ?? 'You'}',
+                                        style: Default_Theme.secondoryTextStyle
+                                            .merge(TextStyle(
+                                          color: Default_Theme.primaryColor1
+                                              .withOpacity(0.8),
+                                          fontSize: 12,
+                                        )),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                ButtonBar(
-                                  buttonPadding: EdgeInsets.zero,
+                                OverflowBar(
+                                  spacing: 0,
+                                  overflowAlignment: OverflowBarAlignment.end,
                                   children: [
+                                    Builder(builder: (ctx) {
+                                      final downloaded = ctx
+                                          .watch<DownloaderCubit>()
+                                          .state
+                                          .downloaded;
+                                      final allDownloaded = state.mediaPlaylist
+                                              .mediaItems.isNotEmpty &&
+                                          state.mediaPlaylist.mediaItems.every(
+                                              (s) => downloaded
+                                                  .any((d) => d.id == s.id));
+
+                                      if (allDownloaded) {
+                                        return Tooltip(
+                                          message: 'All downloaded',
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: getFBColor(ctx)[1]
+                                                  .withOpacity(0.08),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.offline_pin_rounded,
+                                              size: 22,
+                                              color: getFBColor(ctx)[0]
+                                                  .withOpacity(0.85),
+                                            ),
+                                          ),
+                                        );
+                                      }
+
+                                      return IconButton(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            6, 2, 6, 2),
+                                        constraints: const BoxConstraints(
+                                            minWidth: 36, minHeight: 36),
+                                        tooltip: 'Download playlist',
+                                        icon: Icon(
+                                          MingCute.download_2_fill,
+                                          size: 20,
+                                          color: getFBColor(ctx)[0]
+                                              .withOpacity(0.9),
+                                        ),
+                                        style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStatePropertyAll(
+                                                  getFBColor(ctx)[1]
+                                                      .withOpacity(0.06)),
+                                          shape: MaterialStatePropertyAll(
+                                            RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8)),
+                                          ),
+                                        ),
+                                        onPressed: () async {
+                                          final count = state
+                                              .mediaPlaylist.mediaItems.length;
+                                          final confirmed =
+                                              await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              backgroundColor:
+                                                  Default_Theme.themeColor,
+                                              title: const Text(
+                                                  'Download playlist'),
+                                              content: Text(
+                                                  'Do you want to download $count songs from "${state.mediaPlaylist.playlistName}"? This will add them to the download queue.'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          context, false),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          context, true),
+                                                  child: const Text('Download'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                          if (confirmed == true) {
+                                            for (final song in state
+                                                .mediaPlaylist.mediaItems) {
+                                              context
+                                                  .read<DownloaderCubit>()
+                                                  .downloadSong(song);
+                                            }
+                                            SnackbarService.showMessage(
+                                                'Added $count songs to download queue');
+                                          }
+                                        },
+                                      );
+                                    }),
+                                    // --- END: DOWNLOAD / DOWNLOADED INDICATOR ---
                                     IconButton(
                                         onPressed: () {
                                           context
