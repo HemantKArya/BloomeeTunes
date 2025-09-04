@@ -83,7 +83,7 @@ void showMoreBottomSheet(
                         size: 28,
                       ),
                       title: const Text(
-                        'Play Now',
+                        'Play with Mix',
                         style: TextStyle(
                             color: Default_Theme.primaryColor1,
                             fontFamily: "Unageo",
