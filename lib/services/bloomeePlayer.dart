@@ -72,6 +72,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     // Setup callbacks between modules
     _errorHandler.onSkipToNext = () => skipToNext();
     _errorHandler.onRetryCurrentTrack = () => _retryCurrentTrack();
+    // Provide connectivity check function so error handler can verify network
+    // state before auto-skipping to the next track.
+    _errorHandler.checkNetworkConnectivity =
+        () => _connectivityManager.checkConnectivity();
 
     _connectivityManager.onNetworkReconnected =
         () => _handleNetworkReconnection();
@@ -368,7 +372,23 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       }
 
       await _playlist.add(audioSource);
-      await audioPlayer.load();
+      // Protect against hanging load calls (observed on Android when DNS fails).
+      try {
+        // Wait up to 12 seconds for load, otherwise treat as network error.
+        await audioPlayer.load().timeout(const Duration(seconds: 12));
+      } on TimeoutException catch (e) {
+        log('audioPlayer.load() timed out: $e', name: 'bloomeePlayer');
+        final currentItem = _queueManager.currentMediaItem;
+        _errorHandler.handleError(PlayerErrorType.networkError,
+            'Network timeout while loading track', currentItem, e);
+        try {
+          await audioPlayer.stop();
+          if (_playlist.children.isNotEmpty) {
+            await _playlist.clear();
+          }
+        } catch (_) {}
+        rethrow;
+      }
 
       if (!audioPlayer.playing) {
         await play();

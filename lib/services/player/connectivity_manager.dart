@@ -22,10 +22,28 @@ class ConnectivityManager {
 
   Future<void> _checkNetworkConnectivity() async {
     try {
-      final result = await InternetAddress.lookup('google.com');
-      final wasConnected = isConnected.value;
-      final nowConnected = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      bool nowConnected = false;
 
+      // First try a lightweight socket connect to a reliable DNS server.
+      // This avoids DNS resolution issues on some Android emulators/networks
+      // where InternetAddress.lookup may fail even when network is available.
+      try {
+        final socket = await Socket.connect('8.8.8.8', 53,
+            timeout: const Duration(seconds: 3));
+        socket.destroy();
+        nowConnected = true;
+      } catch (_) {
+        // Fallback to DNS lookup if socket connect failed
+        try {
+          final result = await InternetAddress.lookup('google.com');
+          nowConnected = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+        } catch (e2) {
+          log('DNS lookup fallback failed: $e2', name: 'ConnectivityManager');
+          nowConnected = false;
+        }
+      }
+
+      final wasConnected = isConnected.value;
       isConnected.add(nowConnected);
 
       if (!wasConnected && nowConnected) {
