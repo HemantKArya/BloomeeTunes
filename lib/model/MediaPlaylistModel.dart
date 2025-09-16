@@ -57,7 +57,7 @@ class MediaPlaylist extends Equatable {
 MediaPlaylist fromPlaylistDB2MediaPlaylist(MediaPlaylistDB mediaPlaylistDB,
     {PlaylistsInfoDB? playlistsInfoDB}) {
   MediaPlaylist mediaPlaylist =
-      MediaPlaylist(mediaItems: [], playlistName: mediaPlaylistDB.playlistName);
+      MediaPlaylist(mediaItems: const [], playlistName: mediaPlaylistDB.playlistName);
   if (mediaPlaylistDB.mediaItems.isNotEmpty) {
     for (var element in mediaPlaylistDB.mediaItems) {
       mediaPlaylist.mediaItems.add(MediaItemDB2MediaItem(element));

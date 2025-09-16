@@ -218,117 +218,134 @@ class _SearchScreenState extends State<SearchScreen> {
                                         child: ValueListenableBuilder(
                                             valueListenable: resultType,
                                             builder: (context, value, child) {
-                                              return DropdownButtonFormField(
-                                                key: UniqueKey(),
-                                                isExpanded: false,
-                                                isDense: true,
-                                                alignment: Alignment.center,
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                                padding:
-                                                    const EdgeInsets.all(0),
-                                                focusColor: Colors.transparent,
-                                                dropdownColor:
-                                                    const Color.fromARGB(
-                                                        255, 15, 15, 15),
-                                                decoration: InputDecoration(
-                                                  filled: false,
-                                                  fillColor: Default_Theme
-                                                      .primaryColor2
-                                                      .withOpacity(0.07),
-                                                  contentPadding:
-                                                      const EdgeInsets.all(0),
-                                                  focusColor: Default_Theme
-                                                      .accentColor2,
-                                                  border: OutlineInputBorder(
-                                                      borderSide:
-                                                          const BorderSide(
-                                                              style: BorderStyle
-                                                                  .none),
+                                              return Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Expanded(
+                                                    child:
+                                                        DropdownButtonFormField<
+                                                            int>(
+                                                      key: UniqueKey(),
+                                                      isExpanded: false,
+                                                      isDense: true,
+                                                      alignment:
+                                                          Alignment.center,
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              20)),
-                                                  enabledBorder:
-                                                      OutlineInputBorder(
-                                                          borderSide:
-                                                              const BorderSide(
-                                                                  style:
-                                                                      BorderStyle
-                                                                          .none),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      20)),
-                                                  focusedBorder:
-                                                      OutlineInputBorder(
-                                                          borderSide:
-                                                              const BorderSide(
-                                                                  style:
-                                                                      BorderStyle
-                                                                          .none),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      20)),
-                                                  disabledBorder:
-                                                      OutlineInputBorder(
-                                                          borderSide:
-                                                              const BorderSide(
-                                                                  style:
-                                                                      BorderStyle
-                                                                          .none),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      20)),
-                                                  isDense: true,
-                                                ),
-                                                value: resultType.value.index,
-                                                items: ResultTypes.values
-                                                    .map(
-                                                        (e) => DropdownMenuItem(
-                                                              value: e.index,
-                                                              child: SizedBox(
-                                                                height: 32,
-                                                                child: Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .only(
-                                                                    left: 8,
-                                                                    top: 2,
-                                                                    bottom: 4,
-                                                                  ),
-                                                                  child: Text(
-                                                                    e.val,
-                                                                    style: Default_Theme
-                                                                        .secondoryTextStyleMedium
-                                                                        .merge(
-                                                                            const TextStyle(
-                                                                      color: Default_Theme
-                                                                          .primaryColor1,
-                                                                      fontSize:
-                                                                          13.5,
-                                                                    )),
+                                                              20),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              0),
+                                                      focusColor:
+                                                          Colors.transparent,
+                                                      dropdownColor:
+                                                          const Color.fromARGB(
+                                                              255, 15, 15, 15),
+                                                      decoration:
+                                                          InputDecoration(
+                                                        filled: false,
+                                                        fillColor: Default_Theme
+                                                            .primaryColor2
+                                                            .withOpacity(0.07),
+                                                        contentPadding:
+                                                            const EdgeInsets
+                                                                .all(0),
+                                                        focusColor:
+                                                            Default_Theme
+                                                                .accentColor2,
+                                                        border: OutlineInputBorder(
+                                                            borderSide:
+                                                                const BorderSide(
+                                                                    style: BorderStyle
+                                                                        .none),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20)),
+                                                        enabledBorder: OutlineInputBorder(
+                                                            borderSide:
+                                                                const BorderSide(
+                                                                    style: BorderStyle
+                                                                        .none),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20)),
+                                                        focusedBorder: OutlineInputBorder(
+                                                            borderSide:
+                                                                const BorderSide(
+                                                                    style: BorderStyle
+                                                                        .none),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20)),
+                                                        disabledBorder: OutlineInputBorder(
+                                                            borderSide:
+                                                                const BorderSide(
+                                                                    style: BorderStyle
+                                                                        .none),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20)),
+                                                        isDense: true,
+                                                      ),
+                                                      value: resultType
+                                                          .value.index,
+                                                      items: ResultTypes.values
+                                                          .map((e) =>
+                                                              DropdownMenuItem(
+                                                                value: e.index,
+                                                                child: SizedBox(
+                                                                  height: 32,
+                                                                  child:
+                                                                      Padding(
+                                                                    padding:
+                                                                        const EdgeInsets
+                                                                            .only(
+                                                                      left: 8,
+                                                                      top: 2,
+                                                                      bottom: 4,
+                                                                    ),
+                                                                    child: Text(
+                                                                      e.val,
+                                                                      style: Default_Theme
+                                                                          .secondoryTextStyleMedium
+                                                                          .merge(
+                                                                              const TextStyle(
+                                                                        color: Default_Theme
+                                                                            .primaryColor1,
+                                                                        fontSize:
+                                                                            13.5,
+                                                                      )),
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            ))
-                                                    .toList(),
-                                                onChanged: (value) {
-                                                  resultType.value = ResultTypes
-                                                      .values[value!];
-                                                  context
-                                                      .read<
-                                                          FetchSearchResultsCubit>()
-                                                      .checkAndRefreshSearch(
-                                                        query:
-                                                            _textEditingController
-                                                                .text
-                                                                .toString(),
-                                                        sE: _sourceEngine,
-                                                        rT: resultType.value,
-                                                      );
-                                                },
+                                                              ))
+                                                          .toList(),
+                                                      onChanged: (value) {
+                                                        resultType.value =
+                                                            ResultTypes
+                                                                .values[value!];
+                                                        context
+                                                            .read<
+                                                                FetchSearchResultsCubit>()
+                                                            .checkAndRefreshSearch(
+                                                              query:
+                                                                  _textEditingController
+                                                                      .text
+                                                                      .toString(),
+                                                              sE: _sourceEngine,
+                                                              rT: resultType
+                                                                  .value,
+                                                            );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
                                               );
                                             }),
                                       ),

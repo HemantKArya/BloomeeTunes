@@ -29,7 +29,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   Future<void> searchFilter(String query) async {
-    if (query.length > 0) {
+    if (query.isNotEmpty) {
       setState(() {
         filteredPlaylistsItems = playlistsItems.where((element) {
           return element.playlistName

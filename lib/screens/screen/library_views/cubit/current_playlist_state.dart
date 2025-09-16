@@ -31,16 +31,16 @@ class CurrentPlaylistState extends Equatable {
 }
 
 final class CurrentPlaylistInitial extends CurrentPlaylistState {
-  CurrentPlaylistInitial()
+  const CurrentPlaylistInitial()
       : super(
             isFetched: false,
-            mediaPlaylist: MediaPlaylist(mediaItems: [], playlistName: ""));
+            mediaPlaylist: const MediaPlaylist(mediaItems: [], playlistName: ""));
 }
 
 final class CurrentPlaylistLoading extends CurrentPlaylistState {
-  CurrentPlaylistLoading()
+  const CurrentPlaylistLoading()
       : super(
             isFetched: false,
             mediaPlaylist:
-                MediaPlaylist(mediaItems: [], playlistName: "loading"));
+                const MediaPlaylist(mediaItems: [], playlistName: "loading"));
 }

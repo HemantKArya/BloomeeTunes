@@ -180,7 +180,7 @@ Future<Lyrics> searchSingleLRCNetLyrics(
 }) async {
   log("LRCLibNet by Search Single: $q", name: "LRCNetAPI");
   Lyrics lyrics;
-  Lyrics? _synced;
+  Lyrics? synced;
   final List<Lyrics> lyricsList =
       await searchLRCNetLyrics(q, artistName: artist, albumName: album);
 
@@ -189,14 +189,14 @@ Future<Lyrics> searchSingleLRCNetLyrics(
     if (album != null) {
       query += ' $album';
     }
-    final List<Lyrics> _syncedList =
+    final List<Lyrics> syncedList =
         lyricsList.where((element) => element.lyricsSynced != null).toList();
 
-    if (_syncedList.isNotEmpty) {
-      _synced = _syncedList[fw
+    if (syncedList.isNotEmpty) {
+      synced = syncedList[fw
           .extractOne(
               query: query,
-              choices: _syncedList.map((e) {
+              choices: syncedList.map((e) {
                 return '${e.title} ${e.artist} ${e.album}';
               }).toList())
           .index];
@@ -211,12 +211,12 @@ Future<Lyrics> searchSingleLRCNetLyrics(
               return '${e.title} ${e.artist} ${e.album}';
             }).toList())
         .index];
-    if (_synced != null) {
-      final _ratio = fw.ratio(
-          '${_synced.title} ${_synced.artist} ${_synced.album}',
+    if (synced != null) {
+      final ratio = fw.ratio(
+          '${synced.title} ${synced.artist} ${synced.album}',
           '${lyrics.title} ${lyrics.artist} ${lyrics.album}');
-      if (_ratio >= 80) {
-        lyrics = _synced;
+      if (ratio >= 80) {
+        lyrics = synced;
         // log("Ratio: $_ratio - $lyrics", name: "LRCNetAPI");
       }
     }

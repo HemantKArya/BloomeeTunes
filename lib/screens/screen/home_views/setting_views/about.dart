@@ -181,7 +181,7 @@ class About extends StatelessWidget {
                               color: const Color.fromARGB(255, 255, 246, 238)
                                   .withOpacity(0.4),
                               blurRadius: 12,
-                              offset: Offset(0, 0),
+                              offset: const Offset(0, 0),
                             ),
                           ],
                         ),

@@ -18,7 +18,7 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
   CurrentPlaylistCubit({
     this.mediaPlaylist,
     required this.bloomeeDBCubit,
-  }) : super(CurrentPlaylistInitial()) {}
+  }) : super(CurrentPlaylistInitial());
 
   Future<void> setupPlaylist(String playlistName) async {
     emit(CurrentPlaylistLoading());

@@ -34,7 +34,7 @@ class SaavnAPI {
       param.replaceAll('&api_version=4', '');
     }
     url = Uri.parse('https://$baseUrl$apiStr&$param');
-    final String languageHeader = 'L=Hindi';
+    const String languageHeader = 'L=Hindi';
     headers = {
       'cookie': languageHeader,
       'Accept': 'application/json, text/plain, */*',
@@ -57,7 +57,7 @@ class SaavnAPI {
     final response = await getResponse(params, usev4: true);
     if (response.statusCode == 200) {
       final List getMain = json.decode(response.body);
-      final List responseList = getMain as List;
+      final List responseList = getMain;
       return {
         'songs': await formatSongsResponse(responseList, 'song'),
         'error': '',

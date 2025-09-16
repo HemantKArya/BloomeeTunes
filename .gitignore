@@ -23,6 +23,8 @@
 .project
 .settings/
 .vscode/*
+.vscode/
+
 
 # Flutter repo-specific
 /bin/cache/
@@ -138,3 +140,6 @@ app.*.symbols
 
 
 /assets/*.env
+
+
+nuget.exe

@@ -74,10 +74,10 @@ void showPlaylistOptsInrSheet(
                       Navigator.pop(context);
                       SnackbarService.showMessage(
                           "Preparing ${mediaPlaylist.playlistName} for share");
-                      final _tmpPath = await ImportExportService.exportPlaylist(
+                      final tmpPath = await ImportExportService.exportPlaylist(
                           mediaPlaylist.playlistName);
-                      _tmpPath != null
-                          ? Share.shareXFiles([XFile(_tmpPath)])
+                      tmpPath != null
+                          ? Share.shareXFiles([XFile(tmpPath)])
                           : null;
                     },
                   ),
@@ -95,12 +95,12 @@ void showPlaylistOptsInrSheet(
                         }
                         SnackbarService.showMessage(
                             "Preparing ${mediaPlaylist.playlistName} for export.");
-                        final _tmpPath =
+                        final tmpPath =
                             await ImportExportService.exportPlaylist(
                           mediaPlaylist.playlistName,
                           filePath: path,
                         );
-                        SnackbarService.showMessage("Exported to: $_tmpPath");
+                        SnackbarService.showMessage("Exported to: $tmpPath");
                       },
                     ),
                 ],
@@ -144,16 +144,16 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                     title: "Play",
                     onPressed: () async {
                       Navigator.pop(context);
-                      final _list = await context
+                      final list = await context
                           .read<LibraryItemsCubit>()
                           .getPlaylist(playlistName);
-                      if (_list != null && _list.isNotEmpty) {
+                      if (list != null && list.isNotEmpty) {
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
                             .loadPlaylist(
                                 MediaPlaylist(
-                                    mediaItems: _list,
+                                    mediaItems: list,
                                     playlistName: playlistName),
                                 doPlay: true);
                         SnackbarService.showMessage("Playing $playlistName");
@@ -165,14 +165,14 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                     icon: MingCute.playlist_2_line,
                     onPressed: () async {
                       Navigator.pop(context);
-                      final _list = await context
+                      final list = await context
                           .read<LibraryItemsCubit>()
                           .getPlaylist(playlistName);
-                      if (_list != null && _list.isNotEmpty) {
+                      if (list != null && list.isNotEmpty) {
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .addQueueItems(_list);
+                            .addQueueItems(list);
                         SnackbarService.showMessage(
                             "Added $playlistName to Queue");
                       }
@@ -185,10 +185,10 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                       Navigator.pop(context);
                       SnackbarService.showMessage(
                           "Preparing $playlistName for share");
-                      final _tmpPath = await ImportExportService.exportPlaylist(
+                      final tmpPath = await ImportExportService.exportPlaylist(
                           playlistName);
-                      _tmpPath != null
-                          ? Share.shareXFiles([XFile(_tmpPath)])
+                      tmpPath != null
+                          ? Share.shareXFiles([XFile(tmpPath)])
                           : null;
                     },
                   ),
@@ -206,12 +206,12 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                         }
                         SnackbarService.showMessage(
                             "Preparing $playlistName for export.");
-                        final _tmpPath =
+                        final tmpPath =
                             await ImportExportService.exportPlaylist(
                           playlistName,
                           filePath: path,
                         );
-                        SnackbarService.showMessage("Exported to: $_tmpPath");
+                        SnackbarService.showMessage("Exported to: $tmpPath");
                       },
                     ),
                   PltOptBtn(

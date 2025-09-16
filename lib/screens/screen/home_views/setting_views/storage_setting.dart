@@ -93,7 +93,7 @@ class BackupSettings extends StatelessWidget {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(
-                        '${value} Days',
+                        '$value Days',
                       ),
                     );
                   }).toList(),

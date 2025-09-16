@@ -1,6 +1,5 @@
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
@@ -310,7 +309,9 @@ class ChangelogScreen extends StatelessWidget {
             final end = installedIndexInView > latestIndexInView
                 ? installedIndexInView
                 : latestIndexInView;
-            for (int i = start; i <= end; i++) expandedIndices.add(i);
+            for (int i = start; i <= end; i++) {
+              expandedIndices.add(i);
+            }
           }
 
           // Persist the fact that user viewed the changelog for the installed version.
@@ -496,7 +497,7 @@ class _VersionCardState extends State<VersionCard> {
         : const SizedBox.shrink();
 
     // New badges: CURRENT and UPDATE (if applicable)
-    Widget _badge(String text, Color bg, Color textColor) => Container(
+    Widget badge(String text, Color bg, Color textColor) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         margin: const EdgeInsets.only(left: 6),
         decoration: BoxDecoration(
@@ -511,10 +512,10 @@ class _VersionCardState extends State<VersionCard> {
                 letterSpacing: 0.3)));
 
     final currentBadge = showCurrentBadge
-        ? _badge('CURRENT', Colors.blueAccent.shade700, Colors.white)
+        ? badge('CURRENT', Colors.blueAccent.shade700, Colors.white)
         : const SizedBox.shrink();
     final updateBadge = showUpdateBadge
-        ? _badge('UPDATE', Colors.deepOrangeAccent.shade200, Colors.white)
+        ? badge('UPDATE', Colors.deepOrangeAccent.shade200, Colors.white)
         : const SizedBox.shrink();
 
     return Container(

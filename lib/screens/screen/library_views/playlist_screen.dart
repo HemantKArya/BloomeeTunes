@@ -372,10 +372,10 @@ class PlaylistView extends StatelessWidget {
                                         ),
                                         style: ButtonStyle(
                                           backgroundColor:
-                                              MaterialStatePropertyAll(
+                                              WidgetStatePropertyAll(
                                                   getFBColor(ctx)[1]
                                                       .withOpacity(0.06)),
-                                          shape: MaterialStatePropertyAll(
+                                          shape: WidgetStatePropertyAll(
                                             RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(8)),
@@ -719,7 +719,7 @@ class PlaylistView extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${completed}/${items.length} ${completed == 1 ? 'item' : 'items'}',
+                    '$completed/${items.length} ${completed == 1 ? 'item' : 'items'}',
                     style: Default_Theme.secondoryTextStyle,
                   ),
                   const SizedBox(height: 12),

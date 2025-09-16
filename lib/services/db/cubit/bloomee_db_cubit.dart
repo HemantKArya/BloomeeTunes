@@ -20,8 +20,8 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   Future<void> addNewPlaylistToDB(MediaPlaylistDB mediaPlaylistDB,
       {bool undo = false}) async {
-    List<String> _list = await getListOfPlaylists();
-    if (!_list.contains(mediaPlaylistDB.playlistName)) {
+    List<String> list = await getListOfPlaylists();
+    if (!list.contains(mediaPlaylistDB.playlistName)) {
       BloomeeDBService.addPlaylist(mediaPlaylistDB);
       // refreshLibrary.add(true);
       if (!undo) {
@@ -85,33 +85,33 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   Future<MediaPlaylist> getPlaylistItems(
       MediaPlaylistDB mediaPlaylistDB) async {
-    MediaPlaylist _mediaPlaylist = MediaPlaylist(
-        mediaItems: [], playlistName: mediaPlaylistDB.playlistName);
+    MediaPlaylist mediaPlaylist = MediaPlaylist(
+        mediaItems: const [], playlistName: mediaPlaylistDB.playlistName);
 
-    var _dbList = await BloomeeDBService.getPlaylistItems(mediaPlaylistDB);
+    var dbList = await BloomeeDBService.getPlaylistItems(mediaPlaylistDB);
     final playlist =
         await BloomeeDBService.getPlaylist(mediaPlaylistDB.playlistName);
     final info =
         await BloomeeDBService.getPlaylistInfo(mediaPlaylistDB.playlistName);
     if (playlist != null) {
-      _mediaPlaylist =
+      mediaPlaylist =
           fromPlaylistDB2MediaPlaylist(mediaPlaylistDB, playlistsInfoDB: info);
 
-      if (_dbList != null) {
-        List<int> _rankList =
+      if (dbList != null) {
+        List<int> rankList =
             await BloomeeDBService.getPlaylistItemsRank(mediaPlaylistDB);
 
-        if (_rankList.isNotEmpty) {
-          _dbList = reorderByRank(_dbList, _rankList);
+        if (rankList.isNotEmpty) {
+          dbList = reorderByRank(dbList, rankList);
         }
-        _mediaPlaylist.mediaItems.clear();
+        mediaPlaylist.mediaItems.clear();
 
-        for (var element in _dbList) {
-          _mediaPlaylist.mediaItems.add(MediaItemDB2MediaItem(element));
+        for (var element in dbList) {
+          mediaPlaylist.mediaItems.add(MediaItemDB2MediaItem(element));
         }
       }
     }
-    return _mediaPlaylist;
+    return mediaPlaylist;
   }
 
   Future<void> setPlayListItemsRank(
@@ -125,9 +125,9 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   Future<List<String>> getListOfPlaylists() async {
     List<String> mediaPlaylists = [];
-    final _albumList = await BloomeeDBService.getPlaylists4Library();
-    if (_albumList.isNotEmpty) {
-      _albumList.toList().forEach((element) {
+    final albumList = await BloomeeDBService.getPlaylists4Library();
+    if (albumList.isNotEmpty) {
+      albumList.toList().forEach((element) {
         mediaPlaylists.add(element.playlistName);
       });
     }
@@ -136,9 +136,9 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   Future<List<MediaPlaylist>> getListOfPlaylists2() async {
     List<MediaPlaylist> mediaPlaylists = [];
-    final _albumList = await BloomeeDBService.getPlaylists4Library();
-    if (_albumList.isNotEmpty) {
-      _albumList.toList().forEach((element) {
+    final albumList = await BloomeeDBService.getPlaylists4Library();
+    if (albumList.isNotEmpty) {
+      albumList.toList().forEach((element) {
         mediaPlaylists.add(element);
       });
     }
@@ -146,9 +146,9 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
   }
 
   Future<void> reorderPositionOfItemInDB(
-      String playlistName, int old_idx, int new_idx) async {
+      String playlistName, int oldIdx, int newIdx) async {
     BloomeeDBService.reorderItemPositionInPlaylist(
-        MediaPlaylistDB(playlistName: playlistName), old_idx, new_idx);
+        MediaPlaylistDB(playlistName: playlistName), oldIdx, newIdx);
   }
 
   Future<void> removePlaylist(MediaPlaylistDB mediaPlaylistDB) async {
@@ -164,8 +164,8 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   Future<void> removeMediaFromPlaylist(
       MediaItem mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
-    MediaItemDB _mediaItemDB = MediaItem2MediaItemDB(mediaItem);
-    BloomeeDBService.removeMediaItemFromPlaylist(_mediaItemDB, mediaPlaylistDB)
+    MediaItemDB mediaItemDB = MediaItem2MediaItemDB(mediaItem);
+    BloomeeDBService.removeMediaItemFromPlaylist(mediaItemDB, mediaPlaylistDB)
         .then((value) {
       SnackbarService.showMessage(
           "${mediaItem.title} is removed from ${mediaPlaylistDB.playlistName}!!",
@@ -174,7 +174,7 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
               label: "Undo",
               textColor: Default_Theme.accentColor2,
               onPressed: () => addMediaItemToPlaylist(
-                  MediaItemDB2MediaItem(_mediaItemDB), mediaPlaylistDB,
+                  MediaItemDB2MediaItem(mediaItemDB), mediaPlaylistDB,
                   undo: true)));
     });
   }
@@ -182,14 +182,14 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
   Future<int?> addMediaItemToPlaylist(
       MediaItemModel mediaItemModel, MediaPlaylistDB mediaPlaylistDB,
       {bool undo = false}) async {
-    final _id = await BloomeeDBService.addMediaItem(
+    final id = await BloomeeDBService.addMediaItem(
         MediaItem2MediaItemDB(mediaItemModel), mediaPlaylistDB.playlistName);
     // refreshLibrary.add(true);
     if (!undo) {
       SnackbarService.showMessage(
           "${mediaItemModel.title} is added to ${mediaPlaylistDB.playlistName}!!");
     }
-    return _id;
+    return id;
   }
 
   Future<bool?> getSettingBool(String key) async {
@@ -222,9 +222,9 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
 
   Future<Stream<AppSettingsBoolDB?>?> getWatcher4SettingBool(String key) async {
     if (key.isNotEmpty) {
-      var _watcher = await BloomeeDBService.getWatcher4SettingBool(key);
-      if (_watcher != null) {
-        return _watcher;
+      var watcher = await BloomeeDBService.getWatcher4SettingBool(key);
+      if (watcher != null) {
+        return watcher;
       } else {
         BloomeeDBService.putSettingBool(key, false);
         return BloomeeDBService.getWatcher4SettingBool(key);

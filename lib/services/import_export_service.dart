@@ -17,8 +17,8 @@ class ImportExportService {
   /// Returns `true` if the playlist exists, otherwise `false`.
   static Future<bool> isPlaylistExists(String playlistName) async {
     // Fetch all playlists from the library.
-    final _list = await BloomeeDBService.getPlaylists4Library();
-    for (final playlist in _list) {
+    final list = await BloomeeDBService.getPlaylists4Library();
+    for (final playlist in list) {
       if (playlist.playlistName == playlistName) {
         return true;
       }
