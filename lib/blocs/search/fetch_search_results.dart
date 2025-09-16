@@ -105,6 +105,7 @@ final class FetchSearchResultsInitial extends FetchSearchResultsState {
 }
 
 final class FetchSearchResultsLoading extends FetchSearchResultsState {
+  @override
   final ResultTypes resultType;
   FetchSearchResultsLoading({
     this.resultType = ResultTypes.songs,
@@ -120,6 +121,7 @@ final class FetchSearchResultsLoading extends FetchSearchResultsState {
 }
 
 final class FetchSearchResultsLoaded extends FetchSearchResultsState {
+  @override
   final ResultTypes resultType;
   FetchSearchResultsLoaded({
     this.resultType = ResultTypes.songs,

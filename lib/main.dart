@@ -84,12 +84,12 @@ void processIncomingIntent(List<SharedMediaFile> sharedMediaFiles) {
 }
 
 Future<void> importItems(String path) async {
-  bool _res = await ImportExportService.importMediaItem(path);
-  if (_res) {
+  bool res = await ImportExportService.importMediaItem(path);
+  if (res) {
     SnackbarService.showMessage("Media Item Imported");
   } else {
-    _res = await ImportExportService.importPlaylist(path);
-    if (_res) {
+    res = await ImportExportService.importPlaylist(path);
+    if (res) {
       SnackbarService.showMessage("Playlist Imported");
     } else {
       SnackbarService.showMessage("Invalid File Format");
@@ -367,8 +367,8 @@ class _MyAppState extends State<MyApp> {
               },
               builder: (context, child) => ResponsiveBreakpoints.builder(
                 child: GlobalEventListener(
-                  child: child!,
                   navigatorKey: GlobalRoutes.globalRouterKey,
+                  child: child!,
                 ),
                 breakpoints: [
                   const Breakpoint(start: 0, end: 450, name: MOBILE),
@@ -397,6 +397,10 @@ class CustomScrollBehavior extends MaterialScrollBehavior {
   Set<PointerDeviceKind> get dragDevices => {
         PointerDeviceKind.touch,
         PointerDeviceKind.mouse,
+        PointerDeviceKind.stylus,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.unknown,
+
         // etc.
       };
 }

@@ -32,36 +32,47 @@ class SpotifyApi {
     final token = await BloomeeDBService.getApiTokenDB(
         GlobalStrConsts.spotifyAccessToken);
     if (token != null) {
-      log('Access token: $token', name: 'SpotifyAPI');
+      log('Using cached token', name: 'SpotifyAPI');
       return token;
     }
-    var response;
+
     final tokenUrl = Uri.parse('https://accounts.spotify.com/api/token');
-    String basicAuth =
+    final basicAuth =
         'Basic ${base64Encode(utf8.encode('$clientID:$clientSecret'))}';
+
+    Response response;
     try {
       response = await post(
         tokenUrl,
         headers: {
           'Authorization': basicAuth,
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: {
           'grant_type': 'client_credentials',
         },
       );
     } catch (e) {
-      log('Error in getting spotify access token: $e', name: "spotifyAPI");
+      log('Error getting Spotify access token: $e', name: "SpotifyAPI");
+      rethrow;
     }
 
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
       final accessToken = responseBody['access_token'];
-      await BloomeeDBService.putApiTokenDB(GlobalStrConsts.spotifyAccessToken,
-          accessToken, responseBody['expires_in'].toString());
-      log('Got new access token!', name: 'SpotifyAPI2');
+      final expiresIn = responseBody['expires_in'] as int;
+
+      await BloomeeDBService.putApiTokenDB(
+        GlobalStrConsts.spotifyAccessToken,
+        accessToken,
+        expiresIn.toString(),
+      );
+
+      log('Got new access token', name: 'SpotifyAPI');
       return accessToken;
     } else {
-      throw Exception('Failed to get access token');
+      throw Exception(
+          'Failed to get access token. Status: ${response.statusCode}, Body: ${response.body}');
     }
   }
 
@@ -436,11 +447,11 @@ class SpotifyApi {
         imgUrl = (jsonDecode(response.body)["images"] as List).first["url"];
         url = jsonDecode(response.body)['external_urls']['spotify'];
         description = jsonDecode(response.body)['album_type'];
-        List<String> _artists = [];
+        List<String> artists0 = [];
         for (var e in (jsonDecode(response.body)['artists'] as List)) {
-          _artists.add(e['name']);
+          artists0.add(e['name']);
         }
-        artists = _artists.join(", ");
+        artists = artists0.join(", ");
         final result = jsonDecode(response.body);
         for (var element in result['tracks']['items']) {
           songsData.add({

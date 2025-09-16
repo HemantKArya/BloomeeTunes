@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -8,7 +7,7 @@ import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
 void createPlaylistBottomSheet(BuildContext context) {
-  final _focusNode = FocusNode();
+  final focusNode = FocusNode();
   showMaterialModalBottomSheet(
     context: context,
     expand: false,
@@ -73,7 +72,7 @@ void createPlaylistBottomSheet(BuildContext context) {
                                     maxLines: 3,
                                     textAlignVertical: TextAlignVertical.center,
                                     textAlign: TextAlign.center,
-                                    focusNode: _focusNode,
+                                    focusNode: focusNode,
                                     cursorHeight: 60,
                                     showCursor: true,
                                     cursorWidth: 5,
@@ -95,10 +94,10 @@ void createPlaylistBottomSheet(BuildContext context) {
                                           // borderRadius: BorderRadius.circular(50),
                                         )),
                                     onTapOutside: (event) {
-                                      _focusNode.unfocus();
+                                      focusNode.unfocus();
                                     },
                                     onSubmitted: (value) {
-                                      _focusNode.unfocus();
+                                      focusNode.unfocus();
 
                                       if (value.isNotEmpty &&
                                           value.length > 2) {

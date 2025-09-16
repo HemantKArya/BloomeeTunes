@@ -4,13 +4,21 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 
 class MediaItemModel extends MediaItem {
+  @override
   late String id;
+  @override
   late String title;
+  @override
   String? album;
+  @override
   Uri? artUri;
+  @override
   String? artist;
+  @override
   Map<String, dynamic>? extras;
+  @override
   String? genre;
+  @override
   Duration? duration;
 
   MediaItemModel({

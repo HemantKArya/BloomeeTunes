@@ -35,7 +35,6 @@ class Default_Theme {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: themeColor,
-      dialogBackgroundColor: themeColor,
       primaryColorDark: accentColor2,
       primarySwatch: MaterialColor(
         accentColor2.value,
@@ -109,11 +108,13 @@ class Default_Theme {
         ),
       ),
 
+    
       // 🔹 Fix for cards and surfaces
-      cardTheme: const CardTheme(
-        color: themeColor,
-        surfaceTintColor: Colors.transparent,
-      ),
+      // cardTheme: const CardTheme(
+      //   color: themeColor,
+      //   surfaceTintColor: Colors.transparent,
+      // ),
+      dialogTheme: const DialogThemeData(backgroundColor: themeColor),
     );
   }
 }

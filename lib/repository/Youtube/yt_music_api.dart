@@ -1496,7 +1496,6 @@ class YtMusicService {
             'artist': heading,
           });
         }
-        ;
       }
 
       String? songsBrowseId;

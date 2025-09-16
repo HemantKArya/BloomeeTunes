@@ -34,7 +34,7 @@ class _PlayPauseButtonState extends State<PlayPauseButton> {
 
   @override
   Widget build(BuildContext context) {
-    double _size = widget.size;
+    double size = widget.size;
     _isPlaying = widget.isPlaying;
     _currentColor =
         _isPlaying ? Default_Theme.accentColor1 : Default_Theme.accentColor2;
@@ -50,8 +50,8 @@ class _PlayPauseButtonState extends State<PlayPauseButton> {
             shape: BoxShape.circle,
             color: _currentColor,
           ),
-          width: _size,
-          height: _size,
+          width: size,
+          height: size,
           child: _isPlaying
               ? Icon(
                   FontAwesome.pause_solid,

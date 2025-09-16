@@ -71,7 +71,7 @@ class YTMusic extends YTMusicServices
     }
     results = {
       "playlistId": playlistId,
-      "perma_url": "https://music.youtube.com/playlist?list=${playlistId}",
+      "perma_url": "https://music.youtube.com/playlist?list=$playlistId",
       "songs": songs,
     };
     return results;

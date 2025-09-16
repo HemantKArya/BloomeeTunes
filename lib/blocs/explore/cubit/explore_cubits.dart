@@ -138,20 +138,20 @@ class FetchChartCubit extends Cubit<FetchChartState> {
   }
 
   Future<void> fetchCharts() async {
-    String _path = (await getApplicationSupportDirectory()).path;
+    String path = (await getApplicationSupportDirectory()).path;
     BackgroundIsolateBinaryMessenger.ensureInitialized(
       ServicesBinding.rootIsolateToken!,
     );
     await BloomeeDBService.db;
     final chartList = await Isolate.run<List<ChartModel>>(() async {
-      log(_path, name: "Isolate Path");
-      List<ChartModel> _chartList = List.empty(growable: true);
+      log(path, name: "Isolate Path");
+      List<ChartModel> chartList0 = List.empty(growable: true);
       ChartModel chart;
       final db = await Isar.open(
         [
           ChartsCacheDBSchema,
         ],
-        directory: _path,
+        directory: path,
       );
       for (var i in chartInfoList) {
         final chartCacheDB = db.chartsCacheDBs
@@ -159,7 +159,7 @@ class FetchChartCubit extends Cubit<FetchChartState> {
             .filter()
             .chartNameEqualTo(i.title)
             .findFirstSync();
-        bool _shouldFetch = (chartCacheDB?.lastUpdated
+        bool shouldFetch = (chartCacheDB?.lastUpdated
                     .difference(DateTime.now())
                     .inHours
                     .abs() ??
@@ -168,18 +168,18 @@ class FetchChartCubit extends Cubit<FetchChartState> {
         log("Last Updated - ${(chartCacheDB?.lastUpdated.difference(DateTime.now()).inHours)?.abs()} Hours before ",
             name: "Isolate");
 
-        if (_shouldFetch) {
+        if (shouldFetch) {
           chart = await i.chartFunction(i.url);
           if ((chart.chartItems?.isNotEmpty) ?? false) {
             db.writeTxnSync(() =>
                 db.chartsCacheDBs.putSync(chartModelToChartCacheDB(chart)));
           }
           log("Chart Fetched - ${chart.chartName}", name: "Isolate");
-          _chartList.add(chart);
+          chartList0.add(chart);
         }
       }
       db.close();
-      return _chartList;
+      return chartList0;
     });
 
     if (chartList.isNotEmpty) {

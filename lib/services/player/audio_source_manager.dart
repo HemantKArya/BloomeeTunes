@@ -15,15 +15,15 @@ class AudioSourceManager {
       {required bool isConnected}) async {
     try {
       // Check for offline version first
-      final _down = await BloomeeDBService.getDownloadDB(
+      final down = await BloomeeDBService.getDownloadDB(
           mediaItem2MediaItemModel(mediaItem));
-      if (_down != null) {
+      if (down != null) {
         log("Playing Offline: ${mediaItem.title}", name: "AudioSourceManager");
         SnackbarService.showMessage("Playing Offline",
             duration: const Duration(seconds: 1));
 
         final audioSource = AudioSource.uri(
-            Uri.file('${_down.filePath}/${_down.fileName}'),
+            Uri.file('${down.filePath}/${down.fileName}'),
             tag: mediaItem);
         return audioSource;
       }
