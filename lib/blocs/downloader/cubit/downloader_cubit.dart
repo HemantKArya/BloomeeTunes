@@ -237,7 +237,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       if (song.extras!['source'] == 'youtube' ||
           (song.extras!['perma_url'].toString()).contains('youtube')) {
         final video = await _yt.videos.get(song.id.replaceAll("youtube", ""));
-        var manifest = await _yt.videos.streams.getManifest(video.id);
+        var manifest = await _yt.videos.streams.getManifest(video.id,
+            requireWatchPage: true, ytClients: [YoutubeApiClient.androidVr]);
         AudioOnlyStreamInfo? audioStreamInfo;
         await BloomeeDBService.getSettingStr(GlobalStrConsts.ytDownQuality)
             .then((quality) {
