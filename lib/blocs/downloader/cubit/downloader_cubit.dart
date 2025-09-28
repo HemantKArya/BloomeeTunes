@@ -166,21 +166,24 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   }
 
   /// The main public method to initiate a new download.
-  Future<void> downloadSong(MediaItemModel song) async {
+  Future<void> downloadSong(MediaItemModel song,
+      {bool showSnackbar = true}) async {
     if (connectivityCubit.state != ConnectivityState.connected) {
-      SnackbarService.showMessage("No internet connection.");
+      if (showSnackbar) SnackbarService.showMessage("No internet connection.");
       return;
     }
 
     // --- NEW: Perform pre-download checks ---
     if (_activeDownloads
         .any((item) => item.task.originalUrl == song.extras!['perma_url'])) {
-      SnackbarService.showMessage("${song.title} is already in the queue.");
+      if (showSnackbar)
+        SnackbarService.showMessage("${song.title} is already in the queue.");
       return;
     }
 
     if (await _isAlreadyDownloaded(song)) {
-      SnackbarService.showMessage("${song.title} is already downloaded.");
+      if (showSnackbar)
+        SnackbarService.showMessage("${song.title} is already downloaded.");
       return;
     }
 
@@ -213,7 +216,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     _activeDownloads.insert(0, placeholderProgress);
     _emitUpdatedState();
 
-    SnackbarService.showMessage("Preparing download for ${song.title}...");
+    if (showSnackbar)
+      SnackbarService.showMessage("Preparing download for ${song.title}...");
 
     try {
       // Update status to fetching metadata
@@ -311,7 +315,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         song: song,
       );
 
-      SnackbarService.showMessage("Added ${song.title} to download queue");
+      if (showSnackbar)
+        SnackbarService.showMessage("Added ${song.title} to download queue");
     } catch (e) {
       log("Failed to prepare download for ${song.title}",
           error: e, name: "DownloaderCubit");
@@ -321,7 +326,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
           (item) => item.task.originalUrl == song.extras!['perma_url']);
       _emitUpdatedState();
 
-      SnackbarService.showMessage("Error: Could not process URL.");
+      if (showSnackbar)
+        SnackbarService.showMessage("Error: Could not process URL.");
     }
   }
 

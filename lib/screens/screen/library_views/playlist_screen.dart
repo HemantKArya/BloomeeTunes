@@ -682,7 +682,9 @@ class PlaylistView extends StatelessWidget {
 
             // enqueue the song via cubit
             try {
-              context.read<DownloaderCubit>().downloadSong(song);
+              context
+                  .read<DownloaderCubit>()
+                  .downloadSong(song, showSnackbar: false);
             } catch (_) {}
 
             // small delay so UI remains responsive and progress is visible
@@ -695,6 +697,11 @@ class PlaylistView extends StatelessWidget {
 
           // close dialog when done
           if (dialogCtx.mounted) Navigator.of(dialogCtx).pop();
+
+          // Show single snackbar for bulk download
+          if (dialogCtx.mounted) {
+            SnackbarService.showMessage("Playlist added to download queue");
+          }
         });
 
         return StatefulBuilder(builder: (sbCtx, sbSetState) {
