@@ -67,9 +67,8 @@ void processIncomingIntent(SharedMedia sharedMedia) {
         ExternalMediaImporter.ytMediaImporter(sharedMedia.content!)
             .then((value) async {
           if (value != null) {
-            await bloomeePlayerCubit.bloomeePlayer.addQueueItem(
-              value,
-            );
+            await bloomeePlayerCubit.bloomeePlayer
+                .updateQueue([value], doPlay: true);
           }
         });
         break;
@@ -85,48 +84,7 @@ void processIncomingIntent(SharedMedia sharedMedia) {
   } else if (sharedMedia.attachments != null &&
       sharedMedia.attachments!.isNotEmpty) {
     // Handle attachments
-    final attachment = sharedMedia.attachments!.first;
-    if (attachment != null && isUrl(attachment.path)) {
-      final urlType = getUrlType(attachment.path);
-      switch (urlType) {
-        case UrlType.spotifyTrack:
-          ExternalMediaImporter.sfyMediaImporter(attachment.path)
-              .then((value) async {
-            if (value != null) {
-              await bloomeePlayerCubit.bloomeePlayer.addQueueItem(
-                value,
-              );
-            }
-          });
-          break;
-        case UrlType.spotifyPlaylist:
-          SnackbarService.showMessage("Import Spotify Playlist from library!");
-          break;
-        case UrlType.youtubePlaylist:
-          SnackbarService.showMessage("Import Youtube Playlist from library!");
-          break;
-        case UrlType.spotifyAlbum:
-          SnackbarService.showMessage("Import Spotify Album from library!");
-          break;
-        case UrlType.youtubeVideo:
-          ExternalMediaImporter.ytMediaImporter(attachment.path)
-              .then((value) async {
-            if (value != null) {
-              await bloomeePlayerCubit.bloomeePlayer.addQueueItem(
-                value,
-              );
-            }
-          });
-          break;
-        case UrlType.other:
-          SnackbarService.showMessage("Processing File...");
-          importItems(attachment.path);
-      }
-    } else if (attachment != null) {
-      // Handle as local file
-      SnackbarService.showMessage("Processing File...");
-      importItems(attachment.path);
-    }
+    // todo: handle multiple attachments
   }
 }
 
