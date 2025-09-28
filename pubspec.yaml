@@ -27,9 +27,9 @@ dependencies:
   google_nav_bar: ^5.0.6
   carousel_slider: ^5.1.1
   palette_generator: ^0.3.3+2
-  audio_video_progress_bar: ^1.0.1
+  audio_video_progress_bar: ^2.0.3
   rxdart: ^0.28.0
-  go_router: ^14.8.1
+  go_router: ^16.2.4
   easy_debounce: ^2.0.3
 
   isar: 
@@ -88,14 +88,14 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.2
+  flutter_lints: ^2.0.3
 
   isar_generator: 
     version: *isar_version
     hosted: https://pub.isar-community.dev/
     
   build_runner: ^2.4.8
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
   # icons_launcher: ^2.1.7
 
 
