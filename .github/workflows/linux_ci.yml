@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
     branches: main
 
+env:
+  # add 121 to the GitHub run number so build numbers align with Android/Windows
+  build_number_increment: 121
 
 jobs:
   linux_build:
@@ -36,8 +39,7 @@ jobs:
       - name: Build Linux App
         # compute adjusted build number so linux matches other platforms
         run: |
-          # add 121 to the GitHub run number so build numbers align with Android/Windows
-          adjusted=$(( ${{ github.run_number }} + 121 ))
+          adjusted=$(( ${{ github.run_number }} + ${{ env.build_number_increment }} ))
           echo "ADJUSTED_RUN_NUMBER=$adjusted" >> $GITHUB_ENV
           flutter build linux --release --build-number $adjusted
 
@@ -53,3 +55,54 @@ jobs:
         with:
           name: bloomee_tunes_linux
           path: build/linux/x64/release/bundle/bloomee_tunes_linux_v${{ env.VERSION }}+${{ env.ADJUSTED_RUN_NUMBER }}.zip
+
+  build-debs:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [
+        ['Debian_bullseye', 'debian:bullseye-slim', 'pkg.bloomeetunes.downloadrustup'],
+        ['Debian_bookworm', 'debian:bookworm-slim', 'pkg.bloomeetunes.downloadrustup'],
+        ['Debian_trixie', 'debian:trixie-slim', ''],
+        ['Ubuntu_jammy', 'ubuntu:jammy', 'pkg.bloomeetunes.downloadrustup'],
+        ['Ubuntu_noble', 'ubuntu:noble', ''],
+        ['Kali_latest', 'kalilinux/kali-last-release', ''],
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build version number
+        run: |
+          ver=$(grep -m1 -E '^version:\s*' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          if [ -z "$ver" ]; then echo "version not found in pubspec.yaml"; exit 1; fi
+          # compute adjusted build number so linux matches other platforms
+          adjusted=$(( ${{ github.run_number }} + ${{ env.build_number_increment }} ))
+          echo "FINAL_VERSION=${ver}+${adjusted}" >> $GITHUB_ENV
+      - uses: jtdor/build-deb-action@v1
+        env:
+          DEB_BUILD_OPTIONS: noautodbgsym
+          DEB_BUILD_PROFILES: ${{ matrix.suite[2] }}
+        with:
+          before-build-hook: |
+            apt-get -y install lsb-release devscripts distro-info
+
+            CODENAME="${DISTRIB:=$(lsb_release -cs)}" # trixie
+            RELEASE_DEBIAN="$(debian-distro-info -r --series "$CODENAME" || true)" # Don't fail if not found, it may be ubuntu...
+            RELEASE_UBUNTU="$(ubuntu-distro-info -r --series "$CODENAME" || true)" #
+            RELEASE_UBUNTU="${RELEASE_UBUNTU%% *}" # remove LTS suffix present in ubuntu (eg. "24.04" LTS -> "24.04")
+            RELEASE="${RELEASE_DEBIAN}${RELEASE_UBUNTU}"
+            RELEASE="${RELEASE:=$(cat /etc/debian_version)}" # If neither Debian, nor Ubuntu, put value of /etc/debian_version
+            #LOCAL_SUFFIX="~bpo${RELEASE}+ci${{ github.run_id }}~git$(git rev-parse --short HEAD)"
+            LOCAL_SUFFIX="~bpo${RELEASE}~git$(git rev-parse --short HEAD)"
+
+            #debchange --force-bad-version --controlmaint --local="${LOCAL_SUFFIX}" "CI build"
+            debchange --force-bad-version --controlmaint --newversion="${{ env.FINAL_VERSION }}-1${LOCAL_SUFFIX}" "CI build"
+          buildpackage-opts: --build=binary --no-sign
+          docker-image: ${{ matrix.suite[1] }}
+      - name: Archive artifacts for ${{ matrix.suite[0] }}
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bloomee_tunes_${{ matrix.suite[0] }}
+          path: 'debian/artifacts/*'
+          if-no-files-found: ignore
