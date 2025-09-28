@@ -22,7 +22,7 @@ jobs:
             - name: Setup Flutter
               uses: subosito/flutter-action@v2
               with:
-                flutter-version: '3.27.4'
+                flutter-version: '3.35.4'
                 channel: 'stable'
 
             - name: Install Dependencies
@@ -56,7 +56,6 @@ jobs:
             - name: Verify Sign
               run: |
                   jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
-                  jarsigner --verify --verbose build/app/outputs/flutter-apk/app-x86-release.apk
                   jarsigner --verify --verbose build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
                   jarsigner --verify --verbose build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
                   jarsigner --verify --verbose build/app/outputs/flutter-apk/app-x86_64-release.apk
@@ -66,7 +65,6 @@ jobs:
               shell: powershell
               run: |
                   Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_universal.apk"
-                  Rename-Item -Path "build/app/outputs/flutter-apk/app-x86-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_x86.apk"
                   Rename-Item -Path "build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_armeabi-v7a.apk"
                   Rename-Item -Path "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_arm64-v8a.apk"
                   Rename-Item -Path "build/app/outputs/flutter-apk/app-x86_64-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_x86_64.apk"
@@ -91,7 +89,6 @@ jobs:
                 path: |
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
                   build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
@@ -102,7 +99,6 @@ jobs:
                 artifacts: |
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
                   build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
