@@ -192,12 +192,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         _queueManager.currentPlayingIdx < _queueManager.queue.value.length) {
       final currentItem =
           _queueManager.queue.value[_queueManager.currentPlayingIdx];
-      log('Retrying current track: ${currentItem.title}',
+      final currentPosition = audioPlayer.position;
+      log('Retrying current track: ${currentItem.title} at position $currentPosition',
           name: 'bloomeePlayer');
 
       try {
         _errorHandler.clearError(); // Clear previous error
-        await playMediaItem(currentItem, doPlay: true);
+        await playMediaItem(currentItem,
+            doPlay: true, initialPosition: currentPosition);
       } catch (e) {
         log('Retry failed: $e', name: 'bloomeePlayer');
         _errorHandler.handleError(
@@ -390,10 +392,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> playAudioSource({
     required AudioSource audioSource,
     required String mediaId,
+    Duration? initialPosition,
   }) async {
     try {
       await pause();
-      await seek(Duration.zero);
+      await seek(initialPosition ?? Duration.zero);
 
       await audioPlayer.setAudioSource(audioSource);
       // Protect against hanging load calls (observed on Android when DNS fails).
@@ -458,12 +461,16 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> playMediaItem(MediaItem mediaItem, {bool doPlay = true}) async {
+  Future<void> playMediaItem(MediaItem mediaItem,
+      {bool doPlay = true, Duration? initialPosition}) async {
     try {
       log('Attempting to play: ${mediaItem.title}', name: "bloomeePlayer");
 
       final audioSource = await getAudioSource(mediaItem);
-      await playAudioSource(audioSource: audioSource, mediaId: mediaItem.id);
+      await playAudioSource(
+          audioSource: audioSource,
+          mediaId: mediaItem.id,
+          initialPosition: initialPosition);
 
       if (doPlay && !audioPlayer.playing) {
         await play();
