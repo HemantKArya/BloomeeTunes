@@ -1,0 +1,36 @@
+<h2>🎧 Version 2.12.4</h2>
+
+<p>This release brings exciting new features like bulk download capabilities, enhanced queue management, and improved user experience across the app!</p>
+
+<h3>✨ What's New</h3>
+<ul>
+	<li><strong>Bulk Download Feature</strong>: Select and download multiple songs from playlists at once.</li>
+	<li><strong>Enhanced Queue Management</strong>: New controls for better UI customization in the queue.</li>
+	<li><strong>Song Options in Up Next Panel</strong>: Added song options menu in the "Up Next" panel for better track management.</li>
+	<li><strong>Recently Played Tracking</strong>: Implemented recently played tracking with configurable thresholds (40% playback or 15 seconds).</li>
+	<li><strong>Trendshift Badge</strong>: Added Trendshift badge to the project.</li>
+</ul>
+
+<h3>🎨 Changes &amp; Improvements</h3>
+<ul>
+	<li><strong>Audio Service Updates</strong>: Updated audio service configuration and handling.</li>
+	<li><strong>Bulk Download UI Enhancements</strong>: Improved the bulk download progress dialog and user experience.</li>
+	<li><strong>Queue Title Broadcasting</strong>: Fixed queue title override to properly broadcast updated queue titles.</li>
+	<li><strong>Button Renaming</strong>: Changed "Play Now" button to "Play with Mix" for clarity.</li>
+	<li><strong>Player Error Handling</strong>: Enhanced error handling for network-related playback issues.</li>
+	<li><strong>Snackbar Improvements</strong>: Enhanced snackbar notifications throughout the app.</li>
+	<li><strong>Volume Control</strong>: Fixed volume sliding on cover art for manual control.</li>
+	<li><strong>YouTube Download Fix</strong>: Temporary fix for YouTube downloading (requires future maintenance for youtube_explode_dart).</li>
+	<li><strong>Restore Warning</strong>: Clarified warning messages for restore operations.</li>
+	<li><strong>Code Cleanup</strong>: General code cleanup and optimizations.</li>
+	<li><strong>Documentation Updates</strong>: Updated README, GitHub Pages, and fastlane changelog.</li>
+	<li><strong>Workflow Improvements</strong>: Enhanced GitHub Actions workflows for better CI/CD.</li>
+	<li><strong>Funding Information</strong>: Updated funding URLs and configuration.</li>
+</ul>
+
+<h3>🐛 Bug Fixes</h3>
+<ul>
+	<li><strong>Bulk Download Snackbars</strong>: Fixed snackbar notifications to show only one message for bulk downloads instead of individual messages per song.</li>
+</ul>
+
+<p>Thank you for using Bloomee — enjoy the update!</p>

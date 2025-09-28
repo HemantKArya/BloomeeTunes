@@ -1,4 +1,4 @@
-## [Unreleased]
+## [2.12.4] - 2025-09-28
 
 ### Added
 - **Bulk Download Feature**: Added the ability to select and download multiple songs from playlists at once.
