@@ -70,7 +70,7 @@ dependencies:
 
 
   # audio service dependencies
-  audio_service: ^0.18.16
+  audio_service: ^0.18.18
   audio_session: ^0.1.16
   just_audio: ^0.9.42
   just_audio_media_kit: ^2.0.6

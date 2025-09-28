@@ -509,6 +509,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> stop() async {
     // Stop audio player and clear presence, then propagate stop to audio service
+    playbackState.add(playbackState.value
+        .copyWith(processingState: AudioProcessingState.idle));
+    await playbackState.firstWhere(
+        (state) => state.processingState == AudioProcessingState.idle);
     await audioPlayer.stop();
     DiscordService.clearPresence();
     await super.stop();
