@@ -58,6 +58,7 @@ class PlayerErrorHandler {
   // This prevents the player from continuously skipping through the queue
   // after repeated failures. It will be reset when errors/retries are cleared.
   bool _autoSkipPerformed = false;
+  int _totalRetryCount = 0;
 
   // Callbacks for handling different scenarios
   Function()? onSkipToNext;
@@ -82,6 +83,13 @@ class PlayerErrorHandler {
       return PlayerErrorType.permissionError;
     } else if (error.toString().toLowerCase().contains('buffer')) {
       return PlayerErrorType.bufferingError;
+    } else if (error.toString().toLowerCase().contains('loading interrupted') ||
+        error
+            .toString()
+            .toLowerCase()
+            .contains('failed to create file cache')) {
+      return PlayerErrorType
+          .unknownError; // Treat MPV issues as unknown, no retry
     }
     return PlayerErrorType.unknownError;
   }
@@ -119,7 +127,10 @@ class PlayerErrorHandler {
         _scheduleRetry(mediaItem);
         break;
       default:
-        _scheduleRetry(mediaItem);
+        // For unknown errors (like MPV warnings), don't retry as they might be harmless
+        log('Non-retriable error encountered: $error',
+            name: 'PlayerErrorHandler');
+        break;
     }
   }
 
@@ -143,6 +154,13 @@ class PlayerErrorHandler {
   void _scheduleRetry(MediaItem? currentItem) {
     if (currentItem == null) return;
 
+    if (_totalRetryCount >= 10) {
+      log('Total retry limit reached (10), skipping to next for ${currentItem.title}',
+          name: 'PlayerErrorHandler');
+      _skipToNextOnError(currentItem);
+      return;
+    }
+
     final itemId = currentItem.id;
     final attempts = _retryAttempts[itemId] ?? 0;
 
@@ -156,6 +174,7 @@ class PlayerErrorHandler {
     final delay = _calculateRetryDelay(attempts);
     _retryAttempts[itemId] = attempts + 1;
     _lastRetryTime[itemId] = DateTime.now();
+    _totalRetryCount++;
 
     _reconnectionTimer?.cancel();
     _reconnectionTimer = Timer(delay, () async {
@@ -229,6 +248,7 @@ class PlayerErrorHandler {
     // If the given mediaId had been skipped previously, allow auto-skip again
     // for future errors once normal playback resumes.
     _autoSkipPerformed = false;
+    _totalRetryCount = 0; // Reset total retry count on successful playback
   }
 
   void dispose() {
