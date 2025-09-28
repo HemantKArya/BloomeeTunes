@@ -62,6 +62,8 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 
 🚀 **Learn and Grow:** Contribute to Bloomee and enhance your Flutter and BLoC skills. Every pull request is an opportunity to learn, and we encourage contributors of all levels to join the journey.
 
+To ensure a smooth and collaborative contribution process, we kindly ask that you first open an issue to discuss your ideas or proposed changes. This helps us align on the best approach and makes the review process more efficient. For detailed guidelines, please refer to our [CONTRIBUTING.md](CONTRIBUTING.md).
+
 **How to Contribute:**
 
 1. **Fork the Repository:** Start your Bloomee journey by forking **main(Branch)**.
