@@ -1,3 +1,30 @@
+## [Unreleased]
+
+### Added
+- **Bulk Download Feature**: Added the ability to select and download multiple songs from playlists at once.
+- **Enhanced Queue Management**: Added `showPlayNext` and `showAddtoQueue` boolean controls for better UI customization.
+- **Song Options in Up Next Panel**: Added song options menu in the "Up Next" panel for better track management.
+- **Recently Played Tracking**: Implemented recently played tracking with configurable thresholds (40% playback or 15 seconds).
+- **Trendshift Badge**: Added Trendshift badge to the project.
+
+### Changed
+- **Audio Service Updates**: Updated audio service configuration and handling.
+- **Bulk Download UI Enhancements**: Improved the bulk download progress dialog and user experience.
+- **Queue Title Broadcasting**: Fixed queue title override to properly broadcast updated queue titles.
+- **Button Renaming**: Changed "Play Now" button to "Play with Mix" for clarity.
+- **Player Error Handling**: Enhanced error handling for network-related playback issues.
+- **Snackbar Improvements**: Enhanced snackbar notifications throughout the app.
+- **Volume Control**: Fixed volume sliding on cover art for manual control.
+- **YouTube Download Fix**: Temporary fix for YouTube downloading (requires future maintenance for youtube_explode_dart).
+- **Restore Warning**: Clarified warning messages for restore operations.
+- **Code Cleanup**: General code cleanup and optimizations.
+- **Documentation Updates**: Updated README, GitHub Pages, and fastlane changelog.
+- **Workflow Improvements**: Enhanced GitHub Actions workflows for better CI/CD.
+- **Funding Information**: Updated funding URLs and configuration.
+
+### Fixed
+- **Bulk Download Snackbars**: Fixed snackbar notifications to show only one message for bulk downloads instead of individual messages per song.
+
 ## [2.12.3] - 2025-08-17
 
 ### Added
