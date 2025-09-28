@@ -1,6 +1,6 @@
 {
-    "name": "Bloomee",
-    "short_name": "Bloomee",
+    "name": "bloomee",
+    "short_name": "bloomee",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

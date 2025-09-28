@@ -110,7 +110,7 @@ class Default_Theme {
       ),
 
       // 🔹 Fix for cards and surfaces
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         color: themeColor,
         surfaceTintColor: Colors.transparent,
       ),

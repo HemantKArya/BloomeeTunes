@@ -4,10 +4,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 part 'connectivity_state.dart';
 
 class ConnectivityCubit extends Cubit<ConnectivityState> {
-  StreamSubscription<ConnectivityResult>? _subscription;
+  StreamSubscription<List<ConnectivityResult>>? _subscription;
   ConnectivityCubit() : super(ConnectivityState.disconnected) {
     _subscription = Connectivity().onConnectivityChanged.listen((event) {
-      if (event == ConnectivityResult.none) {
+      if (event.isEmpty || event.contains(ConnectivityResult.none)) {
         emit(ConnectivityState.disconnected);
       } else {
         emit(ConnectivityState.connected);

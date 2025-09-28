@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "bloomee" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "bloomee" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 bloomee. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 BloomeeTunes. All rights reserved." "\0"
             VALUE "OriginalFilename", "bloomee.exe" "\0"
             VALUE "ProductName", "bloomee" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
