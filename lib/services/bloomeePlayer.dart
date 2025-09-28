@@ -33,8 +33,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   BehaviorSubject<LoopMode> loopMode =
       BehaviorSubject<LoopMode>.seeded(LoopMode.off);
 
-  final _playlist = ConcatenatingAudioSource(children: []);
-
   // Flag to track if player is disposed
   bool _isDisposed = false;
 
@@ -115,7 +113,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _playbackEventSubscription =
         audioPlayer.playbackEventStream.listen(_broadcastPlayerEvent);
     audioPlayer.setLoopMode(LoopMode.off);
-    audioPlayer.setAudioSource(_playlist, preload: false);
 
     // Enhanced error handling for player events
     _playerStateSubscription = audioPlayer.playerStateStream.listen((state) {
@@ -131,14 +128,22 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       audioPlayer.sequenceStream,
       audioPlayer.currentIndexStream,
       (sequence, index) {
-        if (sequence == null || sequence.isEmpty) return null;
+        if (sequence.isEmpty) return null;
         MediaItem item = sequence[index ?? 0].tag as MediaItem;
         final artUri = Uri.parse(
             formatImgURL(item.artUri.toString(), ImageQuality.medium));
         item = item.copyWith(artUri: artUri);
         return item;
       },
-    ).whereType<MediaItem>().listen(mediaItem.add);
+    ).whereType<MediaItem>().listen((item) {
+      // Only update if the media item has actually changed (compare id and artUri)
+      final currentItem = mediaItem.value;
+      if (currentItem == null ||
+          currentItem.id != item.id ||
+          currentItem.artUri != item.artUri) {
+        mediaItem.add(item);
+      }
+    });
 
     // Trigger skipToNext when the current song ends.
     final endingOffset =
@@ -390,11 +395,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       await pause();
       await seek(Duration.zero);
 
-      if (_playlist.children.isNotEmpty) {
-        await _playlist.clear();
-      }
-
-      await _playlist.add(audioSource);
+      await audioPlayer.setAudioSource(audioSource);
       // Protect against hanging load calls (observed on Android when DNS fails).
       try {
         // Wait up to 12 seconds for load, otherwise treat as network error.
@@ -406,9 +407,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
             'Network timeout while loading track', currentItem, e);
         try {
           await audioPlayer.stop();
-          if (_playlist.children.isNotEmpty) {
-            await _playlist.clear();
-          }
         } catch (_) {}
         rethrow;
       }
@@ -597,9 +595,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> updateQueue(List<MediaItem> newQueue,
-      {bool doPlay = false}) async {
-    await _queueManager.updateQueue(newQueue, doPlay: doPlay);
+  Future<void> updateQueue(List<MediaItem> queue, {bool doPlay = false}) async {
+    await _queueManager.updateQueue(queue, doPlay: doPlay);
   }
 
   @override
