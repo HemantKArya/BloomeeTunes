@@ -64,15 +64,15 @@ String formatImgURL(String imgURL, ImageQuality quality) {
         switch (quality) {
           case ImageQuality.low:
             {
-              return imgURL.replaceAll('344x344', '180x180');
+              return imgURL;
             }
           case ImageQuality.medium:
             {
-              return imgURL.replaceAll('344x344', '344x344');
+              return imgURL.replaceAll('180x180', '240x240');
             }
           case ImageQuality.high:
             {
-              return imgURL;
+              return imgURL.replaceAll('180x180', '480x480');
             }
         }
       }

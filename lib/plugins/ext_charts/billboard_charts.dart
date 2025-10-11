@@ -141,7 +141,6 @@ Future<ChartModel> getBillboardChart(ChartURL url) async {
       var songs =
           document.querySelectorAll('.o-chart-results-list-row-container');
       // List<Map<String, String>> songList = [];
-      String imgURL;
       List<ChartItemModel> chartItems = [];
       for (var item in songs) {
         var row = item.querySelector('ul.o-chart-results-list-row');
@@ -153,12 +152,13 @@ Future<ChartModel> getBillboardChart(ChartURL url) async {
         var ttl = title?.text.trim();
         var lbl = label?.text.trim();
 
-        imgURL = img!.attributes['data-lazy-src'].toString();
-        if (imgURL.contains("lazyload-fallback.gif")) {
+        String imgURL =
+            img?.attributes['data-lazy-src'] ?? img?.attributes['src'] ?? '';
+        if (imgURL.isEmpty || imgURL.contains("lazyload-fallback.gif")) {
           imgURL =
               "https://www.billboard.com/wp-content/themes/vip/pmc-billboard-2021/assets/app/icons/icon-512x512.png";
         } else {
-          imgURL = imgURL.replaceAll(RegExp(r'(\d+x\d+)\.jpg$'), '344x344.jpg');
+          imgURL = imgURL.replaceAll(RegExp(r'(\d+x\d+)\.jpg$'), '180x180.jpg');
         }
         chartItems
             .add(ChartItemModel(name: ttl, imageUrl: imgURL, subtitle: lbl));
