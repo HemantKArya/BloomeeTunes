@@ -210,12 +210,13 @@ class About extends StatelessWidget {
                       }),
                   // Short label 'Email' opens mail composer
                   _InfoPill(
-                      icon: Icons.email_outlined,
+                      icon: FontAwesome.x_twitter_brand,
                       text: 'Contact',
                       tooltip: 'Send a business inquiry',
                       onTap: () {
                         launchUrl(
-                            Uri.parse('mailto:iamhemantindia@protonmail.com'));
+                          Uri.parse('https://x.com/iamhemantindia'),
+                        );
                       }),
                   // Short label 'Linkedin' opens Linkedin profile
                   _InfoPill(
