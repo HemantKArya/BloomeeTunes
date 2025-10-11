@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:math';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -98,7 +99,8 @@ class _ChartWidgetState extends State<ChartWidget> {
               bloc: BlocProvider.of<ChartCubit>(context),
               builder: (context, state) {
                 final cachedImage = LoadImageCached(
-                    imageUrl: state.coverImg, fit: BoxFit.cover);
+                    imageUrl: formatImgURL(state.coverImg, ImageQuality.high),
+                    fit: BoxFit.cover);
                 return AnimatedSwitcher(
                   duration: const Duration(seconds: 1),
                   child: state is ChartInitial
