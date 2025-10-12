@@ -22,7 +22,10 @@
       <i class="fa-brands fa-github"></i>
       GitHub
     </a>
-  </div>
+  <a href="https://x.com/iamhemantindia" class="contact-btn x" target="_blank" rel="noopener noreferrer" aria-label="Hemant on X" title="X - iamhemantindia">
+      <i class="fa-brands fa-x-twitter"></i>
+      X
+    </a>
 </section>
 
 <style>
@@ -121,6 +124,11 @@
 
   .contact-btn.github {
     background: #333;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .contact-btn.x {
+    background: #000;
     border: 1px solid rgba(255, 255, 255, 0.3);
   }
 

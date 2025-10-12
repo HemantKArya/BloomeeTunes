@@ -1,3 +1,22 @@
+## [Unreleased]
+
+### Changed
+- **Flutter Version Upgrade**: Updated Flutter version to 3.35.4 with CI/CD pipeline improvements.
+- **Package Upgrades**: Updated various dependencies and packages for better performance and security.
+- **Connectivity Improvements**: Enhanced connectivity handling after package upgrades.
+- **YouTube Shared Music**: Added support for playing YouTube shared music links.
+- **Audio Source Optimization**: Removed concatenating audio source usage for improved performance.
+- **Network Failure Handling**: Added maximum limit of 10 retries before shifting to next song on network failures.
+- **Track Recovery**: Improved track recovery when lost during network interruptions.
+- **About Page Refactor**: Refactored the about section for better maintainability.
+- **Color Analyzer**: Added new color analyzer functionality from URLs.
+- **Chart Widget Fixes**: Fixed image display issues in chart widgets.
+- **Billboard Image Fixes**: Resolved image loading issues in Billboard charts.
+
+### Fixed
+- **Isar Version Compatibility**: Fixed Isar database version compatibility issues.
+- **Code Reverts**: Reverted problematic code changes to maintain stability.
+
 ## [2.12.4] - 2025-09-28
 
 ### Added
