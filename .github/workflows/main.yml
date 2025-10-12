@@ -55,10 +55,11 @@ jobs:
 
             - name: Verify Sign
               run: |
-                  jarsigner --verify --verbose build/app/outputs/flutter-apk/app-release.apk
-                  jarsigner --verify --verbose build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-                  jarsigner --verify --verbose build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-                  jarsigner --verify --verbose build/app/outputs/flutter-apk/app-x86_64-release.apk
+                  $buildToolsDir = Get-ChildItem "$env:ANDROID_HOME\build-tools" | Where-Object { $_.PSIsContainer } | Sort-Object Name -Descending | Select-Object -First 1
+                  & "$buildToolsDir\apksigner.bat" verify build/app/outputs/flutter-apk/app-release.apk
+                  & "$buildToolsDir\apksigner.bat" verify build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+                  & "$buildToolsDir\apksigner.bat" verify build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+                  & "$buildToolsDir\apksigner.bat" verify build/app/outputs/flutter-apk/app-x86_64-release.apk
 
 
             - name: Rename APK file
