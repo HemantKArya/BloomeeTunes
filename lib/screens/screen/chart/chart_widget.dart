@@ -1,7 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:math';
-import 'dart:developer' as dev;
-import 'package:Bloomee/utils/color_pallete.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -54,41 +52,9 @@ final List<TextColorPair> colorPair = [
 ];
 
 class _ChartWidgetState extends State<ChartWidget> {
-  late ClipPath cachedClipPath;
-  bool initializedPalette = false;
+  late final cachedClipPath;
   final _random = Random();
   TextColorPair _color = colorPair[0];
-  Color textColor = Colors.white;
-
-  void _setPaletteColors(String imageUrl) async {
-    // get the palette colors from the image url
-    final colors = await analyzeImageColors(imageUrl, numColors: 10);
-    final overlay = colors['overlay'] ?? Colors.black;
-    final textColor = colors['text'] ?? Colors.white;
-
-    dev.log('Overlay Color: $overlay, Text Color: $textColor');
-
-    setState(() {
-      this.textColor = textColor;
-      cachedClipPath = ClipPath(
-        clipper: ChartCardClipper(),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomRight,
-              end: Alignment.topLeft,
-              colors: [
-                overlay.withOpacity(0.9),
-                overlay.withOpacity(0.7),
-              ],
-            ),
-          ),
-        ),
-      );
-      initializedPalette = true;
-    });
-  }
-
   @override
   void initState() {
     setState(() {
@@ -110,10 +76,6 @@ class _ChartWidgetState extends State<ChartWidget> {
         ),
       ),
     );
-    if (!initializedPalette) {
-      _setPaletteColors(
-          formatImgURL(widget.chartInfo.imgUrl, ImageQuality.low));
-    }
     super.initState();
   }
 
