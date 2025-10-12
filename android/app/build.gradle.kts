@@ -56,10 +56,10 @@ android {
             keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
             val keystorePath = keystoreProperties["bloomee.jks"] as String?
-            val keyAlias = keystoreProperties["keyAlias"] as String?
+            val keyAliasValue = keystoreProperties["keyAlias"] as String?
 
             println("   Keystore file path: $keystorePath")
-            println("   Key alias: $keyAlias")
+            println("   Key alias: $keyAliasValue")
 
             if (keystorePath != null) {
                 val keystoreFile = file(keystorePath)
@@ -70,7 +70,7 @@ android {
             create("release") {
                 keyAlias = keystoreProperties["keyAlias"] as String?
                 keyPassword = keystoreProperties["keyPassword"] as String?
-                storeFile = file("bloomee.jks")
+                storeFile = rootProject.file("bloomee.jks")
                 storePassword = keystoreProperties["storePassword"] as String?
                 println("   ✅ Release signing config created successfully")
             }
