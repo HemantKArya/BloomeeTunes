@@ -3,16 +3,12 @@
 <section class="about-developer">
   <h2>Who Am I?</h2>
   <p class="about-subtitle">
-    Hi, I’m Hemant. I build open-source projects like BloomeeTunes out of a genuine love for software development. This app started as a personal experiment and grew into something much bigger—used and appreciated by people around the world. I’m always exploring new ideas, and I believe in sharing what I create freely, so others can learn, build, and enjoy too.
+    Hi, I'm Hemant—a developer who codes for fun and shares open-source projects to learn, grow, and help others discover new possibilities.
   </p>
   <div class="contact-buttons">
-  <a href="mailto:iamhemantindia@protonmail.com" class="contact-btn email" aria-label="Email Hemant" title="Email Hemant">
-      <i class="fa-solid fa-envelope"></i>
-      Email Me
-    </a>
-  <a href="https://instagram.com/iamhemantindia" class="contact-btn instagram" target="_blank" rel="noopener noreferrer" aria-label="Hemant on Instagram" title="Instagram - iamhemantindia">
-      <i class="fa-brands fa-instagram"></i>
-      Instagram
+  <a href="https://x.com/iamhemantindia" class="contact-btn x" target="_blank" rel="noopener noreferrer" aria-label="Hemant on X" title="X - iamhemantindia">
+      <i class="fa-brands fa-x-twitter"></i>
+      X
     </a>
   <a href="https://linkedin.com/in/iamhemantindia" class="contact-btn linkedin" target="_blank" rel="noopener noreferrer" aria-label="Hemant on LinkedIn" title="LinkedIn - iamhemantindia">
       <i class="fa-brands fa-linkedin"></i>
@@ -22,9 +18,13 @@
       <i class="fa-brands fa-github"></i>
       GitHub
     </a>
-  <a href="https://x.com/iamhemantindia" class="contact-btn x" target="_blank" rel="noopener noreferrer" aria-label="Hemant on X" title="X - iamhemantindia">
-      <i class="fa-brands fa-x-twitter"></i>
-      X
+  <a href="https://instagram.com/iamhemantindia" class="contact-btn instagram" target="_blank" rel="noopener noreferrer" aria-label="Hemant on Instagram" title="Instagram - iamhemantindia">
+      <i class="fa-brands fa-instagram"></i>
+      Instagram
+    </a>
+  <a href="mailto:iamhemantindia@protonmail.com" class="contact-btn email" aria-label="Email Hemant" title="Email Hemant">
+      <i class="fa-solid fa-envelope"></i>
+      Email Me
     </a>
 </section>
 
@@ -56,7 +56,7 @@
     font-family: 'IBM Plex Sans', sans-serif;
     font-weight: 500;
     font-style: normal;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     color: rgba(255, 237, 248, 0.949);
     margin-top: 0.1rem;
     margin-bottom: 1.5rem;
@@ -151,7 +151,7 @@
     }
 
     .about-subtitle {
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
     .contact-btn {
