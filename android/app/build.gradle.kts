@@ -68,9 +68,9 @@ android {
             }
 
             create("release") {
-                // keyAlias = keystoreProperties["keyAlias"] as String?
+                keyAlias = keystoreProperties["keyAlias"] as String?
                 keyPassword = keystoreProperties["keyPassword"] as String?
-                storeFile = file(keystoreProperties["bloomee.jks"] as String?)
+                storeFile = file("bloomee.jks")
                 storePassword = keystoreProperties["storePassword"] as String?
                 println("   ✅ Release signing config created successfully")
             }
