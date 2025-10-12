@@ -57,7 +57,7 @@ const MediaPlaylistDBSchema = CollectionSchema(
   getId: _mediaPlaylistDBGetId,
   getLinks: _mediaPlaylistDBGetLinks,
   attach: _mediaPlaylistDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _mediaPlaylistDBEstimateSize(
@@ -986,7 +986,7 @@ const PlaylistsInfoDBSchema = CollectionSchema(
   getId: _playlistsInfoDBGetId,
   getLinks: _playlistsInfoDBGetLinks,
   attach: _playlistsInfoDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _playlistsInfoDBEstimateSize(
@@ -2801,7 +2801,7 @@ const MediaItemDBSchema = CollectionSchema(
   getId: _mediaItemDBGetId,
   getLinks: _mediaItemDBGetLinks,
   attach: _mediaItemDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _mediaItemDBEstimateSize(
@@ -5241,7 +5241,7 @@ const AppSettingsStrDBSchema = CollectionSchema(
   getId: _appSettingsStrDBGetId,
   getLinks: _appSettingsStrDBGetLinks,
   attach: _appSettingsStrDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _appSettingsStrDBEstimateSize(
@@ -6303,7 +6303,7 @@ const AppSettingsBoolDBSchema = CollectionSchema(
   getId: _appSettingsBoolDBGetId,
   getLinks: _appSettingsBoolDBGetLinks,
   attach: _appSettingsBoolDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _appSettingsBoolDBEstimateSize(
@@ -6918,7 +6918,7 @@ const ChartsCacheDBSchema = CollectionSchema(
   getId: _chartsCacheDBGetId,
   getLinks: _chartsCacheDBGetLinks,
   attach: _chartsCacheDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _chartsCacheDBEstimateSize(
@@ -7797,7 +7797,7 @@ const RecentlyPlayedDBSchema = CollectionSchema(
   getId: _recentlyPlayedDBGetId,
   getLinks: _recentlyPlayedDBGetLinks,
   attach: _recentlyPlayedDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _recentlyPlayedDBEstimateSize(
@@ -8208,7 +8208,7 @@ const YtLinkCacheDBSchema = CollectionSchema(
   getId: _ytLinkCacheDBGetId,
   getLinks: _ytLinkCacheDBGetLinks,
   attach: _ytLinkCacheDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _ytLinkCacheDBEstimateSize(
@@ -9137,7 +9137,7 @@ const DownloadDBSchema = CollectionSchema(
   getId: _downloadDBGetId,
   getLinks: _downloadDBGetLinks,
   attach: _downloadDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _downloadDBEstimateSize(
@@ -10090,7 +10090,7 @@ const SavedCollectionsDBSchema = CollectionSchema(
   getId: _savedCollectionsDBGetId,
   getLinks: _savedCollectionsDBGetLinks,
   attach: _savedCollectionsDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _savedCollectionsDBEstimateSize(
@@ -11984,7 +11984,7 @@ const NotificationDBSchema = CollectionSchema(
   getId: _notificationDBGetId,
   getLinks: _notificationDBGetLinks,
   attach: _notificationDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _notificationDBEstimateSize(
@@ -13364,7 +13364,7 @@ const LyricsDBSchema = CollectionSchema(
   getId: _lyricsDBGetId,
   getLinks: _lyricsDBGetLinks,
   attach: _lyricsDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _lyricsDBEstimateSize(
@@ -15454,7 +15454,7 @@ const SearchHistoryDBSchema = CollectionSchema(
   getId: _searchHistoryDBGetId,
   getLinks: _searchHistoryDBGetLinks,
   attach: _searchHistoryDBAttach,
-  version: '3.1.8',
+  version: '3.3.0-dev.3',
 );
 
 int _searchHistoryDBEstimateSize(

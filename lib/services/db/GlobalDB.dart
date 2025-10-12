@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 part 'GlobalDB.g.dart';
 

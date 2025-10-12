@@ -12,7 +12,7 @@ import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/backup_validator.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:path_provider/path_provider.dart';
 

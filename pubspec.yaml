@@ -9,7 +9,7 @@ environment:
   sdk: '>=3.0.6 <4.0.0'
 
 # isar version for community fork of isar (temporary)
-isar_version: &isar_version 3.1.8
+isar_version: &isar_version 3.3.0-dev.3 # define the version to be used
 
 dependencies:
   flutter:
@@ -32,12 +32,10 @@ dependencies:
   go_router: ^16.2.4
   easy_debounce: ^2.0.3
 
-  isar: 
+  isar_community: 
     version: *isar_version
-    hosted: https://pub.isar-community.dev/
-  isar_flutter_libs: # contains Isar Core
+  isar_community_flutter_libs: # contains Isar Core
     version: *isar_version
-    hosted: https://pub.isar-community.dev/
 
   path_provider: ^2.1.0
   modal_bottom_sheet: ^3.0.0
@@ -90,11 +88,10 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^2.0.3
 
-  isar_generator: 
+  isar_community_generator: 
     version: *isar_version
-    hosted: https://pub.isar-community.dev/
     
-  build_runner: ^2.4.8
+  build_runner: any
   flutter_launcher_icons: ^0.14.4
   # icons_launcher: ^2.1.7
 
