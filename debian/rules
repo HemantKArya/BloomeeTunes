@@ -4,10 +4,15 @@ export DH_VERBOSE = 1
 
 # Build may fail if we don't use the same version as upstream, especially
 # when the new versions triggers and update of `pubspec.lock`.
-FLUTTER_VERSION = 3.35.4
-FLUTTER_VERSION_UPSTREAM = $(shell cat .github/workflows/linux_ci.yml | grep flutter-version | cut -d "'" -f 2)
-ifneq ($(FLUTTER_VERSION), $(FLUTTER_VERSION_UPSTREAM))
-  $(error Using flutter version $(FLUTTER_VERSION). But upstream builds with $(FLUTTER_VERSION_UPSTREAM))
+FLUTTER_VERSION := $(shell FLUTTER_VERSION=$$(head -n15 .github/workflows/linux_ci.yml | perl -MYAML -le 'print YAML::LoadFile(shift)->{env}{flutter_version}' /dev/stdin) && if [ "$$FLUTTER_VERSION" = "" ]; then FLUTTER_VERSION=$$(cat .github/workflows/linux_ci.yml | grep flutter-version | cut -d "'" -f 2); fi && echo $$FLUTTER_VERSION)
+define MESSAGE
+
+  Flutter version could not be found at its expected location. Is the value
+  correctly set in .github/workflows/linux_ci.yml at env:flutter_version:?
+  Searching at the older location.
+endef
+ifeq ($(FLUTTER_VERSION)$(FLUTTER_VERSION_ALTERNATIVE),)
+  $(error $(MESSAGE))
 endif
 
 FLUTTER_PATH = /tmp/flutter-rustup
