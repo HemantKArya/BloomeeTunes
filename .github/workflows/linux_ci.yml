@@ -7,6 +7,7 @@ on:
 env:
   # add 121 to the GitHub run number so build numbers align with Android/Windows
   build_number_increment: 121
+  flutter_version: '3.35.4'
 
 jobs:
   linux_build:
@@ -18,7 +19,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.4'
+          flutter-version: '${{ env.flutter_version }}'
           channel: stable
       - run: |
           sudo apt-get update -y
