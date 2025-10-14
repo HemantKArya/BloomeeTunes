@@ -21,6 +21,8 @@ export PUB_CACHE = $(FLUTTER_PATH)/pub-cache
 BLOOMEETUNES_HOME := /tmp/bloomeetunes.HOME
 export HOME = $(BLOOMEETUNES_HOME)
 
+ISAR_VERSION := $(shell perl -MYAML -le 'print YAML::LoadFile(shift)->{isar_version}' pubspec.yaml)
+
 ifeq (jammy, $(shell cat /etc/os-release | grep UBUNTU_CODENAME | cut -d "=" -f 2))
   # Required on jammy otherwise we have
   # clang: error: optimization flag '-ffat-lto-objects' is not supported [-Werror,-Wignored-optimization-argument]
@@ -52,6 +54,8 @@ ifneq ($(filter pkg.bloomeetunes.downloadrustup,$(DEB_BUILD_PROFILES)),)
   export PATH := $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/bin/:$(CARGO_HOME)/bin:$(PATH)
   RUSTUP_BUILD_DEP = $(CARGO_HOME)/bin/rustup.done
 else
+  export CARGO_HOME = $(FLUTTER_PATH)/cargo
+  export RUSTUP_HOME = $(FLUTTER_PATH)/rustup
   export PATH := $(PATH):$(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/bin/
   RUSTUP_BUILD_DEP =
 endif
@@ -78,13 +82,16 @@ $(CARGO_HOME)/bin/rustup.done: $(HOME)/rustup-init.sh
 override_dh_clean:
 	dh_clean
 	rm -fr $(BLOOMEETUNES_HOME)
+	if [ -e $(FLUTTER_PATH)/isar-community/target ]; then rm -r $(FLUTTER_PATH)/isar-community/target; fi
 
 override_dh_auto_clean: $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked
 	flutter pub get --enforce-lockfile --verbose
 	flutter clean --verbose
 
-override_dh_auto_build: $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked rustup
+override_dh_auto_build: $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked rustup $(FLUTTER_PATH)/isar-community/target/release/libisar.so
 	flutter pub get --enforce-lockfile --verbose
+	# Workaround for https://github.com/isar-community/isar-community/issues/58
+	cp -a $(FLUTTER_PATH)/isar-community/target/release/libisar.so $(PUB_CACHE)/hosted/pub.dev/isar_community_flutter_libs-$(ISAR_VERSION)/linux/
 	flutter build linux --verbose
 
 override_dh_auto_test: $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked rustup
@@ -101,3 +108,13 @@ execute_after_dh_auto_install:
 override_dh_dwz:
 	#Disable, because it fails
 	#dh_dwz --no-dwz-multifile
+
+$(FLUTTER_PATH)/isar-community/target/release/libisar.so:
+	# Workaround for https://github.com/isar-community/isar-community/issues/58
+	if [ ! -d $(FLUTTER_PATH)/isar-community ]; then \
+	  git clone https://github.com/isar-community/isar-community.git $(FLUTTER_PATH)/isar-community; \
+	fi && \
+	cd $(FLUTTER_PATH)/isar-community && \
+	git checkout "$(ISAR_VERSION)" && \
+	rustup default stable && \
+	cargo build --release
