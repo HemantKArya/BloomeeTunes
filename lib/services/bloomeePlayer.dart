@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
 import 'package:Bloomee/services/player/audio_source_manager.dart';
 import 'package:Bloomee/services/player/player_error_handler.dart';
-import 'package:Bloomee/services/player/connectivity_manager.dart';
 import 'package:Bloomee/services/player/queue_manager.dart';
 import 'package:Bloomee/services/player/related_songs_manager.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
@@ -24,7 +23,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   // Modular components
   late AudioSourceManager _audioSourceManager;
   late PlayerErrorHandler _errorHandler;
-  late ConnectivityManager _connectivityManager;
   late QueueManager _queueManager;
   late RelatedSongsManager _relatedSongsManager;
 
@@ -50,7 +48,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   // Expose properties from modular components
   BehaviorSubject<bool> get shuffleMode => _queueManager.shuffleMode;
-  BehaviorSubject<bool> get isConnected => _connectivityManager.isConnected;
   BehaviorSubject<PlayerError?> get lastError => _errorHandler.lastError;
   BehaviorSubject<List<MediaItem>> get relatedSongs =>
       _relatedSongsManager.relatedSongs;
@@ -86,20 +83,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     // Initialize all modular components
     _audioSourceManager = AudioSourceManager();
     _errorHandler = PlayerErrorHandler();
-    _connectivityManager = ConnectivityManager();
     _queueManager = QueueManager();
     _relatedSongsManager = RelatedSongsManager();
 
     // Setup callbacks between modules
     _errorHandler.onSkipToNext = () => skipToNext();
     _errorHandler.onRetryCurrentTrack = () => _retryCurrentTrack();
-    // Provide connectivity check function so error handler can verify network
-    // state before auto-skipping to the next track.
-    _errorHandler.checkNetworkConnectivity =
-        () => _connectivityManager.checkConnectivity();
-
-    _connectivityManager.onNetworkReconnected =
-        () => _handleNetworkReconnection();
 
     _queueManager.onPrepareToPlay =
         (idx, doPlay) => _prepare4play(idx: idx, doPlay: doPlay);
@@ -177,13 +166,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           _queueManager.queue.value[_queueManager.currentPlayingIdx];
       _errorHandler.handleError(PlayerErrorType.playbackError,
           'Playback failed unexpectedly', currentItem);
-    }
-  }
-
-  void _handleNetworkReconnection() {
-    if (_errorHandler.lastError.value?.type == PlayerErrorType.networkError &&
-        _queueManager.queue.value.isNotEmpty) {
-      _retryCurrentTrack();
     }
   }
 
@@ -340,8 +322,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
     try {
-      final audioSource = await _audioSourceManager.getAudioSource(mediaItem,
-          isConnected: _connectivityManager.isConnected.value);
+      final audioSource = await _audioSourceManager.getAudioSource(mediaItem);
 
       // Check if it's an offline source (file URI)
       if (audioSource.toString().contains('file://')) {
@@ -557,7 +538,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     // Dispose modular components
     _errorHandler.dispose();
-    _connectivityManager.dispose();
     _queueManager.dispose();
     _relatedSongsManager.dispose();
     await _recentlyPlayedTracker.dispose();

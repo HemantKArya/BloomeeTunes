@@ -11,8 +11,7 @@ import 'package:just_audio/just_audio.dart';
 class AudioSourceManager {
   // AudioSourceManager without audio source caching
 
-  Future<AudioSource> getAudioSource(MediaItem mediaItem,
-      {required bool isConnected}) async {
+  Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
     try {
       // Check for offline version first
       final _down = await BloomeeDBService.getDownloadDB(
@@ -26,11 +25,6 @@ class AudioSourceManager {
             Uri.file('${_down.filePath}/${_down.fileName}'),
             tag: mediaItem);
         return audioSource;
-      }
-
-      // Check network connectivity before attempting online playback
-      if (!isConnected) {
-        throw Exception('No network connection available');
       }
 
       AudioSource audioSource;

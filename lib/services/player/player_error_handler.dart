@@ -64,8 +64,6 @@ class PlayerErrorHandler {
   Function()? onSkipToNext;
   Function()? onRetryCurrentTrack;
   Function(String?)? onClearCachedSource;
-  // Optional callback to check network connectivity before auto-skipping
-  Future<bool> Function()? checkNetworkConnectivity;
 
   PlayerErrorType categorizeError(dynamic error) {
     if (error is SocketException ||
@@ -204,29 +202,7 @@ class PlayerErrorHandler {
       return;
     }
 
-    // Before auto-skipping, check network connectivity if a checker is available.
-    if (checkNetworkConnectivity != null) {
-      bool connected = true;
-      try {
-        connected = await checkNetworkConnectivity!.call();
-      } catch (e) {
-        connected = false;
-        log('Connectivity check failed: $e', name: 'PlayerErrorHandler');
-      }
-
-      if (!connected) {
-        // If there's no network, inform the user and stop auto-skipping for now.
-        SnackbarService.showMessage(
-            'Network appears to be offline. Please check your internet connection.',
-            duration: const Duration(seconds: 4));
-        // Prevent repeated auto-skips until retries are cleared.
-        _autoSkipPerformed = true;
-        return;
-      }
-    }
-
-    // If we reach here either there's no connectivity checker or connectivity is OK,
-    // perform a single automatic skip and mark it so we don't continuously skip.
+    // Perform a single automatic skip and mark it so we don't continuously skip.
     SnackbarService.showMessage(
         'Failed to play "$title". Skipping to next (automatic).',
         duration: const Duration(seconds: 3));
