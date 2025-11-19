@@ -1,12 +1,12 @@
- ![BloomeeTunes](./assets/docs/bloomeetunes_new_banner.png)
-**<h1 align=center>Bloomee🌸</h1>**
+ ![KHANNA TUNEZ](./assets/docs/bloomeetunes_new_banner.png)
+**<h1 align=center>khanna tunez</h1>**
 <p align="center"><img src=https://img.shields.io/sourceforge/dt/bloomee?style=for-the-badge&logoSize=auto&label=DOWNLOADS(SF)
- /> <a href="https://github.com/HemantKArya/BloomeeTunes/releases/latest"><img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge&label=DOWNLOADS(GH)" >
-<img alt="GitHub Release" src="https://img.shields.io/github/v/release/HemantKArya/BloomeeTunes?display_name=release&style=for-the-badge&color=f01d7c" ></a>
-<img alt="GitHub License" src="https://img.shields.io/github/license/HemantKArya/BloomeeTunes?style=for-the-badge&color=1881cc" > <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/HemantKArya/BloomeeTunes/checkout.yml?style=for-the-badge" > <br><img src=https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white > <img src=https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white /> <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black"/>
+ /> <a href="https://github.com/a.a.khanna/khanna tunez/releases/latest"><img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge&label=DOWNLOADS(GH)" >
+<img alt="GitHub Release" src="https://img.shields.io/github/v/release/a.a.khanna/khanna tunez?display_name=release&style=for-the-badge&color=f01d7c" ></a>
+<img alt="GitHub License" src="https://img.shields.io/github/license/a.a.khanna/khanna tunez?style=for-the-badge&color=1881cc" > <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/a.a.khanna/khanna tunez/checkout.yml?style=for-the-badge" > <br><img src=https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white > <img src=https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white /> <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black"/>
 </p>
 <p align="center">
-    <a href="https://trendshift.io/repositories/11533" target="_blank"><img src="https://trendshift.io/api/badge/repositories/11533" alt="HemantKArya%2FBloomeeTunes | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+    <a href="https://trendshift.io/repositories/11533" target="_blank"><img src="https://trendshift.io/api/badge/repositories/11533" alt="a.a.khanna%2Fkhannatunez | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 </p>
 
 
@@ -17,7 +17,7 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 
 ![BloomeeDesktop](./assets/docs/lyricsscrn.png)
 
-### **Why Bloomee?**
+### **khanna tunez?**
 
 🌟 **Ad-Free Experience:** Say goodbye to interruptions and enjoy uninterrupted musical bliss.
 
@@ -49,7 +49,7 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 
 <h3 align=center>Download for Android, Windows & Linux(dev) 😍</h3>
 <p align="center"><a href="https://github.com/HemantKArya/BloomeeTunes/releases"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" height=40/></a>
-<a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" height=40 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
+<a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download khanna tunez" src="https://a.fsdn.com/con/app/sf-download-button" height=40 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
 </br>
 
 <h3 align="center"> Now you can support me via</h3>
