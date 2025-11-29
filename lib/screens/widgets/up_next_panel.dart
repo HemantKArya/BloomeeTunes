@@ -290,6 +290,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
                 .bloomeePlayer
                 .moveQueueItem(oldIndex, newIndex);
           },
+          buildDefaultDragHandles: false,
           itemBuilder: (context, index) {
             final songModel = mediaItem2MediaItemModel(queue[index]);
             return Dismissible(
@@ -313,23 +314,42 @@ class _UpNextPanelState extends State<UpNextPanel> {
                   padding: EdgeInsets.only(
                     right: Platform.isAndroid ? 0 : 24,
                   ),
-                  child: SongCardWidget(
-                    showOptions: true,
-                    onTap: () {
-                      context
-                          .read<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .skipToQueueItem(index);
-                    },
-                    onOptionsTap: () {
-                      showMoreBottomSheet(
-                        context,
-                        songModel,
-                        showAddToQueue: false,
-                        showPlayNext: false,
-                      );
-                    },
-                    song: songModel,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SongCardWidget(
+                          showOptions: true,
+                          onTap: () {
+                            context
+                                .read<BloomeePlayerCubit>()
+                                .bloomeePlayer
+                                .skipToQueueItem(index);
+                          },
+                          onOptionsTap: () {
+                            showMoreBottomSheet(
+                              context,
+                              songModel,
+                              showAddToQueue: false,
+                              showPlayNext: false,
+                            );
+                          },
+                          song: songModel,
+                        ),
+                      ),
+                      // Drag handle - clearly separated from song card
+                      ReorderableDragStartListener(
+                        index: index,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 8),
+                          child: Icon(
+                            Icons.drag_handle_rounded,
+                            color: Default_Theme.primaryColor2.withOpacity(0.4),
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -412,6 +432,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
           },
           itemBuilder: (context, index) {
             final songModel = mediaItem2MediaItemModel(queue[index]);
+            // Mobile view: Use long press to reorder (no visible drag handle)
             return ReorderableDelayedDragStartListener(
               key: ValueKey(queue[index].id),
               index: index,
