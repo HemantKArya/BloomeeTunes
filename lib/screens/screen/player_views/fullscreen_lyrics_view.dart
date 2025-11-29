@@ -28,7 +28,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
   late AnimationController _fadeController;
   bool _showControls = true;
   Timer? _hideControlsTimer;
-  final GlobalKey<UpNextPanelState> _upNextPanelKey = GlobalKey();
+  final UpNextPanelController _upNextPanelController = UpNextPanelController();
 
   @override
   void initState() {
@@ -158,7 +158,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
               ),
             ),
             UpNextPanel(
-              key: _upNextPanelKey,
+              controller: _upNextPanelController,
               peekHeight: 60,
               parentHeight: MediaQuery.of(context).size.height,
               canBeHidden: true,
@@ -407,7 +407,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
           // Up Next button
           GestureDetector(
             onTap: () {
-              _upNextPanelKey.currentState?.toggleSheet();
+              _upNextPanelController.toggle();
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

@@ -13,6 +13,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'song_tile.dart';
 import 'more_bottom_sheet.dart';
 
+class UpNextPanelController {
+  VoidCallback? _toggleListener;
+
+  void toggle() {
+    _toggleListener?.call();
+  }
+
+  void _attach(VoidCallback toggle) {
+    _toggleListener = toggle;
+  }
+
+  void _detach() {
+    _toggleListener = null;
+  }
+}
+
 /// A modern up-next panel similar to YouTube Music / Spotify
 /// Uses DraggableScrollableSheet for smooth snap animations
 /// Click on header to toggle open/close instantly
@@ -24,6 +40,7 @@ class UpNextPanel extends StatefulWidget {
     this.isDesktopMode = false,
     this.startExpanded = false,
     this.canBeHidden = false,
+    this.controller,
   });
 
   /// The height of the collapsed panel (header only)
@@ -41,11 +58,14 @@ class UpNextPanel extends StatefulWidget {
   /// Whether the panel can be fully hidden (min size 0)
   final bool canBeHidden;
 
+  /// Controller to toggle the panel programmatically
+  final UpNextPanelController? controller;
+
   @override
-  State<UpNextPanel> createState() => UpNextPanelState();
+  State<UpNextPanel> createState() => _UpNextPanelState();
 }
 
-class UpNextPanelState extends State<UpNextPanel> {
+class _UpNextPanelState extends State<UpNextPanel> {
   StreamSubscription? _mediaItemSub;
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
@@ -59,6 +79,7 @@ class UpNextPanelState extends State<UpNextPanel> {
   @override
   void initState() {
     super.initState();
+    widget.controller?._attach(_toggleSheet);
     _isExpanded = widget.startExpanded;
     // Listen to sheet position changes to update expanded state
     _sheetController.addListener(_onSheetPositionChanged);
@@ -83,6 +104,7 @@ class UpNextPanelState extends State<UpNextPanel> {
 
   @override
   void dispose() {
+    widget.controller?._detach();
     _mediaItemSub?.cancel();
     _sheetController.removeListener(_onSheetPositionChanged);
     _sheetController.dispose();
@@ -90,7 +112,7 @@ class UpNextPanelState extends State<UpNextPanel> {
   }
 
   /// Toggle the sheet between collapsed and expanded states
-  void toggleSheet() {
+  void _toggleSheet() {
     final double currentSize = _sheetController.size;
     final double minSize = _minSheetSize;
     final double maxSize = ((widget.parentHeight - 80) / widget.parentHeight)
@@ -162,7 +184,7 @@ class UpNextPanelState extends State<UpNextPanel> {
                       children: [
                         // Header - always visible, tappable to toggle
                         GestureDetector(
-                          onTap: toggleSheet,
+                          onTap: _toggleSheet,
                           behavior: HitTestBehavior.opaque,
                           child: SizedBox(
                             height: math.min(
