@@ -123,11 +123,10 @@ Future<void> initServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
-  if (io.Platform.isLinux || io.Platform.isWindows || io.Platform.isAndroid) {
+  if (io.Platform.isLinux || io.Platform.isWindows) {
     JustAudioMediaKit.ensureInitialized(
       linux: true,
       windows: true,
-      android: true,
     );
   }
   await initServices();
@@ -184,7 +183,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     _intentSub.cancel();
-    bloomeePlayerCubit.bloomeePlayer.audioPlayer.dispose();
     bloomeePlayerCubit.close();
     if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
       DiscordService.clearPresence();

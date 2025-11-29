@@ -55,16 +55,32 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   BehaviorSubject<String> get queueTitle => _queueManager.queueTitle;
 
   BloomeeMusicPlayer() {
-    audioPlayer = AudioPlayer(
-      handleInterruptions: true,
-    );
+    _initializeAudioPlayer();
     _initializeModules();
     _initializePlayer();
-    // Initialize recently played tracker with default threshold
     _recentlyPlayedTracker = RecentlyPlayedTracker(
       audioPlayer,
       () => _queueManager.currentMediaItem,
     );
+  }
+
+  void _initializeAudioPlayer() {
+    _isDisposed = false;
+    audioPlayer = AudioPlayer(
+      handleInterruptions: true,
+      androidApplyAudioAttributes: true,
+      handleAudioSessionActivation: true,
+    );
+  }
+
+  bool get isPlayerHealthy {
+    if (_isDisposed) return false;
+    try {
+      final _ = audioPlayer.playerState;
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   /// Configure how many continuous seconds are required before a track is
@@ -512,21 +528,21 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onTaskRemoved() async {
+    await stop();
     await _cleanup();
     return super.onTaskRemoved();
   }
 
   @override
   Future<void> onNotificationDeleted() async {
+    await stop();
     await _cleanup();
     return super.onNotificationDeleted();
   }
 
   Future<void> _cleanup() async {
-    if (_isDisposed) return; // Prevent multiple cleanup calls
+    if (_isDisposed) return;
     _isDisposed = true;
-
-    log('Cleaning up player resources', name: 'bloomeePlayer');
 
     // Cancel all stream subscriptions
     await _playbackEventSubscription?.cancel();

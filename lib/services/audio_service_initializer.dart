@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:audio_service/audio_service.dart';
@@ -21,15 +22,19 @@ class PlayerInitializer {
         androidNotificationChannelId: 'com.BloomeePlayer.notification.status',
         androidNotificationChannelName: 'BloomeTunes',
         androidResumeOnClick: true,
-        // androidNotificationIcon: 'assets/icons/Bloomee_logo_fore.png',
         androidShowNotificationBadge: true,
         notificationColor: Default_Theme.accentColor2,
       ),
     );
+
+    // Brief delay on Android for native side to stabilize
+    if (Platform.isAndroid && bloomeeMusicPlayer != null) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
   }
 
   Future<BloomeeMusicPlayer> getBloomeeMusicPlayer() async {
-    if (!_isInitialized) {
+    if (!_isInitialized || bloomeeMusicPlayer == null) {
       await _initialize();
       _isInitialized = true;
     }

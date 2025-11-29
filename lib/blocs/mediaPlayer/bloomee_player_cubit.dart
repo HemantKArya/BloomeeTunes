@@ -10,8 +10,8 @@ enum PlayerInitState { initializing, initialized, intial }
 class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
   late BloomeeMusicPlayer bloomeePlayer;
   PlayerInitState playerInitState = PlayerInitState.intial;
-  // late AudioSession audioSession;
   late Stream<ProgressBarStreams> progressStreams;
+
   BloomeePlayerCubit() : super(BloomeePlayerInitial()) {
     setupPlayer().then((value) => emit(BloomeePlayerState(isReady: true)));
   }
@@ -25,6 +25,10 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
     playerInitState = PlayerInitState.initializing;
     bloomeePlayer = await PlayerInitializer().getBloomeeMusicPlayer();
     playerInitState = PlayerInitState.initialized;
+    _setupProgressStreams();
+  }
+
+  void _setupProgressStreams() {
     progressStreams = Rx.defer(
       () => Rx.combineLatest3(
           bloomeePlayer.audioPlayer.positionStream,
@@ -38,9 +42,9 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
 
   @override
   Future<void> close() {
-    // EasyDebounce.cancelAll();
-    bloomeePlayer.stop();
-    bloomeePlayer.audioPlayer.dispose();
+    if (playerInitState == PlayerInitState.initialized) {
+      bloomeePlayer.stop();
+    }
     return super.close();
   }
 }
