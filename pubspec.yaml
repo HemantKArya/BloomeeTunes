@@ -75,6 +75,7 @@ dependencies:
   media_kit_libs_linux: any
   audio_service_mpris: ^0.2.0
   media_kit_libs_windows_audio: any
+  media_kit_libs_android_audio: any
   audio_service_win: ^0.0.2
 
   
