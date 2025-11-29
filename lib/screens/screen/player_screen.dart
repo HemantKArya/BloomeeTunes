@@ -216,33 +216,25 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                   0.92, // Use constraints instead of MediaQuery
               child: Stack(
                 children: [
-                  Positioned(
-                    // top: (MediaQuery.of(context).size.height * 0.5) -
-                    //     (MediaQuery.of(context).size.width * 0.75),
-                    // left: MediaQuery.of(context).size.width * 0.08 * 0.5,
+                  Positioned.fill(
                     child: AnimatedBuilder(
                       animation: _tabController.animation!,
                       builder: (context, child) {
                         // Fade out ambient when on lyrics tab (index 1)
-                        final opacity =
-                            0.15 * (1 - _tabController.animation!.value);
+                        final opacity = (1 - _tabController.animation!.value);
                         return Opacity(
                           opacity: opacity,
                           child: child,
                         );
                       },
-                      child: SizedBox(
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight * 0.50,
-                        child: StreamBuilder<MediaItem?>(
-                            stream: musicPlayer.mediaItem,
-                            builder: (context, snapshot) {
-                              return AnimatedSwitcher(
-                                  duration: const Duration(seconds: 3),
-                                  child: AmbientImgShadowWidget(
-                                      snapshot: snapshot));
-                            }),
-                      ),
+                      child: StreamBuilder<MediaItem?>(
+                          stream: musicPlayer.mediaItem,
+                          builder: (context, snapshot) {
+                            return AnimatedSwitcher(
+                                duration: const Duration(seconds: 3),
+                                child:
+                                    AmbientImgShadowWidget(snapshot: snapshot));
+                          }),
                     ),
                   ),
                   SizedBox(
@@ -976,14 +968,15 @@ class _AmbientImgShadowWidgetState extends State<AmbientImgShadowWidget> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        boxShadow: [
-          BoxShadow(
-            color: cachedColor ?? const Color.fromARGB(39, 68, 252, 255),
-            blurRadius: 120,
-            spreadRadius: 30,
-          ),
-        ],
+        gradient: RadialGradient(
+          colors: [
+            (cachedColor ?? const Color.fromARGB(255, 68, 252, 255))
+                .withValues(alpha: 0.40),
+            Colors.transparent,
+          ],
+          center: Alignment.center,
+          radius: 0.75,
+        ),
       ),
     );
   }
