@@ -560,6 +560,7 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
   }
 
   void _onLyricTap(int index) {
+    widget.onInteraction?.call();
     // Seek to this lyric
     final lyric = widget.state.lyrics.parsedLyrics?.lyrics[index];
     if (lyric != null) {
@@ -573,7 +574,8 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
-        if (notification is ScrollStartNotification) {
+        if (notification is ScrollStartNotification &&
+            notification.dragDetails != null) {
           _onUserScroll();
         }
         return false;
