@@ -22,7 +22,6 @@ import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
 import '../../blocs/mini_player/mini_player_bloc.dart';
@@ -38,7 +37,6 @@ class AudioPlayerView extends StatefulWidget {
 
 class _AudioPlayerViewState extends State<AudioPlayerView>
     with SingleTickerProviderStateMixin {
-  final PanelController _panelController = PanelController();
   late TabController _tabController;
 
   @override
@@ -153,15 +151,22 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                 duration: const Duration(seconds: 1),
                 child: ResponsiveBreakpoints.of(context)
                         .smallerOrEqualTo(TABLET)
-                    ? SlidingUpPanel(
-                        controller: _panelController,
-                        minHeight: 52,
-                        maxHeight: MediaQuery.of(context).size.height * 0.40,
-                        // backdropColor: Colors.transparent,
-                        color: Colors.transparent,
-                        backdropTapClosesPanel: true,
-                        panel: UpNextPanel(panelController: _panelController),
-                        body: playerUI(context, musicPlayer),
+                    ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          final totalHeight = constraints.maxHeight;
+                          const double peekHeight = 60.0;
+                          return Stack(
+                            children: [
+                              // Main player UI - no bottom padding, panel overlays
+                              playerUI(context, musicPlayer),
+                              // Up Next Panel overlay
+                              UpNextPanel(
+                                peekHeight: peekHeight,
+                                parentHeight: totalHeight,
+                              ),
+                            ],
+                          );
+                        },
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -183,7 +188,11 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                                   height:
                                       MediaQuery.of(context).size.height * 0.8,
                                   child: UpNextPanel(
-                                      panelController: _panelController)),
+                                      peekHeight: 60,
+                                      parentHeight:
+                                          MediaQuery.of(context).size.height *
+                                              0.8,
+                                      isDesktopMode: true)),
                             ),
                           )
                         ],

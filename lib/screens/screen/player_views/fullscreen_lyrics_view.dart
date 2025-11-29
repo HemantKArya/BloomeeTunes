@@ -15,7 +15,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class FullscreenLyricsView extends StatefulWidget {
   const FullscreenLyricsView({super.key});
@@ -26,7 +25,6 @@ class FullscreenLyricsView extends StatefulWidget {
 
 class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
     with SingleTickerProviderStateMixin {
-  final PanelController _panelController = PanelController();
   late AnimationController _fadeController;
   bool _showControls = true;
   Timer? _hideControlsTimer;
@@ -82,6 +80,15 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
     _startHideControlsTimer();
   }
 
+  void _showUpNextModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _UpNextModalContent(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
@@ -100,72 +107,62 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
             _buildGradientOverlay(),
 
             // Main content with lyrics
-            SlidingUpPanel(
-              controller: _panelController,
-              minHeight: 0,
-              maxHeight: MediaQuery.of(context).size.height * 0.50,
-              color: Colors.transparent,
-              backdropEnabled: true,
-              backdropOpacity: 0.3,
-              backdropTapClosesPanel: true,
-              panel: UpNextPanel(panelController: _panelController),
-              body: SafeArea(
-                child: Column(
-                  children: [
-                    // Top controls (back button, song info)
-                    FadeTransition(
-                      opacity: _fadeController,
-                      child: _buildTopBar(bloomeePlayerCubit),
-                    ),
+            SafeArea(
+              child: Column(
+                children: [
+                  // Top controls (back button, song info)
+                  FadeTransition(
+                    opacity: _fadeController,
+                    child: _buildTopBar(bloomeePlayerCubit),
+                  ),
 
-                    // Lyrics area
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: BlocBuilder<LyricsCubit, LyricsState>(
-                          builder: (context, state) {
-                            return AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              child: switch (state) {
-                                LyricsInitial() => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                LyricsLoaded() =>
-                                  state.lyrics.parsedLyrics != null
-                                      ? FullscreenSyncedLyrics(
-                                          state: state,
-                                          onInteraction: _onInteraction,
-                                        )
-                                      : state.lyrics.lyricsPlain.isNotEmpty
-                                          ? _buildPlainLyrics(state)
-                                          : const SignBoardWidget(
-                                              icon: MingCute.music_2_line,
-                                              message: "No Lyrics Found",
-                                            ),
-                                LyricsError() => const SignBoardWidget(
-                                    icon: MingCute.music_2_line,
-                                    message: "No Lyrics Found",
-                                  ),
-                                LyricsLoading() => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                LyricsState() => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                              },
-                            );
-                          },
-                        ),
+                  // Lyrics area
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: BlocBuilder<LyricsCubit, LyricsState>(
+                        builder: (context, state) {
+                          return AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: switch (state) {
+                              LyricsInitial() => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              LyricsLoaded() =>
+                                state.lyrics.parsedLyrics != null
+                                    ? FullscreenSyncedLyrics(
+                                        state: state,
+                                        onInteraction: _onInteraction,
+                                      )
+                                    : state.lyrics.lyricsPlain.isNotEmpty
+                                        ? _buildPlainLyrics(state)
+                                        : const SignBoardWidget(
+                                            icon: MingCute.music_2_line,
+                                            message: "No Lyrics Found",
+                                          ),
+                              LyricsError() => const SignBoardWidget(
+                                  icon: MingCute.music_2_line,
+                                  message: "No Lyrics Found",
+                                ),
+                              LyricsLoading() => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              LyricsState() => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                            },
+                          );
+                        },
                       ),
                     ),
+                  ),
 
-                    // Bottom controls (play/pause, next, up next)
-                    FadeTransition(
-                      opacity: _fadeController,
-                      child: _buildBottomControls(bloomeePlayerCubit),
-                    ),
-                  ],
-                ),
+                  // Bottom controls (play/pause, next, up next)
+                  FadeTransition(
+                    opacity: _fadeController,
+                    child: _buildBottomControls(bloomeePlayerCubit),
+                  ),
+                ],
               ),
             ),
           ],
@@ -412,7 +409,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
           // Up Next button
           GestureDetector(
             onTap: () {
-              _panelController.open();
+              _showUpNextModal(context);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -634,6 +631,24 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Modal content for Up Next panel in fullscreen lyrics view
+class _UpNextModalContent extends StatelessWidget {
+  const _UpNextModalContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    return SizedBox(
+      height: screenHeight * 0.9,
+      child: UpNextPanel(
+        peekHeight: 60,
+        parentHeight: screenHeight * 0.9,
+        startExpanded: true,
       ),
     );
   }
