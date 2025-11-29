@@ -23,6 +23,7 @@ class UpNextPanel extends StatefulWidget {
     required this.parentHeight,
     this.isDesktopMode = false,
     this.startExpanded = false,
+    this.canBeHidden = false,
   });
 
   /// The height of the collapsed panel (header only)
@@ -37,18 +38,23 @@ class UpNextPanel extends StatefulWidget {
   /// Whether to start with the panel expanded (for modal use)
   final bool startExpanded;
 
+  /// Whether the panel can be fully hidden (min size 0)
+  final bool canBeHidden;
+
   @override
-  State<UpNextPanel> createState() => _UpNextPanelState();
+  State<UpNextPanel> createState() => UpNextPanelState();
 }
 
-class _UpNextPanelState extends State<UpNextPanel> {
+class UpNextPanelState extends State<UpNextPanel> {
   StreamSubscription? _mediaItemSub;
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
   late bool _isExpanded;
 
-  double get _minSheetSize =>
-      (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
+  double get _minSheetSize {
+    if (widget.canBeHidden) return 0.0;
+    return (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
+  }
 
   @override
   void initState() {
@@ -84,7 +90,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
   }
 
   /// Toggle the sheet between collapsed and expanded states
-  void _toggleSheet() {
+  void toggleSheet() {
     final double currentSize = _sheetController.size;
     final double minSize = _minSheetSize;
     final double maxSize = ((widget.parentHeight - 80) / widget.parentHeight)
@@ -156,7 +162,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
                       children: [
                         // Header - always visible, tappable to toggle
                         GestureDetector(
-                          onTap: _toggleSheet,
+                          onTap: toggleSheet,
                           behavior: HitTestBehavior.opaque,
                           child: SizedBox(
                             height: math.min(

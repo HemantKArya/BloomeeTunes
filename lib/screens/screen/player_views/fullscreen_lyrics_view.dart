@@ -28,6 +28,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
   late AnimationController _fadeController;
   bool _showControls = true;
   Timer? _hideControlsTimer;
+  final GlobalKey<UpNextPanelState> _upNextPanelKey = GlobalKey();
 
   @override
   void initState() {
@@ -78,15 +79,6 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
       _fadeController.forward();
     }
     _startHideControlsTimer();
-  }
-
-  void _showUpNextModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => const _UpNextModalContent(),
-    );
   }
 
   @override
@@ -164,6 +156,12 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
                   ),
                 ],
               ),
+            ),
+            UpNextPanel(
+              key: _upNextPanelKey,
+              peekHeight: 60,
+              parentHeight: MediaQuery.of(context).size.height,
+              canBeHidden: true,
             ),
           ],
         ),
@@ -409,7 +407,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
           // Up Next button
           GestureDetector(
             onTap: () {
-              _showUpNextModal(context);
+              _upNextPanelKey.currentState?.toggleSheet();
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -631,24 +629,6 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-/// Modal content for Up Next panel in fullscreen lyrics view
-class _UpNextModalContent extends StatelessWidget {
-  const _UpNextModalContent();
-
-  @override
-  Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    return SizedBox(
-      height: screenHeight * 0.9,
-      child: UpNextPanel(
-        peekHeight: 60,
-        parentHeight: screenHeight * 0.9,
-        startExpanded: true,
       ),
     );
   }
