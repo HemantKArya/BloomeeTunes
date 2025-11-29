@@ -38,7 +38,7 @@ class LyricsSearchDelegate extends SearchDelegate {
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(
-          color: Default_Theme.primaryColor2.withOpacity(0.3),
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.3),
         ).merge(Default_Theme.secondoryTextStyle),
       ),
     );
@@ -97,7 +97,8 @@ class LyricsSearchDelegate extends SearchDelegate {
                 subtitle: Text(
                   lyrics[index].artist,
                   style: TextStyle(
-                          color: Default_Theme.primaryColor1.withOpacity(0.7))
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.7))
                       .merge(
                     Default_Theme.secondoryTextStyle,
                   ),
@@ -118,12 +119,12 @@ class LyricsSearchDelegate extends SearchDelegate {
                                         .secondoryTextStyleMedium
                                         .copyWith(
                                       color: Default_Theme.primaryColor1
-                                          .withOpacity(0.8),
+                                          .withValues(alpha: 0.8),
                                     )),
                                 Text(lyrics[index].artist,
                                     style: TextStyle(
                                       color: Default_Theme.primaryColor1
-                                          .withOpacity(0.6),
+                                          .withValues(alpha: 0.6),
                                       fontSize: 12,
                                     ).merge(
                                       Default_Theme.secondoryTextStyle,
@@ -133,7 +134,7 @@ class LyricsSearchDelegate extends SearchDelegate {
                                     style: TextStyle(
                                       color: const Color.fromARGB(
                                               255, 139, 255, 191)
-                                          .withOpacity(0.7),
+                                          .withValues(alpha: 0.7),
                                       fontSize: 12,
                                     ).merge(
                                       Default_Theme.secondoryTextStyleMedium,
@@ -146,7 +147,7 @@ class LyricsSearchDelegate extends SearchDelegate {
                               style: Default_Theme.secondoryTextStyleMedium
                                   .copyWith(
                                 color: Default_Theme.primaryColor1
-                                    .withOpacity(0.7),
+                                    .withValues(alpha: 0.7),
                               ),
                             )),
                             actions: [
@@ -208,7 +209,8 @@ class LyricsSearchDelegate extends SearchDelegate {
                 subtitle: Text(
                   lyrics[index].artist,
                   style: TextStyle(
-                          color: Default_Theme.primaryColor1.withOpacity(0.7))
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.7))
                       .merge(
                     Default_Theme.secondoryTextStyle,
                   ),
@@ -229,12 +231,12 @@ class LyricsSearchDelegate extends SearchDelegate {
                                         .secondoryTextStyleMedium
                                         .copyWith(
                                       color: Default_Theme.primaryColor1
-                                          .withOpacity(0.8),
+                                          .withValues(alpha: 0.8),
                                     )),
                                 Text(lyrics[index].artist,
                                     style: TextStyle(
                                       color: Default_Theme.primaryColor1
-                                          .withOpacity(0.6),
+                                          .withValues(alpha: 0.6),
                                       fontSize: 12,
                                     ).merge(
                                       Default_Theme.secondoryTextStyle,
@@ -244,7 +246,7 @@ class LyricsSearchDelegate extends SearchDelegate {
                                     style: TextStyle(
                                       color: const Color.fromARGB(
                                               255, 139, 255, 191)
-                                          .withOpacity(0.7),
+                                          .withValues(alpha: 0.7),
                                       fontSize: 12,
                                     ).merge(
                                       Default_Theme.secondoryTextStyleMedium,
@@ -257,7 +259,7 @@ class LyricsSearchDelegate extends SearchDelegate {
                               style: Default_Theme.secondoryTextStyleMedium
                                   .copyWith(
                                 color: Default_Theme.primaryColor1
-                                    .withOpacity(0.7),
+                                    .withValues(alpha: 0.7),
                               ),
                             )),
                             actions: [

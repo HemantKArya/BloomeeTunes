@@ -89,13 +89,15 @@ class PlaylistView extends StatelessWidget {
                             icon: const Icon(
                               Icons.arrow_back,
                             ),
-                            hoverColor: getFBColor(context)[1].withOpacity(0.3),
+                            hoverColor:
+                                getFBColor(context)[1].withValues(alpha: 0.3),
                             highlightColor:
-                                getFBColor(context)[0].withOpacity(0.6),
+                                getFBColor(context)[0].withValues(alpha: 0.6),
                             color: getFBColor(context)[0],
                             style: ButtonStyle(
                               backgroundColor: WidgetStatePropertyAll(
-                                  getFBColor(context)[1].withOpacity(0.1)),
+                                  getFBColor(context)[1]
+                                      .withValues(alpha: 0.1)),
                             ),
                             onPressed: () {
                               context.pop();
@@ -177,9 +179,9 @@ class PlaylistView extends StatelessWidget {
                                           end: Alignment.bottomCenter,
                                           colors: [
                                             getFBColor(context)[1]
-                                                .withOpacity(0.0),
+                                                .withValues(alpha: 0.0),
                                             getFBColor(context)[1]
-                                                .withOpacity(1),
+                                                .withValues(alpha: 1),
                                           ],
                                           stops: const [0.5, 1],
                                         ),
@@ -194,8 +196,9 @@ class PlaylistView extends StatelessWidget {
                                         filter: ImageFilter.blur(
                                             sigmaX: 30, sigmaY: 30),
                                         child: Container(
-                                          color: Colors.black.withOpacity(
-                                              0), // Keep the container color transparent
+                                          color: Colors.black.withValues(
+                                              alpha:
+                                                  0), // Keep the container color transparent
                                         ),
                                       ),
                                     ),
@@ -218,7 +221,8 @@ class PlaylistView extends StatelessWidget {
                                                     BoxShadow(
                                                       color:
                                                           getFBColor(context)[1]
-                                                              .withOpacity(0.2),
+                                                              .withValues(
+                                                                  alpha: 0.2),
                                                       spreadRadius: 5,
                                                       blurRadius: 7,
                                                       offset: const Offset(0,
@@ -249,13 +253,14 @@ class PlaylistView extends StatelessWidget {
                                             MingCute.information_line,
                                           ),
                                           hoverColor: getFBColor(context)[1]
-                                              .withOpacity(0.2),
+                                              .withValues(alpha: 0.2),
                                           color: getFBColor(context)[0],
                                           style: ButtonStyle(
                                             backgroundColor:
                                                 WidgetStatePropertyAll(
                                                     getFBColor(context)[1]
-                                                        .withOpacity(0.05)),
+                                                        .withValues(
+                                                            alpha: 0.05)),
                                           ),
                                           onPressed: () {
                                             // dialog to show all infromation about the playlist (playlist name, source, description, original link, type, etc  )
@@ -303,7 +308,7 @@ class PlaylistView extends StatelessWidget {
                                                   .merge(TextStyle(
                                                 color: Default_Theme
                                                     .primaryColor1
-                                                    .withOpacity(0.9),
+                                                    .withValues(alpha: 0.9),
                                                 fontSize: 12,
                                               )),
                                             ),
@@ -316,7 +321,7 @@ class PlaylistView extends StatelessWidget {
                                         style: Default_Theme.secondoryTextStyle
                                             .merge(TextStyle(
                                           color: Default_Theme.primaryColor1
-                                              .withOpacity(0.8),
+                                              .withValues(alpha: 0.8),
                                           fontSize: 12,
                                         )),
                                       ),
@@ -345,14 +350,14 @@ class PlaylistView extends StatelessWidget {
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
                                               color: getFBColor(ctx)[1]
-                                                  .withOpacity(0.08),
+                                                  .withValues(alpha: 0.08),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
                                               Icons.offline_pin_rounded,
                                               size: 22,
                                               color: getFBColor(ctx)[0]
-                                                  .withOpacity(0.85),
+                                                  .withValues(alpha: 0.85),
                                             ),
                                           ),
                                         );
@@ -368,13 +373,13 @@ class PlaylistView extends StatelessWidget {
                                           MingCute.download_2_fill,
                                           size: 20,
                                           color: getFBColor(ctx)[0]
-                                              .withOpacity(0.9),
+                                              .withValues(alpha: 0.9),
                                         ),
                                         style: ButtonStyle(
                                           backgroundColor:
                                               MaterialStatePropertyAll(
                                                   getFBColor(ctx)[1]
-                                                      .withOpacity(0.06)),
+                                                      .withValues(alpha: 0.06)),
                                           shape: MaterialStatePropertyAll(
                                             RoundedRectangleBorder(
                                                 borderRadius:
@@ -465,7 +470,7 @@ class PlaylistView extends StatelessWidget {
                                           padding: EdgeInsets.zero,
                                           icon: Icon(MingCute.shuffle_line,
                                               color: Default_Theme.primaryColor1
-                                                  .withOpacity(0.8))),
+                                                  .withValues(alpha: 0.8))),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(
@@ -568,7 +573,7 @@ class PlaylistView extends StatelessWidget {
                                           },
                                           icon: Icon(MingCute.more_2_line,
                                               color: Default_Theme.primaryColor1
-                                                  .withOpacity(0.8))),
+                                                  .withValues(alpha: 0.8))),
                                     ),
                                   ],
                                 ),
@@ -733,9 +738,9 @@ class PlaylistView extends StatelessWidget {
                   LinearProgressIndicator(
                     value: progress,
                     backgroundColor:
-                        Default_Theme.primaryColor1.withOpacity(0.12),
+                        Default_Theme.primaryColor1.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation<Color>(
-                        Default_Theme.primaryColor1.withOpacity(0.95)),
+                        Default_Theme.primaryColor1.withValues(alpha: 0.95)),
                     minHeight: 6,
                   ),
                   const SizedBox(height: 12),

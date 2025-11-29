@@ -145,7 +145,7 @@ class VerticalNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NavigationRail(
-      backgroundColor: Default_Theme.themeColor.withOpacity(0.3),
+      backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
       destinations: const [
         NavigationRailDestination(
             icon: Icon(MingCute.home_4_fill), label: Text('Home')),
@@ -184,14 +184,14 @@ class HorizontalNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return GNav(
       gap: 7.0,
-      tabBackgroundColor: Default_Theme.accentColor2.withOpacity(0.22),
+      tabBackgroundColor: Default_Theme.accentColor2.withValues(alpha: 0.22),
       color: Default_Theme.primaryColor2,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       activeColor: Default_Theme.accentColor2,
       textStyle: Default_Theme.secondoryTextStyleMedium.merge(
           const TextStyle(color: Default_Theme.accentColor2, fontSize: 18)),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      backgroundColor: Default_Theme.themeColor.withOpacity(0.3),
+      backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
       tabs: const [
         GButton(
           icon: MingCute.home_4_fill,

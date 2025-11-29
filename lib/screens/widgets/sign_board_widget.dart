@@ -21,7 +21,7 @@ class SignBoardWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: Icon(
                   icon,
-                  color: Default_Theme.primaryColor2.withOpacity(0.7),
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
                   size: 40,
                 ),
               ),
@@ -29,7 +29,7 @@ class SignBoardWidget extends StatelessWidget {
                 message,
                 textAlign: TextAlign.center,
                 style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
-                    color: Default_Theme.primaryColor2.withOpacity(0.7),
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
                     fontSize: 14)),
               ),
             ],

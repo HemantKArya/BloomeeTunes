@@ -117,8 +117,8 @@ class MiniPlayerCard extends StatelessWidget {
                     sigmaX: 18,
                   ),
                   child: Container(
-                    color: Colors.black.withOpacity(
-                        0.5), // Keep the container color transparent
+                    color: Colors.black.withValues(
+                        alpha: 0.5), // Keep the container color transparent
                   ),
                 ),
               ),
@@ -162,7 +162,7 @@ class MiniPlayerCard extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12.5,
                                   color: Default_Theme.primaryColor1
-                                      .withOpacity(0.7))),
+                                      .withValues(alpha: 0.7))),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),

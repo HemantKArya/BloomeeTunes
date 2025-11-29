@@ -163,7 +163,7 @@ class _PlaylistEditViewState extends State<PlaylistEditView> {
                           TextStyle(
                               fontSize: 14,
                               color: Default_Theme.primaryColor1
-                                  .withOpacity(0.6))),
+                                  .withValues(alpha: 0.6))),
                     ),
                   ),
                 ),

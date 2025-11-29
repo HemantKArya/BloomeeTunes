@@ -139,12 +139,12 @@ class _UpNextPanelState extends State<UpNextPanel> {
               filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.75),
+                  color: Colors.black.withValues(alpha: 0.75),
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(16)),
                   border: Border(
                     top: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       width: 0.5,
                     ),
                   ),
@@ -198,7 +198,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
           children: [
             Icon(
               Icons.queue_music_rounded,
-              color: Default_Theme.primaryColor2.withOpacity(0.8),
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
               size: 18,
             ),
             const SizedBox(width: 6),
@@ -206,7 +206,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
               "Up Next",
               style: Default_Theme.secondoryTextStyleMedium.merge(
                 TextStyle(
-                  color: Default_Theme.primaryColor2.withOpacity(0.9),
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.9),
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -218,7 +218,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 Icons.keyboard_arrow_up_rounded,
-                color: Default_Theme.primaryColor2.withOpacity(0.5),
+                color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
                 size: 18,
               ),
             ),
@@ -238,10 +238,10 @@ class _UpNextPanelState extends State<UpNextPanel> {
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 0.5,
               ),
             ),
@@ -299,7 +299,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
               background: Container(
                 alignment: Alignment.centerRight,
                 padding: const EdgeInsets.only(right: 20),
-                color: Colors.red.withOpacity(0.8),
+                color: Colors.red.withValues(alpha: 0.8),
                 child: const Icon(Icons.delete, color: Colors.white),
               ),
               onDismissed: (direction) {
@@ -344,7 +344,8 @@ class _UpNextPanelState extends State<UpNextPanel> {
                               horizontal: 4, vertical: 8),
                           child: Icon(
                             Icons.drag_handle_rounded,
-                            color: Default_Theme.primaryColor2.withOpacity(0.4),
+                            color: Default_Theme.primaryColor2
+                                .withValues(alpha: 0.4),
                             size: 22,
                           ),
                         ),
@@ -374,7 +375,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
                 "${snapshot.data?.length ?? 0} Items in Queue",
                 style: Default_Theme.secondoryTextStyleMedium.merge(
                   TextStyle(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -442,7 +443,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
-                  color: Colors.red.withOpacity(0.8),
+                  color: Colors.red.withValues(alpha: 0.8),
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 onDismissed: (direction) {
@@ -535,7 +536,8 @@ class _UpNextPanelLegacyState extends State<UpNextPanelLegacy> {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 28, 17, 24).withOpacity(0.60),
+                color: const Color.fromARGB(255, 28, 17, 24)
+                    .withValues(alpha: 0.60),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(25),
                   topRight: Radius.circular(25),
@@ -574,7 +576,8 @@ class _UpNextPanelLegacyState extends State<UpNextPanelLegacy> {
                         child: SizedBox(
                           width: 40,
                           child: Divider(
-                            color: Default_Theme.primaryColor2.withOpacity(0.8),
+                            color: Default_Theme.primaryColor2
+                                .withValues(alpha: 0.8),
                             thickness: 4,
                           ),
                         ),
@@ -598,7 +601,7 @@ class _UpNextPanelLegacyState extends State<UpNextPanelLegacy> {
               child: Column(
                 children: [
                   Divider(
-                    color: Default_Theme.primaryColor2.withOpacity(0.5),
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
                     thickness: 1.5,
                   ),
                   const SizedBox(height: 5),
@@ -619,7 +622,7 @@ class _UpNextPanelLegacyState extends State<UpNextPanelLegacy> {
                                   style: Default_Theme.secondoryTextStyleMedium
                                       .merge(TextStyle(
                                           color: Default_Theme.primaryColor2
-                                              .withOpacity(0.5),
+                                              .withValues(alpha: 0.5),
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold)));
                             }),

@@ -201,8 +201,8 @@ class _OfflineScreenState extends State<OfflineScreen> {
         decoration: InputDecoration(
           hintText: "Search your songs...",
           border: InputBorder.none,
-          hintStyle:
-              TextStyle(color: Default_Theme.primaryColor1.withOpacity(0.7)),
+          hintStyle: TextStyle(
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.7)),
         ),
         style: Default_Theme.secondoryTextStyle.merge(
           const TextStyle(

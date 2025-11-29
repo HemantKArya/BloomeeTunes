@@ -52,9 +52,9 @@ class SongCardWidget extends StatelessWidget {
       height: 70,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        splashColor: Default_Theme.accentColor1.withOpacity(0.2),
-        hoverColor: Default_Theme.primaryColor2.withOpacity(0.1),
-        highlightColor: Default_Theme.primaryColor2.withOpacity(0.1),
+        splashColor: Default_Theme.accentColor1.withValues(alpha: 0.2),
+        hoverColor: Default_Theme.primaryColor2.withValues(alpha: 0.1),
+        highlightColor: Default_Theme.primaryColor2.withValues(alpha: 0.1),
         onTap: () {
           if (onTap != null) onTap!();
         },
@@ -137,7 +137,8 @@ class SongCardWidget extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
-                            color: Default_Theme.primaryColor1.withOpacity(0.8),
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.8),
                             fontSize: 13))),
                   ],
                 ),
@@ -282,7 +283,7 @@ class SongCardDummyWidget extends StatelessWidget {
                 height: 55,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                 ),
               ),
               const SizedBox(width: 10),
@@ -297,7 +298,7 @@ class SongCardDummyWidget extends StatelessWidget {
                       height: 17,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                       ),
                     ),
                   ),
@@ -306,7 +307,7 @@ class SongCardDummyWidget extends StatelessWidget {
                     height: 15,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                     ),
                   ),
                 ],

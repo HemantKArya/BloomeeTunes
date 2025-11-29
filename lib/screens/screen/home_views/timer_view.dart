@@ -233,7 +233,7 @@ class _TimerViewState extends State<TimerView> {
                         value: _currentHour,
                         textStyle: TextStyle(
                                 color: Default_Theme.primaryColor2
-                                    .withOpacity(0.7),
+                                    .withValues(alpha: 0.7),
                                 fontSize: 20)
                             .merge(Default_Theme.secondoryTextStyle),
                         selectedTextStyle: const TextStyle(
@@ -243,7 +243,7 @@ class _TimerViewState extends State<TimerView> {
                         // zeroPad: true,
                         decoration: BoxDecoration(
                           shape: BoxShape.rectangle,
-                          color: Default_Theme.primaryColor2.withOpacity(0.07),
+                          color: Default_Theme.primaryColor2.withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(16),
                           // border: Border.all(color: Default_Theme.primaryColor2),
                         ),
@@ -275,7 +275,7 @@ class _TimerViewState extends State<TimerView> {
                         value: _currentMinute,
                         textStyle: TextStyle(
                                 color: Default_Theme.primaryColor2
-                                    .withOpacity(0.7),
+                                    .withValues(alpha: 0.7),
                                 fontSize: 20)
                             .merge(Default_Theme.secondoryTextStyle),
                         selectedTextStyle: const TextStyle(
@@ -285,7 +285,7 @@ class _TimerViewState extends State<TimerView> {
                         // zeroPad: true,
                         decoration: BoxDecoration(
                           shape: BoxShape.rectangle,
-                          color: Default_Theme.primaryColor2.withOpacity(0.07),
+                          color: Default_Theme.primaryColor2.withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(16),
                           // border: Border.all(color: Default_Theme.primaryColor2),
                         ),
@@ -317,7 +317,7 @@ class _TimerViewState extends State<TimerView> {
                         value: _currentSecond,
                         textStyle: TextStyle(
                                 color: Default_Theme.primaryColor2
-                                    .withOpacity(0.7),
+                                    .withValues(alpha: 0.7),
                                 fontSize: 20)
                             .merge(Default_Theme.secondoryTextStyle),
                         selectedTextStyle: const TextStyle(
@@ -327,7 +327,7 @@ class _TimerViewState extends State<TimerView> {
                         // zeroPad: true,
                         decoration: BoxDecoration(
                           shape: BoxShape.rectangle,
-                          color: Default_Theme.primaryColor2.withOpacity(0.07),
+                          color: Default_Theme.primaryColor2.withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(16),
                           // border: Border.all(color: Default_Theme.primaryColor2),
                         ),
@@ -395,7 +395,7 @@ class _TimerViewState extends State<TimerView> {
             width: 90,
             decoration: BoxDecoration(
               shape: BoxShape.rectangle,
-              color: Default_Theme.primaryColor2.withOpacity(0.07),
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(16),
               // border: Border.all(color: Default_Theme.primaryColor2),
             ),

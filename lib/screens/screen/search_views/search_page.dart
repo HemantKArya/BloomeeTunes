@@ -36,7 +36,7 @@ class SearchPageDelegate extends SearchDelegate {
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(
-          color: Default_Theme.primaryColor2.withOpacity(0.3),
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.3),
         ).merge(Default_Theme.secondoryTextStyle),
       ),
     );
@@ -140,7 +140,7 @@ class SearchPageDelegate extends SearchDelegate {
                                     MingCute.history_line,
                                     size: 22,
                                     color: Default_Theme.primaryColor1
-                                        .withOpacity(0.5),
+                                        .withValues(alpha: 0.5),
                                   ),
                                   trailing: IconButton(
                                     onPressed: () {
@@ -151,7 +151,7 @@ class SearchPageDelegate extends SearchDelegate {
                                     icon: Icon(
                                       MingCute.close_fill,
                                       color: Default_Theme.primaryColor1
-                                          .withOpacity(0.5),
+                                          .withValues(alpha: 0.5),
                                       size: 22,
                                     ),
                                   ),
@@ -181,7 +181,7 @@ class SearchPageDelegate extends SearchDelegate {
                                 MingCute.search_line,
                                 size: 22,
                                 color: Default_Theme.primaryColor1
-                                    .withOpacity(0.5),
+                                    .withValues(alpha: 0.5),
                               ),
                               trailing: IconButton(
                                 onPressed: () {
@@ -191,7 +191,7 @@ class SearchPageDelegate extends SearchDelegate {
                                 icon: Icon(
                                   MingCute.arrow_left_up_line,
                                   color: Default_Theme.primaryColor1
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                                   size: 22,
                                 ),
                               ),

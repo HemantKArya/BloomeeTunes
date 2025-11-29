@@ -112,7 +112,7 @@ class _ArtistViewState extends State<ArtistView> {
                                               overflow: TextOverflow.ellipsis,
                                               fontSize: 18,
                                               color: Default_Theme.primaryColor1
-                                                  .withOpacity(0.8),
+                                                  .withValues(alpha: 0.8),
                                             ),
                                           ),
                                         ),
@@ -129,7 +129,7 @@ class _ArtistViewState extends State<ArtistView> {
                                                     fontSize: 13,
                                                     color: Default_Theme
                                                         .primaryColor1
-                                                        .withOpacity(0.5),
+                                                        .withValues(alpha: 0.5),
                                                   ),
                                                 ),
                                               )
@@ -258,7 +258,7 @@ class _ArtistViewState extends State<ArtistView> {
                       ),
                       dividerColor: Colors.transparent,
                       unselectedLabelColor:
-                          Default_Theme.primaryColor1.withOpacity(0.5),
+                          Default_Theme.primaryColor1.withValues(alpha: 0.5),
                       indicatorColor: Default_Theme.primaryColor1,
                       tabs: const [
                         Tab(
@@ -367,7 +367,7 @@ class _ArtistViewState extends State<ArtistView> {
                                               fontSize: 14,
                                               overflow: TextOverflow.ellipsis,
                                               color: Default_Theme.primaryColor1
-                                                  .withOpacity(0.9),
+                                                  .withValues(alpha: 0.9),
                                             ),
                                           ),
                                         ),
@@ -382,7 +382,7 @@ class _ArtistViewState extends State<ArtistView> {
                                             TextStyle(
                                               fontSize: 12,
                                               color: Default_Theme.primaryColor1
-                                                  .withOpacity(0.6),
+                                                  .withValues(alpha: 0.6),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),

@@ -46,7 +46,7 @@ class LyricsWidget extends StatelessWidget {
               bottom: 0,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Tooltip(
@@ -73,7 +73,7 @@ class LyricsWidget extends StatelessWidget {
                       MingCute.fullscreen_fill,
                       size: 20,
                     ),
-                    color: Default_Theme.primaryColor1.withOpacity(0.9),
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.9),
                     padding: const EdgeInsets.all(10),
                     constraints: const BoxConstraints(),
                   ),

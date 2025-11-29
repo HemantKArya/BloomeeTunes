@@ -69,7 +69,7 @@ class AlbumCard extends StatelessWidget {
                                       duration:
                                           const Duration(milliseconds: 300),
                                       color: hovering.value
-                                          ? Colors.black.withOpacity(0.5)
+                                          ? Colors.black.withValues(alpha: 0.5)
                                           : Colors.transparent,
                                       child: Center(
                                         child: AnimatedOpacity(
@@ -102,19 +102,23 @@ class AlbumCard extends StatelessWidget {
                           style: Default_Theme.secondoryTextStyleMedium
                               .merge(TextStyle(
                             fontSize: 14,
-                            color: Default_Theme.primaryColor1.withOpacity(0.9),
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.9),
                           )),
                         ),
                       ),
-                      Text(album.artists,
-                          maxLines: 1,
-                          textAlign: TextAlign.center,
-                          style: Default_Theme.secondoryTextStyleMedium
-                              .merge(TextStyle(
-                            fontSize: 12,
-                            color: Default_Theme.primaryColor1.withOpacity(0.7),
-                            overflow: TextOverflow.ellipsis,
-                          ))),
+                      Text(
+                        album.artists,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: Default_Theme.secondoryTextStyleMedium
+                            .merge(TextStyle(
+                          fontSize: 12,
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.7),
+                        )),
+                      ),
                     ],
                   ),
                 ),

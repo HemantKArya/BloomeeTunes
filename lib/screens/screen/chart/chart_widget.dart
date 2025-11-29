@@ -34,20 +34,20 @@ class TextColorPair {
 // create list of color pair which have some light colors with text color, use proffessinoal colors like pastel colors
 final List<TextColorPair> colorPair = [
   TextColorPair(
-    color1: const Color.fromARGB(255, 223, 63, 0).withOpacity(0.9),
-    color2: const Color.fromARGB(255, 205, 135, 23).withOpacity(0.7),
+    color1: const Color.fromARGB(255, 223, 63, 0).withValues(alpha: 0.9),
+    color2: const Color.fromARGB(255, 205, 135, 23).withValues(alpha: 0.7),
   ),
   TextColorPair(
-    color1: const Color.fromARGB(255, 255, 173, 50).withOpacity(0.9),
-    color2: const Color.fromARGB(255, 205, 132, 23).withOpacity(0.7),
+    color1: const Color.fromARGB(255, 255, 173, 50).withValues(alpha: 0.9),
+    color2: const Color.fromARGB(255, 205, 132, 23).withValues(alpha: 0.7),
   ),
   TextColorPair(
-    color1: const Color.fromARGB(255, 6, 85, 159).withOpacity(0.9),
-    color2: const Color.fromARGB(255, 28, 105, 220).withOpacity(0.7),
+    color1: const Color.fromARGB(255, 6, 85, 159).withValues(alpha: 0.9),
+    color2: const Color.fromARGB(255, 28, 105, 220).withValues(alpha: 0.7),
   ),
   TextColorPair(
-    color1: const Color.fromARGB(255, 222, 8, 125).withOpacity(0.9),
-    color2: const Color.fromARGB(255, 223, 38, 72).withOpacity(0.7),
+    color1: const Color.fromARGB(255, 222, 8, 125).withValues(alpha: 0.9),
+    color2: const Color.fromARGB(255, 223, 38, 72).withValues(alpha: 0.7),
   ),
 ];
 
@@ -135,7 +135,7 @@ class _ChartWidgetState extends State<ChartWidget> {
                       overflow: TextOverflow.ellipsis,
                       textWidthBasis: TextWidthBasis.parent,
                       style: const TextStyle(
-                        // color: _color.textColor.withOpacity(0.95),
+                        // color: _color.textColor.withValues(alpha: 0.95),
                         color: Color.fromARGB(255, 255, 255, 255),
                         fontSize: 28,
                         fontFamily: "Unageo",
@@ -162,7 +162,7 @@ class PlaceholderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(children: [
       Container(
-        color: const Color.fromARGB(255, 52, 0, 147).withOpacity(0.5),
+        color: const Color.fromARGB(255, 52, 0, 147).withValues(alpha: 0.5),
       ),
       const Center(
         child: Icon(MingCute.music_2_fill, size: 80, color: Colors.white),

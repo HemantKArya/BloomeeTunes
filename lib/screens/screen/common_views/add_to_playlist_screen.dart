@@ -117,7 +117,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                     style: Default_Theme.secondoryTextStyle
                                         .merge(TextStyle(
                                             color: Default_Theme.primaryColor2
-                                                .withOpacity(0.5),
+                                                .withValues(alpha: 0.5),
                                             fontWeight: FontWeight.bold,
                                             fontSize: 15)),
                                   ),
@@ -148,22 +148,24 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                 searchFilter(value.toString());
               },
               style: TextStyle(
-                  color: Default_Theme.primaryColor1.withOpacity(0.55)),
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.55)),
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                   filled: true,
-                  fillColor: Default_Theme.primaryColor2.withOpacity(0.07),
+                  fillColor:
+                      Default_Theme.primaryColor2.withValues(alpha: 0.07),
                   contentPadding: const EdgeInsets.only(top: 20, left: 15),
                   hintText: "Search you playlist..",
                   hintStyle: TextStyle(
-                      color: Default_Theme.primaryColor1.withOpacity(0.4),
+                      color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
                       fontFamily: "Gilroy"),
                   enabledBorder: OutlineInputBorder(
                       borderSide: const BorderSide(style: BorderStyle.none),
                       borderRadius: BorderRadius.circular(50)),
                   focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: Default_Theme.primaryColor1.withOpacity(0.7)),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.7)),
                       borderRadius: BorderRadius.circular(50))),
             ),
           ),

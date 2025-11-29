@@ -48,7 +48,7 @@ class About extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: kPrimaryTextColor.withOpacity(0.5)),
+              color: kPrimaryTextColor.withValues(alpha: 0.5)),
           onPressed: () => Navigator.of(context).pop(),
         ),
         // title: const Text(
@@ -104,7 +104,7 @@ class About extends StatelessWidget {
           decoration: BoxDecoration(
             color: kCardBackgroundColor,
             borderRadius: BorderRadius.circular(28.0),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -147,7 +147,7 @@ class About extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
@@ -159,7 +159,8 @@ class About extends StatelessWidget {
                         gradient: kHandleGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFF88A6B).withOpacity(0.5),
+                            color:
+                                const Color(0xFFF88A6B).withValues(alpha: 0.5),
                             blurRadius: 10,
                           ),
                         ],
@@ -179,7 +180,7 @@ class About extends StatelessWidget {
                           shadows: [
                             Shadow(
                               color: const Color.fromARGB(255, 255, 246, 238)
-                                  .withOpacity(0.4),
+                                  .withValues(alpha: 0.4),
                               blurRadius: 12,
                               offset: Offset(0, 0),
                             ),
@@ -257,7 +258,7 @@ class About extends StatelessWidget {
             borderRadius: BorderRadius.circular(34.0),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFDE6262).withOpacity(0.5),
+                color: const Color(0xFFDE6262).withValues(alpha: 0.5),
                 blurRadius: 25,
                 offset: const Offset(0, 8),
               ),
@@ -280,7 +281,8 @@ class About extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 44, vertical: 16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(32.0),
-                  border: Border.all(color: Colors.white.withOpacity(0.15)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.15)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -568,8 +570,8 @@ class ParticlePainter extends CustomPainter {
     final bgPaint = Paint()
       // Use a deeper radial tint with slightly higher opacity so edges stay dark
       ..shader = RadialGradient(colors: [
-        const Color(0xFF2A1726).withOpacity(0.6),
-        kBackgroundColor.withOpacity(0)
+        const Color(0xFF2A1726).withValues(alpha: 0.6),
+        kBackgroundColor.withValues(alpha: 0)
       ]).createShader(rect);
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
@@ -579,7 +581,7 @@ class ParticlePainter extends CustomPainter {
       final opacity = max(0.0, -4 * (progress - 0.5) * (progress - 0.5) + 1);
 
       // Lower particle brightness so they don't wash out the dark background
-      paint.color = Colors.white.withOpacity(opacity * 0.35);
+      paint.color = Colors.white.withValues(alpha: opacity * 0.35);
       paint.maskFilter =
           p.isSharp ? null : MaskFilter.blur(BlurStyle.normal, p.radius * 2);
 

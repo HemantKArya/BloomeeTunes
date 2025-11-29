@@ -29,7 +29,7 @@ class SettingTile extends StatelessWidget {
       subtitle: Text(
         subtitle,
         style: TextStyle(
-                color: Default_Theme.primaryColor1.withOpacity(0.5),
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
                 fontSize: 12)
             .merge(Default_Theme.secondoryTextStyleMedium),
       ),

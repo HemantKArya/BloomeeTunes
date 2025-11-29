@@ -159,21 +159,24 @@ class _SearchScreenState extends State<SearchScreen> {
                     enabled: false,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Default_Theme.primaryColor1.withOpacity(0.55)),
+                        color: Default_Theme.primaryColor1
+                            .withValues(alpha: 0.55)),
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
                         filled: true,
                         suffixIcon: Icon(
                           MingCute.search_2_fill,
-                          color: Default_Theme.primaryColor1.withOpacity(0.4),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.4),
                         ),
                         fillColor:
-                            Default_Theme.primaryColor2.withOpacity(0.07),
+                            Default_Theme.primaryColor2.withValues(alpha: 0.07),
                         contentPadding:
                             const EdgeInsets.only(top: 20, left: 15, right: 5),
                         hintText: "Find your next song obsession...",
                         hintStyle: TextStyle(
-                          color: Default_Theme.primaryColor1.withOpacity(0.3),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.3),
                           fontFamily: "Unageo",
                           fontWeight: FontWeight.normal,
                         ),
@@ -184,7 +187,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
                                 color: Default_Theme.primaryColor1
-                                    .withOpacity(0.7)),
+                                    .withValues(alpha: 0.7)),
                             borderRadius: BorderRadius.circular(50))),
                   ),
                 ),
@@ -235,7 +238,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                                   filled: false,
                                                   fillColor: Default_Theme
                                                       .primaryColor2
-                                                      .withOpacity(0.07),
+                                                      .withValues(alpha: 0.07),
                                                   contentPadding:
                                                       const EdgeInsets.all(0),
                                                   focusColor: Default_Theme

@@ -270,7 +270,7 @@ class PltOptBtn extends StatelessWidget {
         ],
       ),
       onPressed: onPressed,
-      hoverColor: Default_Theme.primaryColor1.withOpacity(0.04),
+      hoverColor: Default_Theme.primaryColor1.withValues(alpha: 0.04),
     );
   }
 }

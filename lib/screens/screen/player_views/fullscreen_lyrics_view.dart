@@ -195,7 +195,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
               child: Container(
-                color: Colors.black.withOpacity(0.6),
+                color: Colors.black.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -211,10 +211,10 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.7),
+            Colors.black.withValues(alpha: 0.7),
             Colors.transparent,
             Colors.transparent,
-            Colors.black.withOpacity(0.8),
+            Colors.black.withValues(alpha: 0.8),
           ],
           stops: const [0.0, 0.15, 0.85, 1.0],
         ),
@@ -261,7 +261,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
                     Text(
                       snapshot.data?.artist ?? "Unknown",
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 13,
                         fontFamily: 'NotoSans',
                       ),
@@ -414,7 +414,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -429,7 +429,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
                   Text(
                     "Up Next",
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -622,8 +622,8 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
                     color: isCurrentLine
                         ? Colors.white
                         : isPastLine
-                            ? Colors.white.withOpacity(0.35)
-                            : Colors.white.withOpacity(0.55),
+                            ? Colors.white.withValues(alpha: 0.35)
+                            : Colors.white.withValues(alpha: 0.55),
                     height: 1.5,
                   ),
                 ),

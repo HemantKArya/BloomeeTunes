@@ -63,7 +63,7 @@ class DownloadingCardWidget extends StatelessWidget {
           height: 55,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.black.withOpacity(0.6),
+            color: Colors.black.withValues(alpha: 0.6),
           ),
         ),
         SizedBox(
@@ -71,7 +71,7 @@ class DownloadingCardWidget extends StatelessWidget {
           height: 40,
           child: CircularProgressIndicator(
             value: progress,
-            backgroundColor: Default_Theme.primaryColor2.withOpacity(0.2),
+            backgroundColor: Default_Theme.primaryColor2.withValues(alpha: 0.2),
             valueColor:
                 const AlwaysStoppedAnimation<Color>(Default_Theme.accentColor2),
             strokeWidth: 5,
@@ -119,7 +119,7 @@ class DownloadingCardWidget extends StatelessWidget {
             maxLines: 1,
             style: Default_Theme.tertiaryTextStyle.merge(
               TextStyle(
-                color: Default_Theme.primaryColor1.withOpacity(0.8),
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.8),
                 fontSize: 13,
               ),
             ),
@@ -142,7 +142,7 @@ class DownloadingCardWidget extends StatelessWidget {
             '${(status.progress * 100).toStringAsFixed(0)}%',
             style: Default_Theme.secondoryTextStyle.copyWith(
               fontSize: 12,
-              color: Default_Theme.primaryColor1.withOpacity(0.8),
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.8),
             ),
           ),
         ],

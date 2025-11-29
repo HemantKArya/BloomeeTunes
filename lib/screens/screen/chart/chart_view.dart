@@ -137,10 +137,10 @@ class _ChartScreenState extends State<ChartScreen> {
                             begin: Alignment.bottomCenter,
                             end: Alignment.topCenter,
                             colors: [
-                  Default_Theme.themeColor.withOpacity(0.8),
-                  Default_Theme.themeColor.withOpacity(0.4),
-                  Default_Theme.themeColor.withOpacity(0.1),
-                  Default_Theme.themeColor.withOpacity(0),
+                  Default_Theme.themeColor.withValues(alpha: 0.8),
+                  Default_Theme.themeColor.withValues(alpha: 0.4),
+                  Default_Theme.themeColor.withValues(alpha: 0.1),
+                  Default_Theme.themeColor.withValues(alpha: 0),
                 ]))))
           ],
         ),

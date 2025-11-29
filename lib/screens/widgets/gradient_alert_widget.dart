@@ -83,10 +83,11 @@ class _GradientDialogState extends State<GradientDialog> {
           decoration: BoxDecoration(
             color: const Color(0xFF2E2E33), // plain grey dark background
             borderRadius: BorderRadius.circular(14.0),
-            border: Border.all(color: Colors.white.withOpacity(0.04), width: 1),
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.04), width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.45),
+                color: Colors.black.withValues(alpha: 0.45),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
@@ -133,7 +134,7 @@ class _GradientDialogState extends State<GradientDialog> {
                         widget.content!,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 14,
                           fontFamily: 'ReThink-Sans',
                           fontWeight: FontWeight.w500,

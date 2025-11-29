@@ -670,7 +670,7 @@ class ChangeItemWidget extends StatelessWidget {
       onNonMatch: (String nonMatch) {
         spans.add(TextSpan(
             text: nonMatch,
-            style: TextStyle(color: Colors.white.withOpacity(0.85))));
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.85))));
         return '';
       },
     );

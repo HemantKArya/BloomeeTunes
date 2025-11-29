@@ -45,7 +45,7 @@ class _AppUISettingsState extends State<AppUISettings> {
                   subtitle: Text(
                     "Slide charts automatically in home screen.",
                     style: TextStyle(
-                            color: Default_Theme.primaryColor1.withOpacity(0.5),
+                            color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
                             fontSize: 12)
                         .merge(Default_Theme.secondoryTextStyleMedium),
                   ),
@@ -63,7 +63,7 @@ class _AppUISettingsState extends State<AppUISettings> {
                   subtitle: Text(
                     "Suggestions from Last.FM will be shown in the home screen. (Login & Restart required)",
                     style: TextStyle(
-                            color: Default_Theme.primaryColor1.withOpacity(0.5),
+                            color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
                             fontSize: 12)
                         .merge(Default_Theme.secondoryTextStyleMedium),
                   ),
@@ -93,7 +93,7 @@ class _AppUISettingsState extends State<AppUISettings> {
                 subtitle: Text(
                   "Manage the source engines you want to use for Music search. (Restart required)",
                   style: TextStyle(
-                          color: Default_Theme.primaryColor1.withOpacity(0.5),
+                          color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
                           fontSize: 12)
                       .merge(Default_Theme.secondoryTextStyleMedium),
                 ),
@@ -126,7 +126,7 @@ class _AppUISettingsState extends State<AppUISettings> {
                 subtitle: Text(
                   "Manage the chart sources you want to see in the home screen.",
                   style: TextStyle(
-                          color: Default_Theme.primaryColor1.withOpacity(0.5),
+                          color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
                           fontSize: 12)
                       .merge(Default_Theme.secondoryTextStyleMedium),
                 ),

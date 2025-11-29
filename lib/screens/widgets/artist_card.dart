@@ -66,7 +66,7 @@ class ArtistCard extends StatelessWidget {
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
                                     color: hovering.value
-                                        ? Colors.black.withOpacity(0.5)
+                                        ? Colors.black.withValues(alpha: 0.5)
                                         : Colors.transparent,
                                     child: Center(
                                       child: AnimatedOpacity(
@@ -103,7 +103,8 @@ class ArtistCard extends StatelessWidget {
                       style: Default_Theme.secondoryTextStyleMedium
                           .merge(TextStyle(
                         fontSize: 14,
-                        color: Default_Theme.primaryColor1.withOpacity(0.9),
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.9),
                       )),
                     ),
                   ),

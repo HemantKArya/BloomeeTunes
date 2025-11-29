@@ -428,7 +428,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
                                       fontWeight: FontWeight.w500,
                                       overflow: TextOverflow.ellipsis,
                                       color: Default_Theme.primaryColor1
-                                          .withOpacity(0.7))),
+                                          .withValues(alpha: 0.7))),
                             ),
                           )
                         ],
@@ -456,7 +456,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
                               icon: Icon(
                                 Icons.offline_pin_rounded,
                                 color: Default_Theme.primaryColor1
-                                    .withOpacity(0.5),
+                                    .withValues(alpha: 0.5),
                               ),
                               onPressed: () {
                                 // bloomeePlayerCubit.bloomeePlayer.toggleDownload();
@@ -538,10 +538,11 @@ class PlayerCtrlWidgets extends StatelessWidget {
                     timeLabelTextStyle: Default_Theme.secondoryTextStyle.merge(
                         TextStyle(
                             fontSize: 15,
-                            color:
-                                Default_Theme.primaryColor1.withOpacity(0.7))),
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.7))),
                     timeLabelLocation: TimeLabelLocation.above,
-                    baseBarColor: Default_Theme.primaryColor2.withOpacity(0.1),
+                    baseBarColor:
+                        Default_Theme.primaryColor2.withValues(alpha: 0.1),
                     progressBarColor:
                         snapshot.data?.currentPlayerState.playing ?? false
                             ? Default_Theme.accentColor1
@@ -553,8 +554,8 @@ class PlayerCtrlWidgets extends StatelessWidget {
                             : Default_Theme.accentColor2,
                     bufferedBarColor:
                         snapshot.data?.currentPlayerState.playing ?? false
-                            ? Default_Theme.accentColor1.withOpacity(0.2)
-                            : Default_Theme.accentColor2.withOpacity(0.2),
+                            ? Default_Theme.accentColor1.withValues(alpha: 0.2)
+                            : Default_Theme.accentColor2.withValues(alpha: 0.2),
                     barHeight: 4,
                   );
                 }),

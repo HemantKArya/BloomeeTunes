@@ -38,9 +38,9 @@ class LibItemCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 8, right: 8),
       child: InkWell(
-        splashColor: Default_Theme.primaryColor2.withOpacity(0.1),
-        hoverColor: Colors.white.withOpacity(0.05),
-        highlightColor: Default_Theme.primaryColor2.withOpacity(0.1),
+        splashColor: Default_Theme.primaryColor2.withValues(alpha: 0.1),
+        hoverColor: Colors.white.withValues(alpha: 0.05),
+        highlightColor: Default_Theme.primaryColor2.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
         onTap: onTap ?? () {},
         onSecondaryTap: onSecondaryTap ?? () {},
@@ -64,7 +64,8 @@ class LibItemCard extends StatelessWidget {
                             padding: const EdgeInsets.only(left: 8),
                             child: Icon(
                               FontAwesome.chart_simple_solid,
-                              color: Default_Theme.primaryColor2.withOpacity(1),
+                              color: Default_Theme.primaryColor2
+                                  .withValues(alpha: 1),
                               size: 15,
                             ),
                           );

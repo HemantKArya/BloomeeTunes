@@ -91,7 +91,8 @@ class _LastDotFMState extends State<LastDotFM> {
                   subtitle: Text(
                     "Scrobble tracks to Last.FM",
                     style: TextStyle(
-                            color: Default_Theme.primaryColor1.withOpacity(0.5),
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.5),
                             fontSize: 12)
                         .merge(Default_Theme.secondoryTextStyleMedium),
                   ),
@@ -119,7 +120,8 @@ class _LastDotFMState extends State<LastDotFM> {
                 child: SelectableText(
                   'To set API Key for Last.FM, \n1. Go to Last.FM create an account there (https://www.last.fm/).\n2. Now generate an API Key and Secret from: https://www.last.fm/api/account/create\n3. Enter the API Key and Secret below and click on \'Start Auth\' to get the session key.\n4. After allowing from browser, click on \'Get and Save Session Key\' to save the session key.',
                   style: TextStyle(
-                          color: Default_Theme.primaryColor1.withOpacity(0.5),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.5),
                           fontSize: 12)
                       .merge(Default_Theme.secondoryTextStyleMedium),
                 ),
@@ -133,13 +135,15 @@ class _LastDotFMState extends State<LastDotFM> {
                   decoration: InputDecoration(
                     labelText: 'API Key',
                     labelStyle: TextStyle(
-                        color: Default_Theme.primaryColor1.withOpacity(0.5),
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.5),
                         fontFamily: 'Unageo',
                         fontWeight: FontWeight.w500,
                         fontSize: 12),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(
-                          color: Default_Theme.primaryColor1.withOpacity(0.5)),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.5)),
                     ),
                     focusedBorder: const UnderlineInputBorder(
                       borderSide:
@@ -162,13 +166,15 @@ class _LastDotFMState extends State<LastDotFM> {
                   decoration: InputDecoration(
                     labelText: 'API Secret',
                     labelStyle: TextStyle(
-                        color: Default_Theme.primaryColor1.withOpacity(0.5),
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.5),
                         fontFamily: 'Unageo',
                         fontWeight: FontWeight.w500,
                         fontSize: 12),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(
-                          color: Default_Theme.primaryColor1.withOpacity(0.5)),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.5)),
                     ),
                     focusedBorder: const UnderlineInputBorder(
                       borderSide:
@@ -195,7 +201,8 @@ class _LastDotFMState extends State<LastDotFM> {
                       child: Text(
                         'Hi, ${state.username},\nLast.FM API is Authenticated.',
                         style: TextStyle(
-                          color: Default_Theme.successColor.withOpacity(0.7),
+                          color:
+                              Default_Theme.successColor.withValues(alpha: 0.7),
                           fontSize: 12,
                           fontFamily: 'Unageo',
                         ),
@@ -211,7 +218,7 @@ class _LastDotFMState extends State<LastDotFM> {
                       child: Text(
                         'Last.FM Authentication Failed.\n${state.message}\nHint: First click Start Auth and Sign-In from browser then click Get & Save Session Key button',
                         style: TextStyle(
-                                color: Colors.red.withOpacity(0.7),
+                                color: Colors.red.withValues(alpha: 0.7),
                                 fontSize: 12)
                             .merge(Default_Theme.secondoryTextStyleMedium),
                       ),
@@ -243,10 +250,10 @@ class _LastDotFMState extends State<LastDotFM> {
                                     }
                                   : null,
                           style: ElevatedButton.styleFrom(
-                            disabledBackgroundColor:
-                                Default_Theme.accentColor2.withOpacity(0.5),
-                            disabledForegroundColor:
-                                Default_Theme.primaryColor2.withOpacity(0.3),
+                            disabledBackgroundColor: Default_Theme.accentColor2
+                                .withValues(alpha: 0.5),
+                            disabledForegroundColor: Default_Theme.primaryColor2
+                                .withValues(alpha: 0.3),
                             backgroundColor: Default_Theme.accentColor2,
                             foregroundColor: Default_Theme.primaryColor2,
                           ),
@@ -275,10 +282,10 @@ class _LastDotFMState extends State<LastDotFM> {
                                     }
                                   : null,
                           style: ElevatedButton.styleFrom(
-                            disabledBackgroundColor:
-                                Default_Theme.accentColor2.withOpacity(0.5),
-                            disabledForegroundColor:
-                                Default_Theme.primaryColor2.withOpacity(0.3),
+                            disabledBackgroundColor: Default_Theme.accentColor2
+                                .withValues(alpha: 0.5),
+                            disabledForegroundColor: Default_Theme.primaryColor2
+                                .withValues(alpha: 0.3),
                             backgroundColor: Default_Theme.accentColor2,
                             foregroundColor: Default_Theme.primaryColor2,
                           ),
@@ -300,11 +307,11 @@ class _LastDotFMState extends State<LastDotFM> {
                                 style: ElevatedButton.styleFrom(
                                   disabledBackgroundColor: Default_Theme
                                       .accentColor2
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                                   backgroundColor: Default_Theme.accentColor2,
                                   disabledForegroundColor: Default_Theme
                                       .primaryColor2
-                                      .withOpacity(0.3),
+                                      .withValues(alpha: 0.3),
                                   foregroundColor: Default_Theme.primaryColor2,
                                 ),
                                 child: const Text('Remove Keys'),

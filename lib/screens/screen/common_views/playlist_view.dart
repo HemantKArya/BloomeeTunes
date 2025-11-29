@@ -104,7 +104,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                             overflow: TextOverflow.ellipsis,
                                             fontSize: 14,
                                             color: Default_Theme.primaryColor1
-                                                .withOpacity(0.4),
+                                                .withValues(alpha: 0.4),
                                           ),
                                         ),
                                       ),
@@ -118,7 +118,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                             overflow: TextOverflow.ellipsis,
                                             fontSize: 14,
                                             color: Default_Theme.primaryColor1
-                                                .withOpacity(0.9),
+                                                .withValues(alpha: 0.9),
                                           ),
                                         ),
                                       ),
@@ -134,7 +134,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                                   fontSize: 13,
                                                   color: Default_Theme
                                                       .primaryColor1
-                                                      .withOpacity(0.5),
+                                                      .withValues(alpha: 0.5),
                                                 ),
                                               ),
                                             )
@@ -260,7 +260,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                       style: Default_Theme.secondoryTextStyleMedium.merge(
                         TextStyle(
                           fontSize: 20,
-                          color: Default_Theme.primaryColor1.withOpacity(0.8),
+                          color: Default_Theme.primaryColor1.withValues(alpha: 0.8),
                         ),
                       ),
                     ),
