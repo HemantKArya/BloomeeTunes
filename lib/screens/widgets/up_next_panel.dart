@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
@@ -46,6 +47,9 @@ class _UpNextPanelState extends State<UpNextPanel> {
       DraggableScrollableController();
   late bool _isExpanded;
 
+  double get _minSheetSize =>
+      (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
+
   @override
   void initState() {
     super.initState();
@@ -62,8 +66,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
   }
 
   void _onSheetPositionChanged() {
-    final double minSize =
-        (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
+    final double minSize = _minSheetSize;
     final bool nowExpanded = _sheetController.size > minSize + 0.1;
     if (nowExpanded != _isExpanded) {
       setState(() {
@@ -83,8 +86,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
   /// Toggle the sheet between collapsed and expanded states
   void _toggleSheet() {
     final double currentSize = _sheetController.size;
-    final double minSize =
-        (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
+    final double minSize = _minSheetSize;
     final double maxSize = ((widget.parentHeight - 80) / widget.parentHeight)
         .clamp(minSize + 0.1, 0.92);
 
@@ -112,8 +114,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
     }
 
     // Ensure minSize is valid (between 0 and maxChildSize)
-    final double minSize =
-        (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
+    final double minSize = _minSheetSize;
 
     // Max size leaves space for app bar (approximately 100px from top)
     final double maxSize = ((widget.parentHeight - 80) / widget.parentHeight)
@@ -149,34 +150,45 @@ class _UpNextPanelState extends State<UpNextPanel> {
                     ),
                   ),
                 ),
-                child: CustomScrollView(
-                  controller: scrollController,
-                  physics: const ClampingScrollPhysics(),
-                  slivers: [
-                    // Sticky header - always visible, tappable to toggle
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _StickyHeaderDelegate(
-                        height: widget.peekHeight,
-                        child: GestureDetector(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Column(
+                      children: [
+                        // Header - always visible, tappable to toggle
+                        GestureDetector(
                           onTap: _toggleSheet,
                           behavior: HitTestBehavior.opaque,
-                          child: _buildCompactHeader(),
+                          child: SizedBox(
+                            height: math.min(
+                                widget.peekHeight, constraints.maxHeight),
+                            child: _buildCompactHeader(),
+                          ),
                         ),
-                      ),
-                    ),
-                    // Queue info row
-                    SliverToBoxAdapter(
-                      child: _buildQueueInfoRow(),
-                    ),
-                    // Song list
-                    _buildSongList(),
-                    // Bottom padding
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                          height: MediaQuery.of(context).padding.bottom + 20),
-                    ),
-                  ],
+                        // Scrollable content
+                        Expanded(
+                          child: CustomScrollView(
+                            controller: scrollController,
+                            physics: const ClampingScrollPhysics(),
+                            slivers: [
+                              // Queue info row
+                              SliverToBoxAdapter(
+                                child: _buildQueueInfoRow(),
+                              ),
+                              // Song list
+                              _buildSongList(),
+                              // Bottom padding
+                              SliverToBoxAdapter(
+                                child: SizedBox(
+                                    height:
+                                        MediaQuery.of(context).padding.bottom +
+                                            20),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -723,37 +735,5 @@ class _UpNextPanelLegacyState extends State<UpNextPanelLegacy> {
         ),
       ],
     );
-  }
-}
-
-/// Delegate for sticky header in the up next panel
-class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double height;
-  final Widget child;
-
-  _StickyHeaderDelegate({required this.height, required this.child});
-
-  @override
-  double get minExtent => height - 1; // Subtract 1px buffer for float precision
-
-  @override
-  double get maxExtent => height;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    // ClipRect ensures any minor overflow due to float precision is hidden
-    // Use transparent background - the panel's BackdropFilter handles the blur
-    return ClipRect(
-      child: Container(
-        color: Colors.transparent,
-        child: child,
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _StickyHeaderDelegate oldDelegate) {
-    return height != oldDelegate.height || child != oldDelegate.child;
   }
 }
