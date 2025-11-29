@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/screens/screen/player_views/lyrics_menu.dart';
+import 'package:Bloomee/screens/screen/player_views/fullscreen_lyrics_view.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +49,35 @@ class LyricsWidget extends StatelessWidget {
                   color: Colors.black.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: LyricsMenu(state: state),
+                child: Tooltip(
+                  message: 'Fullscreen Lyrics',
+                  child: IconButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  const FullscreenLyricsView(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 300),
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      MingCute.fullscreen_fill,
+                      size: 20,
+                    ),
+                    color: Default_Theme.primaryColor1.withOpacity(0.9),
+                    padding: const EdgeInsets.all(10),
+                    constraints: const BoxConstraints(),
+                  ),
+                ),
               ),
             ),
           ],
