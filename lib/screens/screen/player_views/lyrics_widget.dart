@@ -45,9 +45,11 @@ class LyricsWidget extends StatelessWidget {
               right: 3,
               bottom: 0,
               child: Container(
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.black.withValues(alpha: 0.6),
+                  shape: BoxShape.circle,
                 ),
                 child: Tooltip(
                   message: 'Fullscreen Lyrics',
@@ -74,7 +76,7 @@ class LyricsWidget extends StatelessWidget {
                       size: 20,
                     ),
                     color: Default_Theme.primaryColor1.withValues(alpha: 0.9),
-                    padding: const EdgeInsets.all(10),
+                    padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
                 ),
@@ -148,7 +150,7 @@ class PlainLyricsWidget extends StatelessWidget {
               fontSize: 18,
               fontFamily: 'NotoSans',
               fontWeight: FontWeight.w600,
-              color: Default_Theme.primaryColor1)),
+              color: Colors.white)),
         ),
       ),
     );
@@ -294,8 +296,8 @@ class _SyncedLyricsWidgetState extends State<SyncedLyricsWidget> {
               fontFamily: 'NotoSans',
               fontWeight: FontWeight.bold,
               color: isCurrentLyric(index)
-                  ? Default_Theme.accentColor2
-                  : Default_Theme.primaryColor2,
+                  ? Colors.white
+                  : Default_Theme.primaryColor2.withOpacity(0.4),
             )),
           );
         },
