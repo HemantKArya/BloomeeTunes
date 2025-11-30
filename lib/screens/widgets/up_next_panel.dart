@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
@@ -7,11 +6,51 @@ import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/widgets/toogle_btn.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'song_tile.dart';
 import 'more_bottom_sheet.dart';
+
+// Cached styles to avoid repeated merges
+class _UpNextStyles {
+  static final headerTextStyle = Default_Theme.secondoryTextStyleMedium.merge(
+    TextStyle(
+      color: Default_Theme.primaryColor2.withValues(alpha: 0.9),
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+    ),
+  );
+
+  static final queueCountStyle = Default_Theme.secondoryTextStyleMedium.merge(
+    TextStyle(
+      color: Colors.white.withValues(alpha: 0.7),
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+    ),
+  );
+
+  static final legacyHeaderStyle = Default_Theme.secondoryTextStyleMedium.merge(
+    const TextStyle(
+      color: Default_Theme.primaryColor2,
+      fontSize: 17,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+
+  static final legacyQueueStyle = Default_Theme.secondoryTextStyleMedium.merge(
+    TextStyle(
+      color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
+      fontSize: 14,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+
+  static const panelBorderRadius =
+      BorderRadius.vertical(top: Radius.circular(16));
+  static const desktopBorderRadius = BorderRadius.all(Radius.circular(20));
+}
 
 class UpNextPanelController {
   VoidCallback? _toggleListener;
@@ -66,35 +105,42 @@ class UpNextPanel extends StatefulWidget {
 }
 
 class _UpNextPanelState extends State<UpNextPanel> {
-  StreamSubscription? _mediaItemSub;
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
   late bool _isExpanded;
 
-  double get _minSheetSize {
-    if (widget.canBeHidden) return 0.0;
-    return (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
-  }
+  // Cache expensive calculations
+  late final double _minSheetSize;
+  late final double _maxSheetSize;
+  late final BloomeePlayerCubit _playerCubit;
 
   @override
   void initState() {
     super.initState();
+    _playerCubit = context.read<BloomeePlayerCubit>();
     widget.controller?._attach(_toggleSheet);
     _isExpanded = widget.startExpanded;
+
+    // Pre-calculate sheet sizes
+    _minSheetSize = _calculateMinSize();
+    _maxSheetSize = _calculateMaxSize();
+
     // Listen to sheet position changes to update expanded state
     _sheetController.addListener(_onSheetPositionChanged);
-    _mediaItemSub = context
-        .read<BloomeePlayerCubit>()
-        .bloomeePlayer
-        .mediaItem
-        .listen((value) {
-      if (value != null && mounted) {}
-    });
+  }
+
+  double _calculateMinSize() {
+    if (widget.canBeHidden) return 0.0;
+    return (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
+  }
+
+  double _calculateMaxSize() {
+    return ((widget.parentHeight - 80) / widget.parentHeight)
+        .clamp(_calculateMinSize() + 0.1, 0.92);
   }
 
   void _onSheetPositionChanged() {
-    final double minSize = _minSheetSize;
-    final bool nowExpanded = _sheetController.size > minSize + 0.1;
+    final bool nowExpanded = _sheetController.size > _minSheetSize + 0.1;
     if (nowExpanded != _isExpanded) {
       setState(() {
         _isExpanded = nowExpanded;
@@ -105,7 +151,6 @@ class _UpNextPanelState extends State<UpNextPanel> {
   @override
   void dispose() {
     widget.controller?._detach();
-    _mediaItemSub?.cancel();
     _sheetController.removeListener(_onSheetPositionChanged);
     _sheetController.dispose();
     super.dispose();
@@ -114,20 +159,17 @@ class _UpNextPanelState extends State<UpNextPanel> {
   /// Toggle the sheet between collapsed and expanded states
   void _toggleSheet() {
     final double currentSize = _sheetController.size;
-    final double minSize = _minSheetSize;
-    final double maxSize = ((widget.parentHeight - 80) / widget.parentHeight)
-        .clamp(minSize + 0.1, 0.92);
 
     // If panel is mostly collapsed, expand it; otherwise collapse it
-    if (currentSize < minSize + 0.1) {
+    if (currentSize < _minSheetSize + 0.1) {
       _sheetController.animateTo(
-        maxSize,
+        _maxSheetSize,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutExpo,
       );
     } else {
       _sheetController.animateTo(
-        minSize,
+        _minSheetSize,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutExpo,
       );
@@ -138,98 +180,126 @@ class _UpNextPanelState extends State<UpNextPanel> {
   Widget build(BuildContext context) {
     // For desktop mode, use a simple scrollable layout without DraggableScrollableSheet
     if (widget.isDesktopMode) {
-      return _buildDesktopLayout();
+      return _DesktopLayout(playerCubit: _playerCubit);
     }
 
-    // Ensure minSize is valid (between 0 and maxChildSize)
-    final double minSize = _minSheetSize;
-
-    // Max size leaves space for app bar (approximately 100px from top)
-    final double maxSize = ((widget.parentHeight - 80) / widget.parentHeight)
-        .clamp(minSize + 0.1, 0.92);
-
     // Start expanded if requested (for modal use)
-    final double initialSize = widget.startExpanded ? maxSize : minSize;
+    final double initialSize =
+        widget.startExpanded ? _maxSheetSize : _minSheetSize;
 
     return DraggableScrollableSheet(
       controller: _sheetController,
       initialChildSize: initialSize,
-      minChildSize: minSize,
-      maxChildSize: maxSize,
+      minChildSize: _minSheetSize,
+      maxChildSize: _maxSheetSize,
       snap: true,
-      snapSizes: [minSize, maxSize],
+      snapSizes: [_minSheetSize, _maxSheetSize],
       snapAnimationDuration: const Duration(milliseconds: 250),
       builder: (context, scrollController) {
-        return Material(
-          color: Colors.transparent,
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.75),
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                  border: Border(
-                    top: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      width: 0.5,
-                    ),
-                  ),
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Column(
-                      children: [
-                        // Header - always visible, tappable to toggle
-                        GestureDetector(
-                          onTap: _toggleSheet,
-                          behavior: HitTestBehavior.opaque,
-                          child: SizedBox(
-                            height: math.min(
-                                widget.peekHeight, constraints.maxHeight),
-                            child: _buildCompactHeader(),
-                          ),
-                        ),
-                        // Scrollable content
-                        Expanded(
-                          child: CustomScrollView(
-                            controller: scrollController,
-                            physics: const ClampingScrollPhysics(),
-                            slivers: [
-                              // Queue info row
-                              SliverToBoxAdapter(
-                                child: _buildQueueInfoRow(),
-                              ),
-                              // Song list
-                              _buildSongList(),
-                              // Bottom padding
-                              SliverToBoxAdapter(
-                                child: SizedBox(
-                                    height:
-                                        MediaQuery.of(context).padding.bottom +
-                                            20),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
+        return _PanelContent(
+          peekHeight: widget.peekHeight,
+          isExpanded: _isExpanded,
+          onHeaderTap: _toggleSheet,
+          scrollController: scrollController,
+          playerCubit: _playerCubit,
         );
       },
     );
   }
+}
 
-  /// Compact header for collapsed state - minimal space usage
-  Widget _buildCompactHeader() {
+/// Extracted panel content widget - reduces rebuilds in main state
+class _PanelContent extends StatelessWidget {
+  final double peekHeight;
+  final bool isExpanded;
+  final VoidCallback onHeaderTap;
+  final ScrollController scrollController;
+  final BloomeePlayerCubit playerCubit;
+
+  const _PanelContent({
+    required this.peekHeight,
+    required this.isExpanded,
+    required this.onHeaderTap,
+    required this.scrollController,
+    required this.playerCubit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: _UpNextStyles.panelBorderRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.75),
+                borderRadius: _UpNextStyles.panelBorderRadius,
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Column(
+                    children: [
+                      // Header - always visible, tappable to toggle
+                      GestureDetector(
+                        onTap: onHeaderTap,
+                        behavior: HitTestBehavior.opaque,
+                        child: SizedBox(
+                          height: math.min(peekHeight, constraints.maxHeight),
+                          child: _CompactHeader(isExpanded: isExpanded),
+                        ),
+                      ),
+                      // Scrollable content
+                      Expanded(
+                        child: CustomScrollView(
+                          controller: scrollController,
+                          physics: const ClampingScrollPhysics(),
+                          slivers: [
+                            // Queue info row
+                            SliverToBoxAdapter(
+                              child: _QueueInfoRow(playerCubit: playerCubit),
+                            ),
+                            // Song list
+                            _SongListSliver(playerCubit: playerCubit),
+                            // Bottom padding
+                            SliverToBoxAdapter(
+                              child: SizedBox(
+                                height:
+                                    MediaQuery.of(context).padding.bottom + 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact header for collapsed state
+class _CompactHeader extends StatelessWidget {
+  final bool isExpanded;
+
+  const _CompactHeader({required this.isExpanded});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      // Use constraints from parent instead of fixed height
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Center(
         child: Row(
@@ -244,17 +314,11 @@ class _UpNextPanelState extends State<UpNextPanel> {
             const SizedBox(width: 6),
             Text(
               "Up Next",
-              style: Default_Theme.secondoryTextStyleMedium.merge(
-                TextStyle(
-                  color: Default_Theme.primaryColor2.withValues(alpha: 0.9),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              style: _UpNextStyles.headerTextStyle,
             ),
             const SizedBox(width: 4),
             AnimatedRotation(
-              turns: _isExpanded ? 0.5 : 0,
+              turns: isExpanded ? 0.5 : 0,
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 Icons.keyboard_arrow_up_rounded,
@@ -267,46 +331,105 @@ class _UpNextPanelState extends State<UpNextPanel> {
       ),
     );
   }
+}
 
-  /// Desktop layout - always expanded, no draggable behavior
-  Widget _buildDesktopLayout() {
-    return Material(
-      color: Colors.transparent,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 0.5,
+/// Desktop layout - always expanded, no draggable behavior
+class _DesktopLayout extends StatelessWidget {
+  final BloomeePlayerCubit playerCubit;
+
+  const _DesktopLayout({required this.playerCubit});
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: _UpNextStyles.desktopBorderRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: _UpNextStyles.desktopBorderRadius,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 0.5,
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () {}, // Desktop doesn't need toggle
-                  child: _buildCompactHeader(),
-                ),
-                _buildQueueInfoRow(),
-                Expanded(
-                  child: _buildDesktopSongList(),
-                ),
-              ],
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: () {}, // Desktop doesn't need toggle
+                    child: const _CompactHeader(isExpanded: true),
+                  ),
+                  _QueueInfoRow(playerCubit: playerCubit),
+                  Expanded(
+                    child: _DesktopSongList(playerCubit: playerCubit),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  /// Desktop song list using ReorderableListView
-  Widget _buildDesktopSongList() {
-    return StreamBuilder(
-      stream: context.read<BloomeePlayerCubit>().bloomeePlayer.queue,
+/// Queue info row with item count and auto-play toggle
+class _QueueInfoRow extends StatelessWidget {
+  final BloomeePlayerCubit playerCubit;
+
+  const _QueueInfoRow({required this.playerCubit});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          StreamBuilder<List<MediaItem>>(
+            stream: playerCubit.bloomeePlayer.queue,
+            builder: (context, snapshot) {
+              return Text(
+                "${snapshot.data?.length ?? 0} Items in Queue",
+                style: _UpNextStyles.queueCountStyle,
+              );
+            },
+          ),
+          BlocBuilder<SettingsCubit, SettingsState>(
+            builder: (context, state) {
+              return ToggleButton(
+                label: "Auto Play",
+                initialState: state.autoPlay,
+                onChanged: (val) async {
+                  await context.read<SettingsCubit>().setAutoPlay(val);
+                  if (val) {
+                    playerCubit.bloomeePlayer.check4RelatedSongs();
+                  }
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Desktop song list using ReorderableListView
+class _DesktopSongList extends StatelessWidget {
+  final BloomeePlayerCubit playerCubit;
+
+  const _DesktopSongList({required this.playerCubit});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<MediaItem>>(
+      stream: playerCubit.bloomeePlayer.queue,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
@@ -325,129 +448,108 @@ class _UpNextPanelState extends State<UpNextPanel> {
           physics: const BouncingScrollPhysics(),
           itemCount: queue.length,
           onReorder: (int oldIndex, int newIndex) {
-            context
-                .read<BloomeePlayerCubit>()
-                .bloomeePlayer
-                .moveQueueItem(oldIndex, newIndex);
+            playerCubit.bloomeePlayer.moveQueueItem(oldIndex, newIndex);
           },
           buildDefaultDragHandles: false,
           itemBuilder: (context, index) {
-            final songModel = mediaItem2MediaItemModel(queue[index]);
-            return Dismissible(
-              key: ValueKey(queue[index].id),
-              direction: DismissDirection.endToStart,
-              background: Container(
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.only(right: 20),
-                color: Colors.red.withValues(alpha: 0.8),
-                child: const Icon(Icons.delete, color: Colors.white),
-              ),
-              onDismissed: (direction) {
-                context
-                    .read<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .removeQueueItemAt(index);
-              },
-              child: Material(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    right: Platform.isAndroid ? 0 : 24,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SongCardWidget(
-                          showOptions: true,
-                          onTap: () {
-                            context
-                                .read<BloomeePlayerCubit>()
-                                .bloomeePlayer
-                                .skipToQueueItem(index);
-                          },
-                          onOptionsTap: () {
-                            showMoreBottomSheet(
-                              context,
-                              songModel,
-                              showAddToQueue: false,
-                              showPlayNext: false,
-                            );
-                          },
-                          song: songModel,
-                        ),
-                      ),
-                      // Drag handle - clearly separated from song card
-                      ReorderableDragStartListener(
-                        index: index,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 8),
-                          child: Icon(
-                            Icons.drag_handle_rounded,
-                            color: Default_Theme.primaryColor2
-                                .withValues(alpha: 0.4),
-                            size: 22,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            final mediaItem = queue[index];
+            return _DesktopQueueItem(
+              key: ValueKey(mediaItem.id),
+              mediaItem: mediaItem,
+              index: index,
+              playerCubit: playerCubit,
             );
           },
         );
       },
     );
   }
+}
 
-  Widget _buildQueueInfoRow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          StreamBuilder<List>(
-            stream: context.read<BloomeePlayerCubit>().bloomeePlayer.queue,
-            builder: (context, snapshot) {
-              return Text(
-                "${snapshot.data?.length ?? 0} Items in Queue",
-                style: Default_Theme.secondoryTextStyleMedium.merge(
-                  TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+/// Individual desktop queue item - extracted for better performance
+class _DesktopQueueItem extends StatelessWidget {
+  final MediaItem mediaItem;
+  final int index;
+  final BloomeePlayerCubit playerCubit;
+
+  const _DesktopQueueItem({
+    super.key,
+    required this.mediaItem,
+    required this.index,
+    required this.playerCubit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final songModel = mediaItem2MediaItemModel(mediaItem);
+    return Dismissible(
+      key: ValueKey('dismiss_${mediaItem.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        color: Colors.red.withValues(alpha: 0.8),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      onDismissed: (direction) {
+        playerCubit.bloomeePlayer.removeQueueItemAt(index);
+      },
+      child: Material(
+        color: Colors.transparent,
+        child: Padding(
+          padding: EdgeInsets.only(
+            right: Platform.isAndroid ? 0 : 24,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: SongCardWidget(
+                  showOptions: true,
+                  onTap: () {
+                    playerCubit.bloomeePlayer.skipToQueueItem(index);
+                  },
+                  onOptionsTap: () {
+                    showMoreBottomSheet(
+                      context,
+                      songModel,
+                      showAddToQueue: false,
+                      showPlayNext: false,
+                    );
+                  },
+                  song: songModel,
+                ),
+              ),
+              // Drag handle - clearly separated from song card
+              ReorderableDragStartListener(
+                index: index,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: Icon(
+                    Icons.drag_handle_rounded,
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.4),
+                    size: 22,
                   ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
-          BlocBuilder<SettingsCubit, SettingsState>(
-            builder: (context, state) {
-              return ToggleButton(
-                label: "Auto Play",
-                initialState: state.autoPlay,
-                onChanged: (val) async {
-                  await context.read<SettingsCubit>().setAutoPlay(val);
-                  if (val) {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .check4RelatedSongs();
-                  }
-                },
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildSongList() {
-    return StreamBuilder(
-      stream: context.read<BloomeePlayerCubit>().bloomeePlayer.queue,
+/// Mobile song list as a sliver
+class _SongListSliver extends StatelessWidget {
+  final BloomeePlayerCubit playerCubit;
+
+  const _SongListSliver({required this.playerCubit});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<MediaItem>>(
+      stream: playerCubit.bloomeePlayer.queue,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const SliverToBoxAdapter(
@@ -466,63 +568,78 @@ class _UpNextPanelState extends State<UpNextPanel> {
         return SliverReorderableList(
           itemCount: queue.length,
           onReorder: (int oldIndex, int newIndex) {
-            context
-                .read<BloomeePlayerCubit>()
-                .bloomeePlayer
-                .moveQueueItem(oldIndex, newIndex);
+            playerCubit.bloomeePlayer.moveQueueItem(oldIndex, newIndex);
           },
           itemBuilder: (context, index) {
-            final songModel = mediaItem2MediaItemModel(queue[index]);
-            // Mobile view: Use long press to reorder (no visible drag handle)
-            return ReorderableDelayedDragStartListener(
-              key: ValueKey(queue[index].id),
+            final mediaItem = queue[index];
+            return _MobileQueueItem(
+              key: ValueKey(mediaItem.id),
+              mediaItem: mediaItem,
               index: index,
-              child: Dismissible(
-                key: ValueKey('dismissible_${queue[index].id}'),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 20),
-                  color: Colors.red.withValues(alpha: 0.8),
-                  child: const Icon(Icons.delete, color: Colors.white),
-                ),
-                onDismissed: (direction) {
-                  context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .removeQueueItemAt(index);
-                },
-                child: Material(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right: Platform.isAndroid ? 0 : 24,
-                    ),
-                    child: SongCardWidget(
-                      showOptions: true,
-                      onTap: () {
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .skipToQueueItem(index);
-                      },
-                      onOptionsTap: () {
-                        showMoreBottomSheet(
-                          context,
-                          songModel,
-                          showAddToQueue: false,
-                          showPlayNext: false,
-                        );
-                      },
-                      song: songModel,
-                    ),
-                  ),
-                ),
-              ),
+              playerCubit: playerCubit,
             );
           },
         );
       },
+    );
+  }
+}
+
+/// Individual mobile queue item - extracted for better performance
+class _MobileQueueItem extends StatelessWidget {
+  final MediaItem mediaItem;
+  final int index;
+  final BloomeePlayerCubit playerCubit;
+
+  const _MobileQueueItem({
+    super.key,
+    required this.mediaItem,
+    required this.index,
+    required this.playerCubit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final songModel = mediaItem2MediaItemModel(mediaItem);
+    // Mobile view: Use long press to reorder (no visible drag handle)
+    return ReorderableDelayedDragStartListener(
+      index: index,
+      child: Dismissible(
+        key: ValueKey('dismissible_${mediaItem.id}'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          color: Colors.red.withValues(alpha: 0.8),
+          child: const Icon(Icons.delete, color: Colors.white),
+        ),
+        onDismissed: (direction) {
+          playerCubit.bloomeePlayer.removeQueueItemAt(index);
+        },
+        child: Material(
+          color: Colors.transparent,
+          child: Padding(
+            padding: EdgeInsets.only(
+              right: Platform.isAndroid ? 0 : 24,
+            ),
+            child: SongCardWidget(
+              showOptions: true,
+              onTap: () {
+                playerCubit.bloomeePlayer.skipToQueueItem(index);
+              },
+              onOptionsTap: () {
+                showMoreBottomSheet(
+                  context,
+                  songModel,
+                  showAddToQueue: false,
+                  showPlayNext: false,
+                );
+              },
+              song: songModel,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -542,226 +659,243 @@ class UpNextPanelLegacy extends StatefulWidget {
 }
 
 class _UpNextPanelLegacyState extends State<UpNextPanelLegacy> {
-  StreamSubscription? _mediaItemSub;
+  late final BloomeePlayerCubit _playerCubit;
 
   @override
   void initState() {
-    _mediaItemSub = context
-        .read<BloomeePlayerCubit>()
-        .bloomeePlayer
-        .mediaItem
-        .listen((value) {
-      if (value != null && mounted) {}
-    });
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _mediaItemSub?.cancel();
-    super.dispose();
+    _playerCubit = context.read<BloomeePlayerCubit>();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(25),
-              topRight: Radius.circular(25),
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 28, 17, 24)
-                    .withValues(alpha: 0.60),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
+    return RepaintBoundary(
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(25)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 28, 17, 24)
+                      .withValues(alpha: 0.60),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(25),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 5,
-                left: 10,
-                right: 10,
-                bottom: 5,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _LegacyHeader(panelController: widget.panelController),
+              _LegacyQueueInfo(playerCubit: _playerCubit),
+              Expanded(
+                child: _LegacySongList(playerCubit: _playerCubit),
               ),
-              child: Center(
-                child: GestureDetector(
-                  onTap: () {
-                    try {
-                      if (widget.panelController.isPanelOpen) {
-                        widget.panelController.close();
-                      } else {
-                        widget.panelController.open();
-                      }
-                    } catch (_) {}
-                  },
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: SizedBox(
-                          width: 40,
-                          child: Divider(
-                            color: Default_Theme.primaryColor2
-                                .withValues(alpha: 0.8),
-                            thickness: 4,
-                          ),
-                        ),
-                      ),
-                      Text("Up Next",
-                          style: Default_Theme.secondoryTextStyleMedium.merge(
-                              const TextStyle(
-                                  color: Default_Theme.primaryColor2,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold))),
-                    ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Legacy header widget
+class _LegacyHeader extends StatelessWidget {
+  final dynamic panelController;
+
+  const _LegacyHeader({required this.panelController});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: 5,
+        left: 10,
+        right: 10,
+        bottom: 5,
+      ),
+      child: Center(
+        child: GestureDetector(
+          onTap: () {
+            try {
+              if (panelController.isPanelOpen) {
+                panelController.close();
+              } else {
+                panelController.open();
+              }
+            } catch (_) {}
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: SizedBox(
+                  width: 40,
+                  child: Divider(
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
+                    thickness: 4,
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 8,
-                right: 8,
+              Text(
+                "Up Next",
+                style: _UpNextStyles.legacyHeaderStyle,
               ),
-              child: Column(
-                children: [
-                  Divider(
-                    color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
-                    thickness: 1.5,
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: StreamBuilder<List>(
-                            stream: context
-                                .read<BloomeePlayerCubit>()
-                                .bloomeePlayer
-                                .queue,
-                            builder: (context, snapshot) {
-                              return Text(
-                                  "${snapshot.data?.length ?? 0} Items in Queue",
-                                  style: Default_Theme.secondoryTextStyleMedium
-                                      .merge(TextStyle(
-                                          color: Default_Theme.primaryColor2
-                                              .withValues(alpha: 0.5),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold)));
-                            }),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8, bottom: 8),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: BlocBuilder<SettingsCubit, SettingsState>(
-                                builder: (context, state) {
-                                  return ToggleButton(
-                                    label: "Auto Play",
-                                    initialState: state.autoPlay,
-                                    onChanged: (val) async {
-                                      await context
-                                          .read<SettingsCubit>()
-                                          .setAutoPlay(val);
-                                      if (val) {
-                                        context
-                                            .read<BloomeePlayerCubit>()
-                                            .bloomeePlayer
-                                            .check4RelatedSongs();
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Legacy queue info row
+class _LegacyQueueInfo extends StatelessWidget {
+  final BloomeePlayerCubit playerCubit;
+
+  const _LegacyQueueInfo({required this.playerCubit});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        children: [
+          Divider(
+            color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
+            thickness: 1.5,
+          ),
+          const SizedBox(height: 5),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: StreamBuilder<List<MediaItem>>(
+                  stream: playerCubit.bloomeePlayer.queue,
+                  builder: (context, snapshot) {
+                    return Text(
+                      "${snapshot.data?.length ?? 0} Items in Queue",
+                      style: _UpNextStyles.legacyQueueStyle,
+                    );
+                  },
+                ),
               ),
-            ),
-            Expanded(
-              child: StreamBuilder(
-                stream: context.read<BloomeePlayerCubit>().bloomeePlayer.queue,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return ReorderableListView.builder(
-                      padding: const EdgeInsets.only(top: 5),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: snapshot.data?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        final songModel =
-                            mediaItem2MediaItemModel(snapshot.data![index]);
-                        return Dismissible(
-                          key: ValueKey(snapshot.data?[index].id),
-                          onDismissed: (direction) {
-                            context
-                                .read<BloomeePlayerCubit>()
-                                .bloomeePlayer
-                                .removeQueueItemAt(index);
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: Platform.isAndroid ? 8 : 32,
-                            ),
-                            child: SongCardWidget(
-                              showOptions: true,
-                              onTap: () {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .skipToQueueItem(index);
-                              },
-                              onOptionsTap: () {
-                                showMoreBottomSheet(
-                                  context,
-                                  songModel,
-                                  showAddToQueue: false,
-                                  showPlayNext: false,
-                                );
-                              },
-                              song: songModel,
-                            ),
-                          ),
-                        );
-                      },
-                      onReorder: (int oldIndex, int newIndex) {
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .moveQueueItem(oldIndex, newIndex);
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                child: BlocBuilder<SettingsCubit, SettingsState>(
+                  builder: (context, state) {
+                    return ToggleButton(
+                      label: "Auto Play",
+                      initialState: state.autoPlay,
+                      onChanged: (val) async {
+                        await context.read<SettingsCubit>().setAutoPlay(val);
+                        if (val) {
+                          playerCubit.bloomeePlayer.check4RelatedSongs();
+                        }
                       },
                     );
-                  }
-                  return const CircularProgressIndicator();
-                },
+                  },
+                ),
               ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Legacy song list
+class _LegacySongList extends StatelessWidget {
+  final BloomeePlayerCubit playerCubit;
+
+  const _LegacySongList({required this.playerCubit});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<MediaItem>>(
+      stream: playerCubit.bloomeePlayer.queue,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Default_Theme.primaryColor2,
             ),
-          ],
+          );
+        }
+
+        final queue = snapshot.data!;
+        return ReorderableListView.builder(
+          padding: const EdgeInsets.only(top: 5),
+          physics: const BouncingScrollPhysics(),
+          itemCount: queue.length,
+          onReorder: (int oldIndex, int newIndex) {
+            playerCubit.bloomeePlayer.moveQueueItem(oldIndex, newIndex);
+          },
+          itemBuilder: (context, index) {
+            final mediaItem = queue[index];
+            return _LegacyQueueItem(
+              key: ValueKey(mediaItem.id),
+              mediaItem: mediaItem,
+              index: index,
+              playerCubit: playerCubit,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Legacy queue item
+class _LegacyQueueItem extends StatelessWidget {
+  final MediaItem mediaItem;
+  final int index;
+  final BloomeePlayerCubit playerCubit;
+
+  const _LegacyQueueItem({
+    super.key,
+    required this.mediaItem,
+    required this.index,
+    required this.playerCubit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final songModel = mediaItem2MediaItemModel(mediaItem);
+    return Dismissible(
+      key: ValueKey('dismiss_legacy_${mediaItem.id}'),
+      onDismissed: (direction) {
+        playerCubit.bloomeePlayer.removeQueueItemAt(index);
+      },
+      child: Padding(
+        padding: EdgeInsets.only(
+          right: Platform.isAndroid ? 8 : 32,
         ),
-      ],
+        child: SongCardWidget(
+          showOptions: true,
+          onTap: () {
+            playerCubit.bloomeePlayer.skipToQueueItem(index);
+          },
+          onOptionsTap: () {
+            showMoreBottomSheet(
+              context,
+              songModel,
+              showAddToQueue: false,
+              showPlayNext: false,
+            );
+          },
+          song: songModel,
+        ),
+      ),
     );
   }
 }

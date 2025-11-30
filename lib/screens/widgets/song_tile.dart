@@ -14,15 +14,39 @@ import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/load_Image.dart';
 
+// Cached styles to avoid repeated merges
+class _SongCardStyles {
+  static final titleStyle = Default_Theme.tertiaryTextStyle.merge(
+    const TextStyle(
+      fontWeight: FontWeight.w600,
+      color: Default_Theme.primaryColor1,
+      fontSize: 14,
+    ),
+  );
+
+  static final subtitleStyle = Default_Theme.tertiaryTextStyle.merge(
+    TextStyle(
+      color: Default_Theme.primaryColor1.withValues(alpha: 0.8),
+      fontSize: 13,
+    ),
+  );
+
+  static const borderRadius = BorderRadius.all(Radius.circular(12));
+  static const imageBorderRadius = BorderRadius.all(Radius.circular(10));
+  static const tilePadding =
+      EdgeInsets.only(left: 10, right: 2, top: 4, bottom: 4);
+  static const buttonPadding = EdgeInsets.symmetric(horizontal: 2);
+}
+
 class SongCardWidget extends StatelessWidget {
   final MediaItemModel song;
-  final bool? showOptions;
-  final bool? showInfoBtn;
-  final bool? showPlayBtn;
-  final bool? showCopyBtn;
-  final bool? delDownBtn;
-  final bool? isWide;
-  final String? subtitleOverride; // Optional override for artist/subtitle text
+  final bool showOptions;
+  final bool showInfoBtn;
+  final bool showPlayBtn;
+  final bool showCopyBtn;
+  final bool delDownBtn;
+  final bool isWide;
+  final String? subtitleOverride;
   final VoidCallback? onOptionsTap;
   final VoidCallback? onInfoTap;
   final VoidCallback? onPlayTap;
@@ -31,237 +55,348 @@ class SongCardWidget extends StatelessWidget {
   final Widget? trailing;
 
   const SongCardWidget({
-    Key? key,
+    super.key,
     required this.song,
-    this.showOptions,
-    this.showInfoBtn,
-    this.showPlayBtn,
-    this.delDownBtn,
+    this.showOptions = true,
+    this.showInfoBtn = false,
+    this.showPlayBtn = false,
+    this.delDownBtn = false,
     this.onOptionsTap,
     this.onInfoTap,
     this.onPlayTap,
     this.onTap,
     this.onDelDownTap,
-    this.showCopyBtn,
+    this.showCopyBtn = false,
     this.isWide = false,
     this.subtitleOverride,
     this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final playerCubit = context.read<BloomeePlayerCubit>();
+
     return SizedBox(
       height: 70,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: _SongCardStyles.borderRadius,
         splashColor: Default_Theme.accentColor1.withValues(alpha: 0.2),
         hoverColor: Default_Theme.primaryColor2.withValues(alpha: 0.1),
         highlightColor: Default_Theme.primaryColor2.withValues(alpha: 0.1),
-        onTap: () {
-          if (onTap != null) onTap!();
-        },
-        onSecondaryTap: () {
-          if (onOptionsTap != null) onOptionsTap!();
-        },
+        onTap: onTap,
+        onSecondaryTap: onOptionsTap,
         child: Padding(
-          padding: const EdgeInsets.only(left: 10, right: 2, top: 4, bottom: 4),
+          padding: _SongCardStyles.tilePadding,
           child: Row(
             children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 500),
-                child: StreamBuilder<MediaItem?>(
-                    stream: context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .mediaItem,
-                    builder: (context, snapshot) {
-                      return (snapshot.data != null &&
-                              snapshot.data?.id == song.id)
-                          ? const Icon(
-                              FontAwesome.caret_right_solid,
-                              color: Default_Theme.accentColor1,
-                              size: 25,
-                            )
-                          : const SizedBox();
-                    }),
+              _PlayingIndicator(
+                songId: song.id,
+                mediaItemStream: playerCubit.bloomeePlayer.mediaItem,
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 4, right: 4),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: isWide ?? false
-                      ? SizedBox(
-                          width: 80,
-                          height: 55,
-                          child: LoadImageCached(
-                            imageUrl: formatImgURL(
-                              song.artUri.toString(),
-                              ImageQuality.low,
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : SizedBox(
-                          width: 55,
-                          height: 55,
-                          child: LoadImageCached(
-                            imageUrl: formatImgURL(
-                              song.artUri.toString(),
-                              ImageQuality.low,
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                ),
+              _SongImage(
+                imageUrl:
+                    formatImgURL(song.artUri.toString(), ImageQuality.low),
+                isWide: isWide,
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 1),
-                      child: Text(
-                        song.title,
-                        textAlign: TextAlign.start,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: Default_Theme.tertiaryTextStyle.merge(
-                            const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Default_Theme.primaryColor1,
-                                fontSize: 14)),
-                      ),
-                    ),
-                    Text(subtitleOverride ?? song.artist ?? 'Unknown',
-                        textAlign: TextAlign.start,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: Default_Theme.tertiaryTextStyle.merge(TextStyle(
-                            color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.8),
-                            fontSize: 13))),
-                  ],
+                child: _SongInfo(
+                  title: song.title,
+                  subtitle: subtitleOverride ?? song.artist ?? 'Unknown',
                 ),
               ),
-              (showPlayBtn ?? false)
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: 2, right: 2),
-                      child: IconButton(
-                        icon: const Icon(
-                          FontAwesome.play_solid,
-                          size: 30,
-                          color: Default_Theme.primaryColor1,
-                        ),
-                        onPressed: () {
-                          if (onPlayTap != null) onPlayTap!();
-                        },
-                      ),
-                    )
-                  : const SizedBox(),
-              (showCopyBtn ?? false)
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: 2, right: 2),
-                      child: Tooltip(
-                        message: "Copy to clipboard",
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.copy_outlined,
-                            size: 25,
-                            color: Default_Theme.primaryColor1,
-                          ),
-                          onPressed: () {
-                            try {
-                              Clipboard.setData(ClipboardData(
-                                  text: "${song.title} by ${song.artist}"));
-                              SnackbarService.showMessage("Copied to clipboard",
-                                  duration: const Duration(seconds: 2));
-                            } catch (e) {
-                              SnackbarService.showMessage(
-                                  "Failed to copy ${song.title}");
-                            }
-                          },
-                        ),
-                      ),
-                    )
-                  : const SizedBox(),
-              (showInfoBtn ?? false)
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: 2, right: 2),
-                      child: Tooltip(
-                        message: "About this song",
-                        child: IconButton(
-                          icon: const Icon(
-                            MingCute.information_line,
-                            size: 30,
-                            color: Default_Theme.primaryColor1,
-                          ),
-                          onPressed: () {
-                            if (onInfoTap != null) {
-                              onInfoTap!();
-                            } else {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          SongInfoScreen(song: song)));
-                            }
-                          },
-                        ),
-                      ),
-                    )
-                  : const SizedBox(),
-              (delDownBtn ?? false)
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: 2, right: 0),
-                      child: IconButton(
-                        icon: const Icon(
-                          MingCute.delete_2_line,
-                          size: 28,
-                          color: Default_Theme.primaryColor1,
-                        ),
-                        onPressed: () {
-                          try {
-                            if (context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .currentMedia
-                                    .id !=
-                                song.id) {
-                              BloomeeDBService.removeDownloadDB(song);
-                              SnackbarService.showMessage(
-                                  "Removed ${song.title}");
-                            } else {
-                              SnackbarService.showMessage(
-                                  "Cannot delete currently playing song");
-                            }
-                          } catch (e) {
-                            BloomeeDBService.removeDownloadDB(song);
-                            SnackbarService.showMessage(
-                                "Removed ${song.title}");
-                          }
-                        },
-                      ),
-                    )
-                  : const SizedBox(),
-              !(showOptions ?? true)
-                  ? const SizedBox()
-                  : IconButton(
-                      icon: const Icon(
-                        MingCute.more_2_fill,
-                        color: Default_Theme.primaryColor1,
-                      ),
-                      onPressed: () {
-                        if (onOptionsTap != null) onOptionsTap!();
-                      },
-                    ),
-              trailing ?? const SizedBox(),
+              ..._buildActionButtons(context, playerCubit),
             ],
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildActionButtons(
+      BuildContext context, BloomeePlayerCubit playerCubit) {
+    return [
+      if (showPlayBtn)
+        _ActionButton(
+          icon: FontAwesome.play_solid,
+          size: 30,
+          onPressed: onPlayTap,
+        ),
+      if (showCopyBtn)
+        _CopyButton(
+          songTitle: song.title,
+          songArtist: song.artist,
+        ),
+      if (showInfoBtn)
+        _InfoButton(
+          song: song,
+          onInfoTap: onInfoTap,
+        ),
+      if (delDownBtn)
+        _DeleteButton(
+          song: song,
+          playerCubit: playerCubit,
+        ),
+      if (showOptions)
+        IconButton(
+          icon: const Icon(
+            MingCute.more_2_fill,
+            color: Default_Theme.primaryColor1,
+          ),
+          onPressed: onOptionsTap,
+        ),
+      if (trailing != null) trailing!,
+    ];
+  }
+}
+
+// Extracted widget for playing indicator - only rebuilds when stream changes
+class _PlayingIndicator extends StatelessWidget {
+  final String songId;
+  final Stream<MediaItem?> mediaItemStream;
+
+  const _PlayingIndicator({
+    required this.songId,
+    required this.mediaItemStream,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<MediaItem?>(
+      stream: mediaItemStream,
+      builder: (context, snapshot) {
+        final isPlaying = snapshot.data?.id == songId;
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: isPlaying
+              ? const Icon(
+                  FontAwesome.caret_right_solid,
+                  key: ValueKey('playing'),
+                  color: Default_Theme.accentColor1,
+                  size: 25,
+                )
+              : const SizedBox(key: ValueKey('not_playing')),
+        );
+      },
+    );
+  }
+}
+
+// Extracted widget for song image with RepaintBoundary
+class _SongImage extends StatelessWidget {
+  final String imageUrl;
+  final bool isWide;
+
+  const _SongImage({
+    required this.imageUrl,
+    required this.isWide,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: _SongCardStyles.imageBorderRadius,
+          child: SizedBox(
+            width: isWide ? 80 : 55,
+            height: 55,
+            child: LoadImageCached(
+              imageUrl: imageUrl,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Extracted widget for song info text
+class _SongInfo extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _SongInfo({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 1),
+          child: Text(
+            title,
+            textAlign: TextAlign.start,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: _SongCardStyles.titleStyle,
+          ),
+        ),
+        Text(
+          subtitle,
+          textAlign: TextAlign.start,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          style: _SongCardStyles.subtitleStyle,
+        ),
+      ],
+    );
+  }
+}
+
+// Reusable action button
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final double size;
+  final VoidCallback? onPressed;
+
+  const _ActionButton({
+    required this.icon,
+    required this.size,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: _SongCardStyles.buttonPadding,
+      child: IconButton(
+        icon: Icon(
+          icon,
+          size: size,
+          color: Default_Theme.primaryColor1,
+        ),
+        onPressed: onPressed,
+      ),
+    );
+  }
+}
+
+// Copy button with tooltip
+class _CopyButton extends StatelessWidget {
+  final String songTitle;
+  final String? songArtist;
+
+  const _CopyButton({
+    required this.songTitle,
+    this.songArtist,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: _SongCardStyles.buttonPadding,
+      child: Tooltip(
+        message: "Copy to clipboard",
+        child: IconButton(
+          icon: const Icon(
+            Icons.copy_outlined,
+            size: 25,
+            color: Default_Theme.primaryColor1,
+          ),
+          onPressed: _copyToClipboard,
+        ),
+      ),
+    );
+  }
+
+  void _copyToClipboard() {
+    try {
+      Clipboard.setData(ClipboardData(text: "$songTitle by $songArtist"));
+      SnackbarService.showMessage(
+        "Copied to clipboard",
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      SnackbarService.showMessage("Failed to copy $songTitle");
+    }
+  }
+}
+
+// Info button
+class _InfoButton extends StatelessWidget {
+  final MediaItemModel song;
+  final VoidCallback? onInfoTap;
+
+  const _InfoButton({
+    required this.song,
+    this.onInfoTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: _SongCardStyles.buttonPadding,
+      child: Tooltip(
+        message: "About this song",
+        child: IconButton(
+          icon: const Icon(
+            MingCute.information_line,
+            size: 30,
+            color: Default_Theme.primaryColor1,
+          ),
+          onPressed: () {
+            if (onInfoTap != null) {
+              onInfoTap!();
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SongInfoScreen(song: song),
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// Delete button
+class _DeleteButton extends StatelessWidget {
+  final MediaItemModel song;
+  final BloomeePlayerCubit playerCubit;
+
+  const _DeleteButton({
+    required this.song,
+    required this.playerCubit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: IconButton(
+        icon: const Icon(
+          MingCute.delete_2_line,
+          size: 28,
+          color: Default_Theme.primaryColor1,
+        ),
+        onPressed: _handleDelete,
+      ),
+    );
+  }
+
+  void _handleDelete() {
+    try {
+      if (playerCubit.bloomeePlayer.currentMedia.id != song.id) {
+        BloomeeDBService.removeDownloadDB(song);
+        SnackbarService.showMessage("Removed ${song.title}");
+      } else {
+        SnackbarService.showMessage("Cannot delete currently playing song");
+      }
+    } catch (e) {
+      BloomeeDBService.removeDownloadDB(song);
+      SnackbarService.showMessage("Removed ${song.title}");
+    }
   }
 }
 
