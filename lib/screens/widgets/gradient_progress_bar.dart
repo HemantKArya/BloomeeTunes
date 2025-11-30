@@ -76,8 +76,8 @@ class GradientGenerator {
       // LIGHT & BREEZY MODE (Best for Blues/Cyans)
       // Original logic: Lighter, more vibrant version for the left side
 
-      final double lightnessBoost = 0.18;
-      final double saturationBoost = 0.08;
+      const double lightnessBoost = 0.18;
+      const double saturationBoost = 0.08;
 
       final double newLightness =
           (hsl.lightness + lightnessBoost).clamp(0.0, 0.85);
