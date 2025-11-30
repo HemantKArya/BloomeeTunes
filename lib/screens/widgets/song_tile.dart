@@ -22,6 +22,7 @@ class SongCardWidget extends StatelessWidget {
   final bool? showCopyBtn;
   final bool? delDownBtn;
   final bool? isWide;
+  final String? subtitleOverride; // Optional override for artist/subtitle text
   final VoidCallback? onOptionsTap;
   final VoidCallback? onInfoTap;
   final VoidCallback? onPlayTap;
@@ -43,6 +44,7 @@ class SongCardWidget extends StatelessWidget {
     this.onDelDownTap,
     this.showCopyBtn,
     this.isWide = false,
+    this.subtitleOverride,
     this.trailing,
   }) : super(key: key);
 
@@ -132,7 +134,7 @@ class SongCardWidget extends StatelessWidget {
                                 fontSize: 14)),
                       ),
                     ),
-                    Text(song.artist ?? 'Unknown',
+                    Text(subtitleOverride ?? song.artist ?? 'Unknown',
                         textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
