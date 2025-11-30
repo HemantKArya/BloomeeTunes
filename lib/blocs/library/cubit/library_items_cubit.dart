@@ -61,7 +61,9 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
       final playlistItems = mediaPlaylistsDB2ItemProperties(mediaPlaylists);
 
       // When emitting, copy existing parts of the state to avoid losing data
-      emit(state.copyWith(playlists: playlistItems));
+      emit(state.copyWith(
+        playlists: playlistItems,
+      ));
     } catch (e) {
       log("Error fetching playlists: $e", name: "LibraryItemsCubit");
       emit(const LibraryItemsError("Failed to load your playlists."));
