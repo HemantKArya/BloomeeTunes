@@ -715,6 +715,23 @@ class BloomeeDBService {
     return mediaPlaylistDB?.mediaItems.toList();
   }
 
+  /// Returns list of playlist names that contain the given song (by mediaID/permaURL)
+  static Future<List<String>> getPlaylistsContainingSong(String mediaId) async {
+    Isar isarDB = await db;
+
+    // Find the media item by its ID (permaURL)
+    MediaItemDB? mediaItem =
+        isarDB.mediaItemDBs.filter().mediaIDEqualTo(mediaId).findFirstSync();
+
+    if (mediaItem == null) {
+      return [];
+    }
+
+    // Get all playlists this media item belongs to
+    final playlists = mediaItem.mediaInPlaylistsDB.toList();
+    return playlists.map((p) => p.playlistName).toList();
+  }
+
   static Future<List<MediaPlaylist>> getPlaylists4Library() async {
     Isar isarDB = await db;
     final playlists = await isarDB.mediaPlaylistDBs.where().findAll();

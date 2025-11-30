@@ -1,13 +1,16 @@
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/screens/widgets/animated_list_item.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/widgets/createPlaylist_bottomsheet.dart';
-import 'package:Bloomee/screens/widgets/libitem_tile.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/routes_and_consts/global_conts.dart';
@@ -22,225 +25,524 @@ class AddToPlaylistScreen extends StatefulWidget {
 }
 
 class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
-  List<PlaylistItemProperties> playlistsItems = List.empty(growable: true);
-
-  List<PlaylistItemProperties> filteredPlaylistsItems =
-      List.empty(growable: true);
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  final ValueNotifier<String> _searchQuery = ValueNotifier('');
+  final ValueNotifier<Set<String>> _songInPlaylists = ValueNotifier({});
 
-  Future<void> searchFilter(String query) async {
-    if (query.length > 0) {
-      setState(() {
-        filteredPlaylistsItems = playlistsItems.where((element) {
-          return element.playlistName
-              .toLowerCase()
-              .contains(query.toLowerCase());
-        }).toList();
-      });
-    } else {
-      setState(() {
-        filteredPlaylistsItems = playlistsItems;
-      });
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+    // Load which playlists contain this song after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSongPlaylists();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _searchQuery.dispose();
+    _songInPlaylists.dispose();
+    super.dispose();
+  }
+
+  /// Loads which playlists the current song belongs to
+  Future<void> _loadSongPlaylists() async {
+    final mediaItem = context.read<AddToPlaylistCubit>().state.mediaItemModel;
+    if (mediaItem == mediaItemModelNull) {
+      return;
+    }
+
+    try {
+      final playlistNames =
+          await BloomeeDBService.getPlaylistsContainingSong(mediaItem.id);
+      _songInPlaylists.value = playlistNames.toSet();
+    } catch (e) {
+      // If error, just continue with empty set
+      _songInPlaylists.value = {};
     }
   }
 
-  MediaItemModel currentMediaModel = mediaItemModelNull;
+  void _onSearchChanged() {
+    _searchQuery.value = _searchController.text.trim();
+  }
+
+  List<PlaylistItemProperties> _filterPlaylists(
+    List<PlaylistItemProperties> playlists,
+    String query,
+  ) {
+    // Filter out system playlists first
+    final userPlaylists = playlists.where((p) {
+      return p.playlistName != "recently_played" &&
+          p.playlistName != GlobalStrConsts.downloadPlaylist;
+    }).toList();
+
+    if (query.isEmpty) return userPlaylists;
+
+    return userPlaylists.where((element) {
+      return element.playlistName.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+  }
+
+  void _toggleSongInPlaylist(
+    BuildContext context,
+    MediaItemModel song,
+    PlaylistItemProperties playlist,
+    bool isInPlaylist,
+  ) {
+    final playlistDB = MediaPlaylistDB(playlistName: playlist.playlistName);
+
+    if (isInPlaylist) {
+      // Remove from playlist
+      context.read<LibraryItemsCubit>().removeFromPlaylist(song, playlistDB);
+      _songInPlaylists.value = Set.from(_songInPlaylists.value)
+        ..remove(playlist.playlistName);
+      SnackbarService.showMessage(
+        'Removed from "${playlist.playlistName}"',
+        duration: const Duration(seconds: 2),
+      );
+    } else {
+      // Add to playlist
+      context.read<LibraryItemsCubit>().addToPlaylist(song, playlistDB);
+      _songInPlaylists.value = Set.from(_songInPlaylists.value)
+        ..add(playlist.playlistName);
+      SnackbarService.showMessage(
+        'Added to "${playlist.playlistName}"',
+        duration: const Duration(seconds: 2),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // context.read<AddToPlaylistCubit>().getAndEmitPlaylists();
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          'Add to Playlist',
-          style: const TextStyle(
-                  color: Default_Theme.primaryColor1,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)
-              .merge(Default_Theme.secondoryTextStyle),
-        ),
-      ),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
-            builder: (context, state) {
-              if (state is AddToPlaylistInitial) {
-                return const Center(
-                    child: CircularProgressIndicator(
-                  color: Default_Theme.accentColor2,
-                ));
-              } else {
-                if (state.mediaItemModel != mediaItemModelNull) {
-                  currentMediaModel = state.mediaItemModel;
-                  return Wrap(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 10, right: 10),
-                              child: SizedBox(
-                                width: 80,
-                                height: 80,
-                                child: LoadImageCached(
-                                    imageUrl:
-                                        state.mediaItemModel.artUri.toString()),
+      backgroundColor: Default_Theme.themeColor,
+      body: SafeArea(
+        child: BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
+          builder: (context, addToPlaylistState) {
+            final mediaItem = addToPlaylistState.mediaItemModel;
+
+            if (mediaItem == mediaItemModelNull) {
+              return const Center(
+                child: SignBoardWidget(
+                  message: "No song selected",
+                  icon: MingCute.music_2_line,
+                ),
+              );
+            }
+
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Custom App Bar
+                SliverAppBar(
+                  pinned: true,
+                  expandedHeight: 0,
+                  backgroundColor: Default_Theme.themeColor,
+                  surfaceTintColor: Default_Theme.themeColor,
+                  leading: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Default_Theme.primaryColor1,
+                    ),
+                    onPressed: () => context.pop(),
+                  ),
+                  title: Text(
+                    'Add to Playlist',
+                    style: Default_Theme.secondoryTextStyleMedium.merge(
+                      const TextStyle(
+                        color: Default_Theme.primaryColor1,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  centerTitle: true,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(
+                        MingCute.add_circle_line,
+                        color: Default_Theme.accentColor2,
+                        size: 26,
+                      ),
+                      tooltip: 'Create New Playlist',
+                      onPressed: () => createPlaylistBottomSheet(context),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                ),
+
+                // Song Info Card (Compact)
+                SliverToBoxAdapter(
+                  child: _SongInfoCard(mediaItem: mediaItem),
+                ),
+
+                // Search Bar
+                SliverToBoxAdapter(
+                  child: _SearchBar(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    searchQuery: _searchQuery,
+                  ),
+                ),
+
+                // Playlists List
+                BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+                  builder: (context, libraryState) {
+                    if (libraryState is LibraryItemsLoading) {
+                      return const SliverFillRemaining(
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Default_Theme.accentColor2,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ValueListenableBuilder<String>(
+                      valueListenable: _searchQuery,
+                      builder: (context, query, _) {
+                        final filteredPlaylists = _filterPlaylists(
+                          libraryState.playlists,
+                          query,
+                        );
+
+                        if (filteredPlaylists.isEmpty) {
+                          return SliverFillRemaining(
+                            child: Center(
+                              child: SignBoardWidget(
+                                message: query.isEmpty
+                                    ? "No playlists yet.\nCreate one to get started!"
+                                    : "No playlists match your search",
+                                icon: query.isEmpty
+                                    ? MingCute.playlist_line
+                                    : MingCute.search_line,
                               ),
                             ),
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 5),
-                                    child: Text(
-                                      state.mediaItemModel.title,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Default_Theme.secondoryTextStyle
-                                          .merge(const TextStyle(
-                                              color:
-                                                  Default_Theme.primaryColor2,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 17)),
-                                    ),
-                                  ),
-                                  Text(
-                                    state.mediaItemModel.artist ?? "Unknown",
-                                    maxLines: 2,
-                                    textAlign: TextAlign.start,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Default_Theme.secondoryTextStyle
-                                        .merge(TextStyle(
-                                            color: Default_Theme.primaryColor2
-                                                .withValues(alpha: 0.5),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15)),
-                                  ),
-                                ],
+                          );
+                        }
+
+                        return ValueListenableBuilder<Set<String>>(
+                          valueListenable: _songInPlaylists,
+                          builder: (context, songPlaylists, _) {
+                            return SliverPadding(
+                              padding: const EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                bottom: 100,
                               ),
-                            )
-                          ],
-                        ),
-                      ),
-                      const Divider(
-                        color: Default_Theme.accentColor2,
-                        thickness: 3,
-                        height: 20,
-                      ),
-                    ],
-                  );
-                } else {
-                  return const CircularProgressIndicator();
-                }
-              }
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                searchFilter(value.toString());
-              },
-              style: TextStyle(
-                  color: Default_Theme.primaryColor1.withValues(alpha: 0.55)),
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                  filled: true,
-                  fillColor:
-                      Default_Theme.primaryColor2.withValues(alpha: 0.07),
-                  contentPadding: const EdgeInsets.only(top: 20, left: 15),
-                  hintText: "Search you playlist..",
-                  hintStyle: TextStyle(
-                      color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
-                      fontFamily: "Gilroy"),
-                  enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(style: BorderStyle.none),
-                      borderRadius: BorderRadius.circular(50)),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.7)),
-                      borderRadius: BorderRadius.circular(50))),
-            ),
-          ),
-          Expanded(
-            child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-              builder: (context, state) {
-                if (state is LibraryItemsLoading) {
-                  return const SignBoardWidget(
-                      message: "No Playlists Yet",
-                      icon: MingCute.playlist_line);
-                } else {
-                  playlistsItems = state.playlists;
-                  final finalList = filteredPlaylistsItems.isEmpty ||
-                          _searchController.text.isEmpty
-                      ? playlistsItems
-                      : filteredPlaylistsItems;
-                  return ListView.builder(
-                    itemCount: finalList.length,
-                    itemBuilder: (context, index) {
-                      if (finalList[index].playlistName == "recently_played" ||
-                          finalList[index].playlistName ==
-                              GlobalStrConsts.downloadPlaylist) {
-                        return const SizedBox();
-                      } else {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8, left: 10),
-                          child: InkWell(
-                            child: LibItemCard(
-                                onTap: () {
-                                  if (currentMediaModel != mediaItemModelNull) {
-                                    context
-                                        .read<LibraryItemsCubit>()
-                                        .addToPlaylist(
-                                            currentMediaModel,
-                                            MediaPlaylistDB(
-                                              playlistName:
-                                                  finalList[index].playlistName,
-                                            ));
-                                    context.pop(context);
-                                  }
+                              sliver: SliverList.builder(
+                                itemCount: filteredPlaylists.length,
+                                itemBuilder: (context, index) {
+                                  final playlist = filteredPlaylists[index];
+                                  final isInPlaylist = songPlaylists
+                                      .contains(playlist.playlistName);
+                                  return AnimatedListItem(
+                                    key: ValueKey(playlist.playlistName),
+                                    index: index,
+                                    child: _PlaylistTile(
+                                      playlist: playlist,
+                                      isInPlaylist: isInPlaylist,
+                                      onTap: () => _toggleSongInPlaylist(
+                                        context,
+                                        mediaItem,
+                                        playlist,
+                                        isInPlaylist,
+                                      ),
+                                    ),
+                                  );
                                 },
-                                title: finalList[index].playlistName,
-                                coverArt:
-                                    finalList[index].coverImgUrl ?? "null",
-                                subtitle:
-                                    finalList[index].subTitle ?? "Unverified"),
-                          ),
+                              ),
+                            );
+                          },
                         );
-                      }
-                    },
-                  );
-                }
-              },
-            ),
-          )
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(50),
+                      },
+                    );
+                  },
+                ),
+              ],
+            );
+          },
         ),
-        icon: const Icon(
-          MingCute.add_fill,
-          size: 25,
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'add_to_playlist_fab',
+        backgroundColor: Default_Theme.accentColor2,
+        elevation: 2,
+        onPressed: () => createPlaylistBottomSheet(context),
+        child: const Icon(
+          Icons.add_rounded,
+          size: 28,
           color: Default_Theme.primaryColor1,
         ),
-        onPressed: () {
-          createPlaylistBottomSheet(context);
-        },
-        label: Text(
-          "Create New Playlist",
-          style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
+      ),
+    );
+  }
+}
+
+/// Compact song info card showing the song being added
+class _SongInfoCard extends StatelessWidget {
+  final MediaItemModel mediaItem;
+
+  const _SongInfoCard({required this.mediaItem});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          // Album Art
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: LoadImageCached(
+                imageUrl: formatImgURL(
+                  mediaItem.artUri.toString(),
+                  ImageQuality.low,
+                ),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Song Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  mediaItem.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Default_Theme.secondoryTextStyleMedium.merge(
+                    const TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  mediaItem.artist ?? "Unknown Artist",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Default_Theme.secondoryTextStyle.merge(
+                    TextStyle(
+                      color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Search bar widget with clear button
+class _SearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final ValueNotifier<String> searchQuery;
+
+  const _SearchBar({
+    required this.controller,
+    required this.focusNode,
+    required this.searchQuery,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Default_Theme.primaryColor1.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: TextField(
+          controller: controller,
+          focusNode: focusNode,
+          textInputAction: TextInputAction.search,
+          style: Default_Theme.secondoryTextStyle.merge(
+            const TextStyle(
               color: Default_Theme.primaryColor1,
-              fontWeight: FontWeight.bold,
-              fontSize: 15)),
+              fontSize: 15,
+            ),
+          ),
+          decoration: InputDecoration(
+            hintText: 'Search playlists...',
+            hintStyle: Default_Theme.secondoryTextStyle.merge(
+              TextStyle(
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.35),
+                fontSize: 15,
+              ),
+            ),
+            prefixIcon: Icon(
+              Icons.search_rounded,
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
+              size: 22,
+            ),
+            suffixIcon: ValueListenableBuilder<String>(
+              valueListenable: searchQuery,
+              builder: (context, query, _) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 150),
+                  child: query.isEmpty
+                      ? const SizedBox.shrink(key: ValueKey('empty'))
+                      : IconButton(
+                          key: const ValueKey('clear'),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.4),
+                            size: 20,
+                          ),
+                          onPressed: () => controller.clear(),
+                        ),
+                );
+              },
+            ),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Individual playlist tile - clean, minimal design
+class _PlaylistTile extends StatelessWidget {
+  final PlaylistItemProperties playlist;
+  final bool isInPlaylist;
+  final VoidCallback onTap;
+
+  const _PlaylistTile({
+    required this.playlist,
+    required this.isInPlaylist,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.08),
+        highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.04),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Row(
+            children: [
+              // Playlist Cover
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: LoadImageCached(
+                    imageUrl: formatImgURL(
+                      playlist.coverImgUrl ?? '',
+                      ImageQuality.low,
+                    ),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+
+              // Playlist Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      playlist.playlistName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Default_Theme.secondoryTextStyleMedium.merge(
+                        const TextStyle(
+                          color: Default_Theme.primaryColor1,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      playlist.subTitle ?? 'Playlist',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Default_Theme.secondoryTextStyle.merge(
+                        TextStyle(
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.5),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Checkmark indicator (only when in playlist)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(scale: animation, child: child);
+                },
+                child: isInPlaylist
+                    ? Container(
+                        key: const ValueKey('checked'),
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Default_Theme.accentColor1
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: Default_Theme.accentColor1,
+                          size: 20,
+                        ),
+                      )
+                    : SizedBox(
+                        key: const ValueKey('unchecked'),
+                        width: 32,
+                        height: 32,
+                        child: Icon(
+                          Icons.add_rounded,
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.4),
+                          size: 24,
+                        ),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
