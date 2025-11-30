@@ -7,6 +7,7 @@
 - **Touch Device Support**: Improved support for touch-based interactions across the application.
 - **Redesigned Up Next Panel**: Completely redesigned the "Up Next" panel with modern UI elements.
 - **Full Screen Lyrics Viewer**: Introduced a new full-screen lyrics viewing mode with enhanced display options.
+- **Auto Scroll in Queue**: Automatic scroll to every song changed in the queue.
 
 ### Changed
 - **New Progress Bar for Player**: Implemented a new progress bar design for the media player.
