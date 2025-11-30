@@ -1484,6 +1484,47 @@ class BloomeeDBService {
     isarDB.writeTxnSync(() =>
         isarDB.lyricsDBs.filter().mediaIDEqualTo(mediaID).deleteAllSync());
   }
+
+  /// Efficiently search for songs in library playlists by title or artist
+  /// Uses direct DB filtering instead of loading all songs into memory
+  static Future<List<(MediaItemModel, String)>> searchMediaItemsInLibrary(
+      String query) async {
+    if (query.trim().isEmpty) return [];
+
+    Isar isarDB = await db;
+    final lowerQuery = query.toLowerCase();
+
+    // Get all media items that match the query (title or artist)
+    final matchingItems = await isarDB.mediaItemDBs
+        .filter()
+        .group((q) => q
+            .titleContains(lowerQuery, caseSensitive: false)
+            .or()
+            .artistContains(lowerQuery, caseSensitive: false))
+        .findAll();
+
+    // For each matching item, find which playlist(s) it belongs to
+    List<(MediaItemModel, String)> results = [];
+    for (final item in matchingItems) {
+      // Load the links (IsarLinks are lazy loaded)
+      await item.mediaInPlaylistsDB.load();
+
+      // Check if this item is in any playlist
+      final playlists = item.mediaInPlaylistsDB.toList();
+      if (playlists.isNotEmpty) {
+        // Skip system playlists, find first user playlist
+        for (final playlist in playlists) {
+          if (playlist.playlistName != recentlyPlayedPlaylist &&
+              playlist.playlistName != downloadPlaylist) {
+            results.add((MediaItemDB2MediaItem(item), playlist.playlistName));
+            break;
+          }
+        }
+      }
+    }
+
+    return results;
+  }
 }
 
 ArtistModel formatSavedArtistOnl(SavedCollectionsDB savedCollectionsDB) {
