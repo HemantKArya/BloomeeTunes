@@ -375,8 +375,8 @@ class _MyAppState extends State<MyApp> {
                       start: 1921, end: double.infinity, name: '4K'),
                 ],
                 child: GlobalEventListener(
-                  child: child!,
                   navigatorKey: GlobalRoutes.globalRouterKey,
+                  child: child!,
                 ),
               ),
               scaffoldMessengerKey: SnackbarService.messengerKey,
