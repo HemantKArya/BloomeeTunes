@@ -163,29 +163,32 @@ class BloomeeDBCubit extends Cubit<MediadbState> {
   }
 
   Future<void> removeMediaFromPlaylist(
-      MediaItem mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
+      MediaItem mediaItem, MediaPlaylistDB mediaPlaylistDB,
+      {bool showSnackbar = true}) async {
     MediaItemDB _mediaItemDB = MediaItem2MediaItemDB(mediaItem);
     BloomeeDBService.removeMediaItemFromPlaylist(_mediaItemDB, mediaPlaylistDB)
         .then((value) {
-      SnackbarService.showMessage(
-          "${mediaItem.title} is removed from ${mediaPlaylistDB.playlistName}!!",
-          duration: const Duration(seconds: 3),
-          action: SnackBarAction(
-              label: "Undo",
-              textColor: Default_Theme.accentColor2,
-              onPressed: () => addMediaItemToPlaylist(
-                  MediaItemDB2MediaItem(_mediaItemDB), mediaPlaylistDB,
-                  undo: true)));
+      if (showSnackbar) {
+        SnackbarService.showMessage(
+            "${mediaItem.title} is removed from ${mediaPlaylistDB.playlistName}!!",
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+                label: "Undo",
+                textColor: Default_Theme.accentColor2,
+                onPressed: () => addMediaItemToPlaylist(
+                    MediaItemDB2MediaItem(_mediaItemDB), mediaPlaylistDB,
+                    undo: true)));
+      }
     });
   }
 
   Future<int?> addMediaItemToPlaylist(
       MediaItemModel mediaItemModel, MediaPlaylistDB mediaPlaylistDB,
-      {bool undo = false}) async {
+      {bool undo = false, bool showSnackbar = true}) async {
     final _id = await BloomeeDBService.addMediaItem(
         MediaItem2MediaItemDB(mediaItemModel), mediaPlaylistDB.playlistName);
     // refreshLibrary.add(true);
-    if (!undo) {
+    if (!undo && showSnackbar) {
       SnackbarService.showMessage(
           "${mediaItemModel.title} is added to ${mediaPlaylistDB.playlistName}!!");
     }

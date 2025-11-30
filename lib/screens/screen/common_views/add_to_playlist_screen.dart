@@ -2,7 +2,6 @@ import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/animated_list_item.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
-import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
@@ -97,23 +96,23 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     final playlistDB = MediaPlaylistDB(playlistName: playlist.playlistName);
 
     if (isInPlaylist) {
-      // Remove from playlist
-      context.read<LibraryItemsCubit>().removeFromPlaylist(song, playlistDB);
+      // Remove from playlist - no snackbar, checkbox animation provides feedback
+      context.read<LibraryItemsCubit>().removeFromPlaylist(
+            song,
+            playlistDB,
+            showSnackbar: false,
+          );
       _songInPlaylists.value = Set.from(_songInPlaylists.value)
         ..remove(playlist.playlistName);
-      SnackbarService.showMessage(
-        'Removed from "${playlist.playlistName}"',
-        duration: const Duration(seconds: 2),
-      );
     } else {
-      // Add to playlist
-      context.read<LibraryItemsCubit>().addToPlaylist(song, playlistDB);
+      // Add to playlist - no snackbar, checkbox animation provides feedback
+      context.read<LibraryItemsCubit>().addToPlaylist(
+            song,
+            playlistDB,
+            showSnackbar: false,
+          );
       _songInPlaylists.value = Set.from(_songInPlaylists.value)
         ..add(playlist.playlistName);
-      SnackbarService.showMessage(
-        'Added to "${playlist.playlistName}"',
-        duration: const Duration(seconds: 2),
-      );
     }
   }
 

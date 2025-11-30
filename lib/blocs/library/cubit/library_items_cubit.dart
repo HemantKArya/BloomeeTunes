@@ -113,20 +113,22 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   }
 
   Future<void> addToPlaylist(
-      MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB) async {
+      MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB,
+      {bool showSnackbar = true}) async {
     if (mediaPlaylistDB.playlistName != "Null") {
-      await bloomeeDBCubit.addMediaItemToPlaylist(mediaItem, mediaPlaylistDB);
+      await bloomeeDBCubit.addMediaItemToPlaylist(mediaItem, mediaPlaylistDB,
+          showSnackbar: showSnackbar);
       // The watcher will automatically trigger a state update.
     }
   }
 
   void removeFromPlaylist(
-      MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB) {
+      MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB,
+      {bool showSnackbar = true}) {
     if (mediaPlaylistDB.playlistName != "Null") {
-      bloomeeDBCubit.removeMediaFromPlaylist(mediaItem, mediaPlaylistDB);
+      bloomeeDBCubit.removeMediaFromPlaylist(mediaItem, mediaPlaylistDB,
+          showSnackbar: showSnackbar);
       // The watcher will automatically trigger a state update.
-      SnackbarService.showMessage(
-          "Removed ${mediaItem.title} from ${mediaPlaylistDB.playlistName}");
     }
   }
 
