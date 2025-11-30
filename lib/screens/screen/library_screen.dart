@@ -289,27 +289,30 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
         return AnimatedListItem(
           key: ValueKey('song_${result.song.id}_${result.playlistName}'),
           index: index,
-          child: SongCardWidget(
-            song: result.song,
-            showOptions: false,
-            subtitleOverride: 'in ${result.playlistName}',
-            onTap: () async {
-              final playlistDB =
-                  await BloomeeDBService.getPlaylist(result.playlistName);
-              if (playlistDB != null && context.mounted) {
-                final playlist = fromPlaylistDB2MediaPlaylist(playlistDB);
-                final songIdx = playlist.mediaItems
-                    .indexWhere((s) => s.id == result.song.id);
-                context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
-                      playlist,
-                      idx: songIdx >= 0 ? songIdx : 0,
-                      doPlay: true,
-                    );
-              }
-            },
-            onOptionsTap: () {
-              showMoreBottomSheet(context, result.song);
-            },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 4, right: 0),
+            child: SongCardWidget(
+              song: result.song,
+              showOptions: true,
+              subtitleOverride: 'in ${result.playlistName}',
+              onTap: () async {
+                final playlistDB =
+                    await BloomeeDBService.getPlaylist(result.playlistName);
+                if (playlistDB != null && context.mounted) {
+                  final playlist = fromPlaylistDB2MediaPlaylist(playlistDB);
+                  final songIdx = playlist.mediaItems
+                      .indexWhere((s) => s.id == result.song.id);
+                  context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
+                        playlist,
+                        idx: songIdx >= 0 ? songIdx : 0,
+                        doPlay: true,
+                      );
+                }
+              },
+              onOptionsTap: () {
+                showMoreBottomSheet(context, result.song);
+              },
+            ),
           ),
         );
       },
