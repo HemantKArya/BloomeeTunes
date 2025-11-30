@@ -866,18 +866,21 @@ class _AmbientImgShadowWidgetState extends State<AmbientImgShadowWidget> {
             _fetchPalette(artUri);
           }
 
-          return RepaintBoundary(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    (cachedColor ?? const Color.fromARGB(255, 68, 252, 255))
-                        .withValues(alpha: 0.40),
-                    Colors.transparent,
-                  ],
-                  center: Alignment.center,
-                  radius: 0.75,
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 100.0),
+            child: RepaintBoundary(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      (cachedColor ?? const Color.fromARGB(255, 163, 44, 115))
+                          .withValues(alpha: 0.30),
+                      Colors.transparent,
+                    ],
+                    center: Alignment.center,
+                    radius: 0.65,
+                  ),
                 ),
               ),
             ),
