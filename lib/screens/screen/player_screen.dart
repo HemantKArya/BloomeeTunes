@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
+import 'package:Bloomee/screens/widgets/gradient_progress_bar.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
@@ -10,7 +11,6 @@ import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/shortcuts_intents.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
-import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -466,10 +466,11 @@ class _LikeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
-    return StreamBuilder<dynamic>(
-        stream:
-            bloomeePlayerCubit.bloomeePlayer.audioPlayer.playbackEventStream,
-        builder: (context, snapshot) {
+    return StreamBuilder<ProgressBarStreams>(
+        stream: bloomeePlayerCubit.progressStreams,
+        builder: (context, progressSnapshot) {
+          final isPlaying =
+              progressSnapshot.data?.currentPlayerState.playing ?? false;
           return FutureBuilder(
             future: context
                 .read<BloomeeDBCubit>()
@@ -479,7 +480,7 @@ class _LikeButton extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(left: 0.0, bottom: 3),
                 child: LikeBtnWidget(
-                  isPlaying: true,
+                  isPlaying: isPlaying,
                   isLiked: isLiked,
                   iconSize: 25,
                   onLiked: () => context.read<BloomeeDBCubit>().setLike(
@@ -508,7 +509,7 @@ class _PlayerProgressBar extends StatelessWidget {
           builder: (context, snapshot) {
             final data = snapshot.data;
             final isPlaying = data?.currentPlayerState.playing ?? false;
-            return ProgressBar(
+            return GradientProgressBar.fromAccentColors(
               progress: data?.currentPos ?? Duration.zero,
               total: data?.currentPlaybackState.duration ?? Duration.zero,
               buffered:
@@ -516,25 +517,25 @@ class _PlayerProgressBar extends StatelessWidget {
               onSeek: (value) {
                 bloomeePlayerCubit.bloomeePlayer.seek(value);
               },
+              isPlaying: isPlaying,
+              // Just pass the accent colors - gradients are auto-generated!
+              activeAccentColor: Default_Theme.accentColor1, // Sky Blue
+              inactiveAccentColor: Default_Theme.accentColor2, // Pink
+              // Use "Light & Breezy" for Sky Blue (keeps it bright/cyan)
+              activeGradientStyle: GradientStyle.lightAndBreezy,
+              // Use "Warm & Rich" for Pink (makes it vibrant/orange-red, not pastel)
+              inactiveGradientStyle: GradientStyle.warmAndRich,
+              trackHeight: 6.0,
+              thumbRadius: 8.0,
               timeLabelPadding: 5,
-              timeLabelTextStyle: Default_Theme.secondoryTextStyle.merge(
-                  TextStyle(
-                      fontSize: 15,
-                      color:
-                          Default_Theme.primaryColor1.withValues(alpha: 0.7))),
+              timeLabelStyle: Default_Theme.secondoryTextStyle.merge(TextStyle(
+                  fontSize: 15,
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.7))),
               timeLabelLocation: TimeLabelLocation.above,
-              baseBarColor: Default_Theme.primaryColor2.withValues(alpha: 0.1),
-              progressBarColor: isPlaying
-                  ? Default_Theme.accentColor1
-                  : Default_Theme.accentColor2,
-              thumbRadius: 5,
-              thumbColor: isPlaying
-                  ? Default_Theme.accentColor1
-                  : Default_Theme.accentColor2,
-              bufferedBarColor: isPlaying
-                  ? Default_Theme.accentColor1.withValues(alpha: 0.2)
-                  : Default_Theme.accentColor2.withValues(alpha: 0.2),
-              barHeight: 4,
+              inactiveTrackColor:
+                  Default_Theme.primaryColor2.withValues(alpha: 0.1),
+              animationDuration: const Duration(milliseconds: 200),
+              animationCurve: Curves.easeOutCubic,
             );
           }),
     );
@@ -785,19 +786,32 @@ class _PlayPauseButton extends StatelessWidget {
     return BlocBuilder<MiniPlayerBloc, MiniPlayerState>(
       builder: (context, state) {
         Widget child;
+        // Determine button color based on state
+        // - Playing/Working states: accentColor1 (sky blue) handled by PlayPauseButton
+        // - Completed (repeat icon): accentColor1 (sky blue)
+        // - Initial/Processing/Error: accentColor2 (pink)
+        Color buttonColor = Default_Theme.accentColor2;
+
         if (state is MiniPlayerInitial || state is MiniPlayerProcessing) {
           child = const CircularProgressIndicator(
               color: Default_Theme.primaryColor1);
+          buttonColor = Default_Theme.accentColor2;
         } else if (state is MiniPlayerCompleted) {
           child = const Icon(FontAwesome.rotate_right_solid,
               color: Default_Theme.primaryColor1, size: 35);
+          buttonColor =
+              Default_Theme.accentColor1; // Sky blue for completed/repeat
         } else if (state is MiniPlayerError) {
           child = const Icon(MingCute.warning_line,
               color: Default_Theme.primaryColor1);
+          buttonColor = Default_Theme.accentColor2;
         } else if (state is MiniPlayerWorking) {
           if (state.isBuffering) {
             child = const CircularProgressIndicator(
                 color: Default_Theme.primaryColor1);
+            buttonColor = state.isPlaying
+                ? Default_Theme.accentColor1
+                : Default_Theme.accentColor2;
           } else {
             return PlayPauseButton(
               size: 75,
@@ -810,16 +824,15 @@ class _PlayPauseButton extends StatelessWidget {
           child = const SizedBox();
         }
 
-        return Container(
-            decoration: const BoxDecoration(
+        return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            decoration: BoxDecoration(
               boxShadow: [
-                BoxShadow(
-                    color: Default_Theme.accentColor2,
-                    spreadRadius: 1,
-                    blurRadius: 20)
+                BoxShadow(color: buttonColor, spreadRadius: 1, blurRadius: 20)
               ],
               shape: BoxShape.circle,
-              color: Default_Theme.accentColor2,
+              color: buttonColor,
             ),
             width: 75,
             height: 75,

@@ -23,43 +23,77 @@ class LikeBtnWidget extends StatefulWidget {
   State<LikeBtnWidget> createState() => _LikeBtnWidgetState();
 }
 
-class _LikeBtnWidgetState extends State<LikeBtnWidget> {
+class _LikeBtnWidgetState extends State<LikeBtnWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _colorController;
+  late Animation<Color?> _colorAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _colorController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _setupAnimation();
+    if (widget.isPlaying) {
+      _colorController.value = 1.0;
+    }
+  }
+
+  void _setupAnimation() {
+    _colorAnimation = ColorTween(
+      begin: Default_Theme.accentColor2, // Pink (paused)
+      end: Default_Theme.accentColor1, // Sky Blue (playing)
+    ).animate(CurvedAnimation(
+      parent: _colorController,
+      curve: Curves.easeOutCubic,
+    ));
+  }
+
+  @override
+  void didUpdateWidget(covariant LikeBtnWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isPlaying != widget.isPlaying) {
+      if (widget.isPlaying) {
+        _colorController.forward();
+      } else {
+        _colorController.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _colorController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: () {
-        setState(() {
-          widget.isLiked = !widget.isLiked;
-          if (widget.isLiked) {
-            widget.onLiked!();
-            log("Liked");
-          } else {
-            widget.onDisliked!();
-            log("DisLiked");
-          }
-        });
+    return AnimatedBuilder(
+      animation: _colorController,
+      builder: (context, child) {
+        return IconButton(
+          onPressed: () {
+            setState(() {
+              widget.isLiked = !widget.isLiked;
+              if (widget.isLiked) {
+                widget.onLiked?.call();
+                log("Liked");
+              } else {
+                widget.onDisliked?.call();
+                log("DisLiked");
+              }
+            });
+          },
+          icon: Icon(
+            widget.isLiked ? AntDesign.heart_fill : AntDesign.heart_outline,
+            color: _colorAnimation.value,
+            size: widget.iconSize,
+          ),
+        );
       },
-      icon: widget.isPlaying
-          ? heartIcon(
-              color: Default_Theme.accentColor1,
-              size: widget.iconSize,
-              isliked: widget.isLiked)
-          : heartIcon(isliked: widget.isLiked, size: widget.iconSize),
     );
   }
-}
-
-Icon heartIcon(
-    {isliked = false, color = Default_Theme.accentColor2, size = 50}) {
-  return isliked
-      ? Icon(
-          AntDesign.heart_fill,
-          color: color,
-          size: size,
-        )
-      : Icon(
-          AntDesign.heart_outline,
-          color: color,
-          size: size,
-        );
 }
