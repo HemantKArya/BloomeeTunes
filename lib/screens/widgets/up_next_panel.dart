@@ -110,8 +110,8 @@ class _UpNextPanelState extends State<UpNextPanel> {
   late bool _isExpanded;
 
   // Cache expensive calculations
-  late final double _minSheetSize;
-  late final double _maxSheetSize;
+  double _minSheetSize = 0.1;
+  double _maxSheetSize = 0.9;
   late final BloomeePlayerCubit _playerCubit;
 
   @override
@@ -121,22 +121,58 @@ class _UpNextPanelState extends State<UpNextPanel> {
     widget.controller?._attach(_toggleSheet);
     _isExpanded = widget.startExpanded;
 
-    // Pre-calculate sheet sizes
-    _minSheetSize = _calculateMinSize();
-    _maxSheetSize = _calculateMaxSize();
-
     // Listen to sheet position changes to update expanded state
     _sheetController.addListener(_onSheetPositionChanged);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateSheetSizes();
+  }
+
+  @override
+  void didUpdateWidget(UpNextPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.parentHeight != widget.parentHeight ||
+        oldWidget.peekHeight != widget.peekHeight) {
+      _updateSheetSizes();
+    }
+  }
+
+  void _updateSheetSizes() {
+    final minSize = _calculateMinSize();
+    final maxSize = _calculateMaxSize();
+
+    if (minSize != _minSheetSize || maxSize != _maxSheetSize) {
+      setState(() {
+        _minSheetSize = minSize;
+        _maxSheetSize = maxSize;
+      });
+    }
+  }
+
   double _calculateMinSize() {
     if (widget.canBeHidden) return 0.0;
+    if (widget.parentHeight == 0) return 0.1;
     return (widget.peekHeight / widget.parentHeight).clamp(0.05, 0.85);
   }
 
   double _calculateMaxSize() {
-    return ((widget.parentHeight - 80) / widget.parentHeight)
-        .clamp(_calculateMinSize() + 0.1, 0.92);
+    if (widget.parentHeight == 0) return 0.9;
+
+    // Calculate safe top padding (StatusBar + AppBar)
+    final topPadding = MediaQuery.of(context).padding.top;
+    final safeTopOffset = topPadding + kToolbarHeight + 10.0;
+
+    final minSize = _calculateMinSize();
+    final calculatedMax =
+        (widget.parentHeight - safeTopOffset) / widget.parentHeight;
+
+    // Ensure the upper bound is valid
+    final upperBound = math.max(0.95, minSize + 0.15);
+
+    return calculatedMax.clamp(minSize + 0.1, upperBound);
   }
 
   void _onSheetPositionChanged() {
