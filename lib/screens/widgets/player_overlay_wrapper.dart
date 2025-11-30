@@ -62,6 +62,8 @@ class _PlayerOverlayWrapperState extends State<PlayerOverlayWrapper>
   void _onPlayerVisibilityChanged(bool isVisible) {
     if (isVisible) {
       _hasBeenShown = true;
+      // Dismiss keyboard by unfocusing any active text field
+      FocusManager.instance.primaryFocus?.unfocus();
       _animationController.forward();
     } else {
       _animationController.reverse();

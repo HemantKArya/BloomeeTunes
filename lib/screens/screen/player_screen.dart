@@ -124,6 +124,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
           autofocus: true,
           child: Scaffold(
             backgroundColor: const Color.fromARGB(255, 12, 4, 9),
+            resizeToAvoidBottomInset: false,
             extendBodyBehindAppBar: true,
             appBar: AppBar(
               backgroundColor: Colors.transparent,

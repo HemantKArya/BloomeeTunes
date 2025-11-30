@@ -131,6 +131,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
   late bool _isExpanded;
+  double _contentOpacity = 0.0;
 
   // Cache expensive calculations
   double _minSheetSize = 0.1;
@@ -147,6 +148,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
       isExpanded: () => _isExpanded,
     );
     _isExpanded = widget.startExpanded;
+    _contentOpacity = widget.startExpanded ? 1.0 : 0.0;
 
     // Listen to sheet position changes to update expanded state
     _sheetController.addListener(_onSheetPositionChanged);
@@ -205,9 +207,20 @@ class _UpNextPanelState extends State<UpNextPanel> {
 
   void _onSheetPositionChanged() {
     final bool nowExpanded = _sheetController.size > _minSheetSize + 0.1;
-    if (nowExpanded != _isExpanded) {
+    
+    // Calculate content opacity based on how far the sheet is expanded
+    // Content starts fading in after the sheet has expanded a bit past minimum
+    final expansionProgress = ((_sheetController.size - _minSheetSize) / 
+        (_maxSheetSize - _minSheetSize)).clamp(0.0, 1.0);
+    // Use a curve for smoother appearance - content appears quickly after initial expansion
+    final newOpacity = expansionProgress < 0.15 
+        ? 0.0 
+        : ((expansionProgress - 0.15) / 0.35).clamp(0.0, 1.0);
+    
+    if (nowExpanded != _isExpanded || (newOpacity - _contentOpacity).abs() > 0.01) {
       setState(() {
         _isExpanded = nowExpanded;
+        _contentOpacity = newOpacity;
       });
     }
   }
@@ -256,23 +269,30 @@ class _UpNextPanelState extends State<UpNextPanel> {
     final double initialSize =
         widget.startExpanded ? _maxSheetSize : _minSheetSize;
 
-    return DraggableScrollableSheet(
-      controller: _sheetController,
-      initialChildSize: initialSize,
-      minChildSize: _minSheetSize,
-      maxChildSize: _maxSheetSize,
-      snap: true,
-      snapSizes: [_minSheetSize, _maxSheetSize],
-      snapAnimationDuration: const Duration(milliseconds: 250),
-      builder: (context, scrollController) {
-        return _PanelContent(
-          peekHeight: widget.peekHeight,
-          isExpanded: _isExpanded,
-          onHeaderTap: _toggleSheet,
-          scrollController: scrollController,
-          playerCubit: _playerCubit,
-        );
-      },
+    // Remove viewInsets to prevent keyboard from affecting the panel position
+    // This ensures the panel stays glued to the bottom like a real bottom sheet
+    return MediaQuery.removeViewInsets(
+      context: context,
+      removeBottom: true,
+      child: DraggableScrollableSheet(
+        controller: _sheetController,
+        initialChildSize: initialSize,
+        minChildSize: _minSheetSize,
+        maxChildSize: _maxSheetSize,
+        snap: true,
+        snapSizes: [_minSheetSize, _maxSheetSize],
+        snapAnimationDuration: const Duration(milliseconds: 250),
+        builder: (context, scrollController) {
+          return _PanelContent(
+            peekHeight: widget.peekHeight,
+            isExpanded: _isExpanded,
+            contentOpacity: _contentOpacity,
+            onHeaderTap: _toggleSheet,
+            scrollController: scrollController,
+            playerCubit: _playerCubit,
+          );
+        },
+      ),
     );
   }
 }
@@ -281,6 +301,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
 class _PanelContent extends StatelessWidget {
   final double peekHeight;
   final bool isExpanded;
+  final double contentOpacity;
   final VoidCallback onHeaderTap;
   final ScrollController scrollController;
   final BloomeePlayerCubit playerCubit;
@@ -288,6 +309,7 @@ class _PanelContent extends StatelessWidget {
   const _PanelContent({
     required this.peekHeight,
     required this.isExpanded,
+    required this.contentOpacity,
     required this.onHeaderTap,
     required this.scrollController,
     required this.playerCubit,
@@ -326,29 +348,32 @@ class _PanelContent extends StatelessWidget {
                           child: _CompactHeader(isExpanded: isExpanded),
                         ),
                       ),
-                      // Scrollable content
+                      // Scrollable content - fades in as panel expands
                       Expanded(
-                        child: CustomScrollView(
-                          controller: scrollController,
-                          physics: const ClampingScrollPhysics(),
-                          slivers: [
-                            // Queue info row
-                            SliverToBoxAdapter(
-                              child: _QueueInfoRow(playerCubit: playerCubit),
-                            ),
-                            // Song list
-                            _SongListSliver(
-                              playerCubit: playerCubit,
-                              scrollController: scrollController,
-                            ),
-                            // Bottom padding
-                            SliverToBoxAdapter(
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).padding.bottom + 20,
+                        child: Opacity(
+                          opacity: contentOpacity,
+                          child: CustomScrollView(
+                            controller: scrollController,
+                            physics: const ClampingScrollPhysics(),
+                            slivers: [
+                              // Queue info row
+                              SliverToBoxAdapter(
+                                child: _QueueInfoRow(playerCubit: playerCubit),
                               ),
-                            ),
-                          ],
+                              // Song list
+                              _SongListSliver(
+                                playerCubit: playerCubit,
+                                scrollController: scrollController,
+                              ),
+                              // Bottom padding
+                              SliverToBoxAdapter(
+                                child: SizedBox(
+                                  height:
+                                      MediaQuery.of(context).padding.bottom + 20,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

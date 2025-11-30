@@ -92,6 +92,11 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
     });
   }
 
+  /// Dismiss keyboard when interacting with search results
+  void _dismissKeyboard() {
+    _searchFocusNode.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -296,6 +301,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
               showOptions: true,
               subtitleOverride: 'in ${result.playlistName}',
               onTap: () async {
+                _dismissKeyboard();
                 final playlistDB =
                     await BloomeeDBService.getPlaylist(result.playlistName);
                 if (playlistDB != null && context.mounted) {
@@ -335,6 +341,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                   'Artist - ${artist.source == "ytm" ? SourceEngine.eng_YTM.value : (artist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
               type: LibItemTypes.artist,
               onTap: () {
+                _dismissKeyboard();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -364,6 +371,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                   'Album - ${album.source == "ytm" ? SourceEngine.eng_YTM.value : (album.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
               type: LibItemTypes.album,
               onTap: () {
+                _dismissKeyboard();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -394,6 +402,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                   'Playlist - ${playlist.source == "ytm" ? SourceEngine.eng_YTM.value : (playlist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
               type: LibItemTypes.onlPlaylist,
               onTap: () {
+                _dismissKeyboard();
                 Navigator.push(
                   context,
                   MaterialPageRoute(

@@ -87,6 +87,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
 
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: GestureDetector(
         onTap: _toggleControls,
         behavior: HitTestBehavior.opaque,
