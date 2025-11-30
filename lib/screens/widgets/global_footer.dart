@@ -21,9 +21,14 @@ class GlobalFooter extends StatelessWidget {
             navigationShell.currentIndex == 0,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop) {
+            final playerOverlayCubit = context.read<PlayerOverlayCubit>();
             // First check if player overlay is open
-            if (context.read<PlayerOverlayCubit>().state) {
-              context.read<PlayerOverlayCubit>().hidePlayer();
+            if (playerOverlayCubit.state) {
+              // First try to collapse UpNext panel if expanded
+              if (!playerOverlayCubit.collapseUpNextPanel()) {
+                // If panel was not expanded, hide the player
+                playerOverlayCubit.hidePlayer();
+              }
             } else {
               navigationShell.goBranch(0);
             }

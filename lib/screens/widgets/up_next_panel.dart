@@ -54,17 +54,40 @@ class _UpNextStyles {
 
 class UpNextPanelController {
   VoidCallback? _toggleListener;
+  VoidCallback? _collapseListener;
+  bool Function()? _isExpandedGetter;
+
+  /// Whether the panel is currently expanded
+  bool get isExpanded => _isExpandedGetter?.call() ?? false;
 
   void toggle() {
     _toggleListener?.call();
   }
 
-  void _attach(VoidCallback toggle) {
+  /// Collapse the panel if it's expanded
+  /// Returns true if the panel was collapsed, false if it was already collapsed
+  bool collapse() {
+    if (isExpanded) {
+      _collapseListener?.call();
+      return true;
+    }
+    return false;
+  }
+
+  void _attach({
+    required VoidCallback toggle,
+    required VoidCallback collapse,
+    required bool Function() isExpanded,
+  }) {
     _toggleListener = toggle;
+    _collapseListener = collapse;
+    _isExpandedGetter = isExpanded;
   }
 
   void _detach() {
     _toggleListener = null;
+    _collapseListener = null;
+    _isExpandedGetter = null;
   }
 }
 
@@ -118,7 +141,11 @@ class _UpNextPanelState extends State<UpNextPanel> {
   void initState() {
     super.initState();
     _playerCubit = context.read<BloomeePlayerCubit>();
-    widget.controller?._attach(_toggleSheet);
+    widget.controller?._attach(
+      toggle: _toggleSheet,
+      collapse: _collapseSheet,
+      isExpanded: () => _isExpanded,
+    );
     _isExpanded = widget.startExpanded;
 
     // Listen to sheet position changes to update expanded state
@@ -159,18 +186,19 @@ class _UpNextPanelState extends State<UpNextPanel> {
   }
 
   double _calculateMaxSize() {
-    if (widget.parentHeight == 0) return 0.9;
+    if (widget.parentHeight == 0) return 0.95;
 
-    // Calculate safe top padding (StatusBar + AppBar)
+    // Calculate safe top padding (just below StatusBar)
     final topPadding = MediaQuery.of(context).padding.top;
-    final safeTopOffset = topPadding + kToolbarHeight + 10.0;
+    // Reduced offset to allow panel to cover more of the screen
+    final safeTopOffset = topPadding + 8.0;
 
     final minSize = _calculateMinSize();
     final calculatedMax =
         (widget.parentHeight - safeTopOffset) / widget.parentHeight;
 
-    // Ensure the upper bound is valid
-    final upperBound = math.max(0.95, minSize + 0.15);
+    // Ensure the upper bound is valid - increased to 0.98 for near full coverage
+    final upperBound = math.max(0.98, minSize + 0.15);
 
     return calculatedMax.clamp(minSize + 0.1, upperBound);
   }
@@ -204,12 +232,17 @@ class _UpNextPanelState extends State<UpNextPanel> {
         curve: Curves.easeOutExpo,
       );
     } else {
-      _sheetController.animateTo(
-        _minSheetSize,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutExpo,
-      );
+      _collapseSheet();
     }
+  }
+
+  /// Collapse the sheet to minimum size
+  void _collapseSheet() {
+    _sheetController.animateTo(
+      _minSheetSize,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutExpo,
+    );
   }
 
   @override

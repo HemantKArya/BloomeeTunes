@@ -39,17 +39,41 @@ class AudioPlayerView extends StatefulWidget {
 class _AudioPlayerViewState extends State<AudioPlayerView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final UpNextPanelController _upNextPanelController = UpNextPanelController();
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    // Register the collapse callback with PlayerOverlayCubit
+    // This allows GlobalFooter to collapse the panel on back gesture
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<PlayerOverlayCubit>().registerUpNextPanelCollapse(
+              () => _upNextPanelController.collapse(),
+            );
+      }
+    });
   }
 
   @override
   void dispose() {
+    // Unregister the collapse callback
+    context.read<PlayerOverlayCubit>().unregisterUpNextPanelCollapse();
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// Handle back gesture/button press
+  /// Returns true if we handled the back action (should not pop), false otherwise
+  bool _handleBackNavigation(BuildContext context) {
+    // First, try to collapse the upnext panel if it's expanded
+    if (_upNextPanelController.collapse()) {
+      return true; // We handled it by collapsing the panel
+    }
+    // If panel was not expanded, hide the player
+    context.read<PlayerOverlayCubit>().hidePlayer();
+    return true; // We handled it by hiding the player
   }
 
   @override
@@ -92,7 +116,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
             return null;
           }),
           BackIntent: CallbackAction<BackIntent>(onInvoke: (intent) {
-            context.read<PlayerOverlayCubit>().hidePlayer();
+            _handleBackNavigation(context);
             return null;
           }),
         },
@@ -110,7 +134,11 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
               leading: IconButton(
                 icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
                 onPressed: () {
-                  context.read<PlayerOverlayCubit>().hidePlayer();
+                  // If upnext panel is expanded, collapse it first
+                  // Otherwise hide the player
+                  if (!_upNextPanelController.collapse()) {
+                    context.read<PlayerOverlayCubit>().hidePlayer();
+                  }
                 },
               ),
               actions: [
@@ -162,6 +190,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                               UpNextPanel(
                                 peekHeight: 60.0,
                                 parentHeight: constraints.maxHeight,
+                                controller: _upNextPanelController,
                               ),
                             ],
                           );
@@ -198,7 +227,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                                       parentHeight:
                                           MediaQuery.of(context).size.height *
                                               0.8,
-                                      isDesktopMode: true)),
+                                      isDesktopMode: true,
+                                      controller: _upNextPanelController)),
                             ),
                           )
                         ],
