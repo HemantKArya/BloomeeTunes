@@ -36,6 +36,32 @@ class _SongCardStyles {
   static const tilePadding =
       EdgeInsets.only(left: 10, right: 2, top: 4, bottom: 4);
   static const buttonPadding = EdgeInsets.symmetric(horizontal: 2);
+
+  // Cached action icons to avoid recreation
+  static const playIcon = Icon(
+    FontAwesome.play_solid,
+    size: 30,
+    color: Default_Theme.primaryColor1,
+  );
+  static const copyIcon = Icon(
+    Icons.copy_outlined,
+    size: 25,
+    color: Default_Theme.primaryColor1,
+  );
+  static const infoIcon = Icon(
+    MingCute.information_line,
+    size: 30,
+    color: Default_Theme.primaryColor1,
+  );
+  static const deleteIcon = Icon(
+    MingCute.delete_2_line,
+    size: 28,
+    color: Default_Theme.primaryColor1,
+  );
+  static const optionsIcon = Icon(
+    MingCute.more_2_fill,
+    color: Default_Theme.primaryColor1,
+  );
 }
 
 class SongCardWidget extends StatelessWidget {
@@ -105,7 +131,32 @@ class SongCardWidget extends StatelessWidget {
                   subtitle: subtitleOverride ?? song.artist ?? 'Unknown',
                 ),
               ),
-              ..._buildActionButtons(context, playerCubit),
+              if (showPlayBtn)
+                _ActionButton(
+                  icon: _SongCardStyles.playIcon,
+                  onPressed: onPlayTap,
+                ),
+              if (showCopyBtn)
+                _CopyButton(
+                  songTitle: song.title,
+                  songArtist: song.artist,
+                ),
+              if (showInfoBtn)
+                _InfoButton(
+                  song: song,
+                  onInfoTap: onInfoTap,
+                ),
+              if (delDownBtn)
+                _DeleteButton(
+                  song: song,
+                  playerCubit: playerCubit,
+                ),
+              if (showOptions)
+                IconButton(
+                  icon: _SongCardStyles.optionsIcon,
+                  onPressed: onOptionsTap,
+                ),
+              if (trailing != null) trailing!,
             ],
           ),
         ),
@@ -113,41 +164,7 @@ class SongCardWidget extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildActionButtons(
-      BuildContext context, BloomeePlayerCubit playerCubit) {
-    return [
-      if (showPlayBtn)
-        _ActionButton(
-          icon: FontAwesome.play_solid,
-          size: 30,
-          onPressed: onPlayTap,
-        ),
-      if (showCopyBtn)
-        _CopyButton(
-          songTitle: song.title,
-          songArtist: song.artist,
-        ),
-      if (showInfoBtn)
-        _InfoButton(
-          song: song,
-          onInfoTap: onInfoTap,
-        ),
-      if (delDownBtn)
-        _DeleteButton(
-          song: song,
-          playerCubit: playerCubit,
-        ),
-      if (showOptions)
-        IconButton(
-          icon: const Icon(
-            MingCute.more_2_fill,
-            color: Default_Theme.primaryColor1,
-          ),
-          onPressed: onOptionsTap,
-        ),
-      if (trailing != null) trailing!,
-    ];
-  }
+  // Removed _buildActionButtons - inlined for better performance
 }
 
 // Extracted widget for playing indicator with snappy slide animation
@@ -310,13 +327,11 @@ class _SongInfo extends StatelessWidget {
 
 // Reusable action button
 class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final double size;
+  final Widget icon;
   final VoidCallback? onPressed;
 
   const _ActionButton({
     required this.icon,
-    required this.size,
     this.onPressed,
   });
 
@@ -325,11 +340,7 @@ class _ActionButton extends StatelessWidget {
     return Padding(
       padding: _SongCardStyles.buttonPadding,
       child: IconButton(
-        icon: Icon(
-          icon,
-          size: size,
-          color: Default_Theme.primaryColor1,
-        ),
+        icon: icon,
         onPressed: onPressed,
       ),
     );
@@ -353,11 +364,7 @@ class _CopyButton extends StatelessWidget {
       child: Tooltip(
         message: "Copy to clipboard",
         child: IconButton(
-          icon: const Icon(
-            Icons.copy_outlined,
-            size: 25,
-            color: Default_Theme.primaryColor1,
-          ),
+          icon: _SongCardStyles.copyIcon,
           onPressed: _copyToClipboard,
         ),
       ),
@@ -394,11 +401,7 @@ class _InfoButton extends StatelessWidget {
       child: Tooltip(
         message: "About this song",
         child: IconButton(
-          icon: const Icon(
-            MingCute.information_line,
-            size: 30,
-            color: Default_Theme.primaryColor1,
-          ),
+          icon: _SongCardStyles.infoIcon,
           onPressed: () {
             if (onInfoTap != null) {
               onInfoTap!();
@@ -432,11 +435,7 @@ class _DeleteButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 2),
       child: IconButton(
-        icon: const Icon(
-          MingCute.delete_2_line,
-          size: 28,
-          color: Default_Theme.primaryColor1,
-        ),
+        icon: _SongCardStyles.deleteIcon,
         onPressed: _handleDelete,
       ),
     );
