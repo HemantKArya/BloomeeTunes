@@ -553,10 +553,10 @@ class _DesktopQueueItem extends StatelessWidget {
     final songModel = mediaItem2MediaItemModel(mediaItem);
     return Dismissible(
       key: ValueKey('dismiss_${mediaItem.id}'),
-      direction: DismissDirection.endToStart,
+      direction: DismissDirection.startToEnd,
       background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
         color: Colors.red.withValues(alpha: 0.8),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
@@ -675,10 +675,10 @@ class _MobileQueueItem extends StatelessWidget {
       index: index,
       child: Dismissible(
         key: ValueKey('dismissible_${mediaItem.id}'),
-        direction: DismissDirection.endToStart,
+        direction: DismissDirection.startToEnd,
         background: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 20),
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 20),
           color: Colors.red.withValues(alpha: 0.8),
           child: const Icon(Icons.delete, color: Colors.white),
         ),
@@ -942,6 +942,13 @@ class _LegacyQueueItem extends StatelessWidget {
     final songModel = mediaItem2MediaItemModel(mediaItem);
     return Dismissible(
       key: ValueKey('dismiss_legacy_${mediaItem.id}'),
+      direction: DismissDirection.startToEnd,
+      background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        color: Colors.red.withValues(alpha: 0.8),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
       onDismissed: (direction) {
         playerCubit.bloomeePlayer.removeQueueItemAt(index);
       },
