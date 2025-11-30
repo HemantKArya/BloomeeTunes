@@ -128,6 +128,7 @@ class About extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'Gilroy',
                           ),
                         ),
                         // Small animated flower
@@ -140,7 +141,10 @@ class About extends StatelessWidget {
               const SizedBox(height: 10),
               const Text(
                 'Crafting symphonies in code.',
-                style: TextStyle(fontSize: 16, color: kSecondaryTextColor),
+                style: TextStyle(
+                    fontSize: 16,
+                    color: kSecondaryTextColor,
+                    fontFamily: 'Gilroy'),
               ),
               const SizedBox(height: 35),
               Container(
@@ -177,6 +181,7 @@ class About extends StatelessWidget {
                           color: kPrimaryTextColor,
                           fontWeight: FontWeight.w500,
                           fontSize: 16,
+                          fontFamily: 'Gilroy',
                           shadows: [
                             Shadow(
                               color: const Color.fromARGB(255, 255, 246, 238)
@@ -245,9 +250,10 @@ class About extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12.0),
           child: Text(
-            "“Enjoying Bloomee? A small tip keeps it blooming.” 🌸",
+            '"Enjoying Bloomee? A small tip keeps it blooming." 🌸',
             textAlign: TextAlign.center,
-            style: TextStyle(color: kSecondaryTextColor, fontSize: 14),
+            style: TextStyle(
+                color: kSecondaryTextColor, fontSize: 14, fontFamily: 'Gilroy'),
           ),
         ),
         const SizedBox(height: 12),
@@ -309,7 +315,8 @@ class About extends StatelessWidget {
         const Text(
           'I want Bloomee to keep improving.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: kSecondaryTextColor, fontSize: 14),
+          style: TextStyle(
+              color: kSecondaryTextColor, fontSize: 14, fontFamily: 'Gilroy'),
         ),
       ],
     );
@@ -336,8 +343,10 @@ class About extends StatelessWidget {
                       color: kSecondaryTextColor, size: 16),
                   SizedBox(width: 8),
                   Text('GitHub',
-                      style:
-                          TextStyle(color: kSecondaryTextColor, fontSize: 12)),
+                      style: TextStyle(
+                          color: kSecondaryTextColor,
+                          fontSize: 12,
+                          fontFamily: 'Gilroy')),
                 ],
               ),
             ),
@@ -350,7 +359,9 @@ class About extends StatelessWidget {
                     : 'Not able to retrieve version';
                 return Text(ver,
                     style: const TextStyle(
-                        color: kSecondaryTextColor, fontSize: 12));
+                        color: kSecondaryTextColor,
+                        fontSize: 12,
+                        fontFamily: 'Gilroy'));
               },
             ),
           ],
@@ -375,7 +386,10 @@ class _InfoPill extends StatelessWidget {
         Icon(icon, color: kSecondaryTextColor, size: 18),
         const SizedBox(width: 8),
         Text(text,
-            style: const TextStyle(color: kSecondaryTextColor, fontSize: 13)),
+            style: const TextStyle(
+                color: kSecondaryTextColor,
+                fontSize: 13,
+                fontFamily: 'Gilroy')),
       ],
     );
 
