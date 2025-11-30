@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
+import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -75,7 +76,7 @@ class MiniPlayerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.pushNamed(GlobalStrConsts.playerScreen);
+        context.read<PlayerOverlayCubit>().showPlayer();
       },
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! < -10) {
@@ -87,7 +88,7 @@ class MiniPlayerCard extends StatelessWidget {
       },
       onVerticalDragEnd: (details) {
         if (details.primaryVelocity! < -10) {
-          context.pushNamed(GlobalStrConsts.playerScreen);
+          context.read<PlayerOverlayCubit>().showPlayer();
         }
         if (details.primaryVelocity! > 10) {
           // context.read<BloomeePlayerCubit>().bloomeePlayer.stop();

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
@@ -91,7 +92,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
             return null;
           }),
           BackIntent: CallbackAction<BackIntent>(onInvoke: (intent) {
-            Navigator.pop(context);
+            context.read<PlayerOverlayCubit>().hidePlayer();
             return null;
           }),
         },
@@ -106,6 +107,12 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
               elevation: 0,
               foregroundColor: Default_Theme.primaryColor1,
               centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
+                onPressed: () {
+                  context.read<PlayerOverlayCubit>().hidePlayer();
+                },
+              ),
               actions: [
                 IconButton(
                     onPressed: () =>

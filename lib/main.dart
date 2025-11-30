@@ -7,6 +7,7 @@ import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
+import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/blocs/timer/timer_bloc.dart';
@@ -254,6 +255,10 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => GlobalEventsCubit(),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => PlayerOverlayCubit(),
           lazy: false,
         ),
       ],

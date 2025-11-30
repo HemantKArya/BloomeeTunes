@@ -1,4 +1,7 @@
+import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
+import 'package:Bloomee/screens/widgets/player_overlay_wrapper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -12,44 +15,53 @@ class GlobalFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: navigationShell.currentIndex == 0,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          navigationShell.goBranch(0);
-        }
-      },
-      child: Scaffold(
-        body: ResponsiveBreakpoints.of(context).isMobile
-            ? _AnimatedPageView(navigationShell: navigationShell)
-            : Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: VerticalNavBar(navigationShell: navigationShell),
-                  ),
-                  Expanded(
-                    child: _AnimatedPageView(navigationShell: navigationShell),
-                  ),
-                ],
+    return PlayerOverlayWrapper(
+      child: PopScope(
+        canPop: !context.watch<PlayerOverlayCubit>().state &&
+            navigationShell.currentIndex == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) {
+            // First check if player overlay is open
+            if (context.read<PlayerOverlayCubit>().state) {
+              context.read<PlayerOverlayCubit>().hidePlayer();
+            } else {
+              navigationShell.goBranch(0);
+            }
+          }
+        },
+        child: Scaffold(
+          body: ResponsiveBreakpoints.of(context).isMobile
+              ? _AnimatedPageView(navigationShell: navigationShell)
+              : Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: VerticalNavBar(navigationShell: navigationShell),
+                    ),
+                    Expanded(
+                      child:
+                          _AnimatedPageView(navigationShell: navigationShell),
+                    ),
+                  ],
+                ),
+          backgroundColor: Default_Theme.themeColor,
+          drawerScrimColor: Default_Theme.themeColor,
+          bottomNavigationBar: SafeArea(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const MiniPlayerWidget(),
+              Container(
+                color: Colors.transparent,
+                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                child: ResponsiveBreakpoints.of(context).isMobile
+                    ? HorizontalNavBar(navigationShell: navigationShell)
+                    : const Wrap(),
               ),
-        backgroundColor: Default_Theme.themeColor,
-        drawerScrimColor: Default_Theme.themeColor,
-        bottomNavigationBar: SafeArea(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const MiniPlayerWidget(),
-            Container(
-              color: Colors.transparent,
-              margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              child: ResponsiveBreakpoints.of(context).isMobile
-                  ? HorizontalNavBar(navigationShell: navigationShell)
-                  : const Wrap(),
-            ),
-          ],
-        )),
+            ],
+          )),
+        ),
       ),
     );
   }

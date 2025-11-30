@@ -26,8 +26,8 @@ class GlobalRoutes {
         pageBuilder: (context, state) {
           return CustomTransitionPage(
             child: const AudioPlayerView(),
-            transitionDuration: const Duration(milliseconds: 400),
-            reverseTransitionDuration: const Duration(milliseconds: 400),
+            transitionDuration: const Duration(milliseconds: 100),
+            reverseTransitionDuration: const Duration(milliseconds: 100),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               const begin = Offset(0.0, 1.0);
