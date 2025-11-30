@@ -337,7 +337,10 @@ class _PanelContent extends StatelessWidget {
                               child: _QueueInfoRow(playerCubit: playerCubit),
                             ),
                             // Song list
-                            _SongListSliver(playerCubit: playerCubit),
+                            _SongListSliver(
+                              playerCubit: playerCubit,
+                              scrollController: scrollController,
+                            ),
                             // Bottom padding
                             SliverToBoxAdapter(
                               child: SizedBox(
@@ -489,18 +492,65 @@ class _QueueInfoRow extends StatelessWidget {
   }
 }
 
-/// Desktop song list using ReorderableListView
-class _DesktopSongList extends StatelessWidget {
+/// Desktop song list using ReorderableListView with auto-scroll to current song
+class _DesktopSongList extends StatefulWidget {
   final BloomeePlayerCubit playerCubit;
 
   const _DesktopSongList({required this.playerCubit});
 
   @override
+  State<_DesktopSongList> createState() => _DesktopSongListState();
+}
+
+class _DesktopSongListState extends State<_DesktopSongList> {
+  final ScrollController _scrollController = ScrollController();
+  String? _lastPlayingId;
+  static const double _itemHeight = 70.0;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToCurrentSong(List<MediaItem> queue, String? currentId) {
+    if (currentId == null || currentId == _lastPlayingId) return;
+    _lastPlayingId = currentId;
+
+    final index = queue.indexWhere((item) => item.id == currentId);
+    if (index == -1) return;
+
+    // Calculate target scroll position
+    final targetOffset = index * _itemHeight;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final clampedOffset = targetOffset.clamp(0.0, maxScroll);
+
+    // Only scroll if not already visible
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final currentOffset = _scrollController.offset;
+    final itemTop = targetOffset;
+    final itemBottom = targetOffset + _itemHeight;
+
+    // Check if item is already fully visible
+    if (itemTop >= currentOffset &&
+        itemBottom <= currentOffset + viewportHeight) {
+      return; // Already visible, no scroll needed
+    }
+
+    // Smooth scroll to the item
+    _scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<MediaItem>>(
-      stream: playerCubit.bloomeePlayer.queue,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+      stream: widget.playerCubit.bloomeePlayer.queue,
+      builder: (context, queueSnapshot) {
+        if (!queueSnapshot.hasData) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(20),
@@ -511,22 +561,37 @@ class _DesktopSongList extends StatelessWidget {
           );
         }
 
-        final queue = snapshot.data!;
-        return ReorderableListView.builder(
-          padding: const EdgeInsets.only(top: 5),
-          physics: const BouncingScrollPhysics(),
-          itemCount: queue.length,
-          onReorder: (int oldIndex, int newIndex) {
-            playerCubit.bloomeePlayer.moveQueueItem(oldIndex, newIndex);
-          },
-          buildDefaultDragHandles: false,
-          itemBuilder: (context, index) {
-            final mediaItem = queue[index];
-            return _DesktopQueueItem(
-              key: ValueKey(mediaItem.id),
-              mediaItem: mediaItem,
-              index: index,
-              playerCubit: playerCubit,
+        final queue = queueSnapshot.data!;
+
+        return StreamBuilder<MediaItem?>(
+          stream: widget.playerCubit.bloomeePlayer.mediaItem,
+          builder: (context, mediaSnapshot) {
+            // Schedule scroll after build
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_scrollController.hasClients) {
+                _scrollToCurrentSong(queue, mediaSnapshot.data?.id);
+              }
+            });
+
+            return ReorderableListView.builder(
+              scrollController: _scrollController,
+              padding: const EdgeInsets.only(top: 5),
+              physics: const BouncingScrollPhysics(),
+              itemCount: queue.length,
+              onReorder: (int oldIndex, int newIndex) {
+                widget.playerCubit.bloomeePlayer
+                    .moveQueueItem(oldIndex, newIndex);
+              },
+              buildDefaultDragHandles: false,
+              itemBuilder: (context, index) {
+                final mediaItem = queue[index];
+                return _DesktopQueueItem(
+                  key: ValueKey(mediaItem.id),
+                  mediaItem: mediaItem,
+                  index: index,
+                  playerCubit: widget.playerCubit,
+                );
+              },
             );
           },
         );
@@ -609,18 +674,66 @@ class _DesktopQueueItem extends StatelessWidget {
   }
 }
 
-/// Mobile song list as a sliver
-class _SongListSliver extends StatelessWidget {
+/// Mobile song list as a sliver with auto-scroll to current song
+class _SongListSliver extends StatefulWidget {
   final BloomeePlayerCubit playerCubit;
+  final ScrollController scrollController;
 
-  const _SongListSliver({required this.playerCubit});
+  const _SongListSliver({
+    required this.playerCubit,
+    required this.scrollController,
+  });
+
+  @override
+  State<_SongListSliver> createState() => _SongListSliverState();
+}
+
+class _SongListSliverState extends State<_SongListSliver> {
+  String? _lastPlayingId;
+  static const double _itemHeight = 70.0;
+  // Offset for the queue info row above the list
+  static const double _headerOffset = 60.0;
+
+  void _scrollToCurrentSong(List<MediaItem> queue, String? currentId) {
+    if (currentId == null || currentId == _lastPlayingId) return;
+    if (!widget.scrollController.hasClients) return;
+
+    _lastPlayingId = currentId;
+
+    final index = queue.indexWhere((item) => item.id == currentId);
+    if (index == -1) return;
+
+    // Calculate target scroll position (accounting for header)
+    final targetOffset = _headerOffset + (index * _itemHeight);
+    final maxScroll = widget.scrollController.position.maxScrollExtent;
+    final clampedOffset = targetOffset.clamp(0.0, maxScroll);
+
+    // Only scroll if not already visible
+    final viewportHeight = widget.scrollController.position.viewportDimension;
+    final currentOffset = widget.scrollController.offset;
+    final itemTop = targetOffset;
+    final itemBottom = targetOffset + _itemHeight;
+
+    // Check if item is already fully visible
+    if (itemTop >= currentOffset &&
+        itemBottom <= currentOffset + viewportHeight) {
+      return; // Already visible, no scroll needed
+    }
+
+    // Smooth scroll to the item
+    widget.scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<MediaItem>>(
-      stream: playerCubit.bloomeePlayer.queue,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+      stream: widget.playerCubit.bloomeePlayer.queue,
+      builder: (context, queueSnapshot) {
+        if (!queueSnapshot.hasData) {
           return const SliverToBoxAdapter(
             child: Center(
               child: Padding(
@@ -633,19 +746,31 @@ class _SongListSliver extends StatelessWidget {
           );
         }
 
-        final queue = snapshot.data!;
-        return SliverReorderableList(
-          itemCount: queue.length,
-          onReorder: (int oldIndex, int newIndex) {
-            playerCubit.bloomeePlayer.moveQueueItem(oldIndex, newIndex);
-          },
-          itemBuilder: (context, index) {
-            final mediaItem = queue[index];
-            return _MobileQueueItem(
-              key: ValueKey(mediaItem.id),
-              mediaItem: mediaItem,
-              index: index,
-              playerCubit: playerCubit,
+        final queue = queueSnapshot.data!;
+
+        return StreamBuilder<MediaItem?>(
+          stream: widget.playerCubit.bloomeePlayer.mediaItem,
+          builder: (context, mediaSnapshot) {
+            // Schedule scroll after build
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollToCurrentSong(queue, mediaSnapshot.data?.id);
+            });
+
+            return SliverReorderableList(
+              itemCount: queue.length,
+              onReorder: (int oldIndex, int newIndex) {
+                widget.playerCubit.bloomeePlayer
+                    .moveQueueItem(oldIndex, newIndex);
+              },
+              itemBuilder: (context, index) {
+                final mediaItem = queue[index];
+                return _MobileQueueItem(
+                  key: ValueKey(mediaItem.id),
+                  mediaItem: mediaItem,
+                  index: index,
+                  playerCubit: widget.playerCubit,
+                );
+              },
             );
           },
         );
@@ -882,18 +1007,61 @@ class _LegacyQueueInfo extends StatelessWidget {
   }
 }
 
-/// Legacy song list
-class _LegacySongList extends StatelessWidget {
+/// Legacy song list with auto-scroll to current song
+class _LegacySongList extends StatefulWidget {
   final BloomeePlayerCubit playerCubit;
 
   const _LegacySongList({required this.playerCubit});
 
   @override
+  State<_LegacySongList> createState() => _LegacySongListState();
+}
+
+class _LegacySongListState extends State<_LegacySongList> {
+  final ScrollController _scrollController = ScrollController();
+  String? _lastPlayingId;
+  static const double _itemHeight = 70.0;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToCurrentSong(List<MediaItem> queue, String? currentId) {
+    if (currentId == null || currentId == _lastPlayingId) return;
+    _lastPlayingId = currentId;
+
+    final index = queue.indexWhere((item) => item.id == currentId);
+    if (index == -1) return;
+
+    final targetOffset = index * _itemHeight;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final clampedOffset = targetOffset.clamp(0.0, maxScroll);
+
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final currentOffset = _scrollController.offset;
+    final itemTop = targetOffset;
+    final itemBottom = targetOffset + _itemHeight;
+
+    if (itemTop >= currentOffset &&
+        itemBottom <= currentOffset + viewportHeight) {
+      return;
+    }
+
+    _scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<MediaItem>>(
-      stream: playerCubit.bloomeePlayer.queue,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+      stream: widget.playerCubit.bloomeePlayer.queue,
+      builder: (context, queueSnapshot) {
+        if (!queueSnapshot.hasData) {
           return const Center(
             child: CircularProgressIndicator(
               color: Default_Theme.primaryColor2,
@@ -901,21 +1069,35 @@ class _LegacySongList extends StatelessWidget {
           );
         }
 
-        final queue = snapshot.data!;
-        return ReorderableListView.builder(
-          padding: const EdgeInsets.only(top: 5),
-          physics: const BouncingScrollPhysics(),
-          itemCount: queue.length,
-          onReorder: (int oldIndex, int newIndex) {
-            playerCubit.bloomeePlayer.moveQueueItem(oldIndex, newIndex);
-          },
-          itemBuilder: (context, index) {
-            final mediaItem = queue[index];
-            return _LegacyQueueItem(
-              key: ValueKey(mediaItem.id),
-              mediaItem: mediaItem,
-              index: index,
-              playerCubit: playerCubit,
+        final queue = queueSnapshot.data!;
+
+        return StreamBuilder<MediaItem?>(
+          stream: widget.playerCubit.bloomeePlayer.mediaItem,
+          builder: (context, mediaSnapshot) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_scrollController.hasClients) {
+                _scrollToCurrentSong(queue, mediaSnapshot.data?.id);
+              }
+            });
+
+            return ReorderableListView.builder(
+              scrollController: _scrollController,
+              padding: const EdgeInsets.only(top: 5),
+              physics: const BouncingScrollPhysics(),
+              itemCount: queue.length,
+              onReorder: (int oldIndex, int newIndex) {
+                widget.playerCubit.bloomeePlayer
+                    .moveQueueItem(oldIndex, newIndex);
+              },
+              itemBuilder: (context, index) {
+                final mediaItem = queue[index];
+                return _LegacyQueueItem(
+                  key: ValueKey(mediaItem.id),
+                  mediaItem: mediaItem,
+                  index: index,
+                  playerCubit: widget.playerCubit,
+                );
+              },
             );
           },
         );
