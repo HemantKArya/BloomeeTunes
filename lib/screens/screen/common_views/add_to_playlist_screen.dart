@@ -180,6 +180,40 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                   child: _SongInfoCard(mediaItem: mediaItem),
                 ),
 
+                // Already Added Playlists Stack
+                SliverToBoxAdapter(
+                  child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+                    builder: (context, libraryState) {
+                      return ValueListenableBuilder<Set<String>>(
+                        valueListenable: _songInPlaylists,
+                        builder: (context, songPlaylists, _) {
+                          if (songPlaylists.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          final playlists = libraryState.playlists
+                              .where((p) =>
+                                  songPlaylists.contains(p.playlistName) &&
+                                  p.playlistName != "recently_played" &&
+                                  p.playlistName !=
+                                      GlobalStrConsts.downloadPlaylist)
+                              .toList();
+
+                          if (playlists.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child:
+                                _StackedPlaylistAvatars(playlists: playlists),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+
                 // Search Bar
                 SliverToBoxAdapter(
                   child: _SearchBar(
@@ -543,6 +577,205 @@ class _PlaylistTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StackedPlaylistAvatars extends StatefulWidget {
+  final List<PlaylistItemProperties> playlists;
+
+  const _StackedPlaylistAvatars({required this.playlists});
+
+  @override
+  State<_StackedPlaylistAvatars> createState() =>
+      _StackedPlaylistAvatarsState();
+}
+
+class _StackedPlaylistAvatarsState extends State<_StackedPlaylistAvatars> {
+  @override
+  Widget build(BuildContext context) {
+    final playlists = widget.playlists;
+    final totalCount = playlists.length;
+    const double avatarSize = 40.0;
+    // Overlap amount when collapsed
+    const double collapsedOverlap = 20.0;
+    // Horizontal padding from screen edges
+    const double horizontalPadding = 32.0;
+
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double availableWidth = screenWidth - horizontalPadding;
+
+    // Calculate how many avatars can fit when collapsed (stacked)
+    // Total width = avatarSize + (n-1) * (avatarSize - collapsedOverlap)
+    // availableWidth >= avatarSize + (maxCollapsed - 1) * (avatarSize - collapsedOverlap)
+    // Solving for maxCollapsed:
+    final int maxVisible =
+        ((availableWidth - avatarSize) / (avatarSize - collapsedOverlap) + 1)
+            .floor()
+            .clamp(1, totalCount);
+
+    final bool hasOverflow = maxVisible < totalCount;
+    final int displayCount = hasOverflow ? maxVisible : totalCount;
+
+    // Items to display (last one may be the overflow indicator)
+    final List<PlaylistItemProperties> visiblePlaylists =
+        hasOverflow ? playlists.sublist(0, displayCount - 1) : playlists;
+
+    final int overflowCount = hasOverflow ? totalCount - (displayCount - 1) : 0;
+    final List<PlaylistItemProperties> overflowPlaylists =
+        hasOverflow ? playlists.sublist(displayCount - 1) : [];
+
+    // Calculate total width for centering
+    final int itemsToRender = hasOverflow ? displayCount : totalCount;
+    final double totalWidth =
+        avatarSize + (itemsToRender - 1) * (avatarSize - collapsedOverlap);
+
+    final double startX = (screenWidth - totalWidth) / 2;
+
+    return SizedBox(
+      height: avatarSize + 20, // Add some padding for tooltip/shadow
+      width: screenWidth,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // Render overflow indicator first (at the bottom of the stack)
+          if (hasOverflow)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.elasticOut,
+              left: startX +
+                  (displayCount - 1) * (avatarSize - collapsedOverlap) +
+                  8, // Offset slightly to the right for visibility
+              top: 10,
+              child: Tooltip(
+                message:
+                    overflowPlaylists.map((p) => p.playlistName).join(', '),
+                preferBelow: false,
+                verticalOffset: 24,
+                triggerMode: TooltipTriggerMode.tap,
+                child: _OverflowAvatar(
+                  count: overflowCount,
+                  size: avatarSize,
+                ),
+              ),
+            ),
+          // Render visible playlist avatars in reverse order (last to first)
+          // so first item ends up on top of the stack
+          ...List.generate(visiblePlaylists.length, (index) {
+            // Reverse the index for rendering order
+            final reverseIndex = visiblePlaylists.length - 1 - index;
+            final playlist = visiblePlaylists[reverseIndex];
+
+            final double itemOffset =
+                reverseIndex * (avatarSize - collapsedOverlap);
+
+            return AnimatedPositioned(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.elasticOut,
+              left: startX + itemOffset,
+              top: 10,
+              child: Tooltip(
+                message: playlist.playlistName,
+                preferBelow: false,
+                verticalOffset: 24,
+                triggerMode: TooltipTriggerMode.tap,
+                child: _PlaylistAvatar(
+                  playlist: playlist,
+                  size: avatarSize,
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+/// Overflow indicator showing "+N" count
+class _OverflowAvatar extends StatelessWidget {
+  final int count;
+  final double size;
+
+  const _OverflowAvatar({
+    required this.count,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Default_Theme.accentColor1.withValues(alpha: 0.15),
+        border: Border.all(
+          color: Default_Theme.themeColor,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          ' $count+',
+          style: Default_Theme.secondoryTextStyleMedium.merge(
+            const TextStyle(
+              color: Default_Theme.accentColor1,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlaylistAvatar extends StatelessWidget {
+  final PlaylistItemProperties playlist;
+  final double size;
+
+  const _PlaylistAvatar({
+    required this.playlist,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Default_Theme.themeColor,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: LoadImageCached(
+          imageUrl: formatImgURL(
+            playlist.coverImgUrl ?? '',
+            ImageQuality.low,
+          ),
+          fit: BoxFit.cover,
         ),
       ),
     );
