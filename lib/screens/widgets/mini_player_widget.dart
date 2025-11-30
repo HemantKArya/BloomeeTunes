@@ -98,27 +98,30 @@ class MiniPlayerCard extends StatelessWidget {
         child: SizedBox(
           height: 70,
           child: Stack(
+            clipBehavior: Clip.hardEdge,
             children: [
-              Container(
-                color: Default_Theme.themeColor,
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.width,
-                child: LoadImageCached(
-                  imageUrl: formatImgURL(
-                      state.song.artUri.toString(), ImageQuality.low),
-                  fit: BoxFit.cover,
-                ),
-              ),
+              // Background image with blur applied directly
               Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaY: 18,
-                    sigmaX: 18,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: 25,
+                    sigmaY: 25,
+                    tileMode: TileMode.decal,
                   ),
                   child: Container(
-                    color: Colors.black.withValues(
-                        alpha: 0.5), // Keep the container color transparent
+                    color: Default_Theme.themeColor,
+                    child: LoadImageCached(
+                      imageUrl: formatImgURL(
+                          state.song.artUri.toString(), ImageQuality.low),
+                      fit: BoxFit.cover,
+                    ),
                   ),
+                ),
+              ),
+              // Dark overlay for better contrast
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.5),
                 ),
               ),
               Row(
