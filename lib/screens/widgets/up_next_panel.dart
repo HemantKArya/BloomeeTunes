@@ -207,17 +207,19 @@ class _UpNextPanelState extends State<UpNextPanel> {
 
   void _onSheetPositionChanged() {
     final bool nowExpanded = _sheetController.size > _minSheetSize + 0.1;
-    
+
     // Calculate content opacity based on how far the sheet is expanded
     // Content starts fading in after the sheet has expanded a bit past minimum
-    final expansionProgress = ((_sheetController.size - _minSheetSize) / 
-        (_maxSheetSize - _minSheetSize)).clamp(0.0, 1.0);
+    final expansionProgress = ((_sheetController.size - _minSheetSize) /
+            (_maxSheetSize - _minSheetSize))
+        .clamp(0.0, 1.0);
     // Use a curve for smoother appearance - content appears quickly after initial expansion
-    final newOpacity = expansionProgress < 0.15 
-        ? 0.0 
+    final newOpacity = expansionProgress < 0.15
+        ? 0.0
         : ((expansionProgress - 0.15) / 0.35).clamp(0.0, 1.0);
-    
-    if (nowExpanded != _isExpanded || (newOpacity - _contentOpacity).abs() > 0.01) {
+
+    if (nowExpanded != _isExpanded ||
+        (newOpacity - _contentOpacity).abs() > 0.01) {
       setState(() {
         _isExpanded = nowExpanded;
         _contentOpacity = newOpacity;
@@ -369,7 +371,8 @@ class _PanelContent extends StatelessWidget {
                               SliverToBoxAdapter(
                                 child: SizedBox(
                                   height:
-                                      MediaQuery.of(context).padding.bottom + 20,
+                                      MediaQuery.of(context).padding.bottom +
+                                          20,
                                 ),
                               ),
                             ],
