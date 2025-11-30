@@ -8,7 +8,6 @@ import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
-import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -244,33 +243,40 @@ class MiniPlayerCard extends StatelessWidget {
                       icon: const Icon(FontAwesome.plus_solid, size: 25)),
                 ],
               ),
-              isCompleted
-                  ? const SizedBox()
-                  : Positioned.fill(
-                      bottom: 2,
-                      left: 8,
-                      right: 8,
-                      top: 68,
-                      child: StreamBuilder<ProgressBarStreams>(
-                          stream: context
-                              .watch<BloomeePlayerCubit>()
-                              .progressStreams,
-                          builder: (context, snapshot) {
-                            try {
-                              if (snapshot.hasData) {
-                                return ProgressBar(
-                                    thumbRadius: 0,
-                                    barHeight: 4,
-                                    baseBarColor: Colors.transparent,
-                                    timeLabelLocation: TimeLabelLocation.none,
-                                    progress: snapshot.data!.currentPos,
-                                    total: snapshot
-                                        .data!.currentPlaybackState.duration!);
-                              }
-                            } catch (e) {}
-                            return const SizedBox();
-                          }),
-                    )
+              if (!isCompleted)
+                Positioned(
+                  bottom: 0,
+                  left: 8,
+                  right: 8,
+                  height: 4,
+                  child: StreamBuilder<ProgressBarStreams>(
+                    stream: context.watch<BloomeePlayerCubit>().progressStreams,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData &&
+                          snapshot.data!.currentPlaybackState.duration !=
+                              null) {
+                        final progress = snapshot.data!.currentPos;
+                        final total =
+                            snapshot.data!.currentPlaybackState.duration!;
+                        final progressFraction = total.inMilliseconds > 0
+                            ? progress.inMilliseconds / total.inMilliseconds
+                            : 0.0;
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: LinearProgressIndicator(
+                            value: progressFraction.clamp(0.0, 1.0),
+                            backgroundColor: Colors.transparent,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Default_Theme.accentColor2,
+                            ),
+                            minHeight: 4,
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                )
             ],
           ),
         ),
