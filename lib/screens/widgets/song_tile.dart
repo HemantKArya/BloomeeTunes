@@ -150,8 +150,8 @@ class SongCardWidget extends StatelessWidget {
   }
 }
 
-// Extracted widget for playing indicator - only rebuilds when stream changes
-class _PlayingIndicator extends StatelessWidget {
+// Extracted widget for playing indicator with snappy slide animation
+class _PlayingIndicator extends StatefulWidget {
   final String songId;
   final Stream<MediaItem?> mediaItemStream;
 
@@ -161,21 +161,78 @@ class _PlayingIndicator extends StatelessWidget {
   });
 
   @override
+  State<_PlayingIndicator> createState() => _PlayingIndicatorState();
+}
+
+class _PlayingIndicatorState extends State<_PlayingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _slideAnimation;
+
+  bool _isPlaying = false;
+
+  static const double _indicatorWidth = 25.0;
+  static const Duration _animationDuration = Duration(milliseconds: 150);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: _animationDuration,
+    );
+
+    // Single fast animation - width and opacity together
+    _slideAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handlePlayingChange(bool isPlaying) {
+    if (_isPlaying == isPlaying) return;
+    _isPlaying = isPlaying;
+
+    if (isPlaying) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<MediaItem?>(
-      stream: mediaItemStream,
+      stream: widget.mediaItemStream,
       builder: (context, snapshot) {
-        final isPlaying = snapshot.data?.id == songId;
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: isPlaying
-              ? const Icon(
+        final isPlaying = snapshot.data?.id == widget.songId;
+
+        // Direct call - no postFrameCallback delay
+        _handlePlayingChange(isPlaying);
+
+        return SizeTransition(
+          axis: Axis.horizontal,
+          sizeFactor: _slideAnimation,
+          child: FadeTransition(
+            opacity: _slideAnimation,
+            child: Center(
+              child: SizedBox(
+                width: _indicatorWidth,
+                child: const Icon(
                   FontAwesome.caret_right_solid,
-                  key: ValueKey('playing'),
                   color: Default_Theme.accentColor1,
                   size: 25,
-                )
-              : const SizedBox(key: ValueKey('not_playing')),
+                ),
+              ),
+            ),
+          ),
         );
       },
     );
