@@ -1,4 +1,4 @@
-## [Unreleased]
+## [2.13.1] - 2025-11-30
 
 ### Added
 - **Library Item Search Box**: Added search functionality for library items to improve navigation and discovery.
