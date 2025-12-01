@@ -1,3 +1,15 @@
+## [2.13.3] - 2025-12-01
+
+### Added
+- **Shortcut Pressed Indicator for Desktop**: Added visual indicator for pressed keyboard shortcuts on desktop platforms.
+- **New Flavor Dev[Android]**: Introduced a new development flavor for Android builds.
+
+### Fixed
+- **What's New Font Family**: Fixed font family issues in the "What's New" section.
+- **Keyboard Shortcut**: Resolved issues with keyboard shortcuts functionality.
+- **Add to Playlist**: Fixed bugs in the add to playlist feature.
+- **Player Disposer Problem**: Addressed player disposer issues on Realme, Oppo, and similar devices.
+
 ## [2.13.2] - 2025-11-30
 
 ### Added

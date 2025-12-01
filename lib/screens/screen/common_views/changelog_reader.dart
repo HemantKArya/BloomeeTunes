@@ -1,6 +1,5 @@
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
@@ -310,7 +309,9 @@ class ChangelogScreen extends StatelessWidget {
             final end = installedIndexInView > latestIndexInView
                 ? installedIndexInView
                 : latestIndexInView;
-            for (int i = start; i <= end; i++) expandedIndices.add(i);
+            for (int i = start; i <= end; i++) {
+              expandedIndices.add(i);
+            }
           }
 
           // Persist the fact that user viewed the changelog for the installed version.
