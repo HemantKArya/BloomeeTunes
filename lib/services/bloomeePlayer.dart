@@ -83,6 +83,34 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
+  Future<void> revive() async {
+    if (!_isDisposed) return;
+    log('Reviving BloomeeMusicPlayer...', name: 'bloomeePlayer');
+
+    // Re-initialize BehaviorSubjects if they were closed
+    if (fromPlaylist.isClosed)
+      fromPlaylist = BehaviorSubject<bool>.seeded(false);
+    if (isOffline.isClosed) isOffline = BehaviorSubject<bool>.seeded(false);
+    if (loopMode.isClosed)
+      loopMode = BehaviorSubject<LoopMode>.seeded(LoopMode.off);
+
+    _initializeAudioPlayer();
+    _initializeModules();
+    _initializePlayer();
+    _recentlyPlayedTracker = RecentlyPlayedTracker(
+      audioPlayer,
+      () => _queueManager.currentMediaItem,
+    );
+
+    _isDisposed = false;
+
+    // Reset playback state to idle
+    playbackState.add(playbackState.value.copyWith(
+      processingState: AudioProcessingState.idle,
+      playing: false,
+    ));
+  }
+
   /// Configure how many continuous seconds are required before a track is
   /// added to Recently Played. Default is 15.
   void setRecentlyPlayedThresholdSeconds(int seconds) {

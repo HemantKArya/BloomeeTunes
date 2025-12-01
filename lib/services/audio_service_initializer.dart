@@ -31,6 +31,11 @@ class PlayerInitializer {
     if (Platform.isAndroid && bloomeeMusicPlayer != null) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
+
+    // Check for zombie state and revive if necessary
+    if (bloomeeMusicPlayer != null && !bloomeeMusicPlayer!.isPlayerHealthy) {
+      await bloomeeMusicPlayer!.revive();
+    }
   }
 
   Future<BloomeeMusicPlayer> getBloomeeMusicPlayer() async {
