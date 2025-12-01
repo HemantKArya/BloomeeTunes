@@ -3,6 +3,7 @@ import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
+import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -167,28 +168,34 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
 
     // Volume control with Up/Down arrows
     if (key == LogicalKeyboardKey.arrowUp) {
-      _changeVolume(player, 0.05);
+      final newVolume = _changeVolume(player, 0.05);
+      context.read<ShortcutIndicatorCubit>().showVolume(newVolume);
       return true;
     } else if (key == LogicalKeyboardKey.arrowDown) {
-      _changeVolume(player, -0.05);
+      final newVolume = _changeVolume(player, -0.05);
+      context.read<ShortcutIndicatorCubit>().showVolume(newVolume);
       return true;
     }
 
     // R: Cycle repeat/loop modes
     if (key == LogicalKeyboardKey.keyR) {
-      _cycleLoopMode(player);
+      final newMode = _cycleLoopMode(player);
+      context.read<ShortcutIndicatorCubit>().showLoopMode(newMode);
       return true;
     }
 
     // S: Toggle shuffle
     if (key == LogicalKeyboardKey.keyS) {
-      player.shuffle(!player.shuffleMode.value);
+      final newShuffleState = !player.shuffleMode.value;
+      player.shuffle(newShuffleState);
+      context.read<ShortcutIndicatorCubit>().showShuffle(newShuffleState);
       return true;
     }
 
     // M: Mute/Unmute
     if (key == LogicalKeyboardKey.keyM) {
-      _toggleMute(player);
+      final (isMuted, volumeLevel) = _toggleMute(player);
+      context.read<ShortcutIndicatorCubit>().showMute(isMuted, volumeLevel);
       return true;
     }
 
@@ -235,25 +242,29 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
     }
   }
 
-  void _changeVolume(dynamic player, double delta) {
+  double _changeVolume(dynamic player, double delta) {
     final currentVolume = player.audioPlayer.volume;
     final newVolume = (currentVolume + delta).clamp(0.0, 1.0);
     player.audioPlayer.setVolume(newVolume);
+    return newVolume;
   }
 
   double _lastVolumeBeforeMute = 1.0;
 
-  void _toggleMute(dynamic player) {
+  /// Returns (isMuted, volumeLevel)
+  (bool, double) _toggleMute(dynamic player) {
     final currentVolume = player.audioPlayer.volume;
     if (currentVolume > 0) {
       _lastVolumeBeforeMute = currentVolume;
       player.audioPlayer.setVolume(0.0);
+      return (true, 0.0);
     } else {
       player.audioPlayer.setVolume(_lastVolumeBeforeMute);
+      return (false, _lastVolumeBeforeMute);
     }
   }
 
-  void _cycleLoopMode(dynamic player) {
+  LoopMode _cycleLoopMode(dynamic player) {
     final currentMode = player.loopMode.value;
     LoopMode nextMode;
     switch (currentMode) {
@@ -269,6 +280,7 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
         break;
     }
     player.setLoopMode(nextMode);
+    return nextMode;
   }
 
   Future<void> _toggleLike(dynamic player) async {
@@ -277,7 +289,13 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
 
     final dbCubit = context.read<BloomeeDBCubit>();
     final isCurrentlyLiked = await dbCubit.isLiked(currentMedia);
-    dbCubit.setLike(currentMedia, isLiked: !isCurrentlyLiked);
+    final newLikeState = !isCurrentlyLiked;
+    dbCubit.setLike(currentMedia, isLiked: newLikeState);
+
+    // Show the like indicator
+    if (mounted) {
+      context.read<ShortcutIndicatorCubit>().showLike(newLikeState);
+    }
   }
 
   @override

@@ -13,9 +13,11 @@ import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/blocs/timer/timer_bloc.dart';
 import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/screens/widgets/global_event_listener.dart';
+import 'package:Bloomee/screens/widgets/shortcut_indicator_overlay.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/services/keyboard_shortcuts_service.dart';
+import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:Bloomee/utils/external_list_importer.dart';
@@ -260,6 +262,10 @@ class _MyAppState extends State<MyApp> {
           create: (context) => PlayerOverlayCubit(),
           lazy: false,
         ),
+        BlocProvider(
+          create: (context) => ShortcutIndicatorCubit(),
+          lazy: false,
+        ),
       ],
       child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
         builder: (context, state) {
@@ -273,25 +279,27 @@ class _MyAppState extends State<MyApp> {
             );
           } else {
             return KeyboardShortcutsHandler(
-              child: MaterialApp.router(
-                builder: (context, child) => ResponsiveBreakpoints.builder(
-                  breakpoints: [
-                    const Breakpoint(start: 0, end: 450, name: MOBILE),
-                    const Breakpoint(start: 451, end: 800, name: TABLET),
-                    const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-                    const Breakpoint(
-                        start: 1921, end: double.infinity, name: '4K'),
-                  ],
-                  child: GlobalEventListener(
-                    navigatorKey: GlobalRoutes.globalRouterKey,
-                    child: child!,
+              child: ShortcutIndicatorOverlay(
+                child: MaterialApp.router(
+                  builder: (context, child) => ResponsiveBreakpoints.builder(
+                    breakpoints: [
+                      const Breakpoint(start: 0, end: 450, name: MOBILE),
+                      const Breakpoint(start: 451, end: 800, name: TABLET),
+                      const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                      const Breakpoint(
+                          start: 1921, end: double.infinity, name: '4K'),
+                    ],
+                    child: GlobalEventListener(
+                      navigatorKey: GlobalRoutes.globalRouterKey,
+                      child: child!,
+                    ),
                   ),
+                  scaffoldMessengerKey: SnackbarService.messengerKey,
+                  routerConfig: GlobalRoutes.globalRouter,
+                  theme: Default_Theme().defaultThemeData,
+                  scrollBehavior: CustomScrollBehavior(),
+                  debugShowCheckedModeBanner: false,
                 ),
-                scaffoldMessengerKey: SnackbarService.messengerKey,
-                routerConfig: GlobalRoutes.globalRouter,
-                theme: Default_Theme().defaultThemeData,
-                scrollBehavior: CustomScrollBehavior(),
-                debugShowCheckedModeBanner: false,
               ),
             );
           }
