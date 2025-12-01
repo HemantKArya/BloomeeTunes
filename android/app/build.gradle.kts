@@ -49,6 +49,18 @@ android {
         includeInBundle = false
     }
 
+    flavorDimensions += "default"
+    productFlavors {
+        create("dev") {
+            dimension = "default"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
+        create("stable") {
+            dimension = "default"
+        }
+    }
+
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
             println("   ✅ key.properties found - configuring release signing")
