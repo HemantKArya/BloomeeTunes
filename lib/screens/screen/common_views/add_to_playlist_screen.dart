@@ -120,6 +120,39 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
+      appBar: AppBar(
+        backgroundColor: Default_Theme.themeColor,
+        surfaceTintColor: Default_Theme.themeColor,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: Default_Theme.primaryColor1,
+          ),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          'Add to Playlist',
+          style: Default_Theme.secondoryTextStyleMedium.merge(
+            const TextStyle(
+              color: Default_Theme.primaryColor1,
+              fontSize: 18,
+            ),
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(
+              MingCute.add_circle_line,
+              color: Default_Theme.accentColor2,
+              size: 26,
+            ),
+            tooltip: 'Create New Playlist',
+            onPressed: () => createPlaylistBottomSheet(context),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
       body: SafeArea(
         child: BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
           builder: (context, addToPlaylistState) {
@@ -134,118 +167,71 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
               );
             }
 
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                // Custom App Bar
-                SliverAppBar(
-                  pinned: true,
-                  expandedHeight: 0,
-                  backgroundColor: Default_Theme.themeColor,
-                  surfaceTintColor: Default_Theme.themeColor,
-                  leading: IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_rounded,
-                      color: Default_Theme.primaryColor1,
-                    ),
-                    onPressed: () => context.pop(),
-                  ),
-                  title: Text(
-                    'Add to Playlist',
-                    style: Default_Theme.secondoryTextStyleMedium.merge(
-                      const TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  centerTitle: true,
-                  actions: [
-                    IconButton(
-                      icon: const Icon(
-                        MingCute.add_circle_line,
-                        color: Default_Theme.accentColor2,
-                        size: 26,
-                      ),
-                      tooltip: 'Create New Playlist',
-                      onPressed: () => createPlaylistBottomSheet(context),
-                    ),
-                    const SizedBox(width: 4),
-                  ],
-                ),
-
+            return Column(
+              children: [
                 // Song Info Card (Compact)
-                SliverToBoxAdapter(
-                  child: _SongInfoCard(mediaItem: mediaItem),
-                ),
+                _SongInfoCard(mediaItem: mediaItem),
 
                 // Already Added Playlists Stack
-                SliverToBoxAdapter(
-                  child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-                    builder: (context, libraryState) {
-                      return ValueListenableBuilder<Set<String>>(
-                        valueListenable: _songInPlaylists,
-                        builder: (context, songPlaylists, _) {
-                          if (songPlaylists.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
+                BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+                  builder: (context, libraryState) {
+                    return ValueListenableBuilder<Set<String>>(
+                      valueListenable: _songInPlaylists,
+                      builder: (context, songPlaylists, _) {
+                        if (songPlaylists.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
 
-                          final playlists = libraryState.playlists
-                              .where((p) =>
-                                  songPlaylists.contains(p.playlistName) &&
-                                  p.playlistName != "recently_played" &&
-                                  p.playlistName !=
-                                      GlobalStrConsts.downloadPlaylist)
-                              .toList();
+                        final playlists = libraryState.playlists
+                            .where((p) =>
+                                songPlaylists.contains(p.playlistName) &&
+                                p.playlistName != "recently_played" &&
+                                p.playlistName !=
+                                    GlobalStrConsts.downloadPlaylist)
+                            .toList();
 
-                          if (playlists.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
+                        if (playlists.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child:
-                                _StackedPlaylistAvatars(playlists: playlists),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: _StackedPlaylistAvatars(playlists: playlists),
+                        );
+                      },
+                    );
+                  },
                 ),
 
                 // Search Bar
-                SliverToBoxAdapter(
-                  child: _SearchBar(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    searchQuery: _searchQuery,
-                  ),
+                _SearchBar(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  searchQuery: _searchQuery,
                 ),
 
                 // Playlists List
-                BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-                  builder: (context, libraryState) {
-                    if (libraryState is LibraryItemsLoading) {
-                      return const SliverFillRemaining(
-                        child: Center(
+                Expanded(
+                  child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+                    builder: (context, libraryState) {
+                      if (libraryState is LibraryItemsLoading) {
+                        return const Center(
                           child: CircularProgressIndicator(
                             color: Default_Theme.accentColor2,
                           ),
-                        ),
-                      );
-                    }
-
-                    return ValueListenableBuilder<String>(
-                      valueListenable: _searchQuery,
-                      builder: (context, query, _) {
-                        final filteredPlaylists = _filterPlaylists(
-                          libraryState.playlists,
-                          query,
                         );
+                      }
 
-                        if (filteredPlaylists.isEmpty) {
-                          return SliverFillRemaining(
-                            child: Center(
+                      return ValueListenableBuilder<String>(
+                        valueListenable: _searchQuery,
+                        builder: (context, query, _) {
+                          final filteredPlaylists = _filterPlaylists(
+                            libraryState.playlists,
+                            query,
+                          );
+
+                          if (filteredPlaylists.isEmpty) {
+                            return Center(
                               child: SignBoardWidget(
                                 message: query.isEmpty
                                     ? "No playlists yet.\nCreate one to get started!"
@@ -254,20 +240,19 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                     ? MingCute.playlist_line
                                     : MingCute.search_line,
                               ),
-                            ),
-                          );
-                        }
+                            );
+                          }
 
-                        return ValueListenableBuilder<Set<String>>(
-                          valueListenable: _songInPlaylists,
-                          builder: (context, songPlaylists, _) {
-                            return SliverPadding(
-                              padding: const EdgeInsets.only(
-                                left: 16,
-                                right: 16,
-                                bottom: 100,
-                              ),
-                              sliver: SliverList.builder(
+                          return ValueListenableBuilder<Set<String>>(
+                            valueListenable: _songInPlaylists,
+                            builder: (context, songPlaylists, _) {
+                              return ListView.builder(
+                                padding: const EdgeInsets.only(
+                                  left: 16,
+                                  right: 16,
+                                  bottom: 100,
+                                ),
+                                physics: const BouncingScrollPhysics(),
                                 itemCount: filteredPlaylists.length,
                                 itemBuilder: (context, index) {
                                   final playlist = filteredPlaylists[index];
@@ -288,13 +273,13 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                     ),
                                   );
                                 },
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             );
