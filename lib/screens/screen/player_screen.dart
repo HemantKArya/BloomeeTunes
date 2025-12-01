@@ -8,11 +8,9 @@ import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
 import 'package:Bloomee/services/bloomeePlayer.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/services/shortcuts_intents.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:just_audio/just_audio.dart';
@@ -64,179 +62,118 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
     super.dispose();
   }
 
-  /// Handle back gesture/button press
-  /// Returns true if we handled the back action (should not pop), false otherwise
-  bool _handleBackNavigation(BuildContext context) {
-    // First, try to collapse the upnext panel if it's expanded
-    if (_upNextPanelController.collapse()) {
-      return true; // We handled it by collapsing the panel
-    }
-    // If panel was not expanded, hide the player
-    context.read<PlayerOverlayCubit>().hidePlayer();
-    return true; // We handled it by hiding the player
-  }
-
   @override
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     final musicPlayer = bloomeePlayerCubit.bloomeePlayer;
 
-    return Shortcuts(
-      shortcuts: const <ShortcutActivator, Intent>{
-        SingleActivator(LogicalKeyboardKey.keyS): ShuffleIntent(),
-        SingleActivator(LogicalKeyboardKey.keyL): LoopPlaylistIntent(),
-        SingleActivator(LogicalKeyboardKey.keyM): LoopOffIntent(),
-        SingleActivator(LogicalKeyboardKey.keyO): LoopSingleIntent(),
-        SingleActivator(LogicalKeyboardKey.keyT): TimerIntent(),
-        SingleActivator(LogicalKeyboardKey.backspace): BackIntent(),
-      },
-      child: Actions(
-        actions: {
-          ShuffleIntent: CallbackAction<ShuffleIntent>(onInvoke: (intent) {
-            musicPlayer.shuffle(!musicPlayer.shuffleMode.value);
-            return null;
-          }),
-          LoopPlaylistIntent:
-              CallbackAction<LoopPlaylistIntent>(onInvoke: (intent) {
-            musicPlayer.setLoopMode(LoopMode.all);
-            return null;
-          }),
-          LoopOffIntent: CallbackAction<LoopOffIntent>(onInvoke: (intent) {
-            musicPlayer.setLoopMode(LoopMode.off);
-            return null;
-          }),
-          LoopSingleIntent:
-              CallbackAction<LoopSingleIntent>(onInvoke: (intent) {
-            musicPlayer.setLoopMode(LoopMode.one);
-            return null;
-          }),
-          TimerIntent: CallbackAction<TimerIntent>(onInvoke: (intent) {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (_) => const TimerView()));
-            return null;
-          }),
-          BackIntent: CallbackAction<BackIntent>(onInvoke: (intent) {
-            _handleBackNavigation(context);
-            return null;
-          }),
-        },
-        child: FocusScope(
-          autofocus: true,
-          child: Scaffold(
-            backgroundColor: const Color.fromARGB(255, 12, 4, 9),
-            resizeToAvoidBottomInset: false,
-            extendBodyBehindAppBar: true,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              foregroundColor: Default_Theme.primaryColor1,
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
-                onPressed: () {
-                  // If upnext panel is expanded, collapse it first
-                  // Otherwise hide the player
-                  if (!_upNextPanelController.collapse()) {
-                    context.read<PlayerOverlayCubit>().hidePlayer();
-                  }
-                },
-              ),
-              actions: [
-                IconButton(
-                    onPressed: () =>
-                        showMoreBottomSheet(context, musicPlayer.currentMedia),
-                    icon: const Icon(MingCute.more_2_fill,
-                        size: 25, color: Default_Theme.primaryColor1))
-              ],
-              title: Column(
-                children: [
-                  Text(
-                    'Enjoying From',
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 12, 4, 9),
+      resizeToAvoidBottomInset: false,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Default_Theme.primaryColor1,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
+          onPressed: () {
+            // If upnext panel is expanded, collapse it first
+            // Otherwise hide the player
+            if (!_upNextPanelController.collapse()) {
+              context.read<PlayerOverlayCubit>().hidePlayer();
+            }
+          },
+        ),
+        actions: [
+          IconButton(
+              onPressed: () =>
+                  showMoreBottomSheet(context, musicPlayer.currentMedia),
+              icon: const Icon(MingCute.more_2_fill,
+                  size: 25, color: Default_Theme.primaryColor1))
+        ],
+        title: Column(
+          children: [
+            Text(
+              'Enjoying From',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold)
+                  .merge(Default_Theme.secondoryTextStyle),
+            ),
+            StreamBuilder<String>(
+                stream: bloomeePlayerCubit.bloomeePlayer.queueTitle,
+                builder: (context, snapshot) {
+                  return Text(
+                    snapshot.data ?? "Unknown",
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold)
-                        .merge(Default_Theme.secondoryTextStyle),
-                  ),
-                  StreamBuilder<String>(
-                      stream: bloomeePlayerCubit.bloomeePlayer.queueTitle,
-                      builder: (context, snapshot) {
-                        return Text(
-                          snapshot.data ?? "Unknown",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Default_Theme.primaryColor2,
-                            fontSize: 12,
-                          ).merge(Default_Theme.secondoryTextStyle),
-                        );
-                      }),
-                ],
-              ),
-            ),
-            body: AnimatedSwitcher(
-                duration: const Duration(seconds: 1),
-                child: ResponsiveBreakpoints.of(context)
-                        .smallerOrEqualTo(TABLET)
-                    ? LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Stack(
-                            children: [
-                              _PlayerUI(
-                                musicPlayer: musicPlayer,
-                                tabController: _tabController,
-                                constraints: constraints,
-                              ),
-                              UpNextPanel(
-                                peekHeight: 60.0,
-                                parentHeight: constraints.maxHeight,
-                                controller: _upNextPanelController,
-                              ),
-                            ],
-                          );
-                        },
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          ConstrainedBox(
-                              constraints: BoxConstraints(
-                                  minWidth: 400,
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.60),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: LayoutBuilder(
-                                    builder: (context, constraints) {
-                                  return _PlayerUI(
-                                    musicPlayer: musicPlayer,
-                                    tabController: _tabController,
-                                    constraints: constraints,
-                                  );
-                                }),
-                              )),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.8,
-                                  child: UpNextPanel(
-                                      peekHeight: 60,
-                                      parentHeight:
-                                          MediaQuery.of(context).size.height *
-                                              0.8,
-                                      isDesktopMode: true,
-                                      controller: _upNextPanelController)),
-                            ),
-                          )
-                        ],
-                      )),
-          ),
+                      color: Default_Theme.primaryColor2,
+                      fontSize: 12,
+                    ).merge(Default_Theme.secondoryTextStyle),
+                  );
+                }),
+          ],
         ),
       ),
+      body: AnimatedSwitcher(
+          duration: const Duration(seconds: 1),
+          child: ResponsiveBreakpoints.of(context).smallerOrEqualTo(TABLET)
+              ? LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Stack(
+                      children: [
+                        _PlayerUI(
+                          musicPlayer: musicPlayer,
+                          tabController: _tabController,
+                          constraints: constraints,
+                        ),
+                        UpNextPanel(
+                          peekHeight: 60.0,
+                          parentHeight: constraints.maxHeight,
+                          controller: _upNextPanelController,
+                        ),
+                      ],
+                    );
+                  },
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ConstrainedBox(
+                        constraints: BoxConstraints(
+                            minWidth: 400,
+                            maxWidth: MediaQuery.of(context).size.width * 0.60),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: LayoutBuilder(builder: (context, constraints) {
+                            return _PlayerUI(
+                              musicPlayer: musicPlayer,
+                              tabController: _tabController,
+                              constraints: constraints,
+                            );
+                          }),
+                        )),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.8,
+                            child: UpNextPanel(
+                                peekHeight: 60,
+                                parentHeight:
+                                    MediaQuery.of(context).size.height * 0.8,
+                                isDesktopMode: true,
+                                controller: _upNextPanelController)),
+                      ),
+                    )
+                  ],
+                )),
     );
   }
 }

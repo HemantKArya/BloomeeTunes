@@ -15,7 +15,7 @@ import 'package:Bloomee/repository/Youtube/youtube_api.dart';
 import 'package:Bloomee/screens/widgets/global_event_listener.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/services/shortcuts_intents.dart';
+import 'package:Bloomee/services/keyboard_shortcuts_service.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:Bloomee/utils/external_list_importer.dart';
@@ -23,7 +23,6 @@ import 'package:Bloomee/utils/ticker.dart';
 import 'package:Bloomee/utils/url_checker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
@@ -273,122 +272,27 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           } else {
-            return MaterialApp.router(
-              shortcuts: {
-                LogicalKeySet(LogicalKeyboardKey.space):
-                    const PlayPauseIntent(),
-                LogicalKeySet(LogicalKeyboardKey.mediaPlayPause):
-                    const PlayPauseIntent(),
-                LogicalKeySet(LogicalKeyboardKey.arrowLeft):
-                    const PreviousIntent(),
-                LogicalKeySet(LogicalKeyboardKey.arrowRight):
-                    const NextIntent(),
-                LogicalKeySet(LogicalKeyboardKey.keyR): const RepeatIntent(),
-                LogicalKeySet(LogicalKeyboardKey.keyL): const LikeIntent(),
-                LogicalKeySet(
-                        LogicalKeyboardKey.arrowRight, LogicalKeyboardKey.alt):
-                    const NSecForwardIntent(),
-                LogicalKeySet(
-                        LogicalKeyboardKey.arrowLeft, LogicalKeyboardKey.alt):
-                    const NSecBackwardIntent(),
-                LogicalKeySet(LogicalKeyboardKey.arrowUp):
-                    const VolumeUpIntent(),
-                LogicalKeySet(LogicalKeyboardKey.arrowDown):
-                    const VolumeDownIntent(),
-              },
-              actions: {
-                PlayPauseIntent: CallbackAction(onInvoke: (intent) {
-                  if (context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .audioPlayer
-                      .playing) {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .audioPlayer
-                        .pause();
-                  } else {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .audioPlayer
-                        .play();
-                  }
-                  return null;
-                }),
-                NextIntent: CallbackAction(onInvoke: (intent) {
-                  context.read<BloomeePlayerCubit>().bloomeePlayer.skipToNext();
-                  return null;
-                }),
-                PreviousIntent: CallbackAction(onInvoke: (intent) {
-                  context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .skipToPrevious();
-                  return null;
-                }),
-                NSecForwardIntent: CallbackAction(onInvoke: (intent) {
-                  context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .seekNSecForward(const Duration(seconds: 5));
-                  return null;
-                }),
-                NSecBackwardIntent: CallbackAction(onInvoke: (intent) {
-                  context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .seekNSecBackward(const Duration(seconds: 5));
-                  return null;
-                }),
-                VolumeUpIntent: CallbackAction(onInvoke: (intent) {
-                  context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .audioPlayer
-                      .setVolume((context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .audioPlayer
-                                  .volume +
-                              0.1)
-                          .clamp(0.0, 1.0));
-                  return null;
-                }),
-                VolumeDownIntent: CallbackAction(onInvoke: (intent) {
-                  context
-                      .read<BloomeePlayerCubit>()
-                      .bloomeePlayer
-                      .audioPlayer
-                      .setVolume((context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .audioPlayer
-                                  .volume -
-                              0.1)
-                          .clamp(0.0, 1.0));
-                  return null;
-                }),
-              },
-              builder: (context, child) => ResponsiveBreakpoints.builder(
-                breakpoints: [
-                  const Breakpoint(start: 0, end: 450, name: MOBILE),
-                  const Breakpoint(start: 451, end: 800, name: TABLET),
-                  const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-                  const Breakpoint(
-                      start: 1921, end: double.infinity, name: '4K'),
-                ],
-                child: GlobalEventListener(
-                  navigatorKey: GlobalRoutes.globalRouterKey,
-                  child: child!,
+            return KeyboardShortcutsHandler(
+              child: MaterialApp.router(
+                builder: (context, child) => ResponsiveBreakpoints.builder(
+                  breakpoints: [
+                    const Breakpoint(start: 0, end: 450, name: MOBILE),
+                    const Breakpoint(start: 451, end: 800, name: TABLET),
+                    const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                    const Breakpoint(
+                        start: 1921, end: double.infinity, name: '4K'),
+                  ],
+                  child: GlobalEventListener(
+                    navigatorKey: GlobalRoutes.globalRouterKey,
+                    child: child!,
+                  ),
                 ),
+                scaffoldMessengerKey: SnackbarService.messengerKey,
+                routerConfig: GlobalRoutes.globalRouter,
+                theme: Default_Theme().defaultThemeData,
+                scrollBehavior: CustomScrollBehavior(),
+                debugShowCheckedModeBanner: false,
               ),
-              scaffoldMessengerKey: SnackbarService.messengerKey,
-              routerConfig: GlobalRoutes.globalRouter,
-              theme: Default_Theme().defaultThemeData,
-              scrollBehavior: CustomScrollBehavior(),
-              debugShowCheckedModeBanner: false,
             );
           }
         },
