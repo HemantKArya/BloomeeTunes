@@ -332,7 +332,7 @@ class ChangelogScreen extends StatelessWidget {
                 Icon(Icons.info_outline, size: 48, color: Colors.grey),
                 SizedBox(height: 16),
                 Text('No changelog information available.',
-                    style: TextStyle(fontSize: 16)),
+                    style: TextStyle(fontSize: 16, fontFamily: 'Gilroy')),
               ],
             ));
           }
@@ -354,6 +354,7 @@ class ChangelogScreen extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'Gilroy',
                             color: Colors.white)),
                   ),
                 );
@@ -491,6 +492,7 @@ class _VersionCardState extends State<VersionCard> {
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'Gilroy',
                     letterSpacing: 0.5)),
           )
         : const SizedBox.shrink();
@@ -508,6 +510,7 @@ class _VersionCardState extends State<VersionCard> {
                 color: textColor,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'Gilroy',
                 letterSpacing: 0.3)));
 
     final currentBadge = showCurrentBadge
@@ -549,6 +552,7 @@ class _VersionCardState extends State<VersionCard> {
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          fontFamily: 'Gilroy',
                           color:
                               isUnreleased ? Colors.amberAccent : Colors.white),
                     ),
@@ -558,7 +562,9 @@ class _VersionCardState extends State<VersionCard> {
                         child: Text(
                           _formatDate(widget.version.releaseDate!),
                           style: const TextStyle(
-                              color: Colors.white70, fontSize: 13),
+                              color: Colors.white70,
+                              fontSize: 13,
+                              fontFamily: 'Gilroy'),
                         ),
                       ),
                   ],
@@ -617,6 +623,7 @@ class CategorySection extends StatelessWidget {
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
+                fontFamily: 'Gilroy',
                 color: categoryStyle.color),
           ),
           const SizedBox(height: 12.0),
@@ -649,7 +656,9 @@ class ChangeItemWidget extends StatelessWidget {
           spans.add(TextSpan(
               text: matchText.replaceAll('**', ''),
               style: const TextStyle(
-                  fontWeight: FontWeight.bold, color: Colors.white)));
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Gilroy',
+                  color: Colors.white)));
         } else if (matchText.startsWith('`')) {
           spans.add(WidgetSpan(
               alignment: PlaceholderAlignment.middle,
@@ -670,7 +679,9 @@ class ChangeItemWidget extends StatelessWidget {
       onNonMatch: (String nonMatch) {
         spans.add(TextSpan(
             text: nonMatch,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.85))));
+            style: TextStyle(
+                fontFamily: 'Gilroy',
+                color: Colors.white.withValues(alpha: 0.85))));
         return '';
       },
     );
@@ -689,13 +700,16 @@ class ChangeItemWidget extends StatelessWidget {
             children: [
               Text('•  ',
                   style: TextStyle(
-                      color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Gilroy',
+                      fontSize: 16)),
               Expanded(
                 child: RichText(
                   text: TextSpan(
                     style: DefaultTextStyle.of(context)
                         .style
-                        .copyWith(height: 1.5),
+                        .copyWith(height: 1.5, fontFamily: 'Gilroy'),
                     children: _buildStyledText(item.text),
                   ),
                 ),
