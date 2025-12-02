@@ -85,8 +85,7 @@ class YouTubeAudioSource extends StreamAudioSource {
       // Base stream from the start (we'll slice locally to ensure
       // emitted bytes exactly match contentLength and offset semantics).
       final baseStream = ytExplode.videos.streams.get(audioStream);
-      print(
-          "[LOG] Audio Stream URL: ${audioStream.url}, Start: $startOffset, End: $effectiveEnd, Size: $total, baseStream: $baseStream");
+
 
       // Build a ranged stream that skips 'startOffset' bytes and then limits
       // to 'bytesToSend'. This guarantees we don't exceed contentLength.
@@ -270,5 +269,5 @@ Future<Uri> getYouTubeDirectUri(String videoId, String quality) async {
     }
   }
 
-  return chosen!.url;
+  return chosen.url;
 }

@@ -185,10 +185,19 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       //check if the current queue is empty and if it is, add related songs
       EasyThrottle.throttle('loadRelatedSongs', const Duration(seconds: 5),
           () async => check4RelatedSongs());
-      if (((audioPlayer.duration != null &&
-              audioPlayer.duration?.inSeconds != 0 &&
+      // Prefer a shorter, known metadata duration to avoid silent tails
+      Duration? effectiveDur = audioPlayer.duration;
+      final mdur = mediaItem.value?.duration;
+      if (mdur != null) {
+        if (effectiveDur == null || mdur < effectiveDur) {
+          effectiveDur = mdur;
+        }
+      }
+
+      if (((effectiveDur != null &&
+              effectiveDur.inSeconds != 0 &&
               event.inMilliseconds >
-                  audioPlayer.duration!.inMilliseconds - endingOffset)) &&
+                  effectiveDur.inMilliseconds - endingOffset)) &&
           loopMode.value != LoopMode.one &&
           _queueManager.queue.value.isNotEmpty) {
         // Add safety check for queue
@@ -399,13 +408,29 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
     try {
-      final audioSource = await _audioSourceManager.getAudioSource(mediaItem);
+      // Base source from manager
+      AudioSource audioSource =
+          await _audioSourceManager.getAudioSource(mediaItem);
 
       // Check if it's an offline source (file URI)
       if (audioSource.toString().contains('file://')) {
         isOffline.add(true);
       } else {
         isOffline.add(false);
+      }
+
+      // If we have a trusted duration in metadata, clip the source to
+      // prevent cases (notably YouTube) where reported duration is ~2x
+      // the actual content, leaving a silent tail.
+      final mdur = mediaItem.duration;
+      if (mdur != null &&
+          mdur > Duration.zero &&
+          audioSource is UriAudioSource) {
+        audioSource = ClippingAudioSource(
+          child: audioSource,
+          end: mdur,
+          tag: mediaItem,
+        );
       }
 
       return audioSource;
