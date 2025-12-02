@@ -1,0 +1,120 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+# Build may fail if we don't use the same version as upstream, especially
+# when the new versions triggers and update of `pubspec.lock`.
+FLUTTER_VERSION := $(shell FLUTTER_VERSION=$$(head -n15 .github/workflows/linux_ci.yml | perl -MYAML -le 'print YAML::LoadFile(shift)->{env}{flutter_version}' /dev/stdin) && if [ "$$FLUTTER_VERSION" = "" ]; then FLUTTER_VERSION=$$(cat .github/workflows/linux_ci.yml | grep flutter-version | cut -d "'" -f 2); fi && echo $$FLUTTER_VERSION)
+define MESSAGE
+
+  Flutter version could not be found at its expected location. Is the value
+  correctly set in .github/workflows/linux_ci.yml at env:flutter_version:?
+  Searching at the older location.
+endef
+ifeq ($(FLUTTER_VERSION)$(FLUTTER_VERSION_ALTERNATIVE),)
+  $(error $(MESSAGE))
+endif
+
+FLUTTER_PATH = /tmp/flutter-rustup
+export PUB_CACHE = $(FLUTTER_PATH)/pub-cache
+
+BLOOMEETUNES_HOME := /tmp/bloomeetunes.HOME
+export HOME = $(BLOOMEETUNES_HOME)
+
+ISAR_VERSION := $(shell perl -MYAML -le 'print YAML::LoadFile(shift)->{isar_version}' pubspec.yaml)
+
+ifeq (jammy, $(shell cat /etc/os-release | grep UBUNTU_CODENAME | cut -d "=" -f 2))
+  # Required on jammy otherwise we have
+  # clang: error: optimization flag '-ffat-lto-objects' is not supported [-Werror,-Wignored-optimization-argument]
+  export DEB_BUILD_MAINT_OPTIONS=optimize=-lto
+endif
+
+ifeq (bullseye, $(shell cat /etc/os-release | grep VERSION_CODENAME | cut -d "=" -f 2))
+  # Required on bullseye otherwise we have
+  # /usr/bin/ld: mimalloc/out/release/mimalloc.o: undefined reference to symbol 'pthread_setspecific@@GLIBC_2.2.5'
+  # /usr/bin/ld: /lib/x86_64-linux-gnu/libpthread.so.0: error adding symbols: DSO missing from command line
+  LDFLAGS = -pthread
+endif
+
+$(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable.tar.xz:
+	mkdir -p $(FLUTTER_PATH)
+	curl https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_$(FLUTTER_VERSION)-stable.tar.xz > $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable.tar.xz
+
+$(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked: $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable.tar.xz
+	mkdir -p $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable
+	tar -xf $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable.tar.xz -C $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable --strip=1
+	touch $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked
+
+ifneq ($(filter pkg.bloomeetunes.downloadrustup,$(DEB_BUILD_PROFILES)),)
+  # rustup package is available in Debian since trixie (13), and in Ubuntu since noble (24.04)
+  # In previous versions, we have to download and install rustup ourselves.
+  # To build on these versions, set DEB_BUILD_PROFILES=pkg.bloomeetunes.downloadrustup
+  export CARGO_HOME = $(FLUTTER_PATH)/cargo
+  export RUSTUP_HOME = $(FLUTTER_PATH)/rustup
+  export PATH := $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/bin/:$(CARGO_HOME)/bin:$(PATH)
+  RUSTUP_BUILD_DEP = $(CARGO_HOME)/bin/rustup.done
+else
+  export CARGO_HOME = $(FLUTTER_PATH)/cargo
+  export RUSTUP_HOME = $(FLUTTER_PATH)/rustup
+  export PATH := $(PATH):$(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/bin/
+  RUSTUP_BUILD_DEP =
+endif
+
+.PHONY: rustup
+rustup: $(RUSTUP_BUILD_DEP)
+	# Workaround for https://github.com/rust-lang/rustup/issues/2886#issuecomment-2186859672
+	# which appeared on noble
+	rustup set auto-self-update disable
+
+$(HOME):
+	mkdir -p $(HOME)
+
+$(HOME)/rustup-init.sh: $(HOME)
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup-init.sh --output-dir $(HOME)
+
+$(CARGO_HOME)/bin/rustup.done: $(HOME)/rustup-init.sh
+	sh $(HOME)/rustup-init.sh -y --profile minimal
+	touch $(CARGO_HOME)/bin/rustup.done
+
+%: $(HOME)
+	dh $@
+
+override_dh_clean:
+	dh_clean
+	rm -fr $(BLOOMEETUNES_HOME)
+	if [ -e $(FLUTTER_PATH)/isar-community/target ]; then rm -r $(FLUTTER_PATH)/isar-community/target; fi
+
+override_dh_auto_clean: $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked
+	flutter pub get --enforce-lockfile --verbose
+	flutter clean --verbose
+
+override_dh_auto_build: $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked rustup $(FLUTTER_PATH)/isar-community/target/release/libisar.so
+	flutter pub get --enforce-lockfile --verbose
+	# Workaround for https://github.com/isar-community/isar-community/issues/58
+	cp -a $(FLUTTER_PATH)/isar-community/target/release/libisar.so $(PUB_CACHE)/hosted/pub.dev/isar_community_flutter_libs-$(ISAR_VERSION)/linux/
+	flutter build linux --verbose
+
+override_dh_auto_test: $(FLUTTER_PATH)/flutter_linux_$(FLUTTER_VERSION)-stable/.unpacked rustup
+	flutter test linux --verbose
+
+execute_after_dh_auto_install:
+	mkdir -p debian/tmp/usr/share/icons/hicolor/apps/
+	cp -a assets/icons/BloomeeLogo4.png debian/tmp/usr/share/icons/hicolor/apps/ls.bloomee.musicplayer.png
+	for size in 16 24 32 48 64 128 256; do \
+	  mkdir -p debian/tmp/usr/share/icons/hicolor/$${size}x$${size}/apps ; \
+	  convert assets/icons/BloomeeLogo4.png -filter Lanczos -resize $${size}x$${size} debian/tmp/usr/share/icons/hicolor/$${size}x$${size}/apps/ls.bloomee.musicplayer.png ; \
+	done
+
+override_dh_dwz:
+	#Disable, because it fails
+	#dh_dwz --no-dwz-multifile
+
+$(FLUTTER_PATH)/isar-community/target/release/libisar.so:
+	# Workaround for https://github.com/isar-community/isar-community/issues/58
+	if [ ! -d $(FLUTTER_PATH)/isar-community ]; then \
+	  git clone https://github.com/isar-community/isar-community.git $(FLUTTER_PATH)/isar-community; \
+	fi && \
+	cd $(FLUTTER_PATH)/isar-community && \
+	git checkout "$(ISAR_VERSION)" && \
+	rustup default stable && \
+	cargo build --release
