@@ -13,8 +13,12 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.35.4'
           channel: stable
-      - run: flutter build macos --release
+      - name: Install Dependencies
+        run: flutter pub get
+      - name: Build macOS App
+        run: flutter build macos --release
       - name: Upload MacOS artifact
         uses: actions/upload-artifact@v4
         with:
