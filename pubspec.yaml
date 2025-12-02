@@ -3,7 +3,7 @@ description: An Open source Free Music Player.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 2.13.3+0
+version: 2.13.3+118
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
