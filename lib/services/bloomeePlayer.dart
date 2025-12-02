@@ -306,7 +306,40 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> seek(Duration position) async {
-    audioPlayer.seek(position);
+    // Avoid seeking during activation; wait until player is at least loading/buffering/ready.
+    try {
+      // Clamp desired position to a safe range.
+      final dur = audioPlayer.duration;
+      Duration clamped;
+      if (position < Duration.zero) {
+        clamped = Duration.zero;
+      } else if (dur != null && position > dur) {
+        clamped = dur;
+      } else {
+        clamped = position;
+      }
+
+      final ps = audioPlayer.processingState;
+      if (ps == ProcessingState.idle) {
+        // Nothing loaded yet; ignore seek until a source is set.
+        log('Ignore seek while idle: $clamped', name: 'bloomeePlayer');
+        return;
+      }
+
+      if (ps == ProcessingState.loading) {
+        // Wait briefly for loading to progress to buffering/ready.
+        try {
+          await audioPlayer.processingStateStream
+              .firstWhere((s) => s != ProcessingState.loading)
+              .timeout(const Duration(seconds: 2));
+        } catch (_) {}
+      }
+
+      await audioPlayer.seek(clamped);
+    } catch (e) {
+      log('Seek failed: $e', name: 'bloomeePlayer');
+      rethrow;
+    }
   }
 
   Future<void> seekNSecForward(Duration n) async {
@@ -421,8 +454,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }) async {
     try {
       await pause();
-      await seek(initialPosition ?? Duration.zero);
 
+      // Set the source first, then load, then seek to the desired position.
       await audioPlayer.setAudioSource(audioSource);
       // Protect against hanging load calls (observed on Android when DNS fails).
       try {
@@ -437,6 +470,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           await audioPlayer.stop();
         } catch (_) {}
         rethrow;
+      }
+
+      // Now perform the initial seek if requested (avoid unnecessary seek to zero).
+      if (initialPosition != null && initialPosition > Duration.zero) {
+        await seek(initialPosition);
       }
 
       if (!audioPlayer.playing) {

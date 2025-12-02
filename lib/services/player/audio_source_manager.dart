@@ -5,6 +5,7 @@ import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/ytstream_source.dart';
+import 'dart:io' show Platform;
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -29,15 +30,22 @@ class AudioSourceManager {
 
       AudioSource audioSource;
 
-      if (mediaItem.extras?["source"] == "youtube") {
+      if (mediaItem.extras?[("source")] == "youtube") {
         String? quality =
             await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality);
         quality = quality ?? "high";
         quality = quality.toLowerCase();
         final id = mediaItem.id.replaceAll("youtube", '');
 
-        audioSource =
-            YouTubeAudioSource(videoId: id, quality: quality, tag: mediaItem);
+        // On Apple platforms, prefer direct URI to avoid proxy issues.
+        if (Platform.isIOS || Platform.isMacOS) {
+          final uri = await getYouTubeDirectUri(id, quality);
+          log('Playing (direct URI): $uri', name: "AudioSourceManager");
+          audioSource = AudioSource.uri(uri, tag: mediaItem);
+        } else {
+          audioSource =
+              YouTubeAudioSource(videoId: id, quality: quality, tag: mediaItem);
+        }
       } else {
         String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
         if (kurl == null || kurl.isEmpty) {

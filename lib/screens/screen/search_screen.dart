@@ -214,7 +214,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 children: [
                                     SizedBox(
                                       height: 30,
-                                      width: 100,
+                                      width: 110,
                                       child: Padding(
                                         padding:
                                             const EdgeInsets.only(right: 8),
