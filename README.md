@@ -10,7 +10,7 @@
 </p>
 
 
-Bloomee is experimental cross-platform open Source Music player designed to bring you Ad-free tunes from various sources. Dive into a world of limitless music from platforms like YouTube and Jio Saavn, with more sources blooming soon! 🌼🎵
+Bloomee is experimental cross-platform open Source Music player designed to bring you Ad-free tunes from various sources. Dive into a world of limitless music from platforms like YouTube and JSvn, with more sources blooming soon! 🌼🎵
 
 
 ![BloomeeTunesScrnShots](./assets/docs/banner2BloomeScrnShot.png)
