@@ -1,8 +1,8 @@
 <script>
 	export let buttons = [
+		{ type: 'paypal', icon: 'fa-brands fa-paypal', text: 'PayPal', href: 'https://www.paypal.com/ncp/payment/JKSMRB5E3PAF2' },
 		{ type: 'librepay', icon: 'fa-solid fa-heart', text: 'Liberapay', href: 'https://liberapay.com/hemantkarya' },
         { type: 'upi', text: 'Razorpay UPI', href: 'https://razorpay.me/@iamhemant', customIcon: 'https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg' },
-		{ type: 'paypal', icon: 'fa-brands fa-paypal', text: 'PayPal', href: 'https://www.paypal.com/ncp/payment/JKSMRB5E3PAF2' },
 	];
 
 	export let highlighted = false;
