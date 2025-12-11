@@ -53,7 +53,8 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 </br>
 
 <h3 align="center"> Now you can support me via</h3>
-<p align="center"><a href="https://liberapay.com/hemantkarya/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></p>
+<p align="center"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"><br><img src="https://img.shields.io/liberapay/receives/hemantkarya?style=for-the-badge
+"> <img src="https://img.shields.io/liberapay/patrons/hemantkarya?style=for-the-badge"><br><a href="https://liberapay.com/hemantkarya/donate"></p>
 
 
 ### **Contribute to BloomeeTunes! 🎶**
