@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:audio_service/audio_service.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../model/MediaPlaylistModel.dart';
 
@@ -47,7 +48,7 @@ class QueueManager {
     }
   }
 
-  Future<void> skipToNext() async {
+  Future<void> skipToNext({LoopMode loopMode = LoopMode.off}) async {
     if (queue.value.isEmpty) {
       log('Cannot skip to next: queue is empty', name: 'QueueManager');
       return;
@@ -56,6 +57,10 @@ class QueueManager {
     if (!shuffleMode.value) {
       if (currentPlayingIdx < (queue.value.length - 1)) {
         currentPlayingIdx++;
+        await _prepare4play(idx: currentPlayingIdx, doPlay: true);
+      } else if (loopMode == LoopMode.all) {
+        // Loop back to the beginning
+        currentPlayingIdx = 0;
         await _prepare4play(idx: currentPlayingIdx, doPlay: true);
       }
     } else {
@@ -68,11 +73,15 @@ class QueueManager {
       if (shuffleIdx < (shuffleList.length - 1)) {
         shuffleIdx++;
         await _prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
+      } else if (loopMode == LoopMode.all) {
+        // Loop back to the beginning in shuffle mode
+        shuffleIdx = 0;
+        await _prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
       }
     }
   }
 
-  Future<void> skipToPrevious() async {
+  Future<void> skipToPrevious({LoopMode loopMode = LoopMode.off}) async {
     if (queue.value.isEmpty) {
       log('Cannot skip to previous: queue is empty', name: 'QueueManager');
       return;
@@ -81,6 +90,10 @@ class QueueManager {
     if (!shuffleMode.value) {
       if (currentPlayingIdx > 0) {
         currentPlayingIdx--;
+        await _prepare4play(idx: currentPlayingIdx, doPlay: true);
+      } else if (loopMode == LoopMode.all) {
+        // Loop to the end
+        currentPlayingIdx = queue.value.length - 1;
         await _prepare4play(idx: currentPlayingIdx, doPlay: true);
       }
     } else {
@@ -92,6 +105,10 @@ class QueueManager {
 
       if (shuffleIdx > 0) {
         shuffleIdx--;
+        await _prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
+      } else if (loopMode == LoopMode.all) {
+        // Loop to the end in shuffle mode
+        shuffleIdx = shuffleList.length - 1;
         await _prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
       }
     }

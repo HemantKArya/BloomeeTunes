@@ -532,7 +532,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToNext() async {
-    await _queueManager.skipToNext();
+    await _queueManager.skipToNext(loopMode: loopMode.value);
     // return super.skipToNext();
   }
 
@@ -550,7 +550,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToPrevious() async {
-    await _queueManager.skipToPrevious();
+    await _queueManager.skipToPrevious(loopMode: loopMode.value);
     // return super.skipToPrevious();
   }
 
