@@ -30,7 +30,7 @@ android {
         applicationId = "ls.bloomee.musicplayer"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 29
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -102,4 +102,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation("androidx.media:media:1.6.0")
+    implementation("androidx.car.app:app-projected:1.2.0")
 }
