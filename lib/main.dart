@@ -40,6 +40,17 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:Bloomee/services/discord_service.dart';
+import 'package:flutter/services.dart';
+import 'package:audio_service/audio_service.dart';
+
+const platform = MethodChannel("bloomee/car_disconnect");
+void setupCarDisconnectListener() {
+  platform.setMethodCallHandler((call) async {
+    if (call.method == "carDisconnect") {
+      AudioService.stop();
+    }
+  });
+}
 
 void processIncomingIntent(SharedMedia sharedMedia) {
   // Check if there's text content that might be a URL
@@ -135,6 +146,9 @@ Future<void> main() async {
   setHighRefreshRate();
   setupPlayerCubit();
   DiscordService.initialize();
+
+  if (io.Platform.isAndroid) { setupCarDisconnectListener(); }
+
   runApp(const MyApp());
 }
 
