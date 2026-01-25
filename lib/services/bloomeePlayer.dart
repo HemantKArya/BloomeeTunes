@@ -274,7 +274,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   MediaItemModel get currentMedia {
     if (_queueManager.queue.value.isEmpty ||
         _queueManager.currentPlayingIdx >= _queueManager.queue.value.length) {
-      return mediaItemModelNull;
+      return mediaItemNull;
     }
     return mediaItem2MediaItemModel(
         _queueManager.queue.value[_queueManager.currentPlayingIdx]);
@@ -519,6 +519,41 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
 
     await playMediaItem(currentItem, doPlay: doPlay);
+  }
+
+  /// Handle previous-button press behavior:
+  /// - If currentPosition > [threshold], restart the current track (seek to zero)
+  /// - Otherwise, jump to previous track in queue
+  ///
+  /// Usage:
+  ///   await player.handlePreviousPress(player.audioPlayer.position);
+  Future<void> handlePreviousPress(Duration currentPosition,
+      {Duration threshold = const Duration(seconds: 3)}) async {
+    if (_isDisposed) {
+      log('Cannot handle previous press: player is disposed', name: 'bloomeePlayer');
+      return;
+    }
+
+    if (currentPosition > threshold) {
+      // Seek to beginning of current track
+      await seek(Duration.zero);
+      log("Restarting current track", name: "bloomeePlayer");
+    } else {
+      // Jump to previous track (uses existing skipToPrevious implementation)
+      try {
+        await playPreviousTrack();
+        log("Skipping to previous track", name: "bloomeePlayer");
+      } catch (e) {
+        // Fallback: if skipToPrevious fails, restart current track
+        log("Failed to skip to previous, restarting current: $e", name: "bloomeePlayer");
+        await seek(Duration.zero);
+      }
+    }
+  }
+
+  /// Convenience alias so you can call playPreviousTrack() if you prefer that name
+  Future<void> playPreviousTrack() async {
+    await skipToPrevious();
   }
 
   @override
