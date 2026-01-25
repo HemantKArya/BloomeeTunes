@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
@@ -95,61 +97,8 @@ void showMoreBottomSheet(
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .updateQueue([song], doPlay: true);
-                        SnackbarService.showMessage("Playing ${song.title}",
-                            duration: const Duration(seconds: 2));
-                      },
-                    )
-                  : const SizedBox.shrink(),
-              (showPlayNext)
-                  ? ListTile(
-                      leading: const Icon(
-                        MingCute.square_arrow_right_line,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
-                      ),
-                      title: const Text(
-                        'Play Next',
-                        style: TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .addPlayNextItem(song);
-                        SnackbarService.showMessage("Added to Next in Queue",
-                            duration: const Duration(seconds: 2));
-                      },
-                    )
-                  : const SizedBox.shrink(),
-              (showAddToQueue)
-                  ? ListTile(
-                      leading: const Icon(
-                        MingCute.playlist_2_line,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
-                      ),
-                      title: const Text(
-                        'Add to Queue',
-                        style: TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .addQueueItem(song);
-                        SnackbarService.showMessage("Added to Queue",
-                            duration: const Duration(seconds: 2));
+                            .loadPlaylist(MediaPlaylist(mediaItems: [song], playlistName: song.title),
+                                doPlay: true);
                       },
                     )
                   : const SizedBox.shrink(),
@@ -171,8 +120,6 @@ void showMoreBottomSheet(
                   Navigator.pop(context);
                   context.read<BloomeeDBCubit>().addMediaItemToPlaylist(
                       song, MediaPlaylistDB(playlistName: "Liked"));
-                  // SnackbarService.showMessage("Added to Favorites",
-                  //     duration: const Duration(seconds: 2));
                 },
               ),
               ListTile(
@@ -195,6 +142,7 @@ void showMoreBottomSheet(
                   context.pushNamed(GlobalStrConsts.addToPlaylistScreen);
                 },
               ),
+              // Modified Share option: ask JSON or MP3
               ListTile(
                 leading: const Icon(
                   Icons.share,
@@ -211,11 +159,83 @@ void showMoreBottomSheet(
                 ),
                 onTap: () async {
                   Navigator.pop(context);
-                  SnackbarService.showMessage(
-                      "Preparing ${song.title} for share.");
-                  final tmpPath = await ImportExportService.exportMediaItem(
-                      MediaItem2MediaItemDB(song));
-                  tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
+
+                  // Ask user which format to share
+                  final choice = await showDialog<String?>(
+                    context: context,
+                    builder: (ctx) => SimpleDialog(
+                      title: const Text('Share as'),
+                      children: [
+                        SimpleDialogOption(
+                          onPressed: () => Navigator.pop(ctx, 'json'),
+                          child: const Text('JSON (Bloomee file)'),
+                        ),
+                        SimpleDialogOption(
+                          onPressed: () => Navigator.pop(ctx, 'mp3'),
+                          child: const Text('MP3 (only if downloaded)'),
+                        ),
+                        SimpleDialogOption(
+                          onPressed: () => Navigator.pop(ctx, null),
+                          child: const Text('Cancel'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (choice == null) return;
+
+                  if (choice == 'json') {
+                    SnackbarService.showMessage("Preparing ${song.title} for share.");
+                    final tmpPath = await ImportExportService.exportMediaItem(
+                        MediaItem2MediaItemDB(song));
+                    if (tmpPath != null) {
+                      await Share.shareXFiles([XFile(tmpPath)]);
+                    } else {
+                      SnackbarService.showMessage("Failed to prepare JSON file for sharing.");
+                    }
+                  } else if (choice == 'mp3') {
+                    SnackbarService.showMessage("Preparing ${song.title} for MP3 share.");
+                    final download = await BloomeeDBService.getDownloadDB(song);
+                    if (download != null) {
+                      final fullPath = '${download.filePath}/${download.fileName}';
+                      final file = File(fullPath);
+                      if (await file.exists()) {
+                        await Share.shareXFiles([XFile(fullPath)]);
+                      } else {
+                        // DB record exists but file missing
+                        SnackbarService.showMessage(
+                            "MP3 file not found on disk. Try downloading again.");
+                      }
+                    } else {
+                      // Not downloaded — choose whether to trigger download or ask user to download first.
+                      final shouldDownload = await showDialog<bool?>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('MP3 not available'),
+                          content: const Text(
+                              'This song is not downloaded. Download it now and share once complete?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Download'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (shouldDownload == true) {
+                        // Kick off download (user will be notified when it completes)
+                        context.read<DownloaderCubit>().downloadSong(song);
+                        SnackbarService.showMessage("Download started. Share after it finishes.");
+                      } else {
+                        SnackbarService.showMessage("MP3 share cancelled.");
+                      }
+                    }
+                  }
                 },
               ),
               (isDownloaded != null && isDownloaded == true)
@@ -257,7 +277,6 @@ void showMoreBottomSheet(
                         context.read<DownloaderCubit>().downloadSong(song);
                       },
                     ),
-              // : const SizedBox.shrink(),
               ListTile(
                 leading: const Icon(
                   MingCute.external_link_line,
@@ -274,31 +293,15 @@ void showMoreBottomSheet(
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  launchUrl(Uri.parse(song.extras?['perma_url']));
+                  final url = song.extras?['perma_url'];
+                  if (url != null && url.isNotEmpty) {
+                    launchUrl(Uri.parse(url));
+                  } else {
+                    SnackbarService.showMessage('Original link not available');
+                  }
                 },
               ),
-              Visibility(
-                visible: showDelete,
-                child: ListTile(
-                  leading: const Icon(
-                    MingCute.delete_2_fill,
-                    color: Default_Theme.primaryColor1,
-                    size: 28,
-                  ),
-                  title: const Text(
-                    'Delete',
-                    style: TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontFamily: "Unageo",
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    if (onDelete != null) onDelete();
-                  },
-                ),
-              ),
+              // other options may follow...
             ],
           ),
         );
