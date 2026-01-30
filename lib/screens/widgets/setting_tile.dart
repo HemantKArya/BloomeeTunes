@@ -1,5 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
 
@@ -21,12 +20,12 @@ class SettingTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       enabled: onTap != null,
-      title: Text(
+      title: AutoTranslateText(
         title,
         style: const TextStyle(color: Default_Theme.primaryColor1, fontSize: 16)
             .merge(Default_Theme.secondoryTextStyleMedium),
       ),
-      subtitle: Text(
+      subtitle: AutoTranslateText(
         subtitle,
         style: TextStyle(
                 color: Default_Theme.primaryColor1.withValues(alpha: 0.5),

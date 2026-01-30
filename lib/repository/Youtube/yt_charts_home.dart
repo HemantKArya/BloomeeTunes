@@ -27,7 +27,7 @@ Future<List<ChartModel>> fetchTrendingVideos() async {
         "clientName": "WEB_MUSIC_ANALYTICS",
         "clientVersion": "2.0",
         "hl": "en",
-        "gl": "IN",
+        "gl": "US",
         "experimentIds": [],
         "experimentsToken": "",
         "theme": "MUSIC"

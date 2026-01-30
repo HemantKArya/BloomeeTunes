@@ -1,0 +1,138 @@
+{
+  "welcome": "Bienvenido a Bloomee",
+  "onboardingSubtitle": "Tu viaje musical sin anuncios comienza aquí. Personaliza tu experiencia.",
+  "country": "País",
+  "language": "Idioma",
+  "getStarted": "Comenzar",
+  "settings": "Ajustes",
+  "discover": "Descubrir",
+  "history": "Historial",
+  "library": "Biblioteca",
+  "explore": "Explorar",
+  "search": "Buscar",
+  "offline": "Sin conexión",
+  "searchHint": "Encuentra tu próxima obsesión musical...",
+  "songs": "Canciones",
+  "albums": "Álbumes",
+  "artists": "Artistas",
+  "playlists": "Listas de reproducción",
+  "recently": "Reciente",
+  "lastFmPicks": "Selecciones de Last.Fm",
+  "noInternet": "¡Sin conexión a Internet!",
+  "enjoyingFrom": "Disfrutando desde",
+  "unknown": "Desconocido",
+  "availableOffline": "Disponible sin conexión",
+  "timer": "Temporizador",
+  "lyrics": "Letras",
+  "loop": "Bucle",
+  "off": "Apagado",
+  "loopOne": "Repetir una",
+  "loopAll": "Repetir todas",
+  "shuffle": "Aleatorio",
+  "openOriginalLink": "Abrir enlace original",
+  "unableToOpenLink": "No se puede abrir el enlace",
+  "updates": "Actualizaciones",
+  "checkUpdates": "Buscar nuevas actualizaciones",
+  "downloads": "Descargas",
+  "downloadsSubtitle": "Ruta de descarga, calidad de descarga y más...",
+  "playerSettings": "Ajustes del Reproductor",
+  "playerSettingsSubtitle": "Calidad de transmisión, reproducción automática, etc.",
+  "uiSettings": "Elementos de la Interfaz y Servicios",
+  "uiSettingsSubtitle": "Deslizamiento automático, motores de origen, etc.",
+  "lastFmSettings": "Ajustes de Last.FM",
+  "lastFmSettingsSubtitle": "Clave API, secreto y ajustes de scrobbling.",
+  "storage": "Almacenamiento",
+  "storageSubtitle": "Copia de seguridad, caché, historial, restauración y más...",
+  "languageCountry": "Idioma y País",
+  "languageCountrySubtitle": "Selecciona tu idioma y país.",
+  "about": "Acerca de",
+  "aboutSubtitle": "Acerca de la aplicación, versión, desarrollador, etc.",
+  "searchLibrary": "Buscar en la biblioteca...",
+  "emptyLibraryMessage": "Tu biblioteca se siente sola. ¡Añade algunas canciones para alegrarla!",
+  "noMatchesFound": "No se encontraron coincidencias",
+  "inPlaylist": "en {playlistName}",
+  "@inPlaylist": {
+    "placeholders": {
+      "playlistName": {
+        "type": "String"
+      }
+    }
+  },
+  "artistWithEngine": "Artista - {engine}",
+  "@artistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "albumWithEngine": "Álbum - {engine}",
+  "@albumWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistWithEngine": "Lista de reproducción - {engine}",
+  "@playlistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "noDownloads": "No hay descargas",
+  "searchSongs": "Busca tus canciones...",
+  "refreshDownloads": "Actualizar descargas",
+  "closeSearch": "Cerrar búsqueda",
+  "aboutTagline": "Creando sinfonías en código.",
+  "maintainer": "Mantenedor",
+  "followGithub": "Síguelo en GitHub",
+  "contact": "Contacto",
+  "contactTooltip": "Enviar una consulta comercial",
+  "linkedin": "Linkedin",
+  "linkedinTooltip": "Actualizaciones y aspectos destacados creativos",
+  "supportMessage": "¿Disfrutando con Bloomee? Una pequeña propina lo mantiene floreciendo. 🌸",
+  "supportButton": "Ayudaré",
+  "supportFooter": "Quiero que Bloomee siga mejorando.",
+  "github": "GitHub",
+  "versionError": "No se pudo recuperar la versión",
+  "home": "Inicio",
+  "topSongs": "Canciones principales",
+  "topAlbums": "Álbumes principales",
+  "viewLyrics": "Ver letras",
+  "cancel": "Cancelar",
+  "ok": "Aceptar",
+  "startAuth": "Iniciar autenticación",
+  "getSessionKey": "Obtener y guardar clave de sesión",
+  "removeKeys": "Eliminar claves",
+  "countryLangSettings": "Ajustes de País e Idioma",
+  "autoCheckCountry": "Comprobar país automáticamente",
+  "autoCheckCountrySubtitle": "Comprobar automáticamente el país según tu ubicación al abrir la aplicación.",
+  "countrySubtitle": "País para establecer por defecto en la aplicación.",
+  "languageSubtitle": "Idioma principal de la interfaz de la aplicación.",
+  "scrobbleTracks": "Scrobble Tracks",
+  "scrobbleTracksSubtitle": "Hacer scrobble de pistas en Last.FM",
+  "firstAuthLastFM": "Primero autentica la API de Last.FM.",
+  "lastFmInstructions": "Para configurar la clave API de Last.FM, \n1. Ve a Last.FM y crea una cuenta allí (https://www.last.fm/).\n2. Ahora genera una clave API y un secreto desde: https://www.last.fm/api/account/create\n3. Introduce la clave API y el secreto a continuación y haz clic en 'Iniciar autenticación' para obtener la clave de sesión.\n4. Después de permitirlo desde el navegador, haz clic en 'Obtener y guardar clave de sesión' para guardar la clave de sesión.",
+  "lastFmAuthenticated": "Hola, {username},\nLa API de Last.FM está autenticada.",
+  "@lastFmAuthenticated": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWelcome": "Personaliza tu experiencia",
+  "confirmSettings": "Por favor, confirma tu país e idioma para empezar con el contenido que mejor se adapte a ti.",
+  "detectedLabel": "Detectado",
+  "lastFmAuthFailed": "Fallo en la autenticación de Last.FM.\n{message}\nSugerencia: Primero haz clic en Iniciar autenticación e inicia sesión desde el navegador, luego haz clic en el botón Obtener y guardar clave de sesión",
+  "@lastFmAuthFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
+}

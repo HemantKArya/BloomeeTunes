@@ -6,10 +6,12 @@ import 'package:Bloomee/screens/widgets/downloading_item.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 
 class OfflineScreen extends StatefulWidget {
   const OfflineScreen({super.key});
@@ -77,10 +79,10 @@ class _OfflineScreenState extends State<OfflineScreen> {
               slivers: [
                 customDiscoverSliverBar(context),
                 if (state.downloads.isEmpty && state.downloaded.isEmpty)
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     child: Center(
                       child: SignBoardWidget(
-                        message: "No Downloads",
+                        message: AppLocalizations.of(context)!.noDownloads,
                         icon: FontAwesome.download_solid,
                       ),
                     ),
@@ -151,7 +153,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
       actions: [
         !_isSearch
             ? Tooltip(
-                message: "Refresh Downloads",
+                message: AppLocalizations.of(context)!.refreshDownloads,
                 child: IconButton(
                   icon: const Icon(MingCute.refresh_2_line),
                   onPressed: () {
@@ -161,7 +163,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
               )
             : const SizedBox.shrink(),
         Tooltip(
-          message: _isSearch ? "Close Search" : "Search",
+          message: _isSearch ? AppLocalizations.of(context)!.closeSearch : AppLocalizations.of(context)!.search,
           child: IconButton(
             icon: Icon(
               _isSearch ? Icons.close : Icons.search,
@@ -181,7 +183,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Offline",
+          AutoTranslateText(AppLocalizations.of(context)!.offline,
               style: Default_Theme.primaryTextStyle.merge(const TextStyle(
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),
@@ -199,7 +201,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
         autofocus: true,
         cursorColor: Default_Theme.primaryColor1,
         decoration: InputDecoration(
-          hintText: "Search your songs...",
+          hintText: AppLocalizations.of(context)!.searchSongs,
           border: InputBorder.none,
           hintStyle: TextStyle(
               color: Default_Theme.primaryColor1.withValues(alpha: 0.7)),

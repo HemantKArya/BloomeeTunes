@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -78,11 +79,11 @@ class About extends StatelessWidget {
                     const Spacer(),
                     _buildInfoCard(context),
                     const SizedBox(height: 50),
-                    _buildSupportSection(),
+                    _buildSupportSection(context),
                     const Spacer(),
                     // Footer moved to bottom of screen
                     const SizedBox(height: 12),
-                    _buildFooter(),
+                    _buildFooter(context),
                     const SizedBox(height: 12),
                   ],
                 ),
@@ -139,9 +140,9 @@ class About extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Crafting symphonies in code.',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.aboutTagline,
+                style: const TextStyle(
                     fontSize: 16,
                     color: kSecondaryTextColor,
                     fontFamily: 'Gilroy'),
@@ -208,8 +209,8 @@ class About extends StatelessWidget {
                   // Maintainer opens GitHub account
                   _InfoPill(
                       icon: Icons.shield_outlined,
-                      text: 'Maintainer',
-                      tooltip: 'Follow him on GitHub',
+                       text: AppLocalizations.of(context)!.maintainer,
+                       tooltip: AppLocalizations.of(context)!.followGithub,
                       onTap: () {
                         launchUrl(Uri.parse('https://github.com/HemantKArya'),
                             mode: LaunchMode.externalApplication);
@@ -217,8 +218,8 @@ class About extends StatelessWidget {
                   // Short label 'Email' opens mail composer
                   _InfoPill(
                       icon: FontAwesome.x_twitter_brand,
-                      text: 'Contact',
-                      tooltip: 'Send a business inquiry',
+                       text: AppLocalizations.of(context)!.contact,
+                       tooltip: AppLocalizations.of(context)!.contactTooltip,
                       onTap: () {
                         launchUrl(
                           Uri.parse('https://x.com/iamhemantindia'),
@@ -227,8 +228,8 @@ class About extends StatelessWidget {
                   // Short label 'Linkedin' opens Linkedin profile
                   _InfoPill(
                       icon: FontAwesome.linkedin_brand,
-                      text: 'Linkedin',
-                      tooltip: 'Updates and creative highlights',
+                       text: AppLocalizations.of(context)!.linkedin,
+                       tooltip: AppLocalizations.of(context)!.linkedinTooltip,
                       onTap: () {
                         launchUrl(
                             Uri.parse('https://linkedin.com/in/iamhemantindia'),
@@ -243,16 +244,16 @@ class About extends StatelessWidget {
     );
   }
 
-  Widget _buildSupportSection() {
+  Widget _buildSupportSection(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Text(
-            '"Enjoying Bloomee? A small tip keeps it blooming." 🌸',
+            AppLocalizations.of(context)!.supportMessage,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
                 color: kSecondaryTextColor, fontSize: 14, fontFamily: 'Gilroy'),
           ),
         ),
@@ -290,15 +291,15 @@ class About extends StatelessWidget {
                   border:
                       Border.all(color: Colors.white.withValues(alpha: 0.15)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(Icons.favorite, color: kPrimaryTextColor, size: 20),
-                    SizedBox(width: 10),
+                    const Icon(Icons.favorite, color: kPrimaryTextColor, size: 20),
+                    const SizedBox(width: 10),
                     Text(
-                      "I'll help",
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.supportButton,
+                      style: const TextStyle(
                         color: kPrimaryTextColor,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -312,17 +313,17 @@ class About extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
-          'I want Bloomee to keep improving.',
+        Text(
+          AppLocalizations.of(context)!.supportFooter,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
               color: kSecondaryTextColor, fontSize: 14, fontFamily: 'Gilroy'),
         ),
       ],
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Center(
@@ -336,14 +337,14 @@ class About extends StatelessWidget {
                     Uri.parse("https://hemantkarya.github.io/BloomeeTunes/"),
                     mode: LaunchMode.externalApplication);
               },
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(MingCute.github_fill,
+                  const Icon(MingCute.github_fill,
                       color: kSecondaryTextColor, size: 16),
-                  SizedBox(width: 8),
-                  Text('GitHub',
-                      style: TextStyle(
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context)!.github,
+                      style: const TextStyle(
                           color: kSecondaryTextColor,
                           fontSize: 12,
                           fontFamily: 'Gilroy')),
@@ -356,7 +357,7 @@ class About extends StatelessWidget {
               builder: (context, snapshot) {
                 final ver = snapshot.hasData
                     ? 'v${snapshot.data!.version}+${snapshot.data!.buildNumber}'
-                    : 'Not able to retrieve version';
+                    : AppLocalizations.of(context)!.versionError;
                 return Text(ver,
                     style: const TextStyle(
                         color: kSecondaryTextColor,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 
 import 'notification_views/notification_tile.dart';
 
@@ -32,7 +33,7 @@ class NotificationView extends StatelessWidget {
               ),
             ),
           ],
-          title: Text(
+          title: AutoTranslateText(
             'Notifications',
             style: const TextStyle(
                     color: Default_Theme.primaryColor1,

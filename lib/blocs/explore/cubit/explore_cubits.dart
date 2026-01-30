@@ -1,11 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
+import 'dart:developer' as dev;
 import 'dart:isolate';
 import 'package:Bloomee/repository/Youtube/yt_music_home.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/utils/country_info.dart';
+import 'package:Bloomee/utils/country_info.dart' show getCountry;
 import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/chart_model.dart';
 import 'package:Bloomee/plugins/ext_charts/chart_defines.dart';
@@ -61,7 +61,7 @@ class RecentlyCubit extends Cubit<RecentlyCubitState> {
   Future<void> watchRecentlyPlayed() async {
     watcher = (await BloomeeDBService.watchRecentlyPlayed()).listen((event) {
       getRecentlyPlayed();
-      log("Recently Played Updated");
+      dev.log("Recently Played Updated");
     });
   }
 
@@ -91,7 +91,7 @@ class ChartCubit extends Cubit<ChartState> {
   void initListener() {
     strm = fetchChartCubit.stream.listen((state) {
       if (state.isFetched) {
-        log("Chart Fetched from Isolate - ${chartInfo.title}",
+        dev.log("Chart Fetched from Isolate - ${chartInfo.title}",
             name: "Isolate Fetched");
         getChartFromDB();
       }
@@ -114,7 +114,8 @@ class ChartCubit extends Cubit<ChartState> {
   }
 }
 
-Map<String, List<dynamic>> parseYTMusicData(String source) {
+Map<String, List<dynamic>> parseYTMusicData(dynamic source) {
+  if (source == null || source is! String) return {};
   final dynamicMap = jsonDecode(source);
 
   Map<String, List<dynamic>> listDynamicMap;
@@ -144,7 +145,7 @@ class FetchChartCubit extends Cubit<FetchChartState> {
     );
     await BloomeeDBService.db;
     final chartList = await Isolate.run<List<ChartModel>>(() async {
-      log(_path, name: "Isolate Path");
+      dev.log(_path, name: "Isolate Path");
       List<ChartModel> _chartList = List.empty(growable: true);
       ChartModel chart;
       final db = await Isar.open(
@@ -165,7 +166,7 @@ class FetchChartCubit extends Cubit<FetchChartState> {
                     .abs() ??
                 80) >
             16;
-        log("Last Updated - ${(chartCacheDB?.lastUpdated.difference(DateTime.now()).inHours)?.abs()} Hours before ",
+        dev.log("Last Updated - ${(chartCacheDB?.lastUpdated.difference(DateTime.now()).inHours)?.abs()} Hours before ",
             name: "Isolate");
 
         if (_shouldFetch) {
@@ -174,7 +175,7 @@ class FetchChartCubit extends Cubit<FetchChartState> {
             db.writeTxnSync(() =>
                 db.chartsCacheDBs.putSync(chartModelToChartCacheDB(chart)));
           }
-          log("Chart Fetched - ${chart.chartName}", name: "Isolate");
+          dev.log("Chart Fetched - ${chart.chartName}", name: "Isolate");
           _chartList.add(chart);
         }
       }
@@ -212,7 +213,7 @@ class YTMusicCubit extends Cubit<YTMusicCubitState> {
       emit(state.copyWith(ytmData: Map<String, List<dynamic>>.from(ytCharts)));
       final ytChartsJson = await compute(jsonEncode, ytCharts);
       BloomeeDBService.putAPICache("YTMusic", ytChartsJson);
-      log("YTMusic Fetched", name: "YTMusic");
+      dev.log("YTMusic Fetched", name: "YTMusic");
     }
   }
 }

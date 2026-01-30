@@ -13,12 +13,14 @@ class SearchPageDelegate extends SearchDelegate {
   List<String> searchList = [];
   SourceEngine sourceEngine = SourceEngine.eng_YTM;
   ResultTypes resultType = ResultTypes.songs;
+  final String? searchLabel;
   SearchPageDelegate(
     this.sourceEngine,
-    this.resultType,
-  );
+    this.resultType, {
+    this.searchLabel,
+  });
   @override
-  String? get searchFieldLabel => "Explore the world of music...";
+  String? get searchFieldLabel => searchLabel ?? "Explore the world of music...";
 
   @override
   ThemeData appBarTheme(BuildContext context) {

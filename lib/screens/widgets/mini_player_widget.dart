@@ -9,6 +9,7 @@ import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -148,7 +149,7 @@ class MiniPlayerCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        AutoTranslateText(
                           state.song.title,
                           style: Default_Theme.secondoryTextStyle.merge(
                               const TextStyle(
@@ -158,7 +159,7 @@ class MiniPlayerCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(
+                        AutoTranslateText(
                           state.song.artist ?? 'Unknown Artist',
                           style: Default_Theme.secondoryTextStyle.merge(
                               TextStyle(

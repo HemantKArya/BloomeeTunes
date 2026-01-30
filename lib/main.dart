@@ -39,7 +39,12 @@ import 'package:share_handler/share_handler.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/discord_service.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:Bloomee/services/locale_controller.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
   // Check if there's text content that might be a URL
@@ -135,7 +140,17 @@ Future<void> main() async {
   setHighRefreshRate();
   setupPlayerCubit();
   DiscordService.initialize();
-  runApp(const MyApp());
+
+  final initialLanguageCode =
+      await BloomeeDBService.getSettingStr(GlobalStrConsts.languageCode) ??
+          'en';
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LocaleController(initialLanguageCode),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -267,42 +282,59 @@ class _MyAppState extends State<MyApp> {
           lazy: false,
         ),
       ],
-      child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
-        builder: (context, state) {
-          if (state is BloomeePlayerInitial) {
-            return const Center(
-              child: SizedBox(
-                width: 50,
-                height: 50,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          } else {
-            return KeyboardShortcutsHandler(
-              child: ShortcutIndicatorOverlay(
-                child: MaterialApp.router(
-                  builder: (context, child) => ResponsiveBreakpoints.builder(
-                    breakpoints: [
-                      const Breakpoint(start: 0, end: 450, name: MOBILE),
-                      const Breakpoint(start: 451, end: 800, name: TABLET),
-                      const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-                      const Breakpoint(
-                          start: 1921, end: double.infinity, name: '4K'),
-                    ],
-                    child: GlobalEventListener(
-                      navigatorKey: GlobalRoutes.globalRouterKey,
-                      child: child!,
+      child: BlocBuilder<SettingsCubit, SettingsState>(
+        builder: (context, settingsState) {
+          return BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
+            builder: (context, state) {
+              if (state is BloomeePlayerInitial) {
+                return const Center(
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              } else {
+                return KeyboardShortcutsHandler(
+                  child: ShortcutIndicatorOverlay(
+                    child: Consumer<LocaleController>(
+                      builder: (context, localeController, child) {
+                        return MaterialApp.router(
+                          locale: localeController.locale,
+                          localizationsDelegates: [
+                            AppLocalizations.delegate,
+                            GlobalMaterialLocalizations.delegate,
+                            GlobalWidgetsLocalizations.delegate,
+                            GlobalCupertinoLocalizations.delegate,
+                          ],
+                          supportedLocales: AppLocalizations.supportedLocales,
+                          builder: (context, child) =>
+                              ResponsiveBreakpoints.builder(
+                                breakpoints: [
+                                  const Breakpoint(start: 0, end: 450, name: MOBILE),
+                                  const Breakpoint(start: 451, end: 800, name: TABLET),
+                                  const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                                  const Breakpoint(
+                                      start: 1921, end: double.infinity, name: '4K'),
+                                ],
+                                child: GlobalEventListener(
+                                  navigatorKey: GlobalRoutes.globalRouterKey,
+                                  child: child!,
+                                ),
+                              ),
+                          scaffoldMessengerKey: SnackbarService.messengerKey,
+                          routerConfig: GlobalRoutes.globalRouter,
+                          theme: Default_Theme().defaultThemeData,
+                          scrollBehavior: CustomScrollBehavior(),
+                          debugShowCheckedModeBanner: false,
+                        );
+                      },
                     ),
                   ),
-                  scaffoldMessengerKey: SnackbarService.messengerKey,
-                  routerConfig: GlobalRoutes.globalRouter,
-                  theme: Default_Theme().defaultThemeData,
-                  scrollBehavior: CustomScrollBehavior(),
-                  debugShowCheckedModeBanner: false,
-                ),
-              ),
-            );
-          }
+                );
+              }
+            },
+          );
         },
       ),
     );

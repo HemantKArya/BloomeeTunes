@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:Bloomee/services/db/GlobalDB.dart';
 import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
 void createPlaylistBottomSheet(BuildContext context) {
@@ -51,7 +52,7 @@ void createPlaylistBottomSheet(BuildContext context) {
                                       left: 16, right: 16, top: 30),
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
-                                    child: Text(
+                                    child: AutoTranslateText(
                                       "Create new Playlist 😍",
                                       style: Default_Theme
                                           .secondoryTextStyleMedium

@@ -22,6 +22,8 @@ import 'chart/carousal_widget.dart';
 import '../widgets/horizontal_card_view.dart';
 import '../widgets/tabList_widget.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -133,7 +135,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             showMoreBottomSheet(context, e),
                                       );
                                     }).toList(),
-                                    category: "Recently",
+                                    category: AppLocalizations.of(context)!.recently,
                                     columnSize: 3,
                                   ),
                                 );
@@ -176,7 +178,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                       context, e),
                                             );
                                           }).toList(),
-                                          category: "Last.Fm Picks",
+                                          category: AppLocalizations.of(context)!.lastFmPicks,
                                           columnSize: 3),
                                     );
                                   }
@@ -193,8 +195,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 ConnectivityState>(
                               builder: (context, state2) {
                                 if (state2 == ConnectivityState.disconnected) {
-                                  return const SignBoardWidget(
-                                    message: "No Internet Connection!",
+                                  return SignBoardWidget(
+                                    message: AppLocalizations.of(context)!.noInternet,
                                     icon: MingCute.wifi_off_line,
                                   );
                                 }
@@ -242,7 +244,7 @@ class CustomDiscoverBar extends StatelessWidget {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Discover",
+          AutoTranslateText(AppLocalizations.of(context)!.discover,
               style: Default_Theme.primaryTextStyle.merge(const TextStyle(
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),

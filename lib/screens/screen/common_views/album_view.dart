@@ -8,6 +8,7 @@ import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -102,7 +103,7 @@ class _AlbumViewState extends State<AlbumView> {
                                         CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(
+                                      AutoTranslateText(
                                         "Album by",
                                         style: Default_Theme
                                             .secondoryTextStyleMedium
@@ -187,7 +188,7 @@ class _AlbumViewState extends State<AlbumView> {
                                                         .play();
                                                   }
                                                 },
-                                                label: const Text(
+                                                label: const AutoTranslateText(
                                                   "Play",
                                                   style: Default_Theme
                                                       .secondoryTextStyleMedium,

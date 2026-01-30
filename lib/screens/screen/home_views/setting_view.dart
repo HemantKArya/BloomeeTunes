@@ -7,9 +7,11 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting
 import 'package:Bloomee/screens/screen/home_views/setting_views/lastfm_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/player_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/updates_setting.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -19,8 +21,8 @@ class SettingsView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(
-          'Settings',
+        title: AutoTranslateText(
+          AppLocalizations.of(context)!.settings,
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 20,
@@ -31,8 +33,8 @@ class SettingsView extends StatelessWidget {
       body: ListView(
         children: [
           settingListTile(
-              title: "Updates",
-              subtitle: "Check for new updates",
+              title: AppLocalizations.of(context)!.updates,
+              subtitle: AppLocalizations.of(context)!.checkUpdates,
               icon: MingCute.download_3_fill,
               onTap: () {
                 Navigator.push(
@@ -43,8 +45,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "Downloads",
-              subtitle: "Download Path,Download Quality and more...",
+              title: AppLocalizations.of(context)!.downloads,
+              subtitle: AppLocalizations.of(context)!.downloadsSubtitle,
               icon: MingCute.folder_download_fill,
               onTap: () {
                 Navigator.push(
@@ -55,8 +57,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "Player Settings",
-              subtitle: "Stream quality, Auto Play, etc.",
+              title: AppLocalizations.of(context)!.playerSettings,
+              subtitle: AppLocalizations.of(context)!.playerSettingsSubtitle,
               icon: MingCute.airpods_fill,
               onTap: () {
                 Navigator.push(
@@ -67,8 +69,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "UI Elements & Services",
-              subtitle: "Auto slide, Source Engines etc.",
+              title: AppLocalizations.of(context)!.uiSettings,
+              subtitle: AppLocalizations.of(context)!.uiSettingsSubtitle,
               icon: MingCute.display_fill,
               onTap: () {
                 Navigator.push(
@@ -79,8 +81,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "Last.FM Settings",
-              subtitle: "API Key, Secret, and Scrobbling settings.",
+              title: AppLocalizations.of(context)!.lastFmSettings,
+              subtitle: AppLocalizations.of(context)!.lastFmSettingsSubtitle,
               icon: FontAwesome.lastfm_brand,
               onTap: () {
                 Navigator.push(
@@ -91,8 +93,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "Storage",
-              subtitle: "Backup, Cache, History, Restore and more...",
+              title: AppLocalizations.of(context)!.storage,
+              subtitle: AppLocalizations.of(context)!.storageSubtitle,
               icon: MingCute.coin_2_fill,
               onTap: () {
                 Navigator.push(
@@ -103,8 +105,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "Language & Country",
-              subtitle: "Select your language and country.",
+              title: AppLocalizations.of(context)!.languageCountry,
+              subtitle: AppLocalizations.of(context)!.languageCountrySubtitle,
               icon: MingCute.globe_fill,
               onTap: () {
                 Navigator.push(
@@ -115,8 +117,8 @@ class SettingsView extends StatelessWidget {
                 );
               }),
           settingListTile(
-              title: "About",
-              subtitle: "About the app, version, developer, etc.",
+              title: AppLocalizations.of(context)!.about,
+              subtitle: AppLocalizations.of(context)!.aboutSubtitle,
               icon: MingCute.github_fill,
               onTap: () {
                 Navigator.push(
@@ -142,12 +144,12 @@ class SettingsView extends StatelessWidget {
         size: 27,
         color: Default_Theme.primaryColor1,
       ),
-      title: Text(
+      title: AutoTranslateText(
         title,
         style: const TextStyle(color: Default_Theme.primaryColor1, fontSize: 16)
             .merge(Default_Theme.secondoryTextStyleMedium),
       ),
-      subtitle: Text(
+      subtitle: AutoTranslateText(
         subtitle,
         style: TextStyle(
                 color: Default_Theme.primaryColor1.withValues(alpha: 0.5),

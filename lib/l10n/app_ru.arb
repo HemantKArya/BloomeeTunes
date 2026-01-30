@@ -1,0 +1,138 @@
+{
+  "welcome": "Добро пожаловать в Bloomee",
+  "onboardingSubtitle": "Ваше музыкальное путешествие без рекламы начинается здесь. Настройте свое приложение.",
+  "country": "Страна",
+  "language": "Язык",
+  "getStarted": "Начать",
+  "settings": "Настройки",
+  "discover": "Найти",
+  "history": "История",
+  "library": "Библиотека",
+  "explore": "Обзор",
+  "search": "Поиск",
+  "offline": "Оффлайн",
+  "searchHint": "Найдите свою следующую любимую песню...",
+  "songs": "Песни",
+  "albums": "Альбомы",
+  "artists": "Исполнители",
+  "playlists": "Плейлисты",
+  "recently": "Недавние",
+  "lastFmPicks": "Выбор Last.Fm",
+  "noInternet": "Нет подключения к интернету!",
+  "enjoyingFrom": "Слушаю из",
+  "unknown": "Неизвестно",
+  "availableOffline": "Доступно оффлайн",
+  "timer": "Таймер",
+  "lyrics": "Тексты",
+  "loop": "Повтор",
+  "off": "Выкл",
+  "loopOne": "Повтор одной",
+  "loopAll": "Повтор всех",
+  "shuffle": "Перемешать",
+  "openOriginalLink": "Открыть оригинал",
+  "unableToOpenLink": "Не удалось открыть ссылку",
+  "updates": "Обновления",
+  "checkUpdates": "Проверить обновления",
+  "downloads": "Загрузки",
+  "downloadsSubtitle": "Путь загрузки, качество и другое...",
+  "playerSettings": "Настройки плеера",
+  "playerSettingsSubtitle": "Качество стриминга, автовоспроизведение и т.д.",
+  "uiSettings": "Элементы интерфейса и сервисы",
+  "uiSettingsSubtitle": "Авто-слайд, движки поиска и т.д.",
+  "lastFmSettings": "Настройки Last.FM",
+  "lastFmSettingsSubtitle": "API Key, Secret и настройки скробблинга.",
+  "storage": "Хранилище",
+  "storageSubtitle": "Резервное копирование, кэш, история, восстановление и т.д.",
+  "languageCountry": "Язык и страна",
+  "languageCountrySubtitle": "Выберите ваш язык и страну.",
+  "about": "О приложении",
+  "aboutSubtitle": "О приложении, версия, разработчик и т.д.",
+  "searchLibrary": "Поиск по библиотеке...",
+  "emptyLibraryMessage": "Ваша библиотека пуста. Добавьте немного музыки, чтобы оживить ее!",
+  "noMatchesFound": "Совпадений не найдено",
+  "inPlaylist": "в плейлисте {playlistName}",
+  "@inPlaylist": {
+    "placeholders": {
+      "playlistName": {
+        "type": "String"
+      }
+    }
+  },
+  "artistWithEngine": "Исполнитель - {engine}",
+  "@artistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "albumWithEngine": "Альбом - {engine}",
+  "@albumWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistWithEngine": "Плейлист - {engine}",
+  "@playlistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "noDownloads": "Нет загрузок",
+  "searchSongs": "Поиск ваших песен...",
+  "refreshDownloads": "Обновить загрузки",
+  "closeSearch": "Закрыть поиск",
+  "aboutTagline": "Создание симфоний в коде.",
+  "maintainer": "Сопровождающий",
+  "followGithub": "Подписаться на GitHub",
+  "contact": "Контакты",
+  "contactTooltip": "Отправить деловой запрос",
+  "linkedin": "Linkedin",
+  "linkedinTooltip": "Обновления и творческие моменты",
+  "supportMessage": "Нравится Bloomee? Небольшая поддержка поможет проекту развиваться. 🌸",
+  "supportButton": "Я помогу",
+  "supportFooter": "Я хочу, чтобы Bloomee становился лучше.",
+  "github": "GitHub",
+  "versionError": "Не удалось получить версию",
+  "home": "Главная",
+  "topSongs": "Топ песен",
+  "topAlbums": "Топ альбомов",
+  "viewLyrics": "Посмотреть текст",
+  "cancel": "Отмена",
+  "ok": "ОК",
+  "startAuth": "Начать авторизацию",
+  "getSessionKey": "Получить и сохранить ключ сессии",
+  "removeKeys": "Удалить ключи",
+  "countryLangSettings": "Настройки страны и языка",
+  "autoCheckCountry": "Автоопределение страны",
+  "autoCheckCountrySubtitle": "Автоматически определять страну по местоположению при запуске приложения.",
+  "countrySubtitle": "Страна, установленная по умолчанию в приложении.",
+  "languageSubtitle": "Основной язык интерфейса приложения.",
+  "scrobbleTracks": "Скробблинг треков",
+  "scrobbleTracksSubtitle": "Скробблинг треков в Last.FM",
+  "firstAuthLastFM": "Сначала авторизуйте Last.FM API.",
+  "lastFmInstructions": "Чтобы установить API Key для Last.FM, \n1. Перейдите на Last.FM и создайте аккаунт (https://www.last.fm/).\n2. Сгенерируйте API Key и Secret здесь: https://www.last.fm/api/account/create\n3. Введите API Key и Secret ниже и нажмите 'Начать авторизацию', чтобы получить ключ сессии.\n4. После подтверждения в браузере нажмите 'Получить и сохранить ключ сессии', чтобы сохранить его.",
+  "lastFmAuthenticated": "Привет, {username},\nLast.FM API авторизован.",
+  "@lastFmAuthenticated": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWelcome": "Настройте свое приложение",
+  "confirmSettings": "Пожалуйста, подтвердите вашу страну и язык, чтобы начать работу с наиболее подходящим вам контентом.",
+  "detectedLabel": "Обнаружено",
+  "lastFmAuthFailed": "Ошибка авторизации Last.FM.\n{message}\nПодсказка: сначала нажмите 'Начать авторизацию' и войдите в систему в браузере, затем нажмите кнопку 'Получить и сохранить ключ сессии'",
+  "@lastFmAuthFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
+}

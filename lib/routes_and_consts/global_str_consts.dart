@@ -40,4 +40,7 @@ class GlobalStrConsts {
 
   /// Whether the user has read the changelogs.[eg. v2.11.6+171]
   static const String readChangelogs = "readChangelogs";
+  static const String isFirstLaunch = "isFirstLaunch";
+  static const String languageCode = "languageCode";
+  static const String onboardingScreen = "OnboardingScreen";
 }

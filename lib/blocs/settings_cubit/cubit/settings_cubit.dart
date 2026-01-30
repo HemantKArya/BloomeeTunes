@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
 import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/translation_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
@@ -105,7 +106,18 @@ class SettingsCubit extends Cubit<SettingsState> {
     });
 
     BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode).then((value) {
-      emit(state.copyWith(countryCode: value ?? "IN"));
+      emit(state.copyWith(countryCode: value ?? "US"));
+    });
+
+    BloomeeDBService.getSettingBool(GlobalStrConsts.isFirstLaunch)
+        .then((value) {
+      emit(state.copyWith(isFirstLaunch: value ?? true));
+    });
+
+    BloomeeDBService.getSettingStr(GlobalStrConsts.languageCode).then((value) async {
+      final lang = value ?? "en";
+      await BloomeeTranslationService().init(lang);
+      emit(state.copyWith(languageCode: lang));
     });
 
     BloomeeDBService.getSettingBool(GlobalStrConsts.autoSaveLyrics)
@@ -155,6 +167,17 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setCountryCode(String value) {
     BloomeeDBService.putSettingStr(GlobalStrConsts.countryCode, value);
     emit(state.copyWith(countryCode: value));
+  }
+
+  Future<void> setLanguageCode(String value) async {
+    await BloomeeDBService.putSettingStr(GlobalStrConsts.languageCode, value);
+    await BloomeeTranslationService().init(value);
+    emit(state.copyWith(languageCode: value));
+  }
+
+  void setIsFirstLaunch(bool value) {
+    BloomeeDBService.putSettingBool(GlobalStrConsts.isFirstLaunch, value);
+    emit(state.copyWith(isFirstLaunch: value));
   }
 
   void setAutoSaveLyrics(bool value) {

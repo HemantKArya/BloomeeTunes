@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:Bloomee/screens/widgets/paging_scroll.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -24,7 +25,7 @@ class CategoryLabel extends StatelessWidget {
           quarterTurns: 3,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(
+            child: AutoTranslateText(
               category,
               style: Default_Theme.secondoryTextStyle.merge(
                 const TextStyle(

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart';
 import 'package:Bloomee/repository/Saavn/format.dart';
+import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/services/db/bloomee_db_service.dart';
 
 class SaavnAPI {
   Map<String, String> headers = {};
@@ -34,7 +36,10 @@ class SaavnAPI {
       param.replaceAll('&api_version=4', '');
     }
     url = Uri.parse('https://$baseUrl$apiStr&$param');
-    final String languageHeader = 'L=Hindi';
+    final String lang = await BloomeeDBService.getSettingStr(
+        GlobalStrConsts.languageCode,
+        defaultValue: 'English').then((value) => value ?? 'English');
+    final String languageHeader = 'L=$lang';
     headers = {
       'cookie': languageHeader,
       'Accept': 'application/json, text/plain, */*',
@@ -183,8 +188,12 @@ class SaavnAPI {
     // List searchedShowList = [];
     // List searchedEpisodeList = [];
 
+    final String cc = await BloomeeDBService.getSettingStr(
+        GlobalStrConsts.countryCode,
+        defaultValue: 'us')
+            .then((value) => (value ?? 'us').toLowerCase());
     final String params =
-        '__call=autocomplete.get&cc=in&includeMetaTags=1&query=$searchQuery';
+        '__call=autocomplete.get&cc=$cc&includeMetaTags=1&query=$searchQuery';
 
     final res = await getResponse(params, usev4: false);
     try {

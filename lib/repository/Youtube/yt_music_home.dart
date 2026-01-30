@@ -34,7 +34,7 @@ Future<Response> getRequest(Uri link, {int retryCount = 3}) async {
   throw Exception('Failed to fetch data after $retryCount attempts.');
 }
 
-Future<Map<String, List>> getMusicHome({String countryCode = "IN"}) async {
+Future<Map<String, List>> getMusicHome({String countryCode = "US"}) async {
   final Uri link =
       Uri.https('www.youtube.com', '/music', {'hl': 'en', 'gl': countryCode});
   try {

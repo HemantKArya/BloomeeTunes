@@ -30,9 +30,10 @@ Future<Map<String, dynamic>> initializeContext() async {
   return {
     'context': {
       'client': {
-        "hl": "en-IN",
+        "hl": await BloomeeDBService.getSettingStr(GlobalStrConsts.languageCode,
+            defaultValue: "en"),
         "gl": await BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode,
-            defaultValue: "IN"),
+            defaultValue: "US"),
         'clientName': 'WEB_REMIX',
         'clientVersion': '1.$date.01.00',
       },

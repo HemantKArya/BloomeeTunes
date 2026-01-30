@@ -14,6 +14,8 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/screens/screen/search_views/search_page.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:Bloomee/theme_data/default.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -146,7 +148,9 @@ class _SearchScreenState extends State<SearchScreen> {
                     showSearch(
                             context: context,
                             delegate: SearchPageDelegate(
-                                _sourceEngine, resultType.value),
+                                _sourceEngine, resultType.value,
+                                searchLabel:
+                                    AppLocalizations.of(context)!.searchHint),
                             query: _textEditingController.text)
                         .then((value) {
                       if (value != null) {
@@ -173,7 +177,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             Default_Theme.primaryColor2.withValues(alpha: 0.07),
                         contentPadding:
                             const EdgeInsets.only(top: 20, left: 15, right: 5),
-                        hintText: "Find your next song obsession...",
+                        hintText: AppLocalizations.of(context)!.searchHint,
                         hintStyle: TextStyle(
                           color: Default_Theme.primaryColor1
                               .withValues(alpha: 0.3),
@@ -301,7 +305,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                                                     top: 2,
                                                                     bottom: 4,
                                                                   ),
-                                                                  child: Text(
+                                                                  child: AutoTranslateText(
                                                                     e.val,
                                                                     style: Default_Theme
                                                                         .secondoryTextStyleMedium

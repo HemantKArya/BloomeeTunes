@@ -18,6 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/widgets/createPlaylist_bottomsheet.dart';
 import 'package:Bloomee/screens/widgets/libitem_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -25,6 +26,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/library/search_cubit/library_search_cubit.dart';
 import 'package:Bloomee/model/library_search_result.dart';
 import 'package:Bloomee/screens/widgets/animated_list_item.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
@@ -125,11 +127,11 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   customDiscoverBar(context),
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     child: Center(
                       child: SignBoardWidget(
                         message:
-                            "Your library is feeling lonely. Add some tunes to brighten it up!",
+                            AppLocalizations.of(context)!.emptyLibraryMessage,
                         icon: MingCute.playlist_fill,
                       ),
                     ),
@@ -243,7 +245,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
             ),
           ),
           decoration: InputDecoration(
-            hintText: 'Search library...',
+            hintText: AppLocalizations.of(context)!.searchLibrary,
             hintStyle: Default_Theme.secondoryTextStyle.merge(
               TextStyle(
                 color: Default_Theme.primaryColor1.withOpacity(0.4),
@@ -299,7 +301,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
             child: SongCardWidget(
               song: result.song,
               showOptions: true,
-              subtitleOverride: 'in ${result.playlistName}',
+              subtitleOverride: AppLocalizations.of(context)!.inPlaylist(result.playlistName),
               onTap: () async {
                 _dismissKeyboard();
                 final playlistDB =
@@ -338,7 +340,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
               title: artist.name,
               coverArt: artist.imageUrl,
               subtitle:
-                  'Artist - ${artist.source == "ytm" ? SourceEngine.eng_YTM.value : (artist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
+                  AppLocalizations.of(context)!.artistWithEngine(artist.source == "ytm" ? SourceEngine.eng_YTM.value : (artist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)),
               type: LibItemTypes.artist,
               onTap: () {
                 _dismissKeyboard();
@@ -368,7 +370,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
               title: album.name,
               coverArt: album.imageURL,
               subtitle:
-                  'Album - ${album.source == "ytm" ? SourceEngine.eng_YTM.value : (album.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
+                  AppLocalizations.of(context)!.albumWithEngine(album.source == "ytm" ? SourceEngine.eng_YTM.value : (album.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)),
               type: LibItemTypes.album,
               onTap: () {
                 _dismissKeyboard();
@@ -399,7 +401,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
               title: playlist.name,
               coverArt: playlist.imageURL,
               subtitle:
-                  'Playlist - ${playlist.source == "ytm" ? SourceEngine.eng_YTM.value : (playlist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
+                  AppLocalizations.of(context)!.playlistWithEngine(playlist.source == "ytm" ? SourceEngine.eng_YTM.value : (playlist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)),
               type: LibItemTypes.onlPlaylist,
               onTap: () {
                 _dismissKeyboard();
@@ -432,8 +434,8 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
       backgroundColor: Default_Theme.themeColor,
       title: Row(
         children: [
-          Text(
-            "Library",
+          AutoTranslateText(
+            AppLocalizations.of(context)!.library,
             style: Default_Theme.primaryTextStyle.merge(
               const TextStyle(
                 fontSize: 34,

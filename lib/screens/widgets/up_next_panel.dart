@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'song_tile.dart';
 import 'more_bottom_sheet.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 
 // Cached styles to avoid repeated merges
 class _UpNextStyles {
@@ -412,7 +413,7 @@ class _CompactHeader extends StatelessWidget {
               size: 18,
             ),
             const SizedBox(width: 6),
-            Text(
+            AutoTranslateText(
               "Up Next",
               style: _UpNextStyles.headerTextStyle,
             ),
@@ -494,7 +495,7 @@ class _QueueInfoRow extends StatelessWidget {
           StreamBuilder<List<MediaItem>>(
             stream: playerCubit.bloomeePlayer.queue,
             builder: (context, snapshot) {
-              return Text(
+              return AutoTranslateText(
                 "${snapshot.data?.length ?? 0} Items in Queue",
                 style: _UpNextStyles.queueCountStyle,
               );

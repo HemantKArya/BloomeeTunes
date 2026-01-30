@@ -1,3 +1,4 @@
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +31,7 @@ class SnackbarService {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(message,
+                  AutoTranslateText(message,
                       style: const TextStyle(
                           color: Default_Theme.primaryColor1, fontSize: 16)),
                   const Padding(
@@ -46,7 +47,7 @@ class SnackbarService {
                   ),
                 ],
               )
-            : Text(message,
+            : AutoTranslateText(message,
                 style: const TextStyle(
                     color: Default_Theme.primaryColor1, fontSize: 16)),
         duration: loading ? const Duration(minutes: 1) : duration,

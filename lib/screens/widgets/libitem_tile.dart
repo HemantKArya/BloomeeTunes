@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 
 enum LibItemTypes {
   userPlaylist,
@@ -104,7 +105,7 @@ class LibItemCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoTranslateText(
                       title,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
@@ -114,7 +115,7 @@ class LibItemCard extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: Default_Theme.primaryColor1)),
                     ),
-                    Text(
+                    AutoTranslateText(
                       subtitle,
                       maxLines: 1,
                       style: Default_Theme.secondoryTextStyle.merge(

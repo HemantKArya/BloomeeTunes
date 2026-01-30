@@ -1,5 +1,6 @@
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/screens/widgets/player_overlay_wrapper.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -163,15 +164,15 @@ class VerticalNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return NavigationRail(
       backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
-      destinations: const [
+      destinations: [
         NavigationRailDestination(
-            icon: Icon(MingCute.home_4_fill), label: Text('Home')),
+            icon: const Icon(MingCute.home_4_fill), label: Text(AppLocalizations.of(context)!.home)),
         NavigationRailDestination(
-            icon: Icon(MingCute.book_5_fill), label: Text('Library')),
+            icon: const Icon(MingCute.book_5_fill), label: Text(AppLocalizations.of(context)!.library)),
         NavigationRailDestination(
-            icon: Icon(MingCute.search_2_fill), label: Text('Search')),
+            icon: const Icon(MingCute.search_2_fill), label: Text(AppLocalizations.of(context)!.search)),
         NavigationRailDestination(
-            icon: Icon(MingCute.folder_download_fill), label: Text('Offline')),
+            icon: const Icon(MingCute.folder_download_fill), label: Text(AppLocalizations.of(context)!.offline)),
       ],
       selectedIndex: navigationShell.currentIndex,
       minWidth: 65,
@@ -209,22 +210,22 @@ class HorizontalNavBar extends StatelessWidget {
           const TextStyle(color: Default_Theme.accentColor2, fontSize: 18)),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
-      tabs: const [
+      tabs: [
         GButton(
           icon: MingCute.home_4_fill,
-          text: "Home",
+          text: AppLocalizations.of(context)!.home,
         ),
         GButton(
           icon: MingCute.book_5_fill,
-          text: "Library",
+          text: AppLocalizations.of(context)!.library,
         ),
         GButton(
           icon: MingCute.search_2_fill,
-          text: "Search",
+          text: AppLocalizations.of(context)!.search,
         ),
         GButton(
           icon: MingCute.folder_download_fill,
-          text: "Offline",
+          text: AppLocalizations.of(context)!.offline,
         ),
       ],
       selectedIndex: navigationShell.currentIndex,

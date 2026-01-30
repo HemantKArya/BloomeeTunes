@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 
 class HistoryView extends StatelessWidget {
   const HistoryView({super.key});
@@ -35,8 +37,8 @@ class HistoryView extends StatelessWidget {
               },
             ),
           ],
-          title: Text(
-            'History',
+          title: AutoTranslateText(
+            AppLocalizations.of(context)!.history,
             style: const TextStyle(
                     color: Default_Theme.primaryColor1,
                     fontSize: 20,

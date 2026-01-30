@@ -9,6 +9,7 @@ import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 
 class LastDotFM extends StatefulWidget {
   const LastDotFM({super.key});
@@ -74,7 +75,7 @@ class _LastDotFMState extends State<LastDotFM> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          'Last.FM Settings',
+          AppLocalizations.of(context)!.lastFmPicks,
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 20,
@@ -89,7 +90,7 @@ class _LastDotFMState extends State<LastDotFM> {
               SwitchListTile(
                   value: state.lastFMScrobble,
                   subtitle: Text(
-                    "Scrobble tracks to Last.FM",
+                    AppLocalizations.of(context)!.scrobbleTracksSubtitle,
                     style: TextStyle(
                             color: Default_Theme.primaryColor1
                                 .withValues(alpha: 0.5),
@@ -97,7 +98,7 @@ class _LastDotFMState extends State<LastDotFM> {
                         .merge(Default_Theme.secondoryTextStyleMedium),
                   ),
                   title: Text(
-                    "Scrobble Tracks",
+                    AppLocalizations.of(context)!.scrobbleTracks,
                     style: const TextStyle(
                             color: Default_Theme.primaryColor1, fontSize: 16)
                         .merge(Default_Theme.secondoryTextStyleMedium),
@@ -106,7 +107,7 @@ class _LastDotFMState extends State<LastDotFM> {
                     context.read<SettingsCubit>().setLastFMScrobble(value);
                     if (value && LastFmAPI.initialized == false) {
                       SnackbarService.showMessage(
-                          "First Authenticate Last.FM API.");
+                          AppLocalizations.of(context)!.firstAuthLastFM);
                       Future.delayed(const Duration(milliseconds: 500), () {
                         context.read<SettingsCubit>().setLastFMScrobble(false);
                       });
@@ -118,7 +119,7 @@ class _LastDotFMState extends State<LastDotFM> {
                 padding: const EdgeInsets.only(
                     left: 16.0, right: 8.0, top: 8, bottom: 8),
                 child: SelectableText(
-                  'To set API Key for Last.FM, \n1. Go to Last.FM create an account there (https://www.last.fm/).\n2. Now generate an API Key and Secret from: https://www.last.fm/api/account/create\n3. Enter the API Key and Secret below and click on \'Start Auth\' to get the session key.\n4. After allowing from browser, click on \'Get and Save Session Key\' to save the session key.',
+                  AppLocalizations.of(context)!.lastFmInstructions,
                   style: TextStyle(
                           color: Default_Theme.primaryColor1
                               .withValues(alpha: 0.5),
@@ -199,7 +200,7 @@ class _LastDotFMState extends State<LastDotFM> {
                         top: 16,
                       ),
                       child: Text(
-                        'Hi, ${state.username},\nLast.FM API is Authenticated.',
+                        AppLocalizations.of(context)!.lastFmAuthenticated(state.username),
                         style: TextStyle(
                           color:
                               Default_Theme.successColor.withValues(alpha: 0.7),
@@ -216,10 +217,10 @@ class _LastDotFMState extends State<LastDotFM> {
                         top: 16,
                       ),
                       child: Text(
-                        'Last.FM Authentication Failed.\n${state.message}\nHint: First click Start Auth and Sign-In from browser then click Get & Save Session Key button',
+                        AppLocalizations.of(context)!.lastFmAuthFailed(state.message),
                         style: TextStyle(
-                                color: Colors.red.withValues(alpha: 0.7),
-                                fontSize: 12)
+                            color: Colors.red.withValues(alpha: 0.7),
+                            fontSize: 12)
                             .merge(Default_Theme.secondoryTextStyleMedium),
                       ),
                     );
@@ -257,7 +258,7 @@ class _LastDotFMState extends State<LastDotFM> {
                             backgroundColor: Default_Theme.accentColor2,
                             foregroundColor: Default_Theme.primaryColor2,
                           ),
-                          child: const Text('1. Start Auth'),
+                          child: Text('1. ${AppLocalizations.of(context)!.startAuth}'),
                         );
                       },
                     ),
@@ -289,7 +290,7 @@ class _LastDotFMState extends State<LastDotFM> {
                             backgroundColor: Default_Theme.accentColor2,
                             foregroundColor: Default_Theme.primaryColor2,
                           ),
-                          child: const Text('2. Get & Save Session Key'),
+                          child: Text('2. ${AppLocalizations.of(context)!.getSessionKey}'),
                         );
                       },
                     ),
@@ -314,7 +315,7 @@ class _LastDotFMState extends State<LastDotFM> {
                                       .withValues(alpha: 0.3),
                                   foregroundColor: Default_Theme.primaryColor2,
                                 ),
-                                child: const Text('Remove Keys'),
+                                child: Text(AppLocalizations.of(context)!.removeKeys),
                               )
                             : const SizedBox.shrink();
                       },

@@ -3,6 +3,7 @@ import 'package:Bloomee/model/lyrics_models.dart';
 import 'package:Bloomee/repository/Lyrics/lyrics.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -155,14 +156,14 @@ class LyricsSearchDelegate extends SearchDelegate {
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
-                                child: const Text('Close'),
+                                child: Text(AppLocalizations.of(context)!.closeSearch),
                               ),
                             ],
                           );
                         },
                       );
                     },
-                    child: const Text("View Lyrics")),
+                    child: Text(AppLocalizations.of(context)!.viewLyrics)),
                 onTap: () {
                   context
                       .read<LyricsCubit>()
@@ -267,14 +268,14 @@ class LyricsSearchDelegate extends SearchDelegate {
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
-                                child: const Text('Close'),
+                                child: Text(AppLocalizations.of(context)!.closeSearch),
                               ),
                             ],
                           );
                         },
                       );
                     },
-                    child: const Text("View Lyrics")),
+                    child: Text(AppLocalizations.of(context)!.viewLyrics)),
                 onTap: () {
                   context
                       .read<LyricsCubit>()

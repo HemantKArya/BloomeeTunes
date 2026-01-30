@@ -18,6 +18,8 @@ class SettingsState extends Equatable {
   bool autoSaveLyrics;
   bool autoPlay;
   String countryCode;
+  String languageCode;
+  bool isFirstLaunch;
   List<bool> sourceEngineSwitches;
   Map chartMap;
   SettingsState({
@@ -33,6 +35,8 @@ class SettingsState extends Equatable {
     required this.historyClearTime,
     required this.autoGetCountry,
     required this.countryCode,
+    required this.languageCode,
+    required this.isFirstLaunch,
     required this.autoSaveLyrics,
     required this.lFMPicks,
     required this.lastFMScrobble,
@@ -54,6 +58,8 @@ class SettingsState extends Equatable {
     String? historyClearTime,
     bool? autoGetCountry,
     String? countryCode,
+    String? languageCode,
+    bool? isFirstLaunch,
     bool? lFMPicks,
     bool? lastFMScrobble,
     List<bool>? sourceEngineSwitches,
@@ -74,6 +80,8 @@ class SettingsState extends Equatable {
       historyClearTime: historyClearTime ?? this.historyClearTime,
       autoGetCountry: autoGetCountry ?? this.autoGetCountry,
       countryCode: countryCode ?? this.countryCode,
+      languageCode: languageCode ?? this.languageCode,
+      isFirstLaunch: isFirstLaunch ?? this.isFirstLaunch,
       lFMPicks: lFMPicks ?? this.lFMPicks,
       lastFMScrobble: lastFMScrobble ?? this.lastFMScrobble,
       sourceEngineSwitches:
@@ -98,6 +106,8 @@ class SettingsState extends Equatable {
         historyClearTime,
         autoGetCountry,
         countryCode,
+        languageCode,
+        isFirstLaunch,
         sourceEngineSwitches,
         chartMap,
         lFMPicks,
@@ -121,7 +131,9 @@ class SettingsInitial extends SettingsState {
           autoBackup: true,
           historyClearTime: "30",
           autoGetCountry: true,
-          countryCode: "IN",
+          countryCode: "US",
+          languageCode: "en",
+          isFirstLaunch: true,
           sourceEngineSwitches: SourceEngine.values.map((e) => true).toList(),
           chartMap: {},
           lFMPicks: false,

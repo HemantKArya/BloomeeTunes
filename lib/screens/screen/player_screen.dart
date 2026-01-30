@@ -1,3 +1,4 @@
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 import 'dart:ui';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -26,6 +27,7 @@ import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
 import '../../blocs/mini_player/mini_player_bloc.dart';
 import 'player_views/fullscreen_lyrics_view.dart';
 import 'player_views/lyrics_widget.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 
 class AudioPlayerView extends StatefulWidget {
   const AudioPlayerView({super.key});
@@ -96,8 +98,8 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
         ],
         title: Column(
           children: [
-            Text(
-              'Enjoying From',
+            AutoTranslateText(
+              AppLocalizations.of(context)!.enjoyingFrom,
               textAlign: TextAlign.center,
               style: const TextStyle(
                       color: Default_Theme.primaryColor1,
@@ -109,7 +111,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
                 stream: bloomeePlayerCubit.bloomeePlayer.queueTitle,
                 builder: (context, snapshot) {
                   return Text(
-                    snapshot.data ?? "Unknown",
+                    snapshot.data ?? AppLocalizations.of(context)!.unknown,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Default_Theme.primaryColor2,
@@ -393,7 +395,7 @@ class _DownloadButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     return Tooltip(
-      message: "Available Offline",
+      message: AppLocalizations.of(context)!.availableOffline,
       child: StreamBuilder<MediaItem?>(
         stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
         builder: (context, mediaSnapshot) {
@@ -542,7 +544,7 @@ class _PlayerControlsRow extends StatelessWidget {
       children: [
         _buildControlColumn(
           topWidget: Tooltip(
-            message: "Timer",
+            message: AppLocalizations.of(context)!.timer,
             child: IconButton(
               padding: const EdgeInsets.all(5),
               constraints: const BoxConstraints(),
@@ -569,7 +571,7 @@ class _PlayerControlsRow extends StatelessWidget {
                 color: Default_Theme.primaryColor1, size: 30),
           ),
           bottomWidget: Tooltip(
-            message: "Lyrics",
+            message: AppLocalizations.of(context)!.lyrics,
             child: IconButton(
               padding: const EdgeInsets.all(5),
               constraints: const BoxConstraints(),
@@ -619,16 +621,16 @@ class _LoopControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: "Loop",
+      message: AppLocalizations.of(context)!.loop,
       child: StreamBuilder<LoopMode>(
         stream: context.watch<BloomeePlayerCubit>().bloomeePlayer.loopMode,
         builder: (context, snapshot) {
           final loopMode = snapshot.data ?? LoopMode.off;
           return PopupMenuButton(
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(value: 0, child: Text("Off")),
-              const PopupMenuItem(value: 1, child: Text("Loop One")),
-              const PopupMenuItem(value: 2, child: Text("Loop All")),
+              PopupMenuItem(value: 0, child: AutoTranslateText(AppLocalizations.of(context)!.off, style: Default_Theme.secondoryTextStyleMedium)),
+              PopupMenuItem(value: 1, child: AutoTranslateText(AppLocalizations.of(context)!.loopOne, style: Default_Theme.secondoryTextStyleMedium)),
+              PopupMenuItem(value: 2, child: AutoTranslateText(AppLocalizations.of(context)!.loopAll, style: Default_Theme.secondoryTextStyleMedium)),
             ],
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -676,7 +678,7 @@ class _ShuffleControl extends StatelessWidget {
         builder: (context, snapshot) {
           final isShuffle = snapshot.data ?? false;
           return Tooltip(
-            message: "Shuffle",
+            message: AppLocalizations.of(context)!.shuffle,
             child: IconButton(
               padding: const EdgeInsets.all(5),
               constraints: const BoxConstraints(),
@@ -705,7 +707,7 @@ class _ExternalLinkControl extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     return Tooltip(
-      message: "Open Original Link",
+      message: AppLocalizations.of(context)!.openOriginalLink,
       child: IconButton(
         padding: const EdgeInsets.all(5),
         constraints: const BoxConstraints(),
@@ -736,7 +738,7 @@ class _ExternalLinkControl extends StatelessWidget {
             await launchUrlString(url);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Unable to open the link")),
+              SnackBar(content: Text(AppLocalizations.of(context)!.unableToOpenLink)),
             );
           }
         },

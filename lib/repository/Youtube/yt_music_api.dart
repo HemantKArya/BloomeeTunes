@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
-import 'package:Bloomee/utils/country_info.dart';
+import 'package:Bloomee/utils/country_info.dart' show getCountry, getLanguage;
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:Bloomee/utils/extentions.dart';
@@ -246,13 +246,16 @@ class YtMusicService {
   }
 
   initLanguage() async {
-    context!['context']['client']['hl'] = 'en';
     try {
+      getLanguage().then((value) {
+        context!['context']['client']['hl'] = value;
+      });
       getCountry().then((value) {
         context!['context']['client']['gl'] = value;
       });
     } catch (e) {
       dev.log('Error in initLanguage: $e', name: "YTM");
+      context!['context']['client']['hl'] = 'en';
       context!['context']['client']['gl'] = 'IN';
     }
   }

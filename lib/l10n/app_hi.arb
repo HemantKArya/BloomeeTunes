@@ -1,0 +1,138 @@
+{
+  "welcome": "ब्लूमी में आपका स्वागत है",
+  "onboardingSubtitle": "आपकी विज्ञापन-मुक्त संगीत यात्रा यहाँ से शुरू होती है। अपने अनुभव को अपनी पसंद के अनुसार ढालें।",
+  "country": "देश",
+  "language": "भाषा",
+  "getStarted": "शुरू करें",
+  "settings": "सेटिंग्स",
+  "discover": "खोजें",
+  "history": "इतिहास",
+  "library": "लाइब्रेरी",
+  "explore": "एक्सप्लोर",
+  "search": "सर्च",
+  "offline": "ऑफ़लाइन",
+  "searchHint": "अपना पसंदीदा गीत ढूंढें...",
+  "songs": "गाने",
+  "albums": "एल्बम",
+  "artists": "कलाकार",
+  "playlists": "प्लेलिस्ट",
+  "recently": "हाल ही में",
+  "lastFmPicks": "Last.Fm की पसंद",
+  "noInternet": "इंटरनेट कनेक्शन नहीं है!",
+  "enjoyingFrom": "सुन रहे हैं",
+  "unknown": "अज्ञात",
+  "availableOffline": "ऑफ़लाइन उपलब्ध",
+  "timer": "टाइमर",
+  "lyrics": "लिरिक्स",
+  "loop": "लूप",
+  "off": "बंद",
+  "loopOne": "एक दोहराएं",
+  "loopAll": "सभी दोहराएं",
+  "shuffle": "शफल",
+  "openOriginalLink": "मूल लिंक खोलें",
+  "unableToOpenLink": "लिंक खोलने में असमर्थ",
+  "updates": "अपडेट",
+  "checkUpdates": "नए अपडेट की जांच करें",
+  "downloads": "डाउनलोड",
+  "downloadsSubtitle": "डाउनलोड पाथ, गुणवत्ता और बहुत कुछ...",
+  "playerSettings": "प्लेयर सेटिंग्स",
+  "playerSettingsSubtitle": "स्ट्रीम गुणवत्ता, ऑटो प्ले, आदि।",
+  "uiSettings": "UI तत्व और सेवाएँ",
+  "uiSettingsSubtitle": "ऑटो स्लाइड, सोर्स इंजन आदि।",
+  "lastFmSettings": "Last.FM सेटिंग्स",
+  "lastFmSettingsSubtitle": "API की, सीक्रेट और स्क्रॉबलिंग सेटिंग्स।",
+  "storage": "स्टोरेज",
+  "storageSubtitle": "बैकअप, कैश, इतिहास, रिस्टोर और बहुत कुछ...",
+  "languageCountry": "भाषा और देश",
+  "languageCountrySubtitle": "अपनी भाषा और देश चुनें।",
+  "about": "ऐप के बारे में",
+  "aboutSubtitle": "ऐप, वर्शन, डेवलपर आदि के बारे में।",
+  "searchLibrary": "लाइब्रेरी में खोजें...",
+  "emptyLibraryMessage": "आपकी लाइब्रेरी खाली लग रही है। इसे सजाने के लिए कुछ गाने जोड़ें!",
+  "noMatchesFound": "कोई मिलान नहीं मिला",
+  "inPlaylist": "{playlistName} में",
+  "@inPlaylist": {
+    "placeholders": {
+      "playlistName": {
+        "type": "String"
+      }
+    }
+  },
+  "artistWithEngine": "कलाकार - {engine}",
+  "@artistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "albumWithEngine": "एल्बम - {engine}",
+  "@albumWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistWithEngine": "प्लेलिस्ट - {engine}",
+  "@playlistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "noDownloads": "कोई डाउनलोड नहीं",
+  "searchSongs": "अपने गाने खोजें...",
+  "refreshDownloads": "डाउनलोड रिफ्रेश करें",
+  "closeSearch": "खोज बंद करें",
+  "aboutTagline": "कोड में संगीत रचना।",
+  "maintainer": "मेंटेनर",
+  "followGithub": "उन्हें गिटहब पर फॉलो करें",
+  "contact": "संपर्क",
+  "contactTooltip": "व्यापारिक पूछताछ भेजें",
+  "linkedin": "लिंक्डइन",
+  "linkedinTooltip": "अपडेट और क्रिएटिव हाइलाइट्स",
+  "supportMessage": "\"ब्लूमी पसंद आ रहा है? एक छोटी सी मदद इसे खिलाए रखेगी।\" 🌸",
+  "supportButton": "मैं मदद करूँगा",
+  "supportFooter": "मैं चाहता हूँ कि ब्लूमी में सुधार होता रहे।",
+  "github": "गिटहब",
+  "versionError": "वर्शन प्राप्त करने में असमर्थ",
+  "home": "होम",
+  "topSongs": "टॉप गाने",
+  "topAlbums": "टॉप एल्बम",
+  "viewLyrics": "लिरिक्स देखें",
+  "cancel": "रद्द करें",
+  "ok": "ठीक है",
+  "startAuth": "प्रमाणीकरण शुरू करें",
+  "getSessionKey": "सेशन की प्राप्त करें",
+  "removeKeys": "की हटाएँ",
+  "countryLangSettings": "देश और भाषा सेटिंग्स",
+  "autoCheckCountry": "ऑटो देश चेक",
+  "autoCheckCountrySubtitle": "जब आप ऐप खोलते हैं तो स्वचालित रूप से आपके स्थान के अनुसार देश की जांच करें।",
+  "countrySubtitle": "ऐप के लिए डिफ़ॉल्ट रूप से सेट करने के लिए देश।",
+  "languageSubtitle": "ऐप UI के लिए प्राथमिक भाषा।",
+  "scrobbleTracks": "ट्रैक स्क्रॉबल करें",
+  "scrobbleTracksSubtitle": "Last.FM पर ट्रैक स्क्रॉबल करें",
+  "firstAuthLastFM": "पहले Last.FM API को प्रमाणित करें।",
+  "lastFmInstructions": "Last.FM के लिए API की सेट करने के लिए, \n1. Last.FM पर जाएं और वहां एक अकाउंट बनाएं (https://www.last.fm/)।\n2. अब यहां से API की और सीक्रेट जेनरेट करें: https://www.last.fm/api/account/create\n3. नीचे API की और सीक्रेट दर्ज करें और सेशन की प्राप्त करने के लिए 'प्रमाणीकरण शुरू करें' पर क्लिक करें।\n4. ब्राउज़र से अनुमति देने के बाद, सेशन की सहेजने के लिए 'सेशन की प्राप्त करें' पर क्लिक करें।",
+  "lastFmAuthenticated": "नमस्ते, {username},\nLast.FM API प्रमाणित है।",
+  "@lastFmAuthenticated": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWelcome": "अपने अनुभव को अनुकूलित करें",
+  "confirmSettings": "कृपया देश और भाषा की पुष्टि करें ताकि आप अपने लिए उपयुक्त सामग्री के साथ शुरुआत कर सकें।",
+  "detectedLabel": "पता चला",
+  "lastFmAuthFailed": "Last.FM प्रमाणीकरण विफल रहा।\n{message}\nसंकेत: पहले ब्राउज़र से प्रमाणीकरण शुरू करें और साइन-इन करें, फिर सेशन की प्राप्त करें बटन पर क्लिक करें",
+  "@lastFmAuthFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
+}

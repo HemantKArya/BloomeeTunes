@@ -23,7 +23,7 @@ Map<SourceEngine, List<String>> sourceEngineCountries = {
 
 Future<List<SourceEngine>> availableSourceEngines() async {
   String country =
-      await BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode) ?? "IN";
+      await BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode) ?? "US";
   List<SourceEngine> availSourceEngines = [];
   for (var engine in SourceEngine.values) {
     bool isAvailable =

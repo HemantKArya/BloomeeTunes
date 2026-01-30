@@ -1,0 +1,138 @@
+{
+  "welcome": "Bloomeeへようこそ",
+  "onboardingSubtitle": "広告なしの音楽の旅がここから始まります。自分好みにカスタマイズしましょう。",
+  "country": "国",
+  "language": "言語",
+  "getStarted": "始める",
+  "settings": "設定",
+  "discover": "発見",
+  "history": "履歴",
+  "library": "ライブラリ",
+  "explore": "探索",
+  "search": "検索",
+  "offline": "オフライン",
+  "searchHint": "次のお気に入りの曲を見つけましょう...",
+  "songs": "曲",
+  "albums": "アルバム",
+  "artists": "アーティスト",
+  "playlists": "プレイリスト",
+  "recently": "最近",
+  "lastFmPicks": "Last.Fmのおすすめ",
+  "noInternet": "インターネット接続がありません！",
+  "enjoyingFrom": "再生中:",
+  "unknown": "不明",
+  "availableOffline": "オフラインで利用可能",
+  "timer": "タイマー",
+  "lyrics": "歌詞",
+  "loop": "ループ",
+  "off": "オフ",
+  "loopOne": "1曲リピート",
+  "loopAll": "全曲リピート",
+  "shuffle": "シャッフル",
+  "openOriginalLink": "元のリンクを開く",
+  "unableToOpenLink": "リンクを開けません",
+  "updates": "アップデート",
+  "checkUpdates": "新しいアップデートを確認",
+  "downloads": "ダウンロード",
+  "downloadsSubtitle": "保存先、ダウンロード品質など...",
+  "playerSettings": "プレーヤー設定",
+  "playerSettingsSubtitle": "ストリーミング品質、自動再生など",
+  "uiSettings": "UI要素とサービス",
+  "uiSettingsSubtitle": "自動スライド、ソースエンジンなど",
+  "lastFmSettings": "Last.FM設定",
+  "lastFmSettingsSubtitle": "APIキー、シークレット、スクロブル設定。",
+  "storage": "ストレージ",
+  "storageSubtitle": "バックアップ、キャッシュ、履歴、復元など...",
+  "languageCountry": "言語と国",
+  "languageCountrySubtitle": "言語と国を選択してください。",
+  "about": "このアプリについて",
+  "aboutSubtitle": "アプリについて、バージョン、開発者など",
+  "searchLibrary": "ライブラリを検索...",
+  "emptyLibraryMessage": "ライブラリが寂しいようです。曲を追加して華やかにしましょう！",
+  "noMatchesFound": "一致するものが見つかりませんでした",
+  "inPlaylist": "{playlistName} 内",
+  "@inPlaylist": {
+    "placeholders": {
+      "playlistName": {
+        "type": "String"
+      }
+    }
+  },
+  "artistWithEngine": "アーティスト - {engine}",
+  "@artistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "albumWithEngine": "アルバム - {engine}",
+  "@albumWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistWithEngine": "プレイリスト - {engine}",
+  "@playlistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "noDownloads": "ダウンロードはありません",
+  "searchSongs": "曲を検索...",
+  "refreshDownloads": "ダウンロードを更新",
+  "closeSearch": "検索を閉じる",
+  "aboutTagline": "コードでシンフォニーを創る。",
+  "maintainer": "メンテナー",
+  "followGithub": "GitHubでフォローする",
+  "contact": "連絡先",
+  "contactTooltip": "ビジネスの問い合わせを送る",
+  "linkedin": "Linkedin",
+  "linkedinTooltip": "アップデートとクリエイティブなハイライト",
+  "supportMessage": "Bloomeeを楽しんでいますか？少額のチップがあれば活動を続けられます。🌸",
+  "supportButton": "支援する",
+  "supportFooter": "Bloomeeをもっと良くしたいと思っています。",
+  "github": "GitHub",
+  "versionError": "バージョンを取得できません",
+  "home": "ホーム",
+  "topSongs": "人気の曲",
+  "topAlbums": "人気のアルバム",
+  "viewLyrics": "歌詞を表示",
+  "cancel": "キャンセル",
+  "ok": "OK",
+  "startAuth": "認証開始",
+  "getSessionKey": "セッションキーを取得して保存",
+  "removeKeys": "キーを削除",
+  "countryLangSettings": "国と言語の設定",
+  "autoCheckCountry": "国の自動確認",
+  "autoCheckCountrySubtitle": "アプリを開いたときに現在地から国を自動的に確認します。",
+  "countrySubtitle": "アプリのデフォルトとして設定する国。",
+  "languageSubtitle": "アプリのメイン言語。",
+  "scrobbleTracks": "トラックをスクロブル",
+  "scrobbleTracksSubtitle": "Last.FMにトラックをスクロブルする",
+  "firstAuthLastFM": "最初にLast.FM APIを認証してください。",
+  "lastFmInstructions": "Last.FMのAPIキーを設定するには、\n1. Last.FM（https://www.last.fm/）にアクセスしてアカウントを作成してください。\n2. 次に、https://www.last.fm/api/account/create からAPIキーとシークレットを生成してください。\n3. 以下にAPIキーとシークレットを入力し、「認証開始」をクリックしてセッションキーを取得してください。\n4. ブラウザで許可した後、「セッションキーを取得して保存」をクリックしてセッションキーを保存してください。",
+  "lastFmAuthenticated": "こんにちは、{username}さん。\nLast.FM APIが認証されました。",
+  "@lastFmAuthenticated": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWelcome": "体験をカスタマイズする",
+  "confirmSettings": "最適なコンテンツで開始するために、国と言語を確認してください。",
+  "detectedLabel": "検出されました",
+  "lastFmAuthFailed": "Last.FMの認証に失敗しました。\n{message}\nヒント：まず「認証開始」をクリックしてブラウザでサインインし、次に「セッションキーを取得して保存」ボタンをクリックしてください。",
+  "@lastFmAuthFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
+}

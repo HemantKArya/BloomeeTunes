@@ -1,3 +1,4 @@
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
 
@@ -89,7 +90,7 @@ class _ToggleButtonState extends State<ToggleButton>
           child: AnimatedBuilder(
             animation: _animationController,
             builder: (context, child) {
-              return Text(
+              return AutoTranslateText(
                 widget.label,
                 style: TextStyle(
                   color: _textColorAnimation.value!, // Animated text color

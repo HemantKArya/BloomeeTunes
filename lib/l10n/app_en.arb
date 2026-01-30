@@ -1,0 +1,138 @@
+{
+  "welcome": "Welcome to Bloomee",
+  "onboardingSubtitle": "Your ad-free music journey begins here. Customize your experience.",
+  "country": "Country",
+  "language": "Language",
+  "getStarted": "Get Started",
+  "settings": "Settings",
+  "discover": "Discover",
+  "history": "History",
+  "library": "Library",
+  "explore": "Explore",
+  "search": "Search",
+  "offline": "Offline",
+  "searchHint": "Find your next song obsession...",
+  "songs": "Songs",
+  "albums": "Albums",
+  "artists": "Artists",
+  "playlists": "Playlists",
+  "recently": "Recently",
+  "lastFmPicks": "Last.Fm Picks",
+  "noInternet": "No Internet Connection!",
+  "enjoyingFrom": "Enjoying From",
+  "unknown": "Unknown",
+  "availableOffline": "Available Offline",
+  "timer": "Timer",
+  "lyrics": "Lyrics",
+  "loop": "Loop",
+  "off": "Off",
+  "loopOne": "Loop One",
+  "loopAll": "Loop All",
+  "shuffle": "Shuffle",
+  "openOriginalLink": "Open Original Link",
+  "unableToOpenLink": "Unable to open the link",
+  "updates": "Updates",
+  "checkUpdates": "Check for new updates",
+  "downloads": "Downloads",
+  "downloadsSubtitle": "Download Path, Download Quality and more...",
+  "playerSettings": "Player Settings",
+  "playerSettingsSubtitle": "Stream quality, Auto Play, etc.",
+  "uiSettings": "UI Elements & Services",
+  "uiSettingsSubtitle": "Auto slide, Source Engines etc.",
+  "lastFmSettings": "Last.FM Settings",
+  "lastFmSettingsSubtitle": "API Key, Secret, and Scrobbling settings.",
+  "storage": "Storage",
+  "storageSubtitle": "Backup, Cache, History, Restore and more...",
+  "languageCountry": "Language & Country",
+  "languageCountrySubtitle": "Select your language and country.",
+  "about": "About",
+  "aboutSubtitle": "About the app, version, developer, etc.",
+  "searchLibrary": "Search library...",
+  "emptyLibraryMessage": "Your library is feeling lonely. Add some tunes to brighten it up!",
+  "noMatchesFound": "No matches found",
+  "inPlaylist": "in {playlistName}",
+  "@inPlaylist": {
+    "placeholders": {
+      "playlistName": {
+        "type": "String"
+      }
+    }
+  },
+  "artistWithEngine": "Artist - {engine}",
+  "@artistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "albumWithEngine": "Album - {engine}",
+  "@albumWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistWithEngine": "Playlist - {engine}",
+  "@playlistWithEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "noDownloads": "No Downloads",
+  "searchSongs": "Search your songs...",
+  "refreshDownloads": "Refresh Downloads",
+  "closeSearch": "Close Search",
+  "aboutTagline": "Crafting symphonies in code.",
+  "maintainer": "Maintainer",
+  "followGithub": "Follow him on GitHub",
+  "contact": "Contact",
+  "contactTooltip": "Send a business inquiry",
+  "linkedin": "Linkedin",
+  "linkedinTooltip": "Updates and creative highlights",
+  "supportMessage": "\"Enjoying Bloomee? A small tip keeps it blooming.\" 🌸",
+  "supportButton": "I'll help",
+  "supportFooter": "I want Bloomee to keep improving.",
+  "github": "GitHub",
+  "versionError": "Not able to retrieve version",
+  "home": "Home",
+  "topSongs": "Top Songs",
+  "topAlbums": "Top Albums",
+  "viewLyrics": "View Lyrics",
+  "cancel": "Cancel",
+  "ok": "OK",
+  "startAuth": "Start Auth",
+  "getSessionKey": "Get & Save Session Key",
+  "removeKeys": "Remove Keys",
+  "countryLangSettings": "Country & Language Settings",
+  "autoCheckCountry": "Auto check country",
+  "autoCheckCountrySubtitle": "Automatically check the country to your location when you open the app.",
+  "countrySubtitle": "Country to set as default for the app.",
+  "languageSubtitle": "Primary language for the app UI.",
+  "scrobbleTracks": "Scrobble Tracks",
+  "scrobbleTracksSubtitle": "Scrobble tracks to Last.FM",
+  "firstAuthLastFM": "First Authenticate Last.FM API.",
+  "lastFmInstructions": "To set API Key for Last.FM, \n1. Go to Last.FM create an account there (https://www.last.fm/).\n2. Now generate an API Key and Secret from: https://www.last.fm/api/account/create\n3. Enter the API Key and Secret below and click on 'Start Auth' to get the session key.\n4. After allowing from browser, click on 'Get and Save Session Key' to save the session key.",
+  "lastFmAuthenticated": "Hi, {username},\nLast.FM API is Authenticated.",
+  "@lastFmAuthenticated": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWelcome": "Tailor your experience",
+  "confirmSettings": "Please confirm your country and language to get started with content that fits you best.",
+  "detectedLabel": "Detected",
+  "lastFmAuthFailed": "Last.FM Authentication Failed.\n{message}\nHint: First click Start Auth and Sign-In from browser then click Get & Save Session Key button",
+  "@lastFmAuthFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
+}

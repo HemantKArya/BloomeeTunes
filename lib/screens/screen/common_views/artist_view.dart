@@ -10,6 +10,8 @@ import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
+import 'package:Bloomee/generated/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -184,7 +186,7 @@ class _ArtistViewState extends State<ArtistView> {
                                                           .play();
                                                     }
                                                   },
-                                                  label: const Text(
+                                                  label: const AutoTranslateText(
                                                     "Play",
                                                     style: Default_Theme
                                                         .secondoryTextStyleMedium,
@@ -260,12 +262,12 @@ class _ArtistViewState extends State<ArtistView> {
                       unselectedLabelColor:
                           Default_Theme.primaryColor1.withValues(alpha: 0.5),
                       indicatorColor: Default_Theme.primaryColor1,
-                      tabs: const [
+                      tabs: [
                         Tab(
-                          text: "Top Songs",
+                          child: AutoTranslateText(AppLocalizations.of(context)!.topSongs),
                         ),
                         Tab(
-                          text: "Top Albums",
+                          child: AutoTranslateText(AppLocalizations.of(context)!.topAlbums),
                         ),
                       ],
                     ),

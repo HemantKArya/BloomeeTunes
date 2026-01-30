@@ -1,3 +1,4 @@
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -90,7 +91,7 @@ class _ImporterDialogWidgetState extends State<ImporterDialogWidget> {
                           Padding(
                             padding: const EdgeInsets.only(
                                 right: 8.0, left: 8.0, top: 8),
-                            child: Text(
+                            child: AutoTranslateText(
                               message,
                               style: const TextStyle(
                                       fontSize: 16,

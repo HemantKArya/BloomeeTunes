@@ -486,6 +486,11 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
+  flutter_localizations:
+    dependency: "direct main"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -560,6 +565,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "16.2.4"
+  google_mlkit_commons:
+    dependency: transitive
+    description:
+      name: google_mlkit_commons
+      sha256: "7e9a6d6e66b44aa8cfe944bda9bc3346c52486dd890ca49e5bc98845cda40d7f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.0"
+  google_mlkit_translation:
+    dependency: "direct main"
+    description:
+      name: google_mlkit_translation
+      sha256: "826cfe74fbee8f455d987949782e1873f50d79c1f2a971848e3f8dde851290d4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.12.0"
   google_nav_bar:
     dependency: "direct main"
     description:
@@ -640,6 +661,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  intl:
+    dependency: "direct main"
+    description:
+      name: intl
+      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.20.2"
   io:
     dependency: transitive
     description:
@@ -1057,7 +1086,7 @@ packages:
     source: hosted
     version: "6.0.3"
   provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: provider
       sha256: "4e82183fa20e5ca25703ead7e05de9e4cceed1fbd1eadc1ac3cb6f565a09f272"

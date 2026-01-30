@@ -14,6 +14,11 @@ isar_version: &isar_version 3.3.0-dev.3 # define the version to be used
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  google_mlkit_translation: ^0.12.0
+  intl: any
+  provider: ^6.1.2
 
   device_info_plus: ^12.1.0
   equatable: ^2.0.7
@@ -131,6 +136,7 @@ flutter_launcher_icons:
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
+  generate: true
 
   # To add assets to your application, add an assets section, like this:
   assets:

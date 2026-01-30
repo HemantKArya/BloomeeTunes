@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/model/songModel.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -347,7 +348,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
+    return AutoTranslateText(
       title,
       style: Default_Theme.secondoryTextStyleMedium.merge(
         TextStyle(
@@ -387,7 +388,7 @@ class _InfoPill extends StatelessWidget {
             color: Default_Theme.accentColor1,
           ),
           const SizedBox(width: 8),
-          Text(
+          AutoTranslateText(
             label,
             style: Default_Theme.secondoryTextStyleMedium.merge(
               const TextStyle(
@@ -478,7 +479,7 @@ class _DetailRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AutoTranslateText(
                   label,
                   style: Default_Theme.secondoryTextStyle.merge(
                     TextStyle(
@@ -567,7 +568,7 @@ class _ActionButton extends StatelessWidget {
                     : Default_Theme.primaryColor1.withValues(alpha: 0.8),
               ),
               const SizedBox(width: 10),
-              Text(
+              AutoTranslateText(
                 label,
                 style: Default_Theme.secondoryTextStyleMedium.merge(
                   TextStyle(

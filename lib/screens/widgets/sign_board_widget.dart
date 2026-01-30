@@ -1,3 +1,4 @@
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:Bloomee/theme_data/default.dart';
 import 'package:flutter/material.dart';
 
@@ -25,7 +26,7 @@ class SignBoardWidget extends StatelessWidget {
                   size: 40,
                 ),
               ),
-              Text(
+              AutoTranslateText(
                 message,
                 textAlign: TextAlign.center,
                 style: Default_Theme.tertiaryTextStyle.merge(TextStyle(

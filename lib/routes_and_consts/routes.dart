@@ -1,3 +1,5 @@
+import 'package:Bloomee/screens/screen/onboarding_screen.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/widgets/global_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +13,7 @@ import 'package:Bloomee/screens/screen/library_views/playlist_screen.dart';
 import 'package:Bloomee/screens/screen/offline_screen.dart';
 import 'package:Bloomee/screens/screen/search_screen.dart';
 import 'package:Bloomee/screens/screen/chart/chart_view.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GlobalRoutes {
   static final globalRouterKey = GlobalKey<NavigatorState>();
@@ -18,7 +21,28 @@ class GlobalRoutes {
   static final globalRouter = GoRouter(
     initialLocation: '/Explore',
     navigatorKey: globalRouterKey,
+    redirect: (context, state) {
+      final settingsState = context.read<SettingsCubit>().state;
+      final bool isFirstLaunch = settingsState.isFirstLaunch;
+      final bool loggingIn = state.matchedLocation == '/Onboarding';
+
+      if (isFirstLaunch) {
+        return loggingIn ? null : '/Onboarding';
+      }
+
+      if (loggingIn) {
+        return '/Explore';
+      }
+
+      return null;
+    },
     routes: [
+      GoRoute(
+        name: GlobalStrConsts.onboardingScreen,
+        path: "/Onboarding",
+        parentNavigatorKey: globalRouterKey,
+        builder: (context, state) => const OnboardingScreen(),
+      ),
       GoRoute(
         name: GlobalStrConsts.playerScreen,
         path: "/MusicPlayer",

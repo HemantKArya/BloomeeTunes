@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/songModel.dart';
@@ -305,7 +306,7 @@ class _SongInfo extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 1),
-          child: Text(
+          child: AutoTranslateText(
             title,
             textAlign: TextAlign.start,
             overflow: TextOverflow.ellipsis,
@@ -313,7 +314,7 @@ class _SongInfo extends StatelessWidget {
             style: _SongCardStyles.titleStyle,
           ),
         ),
-        Text(
+        AutoTranslateText(
           subtitle,
           textAlign: TextAlign.start,
           overflow: TextOverflow.ellipsis,

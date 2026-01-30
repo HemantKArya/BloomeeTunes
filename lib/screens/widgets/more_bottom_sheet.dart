@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/screens/widgets/auto_translate_text.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -82,7 +83,7 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
+                      title: const AutoTranslateText(
                         'Play with Mix',
                         style: TextStyle(
                             color: Default_Theme.primaryColor1,
@@ -108,7 +109,7 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
+                      title: const AutoTranslateText(
                         'Play Next',
                         style: TextStyle(
                             color: Default_Theme.primaryColor1,
@@ -134,7 +135,7 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
+                      title: const AutoTranslateText(
                         'Add to Queue',
                         style: TextStyle(
                             color: Default_Theme.primaryColor1,
@@ -159,7 +160,7 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
+                title: const AutoTranslateText(
                   'Add to Favorites',
                   style: TextStyle(
                       color: Default_Theme.primaryColor1,
@@ -181,7 +182,7 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
+                title: const AutoTranslateText(
                   'Add to Playlist',
                   style: TextStyle(
                       color: Default_Theme.primaryColor1,
@@ -201,7 +202,7 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
+                title: const AutoTranslateText(
                   'Share',
                   style: TextStyle(
                       color: Default_Theme.primaryColor1,
@@ -225,7 +226,7 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
+                      title: const AutoTranslateText(
                         'Available Offline',
                         style: TextStyle(
                             color: Default_Theme.primaryColor1,
@@ -244,7 +245,7 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
+                      title: const AutoTranslateText(
                         'Download',
                         style: TextStyle(
                             color: Default_Theme.primaryColor1,
@@ -264,7 +265,7 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
+                title: const AutoTranslateText(
                   'Open original link',
                   style: TextStyle(
                       color: Default_Theme.primaryColor1,
@@ -285,7 +286,7 @@ void showMoreBottomSheet(
                     color: Default_Theme.primaryColor1,
                     size: 28,
                   ),
-                  title: const Text(
+                  title: const AutoTranslateText(
                     'Delete',
                     style: TextStyle(
                         color: Default_Theme.primaryColor1,
