@@ -47,9 +47,23 @@ Bloomee is experimental cross-platform open Source Music player designed to brin
 
 
 
-<h3 align=center>Download for Android, Windows & Linux(dev) 😍</h3>
+<h3 align=center>Download for Android, Windows & Linux 😍</h3>
 <p align="center"><a href="https://github.com/HemantKArya/BloomeeTunes/releases"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" height=40/></a>
 <a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" height=40 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
+
+### Linux Installation
+
+**Debian/Ubuntu (Recommended):**
+```bash
+# Download the .deb package from releases, then:
+sudo apt install ./bloomee_*.deb
+```
+
+**Other Linux Distributions:**
+Download and extract the ZIP archive from releases.
+
+See [Debian Packaging Guide](docs/DEBIAN_PACKAGING.md) for detailed installation instructions.
+
 </br>
 
 <h3 align="center"> Now you can support me via</h3>
