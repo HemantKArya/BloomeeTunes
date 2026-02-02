@@ -19,19 +19,29 @@ on:
     branches:
       - main
 
+# Add concurrency to prevent multiple runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build & Check
-    runs-on: windows-latest
+    runs-on: windows-2022  # Use specific version instead of windows-latest
+    timeout-minutes: 60  # Add timeout to prevent hanging
+    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # Shallow clone for faster checkout
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -47,30 +57,56 @@ jobs:
         shell: powershell
         run: |
           $vLine = Select-String -Path pubspec.yaml -Pattern '^version:\s*(\S+)' | Select-Object -First 1
-          if (-not $vLine) { Write-Error 'version not found in pubspec.yaml'; exit 1 }
+          if (-not $vLine) { 
+            Write-Error 'version not found in pubspec.yaml'
+            exit 1
+          }
           $ver = $vLine.Matches[0].Groups[1].Value.Split('+')[0]
-          echo "VERSION=$ver" >> $env:GITHUB_ENV
+          "VERSION=$ver" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Build APK
         run: flutter build apk --release --build-number ${{ github.run_number }}
 
       - name: Rename APK file
         shell: powershell
-        run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{ github.run_number }}.apk"
+        run: |
+          $oldPath = "build/app/outputs/flutter-apk/app-release.apk"
+          $newName = "bloomee_tunes_android_v$env:VERSION+${{ github.run_number }}.apk"
+          if (Test-Path $oldPath) {
+            Rename-Item -Path $oldPath -NewName $newName
+          } else {
+            Write-Error "APK file not found at $oldPath"
+            exit 1
+          }
 
       - name: Build Windows App
         run: flutter build windows --release --build-number ${{ github.run_number }}
 
       - name: Rename Windows executable
-        run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
+        shell: powershell
+        run: |
+          $oldPath = "build/windows/x64/runner/Release/bloomee.exe"
+          if (Test-Path $oldPath) {
+            Rename-Item -Path $oldPath -NewName "Bloomee.exe"
+          } else {
+            Write-Error "Windows executable not found at $oldPath"
+            exit 1
+          }
 
       - name: Create Windows ZIP
-        run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{ github.run_number }}.zip
+        shell: powershell
+        run: |
+          $sourcePath = "build/windows/x64/runner/Release/*"
+          $destPath = "build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{ github.run_number }}.zip"
+          Compress-Archive -Path $sourcePath -DestinationPath $destPath -Force
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
+        if: success()
         with:
-          name: Release
+          name: Release-${{ github.run_number }}
           path: |
             build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{ github.run_number }}.apk
             build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{ github.run_number }}.zip
+          retention-days: 30
+          compression-level: 0  # Files are already compressed
