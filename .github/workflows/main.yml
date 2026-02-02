@@ -6,8 +6,8 @@ on:
     
 
 jobs:
-    build:
-        name: Build & Release
+    build-windows-android:
+        name: Build Windows & Android
         runs-on: windows-latest
         steps:
             - name: Checkout Repository
@@ -95,19 +95,273 @@ jobs:
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
 
+    build-linux-debian:
+        name: Build Linux & Debian Package
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
+
+            - name: Set up Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                flutter-version: '3.35.4'
+                channel: stable
+                cache: true
+
+            - name: Install System Dependencies
+              run: |
+                sudo apt-get update -y
+                sudo apt-get install -y \
+                  curl git unzip xz-utils zip libglu1-mesa \
+                  ninja-build libgtk-3-dev cmake git libmpv-dev clang \
+                  dpkg-dev fakeroot lintian debhelper imagemagick
+
+            - name: Install Flutter Dependencies
+              run: flutter pub get
+
+            - name: Extract Version Information
+              run: |
+                ver=$(grep -m1 -E '^version:\s*' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+                if [ -z "$ver" ]; then 
+                  echo "Error: version not found in pubspec.yaml"
+                  exit 1
+                fi
+                
+                # Calculate adjusted build number (align with other platforms)
+                adjusted=$(( ${{ github.run_number }} + 121 ))
+                deb_version="${ver}-${adjusted}"
+                
+                echo "VERSION=$ver" >> $GITHUB_ENV
+                echo "ADJUSTED_RUN_NUMBER=$adjusted" >> $GITHUB_ENV
+                echo "DEB_VERSION=$deb_version" >> $GITHUB_ENV
+                echo "PACKAGE_NAME=bloomee" >> $GITHUB_ENV
+
+            - name: Create .env file
+              run: echo "CLIENT_ID = XXXXX\nCLIENT_SECRET = XXXX EOF" > assets/.env
+
+            - name: Build Linux App
+              run: flutter build linux --release --build-number ${{ env.ADJUSTED_RUN_NUMBER }}
+
+            - name: Create ZIP Archive
+              run: |
+                cd build/linux/x64/release/bundle
+                zip -r bloomee_tunes_linux_v${{ env.VERSION }}+${{ env.ADJUSTED_RUN_NUMBER }}.zip .
+                mv bloomee_tunes_linux_v${{ env.VERSION }}+${{ env.ADJUSTED_RUN_NUMBER }}.zip ../../../../../
+
+            - name: Build Debian Package
+              run: |
+                PKG_NAME="${{ env.PACKAGE_NAME }}"
+                DEB_VERSION="${{ env.DEB_VERSION }}"
+                BUILD_DIR="debian_package"
+                
+                mkdir -p ${BUILD_DIR}/DEBIAN
+                mkdir -p ${BUILD_DIR}/usr/bin
+                mkdir -p ${BUILD_DIR}/usr/lib/${PKG_NAME}
+                mkdir -p ${BUILD_DIR}/usr/share/applications
+                mkdir -p ${BUILD_DIR}/usr/share/icons/hicolor/{512x512,256x256,128x128}/apps
+                mkdir -p ${BUILD_DIR}/usr/share/doc/${PKG_NAME}
+                mkdir -p ${BUILD_DIR}/usr/share/metainfo
+                
+                cp -r build/linux/x64/release/bundle/* ${BUILD_DIR}/usr/lib/${PKG_NAME}/
+                
+                cat > ${BUILD_DIR}/usr/bin/${PKG_NAME} << 'EOF'
+                #!/bin/bash
+                cd /usr/lib/bloomee
+                exec ./bloomee "$@"
+                EOF
+                chmod +x ${BUILD_DIR}/usr/bin/${PKG_NAME}
+                
+                if [ -f "assets/icons/BloomeeLogo4.png" ]; then
+                  cp assets/icons/BloomeeLogo4.png ${BUILD_DIR}/usr/share/icons/hicolor/512x512/apps/${PKG_NAME}.png
+                  convert assets/icons/BloomeeLogo4.png -resize 256x256 ${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/${PKG_NAME}.png 2>/dev/null || cp assets/icons/BloomeeLogo4.png ${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/${PKG_NAME}.png
+                  convert assets/icons/BloomeeLogo4.png -resize 128x128 ${BUILD_DIR}/usr/share/icons/hicolor/128x128/apps/${PKG_NAME}.png 2>/dev/null || cp assets/icons/BloomeeLogo4.png ${BUILD_DIR}/usr/share/icons/hicolor/128x128/apps/${PKG_NAME}.png
+                fi
+                
+                cat > ${BUILD_DIR}/usr/share/applications/${PKG_NAME}.desktop << 'DESKTOP_EOF'
+                [Desktop Entry]
+                Name=Bloomee
+                Comment=Ad-free cross-platform music player
+                GenericName=Music Player
+                Exec=/usr/bin/bloomee %U
+                Icon=bloomee
+                Terminal=false
+                Type=Application
+                Categories=AudioVideo;Audio;Player;Music;
+                MimeType=audio/mpeg;audio/mp3;audio/flac;audio/ogg;audio/wav;audio/x-wav;audio/aac;audio/m4a;audio/x-m4a;
+                Keywords=music;audio;player;streaming;youtube;spotify;
+                StartupNotify=true
+                StartupWMClass=bloomee
+                DESKTOP_EOF
+                
+                cat > ${BUILD_DIR}/usr/share/metainfo/ls.bloomee.musicplayer.metainfo.xml << METAINFO_EOF
+                <?xml version="1.0" encoding="UTF-8"?>
+                <component type="desktop-application">
+                  <id>ls.bloomee.musicplayer</id>
+                  <metadata_license>CC0-1.0</metadata_license>
+                  <project_license>GPL-3.0-or-later</project_license>
+                  <name>Bloomee</name>
+                  <summary>Ad-free cross-platform music player</summary>
+                  <description>
+                    <p>Bloomee is an experimental cross-platform open source music player designed to bring you ad-free tunes from various sources.</p>
+                    <p>Features: Ad-Free Music, Time-synced Lyrics, Last.FM Scrobbling, Offline Playback, Playlist Import/Export, Sleep Timer, Global Charts, and more.</p>
+                  </description>
+                  <launchable type="desktop-id">bloomee.desktop</launchable>
+                  <url type="homepage">https://github.com/HemantKArya/BloomeeTunes</url>
+                  <url type="bugtracker">https://github.com/HemantKArya/BloomeeTunes/issues</url>
+                  <url type="donation">https://liberapay.com/hemantkarya/donate</url>
+                  <developer_name>Hemant Kumar Arya</developer_name>
+                  <releases>
+                    <release version="${DEB_VERSION}" date="$(date +%Y-%m-%d)"/>
+                  </releases>
+                  <content_rating type="oars-1.1"/>
+                </component>
+                METAINFO_EOF
+                
+                cp README.md ${BUILD_DIR}/usr/share/doc/${PKG_NAME}/
+                cp LICENSE ${BUILD_DIR}/usr/share/doc/${PKG_NAME}/copyright
+                cp CHANGELOG.md ${BUILD_DIR}/usr/share/doc/${PKG_NAME}/ 2>/dev/null || true
+                
+                INSTALLED_SIZE=$(du -sk ${BUILD_DIR}/usr | cut -f1)
+                
+                cat > ${BUILD_DIR}/DEBIAN/control << CONTROL_EOF
+                Package: ${PKG_NAME}
+                Version: ${DEB_VERSION}
+                Section: sound
+                Priority: optional
+                Architecture: amd64
+                Depends: libgtk-3-0, libmpv1 | libmpv2, libglib2.0-0, libc6
+                Recommends: libayatana-appindicator3-1
+                Maintainer: Hemant Kumar Arya <iamhemantindia@protonmail.com>
+                Homepage: https://github.com/HemantKArya/BloomeeTunes
+                Installed-Size: ${INSTALLED_SIZE}
+                Description: Ad-free cross-platform music player
+                 Bloomee is an experimental cross-platform open source music player
+                 designed to bring you ad-free tunes from various sources.
+                 .
+                 Features: Ad-Free Music, Time-synced Lyrics, Last.FM Scrobbling,
+                 Offline Playback, Playlist Import/Export, Sleep Timer, Global Charts.
+                CONTROL_EOF
+                
+                cat > ${BUILD_DIR}/DEBIAN/postinst << 'POSTINST_EOF'
+                #!/bin/bash
+                set -e
+                if [ "$1" = "configure" ]; then
+                    command -v gtk-update-icon-cache >/dev/null 2>&1 && gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor || true
+                    command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database -q /usr/share/applications || true
+                fi
+                exit 0
+                POSTINST_EOF
+                chmod +x ${BUILD_DIR}/DEBIAN/postinst
+                
+                cat > ${BUILD_DIR}/DEBIAN/postrm << 'POSTRM_EOF'
+                #!/bin/bash
+                set -e
+                if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+                    command -v gtk-update-icon-cache >/dev/null 2>&1 && gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor || true
+                    command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database -q /usr/share/applications || true
+                fi
+                exit 0
+                POSTRM_EOF
+                chmod +x ${BUILD_DIR}/DEBIAN/postrm
+                
+                dpkg-deb --build --root-owner-group debian_package
+                mv debian_package.deb ${PKG_NAME}_${DEB_VERSION}_amd64.deb
+
+            - name: Create Checksums
+              run: |
+                sha256sum ${{ env.PACKAGE_NAME }}_${{ env.DEB_VERSION }}_amd64.deb > ${{ env.PACKAGE_NAME }}_${{ env.DEB_VERSION }}_amd64.deb.sha256
+                md5sum ${{ env.PACKAGE_NAME }}_${{ env.DEB_VERSION }}_amd64.deb > ${{ env.PACKAGE_NAME }}_${{ env.DEB_VERSION }}_amd64.deb.md5
+
+            - name: Upload Linux Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: Linux-Release
+                path: |
+                  bloomee_tunes_linux_v${{ env.VERSION }}+${{ env.ADJUSTED_RUN_NUMBER }}.zip
+                  ${{ env.PACKAGE_NAME }}_${{ env.DEB_VERSION }}_amd64.deb
+                  ${{ env.PACKAGE_NAME }}_${{ env.DEB_VERSION }}_amd64.deb.sha256
+                  ${{ env.PACKAGE_NAME }}_${{ env.DEB_VERSION }}_amd64.deb.md5
+
+    create-release:
+        name: Create GitHub Release
+        needs: [build-windows-android, build-linux-debian]
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Extract version from pubspec.yaml
+              run: |
+                ver=$(grep -m1 -E '^version:\s*' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+                adjusted=$(( ${{ github.run_number }} + 121 ))
+                deb_version="${ver}-${adjusted}"
+                echo "VERSION=$ver" >> $GITHUB_ENV
+                echo "ADJUSTED_RUN_NUMBER=$adjusted" >> $GITHUB_ENV
+                echo "DEB_VERSION=$deb_version" >> $GITHUB_ENV
+
+            - name: Download Windows/Android Artifacts
+              uses: actions/download-artifact@v4
+              with:
+                name: Release
+                path: ./artifacts/windows-android
+
+            - name: Download Linux Artifacts
+              uses: actions/download-artifact@v4
+              with:
+                name: Linux-Release
+                path: ./artifacts/linux
+
             - name: Create Release
               uses: ncipollo/release-action@v1
               with:
                 artifacts: |
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
-                  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
-                  build-number.txt
+                  artifacts/windows-android/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
+                  artifacts/windows-android/build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+                  artifacts/windows-android/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
+                  artifacts/windows-android/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
+                  artifacts/windows-android/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
+                  artifacts/windows-android/build-number.txt
+                  artifacts/linux/bloomee_tunes_linux_v${{ env.VERSION }}+${{ env.ADJUSTED_RUN_NUMBER }}.zip
+                  artifacts/linux/bloomee_${{ env.DEB_VERSION }}_amd64.deb
+                  artifacts/linux/bloomee_${{ env.DEB_VERSION }}_amd64.deb.sha256
+                  artifacts/linux/bloomee_${{ env.DEB_VERSION }}_amd64.deb.md5
                   
                 tag: v${{ env.VERSION }}+${{github.run_number}}
                 token: ${{secrets.SECRET_KEY}}
                 prerelease: true
+                body: |
+                  ## Bloomee v${{ env.VERSION }}+${{github.run_number}}
+                  
+                  ### Downloads
+                  
+                  **Android:**
+                  - Universal APK (all architectures)
+                  - ARM64-v8a (64-bit ARM - recommended for modern devices)
+                  - ARMeabi-v7a (32-bit ARM - older devices)
+                  - x86_64 (Intel/AMD processors)
+                  
+                  **Windows:**
+                  - x64 ZIP archive (extract and run Bloomee.exe)
+                  
+                  **Linux:**
+                  - ZIP archive (portable)
+                  - Debian package (.deb) for Debian/Ubuntu-based distributions
+                  
+                  ### Installation
+                  
+                  **Debian/Ubuntu:**
+                  ```bash
+                  sudo dpkg -i bloomee_${{ env.DEB_VERSION }}_amd64.deb
+                  sudo apt-get install -f  # Install dependencies if needed
+                  ```
+                  
+                  **Other Linux:**
+                  Extract the ZIP and run `./bloomee`
+                  
+                  ### Checksums
+                  SHA256 and MD5 checksums are provided for the Debian package.
 
     
