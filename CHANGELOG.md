@@ -1,3 +1,25 @@
+## [Unreleased]
+
+### Added
+- **Debian Package Support**: Added production-grade Debian package (.deb) creation for Linux distributions
+  - Native installation support for Debian, Ubuntu, and derivatives
+  - Automated GitHub Actions workflow for .deb package building
+  - Desktop integration with .desktop file and AppStream metadata
+  - Multi-size icon support (512x512, 256x256, 128x128)
+  - MIME type associations for audio files
+  - Post-install/remove scripts for system integration
+  - SHA256 and MD5 checksums for package verification
+- **Enhanced Linux CI/CD**: Updated linux_ci.yml to build both ZIP and DEB packages
+- **Comprehensive Documentation**: Added detailed guides for Debian packaging and building
+  - `docs/DEBIAN_PACKAGING.md` - Complete Debian packaging documentation
+  - `docs/BUILD_GUIDE.md` - Multi-platform build instructions
+  - `docs/README.md` - Documentation index
+
+### Changed
+- **Main Release Workflow**: Split into separate jobs for Windows/Android and Linux/Debian builds
+- **Linux Build Process**: Improved build numbering alignment across all platforms
+- **README Updates**: Added Linux installation instructions with Debian package support
+
 ## [2.13.3] - 2025-12-01
 
 ### Added
