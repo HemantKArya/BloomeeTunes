@@ -1,6 +1,6 @@
 name: "Build & Check"
 
-on:
+'on':
   push:
     paths-ignore:
       - 'README.md'
@@ -27,8 +27,8 @@ concurrency:
 jobs:
   build:
     name: Build & Check
-    runs-on: windows-2022  # Use specific version instead of windows-latest
-    timeout-minutes: 60  # Add timeout to prevent hanging
+    runs-on: windows-latest  # Changed back to windows-latest for better availability
+    timeout-minutes: 60
     
     steps:
       - name: Checkout Repository
