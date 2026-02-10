@@ -80,6 +80,10 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
   @override
   void dispose() {
     ss?.cancel();
+    for (final cubit in chartCubitList) {
+      cubit.close();
+    }
+    chartCubitList.clear();
     autoSlideCharts.dispose();
     super.dispose();
   }

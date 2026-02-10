@@ -27,6 +27,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   final List<DownloadProgress> _activeDownloads = [];
   final YoutubeExplode _yt = YoutubeExplode();
   StreamSubscription? _librarySubscription;
+  final List<StreamSubscription> _taskSubscriptions = [];
   List<MediaItemModel> _downloadedSongs = [];
 
   DownloaderCubit({
@@ -92,7 +93,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
     _emitUpdatedState();
 
-    task.statusStream.listen((status) {
+    final sub = task.statusStream.listen((status) {
       final index = _activeDownloads
           .indexWhere((item) => item.task.originalUrl == task.originalUrl);
       if (index != -1) {
@@ -108,6 +109,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         _emitUpdatedState();
       }
     });
+    _taskSubscriptions.add(sub);
   }
 
   /// --- NEW: Handles saving metadata to the database after completion ---
@@ -173,9 +175,18 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       return;
     }
 
+    // Guard against missing extras/source info
+    final permaUrl = song.extras?['perma_url'];
+    if (song.extras == null || permaUrl == null) {
+      if (showSnackbar)
+        SnackbarService.showMessage(
+            "Cannot download: missing source info for ${song.title}.");
+      return;
+    }
+
     // --- NEW: Perform pre-download checks ---
     if (_activeDownloads
-        .any((item) => item.task.originalUrl == song.extras!['perma_url'])) {
+        .any((item) => item.task.originalUrl == permaUrl)) {
       if (showSnackbar)
         SnackbarService.showMessage("${song.title} is already in the queue.");
       return;
@@ -197,7 +208,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
     final placeholderTask = DownloadTask(
       url: "placeholder", // Will be filled later
-      originalUrl: song.extras!['perma_url'],
+      originalUrl: permaUrl,
       fileName: tempFileName,
       targetPath: path.join(directory.path, tempFileName),
       maxRetries: 3,
@@ -222,7 +233,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     try {
       // Update status to fetching metadata
       final index = _activeDownloads.indexWhere(
-          (item) => item.task.originalUrl == song.extras!['perma_url']);
+          (item) => item.task.originalUrl == permaUrl);
       if (index != -1) {
         _activeDownloads[index] = DownloadProgress(
           task: placeholderTask,
@@ -238,8 +249,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       String fileName;
       AudioMetadata? metadata;
 
-      if (song.extras!['source'] == 'youtube' ||
-          (song.extras!['perma_url'].toString()).contains('youtube')) {
+      if (song.extras?['source'] == 'youtube' ||
+          permaUrl.toString().contains('youtube')) {
         final video = await _yt.videos.get(song.id.replaceAll("youtube", ""));
         var manifest = await _yt.videos.streams.getManifest(video.id,
             requireWatchPage: true, ytClients: [YoutubeApiClient.androidVr]);
@@ -280,16 +291,10 @@ class DownloaderCubit extends Cubit<DownloaderState> {
           duration: song.duration,
         );
       } else {
-        downloadUrl = song.extras!['url'];
-        final quality =
-            await BloomeeDBService.getSettingStr(GlobalStrConsts.downQuality);
-        if (quality == "High") {
-          downloadUrl =
-              (await getJsQualityURL(downloadUrl, isStreaming: false))!;
-        } else {
-          downloadUrl =
-              (await getJsQualityURL(downloadUrl, isStreaming: false))!;
-        }
+        downloadUrl = song.extras?['url'] ?? '';
+        // getJsQualityURL reads the download quality setting internally
+        downloadUrl =
+            (await getJsQualityURL(downloadUrl, isStreaming: false))!;
         final sanitizedTitle =
             song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
         fileName = '$sanitizedTitle by ${song.artist} - ${song.id}.m4a';
@@ -303,11 +308,11 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
       // Remove the placeholder from active downloads before adding the real task
       _activeDownloads.removeWhere(
-          (item) => item.task.originalUrl == song.extras!['perma_url']);
+          (item) => item.task.originalUrl == permaUrl);
 
       _downloadEngine.addDownload(
         url: downloadUrl,
-        originalUrl: song.extras!['perma_url'],
+        originalUrl: permaUrl,
         directory: directory.path,
         fileName: fileName,
         maxRetries: 3,
@@ -323,7 +328,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
       // Remove the placeholder on error
       _activeDownloads.removeWhere(
-          (item) => item.task.originalUrl == song.extras!['perma_url']);
+          (item) => item.task.originalUrl == permaUrl);
       _emitUpdatedState();
 
       if (showSnackbar)
@@ -334,6 +339,10 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   @override
   Future<void> close() {
     _librarySubscription?.cancel();
+    for (final sub in _taskSubscriptions) {
+      sub.cancel();
+    }
+    _taskSubscriptions.clear();
     _yt.close();
     return super.close();
   }

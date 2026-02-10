@@ -108,7 +108,6 @@ class ChartCubit extends Cubit<ChartState> {
 
   @override
   Future<void> close() {
-    fetchChartCubit.close();
     strm?.cancel();
     return super.close();
   }

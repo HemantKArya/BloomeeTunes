@@ -148,7 +148,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   // Initialize the player
   // This widget is the root of your application.
-  late StreamSubscription _intentSub;
+  StreamSubscription? _intentSub;
   SharedMedia? sharedMedia;
   @override
   void initState() {
@@ -184,7 +184,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    _intentSub.cancel();
+    _intentSub?.cancel();
     bloomeePlayerCubit.close();
     if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
       DiscordService.clearPresence();

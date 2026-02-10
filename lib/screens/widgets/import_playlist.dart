@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/theme_data/default.dart';
@@ -16,9 +17,11 @@ class _ImporterDialogWidgetState extends State<ImporterDialogWidget> {
   String message = "";
   bool isCompleted = false;
   bool isFailed = false;
+  StreamSubscription<ImporterState>? _subscription;
   @override
   void initState() {
-    widget.strm.listen((event) async {
+    _subscription = widget.strm.listen((event) async {
+      if (!mounted) return;
       setState(() {
         message = event.message;
       });
@@ -39,6 +42,12 @@ class _ImporterDialogWidgetState extends State<ImporterDialogWidget> {
       }
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   @override

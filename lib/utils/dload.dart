@@ -264,7 +264,8 @@ class DownloadEngine {
           await fileSink.close();
           sendPort.send('done');
         },
-        onError: (e) {
+        onError: (e) async {
+          await fileSink.close();
           sendPort.send('Error: ${e.toString()}');
         },
         cancelOnError: true,
