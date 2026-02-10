@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/MediaPlaylistModel.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/widgets/album_card.dart';
 import 'package:Bloomee/screens/widgets/artist_card.dart';
@@ -393,8 +394,12 @@ class _SearchScreenState extends State<SearchScreen> {
                                             context
                                                 .read<BloomeePlayerCubit>()
                                                 .bloomeePlayer
-                                                .updateQueue(
-                                              [state.mediaItems[index]],
+                                                .loadPlaylist(
+                                              MediaPlaylist(
+                                                mediaItems: state.mediaItems,
+                                                playlistName: "Search Results",
+                                              ),
+                                              idx: index,
                                               doPlay: true,
                                             );
                                           },

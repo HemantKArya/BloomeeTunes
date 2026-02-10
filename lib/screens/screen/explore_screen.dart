@@ -117,15 +117,25 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   },
                                   child: TabSongListWidget(
                                     list:
-                                        state.mediaPlaylist.mediaItems.map((e) {
+                                        state.mediaPlaylist.mediaItems
+                                            .asMap()
+                                            .entries
+                                            .map((entry) {
+                                      final idx = entry.key;
+                                      final e = entry.value;
                                       return SongCardWidget(
                                         song: e,
                                         onTap: () {
                                           context
                                               .read<BloomeePlayerCubit>()
                                               .bloomeePlayer
-                                              .updateQueue(
-                                            [e],
+                                              .loadPlaylist(
+                                            MediaPlaylist(
+                                              mediaItems: state
+                                                  .mediaPlaylist.mediaItems,
+                                              playlistName: "Recently Played",
+                                            ),
+                                            idx: idx,
                                             doPlay: true,
                                           );
                                         },
