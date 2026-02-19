@@ -3,82 +3,615 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'api/simple.dart';
+import 'api/bridge.dart';
+import 'api/plugin/commands.dart';
+import 'api/plugin/events.dart';
+import 'api/plugin/manifest.dart';
+import 'api/plugin/models.dart';
+import 'api/plugin/plugin.dart';
+import 'api/plugin/plugin_info.dart';
+import 'api/plugin/traits.dart';
+import 'api/plugin/types.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 
-abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-  RustLibApiImplPlatform({
-    required super.handler,
-    required super.wire,
-    required super.generalizedFrbRustBinding,
-    required super.portManager,
-  });
 
-  @protected
-  String dco_decode_String(dynamic raw);
 
-  @protected
-  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
-  @protected
-  int dco_decode_u_8(dynamic raw);
+                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+                  RustLibApiImplPlatform({
+                    required super.handler,
+                    required super.wire,
+                    required super.generalizedFrbRustBinding,
+                    required super.portManager,
+                  });
 
-  @protected
-  void dco_decode_unit(dynamic raw);
+                  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_PluginInfoPtr => wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfoPtr;
 
-  @protected
-  String sse_decode_String(SseDeserializer deserializer);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_PluginManagerPtr => wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManagerPtr;
 
-  @protected
-  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_u_8(SseDeserializer deserializer);
 
-  @protected
-  void sse_decode_unit(SseDeserializer deserializer);
+                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw);
 
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
+@protected PluginInfo dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw);
 
-  @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
+@protected PluginManager dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(dynamic raw);
 
-  @protected
-  void sse_encode_String(String self, SseSerializer serializer);
+@protected PluginInfo dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw);
 
-  @protected
-  void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer);
+@protected PluginManager dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(dynamic raw);
 
-  @protected
-  void sse_encode_u_8(int self, SseSerializer serializer);
+@protected PluginInfo dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw);
 
-  @protected
-  void sse_encode_unit(void self, SseSerializer serializer);
+@protected PluginManager dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(dynamic raw);
 
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
+@protected PluginInfo dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw);
 
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
-}
+@protected PluginManager dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(dynamic raw);
+
+@protected RustStreamSink<PluginManagerEvent> dco_decode_StreamSink_plugin_manager_event_Sse(dynamic raw);
+
+@protected String dco_decode_String(dynamic raw);
+
+@protected Plugin dco_decode_TraitDef_Plugin(dynamic raw);
+
+@protected PluginAdapter dco_decode_TraitDef_PluginAdapter(dynamic raw);
+
+@protected AlbumDetails dco_decode_album_details(dynamic raw);
+
+@protected AlbumSummary dco_decode_album_summary(dynamic raw);
+
+@protected ArtistDetails dco_decode_artist_details(dynamic raw);
+
+@protected ArtistSummary dco_decode_artist_summary(dynamic raw);
+
+@protected Artwork dco_decode_artwork(dynamic raw);
+
+@protected bool dco_decode_bool(dynamic raw);
+
+@protected PluginInfo dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw);
+
+@protected AlbumDetails dco_decode_box_autoadd_album_details(dynamic raw);
+
+@protected AlbumSummary dco_decode_box_autoadd_album_summary(dynamic raw);
+
+@protected ArtistDetails dco_decode_box_autoadd_artist_details(dynamic raw);
+
+@protected ArtistSummary dco_decode_box_autoadd_artist_summary(dynamic raw);
+
+@protected ChartProviderCommand dco_decode_box_autoadd_chart_provider_command(dynamic raw);
+
+@protected ContentResolverCommand dco_decode_box_autoadd_content_resolver_command(dynamic raw);
+
+@protected Lyrics dco_decode_box_autoadd_lyrics(dynamic raw);
+
+@protected PagedAlbums dco_decode_box_autoadd_paged_albums(dynamic raw);
+
+@protected PagedMediaItems dco_decode_box_autoadd_paged_media_items(dynamic raw);
+
+@protected PagedTracks dco_decode_box_autoadd_paged_tracks(dynamic raw);
+
+@protected PlaylistDetails dco_decode_box_autoadd_playlist_details(dynamic raw);
+
+@protected PlaylistSummary dco_decode_box_autoadd_playlist_summary(dynamic raw);
+
+@protected PluginRequest dco_decode_box_autoadd_plugin_request(dynamic raw);
+
+@protected PluginType dco_decode_box_autoadd_plugin_type(dynamic raw);
+
+@protected Track dco_decode_box_autoadd_track(dynamic raw);
+
+@protected int dco_decode_box_autoadd_u_32(dynamic raw);
+
+@protected BigInt dco_decode_box_autoadd_u_64(dynamic raw);
+
+@protected CardType dco_decode_card_type(dynamic raw);
+
+@protected ChartItem dco_decode_chart_item(dynamic raw);
+
+@protected ChartProviderCommand dco_decode_chart_provider_command(dynamic raw);
+
+@protected ChartSummary dco_decode_chart_summary(dynamic raw);
+
+@protected ContentResolverCommand dco_decode_content_resolver_command(dynamic raw);
+
+@protected ContentSearchFilter dco_decode_content_search_filter(dynamic raw);
+
+@protected int dco_decode_i_32(dynamic raw);
+
+@protected ImageLayout dco_decode_image_layout(dynamic raw);
+
+@protected List<PluginInfo> dco_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw);
+
+@protected List<String> dco_decode_list_String(dynamic raw);
+
+@protected List<AlbumSummary> dco_decode_list_album_summary(dynamic raw);
+
+@protected List<ArtistSummary> dco_decode_list_artist_summary(dynamic raw);
+
+@protected List<Artwork> dco_decode_list_artwork(dynamic raw);
+
+@protected List<ChartItem> dco_decode_list_chart_item(dynamic raw);
+
+@protected List<ChartSummary> dco_decode_list_chart_summary(dynamic raw);
+
+@protected List<MediaItem> dco_decode_list_media_item(dynamic raw);
+
+@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+@protected List<Section> dco_decode_list_section(dynamic raw);
+
+@protected List<Track> dco_decode_list_track(dynamic raw);
+
+@protected Lyrics dco_decode_lyrics(dynamic raw);
+
+@protected Manifest dco_decode_manifest(dynamic raw);
+
+@protected MediaItem dco_decode_media_item(dynamic raw);
+
+@protected MetadataResult dco_decode_metadata_result(dynamic raw);
+
+@protected String? dco_decode_opt_String(dynamic raw);
+
+@protected PluginInfo? dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw);
+
+@protected AlbumSummary? dco_decode_opt_box_autoadd_album_summary(dynamic raw);
+
+@protected Lyrics? dco_decode_opt_box_autoadd_lyrics(dynamic raw);
+
+@protected PluginType? dco_decode_opt_box_autoadd_plugin_type(dynamic raw);
+
+@protected int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+@protected BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+@protected PagedAlbums dco_decode_paged_albums(dynamic raw);
+
+@protected PagedMediaItems dco_decode_paged_media_items(dynamic raw);
+
+@protected PagedTracks dco_decode_paged_tracks(dynamic raw);
+
+@protected PlaylistDetails dco_decode_playlist_details(dynamic raw);
+
+@protected PlaylistSummary dco_decode_playlist_summary(dynamic raw);
+
+@protected PluginInstallResult dco_decode_plugin_install_result(dynamic raw);
+
+@protected PluginInstallStatus dco_decode_plugin_install_status(dynamic raw);
+
+@protected PluginManagerEvent dco_decode_plugin_manager_event(dynamic raw);
+
+@protected PluginPublisher dco_decode_plugin_publisher(dynamic raw);
+
+@protected PluginRequest dco_decode_plugin_request(dynamic raw);
+
+@protected PluginResponse dco_decode_plugin_response(dynamic raw);
+
+@protected PluginType dco_decode_plugin_type(dynamic raw);
+
+@protected Section dco_decode_section(dynamic raw);
+
+@protected Track dco_decode_track(dynamic raw);
+
+@protected Trend dco_decode_trend(dynamic raw);
+
+@protected int dco_decode_u_32(dynamic raw);
+
+@protected BigInt dco_decode_u_64(dynamic raw);
+
+@protected int dco_decode_u_8(dynamic raw);
+
+@protected void dco_decode_unit(dynamic raw);
+
+@protected BigInt dco_decode_usize(dynamic raw);
+
+@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+@protected PluginInfo sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer);
+
+@protected PluginManager sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(SseDeserializer deserializer);
+
+@protected PluginInfo sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer);
+
+@protected PluginManager sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(SseDeserializer deserializer);
+
+@protected PluginInfo sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer);
+
+@protected PluginManager sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(SseDeserializer deserializer);
+
+@protected PluginInfo sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer);
+
+@protected PluginManager sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(SseDeserializer deserializer);
+
+@protected RustStreamSink<PluginManagerEvent> sse_decode_StreamSink_plugin_manager_event_Sse(SseDeserializer deserializer);
+
+@protected String sse_decode_String(SseDeserializer deserializer);
+
+@protected AlbumDetails sse_decode_album_details(SseDeserializer deserializer);
+
+@protected AlbumSummary sse_decode_album_summary(SseDeserializer deserializer);
+
+@protected ArtistDetails sse_decode_artist_details(SseDeserializer deserializer);
+
+@protected ArtistSummary sse_decode_artist_summary(SseDeserializer deserializer);
+
+@protected Artwork sse_decode_artwork(SseDeserializer deserializer);
+
+@protected bool sse_decode_bool(SseDeserializer deserializer);
+
+@protected PluginInfo sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer);
+
+@protected AlbumDetails sse_decode_box_autoadd_album_details(SseDeserializer deserializer);
+
+@protected AlbumSummary sse_decode_box_autoadd_album_summary(SseDeserializer deserializer);
+
+@protected ArtistDetails sse_decode_box_autoadd_artist_details(SseDeserializer deserializer);
+
+@protected ArtistSummary sse_decode_box_autoadd_artist_summary(SseDeserializer deserializer);
+
+@protected ChartProviderCommand sse_decode_box_autoadd_chart_provider_command(SseDeserializer deserializer);
+
+@protected ContentResolverCommand sse_decode_box_autoadd_content_resolver_command(SseDeserializer deserializer);
+
+@protected Lyrics sse_decode_box_autoadd_lyrics(SseDeserializer deserializer);
+
+@protected PagedAlbums sse_decode_box_autoadd_paged_albums(SseDeserializer deserializer);
+
+@protected PagedMediaItems sse_decode_box_autoadd_paged_media_items(SseDeserializer deserializer);
+
+@protected PagedTracks sse_decode_box_autoadd_paged_tracks(SseDeserializer deserializer);
+
+@protected PlaylistDetails sse_decode_box_autoadd_playlist_details(SseDeserializer deserializer);
+
+@protected PlaylistSummary sse_decode_box_autoadd_playlist_summary(SseDeserializer deserializer);
+
+@protected PluginRequest sse_decode_box_autoadd_plugin_request(SseDeserializer deserializer);
+
+@protected PluginType sse_decode_box_autoadd_plugin_type(SseDeserializer deserializer);
+
+@protected Track sse_decode_box_autoadd_track(SseDeserializer deserializer);
+
+@protected int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+@protected BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
+
+@protected CardType sse_decode_card_type(SseDeserializer deserializer);
+
+@protected ChartItem sse_decode_chart_item(SseDeserializer deserializer);
+
+@protected ChartProviderCommand sse_decode_chart_provider_command(SseDeserializer deserializer);
+
+@protected ChartSummary sse_decode_chart_summary(SseDeserializer deserializer);
+
+@protected ContentResolverCommand sse_decode_content_resolver_command(SseDeserializer deserializer);
+
+@protected ContentSearchFilter sse_decode_content_search_filter(SseDeserializer deserializer);
+
+@protected int sse_decode_i_32(SseDeserializer deserializer);
+
+@protected ImageLayout sse_decode_image_layout(SseDeserializer deserializer);
+
+@protected List<PluginInfo> sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer);
+
+@protected List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+@protected List<AlbumSummary> sse_decode_list_album_summary(SseDeserializer deserializer);
+
+@protected List<ArtistSummary> sse_decode_list_artist_summary(SseDeserializer deserializer);
+
+@protected List<Artwork> sse_decode_list_artwork(SseDeserializer deserializer);
+
+@protected List<ChartItem> sse_decode_list_chart_item(SseDeserializer deserializer);
+
+@protected List<ChartSummary> sse_decode_list_chart_summary(SseDeserializer deserializer);
+
+@protected List<MediaItem> sse_decode_list_media_item(SseDeserializer deserializer);
+
+@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+@protected List<Section> sse_decode_list_section(SseDeserializer deserializer);
+
+@protected List<Track> sse_decode_list_track(SseDeserializer deserializer);
+
+@protected Lyrics sse_decode_lyrics(SseDeserializer deserializer);
+
+@protected Manifest sse_decode_manifest(SseDeserializer deserializer);
+
+@protected MediaItem sse_decode_media_item(SseDeserializer deserializer);
+
+@protected MetadataResult sse_decode_metadata_result(SseDeserializer deserializer);
+
+@protected String? sse_decode_opt_String(SseDeserializer deserializer);
+
+@protected PluginInfo? sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer);
+
+@protected AlbumSummary? sse_decode_opt_box_autoadd_album_summary(SseDeserializer deserializer);
+
+@protected Lyrics? sse_decode_opt_box_autoadd_lyrics(SseDeserializer deserializer);
+
+@protected PluginType? sse_decode_opt_box_autoadd_plugin_type(SseDeserializer deserializer);
+
+@protected int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+@protected BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+@protected PagedAlbums sse_decode_paged_albums(SseDeserializer deserializer);
+
+@protected PagedMediaItems sse_decode_paged_media_items(SseDeserializer deserializer);
+
+@protected PagedTracks sse_decode_paged_tracks(SseDeserializer deserializer);
+
+@protected PlaylistDetails sse_decode_playlist_details(SseDeserializer deserializer);
+
+@protected PlaylistSummary sse_decode_playlist_summary(SseDeserializer deserializer);
+
+@protected PluginInstallResult sse_decode_plugin_install_result(SseDeserializer deserializer);
+
+@protected PluginInstallStatus sse_decode_plugin_install_status(SseDeserializer deserializer);
+
+@protected PluginManagerEvent sse_decode_plugin_manager_event(SseDeserializer deserializer);
+
+@protected PluginPublisher sse_decode_plugin_publisher(SseDeserializer deserializer);
+
+@protected PluginRequest sse_decode_plugin_request(SseDeserializer deserializer);
+
+@protected PluginResponse sse_decode_plugin_response(SseDeserializer deserializer);
+
+@protected PluginType sse_decode_plugin_type(SseDeserializer deserializer);
+
+@protected Section sse_decode_section(SseDeserializer deserializer);
+
+@protected Track sse_decode_track(SseDeserializer deserializer);
+
+@protected Trend sse_decode_trend(SseDeserializer deserializer);
+
+@protected int sse_decode_u_32(SseDeserializer deserializer);
+
+@protected BigInt sse_decode_u_64(SseDeserializer deserializer);
+
+@protected int sse_decode_u_8(SseDeserializer deserializer);
+
+@protected void sse_decode_unit(SseDeserializer deserializer);
+
+@protected BigInt sse_decode_usize(SseDeserializer deserializer);
+
+@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(PluginManager self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(PluginManager self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(PluginManager self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(PluginManager self, SseSerializer serializer);
+
+@protected void sse_encode_StreamSink_plugin_manager_event_Sse(RustStreamSink<PluginManagerEvent> self, SseSerializer serializer);
+
+@protected void sse_encode_String(String self, SseSerializer serializer);
+
+@protected void sse_encode_album_details(AlbumDetails self, SseSerializer serializer);
+
+@protected void sse_encode_album_summary(AlbumSummary self, SseSerializer serializer);
+
+@protected void sse_encode_artist_details(ArtistDetails self, SseSerializer serializer);
+
+@protected void sse_encode_artist_summary(ArtistSummary self, SseSerializer serializer);
+
+@protected void sse_encode_artwork(Artwork self, SseSerializer serializer);
+
+@protected void sse_encode_bool(bool self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_album_details(AlbumDetails self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_album_summary(AlbumSummary self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_artist_details(ArtistDetails self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_artist_summary(ArtistSummary self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_chart_provider_command(ChartProviderCommand self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_content_resolver_command(ContentResolverCommand self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_lyrics(Lyrics self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_paged_albums(PagedAlbums self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_paged_media_items(PagedMediaItems self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_paged_tracks(PagedTracks self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_playlist_details(PlaylistDetails self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_playlist_summary(PlaylistSummary self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_plugin_request(PluginRequest self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_plugin_type(PluginType self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_track(Track self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
+
+@protected void sse_encode_card_type(CardType self, SseSerializer serializer);
+
+@protected void sse_encode_chart_item(ChartItem self, SseSerializer serializer);
+
+@protected void sse_encode_chart_provider_command(ChartProviderCommand self, SseSerializer serializer);
+
+@protected void sse_encode_chart_summary(ChartSummary self, SseSerializer serializer);
+
+@protected void sse_encode_content_resolver_command(ContentResolverCommand self, SseSerializer serializer);
+
+@protected void sse_encode_content_search_filter(ContentSearchFilter self, SseSerializer serializer);
+
+@protected void sse_encode_i_32(int self, SseSerializer serializer);
+
+@protected void sse_encode_image_layout(ImageLayout self, SseSerializer serializer);
+
+@protected void sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(List<PluginInfo> self, SseSerializer serializer);
+
+@protected void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+@protected void sse_encode_list_album_summary(List<AlbumSummary> self, SseSerializer serializer);
+
+@protected void sse_encode_list_artist_summary(List<ArtistSummary> self, SseSerializer serializer);
+
+@protected void sse_encode_list_artwork(List<Artwork> self, SseSerializer serializer);
+
+@protected void sse_encode_list_chart_item(List<ChartItem> self, SseSerializer serializer);
+
+@protected void sse_encode_list_chart_summary(List<ChartSummary> self, SseSerializer serializer);
+
+@protected void sse_encode_list_media_item(List<MediaItem> self, SseSerializer serializer);
+
+@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
+
+@protected void sse_encode_list_section(List<Section> self, SseSerializer serializer);
+
+@protected void sse_encode_list_track(List<Track> self, SseSerializer serializer);
+
+@protected void sse_encode_lyrics(Lyrics self, SseSerializer serializer);
+
+@protected void sse_encode_manifest(Manifest self, SseSerializer serializer);
+
+@protected void sse_encode_media_item(MediaItem self, SseSerializer serializer);
+
+@protected void sse_encode_metadata_result(MetadataResult self, SseSerializer serializer);
+
+@protected void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_album_summary(AlbumSummary? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_lyrics(Lyrics? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_plugin_type(PluginType? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
+
+@protected void sse_encode_paged_albums(PagedAlbums self, SseSerializer serializer);
+
+@protected void sse_encode_paged_media_items(PagedMediaItems self, SseSerializer serializer);
+
+@protected void sse_encode_paged_tracks(PagedTracks self, SseSerializer serializer);
+
+@protected void sse_encode_playlist_details(PlaylistDetails self, SseSerializer serializer);
+
+@protected void sse_encode_playlist_summary(PlaylistSummary self, SseSerializer serializer);
+
+@protected void sse_encode_plugin_install_result(PluginInstallResult self, SseSerializer serializer);
+
+@protected void sse_encode_plugin_install_status(PluginInstallStatus self, SseSerializer serializer);
+
+@protected void sse_encode_plugin_manager_event(PluginManagerEvent self, SseSerializer serializer);
+
+@protected void sse_encode_plugin_publisher(PluginPublisher self, SseSerializer serializer);
+
+@protected void sse_encode_plugin_request(PluginRequest self, SseSerializer serializer);
+
+@protected void sse_encode_plugin_response(PluginResponse self, SseSerializer serializer);
+
+@protected void sse_encode_plugin_type(PluginType self, SseSerializer serializer);
+
+@protected void sse_encode_section(Section self, SseSerializer serializer);
+
+@protected void sse_encode_track(Track self, SseSerializer serializer);
+
+@protected void sse_encode_trend(Trend self, SseSerializer serializer);
+
+@protected void sse_encode_u_32(int self, SseSerializer serializer);
+
+@protected void sse_encode_u_64(BigInt self, SseSerializer serializer);
+
+@protected void sse_encode_u_8(int self, SseSerializer serializer);
+
+@protected void sse_encode_unit(void self, SseSerializer serializer);
+
+@protected void sse_encode_usize(BigInt self, SseSerializer serializer);
+                }
+                
+
 
 // Section: wire_class
 
-class RustLibWire implements BaseWire {
-  factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
-      RustLibWire(lib.ffiDynamicLibrary);
 
-  /// Holds the symbol lookup function.
-  final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-      _lookup;
+        class RustLibWire implements BaseWire {
 
-  /// The symbols are looked up in [dynamicLibrary].
-  RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-      : _lookup = dynamicLibrary.lookup;
-}
+            factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
+              RustLibWire(lib.ffiDynamicLibrary);
+        
+            /// Holds the symbol lookup function.
+            final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
+                _lookup;
+  
+            /// The symbols are looked up in [dynamicLibrary].
+            RustLibWire(ffi.DynamicLibrary dynamicLibrary)
+                : _lookup = dynamicLibrary.lookup;
+
+            
+            void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+                ptr,
+              );
+            }
+
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfoPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_Bloomee_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo');
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo = _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfoPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+            void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+                ptr,
+              );
+            }
+
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfoPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_Bloomee_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo');
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo = _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfoPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+            void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+                ptr,
+              );
+            }
+
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManagerPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_Bloomee_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager');
+            late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager = _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManagerPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+            void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+              ffi.Pointer<ffi.Void> ptr,
+            ) {
+              return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+                ptr,
+              );
+            }
+
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManagerPtr = _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>('frbgen_Bloomee_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager');
+            late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager = _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManagerPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+            
+        }
+        
