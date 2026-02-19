@@ -11,7 +11,7 @@
 .buildlog/
 .history
 .svn/
-
+refcode/
 # IntelliJ related
 *.iml
 *.ipr
