@@ -6,10 +6,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 2.13.3+0
 
 environment:
-  sdk: '>=3.0.6 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 
 # isar version for community fork of isar (temporary)
-isar_version: &isar_version 3.3.0-dev.3 # define the version to be used
+isar_version: &isar_version 3.3.0-dev.3 
 
 dependencies:
   flutter:
@@ -76,6 +76,9 @@ dependencies:
   media_kit_libs_windows_audio: any
   # media_kit_libs_android_audio: any
   audio_service_win: ^0.0.2
+  rust_lib_Bloomee:
+    path: rust_builder
+  flutter_rust_bridge: 2.11.1
 
   
 
@@ -93,6 +96,8 @@ dev_dependencies:
     
   build_runner: any
   flutter_launcher_icons: ^0.14.4
+  integration_test:
+    sdk: flutter
   # icons_launcher: ^2.1.7
 
 
