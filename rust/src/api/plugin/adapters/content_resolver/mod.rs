@@ -245,11 +245,27 @@ impl Plugin for ContentResolverPluginAdapter {
                     let func =
                         exports_data_source::get_get_streams(&state.instance, &mut state.store)
                             .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?;
-                    let _result = func
+                    let result = func
                         .call(&mut state.store, id)
                         .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?
                         .map_err(|e| PluginError::WasmExecutionError(e))?;
-                    Ok(PluginResponse::Ack) // TODO: Implement proper stream handling
+                    // Convert Vec<StreamSource> → Vec<Track> with stream URLs
+                    let tracks: Vec<Track> = result
+                        .into_iter()
+                        .enumerate()
+                        .map(|(i, s)| Track {
+                            id: format!("stream_{}", i),
+                            title: format!("{:?} {}", s.quality, s.format),
+                            artists: vec![],
+                            album: None,
+                            duration_ms: None,
+                            thumbnails: vec![],
+                            url: Some(s.url),
+                            is_explicit: false,
+                            lyrics: None,
+                        })
+                        .collect();
+                    Ok(PluginResponse::Streams(tracks))
                 }
                 ContentResolverCommand::Search {
                     query,
