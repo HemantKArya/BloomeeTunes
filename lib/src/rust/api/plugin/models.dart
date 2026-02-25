@@ -178,7 +178,6 @@ class ChartItem {
   final int rank;
   final Trend trend;
   final int? change;
-  final int? previousRank;
   final int? peakRank;
   final int? weeksOnChart;
 
@@ -187,7 +186,6 @@ class ChartItem {
     required this.rank,
     required this.trend,
     this.change,
-    this.previousRank,
     this.peakRank,
     this.weeksOnChart,
   });
@@ -198,7 +196,6 @@ class ChartItem {
       rank.hashCode ^
       trend.hashCode ^
       change.hashCode ^
-      previousRank.hashCode ^
       peakRank.hashCode ^
       weeksOnChart.hashCode;
 
@@ -211,7 +208,6 @@ class ChartItem {
           rank == other.rank &&
           trend == other.trend &&
           change == other.change &&
-          previousRank == other.previousRank &&
           peakRank == other.peakRank &&
           weeksOnChart == other.weeksOnChart;
 }
@@ -220,27 +216,18 @@ class ChartSummary {
   final String id;
   final String title;
   final String? description;
-  final List<Artwork> thumbnails;
-  final String? updatedAt;
-  final String? period;
+  final Artwork? thumbnail;
 
   const ChartSummary({
     required this.id,
     required this.title,
     this.description,
-    required this.thumbnails,
-    this.updatedAt,
-    this.period,
+    this.thumbnail,
   });
 
   @override
   int get hashCode =>
-      id.hashCode ^
-      title.hashCode ^
-      description.hashCode ^
-      thumbnails.hashCode ^
-      updatedAt.hashCode ^
-      period.hashCode;
+      id.hashCode ^ title.hashCode ^ description.hashCode ^ thumbnail.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -250,9 +237,7 @@ class ChartSummary {
           id == other.id &&
           title == other.title &&
           description == other.description &&
-          thumbnails == other.thumbnails &&
-          updatedAt == other.updatedAt &&
-          period == other.period;
+          thumbnail == other.thumbnail;
 }
 
 enum ImageLayout {

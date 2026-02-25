@@ -170,9 +170,7 @@ pub struct ChartSummary {
     pub id: String,
     pub title: String,
     pub description: Option<String>,
-    pub thumbnails: Vec<Artwork>,
-    pub updated_at: Option<String>,
-    pub period: Option<String>,
+    pub thumbnail: Option<Artwork>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -190,7 +188,6 @@ pub struct ChartItem {
     pub rank: u32,
     pub trend: Trend,
     pub change: Option<u32>,
-    pub previous_rank: Option<u32>,
     pub peak_rank: Option<u32>,
     pub weeks_on_chart: Option<u32>,
 }

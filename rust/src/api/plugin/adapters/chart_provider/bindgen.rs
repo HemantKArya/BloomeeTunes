@@ -234,69 +234,11 @@ impl UnaryComponentType for RequestOptions {}
 
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ImageLayout {
-    Square,
-    Portrait,
-    Landscape,
-    Banner,
-    Circular,
-}
-
-impl ComponentType for ImageLayout {
-    fn ty() -> ValueType {
-        ValueType::Enum(EnumType::new(None, [
-            "square",
-            "portrait",
-            "landscape",
-            "banner",
-            "circular",
-        ]).unwrap())
-    }
-
-    fn from_value(value: &Value) -> Result<Self> {
-        if let Value::Enum(enum_val) = value {
-            let discriminant = enum_val.discriminant();
-            match discriminant {
-                0 => Ok(ImageLayout::Square),
-                1 => Ok(ImageLayout::Portrait),
-                2 => Ok(ImageLayout::Landscape),
-                3 => Ok(ImageLayout::Banner),
-                4 => Ok(ImageLayout::Circular),
-                _ => bail!("Invalid enum discriminant: {}", discriminant),
-            }
-        } else {
-            bail!("Expected Enum value")
-        }
-    }
-
-    fn into_value(self) -> Result<Value> {
-        let enum_type = EnumType::new(None, [
-            "square",
-            "portrait",
-            "landscape",
-            "banner",
-            "circular",
-        ]).unwrap();
-
-        let discriminant = match self {
-            ImageLayout::Square => 0,
-            ImageLayout::Portrait => 1,
-            ImageLayout::Landscape => 2,
-            ImageLayout::Banner => 3,
-            ImageLayout::Circular => 4,
-        };
-
-        Ok(Value::Enum(Enum::new(enum_type, discriminant)?))
-    }
-}
-
-impl UnaryComponentType for ImageLayout {}
-
 #[derive(Debug, Clone)]
 pub struct Artwork {
     pub url: String,
-    pub layout: ImageLayout,
+    pub url_low: Option<String>,
+    pub url_high: Option<String>,
 }
 
 impl ComponentType for Artwork {
@@ -306,7 +248,8 @@ impl ComponentType for Artwork {
                 None,
                 [
                     ("url", ValueType::String),
-                    ("layout", ImageLayout::ty()),
+                    ("url-low", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("url-high", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
             ).unwrap(),
         )
@@ -317,16 +260,21 @@ impl ComponentType for Artwork {
             let url = record
                 .field("url")
                 .ok_or_else(|| anyhow!("Missing 'url' field"))?;
-            let layout = record
-                .field("layout")
-                .ok_or_else(|| anyhow!("Missing 'layout' field"))?;
+            let url_low = record
+                .field("url-low")
+                .ok_or_else(|| anyhow!("Missing 'url-low' field"))?;
+            let url_high = record
+                .field("url-high")
+                .ok_or_else(|| anyhow!("Missing 'url-high' field"))?;
 
             let url = if let Value::String(s) = url { s.to_string() } else { bail!("Expected string") };
-            let layout = ImageLayout::from_value(&layout)?;
+            let url_low = Option::<String>::from_value(&url_low)?;
+            let url_high = Option::<String>::from_value(&url_high)?;
 
             Ok(Artwork {
                 url,
-                layout,
+                url_low,
+                url_high,
             })
         } else {
             bail!("Expected Record value")
@@ -339,12 +287,14 @@ impl ComponentType for Artwork {
                 None,
                 [
                     ("url", ValueType::String),
-                    ("layout", ImageLayout::ty()),
+                    ("url-low", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("url-high", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
             ).unwrap(),
             [
                 ("url", Value::String(self.url.into())),
-                ("layout", self.layout.into_value()?),
+                ("url-low", self.url_low.into_value()?),
+                ("url-high", self.url_high.into_value()?),
             ],
         )?;
         Ok(Value::Record(record))
@@ -354,267 +304,19 @@ impl ComponentType for Artwork {
 impl UnaryComponentType for Artwork {}
 
 
-#[derive(Debug, Clone)]
-pub struct ArtistSummary {
-    pub id: String,
-    pub name: String,
-    pub thumbnails: Vec<Artwork>,
-    pub url: Option<String>,
-}
-
-impl ComponentType for ArtistSummary {
-    fn ty() -> ValueType {
-        ValueType::Record(
-            RecordType::new(
-                None,
-                [
-                    ("id", ValueType::String),
-                    ("name", ValueType::String),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("url", ValueType::Option(OptionType::new(ValueType::String))),
-                ],
-            ).unwrap(),
-        )
-    }
-
-    fn from_value(value: &Value) -> Result<Self> {
-        if let Value::Record(record) = value {
-            let id = record
-                .field("id")
-                .ok_or_else(|| anyhow!("Missing 'id' field"))?;
-            let name = record
-                .field("name")
-                .ok_or_else(|| anyhow!("Missing 'name' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
-            let url = record
-                .field("url")
-                .ok_or_else(|| anyhow!("Missing 'url' field"))?;
-
-            let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
-            let name = if let Value::String(s) = name { s.to_string() } else { bail!("Expected string") };
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
-            let url = Option::<String>::from_value(&url)?;
-
-            Ok(ArtistSummary {
-                id,
-                name,
-                thumbnails,
-                url,
-            })
-        } else {
-            bail!("Expected Record value")
-        }
-    }
-
-    fn into_value(self) -> Result<Value> {
-        let record = Record::new(
-            RecordType::new(
-                None,
-                [
-                    ("id", ValueType::String),
-                    ("name", ValueType::String),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("url", ValueType::Option(OptionType::new(ValueType::String))),
-                ],
-            ).unwrap(),
-            [
-                ("id", Value::String(self.id.into())),
-                ("name", Value::String(self.name.into())),
-                ("thumbnails", self.thumbnails.into_value()?),
-                ("url", self.url.into_value()?),
-            ],
-        )?;
-        Ok(Value::Record(record))
-    }
-}
-
-impl UnaryComponentType for ArtistSummary {}
-
 
 #[derive(Debug, Clone)]
-pub struct AlbumSummary {
+pub struct TrackItem {
     pub id: String,
     pub title: String,
-    pub artists: Vec<ArtistSummary>,
-    pub thumbnails: Vec<Artwork>,
-    pub year: Option<u32>,
-    pub url: Option<String>,
-}
-
-impl ComponentType for AlbumSummary {
-    fn ty() -> ValueType {
-        ValueType::Record(
-            RecordType::new(
-                None,
-                [
-                    ("id", ValueType::String),
-                    ("title", ValueType::String),
-                    ("artists", ValueType::List(ListType::new(ArtistSummary::ty()))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("year", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("url", ValueType::Option(OptionType::new(ValueType::String))),
-                ],
-            ).unwrap(),
-        )
-    }
-
-    fn from_value(value: &Value) -> Result<Self> {
-        if let Value::Record(record) = value {
-            let id = record
-                .field("id")
-                .ok_or_else(|| anyhow!("Missing 'id' field"))?;
-            let title = record
-                .field("title")
-                .ok_or_else(|| anyhow!("Missing 'title' field"))?;
-            let artists = record
-                .field("artists")
-                .ok_or_else(|| anyhow!("Missing 'artists' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
-            let year = record
-                .field("year")
-                .ok_or_else(|| anyhow!("Missing 'year' field"))?;
-            let url = record
-                .field("url")
-                .ok_or_else(|| anyhow!("Missing 'url' field"))?;
-
-            let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
-            let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
-            let artists = Vec::<ArtistSummary>::from_value(&artists)?;
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
-            let year = Option::<u32>::from_value(&year)?;
-            let url = Option::<String>::from_value(&url)?;
-
-            Ok(AlbumSummary {
-                id,
-                title,
-                artists,
-                thumbnails,
-                year,
-                url,
-            })
-        } else {
-            bail!("Expected Record value")
-        }
-    }
-
-    fn into_value(self) -> Result<Value> {
-        let record = Record::new(
-            RecordType::new(
-                None,
-                [
-                    ("id", ValueType::String),
-                    ("title", ValueType::String),
-                    ("artists", ValueType::List(ListType::new(ArtistSummary::ty()))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("year", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("url", ValueType::Option(OptionType::new(ValueType::String))),
-                ],
-            ).unwrap(),
-            [
-                ("id", Value::String(self.id.into())),
-                ("title", Value::String(self.title.into())),
-                ("artists", self.artists.into_value()?),
-                ("thumbnails", self.thumbnails.into_value()?),
-                ("year", self.year.into_value()?),
-                ("url", self.url.into_value()?),
-            ],
-        )?;
-        Ok(Value::Record(record))
-    }
-}
-
-impl UnaryComponentType for AlbumSummary {}
-
-#[derive(Debug, Clone)]
-pub struct Lyrics {
-    pub plain: Option<String>,
-    pub synced: Option<String>,
-    pub copyright: Option<String>,
-}
-
-impl ComponentType for Lyrics {
-    fn ty() -> ValueType {
-        ValueType::Record(
-            RecordType::new(
-                None,
-                [
-                    ("plain", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("synced", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("copyright", ValueType::Option(OptionType::new(ValueType::String))),
-                ],
-            ).unwrap(),
-        )
-    }
-
-    fn from_value(value: &Value) -> Result<Self> {
-        if let Value::Record(record) = value {
-            let plain = record
-                .field("plain")
-                .ok_or_else(|| anyhow!("Missing 'plain' field"))?;
-            let synced = record
-                .field("synced")
-                .ok_or_else(|| anyhow!("Missing 'synced' field"))?;
-            let copyright = record
-                .field("copyright")
-                .ok_or_else(|| anyhow!("Missing 'copyright' field"))?;
-
-            let plain = Option::<String>::from_value(&plain)?;
-            let synced = Option::<String>::from_value(&synced)?;
-            let copyright = Option::<String>::from_value(&copyright)?;
-
-            Ok(Lyrics {
-                plain,
-                synced,
-                copyright,
-            })
-        } else {
-            bail!("Expected Record value")
-        }
-    }
-
-    fn into_value(self) -> Result<Value> {
-        let record = Record::new(
-            RecordType::new(
-                None,
-                [
-                    ("plain", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("synced", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("copyright", ValueType::Option(OptionType::new(ValueType::String))),
-                ],
-            ).unwrap(),
-            [
-                ("plain", self.plain.into_value()?),
-                ("synced", self.synced.into_value()?),
-                ("copyright", self.copyright.into_value()?),
-            ],
-        )?;
-        Ok(Value::Record(record))
-    }
-}
-
-impl UnaryComponentType for Lyrics {}
-
-
-
-
-#[derive(Debug, Clone)]
-pub struct Track {
-    pub id: String,
-    pub title: String,
-    pub artists: Vec<ArtistSummary>,
-    pub album: Option<AlbumSummary>,
+    pub artists: String,
+    pub album: Option<String>,
+    pub thumbnail: Option<Artwork>,
     pub duration_ms: Option<u64>,
-    pub thumbnails: Vec<Artwork>,
-    pub url: Option<String>,
     pub is_explicit: bool,
-    pub lyrics: Option<Lyrics>,
 }
 
-impl ComponentType for Track {
+impl ComponentType for TrackItem {
     fn ty() -> ValueType {
         ValueType::Record(
             RecordType::new(
@@ -622,13 +324,11 @@ impl ComponentType for Track {
                 [
                     ("id", ValueType::String),
                     ("title", ValueType::String),
-                    ("artists", ValueType::List(ListType::new(ArtistSummary::ty()))),
-                    ("album", ValueType::Option(OptionType::new(AlbumSummary::ty()))),
+                    ("artists", ValueType::String),
+                    ("album", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
                     ("duration-ms", ValueType::Option(OptionType::new(ValueType::U64))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("url", ValueType::Option(OptionType::new(ValueType::String))),
                     ("is-explicit", ValueType::Bool),
-                    ("lyrics", ValueType::Option(OptionType::new(Lyrics::ty()))),
                 ],
             ).unwrap(),
         )
@@ -648,42 +348,32 @@ impl ComponentType for Track {
             let album = record
                 .field("album")
                 .ok_or_else(|| anyhow!("Missing 'album' field"))?;
+            let thumbnail = record
+                .field("thumbnail")
+                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
             let duration_ms = record
                 .field("duration-ms")
                 .ok_or_else(|| anyhow!("Missing 'duration-ms' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
-            let url = record
-                .field("url")
-                .ok_or_else(|| anyhow!("Missing 'url' field"))?;
             let is_explicit = record
                 .field("is-explicit")
                 .ok_or_else(|| anyhow!("Missing 'is-explicit' field"))?;
-            let lyrics = record
-                .field("lyrics")
-                .ok_or_else(|| anyhow!("Missing 'lyrics' field"))?;
 
             let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
             let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
-            let artists = Vec::<ArtistSummary>::from_value(&artists)?;
-            let album = Option::<AlbumSummary>::from_value(&album)?;
+            let artists = if let Value::String(s) = artists { s.to_string() } else { bail!("Expected string") };
+            let album = Option::<String>::from_value(&album)?;
+            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
             let duration_ms = Option::<u64>::from_value(&duration_ms)?;
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
-            let url = Option::<String>::from_value(&url)?;
             let is_explicit = if let Value::Bool(x) = is_explicit { x } else { bail!("Expected bool") };
-            let lyrics = Option::<Lyrics>::from_value(&lyrics)?;
 
-            Ok(Track {
+            Ok(TrackItem {
                 id,
                 title,
                 artists,
                 album,
+                thumbnail,
                 duration_ms,
-                thumbnails,
-                url,
                 is_explicit,
-                lyrics,
             })
         } else {
             bail!("Expected Record value")
@@ -697,44 +387,40 @@ impl ComponentType for Track {
                 [
                     ("id", ValueType::String),
                     ("title", ValueType::String),
-                    ("artists", ValueType::List(ListType::new(ArtistSummary::ty()))),
-                    ("album", ValueType::Option(OptionType::new(AlbumSummary::ty()))),
+                    ("artists", ValueType::String),
+                    ("album", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
                     ("duration-ms", ValueType::Option(OptionType::new(ValueType::U64))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("url", ValueType::Option(OptionType::new(ValueType::String))),
                     ("is-explicit", ValueType::Bool),
-                    ("lyrics", ValueType::Option(OptionType::new(Lyrics::ty()))),
                 ],
             ).unwrap(),
             [
                 ("id", Value::String(self.id.into())),
                 ("title", Value::String(self.title.into())),
-                ("artists", self.artists.into_value()?),
+                ("artists", Value::String(self.artists.into())),
                 ("album", self.album.into_value()?),
+                ("thumbnail", self.thumbnail.into_value()?),
                 ("duration-ms", self.duration_ms.into_value()?),
-                ("thumbnails", self.thumbnails.into_value()?),
-                ("url", self.url.into_value()?),
                 ("is-explicit", Value::Bool(self.is_explicit)),
-                ("lyrics", self.lyrics.into_value()?),
             ],
         )?;
         Ok(Value::Record(record))
     }
 }
 
-impl UnaryComponentType for Track {}
+impl UnaryComponentType for TrackItem {}
+
 
 #[derive(Debug, Clone)]
-pub struct PlaylistSummary {
+pub struct AlbumItem {
     pub id: String,
     pub title: String,
-    pub owner: Option<String>,
-    pub thumbnails: Vec<Artwork>,
-    pub track_count: Option<u32>,
-    pub url: Option<String>,
+    pub artists: Vec<String>,
+    pub thumbnail: Option<Artwork>,
+    pub year: Option<u32>,
 }
 
-impl ComponentType for PlaylistSummary {
+impl ComponentType for AlbumItem {
     fn ty() -> ValueType {
         ValueType::Record(
             RecordType::new(
@@ -742,10 +428,9 @@ impl ComponentType for PlaylistSummary {
                 [
                     ("id", ValueType::String),
                     ("title", ValueType::String),
-                    ("owner", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("track-count", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("url", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("artists", ValueType::List(ListType::new(ValueType::String))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                    ("year", ValueType::Option(OptionType::new(ValueType::U32))),
                 ],
             ).unwrap(),
         )
@@ -759,33 +444,28 @@ impl ComponentType for PlaylistSummary {
             let title = record
                 .field("title")
                 .ok_or_else(|| anyhow!("Missing 'title' field"))?;
-            let owner = record
-                .field("owner")
-                .ok_or_else(|| anyhow!("Missing 'owner' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
-            let track_count = record
-                .field("track-count")
-                .ok_or_else(|| anyhow!("Missing 'track-count' field"))?;
-            let url = record
-                .field("url")
-                .ok_or_else(|| anyhow!("Missing 'url' field"))?;
+            let artists = record
+                .field("artists")
+                .ok_or_else(|| anyhow!("Missing 'artists' field"))?;
+            let thumbnail = record
+                .field("thumbnail")
+                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
+            let year = record
+                .field("year")
+                .ok_or_else(|| anyhow!("Missing 'year' field"))?;
 
             let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
             let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
-            let owner = Option::<String>::from_value(&owner)?;
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
-            let track_count = Option::<u32>::from_value(&track_count)?;
-            let url = Option::<String>::from_value(&url)?;
+            let artists = Vec::<String>::from_value(&artists)?;
+            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
+            let year = Option::<u32>::from_value(&year)?;
 
-            Ok(PlaylistSummary {
+            Ok(AlbumItem {
                 id,
                 title,
-                owner,
-                thumbnails,
-                track_count,
-                url,
+                artists,
+                thumbnail,
+                year,
             })
         } else {
             bail!("Expected Record value")
@@ -799,33 +479,99 @@ impl ComponentType for PlaylistSummary {
                 [
                     ("id", ValueType::String),
                     ("title", ValueType::String),
-                    ("owner", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("track-count", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("url", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("artists", ValueType::List(ListType::new(ValueType::String))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                    ("year", ValueType::Option(OptionType::new(ValueType::U32))),
                 ],
             ).unwrap(),
             [
                 ("id", Value::String(self.id.into())),
                 ("title", Value::String(self.title.into())),
-                ("owner", self.owner.into_value()?),
-                ("thumbnails", self.thumbnails.into_value()?),
-                ("track-count", self.track_count.into_value()?),
-                ("url", self.url.into_value()?),
+                ("artists", self.artists.into_value()?),
+                ("thumbnail", self.thumbnail.into_value()?),
+                ("year", self.year.into_value()?),
             ],
         )?;
         Ok(Value::Record(record))
     }
 }
 
-impl UnaryComponentType for PlaylistSummary {}
+impl UnaryComponentType for AlbumItem {}
+
+#[derive(Debug, Clone)]
+pub struct ArtistItem {
+    pub id: String,
+    pub name: String,
+    pub thumbnail: Option<Artwork>,
+}
+
+impl ComponentType for ArtistItem {
+    fn ty() -> ValueType {
+        ValueType::Record(
+            RecordType::new(
+                None,
+                [
+                    ("id", ValueType::String),
+                    ("name", ValueType::String),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                ],
+            ).unwrap(),
+        )
+    }
+
+    fn from_value(value: &Value) -> Result<Self> {
+        if let Value::Record(record) = value {
+            let id = record
+                .field("id")
+                .ok_or_else(|| anyhow!("Missing 'id' field"))?;
+            let name = record
+                .field("name")
+                .ok_or_else(|| anyhow!("Missing 'name' field"))?;
+            let thumbnail = record
+                .field("thumbnail")
+                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
+
+            let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
+            let name = if let Value::String(s) = name { s.to_string() } else { bail!("Expected string") };
+            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
+
+            Ok(ArtistItem {
+                id,
+                name,
+                thumbnail,
+            })
+        } else {
+            bail!("Expected Record value")
+        }
+    }
+
+    fn into_value(self) -> Result<Value> {
+        let record = Record::new(
+            RecordType::new(
+                None,
+                [
+                    ("id", ValueType::String),
+                    ("name", ValueType::String),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                ],
+            ).unwrap(),
+            [
+                ("id", Value::String(self.id.into())),
+                ("name", Value::String(self.name.into())),
+                ("thumbnail", self.thumbnail.into_value()?),
+            ],
+        )?;
+        Ok(Value::Record(record))
+    }
+}
+
+impl UnaryComponentType for ArtistItem {}
 
 #[derive(Debug, Clone)]
 pub enum MediaItem {
-    Track(Track),
-    Album(AlbumSummary),
-    Artist(ArtistSummary),
-    Playlist(PlaylistSummary),
+    Track(TrackItem),
+    Album(AlbumItem),
+    Artist(ArtistItem),
 }
 
 impl ComponentType for MediaItem {
@@ -834,10 +580,9 @@ impl ComponentType for MediaItem {
             VariantType::new(
                 None,
                 [
-                    VariantCase::new("track", Some(Track::ty())),
-                    VariantCase::new("album", Some(AlbumSummary::ty())),
-                    VariantCase::new("artist", Some(ArtistSummary::ty())),
-                    VariantCase::new("playlist", Some(PlaylistSummary::ty())),
+                    VariantCase::new("track", Some(TrackItem::ty())),
+                    VariantCase::new("album", Some(AlbumItem::ty())),
+                    VariantCase::new("artist", Some(ArtistItem::ty())),
                 ],
             ).unwrap(),
         )
@@ -854,7 +599,7 @@ impl ComponentType for MediaItem {
             match case_name {
                 "track" => {
                     if let Some(payload_value) = payload {
-                        let converted = Track::from_value(&payload_value)?;
+                        let converted = TrackItem::from_value(&payload_value)?;
                         Ok(MediaItem::Track(converted))
                     } else {
                         bail!("Expected payload for track case")
@@ -862,7 +607,7 @@ impl ComponentType for MediaItem {
                 }
                 "album" => {
                     if let Some(payload_value) = payload {
-                        let converted = AlbumSummary::from_value(&payload_value)?;
+                        let converted = AlbumItem::from_value(&payload_value)?;
                         Ok(MediaItem::Album(converted))
                     } else {
                         bail!("Expected payload for album case")
@@ -870,18 +615,10 @@ impl ComponentType for MediaItem {
                 }
                 "artist" => {
                     if let Some(payload_value) = payload {
-                        let converted = ArtistSummary::from_value(&payload_value)?;
+                        let converted = ArtistItem::from_value(&payload_value)?;
                         Ok(MediaItem::Artist(converted))
                     } else {
                         bail!("Expected payload for artist case")
-                    }
-                }
-                "playlist" => {
-                    if let Some(payload_value) = payload {
-                        let converted = PlaylistSummary::from_value(&payload_value)?;
-                        Ok(MediaItem::Playlist(converted))
-                    } else {
-                        bail!("Expected payload for playlist case")
                     }
                 }
                 _ => bail!("Unknown variant case: {}", case_name),
@@ -895,10 +632,9 @@ impl ComponentType for MediaItem {
         let variant_type = VariantType::new(
             None,
             [
-                VariantCase::new("track", Some(Track::ty())),
-                VariantCase::new("album", Some(AlbumSummary::ty())),
-                VariantCase::new("artist", Some(ArtistSummary::ty())),
-                VariantCase::new("playlist", Some(PlaylistSummary::ty())),
+                VariantCase::new("track", Some(TrackItem::ty())),
+                VariantCase::new("album", Some(AlbumItem::ty())),
+                VariantCase::new("artist", Some(ArtistItem::ty())),
             ],
         ).unwrap();
 
@@ -906,7 +642,6 @@ impl ComponentType for MediaItem {
             MediaItem::Track(val) => (0, Some(val.into_value()?)),
             MediaItem::Album(val) => (1, Some(val.into_value()?)),
             MediaItem::Artist(val) => (2, Some(val.into_value()?)),
-            MediaItem::Playlist(val) => (3, Some(val.into_value()?)),
         };
 
         let variant = Variant::new(variant_type, discriminant, payload)?;
@@ -924,9 +659,7 @@ pub struct ChartSummary {
     pub id: String,
     pub title: String,
     pub description: Option<String>,
-    pub thumbnails: Vec<Artwork>,
-    pub updated_at: Option<String>,
-    pub period: Option<String>,
+    pub thumbnail: Option<Artwork>,
 }
 
 impl ComponentType for ChartSummary {
@@ -938,9 +671,7 @@ impl ComponentType for ChartSummary {
                     ("id", ValueType::String),
                     ("title", ValueType::String),
                     ("description", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("updated-at", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("period", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
                 ],
             ).unwrap(),
         )
@@ -957,30 +688,20 @@ impl ComponentType for ChartSummary {
             let description = record
                 .field("description")
                 .ok_or_else(|| anyhow!("Missing 'description' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
-            let updated_at = record
-                .field("updated-at")
-                .ok_or_else(|| anyhow!("Missing 'updated-at' field"))?;
-            let period = record
-                .field("period")
-                .ok_or_else(|| anyhow!("Missing 'period' field"))?;
+            let thumbnail = record
+                .field("thumbnail")
+                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
 
             let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
             let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
             let description = Option::<String>::from_value(&description)?;
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
-            let updated_at = Option::<String>::from_value(&updated_at)?;
-            let period = Option::<String>::from_value(&period)?;
+            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
 
             Ok(ChartSummary {
                 id,
                 title,
                 description,
-                thumbnails,
-                updated_at,
-                period,
+                thumbnail,
             })
         } else {
             bail!("Expected Record value")
@@ -995,18 +716,14 @@ impl ComponentType for ChartSummary {
                     ("id", ValueType::String),
                     ("title", ValueType::String),
                     ("description", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("updated-at", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("period", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
                 ],
             ).unwrap(),
             [
                 ("id", Value::String(self.id.into())),
                 ("title", Value::String(self.title.into())),
                 ("description", self.description.into_value()?),
-                ("thumbnails", self.thumbnails.into_value()?),
-                ("updated-at", self.updated_at.into_value()?),
-                ("period", self.period.into_value()?),
+                ("thumbnail", self.thumbnail.into_value()?),
             ],
         )?;
         Ok(Value::Record(record))
@@ -1080,7 +797,6 @@ pub struct ChartItem {
     pub rank: u32,
     pub trend: Trend,
     pub change: Option<u32>,
-    pub previous_rank: Option<u32>,
     pub peak_rank: Option<u32>,
     pub weeks_on_chart: Option<u32>,
 }
@@ -1095,7 +811,6 @@ impl ComponentType for ChartItem {
                     ("rank", ValueType::U32),
                     ("trend", Trend::ty()),
                     ("change", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("previous-rank", ValueType::Option(OptionType::new(ValueType::U32))),
                     ("peak-rank", ValueType::Option(OptionType::new(ValueType::U32))),
                     ("weeks-on-chart", ValueType::Option(OptionType::new(ValueType::U32))),
                 ],
@@ -1117,9 +832,6 @@ impl ComponentType for ChartItem {
             let change = record
                 .field("change")
                 .ok_or_else(|| anyhow!("Missing 'change' field"))?;
-            let previous_rank = record
-                .field("previous-rank")
-                .ok_or_else(|| anyhow!("Missing 'previous-rank' field"))?;
             let peak_rank = record
                 .field("peak-rank")
                 .ok_or_else(|| anyhow!("Missing 'peak-rank' field"))?;
@@ -1131,7 +843,6 @@ impl ComponentType for ChartItem {
             let rank = if let Value::U32(x) = rank { x } else { bail!("Expected u32") };
             let trend = Trend::from_value(&trend)?;
             let change = Option::<u32>::from_value(&change)?;
-            let previous_rank = Option::<u32>::from_value(&previous_rank)?;
             let peak_rank = Option::<u32>::from_value(&peak_rank)?;
             let weeks_on_chart = Option::<u32>::from_value(&weeks_on_chart)?;
 
@@ -1140,7 +851,6 @@ impl ComponentType for ChartItem {
                 rank,
                 trend,
                 change,
-                previous_rank,
                 peak_rank,
                 weeks_on_chart,
             })
@@ -1158,7 +868,6 @@ impl ComponentType for ChartItem {
                     ("rank", ValueType::U32),
                     ("trend", Trend::ty()),
                     ("change", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("previous-rank", ValueType::Option(OptionType::new(ValueType::U32))),
                     ("peak-rank", ValueType::Option(OptionType::new(ValueType::U32))),
                     ("weeks-on-chart", ValueType::Option(OptionType::new(ValueType::U32))),
                 ],
@@ -1168,7 +877,6 @@ impl ComponentType for ChartItem {
                 ("rank", Value::U32(self.rank)),
                 ("trend", self.trend.into_value()?),
                 ("change", self.change.into_value()?),
-                ("previous-rank", self.previous_rank.into_value()?),
                 ("peak-rank", self.peak_rank.into_value()?),
                 ("weeks-on-chart", self.weeks_on_chart.into_value()?),
             ],

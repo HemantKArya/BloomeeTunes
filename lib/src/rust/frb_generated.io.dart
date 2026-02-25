@@ -125,6 +125,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ArtistSummary dco_decode_box_autoadd_artist_summary(dynamic raw);
 
   @protected
+  Artwork dco_decode_box_autoadd_artwork(dynamic raw);
+
+  @protected
   ChartProviderCommand dco_decode_box_autoadd_chart_provider_command(
       dynamic raw);
 
@@ -246,6 +249,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AlbumSummary? dco_decode_opt_box_autoadd_album_summary(dynamic raw);
+
+  @protected
+  Artwork? dco_decode_opt_box_autoadd_artwork(dynamic raw);
 
   @protected
   Lyrics? dco_decode_opt_box_autoadd_lyrics(dynamic raw);
@@ -410,6 +416,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  Artwork sse_decode_box_autoadd_artwork(SseDeserializer deserializer);
+
+  @protected
   ChartProviderCommand sse_decode_box_autoadd_chart_provider_command(
       SseDeserializer deserializer);
 
@@ -542,6 +551,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   AlbumSummary? sse_decode_opt_box_autoadd_album_summary(
       SseDeserializer deserializer);
+
+  @protected
+  Artwork? sse_decode_opt_box_autoadd_artwork(SseDeserializer deserializer);
 
   @protected
   Lyrics? sse_decode_opt_box_autoadd_lyrics(SseDeserializer deserializer);
@@ -710,6 +722,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ArtistSummary self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_artwork(Artwork self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_chart_provider_command(
       ChartProviderCommand self, SseSerializer serializer);
 
@@ -849,6 +864,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_album_summary(
       AlbumSummary? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_artwork(
+      Artwork? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_lyrics(

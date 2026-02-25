@@ -4,8 +4,8 @@ use crate::api::plugin::commands::{ChartProviderCommand, PluginResponse};
 use crate::api::plugin::errors::{PluginError, PluginResult};
 use crate::api::plugin::loader::get_instance_with_host;
 use crate::api::plugin::models::{
-    AlbumSummary, ArtistSummary, Artwork, ChartItem, ChartSummary, ImageLayout, Lyrics,
-    MediaItem, PlaylistSummary, Track, Trend,
+    AlbumSummary, ArtistSummary, Artwork, ChartItem, ChartSummary, ImageLayout, MediaItem, Track,
+    Trend,
 };
 use crate::api::plugin::traits::Plugin;
 use crate::api::plugin::types::{PluginAdapter, PluginType};
@@ -233,77 +233,80 @@ impl PluginAdapter for ChartProviderPluginAdapter {
 fn to_audio_artwork(a: bindgen::Artwork) -> Artwork {
     Artwork {
         url: a.url,
-        url_low: None,
-        url_high: None,
-        layout: match a.layout {
-            bindgen::ImageLayout::Square => ImageLayout::Square,
-            bindgen::ImageLayout::Portrait => ImageLayout::Portrait,
-            bindgen::ImageLayout::Landscape => ImageLayout::Landscape,
-            bindgen::ImageLayout::Banner => ImageLayout::Banner,
-            bindgen::ImageLayout::Circular => ImageLayout::Circular,
-        },
+        url_low: a.url_low,
+        url_high: a.url_high,
+        // No layout in new WIT; default to Square
+        layout: ImageLayout::Square,
     }
 }
 
-fn to_audio_artist(a: bindgen::ArtistSummary) -> ArtistSummary {
+fn to_audio_artist_item(a: bindgen::ArtistItem) -> ArtistSummary {
     ArtistSummary {
         id: a.id,
         name: a.name,
-        thumbnails: a.thumbnails.into_iter().map(to_audio_artwork).collect(),
-        url: a.url,
+        thumbnails: a.thumbnail.map(to_audio_artwork).into_iter().collect(),
+        url: None,
     }
 }
 
-fn to_audio_lyrics(l: bindgen::Lyrics) -> Lyrics {
-    Lyrics {
-        plain: l.plain,
-        synced: l.synced,
-        copyright: l.copyright,
-    }
-}
-
-fn to_audio_album(a: bindgen::AlbumSummary) -> AlbumSummary {
+fn to_audio_album_item(a: bindgen::AlbumItem) -> AlbumSummary {
     AlbumSummary {
         id: a.id,
         title: a.title,
-        artists: a.artists.into_iter().map(to_audio_artist).collect(),
-        thumbnails: a.thumbnails.into_iter().map(to_audio_artwork).collect(),
+        artists: a
+            .artists
+            .into_iter()
+            .map(|name| ArtistSummary {
+                id: String::new(),
+                name,
+                thumbnails: vec![],
+                url: None,
+            })
+            .collect(),
+        thumbnails: a.thumbnail.map(to_audio_artwork).into_iter().collect(),
         year: a.year,
-        url: a.url,
+        url: None,
     }
 }
 
-fn to_audio_track(t: bindgen::Track) -> Track {
+fn to_audio_track_item(t: bindgen::TrackItem) -> Track {
     Track {
         id: t.id,
         title: t.title,
-        artists: t.artists.into_iter().map(to_audio_artist).collect(),
-        album: t.album.map(to_audio_album),
+        // artists is a comma-separated string; split into minimal ArtistSummary entries
+        artists: t
+            .artists
+            .split(',')
+            .map(|name| ArtistSummary {
+                id: String::new(),
+                name: name.trim().to_string(),
+                thumbnails: vec![],
+                url: None,
+            })
+            .filter(|a| !a.name.is_empty())
+            .collect(),
+        // album is just the title string in the new WIT
+        album: t.album.map(|title| AlbumSummary {
+            id: String::new(),
+            title,
+            artists: vec![],
+            thumbnails: vec![],
+            year: None,
+            url: None,
+        }),
         duration_ms: t.duration_ms,
-        thumbnails: t.thumbnails.into_iter().map(to_audio_artwork).collect(),
-        url: t.url,
+        thumbnails: t.thumbnail.map(to_audio_artwork).into_iter().collect(),
+        url: None,
         is_explicit: t.is_explicit,
-        lyrics: t.lyrics.map(to_audio_lyrics),
-    }
-}
-
-fn to_audio_playlist(p: bindgen::PlaylistSummary) -> PlaylistSummary {
-    PlaylistSummary {
-        id: p.id,
-        title: p.title,
-        owner: p.owner,
-        thumbnails: p.thumbnails.into_iter().map(to_audio_artwork).collect(),
-        track_count: p.track_count,
-        url: p.url,
+        lyrics: None,
     }
 }
 
 fn to_audio_media_item(m: bindgen::MediaItem) -> MediaItem {
     match m {
-        bindgen::MediaItem::Track(t) => MediaItem::Track(to_audio_track(t)),
-        bindgen::MediaItem::Album(a) => MediaItem::Album(to_audio_album(a)),
-        bindgen::MediaItem::Artist(a) => MediaItem::Artist(to_audio_artist(a)),
-        bindgen::MediaItem::Playlist(p) => MediaItem::Playlist(to_audio_playlist(p)),
+        bindgen::MediaItem::Track(t) => MediaItem::Track(to_audio_track_item(t)),
+        bindgen::MediaItem::Album(a) => MediaItem::Album(to_audio_album_item(a)),
+        bindgen::MediaItem::Artist(a) => MediaItem::Artist(to_audio_artist_item(a)),
     }
 }
 
@@ -312,9 +315,7 @@ fn to_audio_chart_summary(s: bindgen::ChartSummary) -> ChartSummary {
         id: s.id,
         title: s.title,
         description: s.description,
-        thumbnails: s.thumbnails.into_iter().map(to_audio_artwork).collect(),
-        updated_at: s.updated_at,
-        period: s.period,
+        thumbnail: s.thumbnail.map(to_audio_artwork),
     }
 }
 
@@ -330,7 +331,6 @@ fn to_audio_chart_item(i: bindgen::ChartItem) -> ChartItem {
             bindgen::Trend::Unknown => Trend::Unknown,
         },
         change: i.change,
-        previous_rank: i.previous_rank,
         peak_rank: i.peak_rank,
         weeks_on_chart: i.weeks_on_chart,
     }

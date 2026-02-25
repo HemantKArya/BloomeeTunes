@@ -2079,6 +2079,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Artwork dco_decode_box_autoadd_artwork(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_artwork(raw);
+  }
+
+  @protected
   ChartProviderCommand dco_decode_box_autoadd_chart_provider_command(
       dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -2168,16 +2174,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ChartItem dco_decode_chart_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
     return ChartItem(
       item: dco_decode_media_item(arr[0]),
       rank: dco_decode_u_32(arr[1]),
       trend: dco_decode_trend(arr[2]),
       change: dco_decode_opt_box_autoadd_u_32(arr[3]),
-      previousRank: dco_decode_opt_box_autoadd_u_32(arr[4]),
-      peakRank: dco_decode_opt_box_autoadd_u_32(arr[5]),
-      weeksOnChart: dco_decode_opt_box_autoadd_u_32(arr[6]),
+      peakRank: dco_decode_opt_box_autoadd_u_32(arr[4]),
+      weeksOnChart: dco_decode_opt_box_autoadd_u_32(arr[5]),
     );
   }
 
@@ -2200,15 +2205,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ChartSummary dco_decode_chart_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return ChartSummary(
       id: dco_decode_String(arr[0]),
       title: dco_decode_String(arr[1]),
       description: dco_decode_opt_String(arr[2]),
-      thumbnails: dco_decode_list_artwork(arr[3]),
-      updatedAt: dco_decode_opt_String(arr[4]),
-      period: dco_decode_opt_String(arr[5]),
+      thumbnail: dco_decode_opt_box_autoadd_artwork(arr[3]),
     );
   }
 
@@ -2454,6 +2457,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AlbumSummary? dco_decode_opt_box_autoadd_album_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_album_summary(raw);
+  }
+
+  @protected
+  Artwork? dco_decode_opt_box_autoadd_artwork(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_artwork(raw);
   }
 
   @protected
@@ -3023,6 +3032,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Artwork sse_decode_box_autoadd_artwork(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_artwork(deserializer));
+  }
+
+  @protected
   ChartProviderCommand sse_decode_box_autoadd_chart_provider_command(
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -3122,7 +3137,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_rank = sse_decode_u_32(deserializer);
     var var_trend = sse_decode_trend(deserializer);
     var var_change = sse_decode_opt_box_autoadd_u_32(deserializer);
-    var var_previousRank = sse_decode_opt_box_autoadd_u_32(deserializer);
     var var_peakRank = sse_decode_opt_box_autoadd_u_32(deserializer);
     var var_weeksOnChart = sse_decode_opt_box_autoadd_u_32(deserializer);
     return ChartItem(
@@ -3130,7 +3144,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         rank: var_rank,
         trend: var_trend,
         change: var_change,
-        previousRank: var_previousRank,
         peakRank: var_peakRank,
         weeksOnChart: var_weeksOnChart);
   }
@@ -3158,16 +3171,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_id = sse_decode_String(deserializer);
     var var_title = sse_decode_String(deserializer);
     var var_description = sse_decode_opt_String(deserializer);
-    var var_thumbnails = sse_decode_list_artwork(deserializer);
-    var var_updatedAt = sse_decode_opt_String(deserializer);
-    var var_period = sse_decode_opt_String(deserializer);
+    var var_thumbnail = sse_decode_opt_box_autoadd_artwork(deserializer);
     return ChartSummary(
         id: var_id,
         title: var_title,
         description: var_description,
-        thumbnails: var_thumbnails,
-        updatedAt: var_updatedAt,
-        period: var_period);
+        thumbnail: var_thumbnail);
   }
 
   @protected
@@ -3489,6 +3498,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_album_summary(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  Artwork? sse_decode_opt_box_autoadd_artwork(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_artwork(deserializer));
     } else {
       return null;
     }
@@ -4046,6 +4066,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_artwork(Artwork self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_artwork(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_chart_provider_command(
       ChartProviderCommand self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -4145,7 +4171,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_u_32(self.rank, serializer);
     sse_encode_trend(self.trend, serializer);
     sse_encode_opt_box_autoadd_u_32(self.change, serializer);
-    sse_encode_opt_box_autoadd_u_32(self.previousRank, serializer);
     sse_encode_opt_box_autoadd_u_32(self.peakRank, serializer);
     sse_encode_opt_box_autoadd_u_32(self.weeksOnChart, serializer);
   }
@@ -4169,9 +4194,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.title, serializer);
     sse_encode_opt_String(self.description, serializer);
-    sse_encode_list_artwork(self.thumbnails, serializer);
-    sse_encode_opt_String(self.updatedAt, serializer);
-    sse_encode_opt_String(self.period, serializer);
+    sse_encode_opt_box_autoadd_artwork(self.thumbnail, serializer);
   }
 
   @protected
@@ -4450,6 +4473,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_album_summary(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_artwork(
+      Artwork? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_artwork(self, serializer);
     }
   }
 

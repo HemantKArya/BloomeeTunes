@@ -3288,7 +3288,6 @@ impl SseDecode for crate::api::plugin::models::ChartItem {
         let mut var_rank = <u32>::sse_decode(deserializer);
         let mut var_trend = <crate::api::plugin::models::Trend>::sse_decode(deserializer);
         let mut var_change = <Option<u32>>::sse_decode(deserializer);
-        let mut var_previousRank = <Option<u32>>::sse_decode(deserializer);
         let mut var_peakRank = <Option<u32>>::sse_decode(deserializer);
         let mut var_weeksOnChart = <Option<u32>>::sse_decode(deserializer);
         return crate::api::plugin::models::ChartItem {
@@ -3296,7 +3295,6 @@ impl SseDecode for crate::api::plugin::models::ChartItem {
             rank: var_rank,
             trend: var_trend,
             change: var_change,
-            previous_rank: var_previousRank,
             peak_rank: var_peakRank,
             weeks_on_chart: var_weeksOnChart,
         };
@@ -3330,17 +3328,13 @@ impl SseDecode for crate::api::plugin::models::ChartSummary {
         let mut var_id = <String>::sse_decode(deserializer);
         let mut var_title = <String>::sse_decode(deserializer);
         let mut var_description = <Option<String>>::sse_decode(deserializer);
-        let mut var_thumbnails =
-            <Vec<crate::api::plugin::models::Artwork>>::sse_decode(deserializer);
-        let mut var_updatedAt = <Option<String>>::sse_decode(deserializer);
-        let mut var_period = <Option<String>>::sse_decode(deserializer);
+        let mut var_thumbnail =
+            <Option<crate::api::plugin::models::Artwork>>::sse_decode(deserializer);
         return crate::api::plugin::models::ChartSummary {
             id: var_id,
             title: var_title,
             description: var_description,
-            thumbnails: var_thumbnails,
-            updated_at: var_updatedAt,
-            period: var_period,
+            thumbnail: var_thumbnail,
         };
     }
 }
@@ -3741,6 +3735,19 @@ impl SseDecode for Option<crate::api::plugin::models::AlbumSummary> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::api::plugin::models::AlbumSummary>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::plugin::models::Artwork> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::plugin::models::Artwork>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -4685,7 +4692,6 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::ChartItem {
             self.rank.into_into_dart().into_dart(),
             self.trend.into_into_dart().into_dart(),
             self.change.into_into_dart().into_dart(),
-            self.previous_rank.into_into_dart().into_dart(),
             self.peak_rank.into_into_dart().into_dart(),
             self.weeks_on_chart.into_into_dart().into_dart(),
         ]
@@ -4741,9 +4747,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::ChartSummary 
             self.id.into_into_dart().into_dart(),
             self.title.into_into_dart().into_dart(),
             self.description.into_into_dart().into_dart(),
-            self.thumbnails.into_into_dart().into_dart(),
-            self.updated_at.into_into_dart().into_dart(),
-            self.period.into_into_dart().into_dart(),
+            self.thumbnail.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5622,7 +5626,6 @@ impl SseEncode for crate::api::plugin::models::ChartItem {
         <u32>::sse_encode(self.rank, serializer);
         <crate::api::plugin::models::Trend>::sse_encode(self.trend, serializer);
         <Option<u32>>::sse_encode(self.change, serializer);
-        <Option<u32>>::sse_encode(self.previous_rank, serializer);
         <Option<u32>>::sse_encode(self.peak_rank, serializer);
         <Option<u32>>::sse_encode(self.weeks_on_chart, serializer);
     }
@@ -5652,9 +5655,7 @@ impl SseEncode for crate::api::plugin::models::ChartSummary {
         <String>::sse_encode(self.id, serializer);
         <String>::sse_encode(self.title, serializer);
         <Option<String>>::sse_encode(self.description, serializer);
-        <Vec<crate::api::plugin::models::Artwork>>::sse_encode(self.thumbnails, serializer);
-        <Option<String>>::sse_encode(self.updated_at, serializer);
-        <Option<String>>::sse_encode(self.period, serializer);
+        <Option<crate::api::plugin::models::Artwork>>::sse_encode(self.thumbnail, serializer);
     }
 }
 
@@ -5980,6 +5981,16 @@ impl SseEncode for Option<crate::api::plugin::models::AlbumSummary> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::plugin::models::AlbumSummary>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::plugin::models::Artwork> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::plugin::models::Artwork>::sse_encode(value, serializer);
         }
     }
 }
