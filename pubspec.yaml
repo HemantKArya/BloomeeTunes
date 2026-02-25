@@ -9,7 +9,7 @@ environment:
   sdk: '>=3.3.0 <4.0.0'
 
 # isar version for community fork of isar (temporary)
-isar_version: &isar_version 3.3.0-dev.3 
+# isar_version: &isar_version 3.3.0-dev.3 
 
 dependencies:
   flutter:
@@ -32,9 +32,9 @@ dependencies:
   easy_debounce: ^2.0.3
 
   isar_community: 
-    version: *isar_version
+    version: ^3.3.0-dev.3
   isar_community_flutter_libs: # contains Isar Core
-    version: *isar_version
+    version: ^3.3.0-dev.3
 
   path_provider: ^2.1.0
   modal_bottom_sheet: ^3.0.0
@@ -79,6 +79,7 @@ dependencies:
   rust_lib_Bloomee:
     path: rust_builder
   flutter_rust_bridge: 2.11.1
+  freezed_annotation: ^3.1.0
 
   
 
@@ -92,12 +93,13 @@ dev_dependencies:
   flutter_lints: ^2.0.3
 
   isar_community_generator: 
-    version: *isar_version
+    version: ^3.3.0-dev.3
     
-  build_runner: any
+  build_runner: ^2.7.1
   flutter_launcher_icons: ^0.14.4
   integration_test:
     sdk: flutter
+  freezed: ^3.2.3
   # icons_launcher: ^2.1.7
 
 

@@ -9,84 +9,121 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'commands.freezed.dart';
 
-            // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `fmt`, `fmt`, `fmt`
-
-
-            
-
-            @freezed
-                sealed class ChartProviderCommand with _$ChartProviderCommand  {
-                    const ChartProviderCommand._();
-
-                     const factory ChartProviderCommand.getCharts() = ChartProviderCommand_GetCharts;
- const factory ChartProviderCommand.getChartDetails({   required String id , }) = ChartProviderCommand_GetChartDetails;
-
-                    
-
-                    
-                }
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `fmt`, `fmt`, `fmt`
 
 @freezed
-                sealed class ContentResolverCommand with _$ContentResolverCommand  {
-                    const ContentResolverCommand._();
+sealed class ChartProviderCommand with _$ChartProviderCommand {
+  const ChartProviderCommand._();
 
-                     const factory ContentResolverCommand.getAlbumDetails({   required String id , }) = ContentResolverCommand_GetAlbumDetails;
- const factory ContentResolverCommand.getArtistDetails({   required String id , }) = ContentResolverCommand_GetArtistDetails;
- const factory ContentResolverCommand.getPlaylistDetails({   required String id , }) = ContentResolverCommand_GetPlaylistDetails;
- const factory ContentResolverCommand.getStreams({   required String id , }) = ContentResolverCommand_GetStreams;
- const factory ContentResolverCommand.search({   required String query ,  required ContentSearchFilter filter ,  String? pageToken , }) = ContentResolverCommand_Search;
- const factory ContentResolverCommand.moreAlbumTracks({   required String id ,  required String pageToken , }) = ContentResolverCommand_MoreAlbumTracks;
- const factory ContentResolverCommand.moreArtistAlbums({   required String id ,  required String pageToken , }) = ContentResolverCommand_MoreArtistAlbums;
- const factory ContentResolverCommand.morePlaylistTracks({   required String id ,  required String pageToken , }) = ContentResolverCommand_MorePlaylistTracks;
- const factory ContentResolverCommand.getHomeSections() = ContentResolverCommand_GetHomeSections;
- const factory ContentResolverCommand.loadMore({   required String id ,  required String moreLink , }) = ContentResolverCommand_LoadMore;
+  const factory ChartProviderCommand.getCharts() =
+      ChartProviderCommand_GetCharts;
+  const factory ChartProviderCommand.getChartDetails({
+    required String id,
+  }) = ChartProviderCommand_GetChartDetails;
+}
 
-                    
+@freezed
+sealed class ContentResolverCommand with _$ContentResolverCommand {
+  const ContentResolverCommand._();
 
-                    
-                }
+  const factory ContentResolverCommand.getAlbumDetails({
+    required String id,
+  }) = ContentResolverCommand_GetAlbumDetails;
+  const factory ContentResolverCommand.getArtistDetails({
+    required String id,
+  }) = ContentResolverCommand_GetArtistDetails;
+  const factory ContentResolverCommand.getPlaylistDetails({
+    required String id,
+  }) = ContentResolverCommand_GetPlaylistDetails;
+  const factory ContentResolverCommand.getStreams({
+    required String id,
+  }) = ContentResolverCommand_GetStreams;
+  const factory ContentResolverCommand.search({
+    required String query,
+    required ContentSearchFilter filter,
+    String? pageToken,
+  }) = ContentResolverCommand_Search;
+  const factory ContentResolverCommand.moreAlbumTracks({
+    required String id,
+    required String pageToken,
+  }) = ContentResolverCommand_MoreAlbumTracks;
+  const factory ContentResolverCommand.moreArtistAlbums({
+    required String id,
+    required String pageToken,
+  }) = ContentResolverCommand_MoreArtistAlbums;
+  const factory ContentResolverCommand.morePlaylistTracks({
+    required String id,
+    required String pageToken,
+  }) = ContentResolverCommand_MorePlaylistTracks;
+  const factory ContentResolverCommand.getRadioTracks({
+    required String id,
+    String? pageToken,
+  }) = ContentResolverCommand_GetRadioTracks;
+  const factory ContentResolverCommand.getHomeSections() =
+      ContentResolverCommand_GetHomeSections;
+  const factory ContentResolverCommand.loadMore({
+    required String id,
+    required String moreLink,
+  }) = ContentResolverCommand_LoadMore;
+}
 
 enum ContentSearchFilter {
-                    all,
-track,
-album,
-artist,
-playlist,
-                    ;
-                    
-                }
+  all,
+  track,
+  album,
+  artist,
+  playlist,
+  ;
+}
 
 @freezed
-                sealed class PluginRequest with _$PluginRequest  {
-                    const PluginRequest._();
+sealed class PluginRequest with _$PluginRequest {
+  const PluginRequest._();
 
-                     const factory PluginRequest.contentResolver(  ContentResolverCommand field0,) = PluginRequest_ContentResolver;
- const factory PluginRequest.chartProvider(  ChartProviderCommand field0,) = PluginRequest_ChartProvider;
-
-                    
-
-                    
-                }
+  const factory PluginRequest.contentResolver(
+    ContentResolverCommand field0,
+  ) = PluginRequest_ContentResolver;
+  const factory PluginRequest.chartProvider(
+    ChartProviderCommand field0,
+  ) = PluginRequest_ChartProvider;
+}
 
 @freezed
-                sealed class PluginResponse with _$PluginResponse  {
-                    const PluginResponse._();
+sealed class PluginResponse with _$PluginResponse {
+  const PluginResponse._();
 
-                     const factory PluginResponse.albumDetails(  AlbumDetails field0,) = PluginResponse_AlbumDetails;
- const factory PluginResponse.artistDetails(  ArtistDetails field0,) = PluginResponse_ArtistDetails;
- const factory PluginResponse.playlistDetails(  PlaylistDetails field0,) = PluginResponse_PlaylistDetails;
- const factory PluginResponse.streams(  List<Track> field0,) = PluginResponse_Streams;
- const factory PluginResponse.search(  PagedMediaItems field0,) = PluginResponse_Search;
- const factory PluginResponse.moreTracks(  PagedTracks field0,) = PluginResponse_MoreTracks;
- const factory PluginResponse.moreAlbums(  PagedAlbums field0,) = PluginResponse_MoreAlbums;
- const factory PluginResponse.homeSections(  List<Section> field0,) = PluginResponse_HomeSections;
- const factory PluginResponse.loadMoreItems(  List<MediaItem> field0,) = PluginResponse_LoadMoreItems;
- const factory PluginResponse.charts(  List<ChartSummary> field0,) = PluginResponse_Charts;
- const factory PluginResponse.chartDetails(  List<ChartItem> field0,) = PluginResponse_ChartDetails;
- const factory PluginResponse.ack() = PluginResponse_Ack;
-
-                    
-
-                    
-                }
-            
+  const factory PluginResponse.albumDetails(
+    AlbumDetails field0,
+  ) = PluginResponse_AlbumDetails;
+  const factory PluginResponse.artistDetails(
+    ArtistDetails field0,
+  ) = PluginResponse_ArtistDetails;
+  const factory PluginResponse.playlistDetails(
+    PlaylistDetails field0,
+  ) = PluginResponse_PlaylistDetails;
+  const factory PluginResponse.streams(
+    List<Track> field0,
+  ) = PluginResponse_Streams;
+  const factory PluginResponse.search(
+    PagedMediaItems field0,
+  ) = PluginResponse_Search;
+  const factory PluginResponse.moreTracks(
+    PagedTracks field0,
+  ) = PluginResponse_MoreTracks;
+  const factory PluginResponse.moreAlbums(
+    PagedAlbums field0,
+  ) = PluginResponse_MoreAlbums;
+  const factory PluginResponse.homeSections(
+    List<Section> field0,
+  ) = PluginResponse_HomeSections;
+  const factory PluginResponse.loadMoreItems(
+    List<MediaItem> field0,
+  ) = PluginResponse_LoadMoreItems;
+  const factory PluginResponse.charts(
+    List<ChartSummary> field0,
+  ) = PluginResponse_Charts;
+  const factory PluginResponse.chartDetails(
+    List<ChartItem> field0,
+  ) = PluginResponse_ChartDetails;
+  const factory PluginResponse.ack() = PluginResponse_Ack;
+}

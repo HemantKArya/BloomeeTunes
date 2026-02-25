@@ -10,55 +10,107 @@ import 'plugin_info.dart';
 import 'types.dart';
 part 'events.freezed.dart';
 
-            // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
 // These functions have error during generation (see debug logs or enable `stop_on_error: true` for more details): `delete_failed`, `deleted`, `deleting`, `install_failed`, `installed`, `installing`, `load_failed`, `loaded`, `loading`, `storage_deleted`, `storage_set`, `unload_failed`, `unloaded`, `unloading`
 
+@freezed
+sealed class PluginManagerEvent with _$PluginManagerEvent {
+  const PluginManagerEvent._();
 
-            
+  /// Plugin load started - UI should show spinner
+  const factory PluginManagerEvent.pluginLoading({
+    required String id,
+  }) = PluginManagerEvent_PluginLoading;
 
-            @freezed
-                sealed class PluginManagerEvent with _$PluginManagerEvent  {
-                    const PluginManagerEvent._();
+  /// Plugin successfully loaded
+  const factory PluginManagerEvent.pluginLoaded({
+    required String id,
+    required PluginType pluginType,
+  }) = PluginManagerEvent_PluginLoaded;
 
-                     /// Plugin load started - UI should show spinner
-const factory PluginManagerEvent.pluginLoading({   required String id , }) = PluginManagerEvent_PluginLoading;
- /// Plugin successfully loaded
-const factory PluginManagerEvent.pluginLoaded({   required String id ,  required PluginType pluginType , }) = PluginManagerEvent_PluginLoaded;
- /// Plugin load failed
-const factory PluginManagerEvent.pluginLoadFailed({   required String id ,  required String error , }) = PluginManagerEvent_PluginLoadFailed;
- /// Plugin unload started - UI should show spinner
-const factory PluginManagerEvent.pluginUnloading({   required String id , }) = PluginManagerEvent_PluginUnloading;
- /// Plugin successfully unloaded
-const factory PluginManagerEvent.pluginUnloaded({   required String id , }) = PluginManagerEvent_PluginUnloaded;
- /// Plugin unload failed
-const factory PluginManagerEvent.pluginUnloadFailed({   required String id ,  required String error , }) = PluginManagerEvent_PluginUnloadFailed;
- /// Plugin installation started - UI should show spinner
-const factory PluginManagerEvent.pluginInstalling({   required String id , }) = PluginManagerEvent_PluginInstalling;
- /// Plugin successfully installed
-const factory PluginManagerEvent.pluginInstalled({   required String id , }) = PluginManagerEvent_PluginInstalled;
- /// Plugin installation failed
-const factory PluginManagerEvent.pluginInstallFailed({   required String id ,  required String error , }) = PluginManagerEvent_PluginInstallFailed;
- /// Plugin deletion started - UI should show spinner
-const factory PluginManagerEvent.pluginDeleting({   required String id , }) = PluginManagerEvent_PluginDeleting;
- /// Plugin successfully deleted
-const factory PluginManagerEvent.pluginDeleted({   required String id , }) = PluginManagerEvent_PluginDeleted;
- /// Plugin deletion failed
-const factory PluginManagerEvent.pluginDeleteFailed({   required String id ,  required String error , }) = PluginManagerEvent_PluginDeleteFailed;
- /// Available plugins list refreshed
-const factory PluginManagerEvent.pluginListRefreshed({   required List<PluginInfo> plugins , }) = PluginManagerEvent_PluginListRefreshed;
- /// Plugin storage value set - Dart should persist to Isar
-const factory PluginManagerEvent.storageSet({   required String pluginId ,  required String key ,  required String value , }) = PluginManagerEvent_StorageSet;
- /// Plugin storage value deleted - Dart should remove from Isar
-const factory PluginManagerEvent.storageDeleted({   required String pluginId ,  required String key , }) = PluginManagerEvent_StorageDeleted;
- /// All plugin storage cleared - Dart should remove all entries for plugin
-const factory PluginManagerEvent.storageCleared({   required String pluginId , }) = PluginManagerEvent_StorageCleared;
- /// Plugin manager initialized
-const factory PluginManagerEvent.managerInitialized() = PluginManagerEvent_ManagerInitialized;
- /// General error (not tied to specific plugin operation)
-const factory PluginManagerEvent.error({   required String message , }) = PluginManagerEvent_Error;
+  /// Plugin load failed
+  const factory PluginManagerEvent.pluginLoadFailed({
+    required String id,
+    required String error,
+  }) = PluginManagerEvent_PluginLoadFailed;
 
-                    
+  /// Plugin unload started - UI should show spinner
+  const factory PluginManagerEvent.pluginUnloading({
+    required String id,
+  }) = PluginManagerEvent_PluginUnloading;
 
-                    
-                }
-            
+  /// Plugin successfully unloaded
+  const factory PluginManagerEvent.pluginUnloaded({
+    required String id,
+  }) = PluginManagerEvent_PluginUnloaded;
+
+  /// Plugin unload failed
+  const factory PluginManagerEvent.pluginUnloadFailed({
+    required String id,
+    required String error,
+  }) = PluginManagerEvent_PluginUnloadFailed;
+
+  /// Plugin installation started - UI should show spinner
+  const factory PluginManagerEvent.pluginInstalling({
+    required String id,
+  }) = PluginManagerEvent_PluginInstalling;
+
+  /// Plugin successfully installed
+  const factory PluginManagerEvent.pluginInstalled({
+    required String id,
+  }) = PluginManagerEvent_PluginInstalled;
+
+  /// Plugin installation failed
+  const factory PluginManagerEvent.pluginInstallFailed({
+    required String id,
+    required String error,
+  }) = PluginManagerEvent_PluginInstallFailed;
+
+  /// Plugin deletion started - UI should show spinner
+  const factory PluginManagerEvent.pluginDeleting({
+    required String id,
+  }) = PluginManagerEvent_PluginDeleting;
+
+  /// Plugin successfully deleted
+  const factory PluginManagerEvent.pluginDeleted({
+    required String id,
+  }) = PluginManagerEvent_PluginDeleted;
+
+  /// Plugin deletion failed
+  const factory PluginManagerEvent.pluginDeleteFailed({
+    required String id,
+    required String error,
+  }) = PluginManagerEvent_PluginDeleteFailed;
+
+  /// Available plugins list refreshed
+  const factory PluginManagerEvent.pluginListRefreshed({
+    required List<PluginInfo> plugins,
+  }) = PluginManagerEvent_PluginListRefreshed;
+
+  /// Plugin storage value set - Dart should persist to Isar
+  const factory PluginManagerEvent.storageSet({
+    required String pluginId,
+    required String key,
+    required String value,
+  }) = PluginManagerEvent_StorageSet;
+
+  /// Plugin storage value deleted - Dart should remove from Isar
+  const factory PluginManagerEvent.storageDeleted({
+    required String pluginId,
+    required String key,
+  }) = PluginManagerEvent_StorageDeleted;
+
+  /// All plugin storage cleared - Dart should remove all entries for plugin
+  const factory PluginManagerEvent.storageCleared({
+    required String pluginId,
+  }) = PluginManagerEvent_StorageCleared;
+
+  /// Plugin manager initialized
+  const factory PluginManagerEvent.managerInitialized() =
+      PluginManagerEvent_ManagerInitialized;
+
+  /// General error (not tied to specific plugin operation)
+  const factory PluginManagerEvent.error({
+    required String message,
+  }) = PluginManagerEvent_Error;
+}

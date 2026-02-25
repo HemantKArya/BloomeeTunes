@@ -15,3139 +15,4960 @@ import 'api/plugin/types.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
-import 'frb_generated.io.dart' if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'frb_generated.io.dart'
+    if (dart.library.js_interop) 'frb_generated.web.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+/// Main entrypoint of the Rust API
+class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
+  @internal
+  static final instance = RustLib._();
+
+  RustLib._();
+
+  /// Initialize flutter_rust_bridge
+  static Future<void> init({
+    RustLibApi? api,
+    BaseHandler? handler,
+    ExternalLibrary? externalLibrary,
+    bool forceSameCodegenVersion = true,
+  }) async {
+    await instance.initImpl(
+      api: api,
+      handler: handler,
+      externalLibrary: externalLibrary,
+      forceSameCodegenVersion: forceSameCodegenVersion,
+    );
+  }
+
+  /// Initialize flutter_rust_bridge in mock mode.
+  /// No libraries for FFI are loaded.
+  static void initMock({
+    required RustLibApi api,
+  }) {
+    instance.initMockImpl(
+      api: api,
+    );
+  }
+
+  /// Dispose flutter_rust_bridge
+  ///
+  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
+  /// is automatically disposed when the app stops.
+  static void dispose() => instance.disposeImpl();
+
+  @override
+  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor =>
+      RustLibApiImpl.new;
+
+  @override
+  WireConstructor<RustLibWire> get wireConstructor =>
+      RustLibWire.fromExternalLibrary;
+
+  @override
+  Future<void> executeRustInitializers() async {
+    await api.crateApiBridgeInitApp();
+  }
+
+  @override
+  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig =>
+      kDefaultExternalLibraryLoaderConfig;
+
+  @override
+  String get codegenVersion => '2.11.1';
+
+  @override
+  int get rustContentHash => -224335802;
+
+  static const kDefaultExternalLibraryLoaderConfig =
+      ExternalLibraryLoaderConfig(
+    stem: 'rust_lib_Bloomee',
+    ioDirectory: 'rust/target/release/',
+    webPrefix: 'pkg/',
+  );
+}
+
+abstract class RustLibApi extends BaseApi {
+  Manifest crateApiPluginPluginInfoPluginInfoAutoAccessorGetManifest(
+      {required PluginInfo that});
+
+  String crateApiPluginPluginInfoPluginInfoAutoAccessorGetName(
+      {required PluginInfo that});
+
+  String crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPath(
+      {required PluginInfo that});
+
+  PluginType crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginType(
+      {required PluginInfo that});
+
+  void crateApiPluginPluginInfoPluginInfoAutoAccessorSetManifest(
+      {required PluginInfo that, required Manifest manifest});
+
+  void crateApiPluginPluginInfoPluginInfoAutoAccessorSetName(
+      {required PluginInfo that, required String name});
+
+  void crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPath(
+      {required PluginInfo that, required String pluginPath});
+
+  void crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginType(
+      {required PluginInfo that, required PluginType pluginType});
+
+  String crateApiPluginPluginPluginManagerAutoAccessorGetPluginsDir(
+      {required PluginManager that});
+
+  void crateApiPluginPluginPluginManagerAutoAccessorSetPluginsDir(
+      {required PluginManager that, required String pluginsDir});
+
+  Future<List<PluginInfo>> crateApiPluginPluginPluginManagerGetAvailablePlugins(
+      {required PluginManager that});
 
-                /// Main entrypoint of the Rust API
-                class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
-                  @internal
-                  static final instance = RustLib._();
+  Future<List<String>> crateApiPluginPluginPluginManagerGetLoadedPlugins(
+      {required PluginManager that});
 
-                  RustLib._();
+  Stream<PluginManagerEvent> crateApiPluginPluginPluginManagerInitEventStream(
+      {required PluginManager that});
 
-                  /// Initialize flutter_rust_bridge
-                  static Future<void> init({
-                    RustLibApi? api,
-                    BaseHandler? handler,
-                    ExternalLibrary? externalLibrary,
-                    bool forceSameCodegenVersion = true,
-                  }) async {
-                    await instance.initImpl(
-                      api: api,
-                      handler: handler,
-                      externalLibrary: externalLibrary,
-                      forceSameCodegenVersion: forceSameCodegenVersion,
-                    );
-                  }
+  Future<bool> crateApiPluginPluginPluginManagerIsPluginLoaded(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType});
 
-                  /// Initialize flutter_rust_bridge in mock mode.
-                  /// No libraries for FFI are loaded.
-                  static void initMock({
-                    required RustLibApi api,
-                  }) {
-                    instance.initMockImpl(
-                      api: api,
-                    );
-                  }
+  Future<bool> crateApiPluginPluginPluginManagerIsPluginLoadedById(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType});
 
-                  /// Dispose flutter_rust_bridge
-                  ///
-                  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
-                  /// is automatically disposed when the app stops.
-                  static void dispose() => instance.disposeImpl();
+  Future<void> crateApiPluginPluginPluginManagerLoadPlugin(
+      {required PluginManager that, required PluginInfo pluginInfo});
 
-                  @override
-                  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor => RustLibApiImpl.new;
+  Future<void> crateApiPluginPluginPluginManagerLoadPluginById(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType});
 
-                  @override
-                  WireConstructor<RustLibWire> get wireConstructor => RustLibWire.fromExternalLibrary;
+  Future<void> crateApiPluginPluginPluginManagerLoadPluginFromPath(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType,
+      required String pluginPath});
 
-                  @override
-                  Future<void> executeRustInitializers() async {
-                    await api.crateApiBridgeInitApp();
+  Future<PluginManager> crateApiPluginPluginPluginManagerNew(
+      {required String pluginsDir});
 
-                  }
+  Future<void> crateApiPluginPluginPluginManagerRefreshAvailablePlugins(
+      {required PluginManager that});
+
+  Future<void> crateApiPluginPluginPluginManagerShutdown(
+      {required PluginManager that});
+
+  Future<void> crateApiPluginPluginPluginManagerStorageClear(
+      {required PluginManager that, required String pluginId});
+
+  Future<bool> crateApiPluginPluginPluginManagerStorageDelete(
+      {required PluginManager that,
+      required String pluginId,
+      required String key});
+
+  Future<String?> crateApiPluginPluginPluginManagerStorageGet(
+      {required PluginManager that,
+      required String pluginId,
+      required String key});
+
+  Future<void> crateApiPluginPluginPluginManagerStoragePreload(
+      {required PluginManager that,
+      required String pluginId,
+      required String key,
+      required String value});
 
-                  @override
-                  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig => kDefaultExternalLibraryLoaderConfig;
+  Future<bool> crateApiPluginPluginPluginManagerStorageSet(
+      {required PluginManager that,
+      required String pluginId,
+      required String key,
+      required String value});
 
-                  @override
-                  String get codegenVersion => '2.11.1';
+  Future<void> crateApiPluginPluginPluginManagerUnloadPlugin(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType});
 
-                  @override
-                  int get rustContentHash => -224335802;
+  Future<void> crateApiPluginPluginPluginManagerUnloadPluginById(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType});
 
-                  static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
-                    stem: 'rust_lib_Bloomee',
-                    ioDirectory: 'rust/target/release/',
-                    webPrefix: 'pkg/',
-                  );
-                }
-                
+  Future<PluginManager> crateApiBridgeCreatePluginManager(
+      {required String pluginsDir});
 
-                abstract class RustLibApi extends BaseApi {
-                  Manifest crateApiPluginPluginInfoPluginInfoAutoAccessorGetManifest({required PluginInfo that });
+  Future<List<PluginInfo>> crateApiBridgeGetAvailablePlugins(
+      {required PluginManager manager});
 
-String crateApiPluginPluginInfoPluginInfoAutoAccessorGetName({required PluginInfo that });
+  Future<MetadataResult> crateApiBridgeGetFilenameUrl({required String url});
 
-String crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPath({required PluginInfo that });
+  List<String> crateApiBridgeGetLoadedPlugins({required PluginManager manager});
 
-PluginType crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginType({required PluginInfo that });
+  Future<PluginInfo?> crateApiBridgeGetPluginInfo(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginType pluginType});
 
-void crateApiPluginPluginInfoPluginInfoAutoAccessorSetManifest({required PluginInfo that , required Manifest manifest });
+  Future<String> crateApiBridgeGetPluginsDir({required PluginManager manager});
 
-void crateApiPluginPluginInfoPluginInfoAutoAccessorSetName({required PluginInfo that , required String name });
+  String crateApiBridgeGreet({required String name});
 
-void crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPath({required PluginInfo that , required String pluginPath });
+  Future<PluginResponse> crateApiBridgeHandlePluginRequest(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginRequest request});
 
-void crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginType({required PluginInfo that , required PluginType pluginType });
-
-String crateApiPluginPluginPluginManagerAutoAccessorGetPluginsDir({required PluginManager that });
-
-void crateApiPluginPluginPluginManagerAutoAccessorSetPluginsDir({required PluginManager that , required String pluginsDir });
-
-Future<List<PluginInfo>> crateApiPluginPluginPluginManagerGetAvailablePlugins({required PluginManager that });
-
-Future<List<String>> crateApiPluginPluginPluginManagerGetLoadedPlugins({required PluginManager that });
-
-Stream<PluginManagerEvent> crateApiPluginPluginPluginManagerInitEventStream({required PluginManager that });
-
-Future<bool> crateApiPluginPluginPluginManagerIsPluginLoaded({required PluginManager that , required String pluginId , required PluginType pluginType });
-
-Future<bool> crateApiPluginPluginPluginManagerIsPluginLoadedById({required PluginManager that , required String pluginId , required PluginType pluginType });
-
-Future<void> crateApiPluginPluginPluginManagerLoadPlugin({required PluginManager that , required PluginInfo pluginInfo });
-
-Future<void> crateApiPluginPluginPluginManagerLoadPluginById({required PluginManager that , required String pluginId , required PluginType pluginType });
-
-Future<void> crateApiPluginPluginPluginManagerLoadPluginFromPath({required PluginManager that , required String pluginId , required PluginType pluginType , required String pluginPath });
-
-Future<PluginManager> crateApiPluginPluginPluginManagerNew({required String pluginsDir });
-
-Future<void> crateApiPluginPluginPluginManagerRefreshAvailablePlugins({required PluginManager that });
-
-Future<void> crateApiPluginPluginPluginManagerShutdown({required PluginManager that });
-
-Future<void> crateApiPluginPluginPluginManagerStorageClear({required PluginManager that , required String pluginId });
-
-Future<bool> crateApiPluginPluginPluginManagerStorageDelete({required PluginManager that , required String pluginId , required String key });
-
-Future<String?> crateApiPluginPluginPluginManagerStorageGet({required PluginManager that , required String pluginId , required String key });
-
-Future<void> crateApiPluginPluginPluginManagerStoragePreload({required PluginManager that , required String pluginId , required String key , required String value });
-
-Future<bool> crateApiPluginPluginPluginManagerStorageSet({required PluginManager that , required String pluginId , required String key , required String value });
-
-Future<void> crateApiPluginPluginPluginManagerUnloadPlugin({required PluginManager that , required String pluginId , required PluginType pluginType });
-
-Future<void> crateApiPluginPluginPluginManagerUnloadPluginById({required PluginManager that , required String pluginId , required PluginType pluginType });
-
-Future<PluginManager> crateApiBridgeCreatePluginManager({required String pluginsDir });
-
-Future<List<PluginInfo>> crateApiBridgeGetAvailablePlugins({required PluginManager manager });
-
-Future<MetadataResult> crateApiBridgeGetFilenameUrl({required String url });
-
-List<String> crateApiBridgeGetLoadedPlugins({required PluginManager manager });
-
-Future<PluginInfo?> crateApiBridgeGetPluginInfo({required PluginManager manager , required String pluginId , required PluginType pluginType });
-
-Future<String> crateApiBridgeGetPluginsDir({required PluginManager manager });
-
-String crateApiBridgeGreet({required String name });
-
-Future<PluginResponse> crateApiBridgeHandlePluginRequest({required PluginManager manager , required String pluginId , required PluginRequest request });
-
-Future<void> crateApiBridgeInitApp();
-
-Stream<PluginManagerEvent> crateApiBridgeInitPluginEventStream({required PluginManager manager });
-
-Future<Manifest> crateApiBridgeInspectPackedPlugin({required String packedFilePath , required String tempDir });
-
-Future<PluginInstallResult> crateApiBridgeInstallPackedPlugin({required String packedFilePath , required String pluginsDir , required String tempDir , required bool shouldLoad , required PluginManager manager });
-
-Future<bool> crateApiBridgeIsPluginLoaded({required PluginManager manager , required String pluginId , required PluginType pluginType });
-
-Future<void> crateApiBridgeLoadPlugin({required PluginManager manager , required String pluginId , required PluginType pluginType });
-
-Future<void> crateApiBridgePluginStorageClear({required PluginManager manager , required String pluginId });
-
-Future<String?> crateApiBridgePluginStorageGet({required PluginManager manager , required String pluginId , required String key });
-
-Future<void> crateApiBridgePluginStoragePreload({required PluginManager manager , required String pluginId , required String key , required String value });
-
-Future<bool> crateApiBridgePluginStorageSet({required PluginManager manager , required String pluginId , required String key , required String value });
-
-Future<void> crateApiPluginTypesPluginTypeDescription({required PluginType that });
-
-Future<PluginType?> crateApiPluginTypesPluginTypeFromString({required String s });
-
-Future<void> crateApiPluginTypesPluginTypeTypeString({required PluginType that });
-
-Future<void> crateApiBridgeRefreshAvailablePlugins({required PluginManager manager });
-
-Future<List<String>> crateApiBridgeScanBexFiles({required String directory });
-
-Future<void> crateApiBridgeShutdownPluginManager({required PluginManager manager });
-
-Future<void> crateApiBridgeUnloadPlugin({required PluginManager manager , required String pluginId , required PluginType pluginType });
-
-RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_PluginInfo;
-
-RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_PluginInfo;
-
-CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_PluginInfoPtr;
-
-RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_PluginManager;
-
-RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_PluginManager;
-
-CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_PluginManagerPtr;
-
-
-                }
-                
-
-                class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
-                  RustLibApiImpl({
-                    required super.handler,
-                    required super.wire,
-                    required super.generalizedFrbRustBinding,
-                    required super.portManager,
-                  });
-
-                  @override Manifest crateApiPluginPluginInfoPluginInfoAutoAccessorGetManifest({required PluginInfo that })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(that, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_manifest,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetManifestConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetManifestConstMeta => const TaskConstMeta(
+  Future<void> crateApiBridgeInitApp();
+
+  Stream<PluginManagerEvent> crateApiBridgeInitPluginEventStream(
+      {required PluginManager manager});
+
+  Future<Manifest> crateApiBridgeInspectPackedPlugin(
+      {required String packedFilePath, required String tempDir});
+
+  Future<PluginInstallResult> crateApiBridgeInstallPackedPlugin(
+      {required String packedFilePath,
+      required String pluginsDir,
+      required String tempDir,
+      required bool shouldLoad,
+      required PluginManager manager});
+
+  Future<bool> crateApiBridgeIsPluginLoaded(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginType pluginType});
+
+  Future<void> crateApiBridgeLoadPlugin(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginType pluginType});
+
+  Future<void> crateApiBridgePluginStorageClear(
+      {required PluginManager manager, required String pluginId});
+
+  Future<String?> crateApiBridgePluginStorageGet(
+      {required PluginManager manager,
+      required String pluginId,
+      required String key});
+
+  Future<void> crateApiBridgePluginStoragePreload(
+      {required PluginManager manager,
+      required String pluginId,
+      required String key,
+      required String value});
+
+  Future<bool> crateApiBridgePluginStorageSet(
+      {required PluginManager manager,
+      required String pluginId,
+      required String key,
+      required String value});
+
+  Future<void> crateApiPluginTypesPluginTypeDescription(
+      {required PluginType that});
+
+  Future<PluginType?> crateApiPluginTypesPluginTypeFromString(
+      {required String s});
+
+  Future<void> crateApiPluginTypesPluginTypeTypeString(
+      {required PluginType that});
+
+  Future<void> crateApiBridgeRefreshAvailablePlugins(
+      {required PluginManager manager});
+
+  Future<List<String>> crateApiBridgeScanBexFiles({required String directory});
+
+  Future<void> crateApiBridgeShutdownPluginManager(
+      {required PluginManager manager});
+
+  Future<void> crateApiBridgeUnloadPlugin(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginType pluginType});
+
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_PluginInfo;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_PluginInfo;
+
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_PluginInfoPtr;
+
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_PluginManager;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_PluginManager;
+
+  CrossPlatformFinalizerArg
+      get rust_arc_decrement_strong_count_PluginManagerPtr;
+}
+
+class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
+  RustLibApiImpl({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
+
+  @override
+  Manifest crateApiPluginPluginInfoPluginInfoAutoAccessorGetManifest(
+      {required PluginInfo that}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_manifest,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetManifestConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta
+      get kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetManifestConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginInfo_auto_accessor_get_manifest",
             argNames: ["that"],
-        );
-        
+          );
 
-@override String crateApiPluginPluginInfoPluginInfoAutoAccessorGetName({required PluginInfo that })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(that, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetNameConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
+  @override
+  String crateApiPluginPluginInfoPluginInfoAutoAccessorGetName(
+      {required PluginInfo that}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetNameConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetNameConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetNameConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginInfo_auto_accessor_get_name",
             argNames: ["that"],
-        );
-        
+          );
 
-@override String crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPath({required PluginInfo that })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(that, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPathConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
+  @override
+  String crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPath(
+      {required PluginInfo that}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPathConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPathConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPathConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginInfo_auto_accessor_get_plugin_path",
             argNames: ["that"],
-        );
-        
+          );
 
-@override PluginType crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginType({required PluginInfo that })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(that, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_plugin_type,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginTypeConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
+  @override
+  PluginType crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginType(
+      {required PluginInfo that}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_plugin_type,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginTypeConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginTypeConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginTypeConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginInfo_auto_accessor_get_plugin_type",
             argNames: ["that"],
-        );
-        
+          );
 
-@override void crateApiPluginPluginInfoPluginInfoAutoAccessorSetManifest({required PluginInfo that , required Manifest manifest })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(that, serializer);
-sse_encode_manifest(manifest, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetManifestConstMeta,
-            argValues: [that, manifest],
-            apiImpl: this,
-        )); }
+  @override
+  void crateApiPluginPluginInfoPluginInfoAutoAccessorSetManifest(
+      {required PluginInfo that, required Manifest manifest}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            that, serializer);
+        sse_encode_manifest(manifest, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetManifestConstMeta,
+      argValues: [that, manifest],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetManifestConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetManifestConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginInfo_auto_accessor_set_manifest",
             argNames: ["that", "manifest"],
-        );
-        
+          );
 
-@override void crateApiPluginPluginInfoPluginInfoAutoAccessorSetName({required PluginInfo that , required String name })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(that, serializer);
-sse_encode_String(name, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetNameConstMeta,
-            argValues: [that, name],
-            apiImpl: this,
-        )); }
+  @override
+  void crateApiPluginPluginInfoPluginInfoAutoAccessorSetName(
+      {required PluginInfo that, required String name}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            that, serializer);
+        sse_encode_String(name, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetNameConstMeta,
+      argValues: [that, name],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetNameConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetNameConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginInfo_auto_accessor_set_name",
             argNames: ["that", "name"],
-        );
-        
+          );
 
-@override void crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPath({required PluginInfo that , required String pluginPath })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(that, serializer);
-sse_encode_String(pluginPath, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPathConstMeta,
-            argValues: [that, pluginPath],
-            apiImpl: this,
-        )); }
+  @override
+  void crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPath(
+      {required PluginInfo that, required String pluginPath}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            that, serializer);
+        sse_encode_String(pluginPath, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPathConstMeta,
+      argValues: [that, pluginPath],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPathConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPathConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginInfo_auto_accessor_set_plugin_path",
             argNames: ["that", "pluginPath"],
-        );
-        
+          );
 
-@override void crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginType({required PluginInfo that , required PluginType pluginType })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(that, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginTypeConstMeta,
-            argValues: [that, pluginType],
-            apiImpl: this,
-        )); }
+  @override
+  void crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginType(
+      {required PluginInfo that, required PluginType pluginType}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            that, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginTypeConstMeta,
+      argValues: [that, pluginType],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginTypeConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginTypeConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginInfo_auto_accessor_set_plugin_type",
             argNames: ["that", "pluginType"],
-        );
-        
+          );
 
-@override String crateApiPluginPluginPluginManagerAutoAccessorGetPluginsDir({required PluginManager that })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerAutoAccessorGetPluginsDirConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
+  @override
+  String crateApiPluginPluginPluginManagerAutoAccessorGetPluginsDir(
+      {required PluginManager that}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginPluginManagerAutoAccessorGetPluginsDirConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerAutoAccessorGetPluginsDirConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerAutoAccessorGetPluginsDirConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_auto_accessor_get_plugins_dir",
             argNames: ["that"],
-        );
-        
+          );
 
-@override void crateApiPluginPluginPluginManagerAutoAccessorSetPluginsDir({required PluginManager that , required String pluginsDir })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginsDir, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerAutoAccessorSetPluginsDirConstMeta,
-            argValues: [that, pluginsDir],
-            apiImpl: this,
-        )); }
+  @override
+  void crateApiPluginPluginPluginManagerAutoAccessorSetPluginsDir(
+      {required PluginManager that, required String pluginsDir}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginsDir, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginPluginManagerAutoAccessorSetPluginsDirConstMeta,
+      argValues: [that, pluginsDir],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerAutoAccessorSetPluginsDirConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerAutoAccessorSetPluginsDirConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_auto_accessor_set_plugins_dir",
             argNames: ["that", "pluginsDir"],
-        );
-        
+          );
 
-@override Future<List<PluginInfo>> crateApiPluginPluginPluginManagerGetAvailablePlugins({required PluginManager that })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerGetAvailablePluginsConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
+  @override
+  Future<List<PluginInfo>> crateApiPluginPluginPluginManagerGetAvailablePlugins(
+      {required PluginManager that}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 11, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData:
+            sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerGetAvailablePluginsConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerGetAvailablePluginsConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerGetAvailablePluginsConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_get_available_plugins",
             argNames: ["that"],
-        );
-        
+          );
 
-@override Future<List<String>> crateApiPluginPluginPluginManagerGetLoadedPlugins({required PluginManager that })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_list_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerGetLoadedPluginsConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
+  @override
+  Future<List<String>> crateApiPluginPluginPluginManagerGetLoadedPlugins(
+      {required PluginManager that}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 12, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerGetLoadedPluginsConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerGetLoadedPluginsConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerGetLoadedPluginsConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_get_loaded_plugins",
             argNames: ["that"],
-        );
-        
+          );
 
-@override Stream<PluginManagerEvent> crateApiPluginPluginPluginManagerInitEventStream({required PluginManager that })  { 
-            final sink = RustStreamSink<PluginManagerEvent>();
-            unawaited(handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_StreamSink_plugin_manager_event_Sse(sink, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerInitEventStreamConstMeta,
-            argValues: [that, sink],
-            apiImpl: this,
-        )));
-            return sink.stream;
-             }
+  @override
+  Stream<PluginManagerEvent> crateApiPluginPluginPluginManagerInitEventStream(
+      {required PluginManager that}) {
+    final sink = RustStreamSink<PluginManagerEvent>();
+    unawaited(handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_StreamSink_plugin_manager_event_Sse(sink, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 13, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerInitEventStreamConstMeta,
+      argValues: [that, sink],
+      apiImpl: this,
+    )));
+    return sink.stream;
+  }
 
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerInitEventStreamConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerInitEventStreamConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_init_event_stream",
             argNames: ["that", "sink"],
-        );
-        
+          );
 
-@override Future<bool> crateApiPluginPluginPluginManagerIsPluginLoaded({required PluginManager that , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerIsPluginLoadedConstMeta,
-            argValues: [that, pluginId, pluginType],
-            apiImpl: this,
-        )); }
+  @override
+  Future<bool> crateApiPluginPluginPluginManagerIsPluginLoaded(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 14, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerIsPluginLoadedConstMeta,
+      argValues: [that, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
 
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerIsPluginLoadedConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_is_plugin_loaded",
+        argNames: ["that", "pluginId", "pluginType"],
+      );
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerIsPluginLoadedConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_is_plugin_loaded",
-            argNames: ["that", "pluginId", "pluginType"],
-        );
-        
+  @override
+  Future<bool> crateApiPluginPluginPluginManagerIsPluginLoadedById(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 15, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerIsPluginLoadedByIdConstMeta,
+      argValues: [that, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
 
-@override Future<bool> crateApiPluginPluginPluginManagerIsPluginLoadedById({required PluginManager that , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerIsPluginLoadedByIdConstMeta,
-            argValues: [that, pluginId, pluginType],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerIsPluginLoadedByIdConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerIsPluginLoadedByIdConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_is_plugin_loaded_by_id",
             argNames: ["that", "pluginId", "pluginType"],
-        );
-        
+          );
 
-@override Future<void> crateApiPluginPluginPluginManagerLoadPlugin({required PluginManager that , required PluginInfo pluginInfo })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(pluginInfo, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerLoadPluginConstMeta,
-            argValues: [that, pluginInfo],
-            apiImpl: this,
-        )); }
+  @override
+  Future<void> crateApiPluginPluginPluginManagerLoadPlugin(
+      {required PluginManager that, required PluginInfo pluginInfo}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            pluginInfo, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 16, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerLoadPluginConstMeta,
+      argValues: [that, pluginInfo],
+      apiImpl: this,
+    ));
+  }
 
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerLoadPluginConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_load_plugin",
+        argNames: ["that", "pluginInfo"],
+      );
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerLoadPluginConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_load_plugin",
-            argNames: ["that", "pluginInfo"],
-        );
-        
+  @override
+  Future<void> crateApiPluginPluginPluginManagerLoadPluginById(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 17, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerLoadPluginByIdConstMeta,
+      argValues: [that, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
 
-@override Future<void> crateApiPluginPluginPluginManagerLoadPluginById({required PluginManager that , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerLoadPluginByIdConstMeta,
-            argValues: [that, pluginId, pluginType],
-            apiImpl: this,
-        )); }
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerLoadPluginByIdConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_load_plugin_by_id",
+        argNames: ["that", "pluginId", "pluginType"],
+      );
 
+  @override
+  Future<void> crateApiPluginPluginPluginManagerLoadPluginFromPath(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType,
+      required String pluginPath}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        sse_encode_String(pluginPath, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 18, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerLoadPluginFromPathConstMeta,
+      argValues: [that, pluginId, pluginType, pluginPath],
+      apiImpl: this,
+    ));
+  }
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerLoadPluginByIdConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_load_plugin_by_id",
-            argNames: ["that", "pluginId", "pluginType"],
-        );
-        
-
-@override Future<void> crateApiPluginPluginPluginManagerLoadPluginFromPath({required PluginManager that , required String pluginId , required PluginType pluginType , required String pluginPath })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-sse_encode_String(pluginPath, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerLoadPluginFromPathConstMeta,
-            argValues: [that, pluginId, pluginType, pluginPath],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerLoadPluginFromPathConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerLoadPluginFromPathConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_load_plugin_from_path",
             argNames: ["that", "pluginId", "pluginType", "pluginPath"],
-        );
-        
+          );
 
-@override Future<PluginManager> crateApiPluginPluginPluginManagerNew({required String pluginsDir })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(pluginsDir, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerNewConstMeta,
-            argValues: [pluginsDir],
-            apiImpl: this,
-        )); }
+  @override
+  Future<PluginManager> crateApiPluginPluginPluginManagerNew(
+      {required String pluginsDir}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(pluginsDir, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 19, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData:
+            sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerNewConstMeta,
+      argValues: [pluginsDir],
+      apiImpl: this,
+    ));
+  }
 
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerNewConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_new",
+        argNames: ["pluginsDir"],
+      );
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerNewConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_new",
-            argNames: ["pluginsDir"],
-        );
-        
+  @override
+  Future<void> crateApiPluginPluginPluginManagerRefreshAvailablePlugins(
+      {required PluginManager that}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 20, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta:
+          kCrateApiPluginPluginPluginManagerRefreshAvailablePluginsConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
 
-@override Future<void> crateApiPluginPluginPluginManagerRefreshAvailablePlugins({required PluginManager that })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerRefreshAvailablePluginsConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerRefreshAvailablePluginsConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerRefreshAvailablePluginsConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_refresh_available_plugins",
             argNames: ["that"],
-        );
-        
+          );
 
-@override Future<void> crateApiPluginPluginPluginManagerShutdown({required PluginManager that })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerShutdownConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
+  @override
+  Future<void> crateApiPluginPluginPluginManagerShutdown(
+      {required PluginManager that}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 21, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerShutdownConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
 
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerShutdownConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_shutdown",
+        argNames: ["that"],
+      );
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerShutdownConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_shutdown",
-            argNames: ["that"],
-        );
-        
+  @override
+  Future<void> crateApiPluginPluginPluginManagerStorageClear(
+      {required PluginManager that, required String pluginId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 22, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerStorageClearConstMeta,
+      argValues: [that, pluginId],
+      apiImpl: this,
+    ));
+  }
 
-@override Future<void> crateApiPluginPluginPluginManagerStorageClear({required PluginManager that , required String pluginId })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerStorageClearConstMeta,
-            argValues: [that, pluginId],
-            apiImpl: this,
-        )); }
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerStorageClearConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_storage_clear",
+        argNames: ["that", "pluginId"],
+      );
 
+  @override
+  Future<bool> crateApiPluginPluginPluginManagerStorageDelete(
+      {required PluginManager that,
+      required String pluginId,
+      required String key}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 23, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerStorageDeleteConstMeta,
+      argValues: [that, pluginId, key],
+      apiImpl: this,
+    ));
+  }
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerStorageClearConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_storage_clear",
-            argNames: ["that", "pluginId"],
-        );
-        
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerStorageDeleteConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_storage_delete",
+        argNames: ["that", "pluginId", "key"],
+      );
 
-@override Future<bool> crateApiPluginPluginPluginManagerStorageDelete({required PluginManager that , required String pluginId , required String key })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerStorageDeleteConstMeta,
-            argValues: [that, pluginId, key],
-            apiImpl: this,
-        )); }
+  @override
+  Future<String?> crateApiPluginPluginPluginManagerStorageGet(
+      {required PluginManager that,
+      required String pluginId,
+      required String key}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 24, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerStorageGetConstMeta,
+      argValues: [that, pluginId, key],
+      apiImpl: this,
+    ));
+  }
 
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerStorageGetConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_storage_get",
+        argNames: ["that", "pluginId", "key"],
+      );
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerStorageDeleteConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_storage_delete",
-            argNames: ["that", "pluginId", "key"],
-        );
-        
+  @override
+  Future<void> crateApiPluginPluginPluginManagerStoragePreload(
+      {required PluginManager that,
+      required String pluginId,
+      required String key,
+      required String value}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+        sse_encode_String(value, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 25, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerStoragePreloadConstMeta,
+      argValues: [that, pluginId, key, value],
+      apiImpl: this,
+    ));
+  }
 
-@override Future<String?> crateApiPluginPluginPluginManagerStorageGet({required PluginManager that , required String pluginId , required String key })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_opt_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerStorageGetConstMeta,
-            argValues: [that, pluginId, key],
-            apiImpl: this,
-        )); }
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerStoragePreloadConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_storage_preload",
+        argNames: ["that", "pluginId", "key", "value"],
+      );
 
+  @override
+  Future<bool> crateApiPluginPluginPluginManagerStorageSet(
+      {required PluginManager that,
+      required String pluginId,
+      required String key,
+      required String value}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+        sse_encode_String(value, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 26, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerStorageSetConstMeta,
+      argValues: [that, pluginId, key, value],
+      apiImpl: this,
+    ));
+  }
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerStorageGetConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_storage_get",
-            argNames: ["that", "pluginId", "key"],
-        );
-        
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerStorageSetConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_storage_set",
+        argNames: ["that", "pluginId", "key", "value"],
+      );
 
-@override Future<void> crateApiPluginPluginPluginManagerStoragePreload({required PluginManager that , required String pluginId , required String key , required String value })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-sse_encode_String(value, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerStoragePreloadConstMeta,
-            argValues: [that, pluginId, key, value],
-            apiImpl: this,
-        )); }
+  @override
+  Future<void> crateApiPluginPluginPluginManagerUnloadPlugin(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 27, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerUnloadPluginConstMeta,
+      argValues: [that, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
 
+  TaskConstMeta get kCrateApiPluginPluginPluginManagerUnloadPluginConstMeta =>
+      const TaskConstMeta(
+        debugName: "PluginManager_unload_plugin",
+        argNames: ["that", "pluginId", "pluginType"],
+      );
 
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerStoragePreloadConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_storage_preload",
-            argNames: ["that", "pluginId", "key", "value"],
-        );
-        
+  @override
+  Future<void> crateApiPluginPluginPluginManagerUnloadPluginById(
+      {required PluginManager that,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            that, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 28, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiPluginPluginPluginManagerUnloadPluginByIdConstMeta,
+      argValues: [that, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
 
-@override Future<bool> crateApiPluginPluginPluginManagerStorageSet({required PluginManager that , required String pluginId , required String key , required String value })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-sse_encode_String(value, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerStorageSetConstMeta,
-            argValues: [that, pluginId, key, value],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerStorageSetConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_storage_set",
-            argNames: ["that", "pluginId", "key", "value"],
-        );
-        
-
-@override Future<void> crateApiPluginPluginPluginManagerUnloadPlugin({required PluginManager that , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerUnloadPluginConstMeta,
-            argValues: [that, pluginId, pluginType],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerUnloadPluginConstMeta => const TaskConstMeta(
-            debugName: "PluginManager_unload_plugin",
-            argNames: ["that", "pluginId", "pluginType"],
-        );
-        
-
-@override Future<void> crateApiPluginPluginPluginManagerUnloadPluginById({required PluginManager that , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(that, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiPluginPluginPluginManagerUnloadPluginByIdConstMeta,
-            argValues: [that, pluginId, pluginType],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginPluginPluginManagerUnloadPluginByIdConstMeta => const TaskConstMeta(
+  TaskConstMeta
+      get kCrateApiPluginPluginPluginManagerUnloadPluginByIdConstMeta =>
+          const TaskConstMeta(
             debugName: "PluginManager_unload_plugin_by_id",
             argNames: ["that", "pluginId", "pluginType"],
+          );
+
+  @override
+  Future<PluginManager> crateApiBridgeCreatePluginManager(
+      {required String pluginsDir}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(pluginsDir, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 32, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData:
+            sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeCreatePluginManagerConstMeta,
+      argValues: [pluginsDir],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeCreatePluginManagerConstMeta =>
+      const TaskConstMeta(
+        debugName: "create_plugin_manager",
+        argNames: ["pluginsDir"],
+      );
+
+  @override
+  Future<List<PluginInfo>> crateApiBridgeGetAvailablePlugins(
+      {required PluginManager manager}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 33, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData:
+            sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeGetAvailablePluginsConstMeta,
+      argValues: [manager],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeGetAvailablePluginsConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_available_plugins",
+        argNames: ["manager"],
+      );
+
+  @override
+  Future<MetadataResult> crateApiBridgeGetFilenameUrl({required String url}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(url, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 34, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_metadata_result,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeGetFilenameUrlConstMeta,
+      argValues: [url],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeGetFilenameUrlConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_filename_url",
+        argNames: ["url"],
+      );
+
+  @override
+  List<String> crateApiBridgeGetLoadedPlugins(
+      {required PluginManager manager}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeGetLoadedPluginsConstMeta,
+      argValues: [manager],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeGetLoadedPluginsConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_loaded_plugins",
+        argNames: ["manager"],
+      );
+
+  @override
+  Future<PluginInfo?> crateApiBridgeGetPluginInfo(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 36, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData:
+            sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeGetPluginInfoConstMeta,
+      argValues: [manager, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeGetPluginInfoConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_plugin_info",
+        argNames: ["manager", "pluginId", "pluginType"],
+      );
+
+  @override
+  Future<String> crateApiBridgeGetPluginsDir({required PluginManager manager}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 37, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeGetPluginsDirConstMeta,
+      argValues: [manager],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeGetPluginsDirConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_plugins_dir",
+        argNames: ["manager"],
+      );
+
+  @override
+  String crateApiBridgeGreet({required String name}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(name, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 38)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeGreetConstMeta,
+      argValues: [name],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeGreetConstMeta => const TaskConstMeta(
+        debugName: "greet",
+        argNames: ["name"],
+      );
+
+  @override
+  Future<PluginResponse> crateApiBridgeHandlePluginRequest(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginRequest request}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_box_autoadd_plugin_request(request, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 39, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_plugin_response,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiBridgeHandlePluginRequestConstMeta,
+      argValues: [manager, pluginId, request],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeHandlePluginRequestConstMeta =>
+      const TaskConstMeta(
+        debugName: "handle_plugin_request",
+        argNames: ["manager", "pluginId", "request"],
+      );
+
+  @override
+  Future<void> crateApiBridgeInitApp() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 40, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeInitAppConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeInitAppConstMeta => const TaskConstMeta(
+        debugName: "init_app",
+        argNames: [],
+      );
+
+  @override
+  Stream<PluginManagerEvent> crateApiBridgeInitPluginEventStream(
+      {required PluginManager manager}) {
+    final sink = RustStreamSink<PluginManagerEvent>();
+    unawaited(handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_StreamSink_plugin_manager_event_Sse(sink, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 41, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeInitPluginEventStreamConstMeta,
+      argValues: [manager, sink],
+      apiImpl: this,
+    )));
+    return sink.stream;
+  }
+
+  TaskConstMeta get kCrateApiBridgeInitPluginEventStreamConstMeta =>
+      const TaskConstMeta(
+        debugName: "init_plugin_event_stream",
+        argNames: ["manager", "sink"],
+      );
+
+  @override
+  Future<Manifest> crateApiBridgeInspectPackedPlugin(
+      {required String packedFilePath, required String tempDir}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(packedFilePath, serializer);
+        sse_encode_String(tempDir, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 42, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_manifest,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiBridgeInspectPackedPluginConstMeta,
+      argValues: [packedFilePath, tempDir],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeInspectPackedPluginConstMeta =>
+      const TaskConstMeta(
+        debugName: "inspect_packed_plugin",
+        argNames: ["packedFilePath", "tempDir"],
+      );
+
+  @override
+  Future<PluginInstallResult> crateApiBridgeInstallPackedPlugin(
+      {required String packedFilePath,
+      required String pluginsDir,
+      required String tempDir,
+      required bool shouldLoad,
+      required PluginManager manager}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(packedFilePath, serializer);
+        sse_encode_String(pluginsDir, serializer);
+        sse_encode_String(tempDir, serializer);
+        sse_encode_bool(shouldLoad, serializer);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 43, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_plugin_install_result,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiBridgeInstallPackedPluginConstMeta,
+      argValues: [packedFilePath, pluginsDir, tempDir, shouldLoad, manager],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeInstallPackedPluginConstMeta =>
+      const TaskConstMeta(
+        debugName: "install_packed_plugin",
+        argNames: [
+          "packedFilePath",
+          "pluginsDir",
+          "tempDir",
+          "shouldLoad",
+          "manager"
+        ],
+      );
+
+  @override
+  Future<bool> crateApiBridgeIsPluginLoaded(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 44, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeIsPluginLoadedConstMeta,
+      argValues: [manager, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeIsPluginLoadedConstMeta =>
+      const TaskConstMeta(
+        debugName: "is_plugin_loaded",
+        argNames: ["manager", "pluginId", "pluginType"],
+      );
+
+  @override
+  Future<void> crateApiBridgeLoadPlugin(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 45, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiBridgeLoadPluginConstMeta,
+      argValues: [manager, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeLoadPluginConstMeta => const TaskConstMeta(
+        debugName: "load_plugin",
+        argNames: ["manager", "pluginId", "pluginType"],
+      );
+
+  @override
+  Future<void> crateApiBridgePluginStorageClear(
+      {required PluginManager manager, required String pluginId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 46, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgePluginStorageClearConstMeta,
+      argValues: [manager, pluginId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgePluginStorageClearConstMeta =>
+      const TaskConstMeta(
+        debugName: "plugin_storage_clear",
+        argNames: ["manager", "pluginId"],
+      );
+
+  @override
+  Future<String?> crateApiBridgePluginStorageGet(
+      {required PluginManager manager,
+      required String pluginId,
+      required String key}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 47, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgePluginStorageGetConstMeta,
+      argValues: [manager, pluginId, key],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgePluginStorageGetConstMeta =>
+      const TaskConstMeta(
+        debugName: "plugin_storage_get",
+        argNames: ["manager", "pluginId", "key"],
+      );
+
+  @override
+  Future<void> crateApiBridgePluginStoragePreload(
+      {required PluginManager manager,
+      required String pluginId,
+      required String key,
+      required String value}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+        sse_encode_String(value, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 48, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgePluginStoragePreloadConstMeta,
+      argValues: [manager, pluginId, key, value],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgePluginStoragePreloadConstMeta =>
+      const TaskConstMeta(
+        debugName: "plugin_storage_preload",
+        argNames: ["manager", "pluginId", "key", "value"],
+      );
+
+  @override
+  Future<bool> crateApiBridgePluginStorageSet(
+      {required PluginManager manager,
+      required String pluginId,
+      required String key,
+      required String value}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+        sse_encode_String(value, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 49, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgePluginStorageSetConstMeta,
+      argValues: [manager, pluginId, key, value],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgePluginStorageSetConstMeta =>
+      const TaskConstMeta(
+        debugName: "plugin_storage_set",
+        argNames: ["manager", "pluginId", "key", "value"],
+      );
+
+  @override
+  Future<void> crateApiPluginTypesPluginTypeDescription(
+      {required PluginType that}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_plugin_type(that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 50, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginTypesPluginTypeDescriptionConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiPluginTypesPluginTypeDescriptionConstMeta =>
+      const TaskConstMeta(
+        debugName: "plugin_type_description",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<PluginType?> crateApiPluginTypesPluginTypeFromString(
+      {required String s}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(s, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 51, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_box_autoadd_plugin_type,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginTypesPluginTypeFromStringConstMeta,
+      argValues: [s],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiPluginTypesPluginTypeFromStringConstMeta =>
+      const TaskConstMeta(
+        debugName: "plugin_type_from_string",
+        argNames: ["s"],
+      );
+
+  @override
+  Future<void> crateApiPluginTypesPluginTypeTypeString(
+      {required PluginType that}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_plugin_type(that, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 52, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPluginTypesPluginTypeTypeStringConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiPluginTypesPluginTypeTypeStringConstMeta =>
+      const TaskConstMeta(
+        debugName: "plugin_type_type_string",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<void> crateApiBridgeRefreshAvailablePlugins(
+      {required PluginManager manager}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 53, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeRefreshAvailablePluginsConstMeta,
+      argValues: [manager],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeRefreshAvailablePluginsConstMeta =>
+      const TaskConstMeta(
+        debugName: "refresh_available_plugins",
+        argNames: ["manager"],
+      );
+
+  @override
+  Future<List<String>> crateApiBridgeScanBexFiles({required String directory}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(directory, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 54, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiBridgeScanBexFilesConstMeta,
+      argValues: [directory],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeScanBexFilesConstMeta => const TaskConstMeta(
+        debugName: "scan_bex_files",
+        argNames: ["directory"],
+      );
+
+  @override
+  Future<void> crateApiBridgeShutdownPluginManager(
+      {required PluginManager manager}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 55, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiBridgeShutdownPluginManagerConstMeta,
+      argValues: [manager],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeShutdownPluginManagerConstMeta =>
+      const TaskConstMeta(
+        debugName: "shutdown_plugin_manager",
+        argNames: ["manager"],
+      );
+
+  @override
+  Future<void> crateApiBridgeUnloadPlugin(
+      {required PluginManager manager,
+      required String pluginId,
+      required PluginType pluginType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+            manager, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 56, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiBridgeUnloadPluginConstMeta,
+      argValues: [manager, pluginId, pluginType],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiBridgeUnloadPluginConstMeta => const TaskConstMeta(
+        debugName: "unload_plugin",
+        argNames: ["manager", "pluginId", "pluginType"],
+      );
+
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_PluginInfo => wire
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_PluginInfo => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo;
+
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_PluginManager => wire
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_PluginManager => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager;
+
+  @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return AnyhowException(raw as String);
+  }
+
+  @protected
+  PluginInfo
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginInfoImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PluginManager
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PluginInfo
+      dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginInfoImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PluginManager
+      dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PluginInfo
+      dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginInfoImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PluginManager
+      dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PluginInfo
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginInfoImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PluginManager
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  RustStreamSink<PluginManagerEvent>
+      dco_decode_StreamSink_plugin_manager_event_Sse(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  String dco_decode_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as String;
+  }
+
+  @protected
+  Plugin dco_decode_TraitDef_Plugin(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  PluginAdapter dco_decode_TraitDef_PluginAdapter(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  AlbumDetails dco_decode_album_details(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return AlbumDetails(
+      summary: dco_decode_album_summary(arr[0]),
+      tracks: dco_decode_paged_tracks(arr[1]),
+      description: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  AlbumSummary dco_decode_album_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return AlbumSummary(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      artists: dco_decode_list_artist_summary(arr[2]),
+      thumbnails: dco_decode_list_artwork(arr[3]),
+      year: dco_decode_opt_box_autoadd_u_32(arr[4]),
+      url: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  ArtistDetails dco_decode_artist_details(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return ArtistDetails(
+      summary: dco_decode_artist_summary(arr[0]),
+      topTracks: dco_decode_list_track(arr[1]),
+      albums: dco_decode_paged_albums(arr[2]),
+      relatedArtists: dco_decode_list_artist_summary(arr[3]),
+      description: dco_decode_opt_String(arr[4]),
+    );
+  }
+
+  @protected
+  ArtistSummary dco_decode_artist_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return ArtistSummary(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      thumbnails: dco_decode_list_artwork(arr[2]),
+      url: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
+  Artwork dco_decode_artwork(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return Artwork(
+      url: dco_decode_String(arr[0]),
+      urlLow: dco_decode_opt_String(arr[1]),
+      urlHigh: dco_decode_opt_String(arr[2]),
+      layout: dco_decode_image_layout(arr[3]),
+    );
+  }
+
+  @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
+  PluginInfo
+      dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+        raw);
+  }
+
+  @protected
+  AlbumDetails dco_decode_box_autoadd_album_details(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_album_details(raw);
+  }
+
+  @protected
+  AlbumSummary dco_decode_box_autoadd_album_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_album_summary(raw);
+  }
+
+  @protected
+  ArtistDetails dco_decode_box_autoadd_artist_details(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_artist_details(raw);
+  }
+
+  @protected
+  ArtistSummary dco_decode_box_autoadd_artist_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_artist_summary(raw);
+  }
+
+  @protected
+  ChartProviderCommand dco_decode_box_autoadd_chart_provider_command(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_chart_provider_command(raw);
+  }
+
+  @protected
+  ContentResolverCommand dco_decode_box_autoadd_content_resolver_command(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_content_resolver_command(raw);
+  }
+
+  @protected
+  Lyrics dco_decode_box_autoadd_lyrics(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_lyrics(raw);
+  }
+
+  @protected
+  PagedAlbums dco_decode_box_autoadd_paged_albums(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_paged_albums(raw);
+  }
+
+  @protected
+  PagedMediaItems dco_decode_box_autoadd_paged_media_items(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_paged_media_items(raw);
+  }
+
+  @protected
+  PagedTracks dco_decode_box_autoadd_paged_tracks(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_paged_tracks(raw);
+  }
+
+  @protected
+  PlaylistDetails dco_decode_box_autoadd_playlist_details(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_playlist_details(raw);
+  }
+
+  @protected
+  PlaylistSummary dco_decode_box_autoadd_playlist_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_playlist_summary(raw);
+  }
+
+  @protected
+  PluginRequest dco_decode_box_autoadd_plugin_request(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_plugin_request(raw);
+  }
+
+  @protected
+  PluginType dco_decode_box_autoadd_plugin_type(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_plugin_type(raw);
+  }
+
+  @protected
+  Track dco_decode_box_autoadd_track(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_track(raw);
+  }
+
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_u_64(raw);
+  }
+
+  @protected
+  CardType dco_decode_card_type(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CardType.values[raw as int];
+  }
+
+  @protected
+  ChartItem dco_decode_chart_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return ChartItem(
+      item: dco_decode_media_item(arr[0]),
+      rank: dco_decode_u_32(arr[1]),
+      trend: dco_decode_trend(arr[2]),
+      change: dco_decode_opt_box_autoadd_u_32(arr[3]),
+      previousRank: dco_decode_opt_box_autoadd_u_32(arr[4]),
+      peakRank: dco_decode_opt_box_autoadd_u_32(arr[5]),
+      weeksOnChart: dco_decode_opt_box_autoadd_u_32(arr[6]),
+    );
+  }
+
+  @protected
+  ChartProviderCommand dco_decode_chart_provider_command(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return const ChartProviderCommand_GetCharts();
+      case 1:
+        return ChartProviderCommand_GetChartDetails(
+          id: dco_decode_String(raw[1]),
         );
-        
+      default:
+        throw Exception("unreachable");
+    }
+  }
 
-@override Future<PluginManager> crateApiBridgeCreatePluginManager({required String pluginsDir })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(pluginsDir, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeCreatePluginManagerConstMeta,
-            argValues: [pluginsDir],
-            apiImpl: this,
-        )); }
+  @protected
+  ChartSummary dco_decode_chart_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return ChartSummary(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      description: dco_decode_opt_String(arr[2]),
+      thumbnails: dco_decode_list_artwork(arr[3]),
+      updatedAt: dco_decode_opt_String(arr[4]),
+      period: dco_decode_opt_String(arr[5]),
+    );
+  }
 
-
-        TaskConstMeta get kCrateApiBridgeCreatePluginManagerConstMeta => const TaskConstMeta(
-            debugName: "create_plugin_manager",
-            argNames: ["pluginsDir"],
+  @protected
+  ContentResolverCommand dco_decode_content_resolver_command(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return ContentResolverCommand_GetAlbumDetails(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<List<PluginInfo>> crateApiBridgeGetAvailablePlugins({required PluginManager manager })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 33, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeGetAvailablePluginsConstMeta,
-            argValues: [manager],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeGetAvailablePluginsConstMeta => const TaskConstMeta(
-            debugName: "get_available_plugins",
-            argNames: ["manager"],
+      case 1:
+        return ContentResolverCommand_GetArtistDetails(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<MetadataResult> crateApiBridgeGetFilenameUrl({required String url })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(url, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 34, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_metadata_result,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeGetFilenameUrlConstMeta,
-            argValues: [url],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeGetFilenameUrlConstMeta => const TaskConstMeta(
-            debugName: "get_filename_url",
-            argNames: ["url"],
+      case 2:
+        return ContentResolverCommand_GetPlaylistDetails(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override List<String> crateApiBridgeGetLoadedPlugins({required PluginManager manager })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_list_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeGetLoadedPluginsConstMeta,
-            argValues: [manager],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeGetLoadedPluginsConstMeta => const TaskConstMeta(
-            debugName: "get_loaded_plugins",
-            argNames: ["manager"],
+      case 3:
+        return ContentResolverCommand_GetStreams(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<PluginInfo?> crateApiBridgeGetPluginInfo({required PluginManager manager , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeGetPluginInfoConstMeta,
-            argValues: [manager, pluginId, pluginType],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeGetPluginInfoConstMeta => const TaskConstMeta(
-            debugName: "get_plugin_info",
-            argNames: ["manager", "pluginId", "pluginType"],
+      case 4:
+        return ContentResolverCommand_Search(
+          query: dco_decode_String(raw[1]),
+          filter: dco_decode_content_search_filter(raw[2]),
+          pageToken: dco_decode_opt_String(raw[3]),
         );
-        
-
-@override Future<String> crateApiBridgeGetPluginsDir({required PluginManager manager })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 37, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeGetPluginsDirConstMeta,
-            argValues: [manager],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeGetPluginsDirConstMeta => const TaskConstMeta(
-            debugName: "get_plugins_dir",
-            argNames: ["manager"],
+      case 5:
+        return ContentResolverCommand_MoreAlbumTracks(
+          id: dco_decode_String(raw[1]),
+          pageToken: dco_decode_String(raw[2]),
         );
-        
-
-@override String crateApiBridgeGreet({required String name })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(name, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 38)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeGreetConstMeta,
-            argValues: [name],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeGreetConstMeta => const TaskConstMeta(
-            debugName: "greet",
-            argNames: ["name"],
+      case 6:
+        return ContentResolverCommand_MoreArtistAlbums(
+          id: dco_decode_String(raw[1]),
+          pageToken: dco_decode_String(raw[2]),
         );
-        
-
-@override Future<PluginResponse> crateApiBridgeHandlePluginRequest({required PluginManager manager , required String pluginId , required PluginRequest request })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_box_autoadd_plugin_request(request, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 39, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_plugin_response,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiBridgeHandlePluginRequestConstMeta,
-            argValues: [manager, pluginId, request],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeHandlePluginRequestConstMeta => const TaskConstMeta(
-            debugName: "handle_plugin_request",
-            argNames: ["manager", "pluginId", "request"],
+      case 7:
+        return ContentResolverCommand_MorePlaylistTracks(
+          id: dco_decode_String(raw[1]),
+          pageToken: dco_decode_String(raw[2]),
         );
-        
-
-@override Future<void> crateApiBridgeInitApp()  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeInitAppConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeInitAppConstMeta => const TaskConstMeta(
-            debugName: "init_app",
-            argNames: [],
+      case 8:
+        return ContentResolverCommand_GetRadioTracks(
+          id: dco_decode_String(raw[1]),
+          pageToken: dco_decode_opt_String(raw[2]),
         );
-        
-
-@override Stream<PluginManagerEvent> crateApiBridgeInitPluginEventStream({required PluginManager manager })  { 
-            final sink = RustStreamSink<PluginManagerEvent>();
-            unawaited(handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_StreamSink_plugin_manager_event_Sse(sink, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeInitPluginEventStreamConstMeta,
-            argValues: [manager, sink],
-            apiImpl: this,
-        )));
-            return sink.stream;
-             }
-
-
-        TaskConstMeta get kCrateApiBridgeInitPluginEventStreamConstMeta => const TaskConstMeta(
-            debugName: "init_plugin_event_stream",
-            argNames: ["manager", "sink"],
+      case 9:
+        return const ContentResolverCommand_GetHomeSections();
+      case 10:
+        return ContentResolverCommand_LoadMore(
+          id: dco_decode_String(raw[1]),
+          moreLink: dco_decode_String(raw[2]),
         );
-        
+      default:
+        throw Exception("unreachable");
+    }
+  }
 
-@override Future<Manifest> crateApiBridgeInspectPackedPlugin({required String packedFilePath , required String tempDir })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(packedFilePath, serializer);
-sse_encode_String(tempDir, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_manifest,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiBridgeInspectPackedPluginConstMeta,
-            argValues: [packedFilePath, tempDir],
-            apiImpl: this,
-        )); }
+  @protected
+  ContentSearchFilter dco_decode_content_search_filter(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ContentSearchFilter.values[raw as int];
+  }
 
+  @protected
+  int dco_decode_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
 
-        TaskConstMeta get kCrateApiBridgeInspectPackedPluginConstMeta => const TaskConstMeta(
-            debugName: "inspect_packed_plugin",
-            argNames: ["packedFilePath", "tempDir"],
+  @protected
+  ImageLayout dco_decode_image_layout(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ImageLayout.values[raw as int];
+  }
+
+  @protected
+  List<PluginInfo>
+      dco_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(
+            dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo)
+        .toList();
+  }
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_String).toList();
+  }
+
+  @protected
+  List<AlbumSummary> dco_decode_list_album_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_album_summary).toList();
+  }
+
+  @protected
+  List<ArtistSummary> dco_decode_list_artist_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_artist_summary).toList();
+  }
+
+  @protected
+  List<Artwork> dco_decode_list_artwork(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_artwork).toList();
+  }
+
+  @protected
+  List<ChartItem> dco_decode_list_chart_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_chart_item).toList();
+  }
+
+  @protected
+  List<ChartSummary> dco_decode_list_chart_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_chart_summary).toList();
+  }
+
+  @protected
+  List<MediaItem> dco_decode_list_media_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_media_item).toList();
+  }
+
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as Uint8List;
+  }
+
+  @protected
+  List<Section> dco_decode_list_section(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_section).toList();
+  }
+
+  @protected
+  List<Track> dco_decode_list_track(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_track).toList();
+  }
+
+  @protected
+  Lyrics dco_decode_lyrics(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return Lyrics(
+      plain: dco_decode_opt_String(arr[0]),
+      synced: dco_decode_opt_String(arr[1]),
+      copyright: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  Manifest dco_decode_manifest(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 14)
+      throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
+    return Manifest(
+      manifestVersion: dco_decode_u_32(arr[0]),
+      id: dco_decode_String(arr[1]),
+      name: dco_decode_String(arr[2]),
+      version: dco_decode_String(arr[3]),
+      type: dco_decode_String(arr[4]),
+      description: dco_decode_String(arr[5]),
+      publisher: dco_decode_plugin_publisher(arr[6]),
+      license: dco_decode_String(arr[7]),
+      homepage: dco_decode_String(arr[8]),
+      icon: dco_decode_opt_String(arr[9]),
+      hostSite: dco_decode_list_String(arr[10]),
+      capabilities: dco_decode_list_String(arr[11]),
+      createdAt: dco_decode_opt_String(arr[12]),
+      remoteUrl: dco_decode_opt_String(arr[13]),
+    );
+  }
+
+  @protected
+  MediaItem dco_decode_media_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return MediaItem_Track(
+          dco_decode_box_autoadd_track(raw[1]),
         );
-        
-
-@override Future<PluginInstallResult> crateApiBridgeInstallPackedPlugin({required String packedFilePath , required String pluginsDir , required String tempDir , required bool shouldLoad , required PluginManager manager })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(packedFilePath, serializer);
-sse_encode_String(pluginsDir, serializer);
-sse_encode_String(tempDir, serializer);
-sse_encode_bool(shouldLoad, serializer);
-sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_plugin_install_result,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiBridgeInstallPackedPluginConstMeta,
-            argValues: [packedFilePath, pluginsDir, tempDir, shouldLoad, manager],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeInstallPackedPluginConstMeta => const TaskConstMeta(
-            debugName: "install_packed_plugin",
-            argNames: ["packedFilePath", "pluginsDir", "tempDir", "shouldLoad", "manager"],
+      case 1:
+        return MediaItem_Album(
+          dco_decode_box_autoadd_album_summary(raw[1]),
         );
-        
-
-@override Future<bool> crateApiBridgeIsPluginLoaded({required PluginManager manager , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 44, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeIsPluginLoadedConstMeta,
-            argValues: [manager, pluginId, pluginType],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeIsPluginLoadedConstMeta => const TaskConstMeta(
-            debugName: "is_plugin_loaded",
-            argNames: ["manager", "pluginId", "pluginType"],
+      case 2:
+        return MediaItem_Artist(
+          dco_decode_box_autoadd_artist_summary(raw[1]),
         );
-        
-
-@override Future<void> crateApiBridgeLoadPlugin({required PluginManager manager , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 45, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiBridgeLoadPluginConstMeta,
-            argValues: [manager, pluginId, pluginType],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeLoadPluginConstMeta => const TaskConstMeta(
-            debugName: "load_plugin",
-            argNames: ["manager", "pluginId", "pluginType"],
+      case 3:
+        return MediaItem_Playlist(
+          dco_decode_box_autoadd_playlist_summary(raw[1]),
         );
-        
+      default:
+        throw Exception("unreachable");
+    }
+  }
 
-@override Future<void> crateApiBridgePluginStorageClear({required PluginManager manager , required String pluginId })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 46, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgePluginStorageClearConstMeta,
-            argValues: [manager, pluginId],
-            apiImpl: this,
-        )); }
+  @protected
+  MetadataResult dco_decode_metadata_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return MetadataResult(
+      filename: dco_decode_String(arr[0]),
+      isSuccess: dco_decode_bool(arr[1]),
+    );
+  }
 
+  @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
+  }
 
-        TaskConstMeta get kCrateApiBridgePluginStorageClearConstMeta => const TaskConstMeta(
-            debugName: "plugin_storage_clear",
-            argNames: ["manager", "pluginId"],
+  @protected
+  PluginInfo?
+      dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            raw);
+  }
+
+  @protected
+  AlbumSummary? dco_decode_opt_box_autoadd_album_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_album_summary(raw);
+  }
+
+  @protected
+  Lyrics? dco_decode_opt_box_autoadd_lyrics(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_lyrics(raw);
+  }
+
+  @protected
+  PluginType? dco_decode_opt_box_autoadd_plugin_type(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_plugin_type(raw);
+  }
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_32(raw);
+  }
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_64(raw);
+  }
+
+  @protected
+  PagedAlbums dco_decode_paged_albums(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return PagedAlbums(
+      items: dco_decode_list_album_summary(arr[0]),
+      nextPageToken: dco_decode_opt_String(arr[1]),
+    );
+  }
+
+  @protected
+  PagedMediaItems dco_decode_paged_media_items(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return PagedMediaItems(
+      items: dco_decode_list_media_item(arr[0]),
+      nextPageToken: dco_decode_opt_String(arr[1]),
+    );
+  }
+
+  @protected
+  PagedTracks dco_decode_paged_tracks(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return PagedTracks(
+      items: dco_decode_list_track(arr[0]),
+      nextPageToken: dco_decode_opt_String(arr[1]),
+    );
+  }
+
+  @protected
+  PlaylistDetails dco_decode_playlist_details(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return PlaylistDetails(
+      summary: dco_decode_playlist_summary(arr[0]),
+      tracks: dco_decode_paged_tracks(arr[1]),
+      description: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  PlaylistSummary dco_decode_playlist_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return PlaylistSummary(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      owner: dco_decode_opt_String(arr[2]),
+      thumbnails: dco_decode_list_artwork(arr[3]),
+      trackCount: dco_decode_opt_box_autoadd_u_32(arr[4]),
+      url: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  PluginInstallResult dco_decode_plugin_install_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return PluginInstallResult(
+      status: dco_decode_plugin_install_status(arr[0]),
+      pluginId: dco_decode_String(arr[1]),
+      error: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  PluginInstallStatus dco_decode_plugin_install_status(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginInstallStatus.values[raw as int];
+  }
+
+  @protected
+  PluginManagerEvent dco_decode_plugin_manager_event(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return PluginManagerEvent_PluginLoading(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<String?> crateApiBridgePluginStorageGet({required PluginManager manager , required String pluginId , required String key })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 47, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_opt_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgePluginStorageGetConstMeta,
-            argValues: [manager, pluginId, key],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgePluginStorageGetConstMeta => const TaskConstMeta(
-            debugName: "plugin_storage_get",
-            argNames: ["manager", "pluginId", "key"],
+      case 1:
+        return PluginManagerEvent_PluginLoaded(
+          id: dco_decode_String(raw[1]),
+          pluginType: dco_decode_plugin_type(raw[2]),
         );
-        
-
-@override Future<void> crateApiBridgePluginStoragePreload({required PluginManager manager , required String pluginId , required String key , required String value })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-sse_encode_String(value, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgePluginStoragePreloadConstMeta,
-            argValues: [manager, pluginId, key, value],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgePluginStoragePreloadConstMeta => const TaskConstMeta(
-            debugName: "plugin_storage_preload",
-            argNames: ["manager", "pluginId", "key", "value"],
+      case 2:
+        return PluginManagerEvent_PluginLoadFailed(
+          id: dco_decode_String(raw[1]),
+          error: dco_decode_String(raw[2]),
         );
-        
-
-@override Future<bool> crateApiBridgePluginStorageSet({required PluginManager manager , required String pluginId , required String key , required String value })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-sse_encode_String(value, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgePluginStorageSetConstMeta,
-            argValues: [manager, pluginId, key, value],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgePluginStorageSetConstMeta => const TaskConstMeta(
-            debugName: "plugin_storage_set",
-            argNames: ["manager", "pluginId", "key", "value"],
+      case 3:
+        return PluginManagerEvent_PluginUnloading(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<void> crateApiPluginTypesPluginTypeDescription({required PluginType that })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_plugin_type(that, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 50, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginTypesPluginTypeDescriptionConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginTypesPluginTypeDescriptionConstMeta => const TaskConstMeta(
-            debugName: "plugin_type_description",
-            argNames: ["that"],
+      case 4:
+        return PluginManagerEvent_PluginUnloaded(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<PluginType?> crateApiPluginTypesPluginTypeFromString({required String s })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(s, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 51, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_opt_box_autoadd_plugin_type,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginTypesPluginTypeFromStringConstMeta,
-            argValues: [s],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginTypesPluginTypeFromStringConstMeta => const TaskConstMeta(
-            debugName: "plugin_type_from_string",
-            argNames: ["s"],
+      case 5:
+        return PluginManagerEvent_PluginUnloadFailed(
+          id: dco_decode_String(raw[1]),
+          error: dco_decode_String(raw[2]),
         );
-        
-
-@override Future<void> crateApiPluginTypesPluginTypeTypeString({required PluginType that })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_plugin_type(that, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiPluginTypesPluginTypeTypeStringConstMeta,
-            argValues: [that],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiPluginTypesPluginTypeTypeStringConstMeta => const TaskConstMeta(
-            debugName: "plugin_type_type_string",
-            argNames: ["that"],
+      case 6:
+        return PluginManagerEvent_PluginInstalling(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<void> crateApiBridgeRefreshAvailablePlugins({required PluginManager manager })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 53, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeRefreshAvailablePluginsConstMeta,
-            argValues: [manager],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeRefreshAvailablePluginsConstMeta => const TaskConstMeta(
-            debugName: "refresh_available_plugins",
-            argNames: ["manager"],
+      case 7:
+        return PluginManagerEvent_PluginInstalled(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<List<String>> crateApiBridgeScanBexFiles({required String directory })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(directory, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 54, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_list_String,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiBridgeScanBexFilesConstMeta,
-            argValues: [directory],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeScanBexFilesConstMeta => const TaskConstMeta(
-            debugName: "scan_bex_files",
-            argNames: ["directory"],
+      case 8:
+        return PluginManagerEvent_PluginInstallFailed(
+          id: dco_decode_String(raw[1]),
+          error: dco_decode_String(raw[2]),
         );
-        
-
-@override Future<void> crateApiBridgeShutdownPluginManager({required PluginManager manager })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 55, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiBridgeShutdownPluginManagerConstMeta,
-            argValues: [manager],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeShutdownPluginManagerConstMeta => const TaskConstMeta(
-            debugName: "shutdown_plugin_manager",
-            argNames: ["manager"],
+      case 9:
+        return PluginManagerEvent_PluginDeleting(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-@override Future<void> crateApiBridgeUnloadPlugin({required PluginManager manager , required String pluginId , required PluginType pluginType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(manager, serializer);
-sse_encode_String(pluginId, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 56, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiBridgeUnloadPluginConstMeta,
-            argValues: [manager, pluginId, pluginType],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiBridgeUnloadPluginConstMeta => const TaskConstMeta(
-            debugName: "unload_plugin",
-            argNames: ["manager", "pluginId", "pluginType"],
+      case 10:
+        return PluginManagerEvent_PluginDeleted(
+          id: dco_decode_String(raw[1]),
         );
-        
-
-RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_PluginInfo => wire.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo;
-
-RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_PluginInfo => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo;
-
-RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_PluginManager => wire.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager;
-
-RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_PluginManager => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager;
-
-
-
-                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return AnyhowException(raw as String); }
-
-@protected PluginInfo dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginInfoImpl.frbInternalDcoDecode(raw as List<dynamic>); }
-
-@protected PluginManager dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>); }
-
-@protected PluginInfo dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginInfoImpl.frbInternalDcoDecode(raw as List<dynamic>); }
-
-@protected PluginManager dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>); }
-
-@protected PluginInfo dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginInfoImpl.frbInternalDcoDecode(raw as List<dynamic>); }
-
-@protected PluginManager dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>); }
-
-@protected PluginInfo dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginInfoImpl.frbInternalDcoDecode(raw as List<dynamic>); }
-
-@protected PluginManager dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>); }
-
-@protected RustStreamSink<PluginManagerEvent> dco_decode_StreamSink_plugin_manager_event_Sse(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-throw UnimplementedError(); }
-
-@protected String dco_decode_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as String; }
-
-@protected Plugin dco_decode_TraitDef_Plugin(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-throw UnimplementedError(); }
-
-@protected PluginAdapter dco_decode_TraitDef_PluginAdapter(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-throw UnimplementedError(); }
-
-@protected AlbumDetails dco_decode_album_details(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-                return AlbumDetails(summary: dco_decode_album_summary(arr[0]),
-tracks: dco_decode_paged_tracks(arr[1]),
-description: dco_decode_opt_String(arr[2]),); }
-
-@protected AlbumSummary dco_decode_album_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 6) throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
-                return AlbumSummary(id: dco_decode_String(arr[0]),
-title: dco_decode_String(arr[1]),
-artists: dco_decode_list_artist_summary(arr[2]),
-thumbnails: dco_decode_list_artwork(arr[3]),
-year: dco_decode_opt_box_autoadd_u_32(arr[4]),
-url: dco_decode_opt_String(arr[5]),); }
-
-@protected ArtistDetails dco_decode_artist_details(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 5) throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
-                return ArtistDetails(summary: dco_decode_artist_summary(arr[0]),
-topTracks: dco_decode_list_track(arr[1]),
-albums: dco_decode_paged_albums(arr[2]),
-relatedArtists: dco_decode_list_artist_summary(arr[3]),
-description: dco_decode_opt_String(arr[4]),); }
-
-@protected ArtistSummary dco_decode_artist_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-                return ArtistSummary(id: dco_decode_String(arr[0]),
-name: dco_decode_String(arr[1]),
-thumbnails: dco_decode_list_artwork(arr[2]),
-url: dco_decode_opt_String(arr[3]),); }
-
-@protected Artwork dco_decode_artwork(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-                return Artwork(url: dco_decode_String(arr[0]),
-layout: dco_decode_image_layout(arr[1]),); }
-
-@protected bool dco_decode_bool(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as bool; }
-
-@protected PluginInfo dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(raw); }
-
-@protected AlbumDetails dco_decode_box_autoadd_album_details(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_album_details(raw); }
-
-@protected AlbumSummary dco_decode_box_autoadd_album_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_album_summary(raw); }
-
-@protected ArtistDetails dco_decode_box_autoadd_artist_details(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_artist_details(raw); }
-
-@protected ArtistSummary dco_decode_box_autoadd_artist_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_artist_summary(raw); }
-
-@protected ChartProviderCommand dco_decode_box_autoadd_chart_provider_command(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_chart_provider_command(raw); }
-
-@protected ContentResolverCommand dco_decode_box_autoadd_content_resolver_command(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_content_resolver_command(raw); }
-
-@protected Lyrics dco_decode_box_autoadd_lyrics(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_lyrics(raw); }
-
-@protected PagedAlbums dco_decode_box_autoadd_paged_albums(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_paged_albums(raw); }
-
-@protected PagedMediaItems dco_decode_box_autoadd_paged_media_items(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_paged_media_items(raw); }
-
-@protected PagedTracks dco_decode_box_autoadd_paged_tracks(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_paged_tracks(raw); }
-
-@protected PlaylistDetails dco_decode_box_autoadd_playlist_details(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_playlist_details(raw); }
-
-@protected PlaylistSummary dco_decode_box_autoadd_playlist_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_playlist_summary(raw); }
-
-@protected PluginRequest dco_decode_box_autoadd_plugin_request(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_plugin_request(raw); }
-
-@protected PluginType dco_decode_box_autoadd_plugin_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_plugin_type(raw); }
-
-@protected Track dco_decode_box_autoadd_track(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_track(raw); }
-
-@protected int dco_decode_box_autoadd_u_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected BigInt dco_decode_box_autoadd_u_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_u_64(raw); }
-
-@protected CardType dco_decode_card_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return CardType.values[raw as int]; }
-
-@protected ChartItem dco_decode_chart_item(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 7) throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
-                return ChartItem(item: dco_decode_media_item(arr[0]),
-rank: dco_decode_u_32(arr[1]),
-trend: dco_decode_trend(arr[2]),
-change: dco_decode_opt_box_autoadd_u_32(arr[3]),
-previousRank: dco_decode_opt_box_autoadd_u_32(arr[4]),
-peakRank: dco_decode_opt_box_autoadd_u_32(arr[5]),
-weeksOnChart: dco_decode_opt_box_autoadd_u_32(arr[6]),); }
-
-@protected ChartProviderCommand dco_decode_chart_provider_command(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-switch (raw[0]) {
-                case 0: return ChartProviderCommand_GetCharts();
-case 1: return ChartProviderCommand_GetChartDetails(id: dco_decode_String(raw[1]),);
-                default: throw Exception("unreachable");
-            } }
-
-@protected ChartSummary dco_decode_chart_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 6) throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
-                return ChartSummary(id: dco_decode_String(arr[0]),
-title: dco_decode_String(arr[1]),
-description: dco_decode_opt_String(arr[2]),
-thumbnails: dco_decode_list_artwork(arr[3]),
-updatedAt: dco_decode_opt_String(arr[4]),
-period: dco_decode_opt_String(arr[5]),); }
-
-@protected ContentResolverCommand dco_decode_content_resolver_command(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-switch (raw[0]) {
-                case 0: return ContentResolverCommand_GetAlbumDetails(id: dco_decode_String(raw[1]),);
-case 1: return ContentResolverCommand_GetArtistDetails(id: dco_decode_String(raw[1]),);
-case 2: return ContentResolverCommand_GetPlaylistDetails(id: dco_decode_String(raw[1]),);
-case 3: return ContentResolverCommand_GetStreams(id: dco_decode_String(raw[1]),);
-case 4: return ContentResolverCommand_Search(query: dco_decode_String(raw[1]),filter: dco_decode_content_search_filter(raw[2]),pageToken: dco_decode_opt_String(raw[3]),);
-case 5: return ContentResolverCommand_MoreAlbumTracks(id: dco_decode_String(raw[1]),pageToken: dco_decode_String(raw[2]),);
-case 6: return ContentResolverCommand_MoreArtistAlbums(id: dco_decode_String(raw[1]),pageToken: dco_decode_String(raw[2]),);
-case 7: return ContentResolverCommand_MorePlaylistTracks(id: dco_decode_String(raw[1]),pageToken: dco_decode_String(raw[2]),);
-case 8: return ContentResolverCommand_GetHomeSections();
-case 9: return ContentResolverCommand_LoadMore(id: dco_decode_String(raw[1]),moreLink: dco_decode_String(raw[2]),);
-                default: throw Exception("unreachable");
-            } }
-
-@protected ContentSearchFilter dco_decode_content_search_filter(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return ContentSearchFilter.values[raw as int]; }
-
-@protected int dco_decode_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected ImageLayout dco_decode_image_layout(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return ImageLayout.values[raw as int]; }
-
-@protected List<PluginInfo> dco_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo).toList(); }
-
-@protected List<String> dco_decode_list_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_String).toList(); }
-
-@protected List<AlbumSummary> dco_decode_list_album_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_album_summary).toList(); }
-
-@protected List<ArtistSummary> dco_decode_list_artist_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_artist_summary).toList(); }
-
-@protected List<Artwork> dco_decode_list_artwork(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_artwork).toList(); }
-
-@protected List<ChartItem> dco_decode_list_chart_item(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_chart_item).toList(); }
-
-@protected List<ChartSummary> dco_decode_list_chart_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_chart_summary).toList(); }
-
-@protected List<MediaItem> dco_decode_list_media_item(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_media_item).toList(); }
-
-@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as Uint8List; }
-
-@protected List<Section> dco_decode_list_section(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_section).toList(); }
-
-@protected List<Track> dco_decode_list_track(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_track).toList(); }
-
-@protected Lyrics dco_decode_lyrics(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-                return Lyrics(plain: dco_decode_opt_String(arr[0]),
-synced: dco_decode_opt_String(arr[1]),
-copyright: dco_decode_opt_String(arr[2]),); }
-
-@protected Manifest dco_decode_manifest(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 14) throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
-                return Manifest(manifestVersion: dco_decode_u_32(arr[0]),
-id: dco_decode_String(arr[1]),
-name: dco_decode_String(arr[2]),
-version: dco_decode_String(arr[3]),
-type: dco_decode_String(arr[4]),
-description: dco_decode_String(arr[5]),
-publisher: dco_decode_plugin_publisher(arr[6]),
-license: dco_decode_String(arr[7]),
-homepage: dco_decode_String(arr[8]),
-icon: dco_decode_opt_String(arr[9]),
-hostSite: dco_decode_list_String(arr[10]),
-capabilities: dco_decode_list_String(arr[11]),
-createdAt: dco_decode_opt_String(arr[12]),
-remoteUrl: dco_decode_opt_String(arr[13]),); }
-
-@protected MediaItem dco_decode_media_item(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-switch (raw[0]) {
-                case 0: return MediaItem_Track(dco_decode_box_autoadd_track(raw[1]),);
-case 1: return MediaItem_Album(dco_decode_box_autoadd_album_summary(raw[1]),);
-case 2: return MediaItem_Artist(dco_decode_box_autoadd_artist_summary(raw[1]),);
-case 3: return MediaItem_Playlist(dco_decode_box_autoadd_playlist_summary(raw[1]),);
-                default: throw Exception("unreachable");
-            } }
-
-@protected MetadataResult dco_decode_metadata_result(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-                return MetadataResult(filename: dco_decode_String(arr[0]),
-isSuccess: dco_decode_bool(arr[1]),); }
-
-@protected String? dco_decode_opt_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_String(raw); }
-
-@protected PluginInfo? dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(raw); }
-
-@protected AlbumSummary? dco_decode_opt_box_autoadd_album_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_album_summary(raw); }
-
-@protected Lyrics? dco_decode_opt_box_autoadd_lyrics(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_lyrics(raw); }
-
-@protected PluginType? dco_decode_opt_box_autoadd_plugin_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_plugin_type(raw); }
-
-@protected int? dco_decode_opt_box_autoadd_u_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_u_32(raw); }
-
-@protected BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_u_64(raw); }
-
-@protected PagedAlbums dco_decode_paged_albums(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-                return PagedAlbums(items: dco_decode_list_album_summary(arr[0]),
-nextPageToken: dco_decode_opt_String(arr[1]),); }
-
-@protected PagedMediaItems dco_decode_paged_media_items(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-                return PagedMediaItems(items: dco_decode_list_media_item(arr[0]),
-nextPageToken: dco_decode_opt_String(arr[1]),); }
-
-@protected PagedTracks dco_decode_paged_tracks(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-                return PagedTracks(items: dco_decode_list_track(arr[0]),
-nextPageToken: dco_decode_opt_String(arr[1]),); }
-
-@protected PlaylistDetails dco_decode_playlist_details(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-                return PlaylistDetails(summary: dco_decode_playlist_summary(arr[0]),
-tracks: dco_decode_paged_tracks(arr[1]),
-description: dco_decode_opt_String(arr[2]),); }
-
-@protected PlaylistSummary dco_decode_playlist_summary(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 6) throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
-                return PlaylistSummary(id: dco_decode_String(arr[0]),
-title: dco_decode_String(arr[1]),
-owner: dco_decode_opt_String(arr[2]),
-thumbnails: dco_decode_list_artwork(arr[3]),
-trackCount: dco_decode_opt_box_autoadd_u_32(arr[4]),
-url: dco_decode_opt_String(arr[5]),); }
-
-@protected PluginInstallResult dco_decode_plugin_install_result(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-                return PluginInstallResult(status: dco_decode_plugin_install_status(arr[0]),
-pluginId: dco_decode_String(arr[1]),
-error: dco_decode_opt_String(arr[2]),); }
-
-@protected PluginInstallStatus dco_decode_plugin_install_status(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginInstallStatus.values[raw as int]; }
-
-@protected PluginManagerEvent dco_decode_plugin_manager_event(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-switch (raw[0]) {
-                case 0: return PluginManagerEvent_PluginLoading(id: dco_decode_String(raw[1]),);
-case 1: return PluginManagerEvent_PluginLoaded(id: dco_decode_String(raw[1]),pluginType: dco_decode_plugin_type(raw[2]),);
-case 2: return PluginManagerEvent_PluginLoadFailed(id: dco_decode_String(raw[1]),error: dco_decode_String(raw[2]),);
-case 3: return PluginManagerEvent_PluginUnloading(id: dco_decode_String(raw[1]),);
-case 4: return PluginManagerEvent_PluginUnloaded(id: dco_decode_String(raw[1]),);
-case 5: return PluginManagerEvent_PluginUnloadFailed(id: dco_decode_String(raw[1]),error: dco_decode_String(raw[2]),);
-case 6: return PluginManagerEvent_PluginInstalling(id: dco_decode_String(raw[1]),);
-case 7: return PluginManagerEvent_PluginInstalled(id: dco_decode_String(raw[1]),);
-case 8: return PluginManagerEvent_PluginInstallFailed(id: dco_decode_String(raw[1]),error: dco_decode_String(raw[2]),);
-case 9: return PluginManagerEvent_PluginDeleting(id: dco_decode_String(raw[1]),);
-case 10: return PluginManagerEvent_PluginDeleted(id: dco_decode_String(raw[1]),);
-case 11: return PluginManagerEvent_PluginDeleteFailed(id: dco_decode_String(raw[1]),error: dco_decode_String(raw[2]),);
-case 12: return PluginManagerEvent_PluginListRefreshed(plugins: dco_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(raw[1]),);
-case 13: return PluginManagerEvent_StorageSet(pluginId: dco_decode_String(raw[1]),key: dco_decode_String(raw[2]),value: dco_decode_String(raw[3]),);
-case 14: return PluginManagerEvent_StorageDeleted(pluginId: dco_decode_String(raw[1]),key: dco_decode_String(raw[2]),);
-case 15: return PluginManagerEvent_StorageCleared(pluginId: dco_decode_String(raw[1]),);
-case 16: return PluginManagerEvent_ManagerInitialized();
-case 17: return PluginManagerEvent_Error(message: dco_decode_String(raw[1]),);
-                default: throw Exception("unreachable");
-            } }
-
-@protected PluginPublisher dco_decode_plugin_publisher(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-                return PluginPublisher(name: dco_decode_String(arr[0]),
-url: dco_decode_opt_String(arr[1]),
-contact: dco_decode_opt_String(arr[2]),
-keyId: dco_decode_opt_String(arr[3]),); }
-
-@protected PluginRequest dco_decode_plugin_request(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-switch (raw[0]) {
-                case 0: return PluginRequest_ContentResolver(dco_decode_box_autoadd_content_resolver_command(raw[1]),);
-case 1: return PluginRequest_ChartProvider(dco_decode_box_autoadd_chart_provider_command(raw[1]),);
-                default: throw Exception("unreachable");
-            } }
-
-@protected PluginResponse dco_decode_plugin_response(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-switch (raw[0]) {
-                case 0: return PluginResponse_AlbumDetails(dco_decode_box_autoadd_album_details(raw[1]),);
-case 1: return PluginResponse_ArtistDetails(dco_decode_box_autoadd_artist_details(raw[1]),);
-case 2: return PluginResponse_PlaylistDetails(dco_decode_box_autoadd_playlist_details(raw[1]),);
-case 3: return PluginResponse_Streams(dco_decode_list_track(raw[1]),);
-case 4: return PluginResponse_Search(dco_decode_box_autoadd_paged_media_items(raw[1]),);
-case 5: return PluginResponse_MoreTracks(dco_decode_box_autoadd_paged_tracks(raw[1]),);
-case 6: return PluginResponse_MoreAlbums(dco_decode_box_autoadd_paged_albums(raw[1]),);
-case 7: return PluginResponse_HomeSections(dco_decode_list_section(raw[1]),);
-case 8: return PluginResponse_LoadMoreItems(dco_decode_list_media_item(raw[1]),);
-case 9: return PluginResponse_Charts(dco_decode_list_chart_summary(raw[1]),);
-case 10: return PluginResponse_ChartDetails(dco_decode_list_chart_item(raw[1]),);
-case 11: return PluginResponse_Ack();
-                default: throw Exception("unreachable");
-            } }
-
-@protected PluginType dco_decode_plugin_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return PluginType.values[raw as int]; }
-
-@protected Section dco_decode_section(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 6) throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
-                return Section(id: dco_decode_String(arr[0]),
-title: dco_decode_String(arr[1]),
-subtitle: dco_decode_opt_String(arr[2]),
-cardType: dco_decode_card_type(arr[3]),
-items: dco_decode_list_media_item(arr[4]),
-moreLink: dco_decode_opt_String(arr[5]),); }
-
-@protected Track dco_decode_track(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 9) throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
-                return Track(id: dco_decode_String(arr[0]),
-title: dco_decode_String(arr[1]),
-artists: dco_decode_list_artist_summary(arr[2]),
-album: dco_decode_opt_box_autoadd_album_summary(arr[3]),
-durationMs: dco_decode_opt_box_autoadd_u_64(arr[4]),
-thumbnails: dco_decode_list_artwork(arr[5]),
-url: dco_decode_opt_String(arr[6]),
-isExplicit: dco_decode_bool(arr[7]),
-lyrics: dco_decode_opt_box_autoadd_lyrics(arr[8]),); }
-
-@protected Trend dco_decode_trend(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return Trend.values[raw as int]; }
-
-@protected int dco_decode_u_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected BigInt dco_decode_u_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dcoDecodeU64(raw); }
-
-@protected int dco_decode_u_8(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected void dco_decode_unit(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return; }
-
-@protected BigInt dco_decode_usize(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dcoDecodeU64(raw); }
-
-@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_String(deserializer);
-        return AnyhowException(inner); }
-
-@protected PluginInfo sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return PluginInfoImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
-
-@protected PluginManager sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return PluginManagerImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
-
-@protected PluginInfo sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return PluginInfoImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
-
-@protected PluginManager sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return PluginManagerImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
-
-@protected PluginInfo sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return PluginInfoImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
-
-@protected PluginManager sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return PluginManagerImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
-
-@protected PluginInfo sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return PluginInfoImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
-
-@protected PluginManager sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return PluginManagerImpl.frbInternalSseDecode(sse_decode_usize(deserializer), sse_decode_i_32(deserializer)); }
-
-@protected RustStreamSink<PluginManagerEvent> sse_decode_StreamSink_plugin_manager_event_Sse(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-throw UnimplementedError('Unreachable ()'); }
-
-@protected String sse_decode_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_list_prim_u_8_strict(deserializer);
-        return utf8.decoder.convert(inner); }
-
-@protected AlbumDetails sse_decode_album_details(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_summary = sse_decode_album_summary(deserializer);
-var var_tracks = sse_decode_paged_tracks(deserializer);
-var var_description = sse_decode_opt_String(deserializer);
-return AlbumDetails(summary: var_summary, tracks: var_tracks, description: var_description); }
-
-@protected AlbumSummary sse_decode_album_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_String(deserializer);
-var var_title = sse_decode_String(deserializer);
-var var_artists = sse_decode_list_artist_summary(deserializer);
-var var_thumbnails = sse_decode_list_artwork(deserializer);
-var var_year = sse_decode_opt_box_autoadd_u_32(deserializer);
-var var_url = sse_decode_opt_String(deserializer);
-return AlbumSummary(id: var_id, title: var_title, artists: var_artists, thumbnails: var_thumbnails, year: var_year, url: var_url); }
-
-@protected ArtistDetails sse_decode_artist_details(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_summary = sse_decode_artist_summary(deserializer);
-var var_topTracks = sse_decode_list_track(deserializer);
-var var_albums = sse_decode_paged_albums(deserializer);
-var var_relatedArtists = sse_decode_list_artist_summary(deserializer);
-var var_description = sse_decode_opt_String(deserializer);
-return ArtistDetails(summary: var_summary, topTracks: var_topTracks, albums: var_albums, relatedArtists: var_relatedArtists, description: var_description); }
-
-@protected ArtistSummary sse_decode_artist_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_String(deserializer);
-var var_name = sse_decode_String(deserializer);
-var var_thumbnails = sse_decode_list_artwork(deserializer);
-var var_url = sse_decode_opt_String(deserializer);
-return ArtistSummary(id: var_id, name: var_name, thumbnails: var_thumbnails, url: var_url); }
-
-@protected Artwork sse_decode_artwork(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_url = sse_decode_String(deserializer);
-var var_layout = sse_decode_image_layout(deserializer);
-return Artwork(url: var_url, layout: var_layout); }
-
-@protected bool sse_decode_bool(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getUint8() != 0; }
-
-@protected PluginInfo sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(deserializer)); }
-
-@protected AlbumDetails sse_decode_box_autoadd_album_details(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_album_details(deserializer)); }
-
-@protected AlbumSummary sse_decode_box_autoadd_album_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_album_summary(deserializer)); }
-
-@protected ArtistDetails sse_decode_box_autoadd_artist_details(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_artist_details(deserializer)); }
-
-@protected ArtistSummary sse_decode_box_autoadd_artist_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_artist_summary(deserializer)); }
-
-@protected ChartProviderCommand sse_decode_box_autoadd_chart_provider_command(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_chart_provider_command(deserializer)); }
-
-@protected ContentResolverCommand sse_decode_box_autoadd_content_resolver_command(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_content_resolver_command(deserializer)); }
-
-@protected Lyrics sse_decode_box_autoadd_lyrics(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_lyrics(deserializer)); }
-
-@protected PagedAlbums sse_decode_box_autoadd_paged_albums(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_paged_albums(deserializer)); }
-
-@protected PagedMediaItems sse_decode_box_autoadd_paged_media_items(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_paged_media_items(deserializer)); }
-
-@protected PagedTracks sse_decode_box_autoadd_paged_tracks(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_paged_tracks(deserializer)); }
-
-@protected PlaylistDetails sse_decode_box_autoadd_playlist_details(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_playlist_details(deserializer)); }
-
-@protected PlaylistSummary sse_decode_box_autoadd_playlist_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_playlist_summary(deserializer)); }
-
-@protected PluginRequest sse_decode_box_autoadd_plugin_request(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_plugin_request(deserializer)); }
-
-@protected PluginType sse_decode_box_autoadd_plugin_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_plugin_type(deserializer)); }
-
-@protected Track sse_decode_box_autoadd_track(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_track(deserializer)); }
-
-@protected int sse_decode_box_autoadd_u_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_u_32(deserializer)); }
-
-@protected BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_u_64(deserializer)); }
-
-@protected CardType sse_decode_card_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_i_32(deserializer);
-        return CardType.values[inner]; }
-
-@protected ChartItem sse_decode_chart_item(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_item = sse_decode_media_item(deserializer);
-var var_rank = sse_decode_u_32(deserializer);
-var var_trend = sse_decode_trend(deserializer);
-var var_change = sse_decode_opt_box_autoadd_u_32(deserializer);
-var var_previousRank = sse_decode_opt_box_autoadd_u_32(deserializer);
-var var_peakRank = sse_decode_opt_box_autoadd_u_32(deserializer);
-var var_weeksOnChart = sse_decode_opt_box_autoadd_u_32(deserializer);
-return ChartItem(item: var_item, rank: var_rank, trend: var_trend, change: var_change, previousRank: var_previousRank, peakRank: var_peakRank, weeksOnChart: var_weeksOnChart); }
-
-@protected ChartProviderCommand sse_decode_chart_provider_command(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            var tag_ = sse_decode_i_32(deserializer);
-            switch (tag_) { case 0: return ChartProviderCommand_GetCharts();case 1: var var_id = sse_decode_String(deserializer);
-return ChartProviderCommand_GetChartDetails(id: var_id); default: throw UnimplementedError(''); }
-             }
-
-@protected ChartSummary sse_decode_chart_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_String(deserializer);
-var var_title = sse_decode_String(deserializer);
-var var_description = sse_decode_opt_String(deserializer);
-var var_thumbnails = sse_decode_list_artwork(deserializer);
-var var_updatedAt = sse_decode_opt_String(deserializer);
-var var_period = sse_decode_opt_String(deserializer);
-return ChartSummary(id: var_id, title: var_title, description: var_description, thumbnails: var_thumbnails, updatedAt: var_updatedAt, period: var_period); }
-
-@protected ContentResolverCommand sse_decode_content_resolver_command(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            var tag_ = sse_decode_i_32(deserializer);
-            switch (tag_) { case 0: var var_id = sse_decode_String(deserializer);
-return ContentResolverCommand_GetAlbumDetails(id: var_id);case 1: var var_id = sse_decode_String(deserializer);
-return ContentResolverCommand_GetArtistDetails(id: var_id);case 2: var var_id = sse_decode_String(deserializer);
-return ContentResolverCommand_GetPlaylistDetails(id: var_id);case 3: var var_id = sse_decode_String(deserializer);
-return ContentResolverCommand_GetStreams(id: var_id);case 4: var var_query = sse_decode_String(deserializer);
-var var_filter = sse_decode_content_search_filter(deserializer);
-var var_pageToken = sse_decode_opt_String(deserializer);
-return ContentResolverCommand_Search(query: var_query, filter: var_filter, pageToken: var_pageToken);case 5: var var_id = sse_decode_String(deserializer);
-var var_pageToken = sse_decode_String(deserializer);
-return ContentResolverCommand_MoreAlbumTracks(id: var_id, pageToken: var_pageToken);case 6: var var_id = sse_decode_String(deserializer);
-var var_pageToken = sse_decode_String(deserializer);
-return ContentResolverCommand_MoreArtistAlbums(id: var_id, pageToken: var_pageToken);case 7: var var_id = sse_decode_String(deserializer);
-var var_pageToken = sse_decode_String(deserializer);
-return ContentResolverCommand_MorePlaylistTracks(id: var_id, pageToken: var_pageToken);case 8: return ContentResolverCommand_GetHomeSections();case 9: var var_id = sse_decode_String(deserializer);
-var var_moreLink = sse_decode_String(deserializer);
-return ContentResolverCommand_LoadMore(id: var_id, moreLink: var_moreLink); default: throw UnimplementedError(''); }
-             }
-
-@protected ContentSearchFilter sse_decode_content_search_filter(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_i_32(deserializer);
-        return ContentSearchFilter.values[inner]; }
-
-@protected int sse_decode_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getInt32(); }
-
-@protected ImageLayout sse_decode_image_layout(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_i_32(deserializer);
-        return ImageLayout.values[inner]; }
-
-@protected List<PluginInfo> sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <PluginInfo>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(deserializer)); }
-        return ans_;
-         }
-
-@protected List<String> sse_decode_list_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <String>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_String(deserializer)); }
-        return ans_;
-         }
-
-@protected List<AlbumSummary> sse_decode_list_album_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <AlbumSummary>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_album_summary(deserializer)); }
-        return ans_;
-         }
-
-@protected List<ArtistSummary> sse_decode_list_artist_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <ArtistSummary>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_artist_summary(deserializer)); }
-        return ans_;
-         }
-
-@protected List<Artwork> sse_decode_list_artwork(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <Artwork>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_artwork(deserializer)); }
-        return ans_;
-         }
-
-@protected List<ChartItem> sse_decode_list_chart_item(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <ChartItem>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_chart_item(deserializer)); }
-        return ans_;
-         }
-
-@protected List<ChartSummary> sse_decode_list_chart_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <ChartSummary>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_chart_summary(deserializer)); }
-        return ans_;
-         }
-
-@protected List<MediaItem> sse_decode_list_media_item(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <MediaItem>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_media_item(deserializer)); }
-        return ans_;
-         }
-
-@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var len_ = sse_decode_i_32(deserializer);
-                return deserializer.buffer.getUint8List(len_); }
-
-@protected List<Section> sse_decode_list_section(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <Section>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_section(deserializer)); }
-        return ans_;
-         }
-
-@protected List<Track> sse_decode_list_track(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <Track>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_track(deserializer)); }
-        return ans_;
-         }
-
-@protected Lyrics sse_decode_lyrics(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_plain = sse_decode_opt_String(deserializer);
-var var_synced = sse_decode_opt_String(deserializer);
-var var_copyright = sse_decode_opt_String(deserializer);
-return Lyrics(plain: var_plain, synced: var_synced, copyright: var_copyright); }
-
-@protected Manifest sse_decode_manifest(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_manifestVersion = sse_decode_u_32(deserializer);
-var var_id = sse_decode_String(deserializer);
-var var_name = sse_decode_String(deserializer);
-var var_version = sse_decode_String(deserializer);
-var var_type = sse_decode_String(deserializer);
-var var_description = sse_decode_String(deserializer);
-var var_publisher = sse_decode_plugin_publisher(deserializer);
-var var_license = sse_decode_String(deserializer);
-var var_homepage = sse_decode_String(deserializer);
-var var_icon = sse_decode_opt_String(deserializer);
-var var_hostSite = sse_decode_list_String(deserializer);
-var var_capabilities = sse_decode_list_String(deserializer);
-var var_createdAt = sse_decode_opt_String(deserializer);
-var var_remoteUrl = sse_decode_opt_String(deserializer);
-return Manifest(manifestVersion: var_manifestVersion, id: var_id, name: var_name, version: var_version, type: var_type, description: var_description, publisher: var_publisher, license: var_license, homepage: var_homepage, icon: var_icon, hostSite: var_hostSite, capabilities: var_capabilities, createdAt: var_createdAt, remoteUrl: var_remoteUrl); }
-
-@protected MediaItem sse_decode_media_item(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            var tag_ = sse_decode_i_32(deserializer);
-            switch (tag_) { case 0: var var_field0 = sse_decode_box_autoadd_track(deserializer);
-return MediaItem_Track(var_field0);case 1: var var_field0 = sse_decode_box_autoadd_album_summary(deserializer);
-return MediaItem_Album(var_field0);case 2: var var_field0 = sse_decode_box_autoadd_artist_summary(deserializer);
-return MediaItem_Artist(var_field0);case 3: var var_field0 = sse_decode_box_autoadd_playlist_summary(deserializer);
-return MediaItem_Playlist(var_field0); default: throw UnimplementedError(''); }
-             }
-
-@protected MetadataResult sse_decode_metadata_result(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_filename = sse_decode_String(deserializer);
-var var_isSuccess = sse_decode_bool(deserializer);
-return MetadataResult(filename: var_filename, isSuccess: var_isSuccess); }
-
-@protected String? sse_decode_opt_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_String(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected PluginInfo? sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected AlbumSummary? sse_decode_opt_box_autoadd_album_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_album_summary(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected Lyrics? sse_decode_opt_box_autoadd_lyrics(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_lyrics(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected PluginType? sse_decode_opt_box_autoadd_plugin_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_plugin_type(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_u_32(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_u_64(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected PagedAlbums sse_decode_paged_albums(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_items = sse_decode_list_album_summary(deserializer);
-var var_nextPageToken = sse_decode_opt_String(deserializer);
-return PagedAlbums(items: var_items, nextPageToken: var_nextPageToken); }
-
-@protected PagedMediaItems sse_decode_paged_media_items(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_items = sse_decode_list_media_item(deserializer);
-var var_nextPageToken = sse_decode_opt_String(deserializer);
-return PagedMediaItems(items: var_items, nextPageToken: var_nextPageToken); }
-
-@protected PagedTracks sse_decode_paged_tracks(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_items = sse_decode_list_track(deserializer);
-var var_nextPageToken = sse_decode_opt_String(deserializer);
-return PagedTracks(items: var_items, nextPageToken: var_nextPageToken); }
-
-@protected PlaylistDetails sse_decode_playlist_details(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_summary = sse_decode_playlist_summary(deserializer);
-var var_tracks = sse_decode_paged_tracks(deserializer);
-var var_description = sse_decode_opt_String(deserializer);
-return PlaylistDetails(summary: var_summary, tracks: var_tracks, description: var_description); }
-
-@protected PlaylistSummary sse_decode_playlist_summary(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_String(deserializer);
-var var_title = sse_decode_String(deserializer);
-var var_owner = sse_decode_opt_String(deserializer);
-var var_thumbnails = sse_decode_list_artwork(deserializer);
-var var_trackCount = sse_decode_opt_box_autoadd_u_32(deserializer);
-var var_url = sse_decode_opt_String(deserializer);
-return PlaylistSummary(id: var_id, title: var_title, owner: var_owner, thumbnails: var_thumbnails, trackCount: var_trackCount, url: var_url); }
-
-@protected PluginInstallResult sse_decode_plugin_install_result(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_status = sse_decode_plugin_install_status(deserializer);
-var var_pluginId = sse_decode_String(deserializer);
-var var_error = sse_decode_opt_String(deserializer);
-return PluginInstallResult(status: var_status, pluginId: var_pluginId, error: var_error); }
-
-@protected PluginInstallStatus sse_decode_plugin_install_status(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_i_32(deserializer);
-        return PluginInstallStatus.values[inner]; }
-
-@protected PluginManagerEvent sse_decode_plugin_manager_event(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            var tag_ = sse_decode_i_32(deserializer);
-            switch (tag_) { case 0: var var_id = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginLoading(id: var_id);case 1: var var_id = sse_decode_String(deserializer);
-var var_pluginType = sse_decode_plugin_type(deserializer);
-return PluginManagerEvent_PluginLoaded(id: var_id, pluginType: var_pluginType);case 2: var var_id = sse_decode_String(deserializer);
-var var_error = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginLoadFailed(id: var_id, error: var_error);case 3: var var_id = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginUnloading(id: var_id);case 4: var var_id = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginUnloaded(id: var_id);case 5: var var_id = sse_decode_String(deserializer);
-var var_error = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginUnloadFailed(id: var_id, error: var_error);case 6: var var_id = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginInstalling(id: var_id);case 7: var var_id = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginInstalled(id: var_id);case 8: var var_id = sse_decode_String(deserializer);
-var var_error = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginInstallFailed(id: var_id, error: var_error);case 9: var var_id = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginDeleting(id: var_id);case 10: var var_id = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginDeleted(id: var_id);case 11: var var_id = sse_decode_String(deserializer);
-var var_error = sse_decode_String(deserializer);
-return PluginManagerEvent_PluginDeleteFailed(id: var_id, error: var_error);case 12: var var_plugins = sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(deserializer);
-return PluginManagerEvent_PluginListRefreshed(plugins: var_plugins);case 13: var var_pluginId = sse_decode_String(deserializer);
-var var_key = sse_decode_String(deserializer);
-var var_value = sse_decode_String(deserializer);
-return PluginManagerEvent_StorageSet(pluginId: var_pluginId, key: var_key, value: var_value);case 14: var var_pluginId = sse_decode_String(deserializer);
-var var_key = sse_decode_String(deserializer);
-return PluginManagerEvent_StorageDeleted(pluginId: var_pluginId, key: var_key);case 15: var var_pluginId = sse_decode_String(deserializer);
-return PluginManagerEvent_StorageCleared(pluginId: var_pluginId);case 16: return PluginManagerEvent_ManagerInitialized();case 17: var var_message = sse_decode_String(deserializer);
-return PluginManagerEvent_Error(message: var_message); default: throw UnimplementedError(''); }
-             }
-
-@protected PluginPublisher sse_decode_plugin_publisher(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_name = sse_decode_String(deserializer);
-var var_url = sse_decode_opt_String(deserializer);
-var var_contact = sse_decode_opt_String(deserializer);
-var var_keyId = sse_decode_opt_String(deserializer);
-return PluginPublisher(name: var_name, url: var_url, contact: var_contact, keyId: var_keyId); }
-
-@protected PluginRequest sse_decode_plugin_request(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            var tag_ = sse_decode_i_32(deserializer);
-            switch (tag_) { case 0: var var_field0 = sse_decode_box_autoadd_content_resolver_command(deserializer);
-return PluginRequest_ContentResolver(var_field0);case 1: var var_field0 = sse_decode_box_autoadd_chart_provider_command(deserializer);
-return PluginRequest_ChartProvider(var_field0); default: throw UnimplementedError(''); }
-             }
-
-@protected PluginResponse sse_decode_plugin_response(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            var tag_ = sse_decode_i_32(deserializer);
-            switch (tag_) { case 0: var var_field0 = sse_decode_box_autoadd_album_details(deserializer);
-return PluginResponse_AlbumDetails(var_field0);case 1: var var_field0 = sse_decode_box_autoadd_artist_details(deserializer);
-return PluginResponse_ArtistDetails(var_field0);case 2: var var_field0 = sse_decode_box_autoadd_playlist_details(deserializer);
-return PluginResponse_PlaylistDetails(var_field0);case 3: var var_field0 = sse_decode_list_track(deserializer);
-return PluginResponse_Streams(var_field0);case 4: var var_field0 = sse_decode_box_autoadd_paged_media_items(deserializer);
-return PluginResponse_Search(var_field0);case 5: var var_field0 = sse_decode_box_autoadd_paged_tracks(deserializer);
-return PluginResponse_MoreTracks(var_field0);case 6: var var_field0 = sse_decode_box_autoadd_paged_albums(deserializer);
-return PluginResponse_MoreAlbums(var_field0);case 7: var var_field0 = sse_decode_list_section(deserializer);
-return PluginResponse_HomeSections(var_field0);case 8: var var_field0 = sse_decode_list_media_item(deserializer);
-return PluginResponse_LoadMoreItems(var_field0);case 9: var var_field0 = sse_decode_list_chart_summary(deserializer);
-return PluginResponse_Charts(var_field0);case 10: var var_field0 = sse_decode_list_chart_item(deserializer);
-return PluginResponse_ChartDetails(var_field0);case 11: return PluginResponse_Ack(); default: throw UnimplementedError(''); }
-             }
-
-@protected PluginType sse_decode_plugin_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_i_32(deserializer);
-        return PluginType.values[inner]; }
-
-@protected Section sse_decode_section(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_String(deserializer);
-var var_title = sse_decode_String(deserializer);
-var var_subtitle = sse_decode_opt_String(deserializer);
-var var_cardType = sse_decode_card_type(deserializer);
-var var_items = sse_decode_list_media_item(deserializer);
-var var_moreLink = sse_decode_opt_String(deserializer);
-return Section(id: var_id, title: var_title, subtitle: var_subtitle, cardType: var_cardType, items: var_items, moreLink: var_moreLink); }
-
-@protected Track sse_decode_track(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_String(deserializer);
-var var_title = sse_decode_String(deserializer);
-var var_artists = sse_decode_list_artist_summary(deserializer);
-var var_album = sse_decode_opt_box_autoadd_album_summary(deserializer);
-var var_durationMs = sse_decode_opt_box_autoadd_u_64(deserializer);
-var var_thumbnails = sse_decode_list_artwork(deserializer);
-var var_url = sse_decode_opt_String(deserializer);
-var var_isExplicit = sse_decode_bool(deserializer);
-var var_lyrics = sse_decode_opt_box_autoadd_lyrics(deserializer);
-return Track(id: var_id, title: var_title, artists: var_artists, album: var_album, durationMs: var_durationMs, thumbnails: var_thumbnails, url: var_url, isExplicit: var_isExplicit, lyrics: var_lyrics); }
-
-@protected Trend sse_decode_trend(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_i_32(deserializer);
-        return Trend.values[inner]; }
-
-@protected int sse_decode_u_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getUint32(); }
-
-@protected BigInt sse_decode_u_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getBigUint64(); }
-
-@protected int sse_decode_u_8(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getUint8(); }
-
-@protected void sse_decode_unit(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
- }
-
-@protected BigInt sse_decode_usize(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getBigUint64(); }
-
-@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.message, serializer); }
-
-@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_usize((self as PluginInfoImpl).frbInternalSseEncode(move: true), serializer); }
-
-@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(PluginManager self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_usize((self as PluginManagerImpl).frbInternalSseEncode(move: true), serializer); }
-
-@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_usize((self as PluginInfoImpl).frbInternalSseEncode(move: false), serializer); }
-
-@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(PluginManager self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_usize((self as PluginManagerImpl).frbInternalSseEncode(move: false), serializer); }
-
-@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_usize((self as PluginInfoImpl).frbInternalSseEncode(move: false), serializer); }
-
-@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(PluginManager self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_usize((self as PluginManagerImpl).frbInternalSseEncode(move: false), serializer); }
-
-@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_usize((self as PluginInfoImpl).frbInternalSseEncode(move: null), serializer); }
-
-@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(PluginManager self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_usize((self as PluginManagerImpl).frbInternalSseEncode(move: null), serializer); }
-
-@protected void sse_encode_StreamSink_plugin_manager_event_Sse(RustStreamSink<PluginManagerEvent> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.setupAndSerialize(codec: SseCodec(
-            decodeSuccessData: sse_decode_plugin_manager_event,
-            decodeErrorData: sse_decode_AnyhowException,
-        )), serializer); }
-
-@protected void sse_encode_String(String self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer); }
-
-@protected void sse_encode_album_details(AlbumDetails self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_album_summary(self.summary, serializer);
-sse_encode_paged_tracks(self.tracks, serializer);
-sse_encode_opt_String(self.description, serializer);
- }
-
-@protected void sse_encode_album_summary(AlbumSummary self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.id, serializer);
-sse_encode_String(self.title, serializer);
-sse_encode_list_artist_summary(self.artists, serializer);
-sse_encode_list_artwork(self.thumbnails, serializer);
-sse_encode_opt_box_autoadd_u_32(self.year, serializer);
-sse_encode_opt_String(self.url, serializer);
- }
-
-@protected void sse_encode_artist_details(ArtistDetails self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_artist_summary(self.summary, serializer);
-sse_encode_list_track(self.topTracks, serializer);
-sse_encode_paged_albums(self.albums, serializer);
-sse_encode_list_artist_summary(self.relatedArtists, serializer);
-sse_encode_opt_String(self.description, serializer);
- }
-
-@protected void sse_encode_artist_summary(ArtistSummary self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.id, serializer);
-sse_encode_String(self.name, serializer);
-sse_encode_list_artwork(self.thumbnails, serializer);
-sse_encode_opt_String(self.url, serializer);
- }
-
-@protected void sse_encode_artwork(Artwork self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.url, serializer);
-sse_encode_image_layout(self.layout, serializer);
- }
-
-@protected void sse_encode_bool(bool self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putUint8(self ? 1 : 0); }
-
-@protected void sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(self, serializer); }
-
-@protected void sse_encode_box_autoadd_album_details(AlbumDetails self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_album_details(self, serializer); }
-
-@protected void sse_encode_box_autoadd_album_summary(AlbumSummary self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_album_summary(self, serializer); }
-
-@protected void sse_encode_box_autoadd_artist_details(ArtistDetails self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_artist_details(self, serializer); }
-
-@protected void sse_encode_box_autoadd_artist_summary(ArtistSummary self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_artist_summary(self, serializer); }
-
-@protected void sse_encode_box_autoadd_chart_provider_command(ChartProviderCommand self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_chart_provider_command(self, serializer); }
-
-@protected void sse_encode_box_autoadd_content_resolver_command(ContentResolverCommand self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_content_resolver_command(self, serializer); }
-
-@protected void sse_encode_box_autoadd_lyrics(Lyrics self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_lyrics(self, serializer); }
-
-@protected void sse_encode_box_autoadd_paged_albums(PagedAlbums self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_paged_albums(self, serializer); }
-
-@protected void sse_encode_box_autoadd_paged_media_items(PagedMediaItems self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_paged_media_items(self, serializer); }
-
-@protected void sse_encode_box_autoadd_paged_tracks(PagedTracks self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_paged_tracks(self, serializer); }
-
-@protected void sse_encode_box_autoadd_playlist_details(PlaylistDetails self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_playlist_details(self, serializer); }
-
-@protected void sse_encode_box_autoadd_playlist_summary(PlaylistSummary self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_playlist_summary(self, serializer); }
-
-@protected void sse_encode_box_autoadd_plugin_request(PluginRequest self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_plugin_request(self, serializer); }
-
-@protected void sse_encode_box_autoadd_plugin_type(PluginType self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_plugin_type(self, serializer); }
-
-@protected void sse_encode_box_autoadd_track(Track self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_track(self, serializer); }
-
-@protected void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_u_32(self, serializer); }
-
-@protected void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_u_64(self, serializer); }
-
-@protected void sse_encode_card_type(CardType self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.index, serializer); }
-
-@protected void sse_encode_chart_item(ChartItem self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_media_item(self.item, serializer);
-sse_encode_u_32(self.rank, serializer);
-sse_encode_trend(self.trend, serializer);
-sse_encode_opt_box_autoadd_u_32(self.change, serializer);
-sse_encode_opt_box_autoadd_u_32(self.previousRank, serializer);
-sse_encode_opt_box_autoadd_u_32(self.peakRank, serializer);
-sse_encode_opt_box_autoadd_u_32(self.weeksOnChart, serializer);
- }
-
-@protected void sse_encode_chart_provider_command(ChartProviderCommand self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-switch (self) { case ChartProviderCommand_GetCharts(): sse_encode_i_32(0, serializer); case ChartProviderCommand_GetChartDetails(id: final id): sse_encode_i_32(1, serializer); sse_encode_String(id, serializer);
-  } }
-
-@protected void sse_encode_chart_summary(ChartSummary self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.id, serializer);
-sse_encode_String(self.title, serializer);
-sse_encode_opt_String(self.description, serializer);
-sse_encode_list_artwork(self.thumbnails, serializer);
-sse_encode_opt_String(self.updatedAt, serializer);
-sse_encode_opt_String(self.period, serializer);
- }
-
-@protected void sse_encode_content_resolver_command(ContentResolverCommand self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-switch (self) { case ContentResolverCommand_GetAlbumDetails(id: final id): sse_encode_i_32(0, serializer); sse_encode_String(id, serializer);
-case ContentResolverCommand_GetArtistDetails(id: final id): sse_encode_i_32(1, serializer); sse_encode_String(id, serializer);
-case ContentResolverCommand_GetPlaylistDetails(id: final id): sse_encode_i_32(2, serializer); sse_encode_String(id, serializer);
-case ContentResolverCommand_GetStreams(id: final id): sse_encode_i_32(3, serializer); sse_encode_String(id, serializer);
-case ContentResolverCommand_Search(query: final query,filter: final filter,pageToken: final pageToken): sse_encode_i_32(4, serializer); sse_encode_String(query, serializer);
-sse_encode_content_search_filter(filter, serializer);
-sse_encode_opt_String(pageToken, serializer);
-case ContentResolverCommand_MoreAlbumTracks(id: final id,pageToken: final pageToken): sse_encode_i_32(5, serializer); sse_encode_String(id, serializer);
-sse_encode_String(pageToken, serializer);
-case ContentResolverCommand_MoreArtistAlbums(id: final id,pageToken: final pageToken): sse_encode_i_32(6, serializer); sse_encode_String(id, serializer);
-sse_encode_String(pageToken, serializer);
-case ContentResolverCommand_MorePlaylistTracks(id: final id,pageToken: final pageToken): sse_encode_i_32(7, serializer); sse_encode_String(id, serializer);
-sse_encode_String(pageToken, serializer);
-case ContentResolverCommand_GetHomeSections(): sse_encode_i_32(8, serializer); case ContentResolverCommand_LoadMore(id: final id,moreLink: final moreLink): sse_encode_i_32(9, serializer); sse_encode_String(id, serializer);
-sse_encode_String(moreLink, serializer);
-  } }
-
-@protected void sse_encode_content_search_filter(ContentSearchFilter self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.index, serializer); }
-
-@protected void sse_encode_i_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putInt32(self); }
-
-@protected void sse_encode_image_layout(ImageLayout self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.index, serializer); }
-
-@protected void sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(List<PluginInfo> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(item, serializer); } }
-
-@protected void sse_encode_list_String(List<String> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_String(item, serializer); } }
-
-@protected void sse_encode_list_album_summary(List<AlbumSummary> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_album_summary(item, serializer); } }
-
-@protected void sse_encode_list_artist_summary(List<ArtistSummary> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_artist_summary(item, serializer); } }
-
-@protected void sse_encode_list_artwork(List<Artwork> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_artwork(item, serializer); } }
-
-@protected void sse_encode_list_chart_item(List<ChartItem> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_chart_item(item, serializer); } }
-
-@protected void sse_encode_list_chart_summary(List<ChartSummary> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_chart_summary(item, serializer); } }
-
-@protected void sse_encode_list_media_item(List<MediaItem> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_media_item(item, serializer); } }
-
-@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-                    serializer.buffer.putUint8List(self); }
-
-@protected void sse_encode_list_section(List<Section> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_section(item, serializer); } }
-
-@protected void sse_encode_list_track(List<Track> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_track(item, serializer); } }
-
-@protected void sse_encode_lyrics(Lyrics self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_opt_String(self.plain, serializer);
-sse_encode_opt_String(self.synced, serializer);
-sse_encode_opt_String(self.copyright, serializer);
- }
-
-@protected void sse_encode_manifest(Manifest self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_u_32(self.manifestVersion, serializer);
-sse_encode_String(self.id, serializer);
-sse_encode_String(self.name, serializer);
-sse_encode_String(self.version, serializer);
-sse_encode_String(self.type, serializer);
-sse_encode_String(self.description, serializer);
-sse_encode_plugin_publisher(self.publisher, serializer);
-sse_encode_String(self.license, serializer);
-sse_encode_String(self.homepage, serializer);
-sse_encode_opt_String(self.icon, serializer);
-sse_encode_list_String(self.hostSite, serializer);
-sse_encode_list_String(self.capabilities, serializer);
-sse_encode_opt_String(self.createdAt, serializer);
-sse_encode_opt_String(self.remoteUrl, serializer);
- }
-
-@protected void sse_encode_media_item(MediaItem self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-switch (self) { case MediaItem_Track(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_box_autoadd_track(field0, serializer);
-case MediaItem_Album(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_box_autoadd_album_summary(field0, serializer);
-case MediaItem_Artist(field0: final field0): sse_encode_i_32(2, serializer); sse_encode_box_autoadd_artist_summary(field0, serializer);
-case MediaItem_Playlist(field0: final field0): sse_encode_i_32(3, serializer); sse_encode_box_autoadd_playlist_summary(field0, serializer);
-  } }
-
-@protected void sse_encode_metadata_result(MetadataResult self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.filename, serializer);
-sse_encode_bool(self.isSuccess, serializer);
- }
-
-@protected void sse_encode_opt_String(String? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_String(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(PluginInfo? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_album_summary(AlbumSummary? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_album_summary(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_lyrics(Lyrics? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_lyrics(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_plugin_type(PluginType? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_plugin_type(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_u_32(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_u_64(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_paged_albums(PagedAlbums self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_list_album_summary(self.items, serializer);
-sse_encode_opt_String(self.nextPageToken, serializer);
- }
-
-@protected void sse_encode_paged_media_items(PagedMediaItems self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_list_media_item(self.items, serializer);
-sse_encode_opt_String(self.nextPageToken, serializer);
- }
-
-@protected void sse_encode_paged_tracks(PagedTracks self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_list_track(self.items, serializer);
-sse_encode_opt_String(self.nextPageToken, serializer);
- }
-
-@protected void sse_encode_playlist_details(PlaylistDetails self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_playlist_summary(self.summary, serializer);
-sse_encode_paged_tracks(self.tracks, serializer);
-sse_encode_opt_String(self.description, serializer);
- }
-
-@protected void sse_encode_playlist_summary(PlaylistSummary self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.id, serializer);
-sse_encode_String(self.title, serializer);
-sse_encode_opt_String(self.owner, serializer);
-sse_encode_list_artwork(self.thumbnails, serializer);
-sse_encode_opt_box_autoadd_u_32(self.trackCount, serializer);
-sse_encode_opt_String(self.url, serializer);
- }
-
-@protected void sse_encode_plugin_install_result(PluginInstallResult self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_plugin_install_status(self.status, serializer);
-sse_encode_String(self.pluginId, serializer);
-sse_encode_opt_String(self.error, serializer);
- }
-
-@protected void sse_encode_plugin_install_status(PluginInstallStatus self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.index, serializer); }
-
-@protected void sse_encode_plugin_manager_event(PluginManagerEvent self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-switch (self) { case PluginManagerEvent_PluginLoading(id: final id): sse_encode_i_32(0, serializer); sse_encode_String(id, serializer);
-case PluginManagerEvent_PluginLoaded(id: final id,pluginType: final pluginType): sse_encode_i_32(1, serializer); sse_encode_String(id, serializer);
-sse_encode_plugin_type(pluginType, serializer);
-case PluginManagerEvent_PluginLoadFailed(id: final id,error: final error): sse_encode_i_32(2, serializer); sse_encode_String(id, serializer);
-sse_encode_String(error, serializer);
-case PluginManagerEvent_PluginUnloading(id: final id): sse_encode_i_32(3, serializer); sse_encode_String(id, serializer);
-case PluginManagerEvent_PluginUnloaded(id: final id): sse_encode_i_32(4, serializer); sse_encode_String(id, serializer);
-case PluginManagerEvent_PluginUnloadFailed(id: final id,error: final error): sse_encode_i_32(5, serializer); sse_encode_String(id, serializer);
-sse_encode_String(error, serializer);
-case PluginManagerEvent_PluginInstalling(id: final id): sse_encode_i_32(6, serializer); sse_encode_String(id, serializer);
-case PluginManagerEvent_PluginInstalled(id: final id): sse_encode_i_32(7, serializer); sse_encode_String(id, serializer);
-case PluginManagerEvent_PluginInstallFailed(id: final id,error: final error): sse_encode_i_32(8, serializer); sse_encode_String(id, serializer);
-sse_encode_String(error, serializer);
-case PluginManagerEvent_PluginDeleting(id: final id): sse_encode_i_32(9, serializer); sse_encode_String(id, serializer);
-case PluginManagerEvent_PluginDeleted(id: final id): sse_encode_i_32(10, serializer); sse_encode_String(id, serializer);
-case PluginManagerEvent_PluginDeleteFailed(id: final id,error: final error): sse_encode_i_32(11, serializer); sse_encode_String(id, serializer);
-sse_encode_String(error, serializer);
-case PluginManagerEvent_PluginListRefreshed(plugins: final plugins): sse_encode_i_32(12, serializer); sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(plugins, serializer);
-case PluginManagerEvent_StorageSet(pluginId: final pluginId,key: final key,value: final value): sse_encode_i_32(13, serializer); sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-sse_encode_String(value, serializer);
-case PluginManagerEvent_StorageDeleted(pluginId: final pluginId,key: final key): sse_encode_i_32(14, serializer); sse_encode_String(pluginId, serializer);
-sse_encode_String(key, serializer);
-case PluginManagerEvent_StorageCleared(pluginId: final pluginId): sse_encode_i_32(15, serializer); sse_encode_String(pluginId, serializer);
-case PluginManagerEvent_ManagerInitialized(): sse_encode_i_32(16, serializer); case PluginManagerEvent_Error(message: final message): sse_encode_i_32(17, serializer); sse_encode_String(message, serializer);
-  } }
-
-@protected void sse_encode_plugin_publisher(PluginPublisher self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.name, serializer);
-sse_encode_opt_String(self.url, serializer);
-sse_encode_opt_String(self.contact, serializer);
-sse_encode_opt_String(self.keyId, serializer);
- }
-
-@protected void sse_encode_plugin_request(PluginRequest self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-switch (self) { case PluginRequest_ContentResolver(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_box_autoadd_content_resolver_command(field0, serializer);
-case PluginRequest_ChartProvider(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_box_autoadd_chart_provider_command(field0, serializer);
-  } }
-
-@protected void sse_encode_plugin_response(PluginResponse self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-switch (self) { case PluginResponse_AlbumDetails(field0: final field0): sse_encode_i_32(0, serializer); sse_encode_box_autoadd_album_details(field0, serializer);
-case PluginResponse_ArtistDetails(field0: final field0): sse_encode_i_32(1, serializer); sse_encode_box_autoadd_artist_details(field0, serializer);
-case PluginResponse_PlaylistDetails(field0: final field0): sse_encode_i_32(2, serializer); sse_encode_box_autoadd_playlist_details(field0, serializer);
-case PluginResponse_Streams(field0: final field0): sse_encode_i_32(3, serializer); sse_encode_list_track(field0, serializer);
-case PluginResponse_Search(field0: final field0): sse_encode_i_32(4, serializer); sse_encode_box_autoadd_paged_media_items(field0, serializer);
-case PluginResponse_MoreTracks(field0: final field0): sse_encode_i_32(5, serializer); sse_encode_box_autoadd_paged_tracks(field0, serializer);
-case PluginResponse_MoreAlbums(field0: final field0): sse_encode_i_32(6, serializer); sse_encode_box_autoadd_paged_albums(field0, serializer);
-case PluginResponse_HomeSections(field0: final field0): sse_encode_i_32(7, serializer); sse_encode_list_section(field0, serializer);
-case PluginResponse_LoadMoreItems(field0: final field0): sse_encode_i_32(8, serializer); sse_encode_list_media_item(field0, serializer);
-case PluginResponse_Charts(field0: final field0): sse_encode_i_32(9, serializer); sse_encode_list_chart_summary(field0, serializer);
-case PluginResponse_ChartDetails(field0: final field0): sse_encode_i_32(10, serializer); sse_encode_list_chart_item(field0, serializer);
-case PluginResponse_Ack(): sse_encode_i_32(11, serializer);   } }
-
-@protected void sse_encode_plugin_type(PluginType self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.index, serializer); }
-
-@protected void sse_encode_section(Section self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.id, serializer);
-sse_encode_String(self.title, serializer);
-sse_encode_opt_String(self.subtitle, serializer);
-sse_encode_card_type(self.cardType, serializer);
-sse_encode_list_media_item(self.items, serializer);
-sse_encode_opt_String(self.moreLink, serializer);
- }
-
-@protected void sse_encode_track(Track self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.id, serializer);
-sse_encode_String(self.title, serializer);
-sse_encode_list_artist_summary(self.artists, serializer);
-sse_encode_opt_box_autoadd_album_summary(self.album, serializer);
-sse_encode_opt_box_autoadd_u_64(self.durationMs, serializer);
-sse_encode_list_artwork(self.thumbnails, serializer);
-sse_encode_opt_String(self.url, serializer);
-sse_encode_bool(self.isExplicit, serializer);
-sse_encode_opt_box_autoadd_lyrics(self.lyrics, serializer);
- }
-
-@protected void sse_encode_trend(Trend self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.index, serializer); }
-
-@protected void sse_encode_u_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putUint32(self); }
-
-@protected void sse_encode_u_64(BigInt self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putBigUint64(self); }
-
-@protected void sse_encode_u_8(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putUint8(self); }
-
-@protected void sse_encode_unit(void self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
- }
-
-@protected void sse_encode_usize(BigInt self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putBigUint64(self); }
-                }
-                
-
-            @sealed class PluginInfoImpl extends RustOpaque implements PluginInfo {
-                // Not to be used by end users
-                PluginInfoImpl.frbInternalDcoDecode(List<dynamic> wire):
-                    super.frbInternalDcoDecode(wire, _kStaticData);
-
-                // Not to be used by end users
-                PluginInfoImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative):
-                    super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-                static final _kStaticData = RustArcStaticData(
-                    rustArcIncrementStrongCount: RustLib.instance.api.rust_arc_increment_strong_count_PluginInfo,
-                    rustArcDecrementStrongCount: RustLib.instance.api.rust_arc_decrement_strong_count_PluginInfo,
-                    rustArcDecrementStrongCountPtr: RustLib.instance.api.rust_arc_decrement_strong_count_PluginInfoPtr,
-                );
-
-                 Manifest get manifest=>RustLib.instance.api.crateApiPluginPluginInfoPluginInfoAutoAccessorGetManifest(that: this, );
-
-
- String get name=>RustLib.instance.api.crateApiPluginPluginInfoPluginInfoAutoAccessorGetName(that: this, );
-
-
- String get pluginPath=>RustLib.instance.api.crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPath(that: this, );
-
-
- PluginType get pluginType=>RustLib.instance.api.crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginType(that: this, );
-
-
-  set manifest(Manifest manifest)=>RustLib.instance.api.crateApiPluginPluginInfoPluginInfoAutoAccessorSetManifest(that: this, manifest: manifest);
-
-
-  set name(String name)=>RustLib.instance.api.crateApiPluginPluginInfoPluginInfoAutoAccessorSetName(that: this, name: name);
-
-
-  set pluginPath(String pluginPath)=>RustLib.instance.api.crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPath(that: this, pluginPath: pluginPath);
-
-
-  set pluginType(PluginType pluginType)=>RustLib.instance.api.crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginType(that: this, pluginType: pluginType);
-
-
-            }
-            @sealed class PluginManagerImpl extends RustOpaque implements PluginManager {
-                // Not to be used by end users
-                PluginManagerImpl.frbInternalDcoDecode(List<dynamic> wire):
-                    super.frbInternalDcoDecode(wire, _kStaticData);
-
-                // Not to be used by end users
-                PluginManagerImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative):
-                    super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-                static final _kStaticData = RustArcStaticData(
-                    rustArcIncrementStrongCount: RustLib.instance.api.rust_arc_increment_strong_count_PluginManager,
-                    rustArcDecrementStrongCount: RustLib.instance.api.rust_arc_decrement_strong_count_PluginManager,
-                    rustArcDecrementStrongCountPtr: RustLib.instance.api.rust_arc_decrement_strong_count_PluginManagerPtr,
-                );
-
-                 String get pluginsDir=>RustLib.instance.api.crateApiPluginPluginPluginManagerAutoAccessorGetPluginsDir(that: this, );
-
-
-  set pluginsDir(String pluginsDir)=>RustLib.instance.api.crateApiPluginPluginPluginManagerAutoAccessorSetPluginsDir(that: this, pluginsDir: pluginsDir);
-
-
-/// Get available plugins (scanned from directory)
- Future<List<PluginInfo>>  getAvailablePlugins()=>RustLib.instance.api.crateApiPluginPluginPluginManagerGetAvailablePlugins(that: this, );
-
-
-/// Get list of loaded plugin IDs
- Future<List<String>>  getLoadedPlugins()=>RustLib.instance.api.crateApiPluginPluginPluginManagerGetLoadedPlugins(that: this, );
-
-
-/// Initialize the event stream from Dart.
-/// Call this ONCE after creating the manager.
-/// The sink is held forever and used for all event emissions.
- Stream<PluginManagerEvent>  initEventStream()=>RustLib.instance.api.crateApiPluginPluginPluginManagerInitEventStream(that: this, );
-
-
-/// Check if a plugin is loaded
- Future<bool>  isPluginLoaded({required String pluginId , required PluginType pluginType })=>RustLib.instance.api.crateApiPluginPluginPluginManagerIsPluginLoaded(that: this, pluginId: pluginId, pluginType: pluginType);
-
-
-/// Alias for is_plugin_loaded (API compatibility)
- Future<bool>  isPluginLoadedById({required String pluginId , required PluginType pluginType })=>RustLib.instance.api.crateApiPluginPluginPluginManagerIsPluginLoadedById(that: this, pluginId: pluginId, pluginType: pluginType);
-
-
-/// Load a plugin by ID with event emission
- Future<void>  loadPlugin({required PluginInfo pluginInfo })=>RustLib.instance.api.crateApiPluginPluginPluginManagerLoadPlugin(that: this, pluginInfo: pluginInfo);
-
-
-/// Load a plugin by ID (looks up from available plugins)
- Future<void>  loadPluginById({required String pluginId , required PluginType pluginType })=>RustLib.instance.api.crateApiPluginPluginPluginManagerLoadPluginById(that: this, pluginId: pluginId, pluginType: pluginType);
-
-
-/// Load plugin from an explicit path (for install-then-load flow)
- Future<void>  loadPluginFromPath({required String pluginId , required PluginType pluginType , required String pluginPath })=>RustLib.instance.api.crateApiPluginPluginPluginManagerLoadPluginFromPath(that: this, pluginId: pluginId, pluginType: pluginType, pluginPath: pluginPath);
-
-
-/// Refresh available plugins and emit event
- Future<void>  refreshAvailablePlugins()=>RustLib.instance.api.crateApiPluginPluginPluginManagerRefreshAvailablePlugins(that: this, );
-
-
-/// Gracefully shutdown manager-owned state.
- Future<void>  shutdown()=>RustLib.instance.api.crateApiPluginPluginPluginManagerShutdown(that: this, );
-
-
-/// Clear all storage for a plugin
- Future<void>  storageClear({required String pluginId })=>RustLib.instance.api.crateApiPluginPluginPluginManagerStorageClear(that: this, pluginId: pluginId);
-
-
-/// Delete a storage value
- Future<bool>  storageDelete({required String pluginId , required String key })=>RustLib.instance.api.crateApiPluginPluginPluginManagerStorageDelete(that: this, pluginId: pluginId, key: key);
-
-
-/// Get a storage value (instant in-memory read)
- Future<String?>  storageGet({required String pluginId , required String key })=>RustLib.instance.api.crateApiPluginPluginPluginManagerStorageGet(that: this, pluginId: pluginId, key: key);
-
-
-/// Preload a storage value from Dart (startup sync, no event emitted)
- Future<void>  storagePreload({required String pluginId , required String key , required String value })=>RustLib.instance.api.crateApiPluginPluginPluginManagerStoragePreload(that: this, pluginId: pluginId, key: key, value: value);
-
-
-/// Set a storage value (instant in-memory, emits event for Dart persistence)
- Future<bool>  storageSet({required String pluginId , required String key , required String value })=>RustLib.instance.api.crateApiPluginPluginPluginManagerStorageSet(that: this, pluginId: pluginId, key: key, value: value);
-
-
-/// Unload a plugin with event emission
- Future<void>  unloadPlugin({required String pluginId , required PluginType pluginType })=>RustLib.instance.api.crateApiPluginPluginPluginManagerUnloadPlugin(that: this, pluginId: pluginId, pluginType: pluginType);
-
-
-/// Alias for unload_plugin (API compatibility)
- Future<void>  unloadPluginById({required String pluginId , required PluginType pluginType })=>RustLib.instance.api.crateApiPluginPluginPluginManagerUnloadPluginById(that: this, pluginId: pluginId, pluginType: pluginType);
-
-
-            }
+      case 11:
+        return PluginManagerEvent_PluginDeleteFailed(
+          id: dco_decode_String(raw[1]),
+          error: dco_decode_String(raw[2]),
+        );
+      case 12:
+        return PluginManagerEvent_PluginListRefreshed(
+          plugins:
+              dco_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+                  raw[1]),
+        );
+      case 13:
+        return PluginManagerEvent_StorageSet(
+          pluginId: dco_decode_String(raw[1]),
+          key: dco_decode_String(raw[2]),
+          value: dco_decode_String(raw[3]),
+        );
+      case 14:
+        return PluginManagerEvent_StorageDeleted(
+          pluginId: dco_decode_String(raw[1]),
+          key: dco_decode_String(raw[2]),
+        );
+      case 15:
+        return PluginManagerEvent_StorageCleared(
+          pluginId: dco_decode_String(raw[1]),
+        );
+      case 16:
+        return const PluginManagerEvent_ManagerInitialized();
+      case 17:
+        return PluginManagerEvent_Error(
+          message: dco_decode_String(raw[1]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
+  }
+
+  @protected
+  PluginPublisher dco_decode_plugin_publisher(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return PluginPublisher(
+      name: dco_decode_String(arr[0]),
+      url: dco_decode_opt_String(arr[1]),
+      contact: dco_decode_opt_String(arr[2]),
+      keyId: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
+  PluginRequest dco_decode_plugin_request(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return PluginRequest_ContentResolver(
+          dco_decode_box_autoadd_content_resolver_command(raw[1]),
+        );
+      case 1:
+        return PluginRequest_ChartProvider(
+          dco_decode_box_autoadd_chart_provider_command(raw[1]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
+  }
+
+  @protected
+  PluginResponse dco_decode_plugin_response(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return PluginResponse_AlbumDetails(
+          dco_decode_box_autoadd_album_details(raw[1]),
+        );
+      case 1:
+        return PluginResponse_ArtistDetails(
+          dco_decode_box_autoadd_artist_details(raw[1]),
+        );
+      case 2:
+        return PluginResponse_PlaylistDetails(
+          dco_decode_box_autoadd_playlist_details(raw[1]),
+        );
+      case 3:
+        return PluginResponse_Streams(
+          dco_decode_list_track(raw[1]),
+        );
+      case 4:
+        return PluginResponse_Search(
+          dco_decode_box_autoadd_paged_media_items(raw[1]),
+        );
+      case 5:
+        return PluginResponse_MoreTracks(
+          dco_decode_box_autoadd_paged_tracks(raw[1]),
+        );
+      case 6:
+        return PluginResponse_MoreAlbums(
+          dco_decode_box_autoadd_paged_albums(raw[1]),
+        );
+      case 7:
+        return PluginResponse_HomeSections(
+          dco_decode_list_section(raw[1]),
+        );
+      case 8:
+        return PluginResponse_LoadMoreItems(
+          dco_decode_list_media_item(raw[1]),
+        );
+      case 9:
+        return PluginResponse_Charts(
+          dco_decode_list_chart_summary(raw[1]),
+        );
+      case 10:
+        return PluginResponse_ChartDetails(
+          dco_decode_list_chart_item(raw[1]),
+        );
+      case 11:
+        return const PluginResponse_Ack();
+      default:
+        throw Exception("unreachable");
+    }
+  }
+
+  @protected
+  PluginType dco_decode_plugin_type(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PluginType.values[raw as int];
+  }
+
+  @protected
+  Section dco_decode_section(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return Section(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      subtitle: dco_decode_opt_String(arr[2]),
+      cardType: dco_decode_card_type(arr[3]),
+      items: dco_decode_list_media_item(arr[4]),
+      moreLink: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  Track dco_decode_track(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    return Track(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      artists: dco_decode_list_artist_summary(arr[2]),
+      album: dco_decode_opt_box_autoadd_album_summary(arr[3]),
+      durationMs: dco_decode_opt_box_autoadd_u_64(arr[4]),
+      thumbnails: dco_decode_list_artwork(arr[5]),
+      url: dco_decode_opt_String(arr[6]),
+      isExplicit: dco_decode_bool(arr[7]),
+      lyrics: dco_decode_opt_box_autoadd_lyrics(arr[8]),
+    );
+  }
+
+  @protected
+  Trend dco_decode_trend(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return Trend.values[raw as int];
+  }
+
+  @protected
+  int dco_decode_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
+  }
+
+  @protected
+  int dco_decode_u_8(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  void dco_decode_unit(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return;
+  }
+
+  @protected
+  BigInt dco_decode_usize(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
+  }
+
+  @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_String(deserializer);
+    return AnyhowException(inner);
+  }
+
+  @protected
+  PluginInfo
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PluginInfoImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  PluginManager
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PluginManagerImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  PluginInfo
+      sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PluginInfoImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  PluginManager
+      sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PluginManagerImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  PluginInfo
+      sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PluginInfoImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  PluginManager
+      sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PluginManagerImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  PluginInfo
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PluginInfoImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  PluginManager
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PluginManagerImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  RustStreamSink<PluginManagerEvent>
+      sse_decode_StreamSink_plugin_manager_event_Sse(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
+  String sse_decode_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_list_prim_u_8_strict(deserializer);
+    return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  AlbumDetails sse_decode_album_details(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_summary = sse_decode_album_summary(deserializer);
+    var var_tracks = sse_decode_paged_tracks(deserializer);
+    var var_description = sse_decode_opt_String(deserializer);
+    return AlbumDetails(
+        summary: var_summary, tracks: var_tracks, description: var_description);
+  }
+
+  @protected
+  AlbumSummary sse_decode_album_summary(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_artists = sse_decode_list_artist_summary(deserializer);
+    var var_thumbnails = sse_decode_list_artwork(deserializer);
+    var var_year = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_url = sse_decode_opt_String(deserializer);
+    return AlbumSummary(
+        id: var_id,
+        title: var_title,
+        artists: var_artists,
+        thumbnails: var_thumbnails,
+        year: var_year,
+        url: var_url);
+  }
+
+  @protected
+  ArtistDetails sse_decode_artist_details(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_summary = sse_decode_artist_summary(deserializer);
+    var var_topTracks = sse_decode_list_track(deserializer);
+    var var_albums = sse_decode_paged_albums(deserializer);
+    var var_relatedArtists = sse_decode_list_artist_summary(deserializer);
+    var var_description = sse_decode_opt_String(deserializer);
+    return ArtistDetails(
+        summary: var_summary,
+        topTracks: var_topTracks,
+        albums: var_albums,
+        relatedArtists: var_relatedArtists,
+        description: var_description);
+  }
+
+  @protected
+  ArtistSummary sse_decode_artist_summary(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_thumbnails = sse_decode_list_artwork(deserializer);
+    var var_url = sse_decode_opt_String(deserializer);
+    return ArtistSummary(
+        id: var_id, name: var_name, thumbnails: var_thumbnails, url: var_url);
+  }
+
+  @protected
+  Artwork sse_decode_artwork(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_url = sse_decode_String(deserializer);
+    var var_urlLow = sse_decode_opt_String(deserializer);
+    var var_urlHigh = sse_decode_opt_String(deserializer);
+    var var_layout = sse_decode_image_layout(deserializer);
+    return Artwork(
+        url: var_url,
+        urlLow: var_urlLow,
+        urlHigh: var_urlHigh,
+        layout: var_layout);
+  }
+
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  PluginInfo
+      sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+        deserializer));
+  }
+
+  @protected
+  AlbumDetails sse_decode_box_autoadd_album_details(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_album_details(deserializer));
+  }
+
+  @protected
+  AlbumSummary sse_decode_box_autoadd_album_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_album_summary(deserializer));
+  }
+
+  @protected
+  ArtistDetails sse_decode_box_autoadd_artist_details(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_artist_details(deserializer));
+  }
+
+  @protected
+  ArtistSummary sse_decode_box_autoadd_artist_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_artist_summary(deserializer));
+  }
+
+  @protected
+  ChartProviderCommand sse_decode_box_autoadd_chart_provider_command(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_chart_provider_command(deserializer));
+  }
+
+  @protected
+  ContentResolverCommand sse_decode_box_autoadd_content_resolver_command(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_content_resolver_command(deserializer));
+  }
+
+  @protected
+  Lyrics sse_decode_box_autoadd_lyrics(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_lyrics(deserializer));
+  }
+
+  @protected
+  PagedAlbums sse_decode_box_autoadd_paged_albums(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_paged_albums(deserializer));
+  }
+
+  @protected
+  PagedMediaItems sse_decode_box_autoadd_paged_media_items(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_paged_media_items(deserializer));
+  }
+
+  @protected
+  PagedTracks sse_decode_box_autoadd_paged_tracks(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_paged_tracks(deserializer));
+  }
+
+  @protected
+  PlaylistDetails sse_decode_box_autoadd_playlist_details(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_playlist_details(deserializer));
+  }
+
+  @protected
+  PlaylistSummary sse_decode_box_autoadd_playlist_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_playlist_summary(deserializer));
+  }
+
+  @protected
+  PluginRequest sse_decode_box_autoadd_plugin_request(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_plugin_request(deserializer));
+  }
+
+  @protected
+  PluginType sse_decode_box_autoadd_plugin_type(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_plugin_type(deserializer));
+  }
+
+  @protected
+  Track sse_decode_box_autoadd_track(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_track(deserializer));
+  }
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_32(deserializer));
+  }
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_64(deserializer));
+  }
+
+  @protected
+  CardType sse_decode_card_type(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return CardType.values[inner];
+  }
+
+  @protected
+  ChartItem sse_decode_chart_item(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_item = sse_decode_media_item(deserializer);
+    var var_rank = sse_decode_u_32(deserializer);
+    var var_trend = sse_decode_trend(deserializer);
+    var var_change = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_previousRank = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_peakRank = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_weeksOnChart = sse_decode_opt_box_autoadd_u_32(deserializer);
+    return ChartItem(
+        item: var_item,
+        rank: var_rank,
+        trend: var_trend,
+        change: var_change,
+        previousRank: var_previousRank,
+        peakRank: var_peakRank,
+        weeksOnChart: var_weeksOnChart);
+  }
+
+  @protected
+  ChartProviderCommand sse_decode_chart_provider_command(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        return const ChartProviderCommand_GetCharts();
+      case 1:
+        var var_id = sse_decode_String(deserializer);
+        return ChartProviderCommand_GetChartDetails(id: var_id);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  ChartSummary sse_decode_chart_summary(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_description = sse_decode_opt_String(deserializer);
+    var var_thumbnails = sse_decode_list_artwork(deserializer);
+    var var_updatedAt = sse_decode_opt_String(deserializer);
+    var var_period = sse_decode_opt_String(deserializer);
+    return ChartSummary(
+        id: var_id,
+        title: var_title,
+        description: var_description,
+        thumbnails: var_thumbnails,
+        updatedAt: var_updatedAt,
+        period: var_period);
+  }
+
+  @protected
+  ContentResolverCommand sse_decode_content_resolver_command(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_id = sse_decode_String(deserializer);
+        return ContentResolverCommand_GetAlbumDetails(id: var_id);
+      case 1:
+        var var_id = sse_decode_String(deserializer);
+        return ContentResolverCommand_GetArtistDetails(id: var_id);
+      case 2:
+        var var_id = sse_decode_String(deserializer);
+        return ContentResolverCommand_GetPlaylistDetails(id: var_id);
+      case 3:
+        var var_id = sse_decode_String(deserializer);
+        return ContentResolverCommand_GetStreams(id: var_id);
+      case 4:
+        var var_query = sse_decode_String(deserializer);
+        var var_filter = sse_decode_content_search_filter(deserializer);
+        var var_pageToken = sse_decode_opt_String(deserializer);
+        return ContentResolverCommand_Search(
+            query: var_query, filter: var_filter, pageToken: var_pageToken);
+      case 5:
+        var var_id = sse_decode_String(deserializer);
+        var var_pageToken = sse_decode_String(deserializer);
+        return ContentResolverCommand_MoreAlbumTracks(
+            id: var_id, pageToken: var_pageToken);
+      case 6:
+        var var_id = sse_decode_String(deserializer);
+        var var_pageToken = sse_decode_String(deserializer);
+        return ContentResolverCommand_MoreArtistAlbums(
+            id: var_id, pageToken: var_pageToken);
+      case 7:
+        var var_id = sse_decode_String(deserializer);
+        var var_pageToken = sse_decode_String(deserializer);
+        return ContentResolverCommand_MorePlaylistTracks(
+            id: var_id, pageToken: var_pageToken);
+      case 8:
+        var var_id = sse_decode_String(deserializer);
+        var var_pageToken = sse_decode_opt_String(deserializer);
+        return ContentResolverCommand_GetRadioTracks(
+            id: var_id, pageToken: var_pageToken);
+      case 9:
+        return const ContentResolverCommand_GetHomeSections();
+      case 10:
+        var var_id = sse_decode_String(deserializer);
+        var var_moreLink = sse_decode_String(deserializer);
+        return ContentResolverCommand_LoadMore(
+            id: var_id, moreLink: var_moreLink);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  ContentSearchFilter sse_decode_content_search_filter(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return ContentSearchFilter.values[inner];
+  }
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
+  }
+
+  @protected
+  ImageLayout sse_decode_image_layout(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return ImageLayout.values[inner];
+  }
+
+  @protected
+  List<PluginInfo>
+      sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <PluginInfo>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(
+          sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+              deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<AlbumSummary> sse_decode_list_album_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <AlbumSummary>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_album_summary(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ArtistSummary> sse_decode_list_artist_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ArtistSummary>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_artist_summary(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<Artwork> sse_decode_list_artwork(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Artwork>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_artwork(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ChartItem> sse_decode_list_chart_item(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ChartItem>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_chart_item(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ChartSummary> sse_decode_list_chart_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ChartSummary>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_chart_summary(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<MediaItem> sse_decode_list_media_item(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <MediaItem>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_media_item(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  List<Section> sse_decode_list_section(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Section>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_section(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<Track> sse_decode_list_track(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Track>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_track(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  Lyrics sse_decode_lyrics(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_plain = sse_decode_opt_String(deserializer);
+    var var_synced = sse_decode_opt_String(deserializer);
+    var var_copyright = sse_decode_opt_String(deserializer);
+    return Lyrics(
+        plain: var_plain, synced: var_synced, copyright: var_copyright);
+  }
+
+  @protected
+  Manifest sse_decode_manifest(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_manifestVersion = sse_decode_u_32(deserializer);
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_version = sse_decode_String(deserializer);
+    var var_type = sse_decode_String(deserializer);
+    var var_description = sse_decode_String(deserializer);
+    var var_publisher = sse_decode_plugin_publisher(deserializer);
+    var var_license = sse_decode_String(deserializer);
+    var var_homepage = sse_decode_String(deserializer);
+    var var_icon = sse_decode_opt_String(deserializer);
+    var var_hostSite = sse_decode_list_String(deserializer);
+    var var_capabilities = sse_decode_list_String(deserializer);
+    var var_createdAt = sse_decode_opt_String(deserializer);
+    var var_remoteUrl = sse_decode_opt_String(deserializer);
+    return Manifest(
+        manifestVersion: var_manifestVersion,
+        id: var_id,
+        name: var_name,
+        version: var_version,
+        type: var_type,
+        description: var_description,
+        publisher: var_publisher,
+        license: var_license,
+        homepage: var_homepage,
+        icon: var_icon,
+        hostSite: var_hostSite,
+        capabilities: var_capabilities,
+        createdAt: var_createdAt,
+        remoteUrl: var_remoteUrl);
+  }
+
+  @protected
+  MediaItem sse_decode_media_item(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_field0 = sse_decode_box_autoadd_track(deserializer);
+        return MediaItem_Track(var_field0);
+      case 1:
+        var var_field0 = sse_decode_box_autoadd_album_summary(deserializer);
+        return MediaItem_Album(var_field0);
+      case 2:
+        var var_field0 = sse_decode_box_autoadd_artist_summary(deserializer);
+        return MediaItem_Artist(var_field0);
+      case 3:
+        var var_field0 = sse_decode_box_autoadd_playlist_summary(deserializer);
+        return MediaItem_Playlist(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  MetadataResult sse_decode_metadata_result(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_filename = sse_decode_String(deserializer);
+    var var_isSuccess = sse_decode_bool(deserializer);
+    return MetadataResult(filename: var_filename, isSuccess: var_isSuccess);
+  }
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  PluginInfo?
+      sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  AlbumSummary? sse_decode_opt_box_autoadd_album_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_album_summary(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  Lyrics? sse_decode_opt_box_autoadd_lyrics(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_lyrics(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  PluginType? sse_decode_opt_box_autoadd_plugin_type(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_plugin_type(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_32(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  PagedAlbums sse_decode_paged_albums(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_items = sse_decode_list_album_summary(deserializer);
+    var var_nextPageToken = sse_decode_opt_String(deserializer);
+    return PagedAlbums(items: var_items, nextPageToken: var_nextPageToken);
+  }
+
+  @protected
+  PagedMediaItems sse_decode_paged_media_items(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_items = sse_decode_list_media_item(deserializer);
+    var var_nextPageToken = sse_decode_opt_String(deserializer);
+    return PagedMediaItems(items: var_items, nextPageToken: var_nextPageToken);
+  }
+
+  @protected
+  PagedTracks sse_decode_paged_tracks(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_items = sse_decode_list_track(deserializer);
+    var var_nextPageToken = sse_decode_opt_String(deserializer);
+    return PagedTracks(items: var_items, nextPageToken: var_nextPageToken);
+  }
+
+  @protected
+  PlaylistDetails sse_decode_playlist_details(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_summary = sse_decode_playlist_summary(deserializer);
+    var var_tracks = sse_decode_paged_tracks(deserializer);
+    var var_description = sse_decode_opt_String(deserializer);
+    return PlaylistDetails(
+        summary: var_summary, tracks: var_tracks, description: var_description);
+  }
+
+  @protected
+  PlaylistSummary sse_decode_playlist_summary(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_owner = sse_decode_opt_String(deserializer);
+    var var_thumbnails = sse_decode_list_artwork(deserializer);
+    var var_trackCount = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_url = sse_decode_opt_String(deserializer);
+    return PlaylistSummary(
+        id: var_id,
+        title: var_title,
+        owner: var_owner,
+        thumbnails: var_thumbnails,
+        trackCount: var_trackCount,
+        url: var_url);
+  }
+
+  @protected
+  PluginInstallResult sse_decode_plugin_install_result(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_status = sse_decode_plugin_install_status(deserializer);
+    var var_pluginId = sse_decode_String(deserializer);
+    var var_error = sse_decode_opt_String(deserializer);
+    return PluginInstallResult(
+        status: var_status, pluginId: var_pluginId, error: var_error);
+  }
+
+  @protected
+  PluginInstallStatus sse_decode_plugin_install_status(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return PluginInstallStatus.values[inner];
+  }
+
+  @protected
+  PluginManagerEvent sse_decode_plugin_manager_event(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_id = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginLoading(id: var_id);
+      case 1:
+        var var_id = sse_decode_String(deserializer);
+        var var_pluginType = sse_decode_plugin_type(deserializer);
+        return PluginManagerEvent_PluginLoaded(
+            id: var_id, pluginType: var_pluginType);
+      case 2:
+        var var_id = sse_decode_String(deserializer);
+        var var_error = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginLoadFailed(
+            id: var_id, error: var_error);
+      case 3:
+        var var_id = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginUnloading(id: var_id);
+      case 4:
+        var var_id = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginUnloaded(id: var_id);
+      case 5:
+        var var_id = sse_decode_String(deserializer);
+        var var_error = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginUnloadFailed(
+            id: var_id, error: var_error);
+      case 6:
+        var var_id = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginInstalling(id: var_id);
+      case 7:
+        var var_id = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginInstalled(id: var_id);
+      case 8:
+        var var_id = sse_decode_String(deserializer);
+        var var_error = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginInstallFailed(
+            id: var_id, error: var_error);
+      case 9:
+        var var_id = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginDeleting(id: var_id);
+      case 10:
+        var var_id = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginDeleted(id: var_id);
+      case 11:
+        var var_id = sse_decode_String(deserializer);
+        var var_error = sse_decode_String(deserializer);
+        return PluginManagerEvent_PluginDeleteFailed(
+            id: var_id, error: var_error);
+      case 12:
+        var var_plugins =
+            sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+                deserializer);
+        return PluginManagerEvent_PluginListRefreshed(plugins: var_plugins);
+      case 13:
+        var var_pluginId = sse_decode_String(deserializer);
+        var var_key = sse_decode_String(deserializer);
+        var var_value = sse_decode_String(deserializer);
+        return PluginManagerEvent_StorageSet(
+            pluginId: var_pluginId, key: var_key, value: var_value);
+      case 14:
+        var var_pluginId = sse_decode_String(deserializer);
+        var var_key = sse_decode_String(deserializer);
+        return PluginManagerEvent_StorageDeleted(
+            pluginId: var_pluginId, key: var_key);
+      case 15:
+        var var_pluginId = sse_decode_String(deserializer);
+        return PluginManagerEvent_StorageCleared(pluginId: var_pluginId);
+      case 16:
+        return const PluginManagerEvent_ManagerInitialized();
+      case 17:
+        var var_message = sse_decode_String(deserializer);
+        return PluginManagerEvent_Error(message: var_message);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  PluginPublisher sse_decode_plugin_publisher(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_name = sse_decode_String(deserializer);
+    var var_url = sse_decode_opt_String(deserializer);
+    var var_contact = sse_decode_opt_String(deserializer);
+    var var_keyId = sse_decode_opt_String(deserializer);
+    return PluginPublisher(
+        name: var_name, url: var_url, contact: var_contact, keyId: var_keyId);
+  }
+
+  @protected
+  PluginRequest sse_decode_plugin_request(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_field0 =
+            sse_decode_box_autoadd_content_resolver_command(deserializer);
+        return PluginRequest_ContentResolver(var_field0);
+      case 1:
+        var var_field0 =
+            sse_decode_box_autoadd_chart_provider_command(deserializer);
+        return PluginRequest_ChartProvider(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  PluginResponse sse_decode_plugin_response(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_field0 = sse_decode_box_autoadd_album_details(deserializer);
+        return PluginResponse_AlbumDetails(var_field0);
+      case 1:
+        var var_field0 = sse_decode_box_autoadd_artist_details(deserializer);
+        return PluginResponse_ArtistDetails(var_field0);
+      case 2:
+        var var_field0 = sse_decode_box_autoadd_playlist_details(deserializer);
+        return PluginResponse_PlaylistDetails(var_field0);
+      case 3:
+        var var_field0 = sse_decode_list_track(deserializer);
+        return PluginResponse_Streams(var_field0);
+      case 4:
+        var var_field0 = sse_decode_box_autoadd_paged_media_items(deserializer);
+        return PluginResponse_Search(var_field0);
+      case 5:
+        var var_field0 = sse_decode_box_autoadd_paged_tracks(deserializer);
+        return PluginResponse_MoreTracks(var_field0);
+      case 6:
+        var var_field0 = sse_decode_box_autoadd_paged_albums(deserializer);
+        return PluginResponse_MoreAlbums(var_field0);
+      case 7:
+        var var_field0 = sse_decode_list_section(deserializer);
+        return PluginResponse_HomeSections(var_field0);
+      case 8:
+        var var_field0 = sse_decode_list_media_item(deserializer);
+        return PluginResponse_LoadMoreItems(var_field0);
+      case 9:
+        var var_field0 = sse_decode_list_chart_summary(deserializer);
+        return PluginResponse_Charts(var_field0);
+      case 10:
+        var var_field0 = sse_decode_list_chart_item(deserializer);
+        return PluginResponse_ChartDetails(var_field0);
+      case 11:
+        return const PluginResponse_Ack();
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  PluginType sse_decode_plugin_type(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return PluginType.values[inner];
+  }
+
+  @protected
+  Section sse_decode_section(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_subtitle = sse_decode_opt_String(deserializer);
+    var var_cardType = sse_decode_card_type(deserializer);
+    var var_items = sse_decode_list_media_item(deserializer);
+    var var_moreLink = sse_decode_opt_String(deserializer);
+    return Section(
+        id: var_id,
+        title: var_title,
+        subtitle: var_subtitle,
+        cardType: var_cardType,
+        items: var_items,
+        moreLink: var_moreLink);
+  }
+
+  @protected
+  Track sse_decode_track(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_artists = sse_decode_list_artist_summary(deserializer);
+    var var_album = sse_decode_opt_box_autoadd_album_summary(deserializer);
+    var var_durationMs = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_thumbnails = sse_decode_list_artwork(deserializer);
+    var var_url = sse_decode_opt_String(deserializer);
+    var var_isExplicit = sse_decode_bool(deserializer);
+    var var_lyrics = sse_decode_opt_box_autoadd_lyrics(deserializer);
+    return Track(
+        id: var_id,
+        title: var_title,
+        artists: var_artists,
+        album: var_album,
+        durationMs: var_durationMs,
+        thumbnails: var_thumbnails,
+        url: var_url,
+        isExplicit: var_isExplicit,
+        lyrics: var_lyrics);
+  }
+
+  @protected
+  Trend sse_decode_trend(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return Trend.values[inner];
+  }
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint32();
+  }
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
+  }
+
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8();
+  }
+
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
+  }
+
+  @protected
+  void sse_encode_AnyhowException(
+      AnyhowException self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.message, serializer);
+  }
+
+  @protected
+  void
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          PluginInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as PluginInfoImpl).frbInternalSseEncode(move: true), serializer);
+  }
+
+  @protected
+  void
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          PluginManager self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as PluginManagerImpl).frbInternalSseEncode(move: true),
+        serializer);
+  }
+
+  @protected
+  void
+      sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          PluginInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as PluginInfoImpl).frbInternalSseEncode(move: false), serializer);
+  }
+
+  @protected
+  void
+      sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          PluginManager self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as PluginManagerImpl).frbInternalSseEncode(move: false),
+        serializer);
+  }
+
+  @protected
+  void
+      sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          PluginInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as PluginInfoImpl).frbInternalSseEncode(move: false), serializer);
+  }
+
+  @protected
+  void
+      sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          PluginManager self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as PluginManagerImpl).frbInternalSseEncode(move: false),
+        serializer);
+  }
+
+  @protected
+  void
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          PluginInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as PluginInfoImpl).frbInternalSseEncode(move: null), serializer);
+  }
+
+  @protected
+  void
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
+          PluginManager self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as PluginManagerImpl).frbInternalSseEncode(move: null),
+        serializer);
+  }
+
+  @protected
+  void sse_encode_StreamSink_plugin_manager_event_Sse(
+      RustStreamSink<PluginManagerEvent> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+        self.setupAndSerialize(
+            codec: SseCodec(
+          decodeSuccessData: sse_decode_plugin_manager_event,
+          decodeErrorData: sse_decode_AnyhowException,
+        )),
+        serializer);
+  }
+
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_album_details(AlbumDetails self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_album_summary(self.summary, serializer);
+    sse_encode_paged_tracks(self.tracks, serializer);
+    sse_encode_opt_String(self.description, serializer);
+  }
+
+  @protected
+  void sse_encode_album_summary(AlbumSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_list_artist_summary(self.artists, serializer);
+    sse_encode_list_artwork(self.thumbnails, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.year, serializer);
+    sse_encode_opt_String(self.url, serializer);
+  }
+
+  @protected
+  void sse_encode_artist_details(ArtistDetails self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_artist_summary(self.summary, serializer);
+    sse_encode_list_track(self.topTracks, serializer);
+    sse_encode_paged_albums(self.albums, serializer);
+    sse_encode_list_artist_summary(self.relatedArtists, serializer);
+    sse_encode_opt_String(self.description, serializer);
+  }
+
+  @protected
+  void sse_encode_artist_summary(ArtistSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_list_artwork(self.thumbnails, serializer);
+    sse_encode_opt_String(self.url, serializer);
+  }
+
+  @protected
+  void sse_encode_artwork(Artwork self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.url, serializer);
+    sse_encode_opt_String(self.urlLow, serializer);
+    sse_encode_opt_String(self.urlHigh, serializer);
+    sse_encode_image_layout(self.layout, serializer);
+  }
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void
+      sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          PluginInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+        self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_album_details(
+      AlbumDetails self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_album_details(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_album_summary(
+      AlbumSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_album_summary(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_artist_details(
+      ArtistDetails self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_artist_details(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_artist_summary(
+      ArtistSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_artist_summary(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_chart_provider_command(
+      ChartProviderCommand self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_chart_provider_command(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_content_resolver_command(
+      ContentResolverCommand self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_content_resolver_command(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_lyrics(Lyrics self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_lyrics(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_paged_albums(
+      PagedAlbums self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_paged_albums(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_paged_media_items(
+      PagedMediaItems self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_paged_media_items(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_paged_tracks(
+      PagedTracks self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_paged_tracks(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_playlist_details(
+      PlaylistDetails self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_playlist_details(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_playlist_summary(
+      PlaylistSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_playlist_summary(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_plugin_request(
+      PluginRequest self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_plugin_request(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_plugin_type(
+      PluginType self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_plugin_type(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_track(Track self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_track(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self, serializer);
+  }
+
+  @protected
+  void sse_encode_card_type(CardType self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_chart_item(ChartItem self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_media_item(self.item, serializer);
+    sse_encode_u_32(self.rank, serializer);
+    sse_encode_trend(self.trend, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.change, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.previousRank, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.peakRank, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.weeksOnChart, serializer);
+  }
+
+  @protected
+  void sse_encode_chart_provider_command(
+      ChartProviderCommand self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case ChartProviderCommand_GetCharts():
+        sse_encode_i_32(0, serializer);
+      case ChartProviderCommand_GetChartDetails(id: final id):
+        sse_encode_i_32(1, serializer);
+        sse_encode_String(id, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_chart_summary(ChartSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_String(self.description, serializer);
+    sse_encode_list_artwork(self.thumbnails, serializer);
+    sse_encode_opt_String(self.updatedAt, serializer);
+    sse_encode_opt_String(self.period, serializer);
+  }
+
+  @protected
+  void sse_encode_content_resolver_command(
+      ContentResolverCommand self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case ContentResolverCommand_GetAlbumDetails(id: final id):
+        sse_encode_i_32(0, serializer);
+        sse_encode_String(id, serializer);
+      case ContentResolverCommand_GetArtistDetails(id: final id):
+        sse_encode_i_32(1, serializer);
+        sse_encode_String(id, serializer);
+      case ContentResolverCommand_GetPlaylistDetails(id: final id):
+        sse_encode_i_32(2, serializer);
+        sse_encode_String(id, serializer);
+      case ContentResolverCommand_GetStreams(id: final id):
+        sse_encode_i_32(3, serializer);
+        sse_encode_String(id, serializer);
+      case ContentResolverCommand_Search(
+          query: final query,
+          filter: final filter,
+          pageToken: final pageToken
+        ):
+        sse_encode_i_32(4, serializer);
+        sse_encode_String(query, serializer);
+        sse_encode_content_search_filter(filter, serializer);
+        sse_encode_opt_String(pageToken, serializer);
+      case ContentResolverCommand_MoreAlbumTracks(
+          id: final id,
+          pageToken: final pageToken
+        ):
+        sse_encode_i_32(5, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_String(pageToken, serializer);
+      case ContentResolverCommand_MoreArtistAlbums(
+          id: final id,
+          pageToken: final pageToken
+        ):
+        sse_encode_i_32(6, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_String(pageToken, serializer);
+      case ContentResolverCommand_MorePlaylistTracks(
+          id: final id,
+          pageToken: final pageToken
+        ):
+        sse_encode_i_32(7, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_String(pageToken, serializer);
+      case ContentResolverCommand_GetRadioTracks(
+          id: final id,
+          pageToken: final pageToken
+        ):
+        sse_encode_i_32(8, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_opt_String(pageToken, serializer);
+      case ContentResolverCommand_GetHomeSections():
+        sse_encode_i_32(9, serializer);
+      case ContentResolverCommand_LoadMore(
+          id: final id,
+          moreLink: final moreLink
+        ):
+        sse_encode_i_32(10, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_String(moreLink, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_content_search_filter(
+      ContentSearchFilter self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
+  }
+
+  @protected
+  void sse_encode_image_layout(ImageLayout self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void
+      sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          List<PluginInfo> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_album_summary(
+      List<AlbumSummary> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_album_summary(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_artist_summary(
+      List<ArtistSummary> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_artist_summary(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_artwork(List<Artwork> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_artwork(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_chart_item(
+      List<ChartItem> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_chart_item(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_chart_summary(
+      List<ChartSummary> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_chart_summary(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_media_item(
+      List<MediaItem> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_media_item(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+      Uint8List self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putUint8List(self);
+  }
+
+  @protected
+  void sse_encode_list_section(List<Section> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_section(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_track(List<Track> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_track(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_lyrics(Lyrics self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.plain, serializer);
+    sse_encode_opt_String(self.synced, serializer);
+    sse_encode_opt_String(self.copyright, serializer);
+  }
+
+  @protected
+  void sse_encode_manifest(Manifest self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.manifestVersion, serializer);
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.version, serializer);
+    sse_encode_String(self.type, serializer);
+    sse_encode_String(self.description, serializer);
+    sse_encode_plugin_publisher(self.publisher, serializer);
+    sse_encode_String(self.license, serializer);
+    sse_encode_String(self.homepage, serializer);
+    sse_encode_opt_String(self.icon, serializer);
+    sse_encode_list_String(self.hostSite, serializer);
+    sse_encode_list_String(self.capabilities, serializer);
+    sse_encode_opt_String(self.createdAt, serializer);
+    sse_encode_opt_String(self.remoteUrl, serializer);
+  }
+
+  @protected
+  void sse_encode_media_item(MediaItem self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case MediaItem_Track(field0: final field0):
+        sse_encode_i_32(0, serializer);
+        sse_encode_box_autoadd_track(field0, serializer);
+      case MediaItem_Album(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_box_autoadd_album_summary(field0, serializer);
+      case MediaItem_Artist(field0: final field0):
+        sse_encode_i_32(2, serializer);
+        sse_encode_box_autoadd_artist_summary(field0, serializer);
+      case MediaItem_Playlist(field0: final field0):
+        sse_encode_i_32(3, serializer);
+        sse_encode_box_autoadd_playlist_summary(field0, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_metadata_result(
+      MetadataResult self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.filename, serializer);
+    sse_encode_bool(self.isSuccess, serializer);
+  }
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void
+      sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          PluginInfo? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+          self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_album_summary(
+      AlbumSummary? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_album_summary(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_lyrics(
+      Lyrics? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_lyrics(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_plugin_type(
+      PluginType? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_plugin_type(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_32(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_64(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_paged_albums(PagedAlbums self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_album_summary(self.items, serializer);
+    sse_encode_opt_String(self.nextPageToken, serializer);
+  }
+
+  @protected
+  void sse_encode_paged_media_items(
+      PagedMediaItems self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_media_item(self.items, serializer);
+    sse_encode_opt_String(self.nextPageToken, serializer);
+  }
+
+  @protected
+  void sse_encode_paged_tracks(PagedTracks self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_track(self.items, serializer);
+    sse_encode_opt_String(self.nextPageToken, serializer);
+  }
+
+  @protected
+  void sse_encode_playlist_details(
+      PlaylistDetails self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_playlist_summary(self.summary, serializer);
+    sse_encode_paged_tracks(self.tracks, serializer);
+    sse_encode_opt_String(self.description, serializer);
+  }
+
+  @protected
+  void sse_encode_playlist_summary(
+      PlaylistSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_String(self.owner, serializer);
+    sse_encode_list_artwork(self.thumbnails, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.trackCount, serializer);
+    sse_encode_opt_String(self.url, serializer);
+  }
+
+  @protected
+  void sse_encode_plugin_install_result(
+      PluginInstallResult self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_plugin_install_status(self.status, serializer);
+    sse_encode_String(self.pluginId, serializer);
+    sse_encode_opt_String(self.error, serializer);
+  }
+
+  @protected
+  void sse_encode_plugin_install_status(
+      PluginInstallStatus self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_plugin_manager_event(
+      PluginManagerEvent self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case PluginManagerEvent_PluginLoading(id: final id):
+        sse_encode_i_32(0, serializer);
+        sse_encode_String(id, serializer);
+      case PluginManagerEvent_PluginLoaded(
+          id: final id,
+          pluginType: final pluginType
+        ):
+        sse_encode_i_32(1, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_plugin_type(pluginType, serializer);
+      case PluginManagerEvent_PluginLoadFailed(
+          id: final id,
+          error: final error
+        ):
+        sse_encode_i_32(2, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_String(error, serializer);
+      case PluginManagerEvent_PluginUnloading(id: final id):
+        sse_encode_i_32(3, serializer);
+        sse_encode_String(id, serializer);
+      case PluginManagerEvent_PluginUnloaded(id: final id):
+        sse_encode_i_32(4, serializer);
+        sse_encode_String(id, serializer);
+      case PluginManagerEvent_PluginUnloadFailed(
+          id: final id,
+          error: final error
+        ):
+        sse_encode_i_32(5, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_String(error, serializer);
+      case PluginManagerEvent_PluginInstalling(id: final id):
+        sse_encode_i_32(6, serializer);
+        sse_encode_String(id, serializer);
+      case PluginManagerEvent_PluginInstalled(id: final id):
+        sse_encode_i_32(7, serializer);
+        sse_encode_String(id, serializer);
+      case PluginManagerEvent_PluginInstallFailed(
+          id: final id,
+          error: final error
+        ):
+        sse_encode_i_32(8, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_String(error, serializer);
+      case PluginManagerEvent_PluginDeleting(id: final id):
+        sse_encode_i_32(9, serializer);
+        sse_encode_String(id, serializer);
+      case PluginManagerEvent_PluginDeleted(id: final id):
+        sse_encode_i_32(10, serializer);
+        sse_encode_String(id, serializer);
+      case PluginManagerEvent_PluginDeleteFailed(
+          id: final id,
+          error: final error
+        ):
+        sse_encode_i_32(11, serializer);
+        sse_encode_String(id, serializer);
+        sse_encode_String(error, serializer);
+      case PluginManagerEvent_PluginListRefreshed(plugins: final plugins):
+        sse_encode_i_32(12, serializer);
+        sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginInfo(
+            plugins, serializer);
+      case PluginManagerEvent_StorageSet(
+          pluginId: final pluginId,
+          key: final key,
+          value: final value
+        ):
+        sse_encode_i_32(13, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+        sse_encode_String(value, serializer);
+      case PluginManagerEvent_StorageDeleted(
+          pluginId: final pluginId,
+          key: final key
+        ):
+        sse_encode_i_32(14, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(key, serializer);
+      case PluginManagerEvent_StorageCleared(pluginId: final pluginId):
+        sse_encode_i_32(15, serializer);
+        sse_encode_String(pluginId, serializer);
+      case PluginManagerEvent_ManagerInitialized():
+        sse_encode_i_32(16, serializer);
+      case PluginManagerEvent_Error(message: final message):
+        sse_encode_i_32(17, serializer);
+        sse_encode_String(message, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_plugin_publisher(
+      PluginPublisher self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.name, serializer);
+    sse_encode_opt_String(self.url, serializer);
+    sse_encode_opt_String(self.contact, serializer);
+    sse_encode_opt_String(self.keyId, serializer);
+  }
+
+  @protected
+  void sse_encode_plugin_request(PluginRequest self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case PluginRequest_ContentResolver(field0: final field0):
+        sse_encode_i_32(0, serializer);
+        sse_encode_box_autoadd_content_resolver_command(field0, serializer);
+      case PluginRequest_ChartProvider(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_box_autoadd_chart_provider_command(field0, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_plugin_response(
+      PluginResponse self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case PluginResponse_AlbumDetails(field0: final field0):
+        sse_encode_i_32(0, serializer);
+        sse_encode_box_autoadd_album_details(field0, serializer);
+      case PluginResponse_ArtistDetails(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_box_autoadd_artist_details(field0, serializer);
+      case PluginResponse_PlaylistDetails(field0: final field0):
+        sse_encode_i_32(2, serializer);
+        sse_encode_box_autoadd_playlist_details(field0, serializer);
+      case PluginResponse_Streams(field0: final field0):
+        sse_encode_i_32(3, serializer);
+        sse_encode_list_track(field0, serializer);
+      case PluginResponse_Search(field0: final field0):
+        sse_encode_i_32(4, serializer);
+        sse_encode_box_autoadd_paged_media_items(field0, serializer);
+      case PluginResponse_MoreTracks(field0: final field0):
+        sse_encode_i_32(5, serializer);
+        sse_encode_box_autoadd_paged_tracks(field0, serializer);
+      case PluginResponse_MoreAlbums(field0: final field0):
+        sse_encode_i_32(6, serializer);
+        sse_encode_box_autoadd_paged_albums(field0, serializer);
+      case PluginResponse_HomeSections(field0: final field0):
+        sse_encode_i_32(7, serializer);
+        sse_encode_list_section(field0, serializer);
+      case PluginResponse_LoadMoreItems(field0: final field0):
+        sse_encode_i_32(8, serializer);
+        sse_encode_list_media_item(field0, serializer);
+      case PluginResponse_Charts(field0: final field0):
+        sse_encode_i_32(9, serializer);
+        sse_encode_list_chart_summary(field0, serializer);
+      case PluginResponse_ChartDetails(field0: final field0):
+        sse_encode_i_32(10, serializer);
+        sse_encode_list_chart_item(field0, serializer);
+      case PluginResponse_Ack():
+        sse_encode_i_32(11, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_plugin_type(PluginType self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_section(Section self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_String(self.subtitle, serializer);
+    sse_encode_card_type(self.cardType, serializer);
+    sse_encode_list_media_item(self.items, serializer);
+    sse_encode_opt_String(self.moreLink, serializer);
+  }
+
+  @protected
+  void sse_encode_track(Track self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_list_artist_summary(self.artists, serializer);
+    sse_encode_opt_box_autoadd_album_summary(self.album, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.durationMs, serializer);
+    sse_encode_list_artwork(self.thumbnails, serializer);
+    sse_encode_opt_String(self.url, serializer);
+    sse_encode_bool(self.isExplicit, serializer);
+    sse_encode_opt_box_autoadd_lyrics(self.lyrics, serializer);
+  }
+
+  @protected
+  void sse_encode_trend(Trend self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint32(self);
+  }
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
+  }
+
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self);
+  }
+
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
+  }
+}
+
+@sealed
+class PluginInfoImpl extends RustOpaque implements PluginInfo {
+  // Not to be used by end users
+  PluginInfoImpl.frbInternalDcoDecode(List<dynamic> wire)
+      : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  PluginInfoImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+      : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_PluginInfo,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_PluginInfo,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_PluginInfoPtr,
+  );
+
+  Manifest get manifest => RustLib.instance.api
+          .crateApiPluginPluginInfoPluginInfoAutoAccessorGetManifest(
+        that: this,
+      );
+
+  String get name => RustLib.instance.api
+          .crateApiPluginPluginInfoPluginInfoAutoAccessorGetName(
+        that: this,
+      );
+
+  String get pluginPath => RustLib.instance.api
+          .crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginPath(
+        that: this,
+      );
+
+  PluginType get pluginType => RustLib.instance.api
+          .crateApiPluginPluginInfoPluginInfoAutoAccessorGetPluginType(
+        that: this,
+      );
+
+  set manifest(Manifest manifest) => RustLib.instance.api
+      .crateApiPluginPluginInfoPluginInfoAutoAccessorSetManifest(
+          that: this, manifest: manifest);
+
+  set name(String name) => RustLib.instance.api
+      .crateApiPluginPluginInfoPluginInfoAutoAccessorSetName(
+          that: this, name: name);
+
+  set pluginPath(String pluginPath) => RustLib.instance.api
+      .crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginPath(
+          that: this, pluginPath: pluginPath);
+
+  set pluginType(PluginType pluginType) => RustLib.instance.api
+      .crateApiPluginPluginInfoPluginInfoAutoAccessorSetPluginType(
+          that: this, pluginType: pluginType);
+}
+
+@sealed
+class PluginManagerImpl extends RustOpaque implements PluginManager {
+  // Not to be used by end users
+  PluginManagerImpl.frbInternalDcoDecode(List<dynamic> wire)
+      : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  PluginManagerImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+      : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_PluginManager,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_PluginManager,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_PluginManagerPtr,
+  );
+
+  String get pluginsDir => RustLib.instance.api
+          .crateApiPluginPluginPluginManagerAutoAccessorGetPluginsDir(
+        that: this,
+      );
+
+  set pluginsDir(String pluginsDir) => RustLib.instance.api
+      .crateApiPluginPluginPluginManagerAutoAccessorSetPluginsDir(
+          that: this, pluginsDir: pluginsDir);
+
+  /// Get available plugins (scanned from directory)
+  Future<List<PluginInfo>> getAvailablePlugins() =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerGetAvailablePlugins(
+        that: this,
+      );
+
+  /// Get list of loaded plugin IDs
+  Future<List<String>> getLoadedPlugins() =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerGetLoadedPlugins(
+        that: this,
+      );
+
+  /// Initialize the event stream from Dart.
+  /// Call this ONCE after creating the manager.
+  /// The sink is held forever and used for all event emissions.
+  Stream<PluginManagerEvent> initEventStream() =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerInitEventStream(
+        that: this,
+      );
+
+  /// Check if a plugin is loaded
+  Future<bool> isPluginLoaded(
+          {required String pluginId, required PluginType pluginType}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerIsPluginLoaded(
+          that: this, pluginId: pluginId, pluginType: pluginType);
+
+  /// Alias for is_plugin_loaded (API compatibility)
+  Future<bool> isPluginLoadedById(
+          {required String pluginId, required PluginType pluginType}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerIsPluginLoadedById(
+          that: this, pluginId: pluginId, pluginType: pluginType);
+
+  /// Load a plugin by ID with event emission
+  Future<void> loadPlugin({required PluginInfo pluginInfo}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerLoadPlugin(
+          that: this, pluginInfo: pluginInfo);
+
+  /// Load a plugin by ID (looks up from available plugins)
+  Future<void> loadPluginById(
+          {required String pluginId, required PluginType pluginType}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerLoadPluginById(
+          that: this, pluginId: pluginId, pluginType: pluginType);
+
+  /// Load plugin from an explicit path (for install-then-load flow)
+  Future<void> loadPluginFromPath(
+          {required String pluginId,
+          required PluginType pluginType,
+          required String pluginPath}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerLoadPluginFromPath(
+          that: this,
+          pluginId: pluginId,
+          pluginType: pluginType,
+          pluginPath: pluginPath);
+
+  /// Refresh available plugins and emit event
+  Future<void> refreshAvailablePlugins() => RustLib.instance.api
+          .crateApiPluginPluginPluginManagerRefreshAvailablePlugins(
+        that: this,
+      );
+
+  /// Gracefully shutdown manager-owned state.
+  Future<void> shutdown() =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerShutdown(
+        that: this,
+      );
+
+  /// Clear all storage for a plugin
+  Future<void> storageClear({required String pluginId}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerStorageClear(
+          that: this, pluginId: pluginId);
+
+  /// Delete a storage value
+  Future<bool> storageDelete({required String pluginId, required String key}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerStorageDelete(
+          that: this, pluginId: pluginId, key: key);
+
+  /// Get a storage value (instant in-memory read)
+  Future<String?> storageGet({required String pluginId, required String key}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerStorageGet(
+          that: this, pluginId: pluginId, key: key);
+
+  /// Preload a storage value from Dart (startup sync, no event emitted)
+  Future<void> storagePreload(
+          {required String pluginId,
+          required String key,
+          required String value}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerStoragePreload(
+          that: this, pluginId: pluginId, key: key, value: value);
+
+  /// Set a storage value (instant in-memory, emits event for Dart persistence)
+  Future<bool> storageSet(
+          {required String pluginId,
+          required String key,
+          required String value}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerStorageSet(
+          that: this, pluginId: pluginId, key: key, value: value);
+
+  /// Unload a plugin with event emission
+  Future<void> unloadPlugin(
+          {required String pluginId, required PluginType pluginType}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerUnloadPlugin(
+          that: this, pluginId: pluginId, pluginType: pluginType);
+
+  /// Alias for unload_plugin (API compatibility)
+  Future<void> unloadPluginById(
+          {required String pluginId, required PluginType pluginType}) =>
+      RustLib.instance.api.crateApiPluginPluginPluginManagerUnloadPluginById(
+          that: this, pluginId: pluginId, pluginType: pluginType);
+}

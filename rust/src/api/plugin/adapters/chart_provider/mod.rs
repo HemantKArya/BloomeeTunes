@@ -233,6 +233,8 @@ impl PluginAdapter for ChartProviderPluginAdapter {
 fn to_audio_artwork(a: bindgen::Artwork) -> Artwork {
     Artwork {
         url: a.url,
+        url_low: None,
+        url_high: None,
         layout: match a.layout {
             bindgen::ImageLayout::Square => ImageLayout::Square,
             bindgen::ImageLayout::Portrait => ImageLayout::Portrait,

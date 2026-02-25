@@ -9,102 +9,84 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'plugin_info.dart';
 import 'types.dart';
 
-
-            // These functions are ignored because they are not marked as `pub`: `do_load_plugin`, `emit`, `get_available_plugins_internal`, `load_plugin_from_resolved_path`
+// These functions are ignored because they are not marked as `pub`: `do_load_plugin`, `emit`, `get_available_plugins_internal`, `load_plugin_from_resolved_path`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `StorageKey`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `eq`, `fmt`, `hash`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `handle_plugin_request`
 // These functions have error during generation (see debug logs or enable `stop_on_error: true` for more details): `new`
 
-
-            
-
-            
-                // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PluginManager>>
-                abstract class PluginManager implements RustOpaqueInterface {
-                     String get pluginsDir;
-
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PluginManager>>
+abstract class PluginManager implements RustOpaqueInterface {
+  String get pluginsDir;
 
   set pluginsDir(String pluginsDir);
 
+  /// Get available plugins (scanned from directory)
+  Future<List<PluginInfo>> getAvailablePlugins();
 
-/// Get available plugins (scanned from directory)
- Future<List<PluginInfo>>  getAvailablePlugins();
+  /// Get list of loaded plugin IDs
+  Future<List<String>> getLoadedPlugins();
 
+  /// Initialize the event stream from Dart.
+  /// Call this ONCE after creating the manager.
+  /// The sink is held forever and used for all event emissions.
+  Stream<PluginManagerEvent> initEventStream();
 
-/// Get list of loaded plugin IDs
- Future<List<String>>  getLoadedPlugins();
+  /// Check if a plugin is loaded
+  Future<bool> isPluginLoaded(
+      {required String pluginId, required PluginType pluginType});
 
+  /// Alias for is_plugin_loaded (API compatibility)
+  Future<bool> isPluginLoadedById(
+      {required String pluginId, required PluginType pluginType});
 
-/// Initialize the event stream from Dart.
-/// Call this ONCE after creating the manager.
-/// The sink is held forever and used for all event emissions.
- Stream<PluginManagerEvent>  initEventStream();
+  /// Load a plugin by ID with event emission
+  Future<void> loadPlugin({required PluginInfo pluginInfo});
 
+  /// Load a plugin by ID (looks up from available plugins)
+  Future<void> loadPluginById(
+      {required String pluginId, required PluginType pluginType});
 
-/// Check if a plugin is loaded
- Future<bool>  isPluginLoaded({required String pluginId , required PluginType pluginType });
-
-
-/// Alias for is_plugin_loaded (API compatibility)
- Future<bool>  isPluginLoadedById({required String pluginId , required PluginType pluginType });
-
-
-/// Load a plugin by ID with event emission
- Future<void>  loadPlugin({required PluginInfo pluginInfo });
-
-
-/// Load a plugin by ID (looks up from available plugins)
- Future<void>  loadPluginById({required String pluginId , required PluginType pluginType });
-
-
-/// Load plugin from an explicit path (for install-then-load flow)
- Future<void>  loadPluginFromPath({required String pluginId , required PluginType pluginType , required String pluginPath });
-
+  /// Load plugin from an explicit path (for install-then-load flow)
+  Future<void> loadPluginFromPath(
+      {required String pluginId,
+      required PluginType pluginType,
+      required String pluginPath});
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
-/// Create a new PluginManager (call from bridge)
-static Future<PluginManager>  newInstance({required String pluginsDir })=>RustLib.instance.api.crateApiPluginPluginPluginManagerNew(pluginsDir: pluginsDir);
+  /// Create a new PluginManager (call from bridge)
+  static Future<PluginManager> newInstance({required String pluginsDir}) =>
+      RustLib.instance.api
+          .crateApiPluginPluginPluginManagerNew(pluginsDir: pluginsDir);
 
+  /// Refresh available plugins and emit event
+  Future<void> refreshAvailablePlugins();
 
-/// Refresh available plugins and emit event
- Future<void>  refreshAvailablePlugins();
+  /// Gracefully shutdown manager-owned state.
+  Future<void> shutdown();
 
+  /// Clear all storage for a plugin
+  Future<void> storageClear({required String pluginId});
 
-/// Gracefully shutdown manager-owned state.
- Future<void>  shutdown();
+  /// Delete a storage value
+  Future<bool> storageDelete({required String pluginId, required String key});
 
+  /// Get a storage value (instant in-memory read)
+  Future<String?> storageGet({required String pluginId, required String key});
 
-/// Clear all storage for a plugin
- Future<void>  storageClear({required String pluginId });
+  /// Preload a storage value from Dart (startup sync, no event emitted)
+  Future<void> storagePreload(
+      {required String pluginId, required String key, required String value});
 
+  /// Set a storage value (instant in-memory, emits event for Dart persistence)
+  Future<bool> storageSet(
+      {required String pluginId, required String key, required String value});
 
-/// Delete a storage value
- Future<bool>  storageDelete({required String pluginId , required String key });
+  /// Unload a plugin with event emission
+  Future<void> unloadPlugin(
+      {required String pluginId, required PluginType pluginType});
 
-
-/// Get a storage value (instant in-memory read)
- Future<String?>  storageGet({required String pluginId , required String key });
-
-
-/// Preload a storage value from Dart (startup sync, no event emitted)
- Future<void>  storagePreload({required String pluginId , required String key , required String value });
-
-
-/// Set a storage value (instant in-memory, emits event for Dart persistence)
- Future<bool>  storageSet({required String pluginId , required String key , required String value });
-
-
-/// Unload a plugin with event emission
- Future<void>  unloadPlugin({required String pluginId , required PluginType pluginType });
-
-
-/// Alias for unload_plugin (API compatibility)
- Future<void>  unloadPluginById({required String pluginId , required PluginType pluginType });
-
-
-
-                    
-                }
-                
-            
+  /// Alias for unload_plugin (API compatibility)
+  Future<void> unloadPluginById(
+      {required String pluginId, required PluginType pluginType});
+}

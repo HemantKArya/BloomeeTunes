@@ -6,69 +6,62 @@
 import '../../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-
-            // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `hash`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `hash`
 // These functions have error during generation (see debug logs or enable `stop_on_error: true` for more details): `create`
 
-
-            
-
-            
-                abstract class PluginAdapter {
-                    
-                }
-                
+abstract class PluginAdapter {}
 
 /// Result of the plugin installation
-class PluginInstallResult  {
-                final PluginInstallStatus status;
-final String pluginId;
-final String? error;
+class PluginInstallResult {
+  final PluginInstallStatus status;
+  final String pluginId;
+  final String? error;
 
-                const PluginInstallResult({required this.status ,required this.pluginId ,this.error ,});
+  const PluginInstallResult({
+    required this.status,
+    required this.pluginId,
+    this.error,
+  });
 
-                
-                
+  @override
+  int get hashCode => status.hashCode ^ pluginId.hashCode ^ error.hashCode;
 
-                
-        @override
-        int get hashCode => status.hashCode^pluginId.hashCode^error.hashCode;
-        
-
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is PluginInstallResult &&
-                runtimeType == other.runtimeType
-                && status == other.status&& pluginId == other.pluginId&& error == other.error;
-        
-            }
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PluginInstallResult &&
+          runtimeType == other.runtimeType &&
+          status == other.status &&
+          pluginId == other.pluginId &&
+          error == other.error;
+}
 
 /// Status of the plugin installation
 enum PluginInstallStatus {
-                    installed,
-updated,
-alreadyInstalled,
-pluginLoaded,
-failed,
-                    ;
-                    
-                }
+  installed,
+  updated,
+  alreadyInstalled,
+  pluginLoaded,
+  failed,
+  ;
+}
 
 /// Plugin type enumeration
 enum PluginType {
-                    contentResolver,
-chartProvider,
-                    ;
-                     Future<void>  description()=>RustLib.instance.api.crateApiPluginTypesPluginTypeDescription(that: this, );
+  contentResolver,
+  chartProvider,
+  ;
 
+  Future<void> description() =>
+      RustLib.instance.api.crateApiPluginTypesPluginTypeDescription(
+        that: this,
+      );
 
-static Future<PluginType?>  fromString({required String s })=>RustLib.instance.api.crateApiPluginTypesPluginTypeFromString(s: s);
+  static Future<PluginType?> fromString({required String s}) =>
+      RustLib.instance.api.crateApiPluginTypesPluginTypeFromString(s: s);
 
-
- Future<void>  typeString()=>RustLib.instance.api.crateApiPluginTypesPluginTypeTypeString(that: this, );
-
-
-                }
-            
+  Future<void> typeString() =>
+      RustLib.instance.api.crateApiPluginTypesPluginTypeTypeString(
+        that: this,
+      );
+}

@@ -8,43 +8,25 @@ import 'manifest.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'types.dart';
 
-
-            // These functions are ignored because they are not marked as `pub`: `plugin_type_from_string`, `plugin_type_to_string`, `validate`
+// These functions are ignored because they are not marked as `pub`: `plugin_type_from_string`, `plugin_type_to_string`, `validate`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `check`, `description`, `from_path`, `id`, `manifest_path`, `new`, `publisher`, `version`, `wasm_path`
 
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PluginInfo>>
+abstract class PluginInfo implements RustOpaqueInterface {
+  Manifest get manifest;
 
-            
+  String get name;
 
-            
-                // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PluginInfo>>
-                abstract class PluginInfo implements RustOpaqueInterface {
-                     Manifest get manifest;
+  String get pluginPath;
 
-
- String get name;
-
-
- String get pluginPath;
-
-
- PluginType get pluginType;
-
+  PluginType get pluginType;
 
   set manifest(Manifest manifest);
 
-
   set name(String name);
-
 
   set pluginPath(String pluginPath);
 
-
   set pluginType(PluginType pluginType);
-
-
-
-                    
-                }
-                
-            
+}

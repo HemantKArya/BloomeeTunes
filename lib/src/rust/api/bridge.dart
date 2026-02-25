@@ -13,86 +13,153 @@ import 'plugin/plugin.dart';
 import 'plugin/plugin_info.dart';
 import 'plugin/types.dart';
 
+// These functions are ignored because they are not marked as `pub`: `encode_plugin_error`
 
-            // These functions are ignored because they are not marked as `pub`: `encode_plugin_error`
-
-
-            String  greet({required String name }) => RustLib.instance.api.crateApiBridgeGreet(name: name);
+String greet({required String name}) =>
+    RustLib.instance.api.crateApiBridgeGreet(name: name);
 
 /// Initialize the plugin event stream from Dart.
 /// Call this ONCE after creating the PluginManager.
 /// Dart will receive Stream<PluginManagerEvent> for UI updates and persistence.
-Stream<PluginManagerEvent>  initPluginEventStream({required PluginManager manager }) => RustLib.instance.api.crateApiBridgeInitPluginEventStream(manager: manager);
+Stream<PluginManagerEvent> initPluginEventStream(
+        {required PluginManager manager}) =>
+    RustLib.instance.api.crateApiBridgeInitPluginEventStream(manager: manager);
 
 /// Set a storage value for a plugin (instant in-memory, emits event for Dart)
-Future<bool>  pluginStorageSet({required PluginManager manager , required String pluginId , required String key , required String value }) => RustLib.instance.api.crateApiBridgePluginStorageSet(manager: manager, pluginId: pluginId, key: key, value: value);
+Future<bool> pluginStorageSet(
+        {required PluginManager manager,
+        required String pluginId,
+        required String key,
+        required String value}) =>
+    RustLib.instance.api.crateApiBridgePluginStorageSet(
+        manager: manager, pluginId: pluginId, key: key, value: value);
 
 /// Get a storage value for a plugin (instant in-memory read)
-Future<String?>  pluginStorageGet({required PluginManager manager , required String pluginId , required String key }) => RustLib.instance.api.crateApiBridgePluginStorageGet(manager: manager, pluginId: pluginId, key: key);
+Future<String?> pluginStorageGet(
+        {required PluginManager manager,
+        required String pluginId,
+        required String key}) =>
+    RustLib.instance.api.crateApiBridgePluginStorageGet(
+        manager: manager, pluginId: pluginId, key: key);
 
 /// Preload a storage value from Dart (startup sync, no event emitted)
-Future<void>  pluginStoragePreload({required PluginManager manager , required String pluginId , required String key , required String value }) => RustLib.instance.api.crateApiBridgePluginStoragePreload(manager: manager, pluginId: pluginId, key: key, value: value);
+Future<void> pluginStoragePreload(
+        {required PluginManager manager,
+        required String pluginId,
+        required String key,
+        required String value}) =>
+    RustLib.instance.api.crateApiBridgePluginStoragePreload(
+        manager: manager, pluginId: pluginId, key: key, value: value);
 
 /// Clear all storage for a plugin
-Future<void>  pluginStorageClear({required PluginManager manager , required String pluginId }) => RustLib.instance.api.crateApiBridgePluginStorageClear(manager: manager, pluginId: pluginId);
+Future<void> pluginStorageClear(
+        {required PluginManager manager, required String pluginId}) =>
+    RustLib.instance.api
+        .crateApiBridgePluginStorageClear(manager: manager, pluginId: pluginId);
 
-Future<PluginManager>  createPluginManager({required String pluginsDir }) => RustLib.instance.api.crateApiBridgeCreatePluginManager(pluginsDir: pluginsDir);
+Future<PluginManager> createPluginManager({required String pluginsDir}) =>
+    RustLib.instance.api
+        .crateApiBridgeCreatePluginManager(pluginsDir: pluginsDir);
 
-List<String>  getLoadedPlugins({required PluginManager manager }) => RustLib.instance.api.crateApiBridgeGetLoadedPlugins(manager: manager);
+List<String> getLoadedPlugins({required PluginManager manager}) =>
+    RustLib.instance.api.crateApiBridgeGetLoadedPlugins(manager: manager);
 
-Future<List<PluginInfo>>  getAvailablePlugins({required PluginManager manager }) => RustLib.instance.api.crateApiBridgeGetAvailablePlugins(manager: manager);
+Future<List<PluginInfo>> getAvailablePlugins(
+        {required PluginManager manager}) =>
+    RustLib.instance.api.crateApiBridgeGetAvailablePlugins(manager: manager);
 
-Future<void>  refreshAvailablePlugins({required PluginManager manager }) => RustLib.instance.api.crateApiBridgeRefreshAvailablePlugins(manager: manager);
+Future<void> refreshAvailablePlugins({required PluginManager manager}) =>
+    RustLib.instance.api
+        .crateApiBridgeRefreshAvailablePlugins(manager: manager);
 
-Future<PluginInfo?>  getPluginInfo({required PluginManager manager , required String pluginId , required PluginType pluginType }) => RustLib.instance.api.crateApiBridgeGetPluginInfo(manager: manager, pluginId: pluginId, pluginType: pluginType);
+Future<PluginInfo?> getPluginInfo(
+        {required PluginManager manager,
+        required String pluginId,
+        required PluginType pluginType}) =>
+    RustLib.instance.api.crateApiBridgeGetPluginInfo(
+        manager: manager, pluginId: pluginId, pluginType: pluginType);
 
-Future<void>  loadPlugin({required PluginManager manager , required String pluginId , required PluginType pluginType }) => RustLib.instance.api.crateApiBridgeLoadPlugin(manager: manager, pluginId: pluginId, pluginType: pluginType);
+Future<void> loadPlugin(
+        {required PluginManager manager,
+        required String pluginId,
+        required PluginType pluginType}) =>
+    RustLib.instance.api.crateApiBridgeLoadPlugin(
+        manager: manager, pluginId: pluginId, pluginType: pluginType);
 
-Future<void>  unloadPlugin({required PluginManager manager , required String pluginId , required PluginType pluginType }) => RustLib.instance.api.crateApiBridgeUnloadPlugin(manager: manager, pluginId: pluginId, pluginType: pluginType);
+Future<void> unloadPlugin(
+        {required PluginManager manager,
+        required String pluginId,
+        required PluginType pluginType}) =>
+    RustLib.instance.api.crateApiBridgeUnloadPlugin(
+        manager: manager, pluginId: pluginId, pluginType: pluginType);
 
-Future<bool>  isPluginLoaded({required PluginManager manager , required String pluginId , required PluginType pluginType }) => RustLib.instance.api.crateApiBridgeIsPluginLoaded(manager: manager, pluginId: pluginId, pluginType: pluginType);
+Future<bool> isPluginLoaded(
+        {required PluginManager manager,
+        required String pluginId,
+        required PluginType pluginType}) =>
+    RustLib.instance.api.crateApiBridgeIsPluginLoaded(
+        manager: manager, pluginId: pluginId, pluginType: pluginType);
 
 /// NEW: Typed request/response plugin calling (MUCH faster than call_plugin)
 /// This avoids JSON serialization/deserialization overhead
 /// Prefer this over call_plugin for production use
-Future<PluginResponse>  handlePluginRequest({required PluginManager manager , required String pluginId , required PluginRequest request }) => RustLib.instance.api.crateApiBridgeHandlePluginRequest(manager: manager, pluginId: pluginId, request: request);
+Future<PluginResponse> handlePluginRequest(
+        {required PluginManager manager,
+        required String pluginId,
+        required PluginRequest request}) =>
+    RustLib.instance.api.crateApiBridgeHandlePluginRequest(
+        manager: manager, pluginId: pluginId, request: request);
 
-Future<PluginInstallResult>  installPackedPlugin({required String packedFilePath , required String pluginsDir , required String tempDir , required bool shouldLoad , required PluginManager manager }) => RustLib.instance.api.crateApiBridgeInstallPackedPlugin(packedFilePath: packedFilePath, pluginsDir: pluginsDir, tempDir: tempDir, shouldLoad: shouldLoad, manager: manager);
+Future<PluginInstallResult> installPackedPlugin(
+        {required String packedFilePath,
+        required String pluginsDir,
+        required String tempDir,
+        required bool shouldLoad,
+        required PluginManager manager}) =>
+    RustLib.instance.api.crateApiBridgeInstallPackedPlugin(
+        packedFilePath: packedFilePath,
+        pluginsDir: pluginsDir,
+        tempDir: tempDir,
+        shouldLoad: shouldLoad,
+        manager: manager);
 
-Future<List<String>>  scanBexFiles({required String directory }) => RustLib.instance.api.crateApiBridgeScanBexFiles(directory: directory);
+Future<List<String>> scanBexFiles({required String directory}) =>
+    RustLib.instance.api.crateApiBridgeScanBexFiles(directory: directory);
 
 /// Inspect a packed plugin (.bex) file and return its manifest without installing.
 /// This is used for pre-install security checks (e.g., impersonation detection).
 /// Returns the manifest and cleans up the temporary files.
-Future<Manifest>  inspectPackedPlugin({required String packedFilePath , required String tempDir }) => RustLib.instance.api.crateApiBridgeInspectPackedPlugin(packedFilePath: packedFilePath, tempDir: tempDir);
+Future<Manifest> inspectPackedPlugin(
+        {required String packedFilePath, required String tempDir}) =>
+    RustLib.instance.api.crateApiBridgeInspectPackedPlugin(
+        packedFilePath: packedFilePath, tempDir: tempDir);
 
-Future<String>  getPluginsDir({required PluginManager manager }) => RustLib.instance.api.crateApiBridgeGetPluginsDir(manager: manager);
+Future<String> getPluginsDir({required PluginManager manager}) =>
+    RustLib.instance.api.crateApiBridgeGetPluginsDir(manager: manager);
 
-Future<void>  shutdownPluginManager({required PluginManager manager }) => RustLib.instance.api.crateApiBridgeShutdownPluginManager(manager: manager);
+Future<void> shutdownPluginManager({required PluginManager manager}) =>
+    RustLib.instance.api.crateApiBridgeShutdownPluginManager(manager: manager);
 
-Future<MetadataResult>  getFilenameUrl({required String url }) => RustLib.instance.api.crateApiBridgeGetFilenameUrl(url: url);
+Future<MetadataResult> getFilenameUrl({required String url}) =>
+    RustLib.instance.api.crateApiBridgeGetFilenameUrl(url: url);
 
-            class MetadataResult  {
-                final String filename;
-final bool isSuccess;
+class MetadataResult {
+  final String filename;
+  final bool isSuccess;
 
-                const MetadataResult({required this.filename ,required this.isSuccess ,});
+  const MetadataResult({
+    required this.filename,
+    required this.isSuccess,
+  });
 
-                
-                
+  @override
+  int get hashCode => filename.hashCode ^ isSuccess.hashCode;
 
-                
-        @override
-        int get hashCode => filename.hashCode^isSuccess.hashCode;
-        
-
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is MetadataResult &&
-                runtimeType == other.runtimeType
-                && filename == other.filename&& isSuccess == other.isSuccess;
-        
-            }
-            
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MetadataResult &&
+          runtimeType == other.runtimeType &&
+          filename == other.filename &&
+          isSuccess == other.isSuccess;
+}

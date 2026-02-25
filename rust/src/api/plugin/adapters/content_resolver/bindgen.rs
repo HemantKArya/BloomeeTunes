@@ -296,6 +296,8 @@ impl UnaryComponentType for ImageLayout {}
 #[derive(Debug, Clone)]
 pub struct Artwork {
     pub url: String,
+    pub url_low: Option<String>,
+    pub url_high: Option<String>,
     pub layout: ImageLayout,
 }
 
@@ -306,6 +308,8 @@ impl ComponentType for Artwork {
                 None,
                 [
                     ("url", ValueType::String),
+                    ("url-low", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("url-high", ValueType::Option(OptionType::new(ValueType::String))),
                     ("layout", ImageLayout::ty()),
                 ],
             ).unwrap(),
@@ -317,15 +321,25 @@ impl ComponentType for Artwork {
             let url = record
                 .field("url")
                 .ok_or_else(|| anyhow!("Missing 'url' field"))?;
+            let url_low = record
+                .field("url-low")
+                .ok_or_else(|| anyhow!("Missing 'url-low' field"))?;
+            let url_high = record
+                .field("url-high")
+                .ok_or_else(|| anyhow!("Missing 'url-high' field"))?;
             let layout = record
                 .field("layout")
                 .ok_or_else(|| anyhow!("Missing 'layout' field"))?;
 
             let url = if let Value::String(s) = url { s.to_string() } else { bail!("Expected string") };
+            let url_low = Option::<String>::from_value(&url_low)?;
+            let url_high = Option::<String>::from_value(&url_high)?;
             let layout = ImageLayout::from_value(&layout)?;
 
             Ok(Artwork {
                 url,
+                url_low,
+                url_high,
                 layout,
             })
         } else {
@@ -339,11 +353,15 @@ impl ComponentType for Artwork {
                 None,
                 [
                     ("url", ValueType::String),
+                    ("url-low", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("url-high", ValueType::Option(OptionType::new(ValueType::String))),
                     ("layout", ImageLayout::ty()),
                 ],
             ).unwrap(),
             [
                 ("url", Value::String(self.url.into())),
+                ("url-low", self.url_low.into_value()?),
+                ("url-high", self.url_high.into_value()?),
                 ("layout", self.layout.into_value()?),
             ],
         )?;
@@ -1955,6 +1973,22 @@ pub mod exports_data_source {
             .func("search")
             .ok_or_else(|| anyhow!("Function 'search' not found"))?
             .typed::<(String, SearchFilter, Option<String>), Result<PagedMediaItems, String>>()
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn get_get_radio_tracks<T, E: backend::WasmEngine>(
+        instance: &Instance,
+        _store: &mut Store<T, E>,
+    ) -> Result<TypedFunc<(String, Option<String>), Result<PagedTracks, String>>> {
+        let interface = instance
+            .exports()
+            .instance(&INTERFACE_NAME.try_into().unwrap())
+            .ok_or_else(|| anyhow!("Interface not found"))?;
+
+        interface
+            .func("get-radio-tracks")
+            .ok_or_else(|| anyhow!("Function 'get-radio-tracks' not found"))?
+            .typed::<(String, Option<String>), Result<PagedTracks, String>>()
     }
 
 }

@@ -319,6 +319,18 @@ impl Plugin for ContentResolverPluginAdapter {
                         .map_err(|e| PluginError::WasmExecutionError(e))?;
                     Ok(PluginResponse::MoreTracks(to_paged_audio_tracks(result)))
                 }
+                ContentResolverCommand::GetRadioTracks { id, page_token } => {
+                    let func = exports_data_source::get_get_radio_tracks(
+                        &state.instance,
+                        &mut state.store,
+                    )
+                    .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?;
+                    let result = func
+                        .call(&mut state.store, (id, page_token))
+                        .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?
+                        .map_err(|e| PluginError::WasmExecutionError(e))?;
+                    Ok(PluginResponse::MoreTracks(to_paged_audio_tracks(result)))
+                }
             }
         } else {
             Err(PluginError::InvalidConfiguration(format!(
@@ -356,6 +368,8 @@ impl PluginAdapter for ContentResolverPluginAdapter {
 fn to_audio_artwork(a: bindgen::Artwork) -> Artwork {
     Artwork {
         url: a.url,
+        url_low: a.url_low,
+        url_high: a.url_high,
         layout: match a.layout {
             bindgen::ImageLayout::Square => ImageLayout::Square,
             bindgen::ImageLayout::Portrait => ImageLayout::Portrait,

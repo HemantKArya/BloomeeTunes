@@ -44,6 +44,10 @@ pub enum ContentResolverCommand {
         id: String,
         page_token: String,
     },
+    GetRadioTracks {
+        id: String,
+        page_token: Option<String>,
+    },
     GetHomeSections,
     LoadMore {
         id: String,

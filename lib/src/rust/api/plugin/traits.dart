@@ -7,20 +7,10 @@ import '../../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'types.dart';
 
+// These functions are ignored (category: IgnoreBecauseExplicitAttribute): `as_any_mut`, `as_any`, `handle_request`
 
-            // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `as_any_mut`, `as_any`, `handle_request`
+abstract class Plugin {
+  Future<void> getName();
 
-
-            
-
-            
-                abstract class Plugin {
-                     Future<void>  getName();
-
-
- Future<PluginType>  getPluginType();
-
-
-                }
-                
-            
+  Future<PluginType> getPluginType();
+}

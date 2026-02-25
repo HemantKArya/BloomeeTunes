@@ -6,77 +6,110 @@
 import '../../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-
-            // These functions are ignored because they are not marked as `pub`: `deserialize_manifest_version`, `validate`
+// These functions are ignored because they are not marked as `pub`: `deserialize_manifest_version`, `validate`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `fmt`, `fmt`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `capabilities`, `check`, `created_at`, `from_file`, `has_capability`, `host_sites`, `icon`, `id`, `name`, `new`, `plugin_type`, `publisher`
 
+class Manifest {
+  final int manifestVersion;
+  final String id;
+  final String name;
+  final String version;
+  final String type;
+  final String description;
+  final PluginPublisher publisher;
+  final String license;
+  final String homepage;
+  final String? icon;
+  final List<String> hostSite;
+  final List<String> capabilities;
+  final String? createdAt;
 
-            
+  /// Remote URL where this plugin was downloaded from.
+  /// Used for impersonation detection - if two plugins have the same ID
+  /// but different remote_url, it may indicate impersonation.
+  final String? remoteUrl;
 
-            class Manifest  {
-                final int manifestVersion;
-final String id;
-final String name;
-final String version;
-final String type;
-final String description;
-final PluginPublisher publisher;
-final String license;
-final String homepage;
-final String? icon;
-final List<String> hostSite;
-final List<String> capabilities;
-final String? createdAt;
-/// Remote URL where this plugin was downloaded from.
-/// Used for impersonation detection - if two plugins have the same ID
-/// but different remote_url, it may indicate impersonation.
-final String? remoteUrl;
+  const Manifest({
+    required this.manifestVersion,
+    required this.id,
+    required this.name,
+    required this.version,
+    required this.type,
+    required this.description,
+    required this.publisher,
+    required this.license,
+    required this.homepage,
+    this.icon,
+    required this.hostSite,
+    required this.capabilities,
+    this.createdAt,
+    this.remoteUrl,
+  });
 
-                const Manifest({required this.manifestVersion ,required this.id ,required this.name ,required this.version ,required this.type ,required this.description ,required this.publisher ,required this.license ,required this.homepage ,this.icon ,required this.hostSite ,required this.capabilities ,this.createdAt ,this.remoteUrl ,});
+  @override
+  int get hashCode =>
+      manifestVersion.hashCode ^
+      id.hashCode ^
+      name.hashCode ^
+      version.hashCode ^
+      type.hashCode ^
+      description.hashCode ^
+      publisher.hashCode ^
+      license.hashCode ^
+      homepage.hashCode ^
+      icon.hashCode ^
+      hostSite.hashCode ^
+      capabilities.hashCode ^
+      createdAt.hashCode ^
+      remoteUrl.hashCode;
 
-                
-                
-
-                
-        @override
-        int get hashCode => manifestVersion.hashCode^id.hashCode^name.hashCode^version.hashCode^type.hashCode^description.hashCode^publisher.hashCode^license.hashCode^homepage.hashCode^icon.hashCode^hostSite.hashCode^capabilities.hashCode^createdAt.hashCode^remoteUrl.hashCode;
-        
-
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is Manifest &&
-                runtimeType == other.runtimeType
-                && manifestVersion == other.manifestVersion&& id == other.id&& name == other.name&& version == other.version&& type == other.type&& description == other.description&& publisher == other.publisher&& license == other.license&& homepage == other.homepage&& icon == other.icon&& hostSite == other.hostSite&& capabilities == other.capabilities&& createdAt == other.createdAt&& remoteUrl == other.remoteUrl;
-        
-            }
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Manifest &&
+          runtimeType == other.runtimeType &&
+          manifestVersion == other.manifestVersion &&
+          id == other.id &&
+          name == other.name &&
+          version == other.version &&
+          type == other.type &&
+          description == other.description &&
+          publisher == other.publisher &&
+          license == other.license &&
+          homepage == other.homepage &&
+          icon == other.icon &&
+          hostSite == other.hostSite &&
+          capabilities == other.capabilities &&
+          createdAt == other.createdAt &&
+          remoteUrl == other.remoteUrl;
+}
 
 /// Plugin publisher information
-class PluginPublisher  {
-                final String name;
-final String? url;
-final String? contact;
-final String? keyId;
+class PluginPublisher {
+  final String name;
+  final String? url;
+  final String? contact;
+  final String? keyId;
 
-                const PluginPublisher({required this.name ,this.url ,this.contact ,this.keyId ,});
+  const PluginPublisher({
+    required this.name,
+    this.url,
+    this.contact,
+    this.keyId,
+  });
 
-                
-                
+  @override
+  int get hashCode =>
+      name.hashCode ^ url.hashCode ^ contact.hashCode ^ keyId.hashCode;
 
-                
-        @override
-        int get hashCode => name.hashCode^url.hashCode^contact.hashCode^keyId.hashCode;
-        
-
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is PluginPublisher &&
-                runtimeType == other.runtimeType
-                && name == other.name&& url == other.url&& contact == other.contact&& keyId == other.keyId;
-        
-            }
-            
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PluginPublisher &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          url == other.url &&
+          contact == other.contact &&
+          keyId == other.keyId;
+}

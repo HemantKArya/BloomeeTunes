@@ -52,6 +52,8 @@ pub enum CardType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Artwork {
     pub url: String,
+    pub url_low: Option<String>,
+    pub url_high: Option<String>,
     pub layout: ImageLayout,
 }
 
