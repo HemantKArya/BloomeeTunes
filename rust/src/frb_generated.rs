@@ -3193,15 +3193,17 @@ impl SseDecode for crate::api::plugin::models::AlbumSummary {
         let mut var_title = <String>::sse_decode(deserializer);
         let mut var_artists =
             <Vec<crate::api::plugin::models::ArtistSummary>>::sse_decode(deserializer);
-        let mut var_thumbnails =
-            <Vec<crate::api::plugin::models::Artwork>>::sse_decode(deserializer);
+        let mut var_thumbnail =
+            <Option<crate::api::plugin::models::Artwork>>::sse_decode(deserializer);
+        let mut var_subtitle = <Option<String>>::sse_decode(deserializer);
         let mut var_year = <Option<u32>>::sse_decode(deserializer);
         let mut var_url = <Option<String>>::sse_decode(deserializer);
         return crate::api::plugin::models::AlbumSummary {
             id: var_id,
             title: var_title,
             artists: var_artists,
-            thumbnails: var_thumbnails,
+            thumbnail: var_thumbnail,
+            subtitle: var_subtitle,
             year: var_year,
             url: var_url,
         };
@@ -3232,13 +3234,15 @@ impl SseDecode for crate::api::plugin::models::ArtistSummary {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <String>::sse_decode(deserializer);
         let mut var_name = <String>::sse_decode(deserializer);
-        let mut var_thumbnails =
-            <Vec<crate::api::plugin::models::Artwork>>::sse_decode(deserializer);
+        let mut var_thumbnail =
+            <Option<crate::api::plugin::models::Artwork>>::sse_decode(deserializer);
+        let mut var_subtitle = <Option<String>>::sse_decode(deserializer);
         let mut var_url = <Option<String>>::sse_decode(deserializer);
         return crate::api::plugin::models::ArtistSummary {
             id: var_id,
             name: var_name,
-            thumbnails: var_thumbnails,
+            thumbnail: var_thumbnail,
+            subtitle: var_subtitle,
             url: var_url,
         };
     }
@@ -3511,20 +3515,6 @@ impl SseDecode for Vec<crate::api::plugin::models::ArtistSummary> {
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
             ans_.push(<crate::api::plugin::models::ArtistSummary>::sse_decode(
-                deserializer,
-            ));
-        }
-        return ans_;
-    }
-}
-
-impl SseDecode for Vec<crate::api::plugin::models::Artwork> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = vec![];
-        for idx_ in 0..len_ {
-            ans_.push(<crate::api::plugin::models::Artwork>::sse_decode(
                 deserializer,
             ));
         }
@@ -3862,16 +3852,13 @@ impl SseDecode for crate::api::plugin::models::PlaylistSummary {
         let mut var_id = <String>::sse_decode(deserializer);
         let mut var_title = <String>::sse_decode(deserializer);
         let mut var_owner = <Option<String>>::sse_decode(deserializer);
-        let mut var_thumbnails =
-            <Vec<crate::api::plugin::models::Artwork>>::sse_decode(deserializer);
-        let mut var_trackCount = <Option<u32>>::sse_decode(deserializer);
+        let mut var_thumbnail = <crate::api::plugin::models::Artwork>::sse_decode(deserializer);
         let mut var_url = <Option<String>>::sse_decode(deserializer);
         return crate::api::plugin::models::PlaylistSummary {
             id: var_id,
             title: var_title,
             owner: var_owner,
-            thumbnails: var_thumbnails,
-            track_count: var_trackCount,
+            thumbnail: var_thumbnail,
             url: var_url,
         };
     }
@@ -4193,8 +4180,7 @@ impl SseDecode for crate::api::plugin::models::Track {
         let mut var_album =
             <Option<crate::api::plugin::models::AlbumSummary>>::sse_decode(deserializer);
         let mut var_durationMs = <Option<u64>>::sse_decode(deserializer);
-        let mut var_thumbnails =
-            <Vec<crate::api::plugin::models::Artwork>>::sse_decode(deserializer);
+        let mut var_thumbnail = <crate::api::plugin::models::Artwork>::sse_decode(deserializer);
         let mut var_url = <Option<String>>::sse_decode(deserializer);
         let mut var_isExplicit = <bool>::sse_decode(deserializer);
         let mut var_lyrics = <Option<crate::api::plugin::models::Lyrics>>::sse_decode(deserializer);
@@ -4204,7 +4190,7 @@ impl SseDecode for crate::api::plugin::models::Track {
             artists: var_artists,
             album: var_album,
             duration_ms: var_durationMs,
-            thumbnails: var_thumbnails,
+            thumbnail: var_thumbnail,
             url: var_url,
             is_explicit: var_isExplicit,
             lyrics: var_lyrics,
@@ -4573,7 +4559,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::AlbumSummary 
             self.id.into_into_dart().into_dart(),
             self.title.into_into_dart().into_dart(),
             self.artists.into_into_dart().into_dart(),
-            self.thumbnails.into_into_dart().into_dart(),
+            self.thumbnail.into_into_dart().into_dart(),
+            self.subtitle.into_into_dart().into_dart(),
             self.year.into_into_dart().into_dart(),
             self.url.into_into_dart().into_dart(),
         ]
@@ -4621,7 +4608,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::ArtistSummary
         [
             self.id.into_into_dart().into_dart(),
             self.name.into_into_dart().into_dart(),
-            self.thumbnails.into_into_dart().into_dart(),
+            self.thumbnail.into_into_dart().into_dart(),
+            self.subtitle.into_into_dart().into_dart(),
             self.url.into_into_dart().into_dart(),
         ]
         .into_dart()
@@ -5108,8 +5096,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::PlaylistSumma
             self.id.into_into_dart().into_dart(),
             self.title.into_into_dart().into_dart(),
             self.owner.into_into_dart().into_dart(),
-            self.thumbnails.into_into_dart().into_dart(),
-            self.track_count.into_into_dart().into_dart(),
+            self.thumbnail.into_into_dart().into_dart(),
             self.url.into_into_dart().into_dart(),
         ]
         .into_dart()
@@ -5433,7 +5420,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::Track {
             self.artists.into_into_dart().into_dart(),
             self.album.into_into_dart().into_dart(),
             self.duration_ms.into_into_dart().into_dart(),
-            self.thumbnails.into_into_dart().into_dart(),
+            self.thumbnail.into_into_dart().into_dart(),
             self.url.into_into_dart().into_dart(),
             self.is_explicit.into_into_dart().into_dart(),
             self.lyrics.into_into_dart().into_dart(),
@@ -5554,7 +5541,8 @@ impl SseEncode for crate::api::plugin::models::AlbumSummary {
         <String>::sse_encode(self.id, serializer);
         <String>::sse_encode(self.title, serializer);
         <Vec<crate::api::plugin::models::ArtistSummary>>::sse_encode(self.artists, serializer);
-        <Vec<crate::api::plugin::models::Artwork>>::sse_encode(self.thumbnails, serializer);
+        <Option<crate::api::plugin::models::Artwork>>::sse_encode(self.thumbnail, serializer);
+        <Option<String>>::sse_encode(self.subtitle, serializer);
         <Option<u32>>::sse_encode(self.year, serializer);
         <Option<String>>::sse_encode(self.url, serializer);
     }
@@ -5579,7 +5567,8 @@ impl SseEncode for crate::api::plugin::models::ArtistSummary {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.id, serializer);
         <String>::sse_encode(self.name, serializer);
-        <Vec<crate::api::plugin::models::Artwork>>::sse_encode(self.thumbnails, serializer);
+        <Option<crate::api::plugin::models::Artwork>>::sse_encode(self.thumbnail, serializer);
+        <Option<String>>::sse_encode(self.subtitle, serializer);
         <Option<String>>::sse_encode(self.url, serializer);
     }
 }
@@ -5817,16 +5806,6 @@ impl SseEncode for Vec<crate::api::plugin::models::ArtistSummary> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::plugin::models::ArtistSummary>::sse_encode(item, serializer);
-        }
-    }
-}
-
-impl SseEncode for Vec<crate::api::plugin::models::Artwork> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <crate::api::plugin::models::Artwork>::sse_encode(item, serializer);
         }
     }
 }
@@ -6074,8 +6053,7 @@ impl SseEncode for crate::api::plugin::models::PlaylistSummary {
         <String>::sse_encode(self.id, serializer);
         <String>::sse_encode(self.title, serializer);
         <Option<String>>::sse_encode(self.owner, serializer);
-        <Vec<crate::api::plugin::models::Artwork>>::sse_encode(self.thumbnails, serializer);
-        <Option<u32>>::sse_encode(self.track_count, serializer);
+        <crate::api::plugin::models::Artwork>::sse_encode(self.thumbnail, serializer);
         <Option<String>>::sse_encode(self.url, serializer);
     }
 }
@@ -6329,7 +6307,7 @@ impl SseEncode for crate::api::plugin::models::Track {
         <Vec<crate::api::plugin::models::ArtistSummary>>::sse_encode(self.artists, serializer);
         <Option<crate::api::plugin::models::AlbumSummary>>::sse_encode(self.album, serializer);
         <Option<u64>>::sse_encode(self.duration_ms, serializer);
-        <Vec<crate::api::plugin::models::Artwork>>::sse_encode(self.thumbnails, serializer);
+        <crate::api::plugin::models::Artwork>::sse_encode(self.thumbnail, serializer);
         <Option<String>>::sse_encode(self.url, serializer);
         <bool>::sse_encode(self.is_explicit, serializer);
         <Option<crate::api::plugin::models::Lyrics>>::sse_encode(self.lyrics, serializer);

@@ -230,12 +230,20 @@ impl PluginAdapter for ChartProviderPluginAdapter {
 
 // Converters
 
+fn default_artwork() -> Artwork {
+    Artwork {
+        url: String::new(),
+        url_low: None,
+        url_high: None,
+        layout: ImageLayout::Square,
+    }
+}
+
 fn to_audio_artwork(a: bindgen::Artwork) -> Artwork {
     Artwork {
         url: a.url,
         url_low: a.url_low,
         url_high: a.url_high,
-        // No layout in new WIT; default to Square
         layout: ImageLayout::Square,
     }
 }
@@ -244,7 +252,8 @@ fn to_audio_artist_item(a: bindgen::ArtistItem) -> ArtistSummary {
     ArtistSummary {
         id: a.id,
         name: a.name,
-        thumbnails: a.thumbnail.map(to_audio_artwork).into_iter().collect(),
+        thumbnail: a.thumbnail.map(to_audio_artwork),
+        subtitle: None,
         url: None,
     }
 }
@@ -259,43 +268,49 @@ fn to_audio_album_item(a: bindgen::AlbumItem) -> AlbumSummary {
             .map(|name| ArtistSummary {
                 id: String::new(),
                 name,
-                thumbnails: vec![],
+                thumbnail: None,
+                subtitle: None,
                 url: None,
             })
             .collect(),
-        thumbnails: a.thumbnail.map(to_audio_artwork).into_iter().collect(),
+        thumbnail: a.thumbnail.map(to_audio_artwork),
+        subtitle: None,
         year: a.year,
         url: None,
     }
 }
 
 fn to_audio_track_item(t: bindgen::TrackItem) -> Track {
+    // Track.thumbnail is required (Artwork, not Option); use a placeholder if missing
+    let placeholder = default_artwork();
     Track {
         id: t.id,
         title: t.title,
-        // artists is a comma-separated string; split into minimal ArtistSummary entries
+        // artists is a comma-separated string in the chart WIT; split into minimal ArtistSummary
         artists: t
             .artists
             .split(',')
             .map(|name| ArtistSummary {
                 id: String::new(),
                 name: name.trim().to_string(),
-                thumbnails: vec![],
+                thumbnail: None,
+                subtitle: None,
                 url: None,
             })
             .filter(|a| !a.name.is_empty())
             .collect(),
-        // album is just the title string in the new WIT
+        // album is just the title string in the chart WIT
         album: t.album.map(|title| AlbumSummary {
             id: String::new(),
             title,
             artists: vec![],
-            thumbnails: vec![],
+            thumbnail: None,
+            subtitle: None,
             year: None,
             url: None,
         }),
         duration_ms: t.duration_ms,
-        thumbnails: t.thumbnail.map(to_audio_artwork).into_iter().collect(),
+        thumbnail: t.thumbnail.map(to_audio_artwork).unwrap_or(placeholder),
         url: None,
         is_explicit: t.is_explicit,
         lyrics: None,

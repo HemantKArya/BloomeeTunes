@@ -61,7 +61,8 @@ pub struct Artwork {
 pub struct ArtistSummary {
     pub id: String,
     pub name: String,
-    pub thumbnails: Vec<Artwork>,
+    pub thumbnail: Option<Artwork>,
+    pub subtitle: Option<String>,
     pub url: Option<String>,
 }
 
@@ -70,7 +71,8 @@ pub struct AlbumSummary {
     pub id: String,
     pub title: String,
     pub artists: Vec<ArtistSummary>,
-    pub thumbnails: Vec<Artwork>,
+    pub thumbnail: Option<Artwork>,
+    pub subtitle: Option<String>,
     pub year: Option<u32>,
     pub url: Option<String>,
 }
@@ -89,7 +91,7 @@ pub struct Track {
     pub artists: Vec<ArtistSummary>,
     pub album: Option<AlbumSummary>,
     pub duration_ms: Option<u64>,
-    pub thumbnails: Vec<Artwork>,
+    pub thumbnail: Artwork,
     pub url: Option<String>,
     pub is_explicit: bool,
     pub lyrics: Option<Lyrics>,
@@ -100,8 +102,7 @@ pub struct PlaylistSummary {
     pub id: String,
     pub title: String,
     pub owner: Option<String>,
-    pub thumbnails: Vec<Artwork>,
-    pub track_count: Option<u32>,
+    pub thumbnail: Artwork,
     pub url: Option<String>,
 }
 

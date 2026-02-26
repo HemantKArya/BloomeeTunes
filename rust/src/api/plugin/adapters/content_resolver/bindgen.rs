@@ -376,7 +376,8 @@ impl UnaryComponentType for Artwork {}
 pub struct ArtistSummary {
     pub id: String,
     pub name: String,
-    pub thumbnails: Vec<Artwork>,
+    pub thumbnail: Option<Artwork>,
+    pub subtitle: Option<String>,
     pub url: Option<String>,
 }
 
@@ -388,7 +389,8 @@ impl ComponentType for ArtistSummary {
                 [
                     ("id", ValueType::String),
                     ("name", ValueType::String),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                    ("subtitle", ValueType::Option(OptionType::new(ValueType::String))),
                     ("url", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
             ).unwrap(),
@@ -403,22 +405,27 @@ impl ComponentType for ArtistSummary {
             let name = record
                 .field("name")
                 .ok_or_else(|| anyhow!("Missing 'name' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
+            let thumbnail = record
+                .field("thumbnail")
+                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
+            let subtitle = record
+                .field("subtitle")
+                .ok_or_else(|| anyhow!("Missing 'subtitle' field"))?;
             let url = record
                 .field("url")
                 .ok_or_else(|| anyhow!("Missing 'url' field"))?;
 
             let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
             let name = if let Value::String(s) = name { s.to_string() } else { bail!("Expected string") };
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
+            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
+            let subtitle = Option::<String>::from_value(&subtitle)?;
             let url = Option::<String>::from_value(&url)?;
 
             Ok(ArtistSummary {
                 id,
                 name,
-                thumbnails,
+                thumbnail,
+                subtitle,
                 url,
             })
         } else {
@@ -433,14 +440,16 @@ impl ComponentType for ArtistSummary {
                 [
                     ("id", ValueType::String),
                     ("name", ValueType::String),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                    ("subtitle", ValueType::Option(OptionType::new(ValueType::String))),
                     ("url", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
             ).unwrap(),
             [
                 ("id", Value::String(self.id.into())),
                 ("name", Value::String(self.name.into())),
-                ("thumbnails", self.thumbnails.into_value()?),
+                ("thumbnail", self.thumbnail.into_value()?),
+                ("subtitle", self.subtitle.into_value()?),
                 ("url", self.url.into_value()?),
             ],
         )?;
@@ -456,7 +465,8 @@ pub struct AlbumSummary {
     pub id: String,
     pub title: String,
     pub artists: Vec<ArtistSummary>,
-    pub thumbnails: Vec<Artwork>,
+    pub thumbnail: Option<Artwork>,
+    pub subtitle: Option<String>,
     pub year: Option<u32>,
     pub url: Option<String>,
 }
@@ -470,7 +480,8 @@ impl ComponentType for AlbumSummary {
                     ("id", ValueType::String),
                     ("title", ValueType::String),
                     ("artists", ValueType::List(ListType::new(ArtistSummary::ty()))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                    ("subtitle", ValueType::Option(OptionType::new(ValueType::String))),
                     ("year", ValueType::Option(OptionType::new(ValueType::U32))),
                     ("url", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
@@ -489,9 +500,12 @@ impl ComponentType for AlbumSummary {
             let artists = record
                 .field("artists")
                 .ok_or_else(|| anyhow!("Missing 'artists' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
+            let thumbnail = record
+                .field("thumbnail")
+                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
+            let subtitle = record
+                .field("subtitle")
+                .ok_or_else(|| anyhow!("Missing 'subtitle' field"))?;
             let year = record
                 .field("year")
                 .ok_or_else(|| anyhow!("Missing 'year' field"))?;
@@ -502,7 +516,8 @@ impl ComponentType for AlbumSummary {
             let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
             let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
             let artists = Vec::<ArtistSummary>::from_value(&artists)?;
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
+            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
+            let subtitle = Option::<String>::from_value(&subtitle)?;
             let year = Option::<u32>::from_value(&year)?;
             let url = Option::<String>::from_value(&url)?;
 
@@ -510,7 +525,8 @@ impl ComponentType for AlbumSummary {
                 id,
                 title,
                 artists,
-                thumbnails,
+                thumbnail,
+                subtitle,
                 year,
                 url,
             })
@@ -527,7 +543,8 @@ impl ComponentType for AlbumSummary {
                     ("id", ValueType::String),
                     ("title", ValueType::String),
                     ("artists", ValueType::List(ListType::new(ArtistSummary::ty()))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
+                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                    ("subtitle", ValueType::Option(OptionType::new(ValueType::String))),
                     ("year", ValueType::Option(OptionType::new(ValueType::U32))),
                     ("url", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
@@ -536,7 +553,8 @@ impl ComponentType for AlbumSummary {
                 ("id", Value::String(self.id.into())),
                 ("title", Value::String(self.title.into())),
                 ("artists", self.artists.into_value()?),
-                ("thumbnails", self.thumbnails.into_value()?),
+                ("thumbnail", self.thumbnail.into_value()?),
+                ("subtitle", self.subtitle.into_value()?),
                 ("year", self.year.into_value()?),
                 ("url", self.url.into_value()?),
             ],
@@ -626,7 +644,7 @@ pub struct Track {
     pub artists: Vec<ArtistSummary>,
     pub album: Option<AlbumSummary>,
     pub duration_ms: Option<u64>,
-    pub thumbnails: Vec<Artwork>,
+    pub thumbnail: Artwork,
     pub url: Option<String>,
     pub is_explicit: bool,
     pub lyrics: Option<Lyrics>,
@@ -643,7 +661,7 @@ impl ComponentType for Track {
                     ("artists", ValueType::List(ListType::new(ArtistSummary::ty()))),
                     ("album", ValueType::Option(OptionType::new(AlbumSummary::ty()))),
                     ("duration-ms", ValueType::Option(OptionType::new(ValueType::U64))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
+                    ("thumbnail", Artwork::ty()),
                     ("url", ValueType::Option(OptionType::new(ValueType::String))),
                     ("is-explicit", ValueType::Bool),
                     ("lyrics", ValueType::Option(OptionType::new(Lyrics::ty()))),
@@ -669,9 +687,9 @@ impl ComponentType for Track {
             let duration_ms = record
                 .field("duration-ms")
                 .ok_or_else(|| anyhow!("Missing 'duration-ms' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
+            let thumbnail = record
+                .field("thumbnail")
+                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
             let url = record
                 .field("url")
                 .ok_or_else(|| anyhow!("Missing 'url' field"))?;
@@ -687,7 +705,7 @@ impl ComponentType for Track {
             let artists = Vec::<ArtistSummary>::from_value(&artists)?;
             let album = Option::<AlbumSummary>::from_value(&album)?;
             let duration_ms = Option::<u64>::from_value(&duration_ms)?;
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
+            let thumbnail = Artwork::from_value(&thumbnail)?;
             let url = Option::<String>::from_value(&url)?;
             let is_explicit = if let Value::Bool(x) = is_explicit { x } else { bail!("Expected bool") };
             let lyrics = Option::<Lyrics>::from_value(&lyrics)?;
@@ -698,7 +716,7 @@ impl ComponentType for Track {
                 artists,
                 album,
                 duration_ms,
-                thumbnails,
+                thumbnail,
                 url,
                 is_explicit,
                 lyrics,
@@ -718,7 +736,7 @@ impl ComponentType for Track {
                     ("artists", ValueType::List(ListType::new(ArtistSummary::ty()))),
                     ("album", ValueType::Option(OptionType::new(AlbumSummary::ty()))),
                     ("duration-ms", ValueType::Option(OptionType::new(ValueType::U64))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
+                    ("thumbnail", Artwork::ty()),
                     ("url", ValueType::Option(OptionType::new(ValueType::String))),
                     ("is-explicit", ValueType::Bool),
                     ("lyrics", ValueType::Option(OptionType::new(Lyrics::ty()))),
@@ -730,7 +748,7 @@ impl ComponentType for Track {
                 ("artists", self.artists.into_value()?),
                 ("album", self.album.into_value()?),
                 ("duration-ms", self.duration_ms.into_value()?),
-                ("thumbnails", self.thumbnails.into_value()?),
+                ("thumbnail", self.thumbnail.into_value()?),
                 ("url", self.url.into_value()?),
                 ("is-explicit", Value::Bool(self.is_explicit)),
                 ("lyrics", self.lyrics.into_value()?),
@@ -747,8 +765,7 @@ pub struct PlaylistSummary {
     pub id: String,
     pub title: String,
     pub owner: Option<String>,
-    pub thumbnails: Vec<Artwork>,
-    pub track_count: Option<u32>,
+    pub thumbnail: Artwork,
     pub url: Option<String>,
 }
 
@@ -761,8 +778,7 @@ impl ComponentType for PlaylistSummary {
                     ("id", ValueType::String),
                     ("title", ValueType::String),
                     ("owner", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("track-count", ValueType::Option(OptionType::new(ValueType::U32))),
+                    ("thumbnail", Artwork::ty()),
                     ("url", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
             ).unwrap(),
@@ -780,12 +796,9 @@ impl ComponentType for PlaylistSummary {
             let owner = record
                 .field("owner")
                 .ok_or_else(|| anyhow!("Missing 'owner' field"))?;
-            let thumbnails = record
-                .field("thumbnails")
-                .ok_or_else(|| anyhow!("Missing 'thumbnails' field"))?;
-            let track_count = record
-                .field("track-count")
-                .ok_or_else(|| anyhow!("Missing 'track-count' field"))?;
+            let thumbnail = record
+                .field("thumbnail")
+                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
             let url = record
                 .field("url")
                 .ok_or_else(|| anyhow!("Missing 'url' field"))?;
@@ -793,16 +806,14 @@ impl ComponentType for PlaylistSummary {
             let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
             let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
             let owner = Option::<String>::from_value(&owner)?;
-            let thumbnails = Vec::<Artwork>::from_value(&thumbnails)?;
-            let track_count = Option::<u32>::from_value(&track_count)?;
+            let thumbnail = Artwork::from_value(&thumbnail)?;
             let url = Option::<String>::from_value(&url)?;
 
             Ok(PlaylistSummary {
                 id,
                 title,
                 owner,
-                thumbnails,
-                track_count,
+                thumbnail,
                 url,
             })
         } else {
@@ -818,8 +829,7 @@ impl ComponentType for PlaylistSummary {
                     ("id", ValueType::String),
                     ("title", ValueType::String),
                     ("owner", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("thumbnails", ValueType::List(ListType::new(Artwork::ty()))),
-                    ("track-count", ValueType::Option(OptionType::new(ValueType::U32))),
+                    ("thumbnail", Artwork::ty()),
                     ("url", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
             ).unwrap(),
@@ -827,8 +837,7 @@ impl ComponentType for PlaylistSummary {
                 ("id", Value::String(self.id.into())),
                 ("title", Value::String(self.title.into())),
                 ("owner", self.owner.into_value()?),
-                ("thumbnails", self.thumbnails.into_value()?),
-                ("track-count", self.track_count.into_value()?),
+                ("thumbnail", self.thumbnail.into_value()?),
                 ("url", self.url.into_value()?),
             ],
         )?;

@@ -249,17 +249,24 @@ impl Plugin for ContentResolverPluginAdapter {
                         .call(&mut state.store, id)
                         .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?
                         .map_err(|e| PluginError::WasmExecutionError(e))?;
-                    // Convert Vec<StreamSource> → Vec<Track> with stream URLs
+                    // Each stream source becomes a minimal Track carrying the URL and quality label.
+                    // The thumbnail is a required field on Track; we use a placeholder empty Artwork.
+                    let placeholder_art = Artwork {
+                        url: String::new(),
+                        url_low: None,
+                        url_high: None,
+                        layout: ImageLayout::Square,
+                    };
                     let tracks: Vec<Track> = result
                         .into_iter()
                         .enumerate()
                         .map(|(i, s)| Track {
                             id: format!("stream_{}", i),
-                            title: format!("{:?} {}", s.quality, s.format),
+                            title: format!("{:?} • {}", s.quality, s.format),
                             artists: vec![],
                             album: None,
                             duration_ms: None,
-                            thumbnails: vec![],
+                            thumbnail: placeholder_art.clone(),
                             url: Some(s.url),
                             is_explicit: false,
                             lyrics: None,
@@ -384,7 +391,8 @@ fn to_audio_artist(a: bindgen::ArtistSummary) -> ArtistSummary {
     ArtistSummary {
         id: a.id,
         name: a.name,
-        thumbnails: a.thumbnails.into_iter().map(to_audio_artwork).collect(),
+        thumbnail: a.thumbnail.map(to_audio_artwork),
+        subtitle: a.subtitle,
         url: a.url,
     }
 }
@@ -402,7 +410,8 @@ fn to_audio_album(a: bindgen::AlbumSummary) -> AlbumSummary {
         id: a.id,
         title: a.title,
         artists: a.artists.into_iter().map(to_audio_artist).collect(),
-        thumbnails: a.thumbnails.into_iter().map(to_audio_artwork).collect(),
+        thumbnail: a.thumbnail.map(to_audio_artwork),
+        subtitle: a.subtitle,
         year: a.year,
         url: a.url,
     }
@@ -415,7 +424,7 @@ fn to_audio_track(t: bindgen::Track) -> Track {
         artists: t.artists.into_iter().map(to_audio_artist).collect(),
         album: t.album.map(to_audio_album),
         duration_ms: t.duration_ms,
-        thumbnails: t.thumbnails.into_iter().map(to_audio_artwork).collect(),
+        thumbnail: to_audio_artwork(t.thumbnail),
         url: t.url,
         is_explicit: t.is_explicit,
         lyrics: t.lyrics.map(to_audio_lyrics),
@@ -427,8 +436,7 @@ fn to_audio_playlist(p: bindgen::PlaylistSummary) -> PlaylistSummary {
         id: p.id,
         title: p.title,
         owner: p.owner,
-        thumbnails: p.thumbnails.into_iter().map(to_audio_artwork).collect(),
-        track_count: p.track_count,
+        thumbnail: to_audio_artwork(p.thumbnail),
         url: p.url,
     }
 }

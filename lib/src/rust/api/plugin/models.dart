@@ -39,7 +39,8 @@ class AlbumSummary {
   final String id;
   final String title;
   final List<ArtistSummary> artists;
-  final List<Artwork> thumbnails;
+  final Artwork? thumbnail;
+  final String? subtitle;
   final int? year;
   final String? url;
 
@@ -47,7 +48,8 @@ class AlbumSummary {
     required this.id,
     required this.title,
     required this.artists,
-    required this.thumbnails,
+    this.thumbnail,
+    this.subtitle,
     this.year,
     this.url,
   });
@@ -57,7 +59,8 @@ class AlbumSummary {
       id.hashCode ^
       title.hashCode ^
       artists.hashCode ^
-      thumbnails.hashCode ^
+      thumbnail.hashCode ^
+      subtitle.hashCode ^
       year.hashCode ^
       url.hashCode;
 
@@ -69,7 +72,8 @@ class AlbumSummary {
           id == other.id &&
           title == other.title &&
           artists == other.artists &&
-          thumbnails == other.thumbnails &&
+          thumbnail == other.thumbnail &&
+          subtitle == other.subtitle &&
           year == other.year &&
           url == other.url;
 }
@@ -112,19 +116,25 @@ class ArtistDetails {
 class ArtistSummary {
   final String id;
   final String name;
-  final List<Artwork> thumbnails;
+  final Artwork? thumbnail;
+  final String? subtitle;
   final String? url;
 
   const ArtistSummary({
     required this.id,
     required this.name,
-    required this.thumbnails,
+    this.thumbnail,
+    this.subtitle,
     this.url,
   });
 
   @override
   int get hashCode =>
-      id.hashCode ^ name.hashCode ^ thumbnails.hashCode ^ url.hashCode;
+      id.hashCode ^
+      name.hashCode ^
+      thumbnail.hashCode ^
+      subtitle.hashCode ^
+      url.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -133,7 +143,8 @@ class ArtistSummary {
           runtimeType == other.runtimeType &&
           id == other.id &&
           name == other.name &&
-          thumbnails == other.thumbnails &&
+          thumbnail == other.thumbnail &&
+          subtitle == other.subtitle &&
           url == other.url;
 }
 
@@ -382,16 +393,14 @@ class PlaylistSummary {
   final String id;
   final String title;
   final String? owner;
-  final List<Artwork> thumbnails;
-  final int? trackCount;
+  final Artwork thumbnail;
   final String? url;
 
   const PlaylistSummary({
     required this.id,
     required this.title,
     this.owner,
-    required this.thumbnails,
-    this.trackCount,
+    required this.thumbnail,
     this.url,
   });
 
@@ -400,8 +409,7 @@ class PlaylistSummary {
       id.hashCode ^
       title.hashCode ^
       owner.hashCode ^
-      thumbnails.hashCode ^
-      trackCount.hashCode ^
+      thumbnail.hashCode ^
       url.hashCode;
 
   @override
@@ -412,8 +420,7 @@ class PlaylistSummary {
           id == other.id &&
           title == other.title &&
           owner == other.owner &&
-          thumbnails == other.thumbnails &&
-          trackCount == other.trackCount &&
+          thumbnail == other.thumbnail &&
           url == other.url;
 }
 
@@ -462,7 +469,7 @@ class Track {
   final List<ArtistSummary> artists;
   final AlbumSummary? album;
   final BigInt? durationMs;
-  final List<Artwork> thumbnails;
+  final Artwork thumbnail;
   final String? url;
   final bool isExplicit;
   final Lyrics? lyrics;
@@ -473,7 +480,7 @@ class Track {
     required this.artists,
     this.album,
     this.durationMs,
-    required this.thumbnails,
+    required this.thumbnail,
     this.url,
     required this.isExplicit,
     this.lyrics,
@@ -486,7 +493,7 @@ class Track {
       artists.hashCode ^
       album.hashCode ^
       durationMs.hashCode ^
-      thumbnails.hashCode ^
+      thumbnail.hashCode ^
       url.hashCode ^
       isExplicit.hashCode ^
       lyrics.hashCode;
@@ -501,7 +508,7 @@ class Track {
           artists == other.artists &&
           album == other.album &&
           durationMs == other.durationMs &&
-          thumbnails == other.thumbnails &&
+          thumbnail == other.thumbnail &&
           url == other.url &&
           isExplicit == other.isExplicit &&
           lyrics == other.lyrics;

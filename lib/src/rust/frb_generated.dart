@@ -1984,15 +1984,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AlbumSummary dco_decode_album_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
     return AlbumSummary(
       id: dco_decode_String(arr[0]),
       title: dco_decode_String(arr[1]),
       artists: dco_decode_list_artist_summary(arr[2]),
-      thumbnails: dco_decode_list_artwork(arr[3]),
-      year: dco_decode_opt_box_autoadd_u_32(arr[4]),
-      url: dco_decode_opt_String(arr[5]),
+      thumbnail: dco_decode_opt_box_autoadd_artwork(arr[3]),
+      subtitle: dco_decode_opt_String(arr[4]),
+      year: dco_decode_opt_box_autoadd_u_32(arr[5]),
+      url: dco_decode_opt_String(arr[6]),
     );
   }
 
@@ -2015,13 +2016,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ArtistSummary dco_decode_artist_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
     return ArtistSummary(
       id: dco_decode_String(arr[0]),
       name: dco_decode_String(arr[1]),
-      thumbnails: dco_decode_list_artwork(arr[2]),
-      url: dco_decode_opt_String(arr[3]),
+      thumbnail: dco_decode_opt_box_autoadd_artwork(arr[2]),
+      subtitle: dco_decode_opt_String(arr[3]),
+      url: dco_decode_opt_String(arr[4]),
     );
   }
 
@@ -2321,12 +2323,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<Artwork> dco_decode_list_artwork(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_artwork).toList();
-  }
-
-  @protected
   List<ChartItem> dco_decode_list_chart_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_chart_item).toList();
@@ -2542,15 +2538,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlaylistSummary dco_decode_playlist_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
     return PlaylistSummary(
       id: dco_decode_String(arr[0]),
       title: dco_decode_String(arr[1]),
       owner: dco_decode_opt_String(arr[2]),
-      thumbnails: dco_decode_list_artwork(arr[3]),
-      trackCount: dco_decode_opt_box_autoadd_u_32(arr[4]),
-      url: dco_decode_opt_String(arr[5]),
+      thumbnail: dco_decode_artwork(arr[3]),
+      url: dco_decode_opt_String(arr[4]),
     );
   }
 
@@ -2782,7 +2777,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       artists: dco_decode_list_artist_summary(arr[2]),
       album: dco_decode_opt_box_autoadd_album_summary(arr[3]),
       durationMs: dco_decode_opt_box_autoadd_u_64(arr[4]),
-      thumbnails: dco_decode_list_artwork(arr[5]),
+      thumbnail: dco_decode_artwork(arr[5]),
       url: dco_decode_opt_String(arr[6]),
       isExplicit: dco_decode_bool(arr[7]),
       lyrics: dco_decode_opt_box_autoadd_lyrics(arr[8]),
@@ -2935,14 +2930,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_id = sse_decode_String(deserializer);
     var var_title = sse_decode_String(deserializer);
     var var_artists = sse_decode_list_artist_summary(deserializer);
-    var var_thumbnails = sse_decode_list_artwork(deserializer);
+    var var_thumbnail = sse_decode_opt_box_autoadd_artwork(deserializer);
+    var var_subtitle = sse_decode_opt_String(deserializer);
     var var_year = sse_decode_opt_box_autoadd_u_32(deserializer);
     var var_url = sse_decode_opt_String(deserializer);
     return AlbumSummary(
         id: var_id,
         title: var_title,
         artists: var_artists,
-        thumbnails: var_thumbnails,
+        thumbnail: var_thumbnail,
+        subtitle: var_subtitle,
         year: var_year,
         url: var_url);
   }
@@ -2968,10 +2965,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
     var var_name = sse_decode_String(deserializer);
-    var var_thumbnails = sse_decode_list_artwork(deserializer);
+    var var_thumbnail = sse_decode_opt_box_autoadd_artwork(deserializer);
+    var var_subtitle = sse_decode_opt_String(deserializer);
     var var_url = sse_decode_opt_String(deserializer);
     return ArtistSummary(
-        id: var_id, name: var_name, thumbnails: var_thumbnails, url: var_url);
+        id: var_id,
+        name: var_name,
+        thumbnail: var_thumbnail,
+        subtitle: var_subtitle,
+        url: var_url);
   }
 
   @protected
@@ -3312,18 +3314,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<Artwork> sse_decode_list_artwork(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <Artwork>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_artwork(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
   List<ChartItem> sse_decode_list_chart_item(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -3599,15 +3589,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_id = sse_decode_String(deserializer);
     var var_title = sse_decode_String(deserializer);
     var var_owner = sse_decode_opt_String(deserializer);
-    var var_thumbnails = sse_decode_list_artwork(deserializer);
-    var var_trackCount = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_thumbnail = sse_decode_artwork(deserializer);
     var var_url = sse_decode_opt_String(deserializer);
     return PlaylistSummary(
         id: var_id,
         title: var_title,
         owner: var_owner,
-        thumbnails: var_thumbnails,
-        trackCount: var_trackCount,
+        thumbnail: var_thumbnail,
         url: var_url);
   }
 
@@ -3821,7 +3809,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_artists = sse_decode_list_artist_summary(deserializer);
     var var_album = sse_decode_opt_box_autoadd_album_summary(deserializer);
     var var_durationMs = sse_decode_opt_box_autoadd_u_64(deserializer);
-    var var_thumbnails = sse_decode_list_artwork(deserializer);
+    var var_thumbnail = sse_decode_artwork(deserializer);
     var var_url = sse_decode_opt_String(deserializer);
     var var_isExplicit = sse_decode_bool(deserializer);
     var var_lyrics = sse_decode_opt_box_autoadd_lyrics(deserializer);
@@ -3831,7 +3819,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         artists: var_artists,
         album: var_album,
         durationMs: var_durationMs,
-        thumbnails: var_thumbnails,
+        thumbnail: var_thumbnail,
         url: var_url,
         isExplicit: var_isExplicit,
         lyrics: var_lyrics);
@@ -3989,7 +3977,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.title, serializer);
     sse_encode_list_artist_summary(self.artists, serializer);
-    sse_encode_list_artwork(self.thumbnails, serializer);
+    sse_encode_opt_box_autoadd_artwork(self.thumbnail, serializer);
+    sse_encode_opt_String(self.subtitle, serializer);
     sse_encode_opt_box_autoadd_u_32(self.year, serializer);
     sse_encode_opt_String(self.url, serializer);
   }
@@ -4009,7 +3998,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.name, serializer);
-    sse_encode_list_artwork(self.thumbnails, serializer);
+    sse_encode_opt_box_autoadd_artwork(self.thumbnail, serializer);
+    sse_encode_opt_String(self.subtitle, serializer);
     sse_encode_opt_String(self.url, serializer);
   }
 
@@ -4324,15 +4314,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_list_artwork(List<Artwork> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_artwork(item, serializer);
-    }
-  }
-
-  @protected
   void sse_encode_list_chart_item(
       List<ChartItem> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -4567,8 +4548,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.title, serializer);
     sse_encode_opt_String(self.owner, serializer);
-    sse_encode_list_artwork(self.thumbnails, serializer);
-    sse_encode_opt_box_autoadd_u_32(self.trackCount, serializer);
+    sse_encode_artwork(self.thumbnail, serializer);
     sse_encode_opt_String(self.url, serializer);
   }
 
@@ -4771,7 +4751,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_artist_summary(self.artists, serializer);
     sse_encode_opt_box_autoadd_album_summary(self.album, serializer);
     sse_encode_opt_box_autoadd_u_64(self.durationMs, serializer);
-    sse_encode_list_artwork(self.thumbnails, serializer);
+    sse_encode_artwork(self.thumbnail, serializer);
     sse_encode_opt_String(self.url, serializer);
     sse_encode_bool(self.isExplicit, serializer);
     sse_encode_opt_box_autoadd_lyrics(self.lyrics, serializer);

@@ -12,6 +12,7 @@
 .history
 .svn/
 .refcode/
+.original_lib/
 # IntelliJ related
 *.iml
 *.ipr

@@ -207,9 +207,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<ArtistSummary> dco_decode_list_artist_summary(dynamic raw);
 
   @protected
-  List<Artwork> dco_decode_list_artwork(dynamic raw);
-
-  @protected
   List<ChartItem> dco_decode_list_chart_item(dynamic raw);
 
   @protected
@@ -505,9 +502,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   List<ArtistSummary> sse_decode_list_artist_summary(
       SseDeserializer deserializer);
-
-  @protected
-  List<Artwork> sse_decode_list_artwork(SseDeserializer deserializer);
 
   @protected
   List<ChartItem> sse_decode_list_chart_item(SseDeserializer deserializer);
@@ -814,9 +808,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_artist_summary(
       List<ArtistSummary> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_artwork(List<Artwork> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_chart_item(
