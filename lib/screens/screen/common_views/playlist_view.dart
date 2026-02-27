@@ -180,7 +180,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                                       .read<
                                                           BloomeePlayerCubit>()
                                                       .bloomeePlayer
-                                                      .audioPlayer
+                                                      .engine
                                                       .playing) {
                                                     context
                                                         .read<
@@ -304,7 +304,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                               } else if (!context
                                   .read<BloomeePlayerCubit>()
                                   .bloomeePlayer
-                                  .audioPlayer
+                                  .engine
                                   .playing) {
                                 context
                                     .read<BloomeePlayerCubit>()

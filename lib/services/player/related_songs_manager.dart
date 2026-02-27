@@ -6,9 +6,9 @@ import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
+import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
 // Static method for compute operation

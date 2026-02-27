@@ -19,7 +19,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:just_audio/just_audio.dart';
+// LoopMode from player_engine if needed in future
 
 part 'playlist_info_dialog.dart';
 
@@ -487,19 +487,17 @@ class PlaylistView extends StatelessWidget {
                                                     snapshot.data ==
                                                         state.mediaPlaylist
                                                             .playlistName) {
-                                                  return StreamBuilder<
-                                                          PlayerState>(
+                                                  return StreamBuilder<bool>(
                                                       stream: context
                                                           .read<
                                                               BloomeePlayerCubit>()
                                                           .bloomeePlayer
-                                                          .audioPlayer
-                                                          .playerStateStream,
+                                                          .engine
+                                                          .playingStream,
                                                       builder:
                                                           (context, snapshot2) {
                                                         if (snapshot2.hasData &&
-                                                            (snapshot2.data
-                                                                    ?.playing ??
+                                                            (snapshot2.data ??
                                                                 false)) {
                                                           return PlayPauseButton(
                                                             onPause: () => context
@@ -511,7 +509,6 @@ class PlaylistView extends StatelessWidget {
                                                                 .read<
                                                                     BloomeePlayerCubit>()
                                                                 .bloomeePlayer
-                                                                .audioPlayer
                                                                 .play(),
                                                             isPlaying: true,
                                                             size: 40,
@@ -527,7 +524,6 @@ class PlaylistView extends StatelessWidget {
                                                                 .read<
                                                                     BloomeePlayerCubit>()
                                                                 .bloomeePlayer
-                                                                .audioPlayer
                                                                 .play(),
                                                             isPlaying: false,
                                                             size: 40,

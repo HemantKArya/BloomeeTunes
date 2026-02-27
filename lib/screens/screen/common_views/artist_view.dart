@@ -179,7 +179,7 @@ class _ArtistViewState extends State<ArtistView> {
                                                         .read<
                                                             BloomeePlayerCubit>()
                                                         .bloomeePlayer
-                                                        .audioPlayer
+                                                        .engine
                                                         .playing) {
                                                       context
                                                           .read<
@@ -318,7 +318,7 @@ class _ArtistViewState extends State<ArtistView> {
                                         } else if (!context
                                             .read<BloomeePlayerCubit>()
                                             .bloomeePlayer
-                                            .audioPlayer
+                                            .engine
                                             .playing) {
                                           context
                                               .read<BloomeePlayerCubit>()

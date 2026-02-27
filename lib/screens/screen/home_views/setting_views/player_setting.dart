@@ -1,4 +1,6 @@
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/screens/screen/player_views/equalizer_view.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -46,9 +48,7 @@ class PlayerSettings extends StatelessWidget {
                       .map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(
-                        value,
-                      ),
+                      child: Text(value),
                     );
                   }).toList(),
                 ),
@@ -75,9 +75,7 @@ class PlayerSettings extends StatelessWidget {
                       .map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(
-                        value,
-                      ),
+                      child: Text(value),
                     );
                   }).toList(),
                 ),
@@ -104,6 +102,60 @@ class PlayerSettings extends StatelessWidget {
                   onChanged: (value) {
                     context.read<SettingsCubit>().setAutoPlay(value);
                   }),
+
+              const Divider(height: 1, indent: 16, endIndent: 16),
+
+              // ─── Crossfade ───────────────────────────────────────────
+              SettingTile(
+                title: "Crossfade",
+                subtitle: state.crossfadeDuration > 0
+                    ? "${state.crossfadeDuration}s transition between tracks."
+                    : "Disabled. Tracks switch instantly.",
+                trailing: DropdownButton<int>(
+                  value: state.crossfadeDuration,
+                  style: const TextStyle(
+                    color: Default_Theme.primaryColor1,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ).merge(Default_Theme.secondoryTextStyle),
+                  underline: const SizedBox(),
+                  onChanged: (int? newValue) {
+                    if (newValue != null) {
+                      context
+                          .read<SettingsCubit>()
+                          .setCrossfadeDuration(newValue);
+                      context
+                          .read<BloomeePlayerCubit>()
+                          .bloomeePlayer
+                          .setCrossfadeDuration(Duration(seconds: newValue));
+                    }
+                  },
+                  items: <int>[0, 2, 4, 6, 8, 10, 12]
+                      .map<DropdownMenuItem<int>>((int value) {
+                    return DropdownMenuItem<int>(
+                      value: value,
+                      child: Text(value == 0 ? 'Off' : '${value}s'),
+                    );
+                  }).toList(),
+                ),
+                onTap: () {},
+              ),
+
+              // ─── Equalizer ───────────────────────────────────────────
+              SettingTile(
+                title: "Equalizer",
+                subtitle: state.eqEnabled
+                    ? "Enabled — ${state.eqPreset} preset"
+                    : "10-band parametric EQ (via FFmpeg).",
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: Default_Theme.primaryColor2),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EqualizerView()),
+                  );
+                },
+              ),
             ],
           );
         },

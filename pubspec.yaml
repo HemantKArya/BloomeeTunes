@@ -69,12 +69,9 @@ dependencies:
   # audio service dependencies
   audio_service: ^0.18.18
   audio_session: ^0.2.2
-  just_audio: ^0.10.5
-  just_audio_media_kit: ^2.1.0
-  media_kit_libs_linux: any
+  media_kit: ^1.2.6 
+  media_kit_libs_audio: ^1.0.7 
   audio_service_mpris: ^0.2.0
-  media_kit_libs_windows_audio: any
-  # media_kit_libs_android_audio: any
   audio_service_win: ^0.0.2
   rust_lib_Bloomee:
     path: rust_builder

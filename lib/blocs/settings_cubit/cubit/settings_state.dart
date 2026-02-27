@@ -20,6 +20,10 @@ class SettingsState extends Equatable {
   String countryCode;
   List<bool> sourceEngineSwitches;
   Map chartMap;
+  int crossfadeDuration; // seconds, 0 = disabled
+  bool eqEnabled;
+  List<double> eqBandGains; // 10 gains, -12..+12 dB
+  String eqPreset;
   SettingsState({
     required this.autoUpdateNotify,
     required this.autoSlideCharts,
@@ -39,6 +43,10 @@ class SettingsState extends Equatable {
     required this.sourceEngineSwitches,
     required this.chartMap,
     required this.autoPlay,
+    required this.crossfadeDuration,
+    required this.eqEnabled,
+    required this.eqBandGains,
+    required this.eqPreset,
   });
 
   SettingsState copyWith({
@@ -60,6 +68,10 @@ class SettingsState extends Equatable {
     Map? chartMap,
     bool? autoSaveLyrics,
     bool? autoPlay,
+    int? crossfadeDuration,
+    bool? eqEnabled,
+    List<double>? eqBandGains,
+    String? eqPreset,
   }) {
     return SettingsState(
       autoUpdateNotify: autoUpdateNotify ?? this.autoUpdateNotify,
@@ -81,6 +93,12 @@ class SettingsState extends Equatable {
       chartMap: Map.from(chartMap ?? this.chartMap),
       autoSaveLyrics: autoSaveLyrics ?? this.autoSaveLyrics,
       autoPlay: autoPlay ?? this.autoPlay,
+      crossfadeDuration: crossfadeDuration ?? this.crossfadeDuration,
+      eqEnabled: eqEnabled ?? this.eqEnabled,
+      eqBandGains: eqBandGains != null
+          ? List<double>.from(eqBandGains)
+          : List<double>.from(this.eqBandGains),
+      eqPreset: eqPreset ?? this.eqPreset,
     );
   }
 
@@ -104,6 +122,10 @@ class SettingsState extends Equatable {
         lastFMScrobble,
         autoSaveLyrics,
         autoPlay,
+        crossfadeDuration,
+        eqEnabled,
+        eqBandGains,
+        eqPreset,
       ];
 }
 
@@ -128,5 +150,9 @@ class SettingsInitial extends SettingsState {
           lastFMScrobble: true,
           autoSaveLyrics: false,
           autoPlay: true,
+          crossfadeDuration: 0,
+          eqEnabled: false,
+          eqBandGains: List<double>.filled(10, 0.0),
+          eqPreset: 'Flat',
         );
 }

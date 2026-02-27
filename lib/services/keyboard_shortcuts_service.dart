@@ -10,7 +10,7 @@ import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:Bloomee/services/player/player_engine.dart';
 
 /// A widget that handles global keyboard shortcuts for the application.
 /// This wraps the entire app and captures keyboard events regardless of focus.
@@ -238,17 +238,17 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
   }
 
   void _togglePlayPause(dynamic player) {
-    if (player.audioPlayer.playing) {
-      player.audioPlayer.pause();
+    if (player.engine.playing) {
+      player.engine.pause();
     } else {
-      player.audioPlayer.play();
+      player.engine.play();
     }
   }
 
   double _changeVolume(dynamic player, double delta) {
-    final currentVolume = player.audioPlayer.volume;
+    final currentVolume = player.engine.volume;
     final newVolume = (currentVolume + delta).clamp(0.0, 1.0);
-    player.audioPlayer.setVolume(newVolume);
+    player.engine.setVolume(newVolume);
     return newVolume;
   }
 
@@ -256,13 +256,13 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
 
   /// Returns (isMuted, volumeLevel)
   (bool, double) _toggleMute(dynamic player) {
-    final currentVolume = player.audioPlayer.volume;
+    final currentVolume = player.engine.volume;
     if (currentVolume > 0) {
       _lastVolumeBeforeMute = currentVolume;
-      player.audioPlayer.setVolume(0.0);
+      player.engine.setVolume(0.0);
       return (true, 0.0);
     } else {
-      player.audioPlayer.setVolume(_lastVolumeBeforeMute);
+      player.engine.setVolume(_lastVolumeBeforeMute);
       return (false, _lastVolumeBeforeMute);
     }
   }

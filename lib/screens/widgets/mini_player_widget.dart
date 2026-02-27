@@ -2,9 +2,8 @@ import 'dart:ui';
 
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
+import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
-import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
@@ -20,7 +19,7 @@ class MiniPlayerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MiniPlayerBloc, MiniPlayerState>(
+    return BlocBuilder<MiniPlayerCubit, MiniPlayerState>(
       builder: (context, state) {
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
@@ -38,22 +37,8 @@ class MiniPlayerWidget extends StatelessWidget {
               child: child,
             );
           },
-          child: switch (state) {
-            MiniPlayerInitial() => const SizedBox(),
-            MiniPlayerCompleted() => MiniPlayerCard(
-                state: state,
-                isCompleted: true,
-              ),
-            MiniPlayerWorking() => MiniPlayerCard(
-                state: state,
-                isProcessing: state.isBuffering,
-              ),
-            MiniPlayerError() => const SizedBox(),
-            MiniPlayerProcessing() => MiniPlayerCard(
-                state: state,
-                isProcessing: true,
-              ),
-          },
+          child:
+              state.isVisible ? MiniPlayerCard(state: state) : const SizedBox(),
         );
       },
     );
@@ -62,18 +47,16 @@ class MiniPlayerWidget extends StatelessWidget {
 
 class MiniPlayerCard extends StatelessWidget {
   final MiniPlayerState state;
-  final bool isCompleted;
-  final bool isProcessing;
 
   const MiniPlayerCard({
     super.key,
     required this.state,
-    this.isCompleted = false,
-    this.isProcessing = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final song = state.track!;
+
     return GestureDetector(
       onTap: () {
         context.read<PlayerOverlayCubit>().showPlayer();
@@ -113,7 +96,7 @@ class MiniPlayerCard extends StatelessWidget {
                     color: Default_Theme.themeColor,
                     child: LoadImageCached(
                       imageUrl: formatImgURL(
-                          state.song.artUri.toString(), ImageQuality.low),
+                          song.artUri?.toString() ?? '', ImageQuality.low),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -137,7 +120,7 @@ class MiniPlayerCard extends StatelessWidget {
                         height: 61,
                         child: LoadImageCached(
                           imageUrl: formatImgURL(
-                              state.song.artUri.toString(), ImageQuality.low),
+                              song.artUri?.toString() ?? '', ImageQuality.low),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -149,7 +132,7 @@ class MiniPlayerCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          state.song.title,
+                          song.title,
                           style: Default_Theme.secondoryTextStyle.merge(
                               const TextStyle(
                                   fontSize: 15,
@@ -159,7 +142,7 @@ class MiniPlayerCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          state.song.artist ?? 'Unknown Artist',
+                          song.artist ?? 'Unknown Artist',
                           style: Default_Theme.secondoryTextStyle.merge(
                               TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -186,44 +169,7 @@ class MiniPlayerCard extends StatelessWidget {
                           },
                         )
                       : const SizedBox.shrink(),
-                  (state.isBuffering || isProcessing)
-                      ? const Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(
-                                color: Default_Theme.primaryColor1,
-                              )),
-                        )
-                      : (isCompleted
-                          ? IconButton(
-                              onPressed: () {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .rewind();
-                              },
-                              icon: const Icon(FontAwesome.rotate_right_solid,
-                                  size: 25))
-                          : IconButton(
-                              icon: Icon(
-                                state.isPlaying
-                                    ? FontAwesome.pause_solid
-                                    : FontAwesome.play_solid,
-                                size: 28,
-                              ),
-                              onPressed: () {
-                                state.isPlaying
-                                    ? context
-                                        .read<BloomeePlayerCubit>()
-                                        .bloomeePlayer
-                                        .pause()
-                                    : context
-                                        .read<BloomeePlayerCubit>()
-                                        .bloomeePlayer
-                                        .play();
-                              },
-                            )),
+                  _buildActionButton(context),
                   ResponsiveBreakpoints.of(context).isDesktop
                       ? IconButton(
                           icon: const Icon(
@@ -240,14 +186,15 @@ class MiniPlayerCard extends StatelessWidget {
                       : const SizedBox.shrink(),
                   IconButton(
                       onPressed: () {
-                        context.read<AddToPlaylistCubit>().setMediaItemModel(
-                            mediaItem2MediaItemModel(state.song));
+                        context
+                            .read<AddToPlaylistCubit>()
+                            .setMediaItemModel(song);
                         context.pushNamed(RoutePaths.addToPlaylistScreen);
                       },
                       icon: const Icon(FontAwesome.plus_solid, size: 25)),
                 ],
               ),
-              if (!isCompleted)
+              if (!state.isCompleted)
                 Positioned(
                   bottom: 0,
                   left: 8,
@@ -257,11 +204,9 @@ class MiniPlayerCard extends StatelessWidget {
                     stream: context.watch<BloomeePlayerCubit>().progressStreams,
                     builder: (context, snapshot) {
                       if (snapshot.hasData &&
-                          snapshot.data!.currentPlaybackState.duration !=
-                              null) {
-                        final progress = snapshot.data!.currentPos;
-                        final total =
-                            snapshot.data!.currentPlaybackState.duration!;
+                          snapshot.data!.duration != Duration.zero) {
+                        final progress = snapshot.data!.position;
+                        final total = snapshot.data!.duration;
                         final progressFraction = total.inMilliseconds > 0
                             ? progress.inMilliseconds / total.inMilliseconds
                             : 0.0;
@@ -285,6 +230,40 @@ class MiniPlayerCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context) {
+    if (state.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(10.0),
+        child: SizedBox.square(
+            dimension: 20,
+            child: CircularProgressIndicator(
+              color: Default_Theme.primaryColor1,
+            )),
+      );
+    }
+
+    if (state.isCompleted) {
+      return IconButton(
+        onPressed: () {
+          context.read<BloomeePlayerCubit>().bloomeePlayer.rewind();
+        },
+        icon: const Icon(FontAwesome.rotate_right_solid, size: 25),
+      );
+    }
+
+    return IconButton(
+      icon: Icon(
+        state.isPlaying ? FontAwesome.pause_solid : FontAwesome.play_solid,
+        size: 28,
+      ),
+      onPressed: () {
+        state.isPlaying
+            ? context.read<BloomeePlayerCubit>().bloomeePlayer.pause()
+            : context.read<BloomeePlayerCubit>().bloomeePlayer.play();
+      },
     );
   }
 }

@@ -15,6 +15,20 @@ class SettingKeys {
   static const String ytStrmQuality = "ytStreamQuality";
   static const String autoPlay = "autoPlaySimilarItems";
 
+  // ── Crossfade ───────────────────────────────────────────────────────────────
+  /// Crossfade duration in seconds (0 = disabled). Stored as String.
+  static const String crossfadeDuration = "crossfadeDuration";
+
+  // ── Equalizer ───────────────────────────────────────────────────────────────
+  /// Whether the 10-band EQ is enabled. Stored as bool.
+  static const String eqEnabled = "eqEnabled";
+
+  /// JSON-encoded list of 10 gain values (doubles, -12..+12 dB).
+  static const String eqBandGains = "eqBandGains";
+
+  /// Name of the currently selected EQ preset (e.g. "Flat", "Rock").
+  static const String eqPreset = "eqPreset";
+
   // ── Downloads ───────────────────────────────────────────────────────────────
   static const String downPathSetting = "downloadPath";
 

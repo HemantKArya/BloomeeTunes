@@ -1,6 +1,5 @@
 import 'package:Bloomee/services/audio_service_initializer.dart';
 import 'package:bloc/bloc.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:Bloomee/services/bloomee_player.dart';
 part 'bloomee_player_state.dart';
@@ -30,12 +29,18 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
 
   void _setupProgressStreams() {
     progressStreams = Rx.defer(
-      () => Rx.combineLatest3(
-          bloomeePlayer.audioPlayer.positionStream,
-          bloomeePlayer.audioPlayer.playbackEventStream,
-          bloomeePlayer.audioPlayer.playerStateStream,
-          (Duration a, PlaybackEvent b, PlayerState c) => ProgressBarStreams(
-              currentPos: a, currentPlaybackState: b, currentPlayerState: c)),
+      () => Rx.combineLatest4(
+          bloomeePlayer.engine.positionStream,
+          bloomeePlayer.engine.durationStream,
+          bloomeePlayer.engine.bufferedStream,
+          bloomeePlayer.engine.playingStream,
+          (Duration position, Duration duration, Duration buffered,
+                  bool playing) =>
+              ProgressBarStreams(
+                  position: position,
+                  duration: duration,
+                  buffered: buffered,
+                  isPlaying: playing)),
       reusable: true,
     );
   }

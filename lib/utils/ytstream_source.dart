@@ -5,7 +5,6 @@ import 'dart:isolate';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:flutter/services.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 Future<AudioOnlyStreamInfo> getStreamInfoBG(
@@ -24,60 +23,39 @@ Future<AudioOnlyStreamInfo> getStreamInfoBG(
   return audioStream;
 }
 
-class YouTubeAudioSource extends StreamAudioSource {
-  final String videoId;
-  final String quality; // 'high' or 'low'
-  final YoutubeExplode ytExplode;
-
-  YouTubeAudioSource({
-    required this.videoId,
-    required this.quality,
-    super.tag,
-  }) : ytExplode = YoutubeExplode();
-
-  Future<AudioOnlyStreamInfo> getStreamInfo() async {
-    final cachedStreams = await getStreamFromCache(videoId);
-    if (cachedStreams != null) {
-      return quality == 'high' ? cachedStreams[1] : cachedStreams[0];
-    }
-    final vidId = videoId;
-    final qlty = quality;
-    final token = RootIsolateToken.instance;
-    final audioStream =
-        await Isolate.run(() => getStreamInfoBG(vidId, token, qlty));
-    return audioStream;
+/// Resolves a YouTube video ID into a direct audio stream [Uri].
+///
+/// Checks the local cache first. Falls back to youtube_explode_dart
+/// for fresh resolution and caches the result.
+Future<Uri> resolveYoutubeAudioUri({
+  required String videoId,
+  required String quality,
+}) async {
+  // Try cache first.
+  final cachedStreams = await getStreamFromCache(videoId);
+  if (cachedStreams != null) {
+    final stream = quality == 'high' ? cachedStreams[1] : cachedStreams[0];
+    return stream.url;
   }
 
-  @override
-  Future<StreamAudioResponse> request([int? start, int? end]) async {
-    try {
-      // final t1 = DateTime.now().millisecondsSinceEpoch;
-      final audioStream = await getStreamInfo();
-      // final t2 = DateTime.now().millisecondsSinceEpoch;
+  // Resolve from YouTube via background isolate.
+  final token = RootIsolateToken.instance;
+  final audioStream =
+      await Isolate.run(() => getStreamInfoBG(videoId, token, quality));
 
-      start ??= 0;
-      if (end != null && end > audioStream.size.totalBytes) {
-        end = audioStream.size.totalBytes;
-      }
-
-      final stream = ytExplode.videos.streams.get(
-        audioStream,
-        start: start,
-        end: end,
-      );
-      // dev.log('Time taken to get stream: ${t2 - t1}ms', name: 'YTStream');
-      return StreamAudioResponse(
-        sourceLength: audioStream.size.totalBytes,
-        contentLength:
-            end != null ? end - start : audioStream.size.totalBytes - start,
-        offset: start,
-        stream: stream,
-        contentType: audioStream.codec.mimeType,
-      );
-    } catch (e) {
-      throw Exception('Failed to load audio: $e');
-    }
+  // Also resolve the other quality for caching both.
+  try {
+    final otherQuality = quality == 'high' ? 'low' : 'high';
+    final otherStream =
+        await Isolate.run(() => getStreamInfoBG(videoId, token, otherQuality));
+    final hStream = quality == 'high' ? audioStream : otherStream;
+    final lStream = quality == 'high' ? otherStream : audioStream;
+    await cacheYtStreams(id: videoId, hURL: hStream, lURL: lStream);
+  } catch (_) {
+    // Caching the other quality is best-effort.
   }
+
+  return audioStream.url;
 }
 
 Future<void> cacheYtStreams({

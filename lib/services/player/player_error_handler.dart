@@ -1,9 +1,8 @@
 import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:audio_service/audio_service.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
 enum PlayerErrorType {
@@ -20,13 +19,13 @@ class PlayerError {
   final String message;
   final dynamic originalError;
   final DateTime timestamp;
-  final MediaItem? failedMediaItem;
+  final MediaItemModel? failedTrack;
 
   PlayerError({
     required this.type,
     required this.message,
     this.originalError,
-    this.failedMediaItem,
+    this.failedTrack,
   }) : timestamp = DateTime.now();
 
   @override
@@ -75,8 +74,6 @@ class PlayerErrorHandler {
         error.toString().toLowerCase().contains('format') ||
         error.toString().toLowerCase().contains('source')) {
       return PlayerErrorType.sourceError;
-    } else if (error is PlayerException) {
-      return PlayerErrorType.playbackError;
     } else if (error.toString().toLowerCase().contains('permission')) {
       return PlayerErrorType.permissionError;
     } else if (error.toString().toLowerCase().contains('buffer')) {
@@ -86,18 +83,17 @@ class PlayerErrorHandler {
             .toString()
             .toLowerCase()
             .contains('failed to create file cache')) {
-      return PlayerErrorType
-          .unknownError; // Treat MPV issues as unknown, no retry
+      return PlayerErrorType.unknownError;
     }
     return PlayerErrorType.unknownError;
   }
 
-  void handleError(PlayerErrorType type, String message, MediaItem? mediaItem,
+  void handleError(PlayerErrorType type, String message, MediaItemModel? track,
       [dynamic originalError]) {
     final error = PlayerError(
       type: type,
       message: message,
-      failedMediaItem: mediaItem,
+      failedTrack: track,
       originalError: originalError,
     );
 
@@ -112,17 +108,17 @@ class PlayerErrorHandler {
     // Handle specific error types
     switch (type) {
       case PlayerErrorType.networkError:
-        _scheduleRetry(mediaItem);
+        _scheduleRetry(track);
         break;
       case PlayerErrorType.sourceError:
-        onClearCachedSource?.call(mediaItem?.id);
-        _scheduleRetry(mediaItem);
+        onClearCachedSource?.call(track?.id);
+        _scheduleRetry(track);
         break;
       case PlayerErrorType.playbackError:
-        _scheduleRetry(mediaItem);
+        _scheduleRetry(track);
         break;
       case PlayerErrorType.bufferingError:
-        _scheduleRetry(mediaItem);
+        _scheduleRetry(track);
         break;
       default:
         // For unknown errors (like MPV warnings), don't retry as they might be harmless
@@ -149,7 +145,7 @@ class PlayerErrorHandler {
     }
   }
 
-  void _scheduleRetry(MediaItem? currentItem) {
+  void _scheduleRetry(MediaItemModel? currentItem) {
     if (currentItem == null) return;
 
     if (_totalRetryCount >= 10) {
@@ -188,10 +184,7 @@ class PlayerErrorHandler {
     return delay > _retryConfig.maxDelay ? _retryConfig.maxDelay : delay;
   }
 
-  Future<void> _skipToNextOnError(MediaItem? currentItem) async {
-    // If we've already auto-skipped once for an error, stop auto-skipping
-    // further and inform the user instead. This avoids a nonstop chain of
-    // automatic skips when many tracks fail in a row.
+  Future<void> _skipToNextOnError(MediaItemModel? currentItem) async {
     final title = currentItem?.title ?? 'current song';
 
     if (_autoSkipPerformed) {

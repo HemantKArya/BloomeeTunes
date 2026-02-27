@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
+import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
 import 'package:Bloomee/screens/screen/player_views/lyrics_menu.dart';
 import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
@@ -344,17 +344,9 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
               ),
 
               // Play/Pause button
-              BlocBuilder<MiniPlayerBloc, MiniPlayerState>(
+              BlocBuilder<MiniPlayerCubit, MiniPlayerState>(
                 builder: (context, state) {
-                  bool isPlaying = false;
-                  bool isBuffering = false;
-
-                  if (state is MiniPlayerWorking) {
-                    isPlaying = state.isPlaying;
-                    isBuffering = state.isBuffering;
-                  }
-
-                  if (isBuffering) {
+                  if (state.isLoading) {
                     return Container(
                       decoration: const BoxDecoration(
                         boxShadow: [
@@ -386,7 +378,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
                     size: 70,
                     onPause: () => musicPlayer.pause(),
                     onPlay: () => musicPlayer.play(),
-                    isPlaying: isPlaying,
+                    isPlaying: state.isPlaying,
                   );
                 },
               ),
@@ -478,7 +470,7 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
   void _setupPositionListener() {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     _positionSubscription = bloomeePlayerCubit
-        .bloomeePlayer.audioPlayer.positionStream
+        .bloomeePlayer.engine.positionStream
         .listen((position) {
       if (!mounted) return;
 

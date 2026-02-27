@@ -21,7 +21,7 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:just_audio/just_audio.dart';
+// LoopMode from player_engine if needed in future
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -384,11 +384,11 @@ class _YoutubePlaylistState extends State<YoutubePlaylist> {
                                                                           snapshot.data ==
                                                                               "${widget.title} - Youtube") {
                                                                         return StreamBuilder<
-                                                                                PlayerState>(
+                                                                                bool>(
                                                                             stream:
-                                                                                context.read<BloomeePlayerCubit>().bloomeePlayer.audioPlayer.playerStateStream,
+                                                                                context.read<BloomeePlayerCubit>().bloomeePlayer.engine.playingStream,
                                                                             builder: (context, snapshot2) {
-                                                                              if (snapshot2.hasData && (snapshot2.data?.playing ?? false)) {
+                                                                              if (snapshot2.hasData && (snapshot2.data ?? false)) {
                                                                                 return PlayPauseButton(
                                                                                   onPause: () => context.read<BloomeePlayerCubit>().bloomeePlayer.pause(),
                                                                                   onPlay: () => context.read<BloomeePlayerCubit>().bloomeePlayer.play(),

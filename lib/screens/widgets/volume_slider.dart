@@ -37,7 +37,7 @@ class _VolumeDragControllerState extends State<VolumeDragController> {
     _volumeSubscription = context
         .read<BloomeePlayerCubit>()
         .bloomeePlayer
-        .audioPlayer
+        .engine
         .volumeStream
         .listen((event) {
       setState(() {
@@ -50,11 +50,7 @@ class _VolumeDragControllerState extends State<VolumeDragController> {
     setState(() {
       _volume = volume;
     });
-    context
-        .read<BloomeePlayerCubit>()
-        .bloomeePlayer
-        .audioPlayer
-        .setVolume(volume);
+    context.read<BloomeePlayerCubit>().bloomeePlayer.engine.setVolume(volume);
   }
 
   void _onDragStart(DragStartDetails details) {

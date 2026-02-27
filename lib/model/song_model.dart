@@ -59,6 +59,17 @@ class MediaItemModel extends MediaItem {
         extras.hashCode ^
         genre.hashCode;
   }
+
+  /// Source identifier for this track (e.g. "youtube", "saavn", "youtube_music").
+  /// Read from the [extras] map under the key "source".
+  String get source => extras?['source'] as String? ?? '';
+
+  /// Raw stream URL. Read from the [extras] map under the key "url".
+  String get streamUrl => extras?['url'] as String? ?? '';
+
+  @override
+  String toString() =>
+      'MediaItemModel(id: $id, title: $title, artist: $artist)';
 }
 
 MediaItemModel mediaItem2MediaItemModel(MediaItem mediaItem) {

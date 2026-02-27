@@ -5,7 +5,7 @@ import 'package:Bloomee/blocs/global_events/global_events_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
-import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
+import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
@@ -42,7 +42,7 @@ import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/routes/app_router.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
-import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/media_player/bloomee_player_cubit.dart';
@@ -126,12 +126,7 @@ void setupPlayerCubit() {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
-  if (io.Platform.isLinux || io.Platform.isWindows) {
-    JustAudioMediaKit.ensureInitialized(
-      linux: true,
-      windows: true,
-    );
-  }
+  MediaKit.ensureInitialized();
   await bootstrapApp();
   setHighRefreshRate();
   setupPlayerCubit();
@@ -203,7 +198,7 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
             create: (context) =>
-                MiniPlayerBloc(playerCubit: bloomeePlayerCubit),
+                MiniPlayerCubit(playerCubit: bloomeePlayerCubit),
             lazy: true),
         BlocProvider(
           create: (context) => SettingsCubit(

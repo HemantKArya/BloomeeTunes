@@ -1,434 +1,376 @@
 import 'dart:developer';
-import 'package:audio_service/audio_service.dart';
-import 'package:just_audio/just_audio.dart';
+
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:rxdart/rxdart.dart';
-import '../../model/media_playlist_model.dart';
 
 List<int> generateRandomIndices(int length) {
-  List<int> indices = List<int>.generate(length, (i) => i);
+  final indices = List<int>.generate(length, (i) => i);
   indices.shuffle();
   return indices;
 }
 
+/// Manages the playback queue (track list, ordering, shuffle, navigation).
+///
+/// Pure data structure — does NOT control the audio engine.
+/// The [BloomeeMusicPlayer] reads [currentTrack] after calling navigation
+/// methods and decides what to play.
 class QueueManager {
-  final BehaviorSubject<List<MediaItem>> queue =
-      BehaviorSubject<List<MediaItem>>.seeded([]);
-  final BehaviorSubject<bool> shuffleMode = BehaviorSubject<bool>.seeded(false);
-  final BehaviorSubject<String> queueTitle =
-      BehaviorSubject<String>.seeded("Queue");
+  final BehaviorSubject<List<MediaItemModel>> _queue =
+      BehaviorSubject.seeded([]);
+  final BehaviorSubject<bool> shuffleMode = BehaviorSubject.seeded(false);
+  final BehaviorSubject<String> queueTitle = BehaviorSubject.seeded('Queue');
 
-  int currentPlayingIdx = 0;
-  int shuffleIdx = 0;
-  List<int> shuffleList = [];
+  int _currentIndex = 0;
+  int _shuffleIndex = 0;
+  List<int> _shuffleList = [];
 
-  // Callbacks
-  Function(int idx, bool doPlay)? onPrepareToPlay;
+  // ─── Getters ───────────────────────────────────────────────────────────────
 
-  QueueManager() {
-    // Note: We don't auto-regenerate shuffle list on queue changes
-    // because it would break mid-playback queue modifications.
-    // Shuffle list is explicitly managed in methods that need it.
+  List<MediaItemModel> get tracks => _queue.value;
+  Stream<List<MediaItemModel>> get tracksStream => _queue.stream;
+  int get currentIndex => _currentIndex;
+  int get length => _queue.value.length;
+  bool get isEmpty => _queue.value.isEmpty;
+  bool get isNotEmpty => _queue.value.isNotEmpty;
+
+  MediaItemModel? get currentTrack {
+    if (_queue.value.isEmpty || _currentIndex >= _queue.value.length) {
+      return null;
+    }
+    return _queue.value[_currentIndex];
   }
 
-  Future<void> loadPlaylist(MediaPlaylist mediaList,
-      {int idx = 0, bool doPlay = false, bool shuffling = false}) async {
-    queue.add([]);
-    queue.add(mediaList.mediaItems);
-    queueTitle.add(mediaList.playlistName);
+  bool hasNext({LoopMode loopMode = LoopMode.off}) {
+    if (_queue.value.isEmpty) return false;
+    if (loopMode == LoopMode.all) return true;
+    if (shuffleMode.value) {
+      return _shuffleList.isNotEmpty &&
+          _shuffleIndex < (_shuffleList.length - 1);
+    }
+    return _currentIndex < (_queue.value.length - 1);
+  }
 
-    // Enable shuffle mode first if needed
+  bool hasPrevious({LoopMode loopMode = LoopMode.off}) {
+    if (_queue.value.isEmpty) return false;
+    if (loopMode == LoopMode.all) return true;
+    if (shuffleMode.value) {
+      return _shuffleList.isNotEmpty && _shuffleIndex > 0;
+    }
+    return _currentIndex > 0;
+  }
+
+  /// Peek at the next track without advancing the index.
+  MediaItemModel? peekNext({LoopMode loopMode = LoopMode.off}) {
+    if (_queue.value.isEmpty) return null;
+
+    if (!shuffleMode.value) {
+      if (_currentIndex < _queue.value.length - 1) {
+        return _queue.value[_currentIndex + 1];
+      } else if (loopMode == LoopMode.all) {
+        return _queue.value[0];
+      }
+    } else {
+      _ensureShuffleListValid();
+      if (_shuffleIndex < _shuffleList.length - 1) {
+        final nextIdx = _shuffleList[_shuffleIndex + 1];
+        if (nextIdx < _queue.value.length) return _queue.value[nextIdx];
+      } else if (loopMode == LoopMode.all && _shuffleList.isNotEmpty) {
+        return _queue.value[_shuffleList[0]];
+      }
+    }
+    return null;
+  }
+
+  // ─── Navigation ────────────────────────────────────────────────────────────
+
+  /// Advance to the next track. Returns true if index changed.
+  bool advanceToNext({LoopMode loopMode = LoopMode.off}) {
+    if (_queue.value.isEmpty) return false;
+
+    if (!shuffleMode.value) {
+      if (_currentIndex < _queue.value.length - 1) {
+        _currentIndex++;
+        return true;
+      } else if (loopMode == LoopMode.all) {
+        _currentIndex = 0;
+        return true;
+      }
+    } else {
+      _ensureShuffleListValid();
+      if (_shuffleIndex < _shuffleList.length - 1) {
+        _shuffleIndex++;
+        _currentIndex =
+            _shuffleList[_shuffleIndex].clamp(0, _queue.value.length - 1);
+        return true;
+      } else if (loopMode == LoopMode.all) {
+        _shuffleIndex = 0;
+        _currentIndex =
+            _shuffleList[_shuffleIndex].clamp(0, _queue.value.length - 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Go back to the previous track. Returns true if index changed.
+  bool advanceToPrevious({LoopMode loopMode = LoopMode.off}) {
+    if (_queue.value.isEmpty) return false;
+
+    if (!shuffleMode.value) {
+      if (_currentIndex > 0) {
+        _currentIndex--;
+        return true;
+      } else if (loopMode == LoopMode.all) {
+        _currentIndex = _queue.value.length - 1;
+        return true;
+      }
+    } else {
+      _ensureShuffleListValid();
+      if (_shuffleIndex > 0) {
+        _shuffleIndex--;
+        _currentIndex =
+            _shuffleList[_shuffleIndex].clamp(0, _queue.value.length - 1);
+        return true;
+      } else if (loopMode == LoopMode.all) {
+        _shuffleIndex = _shuffleList.length - 1;
+        _currentIndex =
+            _shuffleList[_shuffleIndex].clamp(0, _queue.value.length - 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Jump directly to a queue index.
+  void jumpTo(int index) {
+    if (index < 0 || index >= _queue.value.length) {
+      log('jumpTo: index $index out of bounds (len: ${_queue.value.length})',
+          name: 'QueueManager');
+      return;
+    }
+    _currentIndex = index;
+    if (shuffleMode.value && _shuffleList.isNotEmpty) {
+      _shuffleIndex = _shuffleList.indexOf(index);
+      if (_shuffleIndex == -1) _shuffleIndex = 0;
+    }
+  }
+
+  // ─── Queue Mutations ──────────────────────────────────────────────────────
+
+  /// Replace the queue with a new playlist.
+  void loadTracks(
+    List<MediaItemModel> tracks, {
+    String playlistName = 'Queue',
+    int idx = 0,
+    bool shuffling = false,
+  }) {
+    _queue.add(tracks);
+    queueTitle.add(playlistName);
+
     final shouldShuffle = shuffling || shuffleMode.value;
     shuffleMode.add(shouldShuffle);
 
-    // Generate shuffle list and determine starting index
-    int playIdx = idx;
-    if (shouldShuffle && mediaList.mediaItems.isNotEmpty) {
-      shuffleList = generateRandomIndices(mediaList.mediaItems.length);
-
-      // Only choose a random first song when caller explicitly requested shuffling
-      // (e.g., Shuffle & Play button). If the caller provided an index, respect it
-      // even when shuffle mode stays enabled for subsequent navigation.
+    if (shouldShuffle && tracks.isNotEmpty) {
+      _shuffleList = generateRandomIndices(tracks.length);
       if (shuffling) {
-        shuffleIdx = 0;
-        playIdx = shuffleList[0];
+        _shuffleIndex = 0;
+        _currentIndex = _shuffleList[0];
       } else {
-        // Respect the requested index; align shuffleIdx with it so next/prev follow shuffle order
-        shuffleIdx = shuffleList.indexOf(idx);
-        if (shuffleIdx == -1) {
-          shuffleIdx = 0;
-        }
-        playIdx = idx;
+        _shuffleIndex = _shuffleList.indexOf(idx);
+        if (_shuffleIndex == -1) _shuffleIndex = 0;
+        _currentIndex = idx;
       }
-    }
-
-    await _prepare4play(idx: playIdx, doPlay: doPlay);
-  }
-
-  Future<void> shuffle(bool shuffle) async {
-    shuffleMode.add(shuffle);
-    if (shuffle) {
-      if (queue.value.isEmpty) {
-        shuffleList = [];
-        shuffleIdx = 0;
-        return;
-      }
-
-      // Generate new shuffle list and position current song at index 0
-      shuffleList = generateRandomIndices(queue.value.length);
-
-      // Find current song in the new shuffle and move it to position 0
-      // This ensures the currently playing song continues, but future songs are shuffled
-      final currentIdx = currentPlayingIdx;
-      final posInShuffle = shuffleList.indexOf(currentIdx);
-      if (posInShuffle != -1 && posInShuffle != 0) {
-        shuffleList.removeAt(posInShuffle);
-        shuffleList.insert(0, currentIdx);
-      }
-      shuffleIdx = 0;
+    } else {
+      _shuffleList = [];
+      _shuffleIndex = 0;
+      _currentIndex = idx.clamp(0, tracks.isEmpty ? 0 : tracks.length - 1);
     }
   }
 
-  Future<void> skipToNext({LoopMode loopMode = LoopMode.off}) async {
-    if (queue.value.isEmpty) {
-      log('Cannot skip to next: queue is empty', name: 'QueueManager');
+  /// Toggle shuffle mode.
+  void shuffle(bool enabled) {
+    shuffleMode.add(enabled);
+    if (enabled && _queue.value.isNotEmpty) {
+      _shuffleList = generateRandomIndices(_queue.value.length);
+      // Put current track at shuffle index 0.
+      final pos = _shuffleList.indexOf(_currentIndex);
+      if (pos != -1 && pos != 0) {
+        _shuffleList.removeAt(pos);
+        _shuffleList.insert(0, _currentIndex);
+      }
+      _shuffleIndex = 0;
+    }
+  }
+
+  /// Add a track to the end of the queue. Skips duplicates (by id).
+  void addTrack(MediaItemModel track) {
+    if (_queue.value.any((t) => t.id == track.id)) return;
+    queueTitle.add('Queue');
+    final newQueue = List<MediaItemModel>.from(_queue.value)..add(track);
+    final newIdx = newQueue.length - 1;
+    _queue.add(newQueue);
+    if (shuffleMode.value && _shuffleList.isNotEmpty) {
+      _shuffleList.add(newIdx);
+    }
+  }
+
+  /// Add multiple tracks to the queue.
+  void addTracks(List<MediaItemModel> tracks, {bool atLast = false}) {
+    if (atLast) {
+      final newQueue = List<MediaItemModel>.from(_queue.value)..addAll(tracks);
+      _queue.add(newQueue);
+    } else {
+      for (final track in tracks) {
+        addTrack(track);
+      }
+    }
+  }
+
+  /// Insert a track to play next (after current).
+  void addPlayNext(MediaItemModel track) {
+    if (_queue.value.isEmpty) {
+      _queue.add([track]);
+      _currentIndex = 0;
       return;
     }
+    if (_queue.value.any((t) => t.id == track.id)) return;
 
-    if (!shuffleMode.value) {
-      if (currentPlayingIdx < (queue.value.length - 1)) {
-        currentPlayingIdx++;
-        await _prepare4play(idx: currentPlayingIdx, doPlay: true);
-      } else if (loopMode == LoopMode.all) {
-        // Loop back to the beginning
-        currentPlayingIdx = 0;
-        await _prepare4play(idx: currentPlayingIdx, doPlay: true);
+    final insertIdx = _currentIndex + 1;
+    final newQueue = List<MediaItemModel>.from(_queue.value)
+      ..insert(insertIdx, track);
+    _queue.add(newQueue);
+
+    if (shuffleMode.value && _shuffleList.isNotEmpty) {
+      for (int i = 0; i < _shuffleList.length; i++) {
+        if (_shuffleList[i] >= insertIdx) _shuffleList[i]++;
       }
+      _shuffleList.insert(_shuffleIndex + 1, insertIdx);
+    }
+  }
+
+  /// Insert a track at a specific index.
+  void insertTrack(int index, MediaItemModel track) {
+    final queue = List<MediaItemModel>.from(_queue.value);
+    final actualIdx = index.clamp(0, queue.length);
+    if (actualIdx < queue.length) {
+      queue.insert(actualIdx, track);
     } else {
-      if (shuffleList.isEmpty || shuffleList.length != queue.value.length) {
-        log('Shuffle list out of sync, regenerating', name: 'QueueManager');
-        shuffleList = generateRandomIndices(queue.value.length);
-        shuffleIdx = shuffleList.indexOf(currentPlayingIdx);
-        if (shuffleIdx == -1) shuffleIdx = 0;
-      }
+      queue.add(track);
+    }
+    _queue.add(queue);
 
-      if (shuffleIdx < (shuffleList.length - 1)) {
-        shuffleIdx++;
-        final nextIdx = shuffleList[shuffleIdx];
-        if (nextIdx >= queue.value.length) {
-          log('Shuffle index out of bounds, skipping to next valid',
-              name: 'QueueManager');
-          shuffleIdx = (shuffleIdx + 1) % shuffleList.length;
-          await _prepare4play(
-              idx: shuffleList[shuffleIdx].clamp(0, queue.value.length - 1),
-              doPlay: true);
-        } else {
-          await _prepare4play(idx: nextIdx, doPlay: true);
-        }
-      } else if (loopMode == LoopMode.all) {
-        // Loop back to the beginning in shuffle mode
-        shuffleIdx = 0;
-        await _prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
+    if (_currentIndex >= actualIdx) _currentIndex++;
+
+    if (shuffleMode.value && _shuffleList.isNotEmpty) {
+      for (int i = 0; i < _shuffleList.length; i++) {
+        if (_shuffleList[i] >= actualIdx) _shuffleList[i]++;
       }
+      final insertPos =
+          (_shuffleIndex + 1 + (_shuffleList.length - _shuffleIndex - 1) ~/ 2)
+              .clamp(0, _shuffleList.length);
+      _shuffleList.insert(insertPos, actualIdx);
     }
   }
 
-  Future<void> skipToPrevious({LoopMode loopMode = LoopMode.off}) async {
-    if (queue.value.isEmpty) {
-      log('Cannot skip to previous: queue is empty', name: 'QueueManager');
-      return;
-    }
+  /// Remove a track by queue index.
+  void removeTrackAt(int index) {
+    if (index >= _queue.value.length) return;
 
-    if (!shuffleMode.value) {
-      if (currentPlayingIdx > 0) {
-        currentPlayingIdx--;
-        await _prepare4play(idx: currentPlayingIdx, doPlay: true);
-      } else if (loopMode == LoopMode.all) {
-        // Loop to the end
-        currentPlayingIdx = queue.value.length - 1;
-        await _prepare4play(idx: currentPlayingIdx, doPlay: true);
-      }
-    } else {
-      if (shuffleList.isEmpty || shuffleList.length != queue.value.length) {
-        log('Shuffle list out of sync, regenerating', name: 'QueueManager');
-        shuffleList = generateRandomIndices(queue.value.length);
-        shuffleIdx = shuffleList.indexOf(currentPlayingIdx);
-        if (shuffleIdx == -1) shuffleIdx = 0;
-      }
+    final newQueue = List<MediaItemModel>.from(_queue.value)..removeAt(index);
+    _queue.add(newQueue);
 
-      if (shuffleIdx > 0) {
-        shuffleIdx--;
-        final prevIdx = shuffleList[shuffleIdx];
-        if (prevIdx >= queue.value.length) {
-          log('Shuffle index out of bounds, skipping to previous valid',
-              name: 'QueueManager');
-          shuffleIdx = (shuffleIdx - 1).clamp(0, shuffleList.length - 1);
-          await _prepare4play(
-              idx: shuffleList[shuffleIdx].clamp(0, queue.value.length - 1),
-              doPlay: true);
-        } else {
-          await _prepare4play(idx: prevIdx, doPlay: true);
-        }
-      } else if (loopMode == LoopMode.all) {
-        // Loop to the end in shuffle mode
-        shuffleIdx = shuffleList.length - 1;
-        await _prepare4play(idx: shuffleList[shuffleIdx], doPlay: true);
-      }
-    }
-  }
-
-  Future<void> skipToQueueItem(int index) async {
-    if (index >= queue.value.length) {
-      log("skipToQueueItem: Invalid index $index, queue length: ${queue.value.length}",
-          name: "QueueManager");
-      return;
-    }
-
-    currentPlayingIdx = index;
-
-    // If shuffle mode is on, update shuffleIdx to maintain shuffle order for next/prev
-    if (shuffleMode.value && shuffleList.isNotEmpty) {
-      shuffleIdx = shuffleList.indexOf(index);
-      if (shuffleIdx == -1) {
-        // If song not in shuffle list, add it at current position
-        shuffleIdx = 0;
-      }
-    }
-
-    await _prepare4play(idx: index, doPlay: true);
-    log("skipToQueueItem: Moved to index $index", name: "QueueManager");
-  }
-
-  Future<void> addQueueItem(MediaItem mediaItem) async {
-    if (queue.value.any((e) => e.id == mediaItem.id)) return;
-    queueTitle.add("Queue");
-
-    final newQueue = List<MediaItem>.from(queue.value)..add(mediaItem);
-    final newItemIndex = newQueue.length - 1;
-    queue.add(newQueue);
-
-    // Add to shuffle list if shuffle mode is on
-    if (shuffleMode.value && shuffleList.isNotEmpty) {
-      // Add new item to shuffle list at a random future position
-      shuffleList.add(newItemIndex);
-    }
-
-    if (newQueue.length == 1) {
-      await _prepare4play(idx: 0, doPlay: true);
-    }
-  }
-
-  Future<void> updateQueue(List<MediaItem> newQueue,
-      {bool doPlay = false}) async {
-    queue.add(newQueue);
-
-    // Regenerate shuffle list if shuffle mode is on
-    if (shuffleMode.value && newQueue.isNotEmpty) {
-      shuffleList = generateRandomIndices(newQueue.length);
-      shuffleIdx = 0;
-    } else if (newQueue.isEmpty) {
-      shuffleList = [];
-      shuffleIdx = 0;
-    }
-
-    await _prepare4play(idx: 0, doPlay: doPlay);
-  }
-
-  Future<void> addQueueItems(List<MediaItem> mediaItems,
-      {String queueName = "Queue", bool atLast = false}) async {
-    if (!atLast) {
-      for (var mediaItem in mediaItems) {
-        await addQueueItem(mediaItem);
-      }
-    } else {
-      final newQueue = List<MediaItem>.from(queue.value)..addAll(mediaItems);
-      queue.add(newQueue);
-      queueTitle.add("Queue");
-    }
-  }
-
-  Future<void> addPlayNextItem(MediaItem mediaItem) async {
-    if (queue.value.isNotEmpty) {
-      if (queue.value.any((e) => e.id == mediaItem.id)) return;
-      final insertIdx = currentPlayingIdx + 1;
-      final newQueue = List<MediaItem>.from(queue.value)
-        ..insert(insertIdx, mediaItem);
-      queue.add(newQueue);
-
-      // Adjust shuffle list if shuffle mode is on
-      if (shuffleMode.value && shuffleList.isNotEmpty) {
-        // Increment all indices >= insertIdx in the shuffle list
-        for (int i = 0; i < shuffleList.length; i++) {
-          if (shuffleList[i] >= insertIdx) {
-            shuffleList[i]++;
-          }
-        }
-        // Insert new item right after current position in shuffle
-        shuffleList.insert(shuffleIdx + 1, insertIdx);
-      }
-    } else {
-      await updateQueue([mediaItem], doPlay: true);
-    }
-  }
-
-  Future<void> insertQueueItem(int index, MediaItem mediaItem) async {
-    final currentQueue = List<MediaItem>.from(queue.value);
-    final actualIndex =
-        index < currentQueue.length ? index : currentQueue.length;
-
-    if (actualIndex < currentQueue.length) {
-      currentQueue.insert(actualIndex, mediaItem);
-    } else {
-      currentQueue.add(mediaItem);
-    }
-    queue.add(currentQueue);
-
-    // Adjust the currentPlayingIdx
-    if (currentPlayingIdx >= actualIndex) {
-      currentPlayingIdx++;
-    }
-
-    // Adjust shuffle list if shuffle mode is on
-    if (shuffleMode.value && shuffleList.isNotEmpty) {
-      // Increment all indices >= actualIndex in the shuffle list
-      for (int i = 0; i < shuffleList.length; i++) {
-        if (shuffleList[i] >= actualIndex) {
-          shuffleList[i]++;
-        }
-      }
-      // Insert the new item at a random position in shuffle list
-      final insertPosition =
-          shuffleIdx + 1 + (shuffleList.length - shuffleIdx - 1) ~/ 2;
-      shuffleList.insert(
-          insertPosition.clamp(0, shuffleList.length), actualIndex);
-    }
-  }
-
-  Future<void> removeQueueItemAt(int index) async {
-    if (index >= queue.value.length) return;
-
-    final newQueue = List<MediaItem>.from(queue.value);
-    newQueue.removeAt(index);
-    queue.add(newQueue);
-
-    // Adjust shuffle list if shuffle mode is on
-    if (shuffleMode.value && shuffleList.isNotEmpty) {
-      // Remove the index from shuffle list
-      final posInShuffle = shuffleList.indexOf(index);
+    // Adjust shuffle list.
+    if (shuffleMode.value && _shuffleList.isNotEmpty) {
+      final posInShuffle = _shuffleList.indexOf(index);
       if (posInShuffle != -1) {
-        shuffleList.removeAt(posInShuffle);
-        // Adjust shuffleIdx if we removed something before current position
-        if (posInShuffle < shuffleIdx) {
-          shuffleIdx--;
-        } else if (posInShuffle == shuffleIdx &&
-            shuffleIdx >= shuffleList.length) {
-          shuffleIdx = shuffleList.length - 1;
+        _shuffleList.removeAt(posInShuffle);
+        if (posInShuffle < _shuffleIndex) {
+          _shuffleIndex--;
+        } else if (posInShuffle == _shuffleIndex &&
+            _shuffleIndex >= _shuffleList.length) {
+          _shuffleIndex =
+              (_shuffleList.length - 1).clamp(0, _shuffleList.length);
         }
       }
-
-      // Decrement all indices > removed index in the shuffle list
-      for (int i = 0; i < shuffleList.length; i++) {
-        if (shuffleList[i] > index) {
-          shuffleList[i]--;
-        }
+      for (int i = 0; i < _shuffleList.length; i++) {
+        if (_shuffleList[i] > index) _shuffleList[i]--;
       }
     }
 
-    // Adjust currentPlayingIdx
-    if (currentPlayingIdx == index) {
+    // Adjust current index.
+    if (_currentIndex == index) {
       if (newQueue.isEmpty) {
-        currentPlayingIdx = 0;
-      } else if (index < newQueue.length) {
-        await _prepare4play(idx: index, doPlay: true);
-      } else if (index > 0) {
-        await _prepare4play(idx: index - 1, doPlay: true);
+        _currentIndex = 0;
+      } else {
+        _currentIndex = _currentIndex.clamp(0, newQueue.length - 1);
       }
-    } else if (currentPlayingIdx > index) {
-      currentPlayingIdx--;
+    } else if (_currentIndex > index) {
+      _currentIndex--;
     }
   }
 
-  Future<void> moveQueueItem(int oldIndex, int newIndex) async {
-    log("Moving from $oldIndex to $newIndex", name: "QueueManager");
-    final newQueue = List<MediaItem>.from(queue.value);
-    if (oldIndex < newIndex) {
-      newIndex--;
-    }
+  /// Move a track from one position to another.
+  void moveTrack(int oldIndex, int newIndex) {
+    final queue = List<MediaItemModel>.from(_queue.value);
+    if (oldIndex < newIndex) newIndex--;
+    final item = queue.removeAt(oldIndex);
+    queue.insert(newIndex, item);
+    _queue.add(queue);
 
-    final item = newQueue.removeAt(oldIndex);
-    newQueue.insert(newIndex, item);
-    queue.add(newQueue);
-
-    // Update shuffle list if shuffle mode is on
-    if (shuffleMode.value && shuffleList.isNotEmpty) {
-      // Update all references to the moved indices
-      for (int i = 0; i < shuffleList.length; i++) {
-        if (shuffleList[i] == oldIndex) {
-          shuffleList[i] = newIndex;
+    // Update shuffle list.
+    if (shuffleMode.value && _shuffleList.isNotEmpty) {
+      for (int i = 0; i < _shuffleList.length; i++) {
+        if (_shuffleList[i] == oldIndex) {
+          _shuffleList[i] = newIndex;
         } else if (oldIndex < newIndex) {
-          // Item moved forward: decrement indices in between
-          if (shuffleList[i] > oldIndex && shuffleList[i] <= newIndex) {
-            shuffleList[i]--;
+          if (_shuffleList[i] > oldIndex && _shuffleList[i] <= newIndex) {
+            _shuffleList[i]--;
           }
         } else {
-          // Item moved backward: increment indices in between
-          if (shuffleList[i] >= newIndex && shuffleList[i] < oldIndex) {
-            shuffleList[i]++;
+          if (_shuffleList[i] >= newIndex && _shuffleList[i] < oldIndex) {
+            _shuffleList[i]++;
           }
         }
       }
     }
 
-    // update the currentPlayingIdx
-    if (currentPlayingIdx == oldIndex) {
-      currentPlayingIdx = newIndex;
-    } else if (oldIndex < currentPlayingIdx && newIndex >= currentPlayingIdx) {
-      currentPlayingIdx--;
-    } else if (oldIndex > currentPlayingIdx && newIndex <= currentPlayingIdx) {
-      currentPlayingIdx++;
+    // Update current index.
+    if (_currentIndex == oldIndex) {
+      _currentIndex = newIndex;
+    } else if (oldIndex < _currentIndex && newIndex >= _currentIndex) {
+      _currentIndex--;
+    } else if (oldIndex > _currentIndex && newIndex <= _currentIndex) {
+      _currentIndex++;
     }
   }
 
-  MediaItem? get currentMediaItem {
-    if (queue.value.isEmpty || currentPlayingIdx >= queue.value.length) {
-      return null;
+  /// Replace the entire queue with new tracks.
+  void updateQueue(List<MediaItemModel> tracks, {int startIndex = 0}) {
+    _queue.add(tracks);
+    _currentIndex = startIndex.clamp(0, tracks.isEmpty ? 0 : tracks.length - 1);
+    if (shuffleMode.value && tracks.isNotEmpty) {
+      _shuffleList = generateRandomIndices(tracks.length);
+      _shuffleIndex = 0;
+    } else {
+      _shuffleList = [];
+      _shuffleIndex = 0;
     }
-    return queue.value[currentPlayingIdx];
   }
 
-  bool get hasNext {
-    if (queue.value.isEmpty) return false;
-    if (shuffleMode.value) {
-      return shuffleList.isNotEmpty && shuffleIdx < (shuffleList.length - 1);
-    }
-    return currentPlayingIdx < (queue.value.length - 1);
-  }
+  // ─── Internal ──────────────────────────────────────────────────────────────
 
-  bool get hasPrevious {
-    if (queue.value.isEmpty) return false;
-    if (shuffleMode.value) {
-      return shuffleList.isNotEmpty && shuffleIdx > 0;
+  void _ensureShuffleListValid() {
+    if (_shuffleList.isEmpty || _shuffleList.length != _queue.value.length) {
+      log('Shuffle list invalid, regenerating', name: 'QueueManager');
+      _shuffleList = generateRandomIndices(_queue.value.length);
+      _shuffleIndex = _shuffleList.indexOf(_currentIndex);
+      if (_shuffleIndex == -1) _shuffleIndex = 0;
     }
-    return currentPlayingIdx > 0;
-  }
-
-  Future<void> _prepare4play({int idx = 0, bool doPlay = false}) async {
-    if (queue.value.isEmpty) {
-      log('Cannot prepare4play: queue is empty', name: 'QueueManager');
-      return;
-    }
-
-    if (idx >= queue.value.length) {
-      log('Index $idx is out of bounds, queue length: ${queue.value.length}',
-          name: 'QueueManager');
-      idx = queue.value.length - 1;
-    }
-
-    currentPlayingIdx = idx;
-    onPrepareToPlay?.call(idx, doPlay);
   }
 
   void dispose() {
-    queue.close();
+    _queue.close();
     shuffleMode.close();
     queueTitle.close();
   }

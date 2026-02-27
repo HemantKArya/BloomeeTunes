@@ -131,6 +131,39 @@ class SettingsCubit extends Cubit<SettingsState> {
       }
       emit(state.copyWith(chartMap: Map.from(chartMap)));
     });
+
+    // ── Crossfade ──
+    _settingsRepo
+        .getSettingStr(SettingKeys.crossfadeDuration, defaultValue: '0')
+        .then((value) {
+      final seconds = int.tryParse(value ?? '0') ?? 0;
+      emit(state.copyWith(crossfadeDuration: seconds));
+    });
+
+    // ── Equalizer ──
+    _settingsRepo.getSettingBool(SettingKeys.eqEnabled).then((value) {
+      emit(state.copyWith(eqEnabled: value ?? false));
+    });
+
+    _settingsRepo.getSettingStr(SettingKeys.eqBandGains).then((value) {
+      if (value != null) {
+        try {
+          final decoded = jsonDecode(value) as List;
+          final gains = decoded.map((e) => (e as num).toDouble()).toList();
+          if (gains.length == 10) {
+            emit(state.copyWith(eqBandGains: gains));
+          }
+        } catch (e) {
+          log('Failed to decode EQ gains: $e', name: 'SettingsCubit');
+        }
+      }
+    });
+
+    _settingsRepo
+        .getSettingStr(SettingKeys.eqPreset, defaultValue: 'Flat')
+        .then((value) {
+      emit(state.copyWith(eqPreset: value ?? 'Flat'));
+    });
   }
 
   void setChartShow(String title, bool value) {
@@ -233,6 +266,31 @@ class SettingsCubit extends Cubit<SettingsState> {
     switches[index] = value;
     _settingsRepo.putSettingBool(SourceEngine.values[index].value, value);
     emit(state.copyWith(sourceEngineSwitches: List.from(switches)));
+  }
+
+  // ── Crossfade ────────────────────────────────────────────────────────────
+
+  void setCrossfadeDuration(int seconds) {
+    _settingsRepo.putSettingStr(
+        SettingKeys.crossfadeDuration, seconds.toString());
+    emit(state.copyWith(crossfadeDuration: seconds));
+  }
+
+  // ── Equalizer persistence ───────────────────────────────────────────────
+
+  void setEqEnabled(bool value) {
+    _settingsRepo.putSettingBool(SettingKeys.eqEnabled, value);
+    emit(state.copyWith(eqEnabled: value));
+  }
+
+  void setEqBandGains(List<double> gains) {
+    _settingsRepo.putSettingStr(SettingKeys.eqBandGains, jsonEncode(gains));
+    emit(state.copyWith(eqBandGains: gains));
+  }
+
+  void setEqPreset(String preset) {
+    _settingsRepo.putSettingStr(SettingKeys.eqPreset, preset);
+    emit(state.copyWith(eqPreset: preset));
   }
 
   Future<void> resetDownPath() async {

@@ -4,6 +4,7 @@ import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
+import 'package:Bloomee/screens/screen/player_views/equalizer_view.dart';
 import 'package:Bloomee/screens/widgets/gradient_progress_bar.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
@@ -14,7 +15,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:Bloomee/screens/widgets/like_widget.dart';
 import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -24,7 +25,7 @@ import 'package:Bloomee/utils/pallete_generator.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../blocs/media_player/bloomee_player_cubit.dart';
-import '../../blocs/mini_player/mini_player_bloc.dart';
+import '../../blocs/mini_player/mini_player_cubit.dart';
 import 'player_views/fullscreen_lyrics_view.dart';
 import 'player_views/lyrics_widget.dart';
 
@@ -439,8 +440,7 @@ class _LikeButton extends StatelessWidget {
     return StreamBuilder<ProgressBarStreams>(
         stream: bloomeePlayerCubit.progressStreams,
         builder: (context, progressSnapshot) {
-          final isPlaying =
-              progressSnapshot.data?.currentPlayerState.playing ?? false;
+          final isPlaying = progressSnapshot.data?.isPlaying ?? false;
           return FutureBuilder(
             future: context.read<LibraryItemsCubit>().isMediaLiked(
                 mediaItem2MediaItemModel(
@@ -486,12 +486,11 @@ class _PlayerProgressBar extends StatelessWidget {
           stream: bloomeePlayerCubit.progressStreams,
           builder: (context, snapshot) {
             final data = snapshot.data;
-            final isPlaying = data?.currentPlayerState.playing ?? false;
+            final isPlaying = data?.isPlaying ?? false;
             return GradientProgressBar.fromAccentColors(
-              progress: data?.currentPos ?? Duration.zero,
-              total: data?.currentPlaybackState.duration ?? Duration.zero,
-              buffered:
-                  data?.currentPlaybackState.bufferedPosition ?? Duration.zero,
+              progress: data?.position ?? Duration.zero,
+              total: data?.duration ?? Duration.zero,
+              buffered: data?.buffered ?? Duration.zero,
               onSeek: (value) {
                 bloomeePlayerCubit.bloomeePlayer.seek(value);
               },
@@ -612,7 +611,23 @@ class _PlayerControlsRow extends StatelessWidget {
             icon: const Icon(MingCute.skip_forward_fill,
                 color: Default_Theme.primaryColor1, size: 30),
           ),
-          bottomWidget: null,
+          bottomWidget: Tooltip(
+            message: "Equalizer",
+            child: IconButton(
+              padding: const EdgeInsets.all(5),
+              constraints: const BoxConstraints(),
+              style: const ButtonStyle(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              icon: const Icon(Icons.equalizer_rounded,
+                  color: Default_Theme.primaryColor1, size: 24),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EqualizerView()),
+                );
+              },
+            ),
+          ),
         ),
         _buildControlColumn(
           topWidget: const _ShuffleControl(),
@@ -761,43 +776,32 @@ class _PlayPauseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final musicPlayer = context.read<BloomeePlayerCubit>().bloomeePlayer;
-    return BlocBuilder<MiniPlayerBloc, MiniPlayerState>(
+    return BlocBuilder<MiniPlayerCubit, MiniPlayerState>(
       builder: (context, state) {
         Widget child;
-        // Determine button color based on state
-        // - Playing/Working states: accentColor1 (sky blue) handled by PlayPauseButton
-        // - Completed (repeat icon): accentColor1 (sky blue)
-        // - Initial/Processing/Error: accentColor2 (pink)
         Color buttonColor = Default_Theme.accentColor2;
 
-        if (state is MiniPlayerInitial || state is MiniPlayerProcessing) {
+        if (state.isLoading) {
           child = const CircularProgressIndicator(
               color: Default_Theme.primaryColor1);
-          buttonColor = Default_Theme.accentColor2;
-        } else if (state is MiniPlayerCompleted) {
+          buttonColor = state.isPlaying
+              ? Default_Theme.accentColor1
+              : Default_Theme.accentColor2;
+        } else if (state.isCompleted) {
           child = const Icon(FontAwesome.rotate_right_solid,
               color: Default_Theme.primaryColor1, size: 35);
-          buttonColor =
-              Default_Theme.accentColor1; // Sky blue for completed/repeat
-        } else if (state is MiniPlayerError) {
+          buttonColor = Default_Theme.accentColor1;
+        } else if (state.hasError) {
           child = const Icon(MingCute.warning_line,
               color: Default_Theme.primaryColor1);
           buttonColor = Default_Theme.accentColor2;
-        } else if (state is MiniPlayerWorking) {
-          if (state.isBuffering) {
-            child = const CircularProgressIndicator(
-                color: Default_Theme.primaryColor1);
-            buttonColor = state.isPlaying
-                ? Default_Theme.accentColor1
-                : Default_Theme.accentColor2;
-          } else {
-            return PlayPauseButton(
-              size: 75,
-              onPause: () => musicPlayer.pause(),
-              onPlay: () => musicPlayer.play(),
-              isPlaying: state.isPlaying,
-            );
-          }
+        } else if (state.isVisible) {
+          return PlayPauseButton(
+            size: 75,
+            onPause: () => musicPlayer.pause(),
+            onPlay: () => musicPlayer.play(),
+            isPlaying: state.isPlaying,
+          );
         } else {
           child = const SizedBox();
         }

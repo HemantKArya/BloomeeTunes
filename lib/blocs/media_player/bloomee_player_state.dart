@@ -11,13 +11,17 @@ final class BloomeePlayerInitial extends BloomeePlayerState {
   BloomeePlayerInitial() : super(isReady: false);
 }
 
+/// Simplified progress bar data using only [Duration] values,
+/// decoupled from any audio library types.
 class ProgressBarStreams {
-  late Duration currentPos;
-  late PlaybackEvent currentPlaybackState;
-  late PlayerState currentPlayerState;
+  final Duration position;
+  final Duration duration;
+  final Duration buffered;
+  final bool isPlaying;
   ProgressBarStreams({
-    required this.currentPos,
-    required this.currentPlaybackState,
-    required this.currentPlayerState,
+    required this.position,
+    required this.duration,
+    required this.buffered,
+    required this.isPlaying,
   });
 }

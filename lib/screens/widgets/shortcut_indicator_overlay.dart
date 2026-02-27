@@ -3,7 +3,7 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:Bloomee/services/player/player_engine.dart';
 
 /// Global overlay widget that shows animated shortcut indicators.
 /// Place this high in the widget tree to show indicators anywhere in the app.

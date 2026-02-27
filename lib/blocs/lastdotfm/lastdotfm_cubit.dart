@@ -12,7 +12,7 @@ import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -54,8 +54,8 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     }
 
     scrobbleSub = playerCubit.progressStreams.listen((event) {
-      if (playerCubit.bloomeePlayer.audioPlayer.playing &&
-          event.currentPlaybackState.processingState == ProcessingState.ready) {
+      if (playerCubit.bloomeePlayer.engine.playing &&
+          playerCubit.bloomeePlayer.engine.state == EngineState.ready) {
         if (lastPlayed != playerCubit.bloomeePlayer.currentMedia ||
             !stopwatch.isRunning) {
           if (stopwatch.isRunning) {
