@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/song_model.dart';
 
 class SongSearchResult {
   final MediaItemModel song;

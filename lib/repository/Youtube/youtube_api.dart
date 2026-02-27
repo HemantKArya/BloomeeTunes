@@ -1,16 +1,31 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/global_db.dart';
 import 'package:html_unescape/html_unescape_small.dart';
 import 'package:http/http.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+
+/// Type aliases for persistence callbacks.
+///
+/// API clients should NOT depend on the DB layer directly.
+/// Instead, callers inject these callbacks from the repository layer.
+typedef YtCacheReader = Future<YtLinkCacheDB?> Function(String id);
+typedef YtCacheWriter = Future<void> Function(
+    String id, String lowUrl, String highUrl, int expireAt);
+typedef SettingReader = Future<String?> Function(String key,
+    {String? defaultValue});
 
 class YouTubeServices {
   // Singleton instance
   static final YouTubeServices _instance = YouTubeServices._internal();
   late String appDocPath;
   late String appSuppPath;
+
+  /// Optional persistence callbacks — injected from the repository layer.
+  YtCacheReader? ytCacheReader;
+  YtCacheWriter? ytCacheWriter;
+  SettingReader? settingReader;
 
   // Private constructor
   YouTubeServices._internal();
@@ -24,14 +39,6 @@ class YouTubeServices {
     }
     if (appSuppPath != null) {
       _instance.appSuppPath = appSuppPath;
-    }
-    if (appDocPath != null && appSuppPath != null) {
-      {
-        BloomeeDBService(
-          appDocPath: appDocPath,
-          appSuppPath: appSuppPath,
-        );
-      }
     }
     return _instance;
   }
@@ -69,25 +76,22 @@ class YouTubeServices {
     required String id,
     Map? data,
     bool? getUrl,
+    String? quality,
   }) async {
     final Video? vid = await getVideoFromId(id);
     if (vid == null) {
       return null;
     }
+    // Use provided quality, or read from settings via callback, or default
+    final resolvedQuality = quality ??
+        (settingReader != null
+            ? (await settingReader!('ytQuality', defaultValue: 'Low') ?? 'Low')
+            : 'Low');
     final Map? response = await formatVideo(
       video: vid,
-      quality: await BloomeeDBService.getSettingStr(
-            'ytQuality',
-            defaultValue: 'Low',
-          ) ??
-          'Low',
+      quality: resolvedQuality,
       data: data,
       getUrl: getUrl ?? true,
-      // preferM4a: Hive.box(
-      //         'settings')
-      //     .get('preferM4a',
-      //         defaultValue:
-      //             true) as bool
     );
     return response;
   }
@@ -371,8 +375,8 @@ class YouTubeServices {
     String expireAt = '0';
     if (getUrl) {
       // check cache first
-      if (checkCache) {
-        final ytCache = await BloomeeDBService.getYtLinkCache(video.id.value);
+      if (checkCache && ytCacheReader != null) {
+        final ytCache = await ytCacheReader!(video.id.value);
         if (ytCache != null) {
           if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 >
               ytCache.expireAt) {
@@ -406,12 +410,14 @@ class YouTubeServices {
               .toString();
 
       try {
-        BloomeeDBService.putYtLinkCache(
-          video.id.value,
-          urls.first,
-          urls.last,
-          int.parse(expireAt),
-        );
+        if (ytCacheWriter != null) {
+          await ytCacheWriter!(
+            video.id.value,
+            urls.first,
+            urls.last,
+            int.parse(expireAt),
+          );
+        }
       } catch (e) {
         log('DB Error in formatVideo,\nError:', error: e, name: "YoutubeAPI");
       }

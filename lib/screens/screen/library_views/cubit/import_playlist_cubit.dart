@@ -1,10 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
-import 'package:Bloomee/repository/Youtube/youtube_api.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
+import 'package:Bloomee/repository/youtube/youtube_api.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 
 class ImportPlaylistState {
   String playlistName;
@@ -73,11 +73,13 @@ class ImportPlaylistStateComplete extends ImportPlaylistState {
 class ImportPlaylistCubit extends Cubit<ImportPlaylistState> {
   BehaviorSubject<ImportPlaylistState> importYtPlaylistBS =
       BehaviorSubject.seeded(ImportPlaylistStateInitial());
+  final PlaylistDAO _playlistDao;
 
-  ImportPlaylistCubit() : super(ImportPlaylistStateInitial());
+  ImportPlaylistCubit({PlaylistDAO? playlistDao})
+      : _playlistDao = playlistDao ?? PlaylistDAO(DBProvider.db),
+        super(ImportPlaylistStateInitial());
   Future<void> fetchYtPlaylistByID(
     String ytPlaylistID,
-    BloomeeDBCubit BloomeeDBCubit,
   ) async {
     importYtPlaylistBS.add(ImportPlaylistStateInitial());
     // try {
@@ -86,7 +88,6 @@ class ImportPlaylistCubit extends Cubit<ImportPlaylistState> {
     final playlist = (result[0]["items"] as List);
     print("2 ${playlist.toString()}");
     if (playlist.isNotEmpty) {
-      print("3");
       for (int i = 0; i < playlist.length; i++) {
         print("4 ${result[0]["metadata"]}");
         print(playlist[i].toString());
@@ -99,8 +100,8 @@ class ImportPlaylistCubit extends Cubit<ImportPlaylistState> {
         // print("5 ${playlist[i].toString()}");
         MediaItemModel mediaItemModel = fromYtVidSongMap2MediaItem(playlist[i]);
         print("5 ${mediaItemModel.toString()}");
-        BloomeeDBCubit.addMediaItemToPlaylist(mediaItemModel,
-            MediaPlaylistDB(playlistName: result[0]["metadata"].title));
+        await _playlistDao.addMediaItem(
+            mediaItemToMediaItemDB(mediaItemModel), result[0]["metadata"].title);
       }
     }
     // } catch (e) {

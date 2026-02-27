@@ -1,7 +1,7 @@
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 

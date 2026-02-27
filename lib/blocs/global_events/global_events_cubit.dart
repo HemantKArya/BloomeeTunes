@@ -1,15 +1,19 @@
 import 'dart:developer';
 
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/services/bloomeeUpdaterTools.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/bloomee_updater_tools.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 part 'global_events_state.dart';
 
 class GlobalEventsCubit extends Cubit<GlobalEventsState> {
-  GlobalEventsCubit() : super(GlobalEventsInitial()) {
+  final SettingsDAO _settingsDao;
+
+  GlobalEventsCubit({required SettingsDAO settingsDao})
+      : _settingsDao = settingsDao,
+        super(GlobalEventsInitial()) {
     checkForUpdates();
   }
 
@@ -21,8 +25,8 @@ class GlobalEventsCubit extends Cubit<GlobalEventsState> {
       emit(WhatIsNewState(changeLogs: updates['changelogs']));
     }
 
-    if (await BloomeeDBService.getSettingBool(
-            GlobalStrConsts.autoUpdateNotify) ??
+    if (await _settingsDao.getSettingBool(
+            SettingKeys.autoUpdateNotify) ??
         true) {
       if (updates["results"]) {
         emit(UpdateAvailable(

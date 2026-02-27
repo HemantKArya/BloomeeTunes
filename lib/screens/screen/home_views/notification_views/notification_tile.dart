@@ -1,8 +1,8 @@
 import 'dart:developer';
 
 import 'package:Bloomee/screens/screen/home_views/setting_views/check_update_view.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 

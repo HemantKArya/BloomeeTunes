@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/services/m3u_processor.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -17,7 +18,7 @@ class ImportExportService {
   /// Returns `true` if the playlist exists, otherwise `false`.
   static Future<bool> isPlaylistExists(String playlistName) async {
     // Fetch all playlists from the library.
-    final _list = await BloomeeDBService.getPlaylists4Library();
+    final _list = await PlaylistDAO(DBProvider.db).getPlaylists4Library();
     for (final playlist in _list) {
       if (playlist.playlistName == playlistName) {
         return true;
@@ -32,12 +33,13 @@ class ImportExportService {
   /// Returns the file path of the exported JSON file, or `null` if an error occurs.
   static Future<String?> exportPlaylist(String playlistName,
       {String? filePath}) async {
-    final mediaPlaylistDB = await BloomeeDBService.getPlaylist(playlistName);
+    final mediaPlaylistDB =
+        await PlaylistDAO(DBProvider.db).getPlaylist(playlistName);
     if (mediaPlaylistDB != null) {
       try {
         // Fetch all media items in the playlist.
         List<MediaItemDB>? playlistItems =
-            await BloomeeDBService.getPlaylistItems(mediaPlaylistDB);
+            await PlaylistDAO(DBProvider.db).getPlaylistItems(mediaPlaylistDB);
         final packageInfo = await PackageInfo.fromPlatform();
 
         if (playlistItems != null) {
@@ -131,7 +133,8 @@ class ImportExportService {
           // Add each media item in the playlist to the database.
           for (final mediaItemMap in playlistMap['mediaItems']) {
             final mediaItemDB = MediaItemDB.fromMap(mediaItemMap);
-            await BloomeeDBService.addMediaItem(mediaItemDB, playlistName);
+            await PlaylistDAO(DBProvider.db)
+                .addMediaItem(mediaItemDB, playlistName);
             log("Media item imported successfully - ${mediaItemDB.title}",
                 name: "FileManager");
           }
@@ -158,7 +161,7 @@ class ImportExportService {
       await readFromJSON(filePath).then((mediaItemMap) {
         if (mediaItemMap != null && mediaItemMap.isNotEmpty) {
           final mediaItemDB = MediaItemDB.fromMap(mediaItemMap);
-          BloomeeDBService.addMediaItem(mediaItemDB, "Imported");
+          PlaylistDAO(DBProvider.db).addMediaItem(mediaItemDB, "Imported");
           log("Media item imported successfully");
         }
       });
@@ -301,12 +304,13 @@ class ImportExportService {
   /// Export/Import M3U/M3U8 playlist
   static Future<String?> exportM3UPlaylist(
       String playlistName, List<MediaItemDB> mediaItems) async {
-    final mediaPlaylistDB = await BloomeeDBService.getPlaylist(playlistName);
+    final mediaPlaylistDB =
+        await PlaylistDAO(DBProvider.db).getPlaylist(playlistName);
     if (mediaPlaylistDB != null) {
       try {
         // Fetch all media items in the playlist.
         List<MediaItemDB>? playlistItems =
-            await BloomeeDBService.getPlaylistItems(mediaPlaylistDB);
+            await PlaylistDAO(DBProvider.db).getPlaylistItems(mediaPlaylistDB);
         final packageInfo = await PackageInfo.fromPlatform();
 
         if (playlistItems != null) {

@@ -1,8 +1,9 @@
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
 
 // The final changelog string for testing all features
 const String changelogText = """
@@ -320,8 +321,9 @@ class ChangelogScreen extends StatelessWidget {
               installedLabel != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               // Saved value must be in the format "vX.Y.Z"
-              BloomeeDBService.putSettingStr(
-                  GlobalStrConsts.readChangelogs, installedLabel);
+              context
+                  .read<SettingsCubit>()
+                  .putSettingStr(SettingKeys.readChangelogs, installedLabel);
             });
           }
 

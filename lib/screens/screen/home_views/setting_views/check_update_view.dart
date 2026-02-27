@@ -1,6 +1,6 @@
-import 'package:Bloomee/services/bloomeeUpdaterTools.dart';
+import 'package:Bloomee/services/bloomee_updater_tools.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/url_launcher.dart';
 import 'package:icons_plus/icons_plus.dart';
 

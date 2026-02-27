@@ -1,11 +1,11 @@
 // Page for editing playlist title,description and reordering playlist items
 import 'dart:developer';
 import 'dart:ui';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';

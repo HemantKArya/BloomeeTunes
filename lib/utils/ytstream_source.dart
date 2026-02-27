@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:isolate';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
@@ -90,7 +91,7 @@ Future<void> cacheYtStreams({
       (DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600 * 5.5).toString();
 
   try {
-    BloomeeDBService.putYtLinkCache(
+    CacheDAO(DBProvider.db).putYtLinkCache(
       id,
       jsonEncode(lURL.toJson()),
       jsonEncode(hURL.toJson()),
@@ -103,7 +104,7 @@ Future<void> cacheYtStreams({
 }
 
 Future<List<AudioOnlyStreamInfo>?> getStreamFromCache(String id) async {
-  final cache = await BloomeeDBService.getYtLinkCache(id);
+  final cache = await CacheDAO(DBProvider.db).getYtLinkCache(id);
   if (cache != null) {
     final expireAt = cache.expireAt;
     if (expireAt > DateTime.now().millisecondsSinceEpoch ~/ 1000) {

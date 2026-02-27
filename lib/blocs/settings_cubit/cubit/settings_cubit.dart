@@ -1,32 +1,35 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:Bloomee/model/source_engines.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/core/constants/cache_keys.dart';
+import 'package:Bloomee/repository/bloomee/settings_repository.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 part 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
-  SettingsCubit() : super(SettingsInitial()) {
+  final SettingsRepository _settingsRepo;
+
+  SettingsCubit(this._settingsRepo) : super(SettingsInitial()) {
     initSettings();
     autoUpdate();
   }
 
 // Initialize the settings from the database
   void initSettings() {
-    BloomeeDBService.getSettingBool(GlobalStrConsts.autoUpdateNotify)
-        .then((value) {
+    _settingsRepo.getSettingBool(SettingKeys.autoUpdateNotify).then((value) {
       emit(state.copyWith(autoUpdateNotify: value ?? false));
     });
 
-    BloomeeDBService.getSettingBool(GlobalStrConsts.autoSlideCharts)
-        .then((value) {
+    _settingsRepo.getSettingBool(SettingKeys.autoSlideCharts).then((value) {
       emit(state.copyWith(autoSlideCharts: value ?? true));
     });
 
-    BloomeeDBService.getSettingStr(GlobalStrConsts.downPathSetting)
+    _settingsRepo
+        .getSettingStr(SettingKeys.downPathSetting)
         .then((value) async {
       String path;
       if (value != null) {
@@ -41,80 +44,79 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(state.copyWith(downPath: path));
     });
 
-    BloomeeDBService.getSettingStr(GlobalStrConsts.downQuality,
-            defaultValue: '320 kbps')
+    _settingsRepo
+        .getSettingStr(SettingKeys.downQuality, defaultValue: '320 kbps')
         .then((value) {
       emit(state.copyWith(downQuality: value ?? "320 kbps"));
     });
 
-    BloomeeDBService.getSettingStr(GlobalStrConsts.ytDownQuality).then((value) {
+    _settingsRepo.getSettingStr(SettingKeys.ytDownQuality).then((value) {
       emit(state.copyWith(ytDownQuality: value ?? "High"));
     });
 
-    BloomeeDBService.getSettingStr(
-      GlobalStrConsts.strmQuality,
-    ).then((value) {
+    _settingsRepo
+        .getSettingStr(
+      SettingKeys.strmQuality,
+    )
+        .then((value) {
       emit(state.copyWith(strmQuality: value ?? "96 kbps"));
     });
 
-    BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality).then((value) {
+    _settingsRepo.getSettingStr(SettingKeys.ytStrmQuality).then((value) {
       if (value == "High" || value == "Low") {
         emit(state.copyWith(ytStrmQuality: value ?? "Low"));
       } else {
-        BloomeeDBService.putSettingStr(GlobalStrConsts.ytStrmQuality, "Low");
+        _settingsRepo.putSettingStr(SettingKeys.ytStrmQuality, "Low");
         emit(state.copyWith(ytStrmQuality: "Low"));
       }
     });
 
-    BloomeeDBService.getSettingStr(GlobalStrConsts.historyClearTime)
-        .then((value) {
+    _settingsRepo.getSettingStr(SettingKeys.historyClearTime).then((value) {
       emit(state.copyWith(historyClearTime: value ?? "30"));
     });
 
-    BloomeeDBService.getSettingBool(GlobalStrConsts.lFMScrobbleSetting)
-        .then((value) {
+    _settingsRepo.getSettingBool(CacheKeys.lFMScrobbleSetting).then((value) {
       emit(state.copyWith(lastFMScrobble: value ?? false));
     });
 
-    BloomeeDBService.getSettingBool(
-      GlobalStrConsts.autoPlay,
-    ).then((value) {
+    _settingsRepo
+        .getSettingBool(
+      SettingKeys.autoPlay,
+    )
+        .then((value) {
       emit(state.copyWith(autoPlay: value ?? true));
     });
 
-    BloomeeDBService.getSettingBool(GlobalStrConsts.lFMUIPicks).then((value) {
+    _settingsRepo.getSettingBool(CacheKeys.lFMUIPicks).then((value) {
       emit(state.copyWith(lFMPicks: value ?? false));
     });
 
-    BloomeeDBService.getSettingStr(GlobalStrConsts.backupPath)
-        .then((value) async {
-      final defaultBackUpDir = await BloomeeDBService.getDbBackupFilePath();
+    _settingsRepo.getSettingStr(SettingKeys.backupPath).then((value) async {
+      final defaultBackUpDir = await DBProvider.getDbBackupFilePath();
 
-      await BloomeeDBService.putSettingStr(
-          GlobalStrConsts.backupPath, defaultBackUpDir);
+      await _settingsRepo.putSettingStr(
+          SettingKeys.backupPath, defaultBackUpDir);
       emit(state.copyWith(backupPath: defaultBackUpDir));
     });
 
-    BloomeeDBService.getSettingBool(GlobalStrConsts.autoBackup).then((value) {
+    _settingsRepo.getSettingBool(SettingKeys.autoBackup).then((value) {
       emit(state.copyWith(autoBackup: value ?? false));
     });
 
-    BloomeeDBService.getSettingBool(GlobalStrConsts.autoGetCountry)
-        .then((value) {
+    _settingsRepo.getSettingBool(SettingKeys.autoGetCountry).then((value) {
       emit(state.copyWith(autoGetCountry: value ?? false));
     });
 
-    BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode).then((value) {
+    _settingsRepo.getSettingStr(SettingKeys.countryCode).then((value) {
       emit(state.copyWith(countryCode: value ?? "IN"));
     });
 
-    BloomeeDBService.getSettingBool(GlobalStrConsts.autoSaveLyrics)
-        .then((value) {
+    _settingsRepo.getSettingBool(SettingKeys.autoSaveLyrics).then((value) {
       emit(state.copyWith(autoSaveLyrics: value ?? false));
     });
 
     for (var eg in SourceEngine.values) {
-      BloomeeDBService.getSettingBool(eg.value).then((value) {
+      _settingsRepo.getSettingBool(eg.value).then((value) {
         List<bool> switches = List.from(state.sourceEngineSwitches);
         switches[SourceEngine.values.indexOf(eg)] = value ?? true;
         emit(state.copyWith(sourceEngineSwitches: switches));
@@ -123,7 +125,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
 
     Map chartMap = Map.from(state.chartMap);
-    BloomeeDBService.getSettingStr(GlobalStrConsts.chartShowMap).then((value) {
+    _settingsRepo.getSettingStr(SettingKeys.chartShowMap).then((value) {
       if (value != null) {
         chartMap = jsonDecode(value);
       }
@@ -134,103 +136,102 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setChartShow(String title, bool value) {
     Map chartMap = Map.from(state.chartMap);
     chartMap[title] = value;
-    BloomeeDBService.putSettingStr(
-        GlobalStrConsts.chartShowMap, jsonEncode(chartMap));
+    _settingsRepo.putSettingStr(SettingKeys.chartShowMap, jsonEncode(chartMap));
     emit(state.copyWith(chartMap: Map.from(chartMap)));
   }
 
   Future<void> setAutoPlay(bool value) async {
-    await BloomeeDBService.putSettingBool(GlobalStrConsts.autoPlay, value);
+    await _settingsRepo.putSettingBool(SettingKeys.autoPlay, value);
     emit(state.copyWith(autoPlay: value));
   }
 
   void autoUpdate() {
-    BloomeeDBService.getSettingBool(GlobalStrConsts.autoBackup).then((value) {
+    _settingsRepo.getSettingBool(SettingKeys.autoBackup).then((value) {
       if (value != null || value == true) {
-        BloomeeDBService.createBackUp();
+        DBProvider.createBackUp();
       }
     });
   }
 
   void setCountryCode(String value) {
-    BloomeeDBService.putSettingStr(GlobalStrConsts.countryCode, value);
+    _settingsRepo.putSettingStr(SettingKeys.countryCode, value);
     emit(state.copyWith(countryCode: value));
   }
 
   void setAutoSaveLyrics(bool value) {
-    BloomeeDBService.putSettingBool(GlobalStrConsts.autoSaveLyrics, value);
+    _settingsRepo.putSettingBool(SettingKeys.autoSaveLyrics, value);
     emit(state.copyWith(autoSaveLyrics: value));
   }
 
   void setLastFMScrobble(bool value) {
-    BloomeeDBService.putSettingBool(GlobalStrConsts.lFMScrobbleSetting, value);
+    _settingsRepo.putSettingBool(CacheKeys.lFMScrobbleSetting, value);
     emit(state.copyWith(lastFMScrobble: value));
   }
 
   void setLastFMExpore(bool value) {
-    BloomeeDBService.putSettingBool(GlobalStrConsts.lFMUIPicks, value);
+    _settingsRepo.putSettingBool(CacheKeys.lFMUIPicks, value);
     emit(state.copyWith(lFMPicks: value));
   }
 
   void setAutoGetCountry(bool value) {
-    BloomeeDBService.putSettingBool(GlobalStrConsts.autoGetCountry, value);
+    _settingsRepo.putSettingBool(SettingKeys.autoGetCountry, value);
     emit(state.copyWith(autoGetCountry: value));
   }
 
   void setAutoUpdateNotify(bool value) {
-    BloomeeDBService.putSettingBool(GlobalStrConsts.autoUpdateNotify, value);
+    _settingsRepo.putSettingBool(SettingKeys.autoUpdateNotify, value);
     emit(state.copyWith(autoUpdateNotify: value));
   }
 
   void setAutoSlideCharts(bool value) {
-    BloomeeDBService.putSettingBool(GlobalStrConsts.autoSlideCharts, value);
+    _settingsRepo.putSettingBool(SettingKeys.autoSlideCharts, value);
     emit(state.copyWith(autoSlideCharts: value));
   }
 
   void setDownPath(String value) {
-    BloomeeDBService.putSettingStr(GlobalStrConsts.downPathSetting, value);
+    _settingsRepo.putSettingStr(SettingKeys.downPathSetting, value);
     emit(state.copyWith(downPath: value));
   }
 
   void setDownQuality(String value) {
-    BloomeeDBService.putSettingStr(GlobalStrConsts.downQuality, value);
+    _settingsRepo.putSettingStr(SettingKeys.downQuality, value);
     emit(state.copyWith(downQuality: value));
   }
 
   void setYtDownQuality(String value) {
-    BloomeeDBService.putSettingStr(GlobalStrConsts.ytDownQuality, value);
+    _settingsRepo.putSettingStr(SettingKeys.ytDownQuality, value);
     emit(state.copyWith(ytDownQuality: value));
   }
 
   void setStrmQuality(String value) {
-    BloomeeDBService.putSettingStr(GlobalStrConsts.strmQuality, value);
+    _settingsRepo.putSettingStr(SettingKeys.strmQuality, value);
     emit(state.copyWith(strmQuality: value));
   }
 
   void setYtStrmQuality(String value) {
-    BloomeeDBService.putSettingStr(GlobalStrConsts.ytStrmQuality, value);
+    _settingsRepo.putSettingStr(SettingKeys.ytStrmQuality, value);
     emit(state.copyWith(ytStrmQuality: value));
   }
 
   void setBackupPath(String value) {
-    BloomeeDBService.putSettingStr(GlobalStrConsts.backupPath, value);
+    _settingsRepo.putSettingStr(SettingKeys.backupPath, value);
     emit(state.copyWith(backupPath: value));
   }
 
   void setAutoBackup(bool value) {
-    BloomeeDBService.putSettingBool(GlobalStrConsts.autoBackup, value);
+    _settingsRepo.putSettingBool(SettingKeys.autoBackup, value);
     emit(state.copyWith(autoBackup: value));
   }
 
   void setHistoryClearTime(String value) {
-    BloomeeDBService.putSettingStr(GlobalStrConsts.historyClearTime, value);
+    _settingsRepo.putSettingStr(SettingKeys.historyClearTime, value);
     emit(state.copyWith(historyClearTime: value));
   }
 
   void setSourceEngineSwitches(int index, bool value) {
     List<bool> switches = List.from(state.sourceEngineSwitches);
     switches[index] = value;
-    BloomeeDBService.putSettingBool(SourceEngine.values[index].value, value);
+    _settingsRepo.putSettingBool(SourceEngine.values[index].value, value);
     emit(state.copyWith(sourceEngineSwitches: List.from(switches)));
   }
 
@@ -242,5 +243,18 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     setDownPath(path);
     log("Download path reset to: $path", name: 'SettingsCubit');
+  }
+
+  Future<List<SourceEngine>> getAvailableSourceEngines() async {
+    return _settingsRepo.getAvailableSourceEngines();
+  }
+
+  Future<String?> getJsQualityURL(String url, {bool isStreaming = true}) async {
+    return _settingsRepo.getJsQualityURL(url, isStreaming: isStreaming);
+  }
+
+  /// Generic setting write — for one-off setting updates from UI.
+  Future<void> putSettingStr(String key, String value) async {
+    await _settingsRepo.putSettingStr(key, value);
   }
 }

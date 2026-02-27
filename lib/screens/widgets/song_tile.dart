@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/screens/screen/common_views/song_info_screen.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -9,10 +9,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/theme_data/default.dart';
-import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/utils/load_image.dart';
 
 // Cached styles to avoid repeated merges
 class _SongCardStyles {
@@ -436,21 +436,21 @@ class _DeleteButton extends StatelessWidget {
       padding: const EdgeInsets.only(left: 2),
       child: IconButton(
         icon: _SongCardStyles.deleteIcon,
-        onPressed: _handleDelete,
+        onPressed: () => _handleDelete(context),
       ),
     );
   }
 
-  void _handleDelete() {
+  void _handleDelete(BuildContext context) {
     try {
       if (playerCubit.bloomeePlayer.currentMedia.id != song.id) {
-        BloomeeDBService.removeDownloadDB(song);
+        context.read<DownloaderCubit>().removeDownload(song);
         SnackbarService.showMessage("Removed ${song.title}");
       } else {
         SnackbarService.showMessage("Cannot delete currently playing song");
       }
     } catch (e) {
-      BloomeeDBService.removeDownloadDB(song);
+      context.read<DownloaderCubit>().removeDownload(song);
       SnackbarService.showMessage("Removed ${song.title}");
     }
   }

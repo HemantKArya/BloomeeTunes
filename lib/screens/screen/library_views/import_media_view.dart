@@ -1,17 +1,17 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/external_list_importer.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/import_playlist.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 
 enum ImportType {
   spotifyPlaylist,
@@ -266,6 +266,8 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                     borderSide: BorderSide.none,
                                   )),
                               onSubmitted: (value) {
+                                final libraryItemsCubit =
+                                    context.read<LibraryItemsCubit>();
                                 switch (importType) {
                                   case ImportType.spotifyPlaylist:
                                     context.pop(context);
@@ -285,9 +287,8 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                             value)
                                         .then((value) {
                                       if (value != null) {
-                                        BloomeeDBService.addMediaItem(
-                                            MediaItem2MediaItemDB(value),
-                                            "Spotify Imports");
+                                        libraryItemsCubit.addToPlaylist(
+                                            value, "Spotify Imports");
                                         SnackbarService.showMessage(
                                             "Imported Media: ${value.title}");
                                       } else {
@@ -323,9 +324,8 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                     ExternalMediaImporter.ytMediaImporter(value)
                                         .then((value) {
                                       if (value != null) {
-                                        BloomeeDBService.addMediaItem(
-                                            MediaItem2MediaItemDB(value),
-                                            "Youtube Imports");
+                                        libraryItemsCubit.addToPlaylist(
+                                            value, "Youtube Imports");
                                         SnackbarService.showMessage(
                                             "Imported Media: ${value.title}");
                                       } else {
@@ -365,9 +365,8 @@ Future getIdAndShowBottomSheet(BuildContext context,
                                             value)
                                         .then((value) {
                                       if (value != null) {
-                                        BloomeeDBService.addMediaItem(
-                                            MediaItem2MediaItemDB(value),
-                                            "Youtube Imports");
+                                        libraryItemsCubit.addToPlaylist(
+                                            value, "Youtube Imports");
                                         SnackbarService.showMessage(
                                             "Imported Media: ${value.title}");
                                       } else {

@@ -1,5 +1,5 @@
 import 'package:Bloomee/model/lyrics_models.dart';
-import 'package:Bloomee/repository/Lyrics/lrcnet_api.dart';
+import 'package:Bloomee/repository/lyrics/lrcnet_api.dart';
 
 class LyricsRepository {
   static Future<Lyrics> getLyrics(

@@ -2,17 +2,19 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
-import 'package:Bloomee/model/saavnModel.dart';
+import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:Bloomee/utils/audio_tagger.dart';
 import 'package:Bloomee/utils/dload.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:metadata_god/metadata_god.dart';
 import 'package:path/path.dart' as path;
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/repository/bloomee/download_repository.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path_provider/path_provider.dart';
@@ -23,6 +25,9 @@ part 'downloader_state.dart';
 class DownloaderCubit extends Cubit<DownloaderState> {
   final ConnectivityCubit connectivityCubit;
   final LibraryItemsCubit libraryItemsCubit;
+  final DownloadRepository _downloadRepo;
+  final SettingsDAO _settingsDao;
+  final SettingsRepository _settingsRepo;
   final DownloadEngine _downloadEngine = DownloadEngine();
   final List<DownloadProgress> _activeDownloads = [];
   final YoutubeExplode _yt = YoutubeExplode();
@@ -32,7 +37,13 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   DownloaderCubit({
     required this.connectivityCubit,
     required this.libraryItemsCubit,
-  }) : super(DownloaderInitial()) {
+    required DownloadRepository downloadRepo,
+    required SettingsDAO settingsDao,
+    required SettingsRepository settingsRepo,
+  })  : _downloadRepo = downloadRepo,
+        _settingsDao = settingsDao,
+        _settingsRepo = settingsRepo,
+        super(DownloaderInitial()) {
     _downloadEngine.onTaskAdded = _handleNewTask;
     MetadataGod.initialize();
     _setupLibrarySubscription();
@@ -48,8 +59,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     }
     // For other platforms, use the application documents directory by default
     // This can be adjusted based on your requirements
-    final path =
-        await BloomeeDBService.getSettingStr(GlobalStrConsts.downPathSetting);
+    final path = await _settingsDao.getSettingStr(SettingKeys.downPathSetting);
     if (path != null) {
       return Directory(path);
     }
@@ -65,7 +75,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   }
 
   Future<void> _loadDownloadedSongs() async {
-    final list = await BloomeeDBService.getDownloadedSongs();
+    final list = await _downloadRepo.getDownloadedSongs();
     _downloadedSongs = List<MediaItemModel>.from(list);
     _emitUpdatedState();
   }
@@ -118,7 +128,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
     // Only save to DB if it was a song with a MediaItemModel
     final downloadDirectory = path.dirname(task.targetPath);
-    await BloomeeDBService.putDownloadDB(
+    await _downloadRepo.saveDownload(
         fileName: task.fileName,
         filePath: downloadDirectory,
         lastDownloaded: DateTime.now(),
@@ -147,7 +157,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
   /// --- NEW: Checks the database and filesystem for an existing download ---
   Future<bool> _isAlreadyDownloaded(MediaItemModel song) async {
-    final dbRecord = await BloomeeDBService.getDownloadDB(song);
+    final dbRecord = await _downloadRepo.getDownload(song);
     if (dbRecord != null) {
       final file = File(path.join(dbRecord.filePath, dbRecord.fileName));
       if (await file.exists()) {
@@ -158,7 +168,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         // The record is stale (in DB but file is missing), so remove it.
         log("Stale DB record found for ${song.title}. Removing.",
             name: "DownloaderCubit");
-        await BloomeeDBService.removeDownloadDB(song);
+        await _downloadRepo.removeDownload(song);
         return false;
       }
     }
@@ -244,7 +254,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         var manifest = await _yt.videos.streams.getManifest(video.id,
             requireWatchPage: true, ytClients: [YoutubeApiClient.androidVr]);
         AudioOnlyStreamInfo? audioStreamInfo;
-        await BloomeeDBService.getSettingStr(GlobalStrConsts.ytDownQuality)
+        await _settingsDao
+            .getSettingStr(SettingKeys.ytDownQuality)
             .then((quality) {
           if (quality == "High") {
             audioStreamInfo = manifest.audioOnly
@@ -282,13 +293,13 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       } else {
         downloadUrl = song.extras!['url'];
         final quality =
-            await BloomeeDBService.getSettingStr(GlobalStrConsts.downQuality);
+            await _settingsDao.getSettingStr(SettingKeys.downQuality);
         if (quality == "High") {
-          downloadUrl =
-              (await getJsQualityURL(downloadUrl, isStreaming: false))!;
+          downloadUrl = (await _settingsRepo.getJsQualityURL(downloadUrl,
+              isStreaming: false))!;
         } else {
-          downloadUrl =
-              (await getJsQualityURL(downloadUrl, isStreaming: false))!;
+          downloadUrl = (await _settingsRepo.getJsQualityURL(downloadUrl,
+              isStreaming: false))!;
         }
         final sanitizedTitle =
             song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
@@ -336,5 +347,22 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     _librarySubscription?.cancel();
     _yt.close();
     return super.close();
+  }
+
+  /// Check whether a song is downloaded.
+  bool isDownloaded(String mediaId) {
+    return _downloadedSongs.any((s) => s.id == mediaId);
+  }
+
+  /// Get the download info for a song, if available.
+  Future<DownloadDB?> getDownloadInfo(MediaItemModel song) async {
+    return _downloadRepo.getDownload(song);
+  }
+
+  /// Remove a downloaded song and its file.
+  Future<void> removeDownload(MediaItemModel song) async {
+    await _downloadRepo.removeDownload(song);
+    await _loadDownloadedSongs();
+    SnackbarService.showMessage("${song.title} download removed");
   }
 }

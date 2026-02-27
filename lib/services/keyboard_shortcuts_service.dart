@@ -1,8 +1,11 @@
 import 'dart:io' as io;
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -287,10 +290,16 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
     final currentMedia = player.currentMedia;
     if (currentMedia == null) return;
 
-    final dbCubit = context.read<BloomeeDBCubit>();
-    final isCurrentlyLiked = await dbCubit.isLiked(currentMedia);
+    final playlistDao = PlaylistDAO(DBProvider.db);
+    final isCurrentlyLiked =
+        await playlistDao.isMediaLiked(mediaItemToMediaItemDB(currentMedia));
     final newLikeState = !isCurrentlyLiked;
-    dbCubit.setLike(currentMedia, isLiked: newLikeState);
+    await playlistDao.addMediaItem(
+        mediaItemToMediaItemDB(currentMedia), "Liked");
+    await playlistDao.likeMediaItem(mediaItemToMediaItemDB(currentMedia),
+        isLiked: newLikeState);
+    SnackbarService.showMessage(
+        "${currentMedia.title} is ${newLikeState ? 'Liked' : 'Unliked'}!!");
 
     // Show the like indicator
     if (mounted) {

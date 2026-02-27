@@ -6,13 +6,17 @@ import 'package:Bloomee/model/library_search_result.dart';
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/model/artist_onl_model.dart';
 import 'package:Bloomee/model/playlist_onl_model.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 
 part 'library_search_state.dart';
 
 class LibrarySearchCubit extends Cubit<LibrarySearchState> {
-  LibrarySearchCubit() : super(LibrarySearchInitial());
+  final PlaylistDAO _playlistDao;
+
+  LibrarySearchCubit({required PlaylistDAO playlistDao})
+      : _playlistDao = playlistDao,
+        super(LibrarySearchInitial());
 
   String _currentQuery = '';
 
@@ -89,7 +93,7 @@ class LibrarySearchCubit extends Cubit<LibrarySearchState> {
   Future<List<SongSearchResult>> _searchSongs(String query) async {
     if (query.length < 2) return [];
 
-    final results = await BloomeeDBService.searchMediaItemsInLibrary(query);
+    final results = await _playlistDao.searchMediaItemsInLibrary(query);
     return results
         .map((r) => SongSearchResult(song: r.$1, playlistName: r.$2))
         .toList();

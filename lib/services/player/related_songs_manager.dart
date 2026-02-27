@@ -1,10 +1,11 @@
 import 'dart:developer';
-import 'package:Bloomee/model/saavnModel.dart';
+import 'package:Bloomee/model/saavn_model.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
-import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/repository/saavn/saavn_api.dart';
+import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
@@ -32,7 +33,7 @@ class RelatedSongsManager {
         name: "RelatedSongsManager");
 
     final autoPlay =
-        await BloomeeDBService.getSettingBool(GlobalStrConsts.autoPlay);
+        await SettingsDAO(DBProvider.db).getSettingBool(SettingKeys.autoPlay);
     if (autoPlay != null && !autoPlay) return;
 
     if (queue.isNotEmpty &&

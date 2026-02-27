@@ -1,21 +1,26 @@
 import 'dart:developer';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/model/saavnModel.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/download_dao.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/utils/ytstream_source.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 
 class AudioSourceManager {
   // AudioSourceManager without audio source caching
+  final SettingsRepository _settingsRepo;
+
+  AudioSourceManager(this._settingsRepo);
 
   Future<AudioSource> getAudioSource(MediaItem mediaItem) async {
     try {
       // Check for offline version first
-      final _down = await BloomeeDBService.getDownloadDB(
-          mediaItem2MediaItemModel(mediaItem));
+      final _down = await DownloadDAO(DBProvider.db)
+          .getDownloadDB(mediaItem2MediaItemModel(mediaItem));
       if (_down != null) {
         log("Playing Offline: ${mediaItem.title}", name: "AudioSourceManager");
         SnackbarService.showMessage("Playing Offline",
@@ -30,8 +35,8 @@ class AudioSourceManager {
       AudioSource audioSource;
 
       if (mediaItem.extras?["source"] == "youtube") {
-        String? quality =
-            await BloomeeDBService.getSettingStr(GlobalStrConsts.ytStrmQuality);
+        String? quality = await SettingsDAO(DBProvider.db)
+            .getSettingStr(SettingKeys.ytStrmQuality);
         quality = quality ?? "high";
         quality = quality.toLowerCase();
         final id = mediaItem.id.replaceAll("youtube", '');
@@ -39,7 +44,8 @@ class AudioSourceManager {
         audioSource =
             YouTubeAudioSource(videoId: id, quality: quality, tag: mediaItem);
       } else {
-        String? kurl = await getJsQualityURL(mediaItem.extras?["url"]);
+        String? kurl =
+            await _settingsRepo.getJsQualityURL(mediaItem.extras?["url"]);
         if (kurl == null || kurl.isEmpty) {
           throw Exception('Failed to get stream URL');
         }

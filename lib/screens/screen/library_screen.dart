@@ -1,5 +1,4 @@
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/model/artist_onl_model.dart';
 import 'package:Bloomee/model/playlist_onl_model.dart';
@@ -12,15 +11,17 @@ import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/screens/widgets/createPlaylist_bottomsheet.dart';
+import 'package:Bloomee/core/constants/route_paths.dart';
+import 'package:Bloomee/screens/widgets/create_playlist_bottomsheet.dart';
 import 'package:Bloomee/screens/widgets/libitem_tile.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/library/search_cubit/library_search_cubit.dart';
 import 'package:Bloomee/model/library_search_result.dart';
@@ -32,7 +33,9 @@ class LibraryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LibrarySearchCubit(),
+      create: (context) => LibrarySearchCubit(
+        playlistDao: PlaylistDAO(DBProvider.db),
+      ),
       child: const _LibraryScreenView(),
     );
   }
@@ -302,10 +305,10 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
               subtitleOverride: 'in ${result.playlistName}',
               onTap: () async {
                 _dismissKeyboard();
-                final playlistDB =
-                    await BloomeeDBService.getPlaylist(result.playlistName);
-                if (playlistDB != null && context.mounted) {
-                  final playlist = fromPlaylistDB2MediaPlaylist(playlistDB);
+                final playlist = await context
+                    .read<LibraryItemsCubit>()
+                    .getPlaylistByName(result.playlistName);
+                if (playlist != null && context.mounted) {
                   final songIdx = playlist.mediaItems
                       .indexWhere((s) => s.id == result.song.id);
                   context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
@@ -469,7 +472,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
           IconButton(
             padding: const EdgeInsets.all(8),
             onPressed: () =>
-                context.pushNamed(GlobalStrConsts.ImportMediaFromPlatforms),
+                context.pushNamed(RoutePaths.importMediaFromPlatforms),
             icon: const Icon(FontAwesome.file_import_solid,
                 size: 22, color: Default_Theme.primaryColor1),
           ),
@@ -490,8 +493,8 @@ class _ListOfPlaylists extends StatelessWidget {
       itemBuilder: (context, index) {
         final playlist = playlists[index];
         // Filter out specific playlists directly in the builder
-        if (playlist.playlistName == BloomeeDBService.recentlyPlayedPlaylist ||
-            playlist.playlistName == BloomeeDBService.downloadPlaylist) {
+        if (playlist.playlistName == SettingKeys.recentlyPlayedPlaylist ||
+            playlist.playlistName == SettingKeys.downloadPlaylist) {
           return const SizedBox.shrink();
         }
 
@@ -502,7 +505,7 @@ class _ListOfPlaylists extends StatelessWidget {
               context
                   .read<CurrentPlaylistCubit>()
                   .setupPlaylist(playlist.playlistName);
-              context.pushNamed(GlobalStrConsts.playlistView);
+              context.pushNamed(RoutePaths.playlistView);
             },
             onSecondaryTap: () =>
                 showPlaylistOptsExtSheet(context, playlist.playlistName),

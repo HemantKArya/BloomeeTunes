@@ -1,7 +1,8 @@
 import 'dart:developer';
 
 import 'package:Bloomee/model/chart_model.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -93,13 +94,16 @@ Future<List<ChartModel>> fetchTrendingVideos() async {
       lastUpdated: DateTime.now(),
     ));
     // }
-    BloomeeDBService.putChart(chartModels[0]);
+    final cacheDao = CacheDAO(DBProvider.db);
+    cacheDao.putChart(chartModelToChartCacheDB(chartModels[0]));
     log("Trending Charts: ${chartModels[0].chartItems?.length} items loaded",
         name: "Trending YT Charts");
     return chartModels;
   } else {
-    final chart = await BloomeeDBService.getChart("Trending Videos");
-    if (chart != null) {
+    final cacheDao = CacheDAO(DBProvider.db);
+    final chartCache = await cacheDao.getChart("Trending Videos");
+    if (chartCache != null) {
+      final chart = chartCacheDBToChartModel(chartCache);
       log("Trending Charts: ${chart.chartItems?.length} items loaded from cache",
           name: "Trending YT Charts");
       return [chart];

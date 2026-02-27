@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/history_dao.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/model/song_model.dart';
 
 /// Tracks continuous playback of the current media item and pushes it to
 /// the Recently Played DB only when the item has been played continuously
@@ -115,8 +117,12 @@ class RecentlyPlayedTracker {
     if (reachedTimeThreshold || reachedPercentThreshold) {
       // Threshold reached: push to DB and mark recorded to avoid duplicates
       try {
-        final dbItem = MediaItem2MediaItemDB(media);
-        BloomeeDBService.putRecentlyPlayed(dbItem);
+        final dbItem = mediaItemToMediaItemDB(media);
+        final playlistDao = PlaylistDAO(DBProvider.db);
+        HistoryDAO(DBProvider.db).putRecentlyPlayed(
+          dbItem,
+          addMediaItem: playlistDao.addMediaItem,
+        );
         _recordedForCurrent = true;
       } catch (_) {
         // Do not crash the tracker on DB failures; ignore silently.

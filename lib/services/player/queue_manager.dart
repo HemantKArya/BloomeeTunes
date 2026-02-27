@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
-import '../../model/MediaPlaylistModel.dart';
+import '../../model/media_playlist_model.dart';
 
 List<int> generateRandomIndices(int length) {
   List<int> indices = List<int>.generate(length, (i) => i);

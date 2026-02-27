@@ -1,14 +1,14 @@
 import 'package:Bloomee/model/playlist_onl_model.dart';
-import 'package:Bloomee/model/saavnModel.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/saavn_model.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
-import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/youtube_api.dart';
-import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
+import 'package:Bloomee/repository/bloomee/collection_repository.dart';
+import 'package:Bloomee/repository/saavn/saavn_api.dart';
+import 'package:Bloomee/repository/youtube/youtube_api.dart';
+import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -17,10 +17,13 @@ part 'online_playlist_state.dart';
 class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
   PlaylistOnlModel playlist;
   SourceEngine sourceEngine;
+  final CollectionRepository _collectionRepo;
   OnlPlaylistCubit({
     required this.playlist,
     required this.sourceEngine,
-  }) : super(OnlPlaylistInitial()) {
+    required CollectionRepository collectionRepo,
+  })  : _collectionRepo = collectionRepo,
+        super(OnlPlaylistInitial()) {
     emit(OnlPlaylistLoading(playlist: playlist));
     checkIsSaved();
     switch (sourceEngine) {
@@ -88,8 +91,7 @@ class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
   }
 
   Future<void> checkIsSaved() async {
-    bool isSaved =
-        await BloomeeDBService.isInSavedCollections(playlist.sourceId);
+    bool isSaved = await _collectionRepo.isSaved(playlist.sourceId);
     if (state.isSavedCollection != isSaved) {
       emit(
         state.copyWith(isSavedCollection: isSaved),
@@ -99,10 +101,10 @@ class OnlPlaylistCubit extends Cubit<OnlPlaylistState> {
 
   Future<void> addToSavedCollections() async {
     if (!state.isSavedCollection) {
-      await BloomeeDBService.putOnlPlaylistModel(playlist);
+      await _collectionRepo.savePlaylist(playlist);
       SnackbarService.showMessage("Artist added to Library!");
     } else {
-      await BloomeeDBService.removeFromSavedCollecs(playlist.sourceId);
+      await _collectionRepo.remove(playlist.sourceId);
       SnackbarService.showMessage("Artist removed from Library!");
     }
     checkIsSaved();

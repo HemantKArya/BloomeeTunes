@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:Bloomee/blocs/timer/timer_bloc.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:numberpicker/numberpicker.dart';
@@ -243,7 +243,8 @@ class _TimerViewState extends State<TimerView> {
                         // zeroPad: true,
                         decoration: BoxDecoration(
                           shape: BoxShape.rectangle,
-                          color: Default_Theme.primaryColor2.withValues(alpha: 0.07),
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(16),
                           // border: Border.all(color: Default_Theme.primaryColor2),
                         ),
@@ -285,7 +286,8 @@ class _TimerViewState extends State<TimerView> {
                         // zeroPad: true,
                         decoration: BoxDecoration(
                           shape: BoxShape.rectangle,
-                          color: Default_Theme.primaryColor2.withValues(alpha: 0.07),
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(16),
                           // border: Border.all(color: Default_Theme.primaryColor2),
                         ),
@@ -327,7 +329,8 @@ class _TimerViewState extends State<TimerView> {
                         // zeroPad: true,
                         decoration: BoxDecoration(
                           shape: BoxShape.rectangle,
-                          color: Default_Theme.primaryColor2.withValues(alpha: 0.07),
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(16),
                           // border: Border.all(color: Default_Theme.primaryColor2),
                         ),

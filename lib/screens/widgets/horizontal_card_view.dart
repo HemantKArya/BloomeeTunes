@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/screens/screen/home_views/youtube_views/playlist.dart';
 import 'package:Bloomee/screens/widgets/square_card.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/external_list_importer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

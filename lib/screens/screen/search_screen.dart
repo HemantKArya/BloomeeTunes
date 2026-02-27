@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/widgets/album_card.dart';
 import 'package:Bloomee/screens/widgets/artist_card.dart';
@@ -14,7 +15,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/screens/screen/search_views/search_page.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 
 class SearchScreen extends StatefulWidget {
   final String searchQuery;
@@ -62,7 +63,7 @@ class _SearchScreenState extends State<SearchScreen> {
     _sourceEngine = availSourceEngines[0];
 
     setState(() {
-      availableSourceEngines().then((value) {
+      context.read<SettingsCubit>().getAvailableSourceEngines().then((value) {
         availSourceEngines = value;
         _sourceEngine = availSourceEngines[0];
       });
@@ -203,7 +204,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(
                       left: 18, right: 18, top: 5, bottom: 5),
                   child: FutureBuilder(
-                      future: availableSourceEngines(),
+                      future: context.read<SettingsCubit>().getAvailableSourceEngines(),
                       builder: (context, snapshot) {
                         return snapshot.hasData || snapshot.data != null
                             ? Wrap(

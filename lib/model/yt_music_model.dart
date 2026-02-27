@@ -1,4 +1,4 @@
-import 'songModel.dart';
+import 'song_model.dart';
 
 MediaItemModel fromYtSongMap2MediaItem(Map<dynamic, dynamic> songItem) {
   String artists = '';

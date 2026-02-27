@@ -1,14 +1,14 @@
 import 'dart:ui';
 
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_bloc.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/constants/route_paths.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
-import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -242,7 +242,7 @@ class MiniPlayerCard extends StatelessWidget {
                       onPressed: () {
                         context.read<AddToPlaylistCubit>().setMediaItemModel(
                             mediaItem2MediaItemModel(state.song));
-                        context.pushNamed(GlobalStrConsts.addToPlaylistScreen);
+                        context.pushNamed(RoutePaths.addToPlaylistScreen);
                       },
                       icon: const Icon(FontAwesome.plus_solid, size: 25)),
                 ],

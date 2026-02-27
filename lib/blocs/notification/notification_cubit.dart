@@ -1,21 +1,25 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:Bloomee/services/bloomeeUpdaterTools.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/bloomee_updater_tools.dart';
+import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/services/db/dao/notification_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 part 'notification_state.dart';
 
 class NotificationCubit extends Cubit<NotificationState> {
+  final NotificationDAO _notificationDao;
   StreamSubscription? _subscription;
-  NotificationCubit() : super(NotificationInitial()) {
+
+  NotificationCubit({required NotificationDAO notificationDao})
+      : _notificationDao = notificationDao,
+        super(NotificationInitial()) {
     getLatestVersion().then((value) {
       if (value["results"]) {
         if (int.parse(value["currBuild"]) < int.parse(value["newBuild"])) {
-          BloomeeDBService.putNotification(
+          _notificationDao.putNotification(
             title: "Update Available",
             body:
                 "New Version of Bloomee🌸 is now available!! Version: ${value["newVer"]} + ${value["newBuild"]}",
@@ -29,19 +33,19 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
   void getNotification() async {
     List<NotificationDB> notifications =
-        await BloomeeDBService.getNotifications();
+        await _notificationDao.getNotifications();
     emit(NotificationState(notifications: notifications));
   }
 
   void clearNotification() {
-    BloomeeDBService.clearNotifications();
+    _notificationDao.clearNotifications();
     log("Notification Cleared");
     getNotification();
   }
 
   Future<void> watchNotification() async {
     _subscription =
-        (await BloomeeDBService.watchNotification()).listen((event) {
+        (await _notificationDao.watchNotification()).listen((event) {
       getNotification();
     });
   }

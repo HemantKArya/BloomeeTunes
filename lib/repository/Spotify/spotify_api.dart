@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:http/http.dart';
+
+/// Type aliases for token persistence callbacks.
+typedef TokenReader = Future<String?> Function(String apiName);
+typedef TokenWriter = Future<void> Function(
+    String apiName, String token, String expireIn);
 
 class SpotifyApi {
   final List<String> _scopes = [
@@ -12,6 +16,10 @@ class SpotifyApi {
     'playlist-read-private',
     'playlist-read-collaborative',
   ];
+
+  /// Optional persistence callbacks — inject from the repository layer.
+  TokenReader? tokenReader;
+  TokenWriter? tokenWriter;
 
   final String clientID = '4ede44382bf14ac3ba1d97ad753b233f';
   final String clientSecret = 'fb01ad204aff4c12bbcb3ca7ac617990';
@@ -29,11 +37,12 @@ class SpotifyApi {
       'https://accounts.spotify.com/authorize?client_id=$clientID&response_type=code&redirect_uri=$redirectUrl&scope=${_scopes.join('%20')}';
 
   Future<String> getAccessTokenCC() async {
-    final token = await BloomeeDBService.getApiTokenDB(
-        GlobalStrConsts.spotifyAccessToken);
-    if (token != null) {
-      log('Access token: $token', name: 'SpotifyAPI');
-      return token;
+    if (tokenReader != null) {
+      final token = await tokenReader!(CacheKeys.spotifyAccessToken);
+      if (token != null) {
+        log('Access token: $token', name: 'SpotifyAPI');
+        return token;
+      }
     }
     var response;
     final tokenUrl = Uri.parse('https://accounts.spotify.com/api/token');
@@ -56,8 +65,10 @@ class SpotifyApi {
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
       final accessToken = responseBody['access_token'];
-      await BloomeeDBService.putApiTokenDB(GlobalStrConsts.spotifyAccessToken,
-          accessToken, responseBody['expires_in'].toString());
+      if (tokenWriter != null) {
+        await tokenWriter!(CacheKeys.spotifyAccessToken, accessToken,
+            responseBody['expires_in'].toString());
+      }
       log('Got new access token!', name: 'SpotifyAPI2');
       return accessToken;
     } else {

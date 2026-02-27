@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/media_playlist_model.dart';
 import 'package:Bloomee/screens/screen/library_views/playlist_edit_view.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -52,8 +52,6 @@ void showPlaylistOptsInrSheet(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const PlaylistEditView()));
-                      // context.go(GlobalStrConsts.editPlaylistScreen,
-                      //     params: {'playlistName': mediaPlaylist.playlistName});
                     },
                   ),
                   // PltOptBtn(
@@ -63,8 +61,6 @@ void showPlaylistOptsInrSheet(
                   //     Navigator.pop(context);
                   //     SnackbarService.showMessage(
                   //         "Syncing ${mediaPlaylist.playlistName}");
-                  //     // context.go(GlobalStrConsts.syncPlaylistScreen,
-                  //     //     params: {'playlistName': mediaPlaylist.playlistName});
                   //   },
                   // ),
                   PltOptBtn(

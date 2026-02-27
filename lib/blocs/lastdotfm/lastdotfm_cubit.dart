@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
-import 'package:Bloomee/repository/MixedAPI/mixed_api.dart';
-import 'package:Bloomee/routes_and_consts/global_conts.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/media_playlist_model.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
+import 'package:Bloomee/repository/mixed/mixed_api.dart';
+import 'package:Bloomee/core/constants/app_constants.dart';
+import 'package:Bloomee/core/constants/cache_keys.dart';
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:just_audio/just_audio.dart';
@@ -21,6 +22,8 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
   LastFmAPI lastFmAPI = LastFmAPI();
   StreamSubscription? scrobbleSub;
   BloomeePlayerCubit playerCubit;
+  final CacheDAO _cacheDao;
+  final SettingsDAO _settingsDao;
   MediaItemModel lastPlayed = mediaItemModelNull;
   Stopwatch stopwatch = Stopwatch();
   Stream<dynamic>? playerProgres;
@@ -29,7 +32,11 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
 
   LastdotfmCubit({
     required this.playerCubit,
-  }) : super(LastdotfmInitial()) {
+    required CacheDAO cacheDao,
+    required SettingsDAO settingsDao,
+  })  : _cacheDao = cacheDao,
+        _settingsDao = settingsDao,
+        super(LastdotfmInitial()) {
     initializeFromDB();
     songTimeTracker();
   }
@@ -91,14 +98,10 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
 
   Future<void> initializeFromDB() async {
     log("Getting Last.FM Keys from DB", name: "Last.FM");
-    final username =
-        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMUsername);
-    final apiKey =
-        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMApiKey);
-    final apiSecret =
-        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMSecret);
-    final session =
-        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMSession);
+    final username = await _cacheDao.getApiTokenDB(CacheKeys.lFMUsername);
+    final apiKey = await _cacheDao.getApiTokenDB(CacheKeys.lFMApiKey);
+    final apiSecret = await _cacheDao.getApiTokenDB(CacheKeys.lFMSecret);
+    final session = await _cacheDao.getApiTokenDB(CacheKeys.lFMSession);
 
     if (apiKey != null &&
         apiSecret != null &&
@@ -131,10 +134,10 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
       final sessionMap = await LastFmAPI.fetchSessionKey(token);
       final session = sessionMap["key"]!;
       final name = sessionMap["name"]!;
-      BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMUsername, name, "0");
-      BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSecret, secret, "0");
-      BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMApiKey, apiKey, "0");
-      BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSession, session, "0");
+      _cacheDao.putApiTokenDB(CacheKeys.lFMUsername, name, "0");
+      _cacheDao.putApiTokenDB(CacheKeys.lFMSecret, secret, "0");
+      _cacheDao.putApiTokenDB(CacheKeys.lFMApiKey, apiKey, "0");
+      _cacheDao.putApiTokenDB(CacheKeys.lFMSession, session, "0");
       log('Session Key: $session', name: 'LastFM API');
 
       if (session.isNotEmpty && apiKey.isNotEmpty && secret.isNotEmpty) {
@@ -173,10 +176,10 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     LastFmAPI.apiSecret = null;
     LastFmAPI.username = null;
     emit(LastdotfmInitial());
-    BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSecret, "", "0");
-    BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMApiKey, "", "0");
-    BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMSession, "", "0");
-    BloomeeDBService.putApiTokenDB(GlobalStrConsts.lFMUsername, "", "0");
+    _cacheDao.putApiTokenDB(CacheKeys.lFMSecret, "", "0");
+    _cacheDao.putApiTokenDB(CacheKeys.lFMApiKey, "", "0");
+    _cacheDao.putApiTokenDB(CacheKeys.lFMSession, "", "0");
+    _cacheDao.putApiTokenDB(CacheKeys.lFMUsername, "", "0");
   }
 
   startUpCheck() async {
@@ -205,9 +208,8 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
   }
 
   Future<bool> scrobble(MediaItemModel mediaItem) async {
-    final shouldScrobble = await BloomeeDBService.getSettingBool(
-        GlobalStrConsts.lFMScrobbleSetting,
-        defaultValue: false);
+    final shouldScrobble = await _settingsDao
+        .getSettingBool(CacheKeys.lFMScrobbleSetting, defaultValue: false);
 
     final durationMin = mediaItem.duration?.inMinutes ?? 20000;
     final durationSec = mediaItem.duration?.inSeconds ?? 20000;
@@ -242,25 +244,23 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
 
   void lFMCacheTrack(List<ScrobbleTrack> trackList) {
     final trackListMap = trackList.map((e) => e.toJson()).toList();
-    BloomeeDBService.getAPICache(GlobalStrConsts.lFMTrackedCache).then((value) {
+    _cacheDao.getAPICache(CacheKeys.lFMTrackedCache).then((value) {
       if (value != null && value != "null") {
         log("Cache found: ${trackListMap.toString()}", name: "Last.FM");
         final trackList2 = value as List;
         trackList2.addAll(trackListMap);
-        BloomeeDBService.putAPICache(
-            GlobalStrConsts.lFMTrackedCache, trackList2.toString());
+        _cacheDao.putAPICache(CacheKeys.lFMTrackedCache, trackList2.toString());
       } else {
         log("No cache found", name: "Last.FM");
-        BloomeeDBService.putAPICache(
-            GlobalStrConsts.lFMTrackedCache, trackListMap.toString());
+        _cacheDao.putAPICache(
+            CacheKeys.lFMTrackedCache, trackListMap.toString());
       }
     });
   }
 
   Future<List<ScrobbleTrack>> getLFMTrackedCache() async {
-    final trackList =
-        await BloomeeDBService.getAPICache(GlobalStrConsts.lFMTrackedCache);
-    await BloomeeDBService.putAPICache(GlobalStrConsts.lFMTrackedCache, "null");
+    final trackList = await _cacheDao.getAPICache(CacheKeys.lFMTrackedCache);
+    await _cacheDao.putAPICache(CacheKeys.lFMTrackedCache, "null");
     if (trackList != null && trackList.isNotEmpty && trackList != "null") {
       final trackListMap = jsonDecode(trackList) as List;
       List<ScrobbleTrack> trackListObj = [];
@@ -295,5 +295,10 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
       }
     }
     return MediaPlaylist(mediaItems: mediaItems, playlistName: 'Last.FM Picks');
+  }
+
+  /// Get a cached API token by key.
+  Future<String?> getApiToken(String key) async {
+    return _cacheDao.getApiTokenDB(key);
   }
 }

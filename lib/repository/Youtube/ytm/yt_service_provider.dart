@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:http/http.dart';
 import 'helpers.dart';
 
@@ -46,7 +47,7 @@ abstract class YTMusicServices {
       visitorId = ytcfg['VISITOR_DATA']?.toString();
       // await Hive.box('SETTINGS').put('VISITOR_ID', visitorId);
       visitorId != null
-          ? await BloomeeDBService.putAPICache("VISITOR_ID", visitorId)
+          ? await CacheDAO(DBProvider.db).putAPICache("VISITOR_ID", visitorId)
           : null;
     }
     refreshHeaders();
@@ -92,11 +93,11 @@ abstract class YTMusicServices {
       visitorId = ytcfg['VISITOR_DATA']?.toString();
       // await Hive.box('SETTINGS').put('VISITOR_ID', visitorId);
       visitorId != null
-          ? await BloomeeDBService.putAPICache("VISITOR_ID", visitorId)
+          ? await CacheDAO(DBProvider.db).putAPICache("VISITOR_ID", visitorId)
           : null;
     }
     // return await Hive.box('SETTINGS').get('VISITOR_ID');
-    return await BloomeeDBService.getAPICache("VISITOR_ID");
+    return await CacheDAO(DBProvider.db).getAPICache("VISITOR_ID");
   }
 
   Future<Map> sendRequest(String endpoint, Map<String, dynamic> body,

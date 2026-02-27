@@ -1,8 +1,8 @@
-import 'package:Bloomee/plugins/ext_charts/billboard_charts.dart';
-import 'package:Bloomee/plugins/ext_charts/chart_defines.dart';
-import 'package:Bloomee/plugins/ext_charts/last_dot_fm_charts.dart';
-import 'package:Bloomee/plugins/ext_charts/melon_charts.dart';
-import 'package:Bloomee/plugins/ext_charts/spotify_top50_chart.dart';
+import 'package:Bloomee/plugins/charts/billboard_charts.dart';
+import 'package:Bloomee/plugins/charts/chart_defines.dart';
+import 'package:Bloomee/plugins/charts/last_dot_fm_charts.dart';
+import 'package:Bloomee/plugins/charts/melon_charts.dart';
+import 'package:Bloomee/plugins/charts/spotify_top50_chart.dart';
 
 final List<ChartInfo> chartInfoList = [
   ChartInfo(

@@ -2,16 +2,17 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/plugins/ext_charts/chart_defines.dart';
+import 'package:Bloomee/plugins/charts/chart_defines.dart';
 import 'package:Bloomee/screens/screen/chart/chart_widget.dart';
 import 'package:Bloomee/screens/screen/chart/show_charts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class CaraouselWidget extends StatefulWidget {
@@ -27,6 +28,7 @@ class CaraouselWidget extends StatefulWidget {
 
 class _CaraouselWidgetState extends State<CaraouselWidget> {
   bool _visibility = true;
+  final CacheDAO _cacheDao = CacheDAO(DBProvider.db);
   List<ChartCubit> chartCubitList = List.empty(growable: true);
   List<ChartInfo> selectedCharts = List.empty(growable: true);
   Map<dynamic, dynamic> chartMap = {};
@@ -34,9 +36,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
   StreamSubscription? ss;
 
   Future<void> initSettings() async {
-    autoSlideCharts.value = await BloomeeDBService.getSettingBool(
-            GlobalStrConsts.autoSlideCharts) ??
-        true;
+    autoSlideCharts.value = context.read<SettingsCubit>().state.autoSlideCharts;
   }
 
   void getSelectedCharts(Map sChartMap) {
@@ -46,7 +46,8 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
       for (var e in chartInfoList) {
         if (sChartMap[e.title] == null || sChartMap[e.title] == true) {
           selectedCharts.add(e);
-          chartCubitList.add(ChartCubit(e, context.read<FetchChartCubit>()));
+          chartCubitList
+              .add(ChartCubit(_cacheDao, e, context.read<FetchChartCubit>()));
         }
       }
       if (mounted) {
@@ -138,7 +139,7 @@ class _CaraouselWidgetState extends State<CaraouselWidget> {
                                 value: chartCubitList[index],
                                 child: GestureDetector(
                                   onTap: () => GoRouter.of(context).pushNamed(
-                                      GlobalStrConsts.ChartScreen,
+                                      RoutePaths.chartScreen,
                                       pathParameters: {
                                         "chartName": selectedCharts[index].title
                                       }),

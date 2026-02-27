@@ -1,13 +1,16 @@
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/playlist_view/online_playlist_cubit.dart';
 import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/repository/bloomee/collection_repository.dart';
+import 'package:Bloomee/services/db/dao/collection_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
-import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -31,6 +34,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
     onlPlaylistCubit = OnlPlaylistCubit(
       playlist: widget.playlist,
       sourceEngine: widget.sourceEngine,
+      collectionRepo: CollectionRepository(CollectionDAO(DBProvider.db)),
     );
     super.initState();
   }
@@ -260,7 +264,8 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                       style: Default_Theme.secondoryTextStyleMedium.merge(
                         TextStyle(
                           fontSize: 20,
-                          color: Default_Theme.primaryColor1.withValues(alpha: 0.8),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.8),
                         ),
                       ),
                     ),

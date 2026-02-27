@@ -2,11 +2,10 @@
 import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/search/fetch_search_results.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class SearchPageDelegate extends SearchDelegate {
@@ -48,7 +47,7 @@ class SearchPageDelegate extends SearchDelegate {
       context
           .read<FetchSearchResultsCubit>()
           .search(query, sourceEngine: sourceEngine, resultType: resultType);
-      BloomeeDBService.putSearchHistory(query);
+      context.read<FetchSearchResultsCubit>().saveSearchHistory(query);
     }
     close(context, query);
   }

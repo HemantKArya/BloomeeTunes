@@ -1,12 +1,14 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/history/cubit/history_cubit.dart';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/media_playlist_model.dart';
+import 'package:Bloomee/services/db/dao/history_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/storage_setting.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
@@ -45,7 +47,9 @@ class HistoryView extends StatelessWidget {
           ),
         ),
         body: BlocProvider(
-          create: (context) => HistoryCubit(),
+          create: (context) => HistoryCubit(
+            historyDao: HistoryDAO(DBProvider.db),
+          ),
           child: BlocBuilder<HistoryCubit, HistoryState>(
             builder: (context, state) {
               return (state is HistoryInitial)

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -151,7 +151,7 @@ class BackupSettings extends StatelessWidget {
                 subtitle:
                     "Create a backup of your data and settings in a backup location.",
                 onTap: () {
-                  BloomeeDBService.createBackUp().then((value) {
+                  DBProvider.createBackUp().then((value) {
                     if (value != null) {
                       SnackbarService.showMessage("Backup created at $value");
                       if (Platform.isAndroid) {
@@ -250,7 +250,7 @@ class BackupSettings extends StatelessWidget {
 
                   if (proceed == true) {
                     // Perform reset logic here
-                    await BloomeeDBService.resetDB();
+                    await DBProvider.resetDB();
                     SnackbarService.showMessage(
                         "App has been reset to its default state.");
                   }
@@ -533,14 +533,14 @@ Future<void> _onRestoreTap(BuildContext context) async {
     try {
       // NOTE: This call must be async and ideally run heavy work inside its own isolates.
       // Signature: restoreDB(path, settings, searchHistory, mediaitems)
-      restoreResult = await BloomeeDBService.restoreDB(
+      restoreResult = await DBProvider.restoreDB(
         savedPath,
         // settings: options.restoreSettings,
         searchHistory: options.restoreSearchHistory,
         mediaItems: options.restoreMediaItems,
       );
     } catch (e, st) {
-      log("restoreDB threw: $e\n$st", name: "BloomeeDBService");
+      log("restoreDB threw: $e\n$st", name: "DBProvider");
       restoreResult = {
         "success": false,
         "errors": ["Exception during restore: $e"]
@@ -553,7 +553,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
             Navigator.of(progressDialogContext!).pop();
           }
         } catch (e) {
-          log("Failed to pop progress dialog: $e", name: "BloomeeDBService");
+          log("Failed to pop progress dialog: $e", name: "StorageSetting");
         }
       } else {
         // Fallback: try to pop root navigator (best-effort)
@@ -581,7 +581,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
 
     await _showResultDialog(context, success: success, errors: errors);
   } catch (e, st) {
-    log("Unexpected error in restore flow: $e\n$st", name: "BloomeeDBService");
+    log("Unexpected error in restore flow: $e\n$st", name: "StorageSetting");
     SnackbarService.showMessage(
         "An unexpected error occurred while restoring.");
   }
@@ -623,7 +623,7 @@ Future<String?> _savePickedFileToInternalDir(PlatformFile picked) async {
 
     return null;
   } catch (e, st) {
-    log("Failed to save picked file: $e\n$st", name: "BloomeeDBService");
+    log("Failed to save picked file: $e\n$st", name: "StorageSetting");
     return null;
   }
 }

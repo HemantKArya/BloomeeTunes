@@ -1,19 +1,17 @@
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/screens/widgets/animated_list_item.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/screens/widgets/createPlaylist_bottomsheet.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/theme_data/default.dart';
-import 'package:Bloomee/routes_and_consts/global_conts.dart';
-import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/screens/widgets/create_playlist_bottomsheet.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/core/constants/app_constants.dart';
+import 'package:Bloomee/utils/load_image.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class AddToPlaylistScreen extends StatefulWidget {
@@ -57,9 +55,10 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     }
 
     try {
-      final playlistNames =
-          await BloomeeDBService.getPlaylistsContainingSong(mediaItem.id);
-      _songInPlaylists.value = playlistNames.toSet();
+      final playlistNames = await context
+          .read<LibraryItemsCubit>()
+          .getPlaylistsContainingSong(mediaItem.id);
+      _songInPlaylists.value = playlistNames;
     } catch (e) {
       // If error, just continue with empty set
       _songInPlaylists.value = {};
@@ -77,7 +76,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     // Filter out system playlists first
     final userPlaylists = playlists.where((p) {
       return p.playlistName != "recently_played" &&
-          p.playlistName != GlobalStrConsts.downloadPlaylist;
+          p.playlistName != SettingKeys.downloadPlaylist;
     }).toList();
 
     if (query.isEmpty) return userPlaylists;
@@ -93,13 +92,11 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     PlaylistItemProperties playlist,
     bool isInPlaylist,
   ) {
-    final playlistDB = MediaPlaylistDB(playlistName: playlist.playlistName);
-
     if (isInPlaylist) {
       // Remove from playlist - no snackbar, checkbox animation provides feedback
       context.read<LibraryItemsCubit>().removeFromPlaylist(
             song,
-            playlistDB,
+            playlist.playlistName,
             showSnackbar: false,
           );
       _songInPlaylists.value = Set.from(_songInPlaylists.value)
@@ -108,7 +105,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
       // Add to playlist - no snackbar, checkbox animation provides feedback
       context.read<LibraryItemsCubit>().addToPlaylist(
             song,
-            playlistDB,
+            playlist.playlistName,
             showSnackbar: false,
           );
       _songInPlaylists.value = Set.from(_songInPlaylists.value)
@@ -186,8 +183,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                             .where((p) =>
                                 songPlaylists.contains(p.playlistName) &&
                                 p.playlistName != "recently_played" &&
-                                p.playlistName !=
-                                    GlobalStrConsts.downloadPlaylist)
+                                p.playlistName != SettingKeys.downloadPlaylist)
                             .toList();
 
                         if (playlists.isEmpty) {

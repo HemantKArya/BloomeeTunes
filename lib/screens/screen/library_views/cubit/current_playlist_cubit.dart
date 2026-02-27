@@ -1,29 +1,28 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
+import 'package:Bloomee/model/media_playlist_model.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 part 'current_playlist_state.dart';
 
 class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
   MediaPlaylist? mediaPlaylist;
   PaletteGenerator? paletteGenerator;
-  late BloomeeDBCubit bloomeeDBCubit;
+  final PlaylistDAO _playlistDao;
   CurrentPlaylistCubit({
     this.mediaPlaylist,
-    required this.bloomeeDBCubit,
-  }) : super(CurrentPlaylistInitial()) {}
+    PlaylistDAO? playlistDao,
+  })  : _playlistDao = playlistDao ?? PlaylistDAO(DBProvider.db),
+        super(CurrentPlaylistInitial()) {}
 
   Future<void> setupPlaylist(String playlistName) async {
     emit(CurrentPlaylistLoading());
-    mediaPlaylist = await bloomeeDBCubit
-        .getPlaylistItems(MediaPlaylistDB(playlistName: playlistName));
+    mediaPlaylist = await _playlistDao.getMediaPlaylist(playlistName);
 
     if (mediaPlaylist?.mediaItems.isNotEmpty ?? false) {
       paletteGenerator = await getPalleteFromImage(
@@ -38,8 +37,8 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
   }
 
   Future<List<int>> getItemOrder() async {
-    return await BloomeeDBService.getPlaylistItemsRankByName(
-        mediaPlaylist!.playlistName);
+    return await _playlistDao
+        .getPlaylistItemsRankByName(mediaPlaylist!.playlistName);
   }
 
   String getTitle() {
@@ -51,11 +50,9 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     if (!listEquals(newOrder, oldOrder) &&
         mediaPlaylist != null &&
         newOrder.length >= mediaPlaylist!.mediaItems.length) {
-      await BloomeeDBService.updatePltItemsRankByName(
+      await _playlistDao.updatePltItemsRankByName(
           mediaPlaylist!.playlistName, newOrder);
-      final playlist = await bloomeeDBCubit.getPlaylistItems(
-          MediaPlaylistDB(playlistName: mediaPlaylist!.playlistName));
-      setupPlaylist(playlist.playlistName);
+      setupPlaylist(mediaPlaylist!.playlistName);
     }
   }
 

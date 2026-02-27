@@ -1,17 +1,21 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/model/chart_model.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
-import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/utils/load_image.dart';
 import 'package:Bloomee/utils/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class ChartScreen extends StatefulWidget {
   final String chartName;
-  const ChartScreen({Key? key, required this.chartName}) : super(key: key);
+  final CacheDAO _cacheDao;
+  ChartScreen({Key? key, required this.chartName, CacheDAO? cacheDao})
+      : _cacheDao = cacheDao ?? CacheDAO(DBProvider.db),
+        super(key: key);
 
   @override
   State<ChartScreen> createState() => _ChartScreenState();
@@ -20,7 +24,8 @@ class ChartScreen extends StatefulWidget {
 class _ChartScreenState extends State<ChartScreen> {
   Future<ChartModel?> chartModel = Future.value(null);
   Future<ChartModel?> getChart() async {
-    return await BloomeeDBService.getChart(widget.chartName);
+    final db = await widget._cacheDao.getChart(widget.chartName);
+    return db != null ? chartCacheDBToChartModel(db) : null;
   }
 
   @override

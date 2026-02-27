@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:http/http.dart';
 
 Future<String> getCountry() async {
   String countryCode = "IN";
-  await BloomeeDBService.getSettingBool(GlobalStrConsts.autoGetCountry)
+  final settingsDao = SettingsDAO(DBProvider.db);
+  await settingsDao
+      .getSettingBool(SettingKeys.autoGetCountry)
       .then((value) async {
     if (value != null && value == true) {
       try {
@@ -14,12 +17,10 @@ Future<String> getCountry() async {
         if (response.statusCode == 200) {
           Map data = jsonDecode(utf8.decode(response.bodyBytes));
           countryCode = data['countryCode'];
-          await BloomeeDBService.putSettingStr(
-              GlobalStrConsts.countryCode, countryCode);
+          await settingsDao.putSettingStr(SettingKeys.countryCode, countryCode);
         }
       } catch (err) {
-        await BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode)
-            .then((value) {
+        await settingsDao.getSettingStr(SettingKeys.countryCode).then((value) {
           if (value != null) {
             countryCode = value;
           } else {
@@ -28,8 +29,7 @@ Future<String> getCountry() async {
         });
       }
     } else {
-      await BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode)
-          .then((value) {
+      await settingsDao.getSettingStr(SettingKeys.countryCode).then((value) {
         if (value != null) {
           countryCode = value;
         } else {

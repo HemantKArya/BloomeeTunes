@@ -1,13 +1,14 @@
 import 'dart:ui';
+import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/widgets/gradient_progress_bar.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
-import 'package:Bloomee/services/bloomeePlayer.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -15,14 +16,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:Bloomee/screens/widgets/like_widget.dart';
-import 'package:Bloomee/screens/widgets/playPause_widget.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
-import 'package:Bloomee/theme_data/default.dart';
-import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/utils/load_image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import '../../blocs/mediaPlayer/bloomee_player_cubit.dart';
+import '../../blocs/media_player/bloomee_player_cubit.dart';
 import '../../blocs/mini_player/mini_player_bloc.dart';
 import 'player_views/fullscreen_lyrics_view.dart';
 import 'player_views/lyrics_widget.dart';
@@ -400,8 +401,9 @@ class _DownloadButton extends StatelessWidget {
           final currentMedia = mediaSnapshot.data;
           if (currentMedia == null) return const SizedBox.shrink();
           return FutureBuilder(
-            future: BloomeeDBService.getDownloadDB(
-                mediaItem2MediaItemModel(currentMedia)),
+            future: context
+                .read<DownloaderCubit>()
+                .getDownloadInfo(mediaItem2MediaItemModel(currentMedia)),
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 return Padding(
@@ -440,9 +442,9 @@ class _LikeButton extends StatelessWidget {
           final isPlaying =
               progressSnapshot.data?.currentPlayerState.playing ?? false;
           return FutureBuilder(
-            future: context
-                .read<BloomeeDBCubit>()
-                .isLiked(bloomeePlayerCubit.bloomeePlayer.currentMedia),
+            future: context.read<LibraryItemsCubit>().isMediaLiked(
+                mediaItem2MediaItemModel(
+                    bloomeePlayerCubit.bloomeePlayer.currentMedia)),
             builder: (context, snapshot) {
               final isLiked = snapshot.data ?? false;
               return Padding(
@@ -451,12 +453,20 @@ class _LikeButton extends StatelessWidget {
                   isPlaying: isPlaying,
                   isLiked: isLiked,
                   iconSize: 25,
-                  onLiked: () => context.read<BloomeeDBCubit>().setLike(
-                      bloomeePlayerCubit.bloomeePlayer.currentMedia,
-                      isLiked: true),
-                  onDisliked: () => context.read<BloomeeDBCubit>().setLike(
-                      bloomeePlayerCubit.bloomeePlayer.currentMedia,
-                      isLiked: false),
+                  onLiked: () {
+                    final media = bloomeePlayerCubit.bloomeePlayer.currentMedia;
+                    context
+                        .read<LibraryItemsCubit>()
+                        .likeMediaItem(mediaItem2MediaItemModel(media), true);
+                    SnackbarService.showMessage("${media.title} is Liked!!");
+                  },
+                  onDisliked: () {
+                    final media = bloomeePlayerCubit.bloomeePlayer.currentMedia;
+                    context
+                        .read<LibraryItemsCubit>()
+                        .likeMediaItem(mediaItem2MediaItemModel(media), false);
+                    SnackbarService.showMessage("${media.title} is Unliked!!");
+                  },
                 ),
               );
             },

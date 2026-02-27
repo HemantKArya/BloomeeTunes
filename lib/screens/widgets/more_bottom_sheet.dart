@@ -1,14 +1,12 @@
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,14 +24,8 @@ void showMoreBottomSheet(
   bool showPlayNext = true,
   VoidCallback? onDelete,
 }) {
-  bool? isDownloaded;
-  BloomeeDBService.getDownloadDB(song).then((value) {
-    if (value != null) {
-      isDownloaded = true;
-    } else {
-      isDownloaded = false;
-    }
-  });
+  bool? isDownloaded =
+      context.read<DownloaderCubit>().isDownloaded(song.id) ? true : false;
   showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -169,8 +161,9 @@ void showMoreBottomSheet(
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  context.read<BloomeeDBCubit>().addMediaItemToPlaylist(
-                      song, MediaPlaylistDB(playlistName: "Liked"));
+                  context.read<LibraryItemsCubit>().likeMediaItem(song, true);
+                  SnackbarService.showMessage(
+                      "${song.title} is added to Liked!!");
                   // SnackbarService.showMessage("Added to Favorites",
                   //     duration: const Duration(seconds: 2));
                 },
@@ -192,7 +185,7 @@ void showMoreBottomSheet(
                 onTap: () {
                   Navigator.pop(context);
                   context.read<AddToPlaylistCubit>().setMediaItemModel(song);
-                  context.pushNamed(GlobalStrConsts.addToPlaylistScreen);
+                  context.pushNamed(RoutePaths.addToPlaylistScreen);
                 },
               ),
               ListTile(
@@ -214,11 +207,11 @@ void showMoreBottomSheet(
                   SnackbarService.showMessage(
                       "Preparing ${song.title} for share.");
                   final tmpPath = await ImportExportService.exportMediaItem(
-                      MediaItem2MediaItemDB(song));
+                      mediaItemToMediaItemDB(song));
                   tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
                 },
               ),
-              (isDownloaded != null && isDownloaded == true)
+              (isDownloaded == true)
                   ? ListTile(
                       leading: const Icon(
                         Icons.offline_pin_rounded,

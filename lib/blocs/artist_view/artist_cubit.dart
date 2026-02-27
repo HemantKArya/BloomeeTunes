@@ -1,13 +1,13 @@
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/model/artist_onl_model.dart';
-import 'package:Bloomee/model/saavnModel.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/saavn_model.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
-import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
+import 'package:Bloomee/repository/bloomee/collection_repository.dart';
+import 'package:Bloomee/repository/saavn/saavn_api.dart';
+import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -16,10 +16,13 @@ part 'artist_state.dart';
 class ArtistCubit extends Cubit<ArtistState> {
   final ArtistModel artist;
   final SourceEngine sourceEngine;
+  final CollectionRepository _collectionRepo;
   ArtistCubit({
     required this.artist,
     required this.sourceEngine,
-  }) : super(ArtistInitial()) {
+    required CollectionRepository collectionRepo,
+  })  : _collectionRepo = collectionRepo,
+        super(ArtistInitial()) {
     emit(ArtistLoading(artist: artist));
     checkIsSaved();
     switch (sourceEngine) {
@@ -77,7 +80,7 @@ class ArtistCubit extends Cubit<ArtistState> {
     }
   }
   Future<void> checkIsSaved() async {
-    bool isSaved = await BloomeeDBService.isInSavedCollections(artist.sourceId);
+    bool isSaved = await _collectionRepo.isSaved(artist.sourceId);
     if (state.isSavedCollection != isSaved) {
       emit(
         state.copyWith(isSavedCollection: isSaved),
@@ -87,10 +90,10 @@ class ArtistCubit extends Cubit<ArtistState> {
 
   Future<void> addToSavedCollections() async {
     if (!state.isSavedCollection) {
-      await BloomeeDBService.putOnlArtistModel(artist);
+      await _collectionRepo.saveArtist(artist);
       SnackbarService.showMessage("Artist added to Library!");
     } else {
-      await BloomeeDBService.removeFromSavedCollecs(artist.sourceId);
+      await _collectionRepo.remove(artist.sourceId);
       SnackbarService.showMessage("Artist removed from Library!");
     }
     checkIsSaved();

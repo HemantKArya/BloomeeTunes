@@ -1,0 +1,48 @@
+/// Keys for user-facing settings stored in the database (Isar SettingDB).
+/// These replace settings-key constants previously mixed into [GlobalStrConsts].
+///
+/// Usage:
+///   SettingsDAO.getSettingStr(SettingKeys.downQuality, defaultValue: "96 kbps");
+class SettingKeys {
+  SettingKeys._();
+
+  // ── App behaviour ───────────────────────────────────────────────────────────
+  static const String autoUpdateNotify = "auto_update_notify";
+  static const String autoSlideCharts = "auto_slide_charts";
+
+  // ── Playback ────────────────────────────────────────────────────────────────
+  static const String strmQuality = "streamQuality";
+  static const String ytStrmQuality = "ytStreamQuality";
+  static const String autoPlay = "autoPlaySimilarItems";
+
+  // ── Downloads ───────────────────────────────────────────────────────────────
+  static const String downPathSetting = "downloadPath";
+
+  /// Special playlist name for downloaded tracks.
+  static const String downloadPlaylist = "_DOWNLOADS";
+  static const String downQuality = "downloadQuality";
+  static const String ytDownQuality = "ytDownloadQuality";
+
+  // ── Backup ──────────────────────────────────────────────────────────────────
+  static const String backupPath = "backupPath";
+  static const String autoBackup = "autoBackup";
+
+  // ── History ─────────────────────────────────────────────────────────────────
+  static const String historyClearTime = "autoHistoryCleanupTime";
+
+  /// Special playlist name for recently played tracks.
+  static const String recentlyPlayedPlaylist = "recently_played";
+
+  // ── Location / charts ───────────────────────────────────────────────────────
+  static const String autoGetCountry = "autoGetCountry";
+  static const String countryCode = "countryCode";
+  static const String chartShowMap = "chartShowMap";
+
+  // ── Lyrics ──────────────────────────────────────────────────────────────────
+  static const String autoSaveLyrics = "autoSaveLyrics";
+
+  // ── Onboarding / changelogs ─────────────────────────────────────────────────
+  /// Tracks the last changelog version the user has read.
+  /// Value format: e.g. "v2.11.6+171".
+  static const String readChangelogs = "readChangelogs";
+}

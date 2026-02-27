@@ -1,12 +1,12 @@
 import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/saavnModel.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/saavn_model.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
-import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
+import 'package:Bloomee/repository/bloomee/collection_repository.dart';
+import 'package:Bloomee/repository/saavn/saavn_api.dart';
+import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -15,8 +15,13 @@ part 'album_state.dart';
 class AlbumCubit extends Cubit<AlbumState> {
   final AlbumModel album;
   final SourceEngine sourceEngine;
-  AlbumCubit({required this.album, required this.sourceEngine})
-      : super(AlbumInitial()) {
+  final CollectionRepository _collectionRepo;
+  AlbumCubit({
+    required this.album,
+    required this.sourceEngine,
+    required CollectionRepository collectionRepo,
+  })  : _collectionRepo = collectionRepo,
+        super(AlbumInitial()) {
     emit(AlbumLoading(album: album));
     checkIsSaved();
     switch (sourceEngine) {
@@ -62,7 +67,7 @@ class AlbumCubit extends Cubit<AlbumState> {
   }
 
   Future<void> checkIsSaved() async {
-    bool isSaved = await BloomeeDBService.isInSavedCollections(album.sourceId);
+    bool isSaved = await _collectionRepo.isSaved(album.sourceId);
     if (state.isSavedToCollections != isSaved) {
       emit(
         state.copyWith(isSavedToCollections: isSaved),
@@ -72,10 +77,10 @@ class AlbumCubit extends Cubit<AlbumState> {
 
   Future<void> addToSavedCollections() async {
     if (!state.isSavedToCollections) {
-      await BloomeeDBService.putOnlAlbumModel(album);
+      await _collectionRepo.saveAlbum(album);
       SnackbarService.showMessage("Album added to Library!");
     } else {
-      await BloomeeDBService.removeFromSavedCollecs(album.sourceId);
+      await _collectionRepo.remove(album.sourceId);
       SnackbarService.showMessage("Album removed from Library!");
     }
     checkIsSaved();

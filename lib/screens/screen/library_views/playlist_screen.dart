@@ -1,20 +1,19 @@
 import 'dart:ui';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/model/media_playlist_model.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
-import 'package:Bloomee/screens/widgets/playPause_widget.dart';
+import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
-import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -606,13 +605,13 @@ class PlaylistView extends StatelessWidget {
                                   state.mediaPlaylist.mediaItems[index],
                                   onDelete: () {
                                     context
-                                        .read<BloomeeDBCubit>()
-                                        .removeMediaFromPlaylist(
+                                        .read<LibraryItemsCubit>()
+                                        .removeFromPlaylist(
                                           state.mediaPlaylist.mediaItems[index],
-                                          MediaPlaylistDB(
-                                              playlistName: state
-                                                  .mediaPlaylist.playlistName),
+                                          state.mediaPlaylist.playlistName,
                                         );
+                                    SnackbarService.showMessage(
+                                        "${state.mediaPlaylist.mediaItems[index].title} is removed from ${state.mediaPlaylist.playlistName}!!");
                                   },
                                   showDelete: true,
                                   showSinglePlay: true,

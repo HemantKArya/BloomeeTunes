@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
-import 'package:Bloomee/plugins/ext_charts/chart_defines.dart';
-import 'package:Bloomee/utils/load_Image.dart';
+import 'package:Bloomee/plugins/charts/chart_defines.dart';
+import 'package:Bloomee/utils/load_image.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class ChartWidget extends StatefulWidget {

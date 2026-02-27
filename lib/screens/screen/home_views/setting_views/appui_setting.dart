@@ -1,10 +1,10 @@
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/model/source_engines.dart';
-import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
+import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
 import 'package:Bloomee/screens/screen/chart/show_charts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AppUISettings extends StatefulWidget {
@@ -45,7 +45,8 @@ class _AppUISettingsState extends State<AppUISettings> {
                   subtitle: Text(
                     "Slide charts automatically in home screen.",
                     style: TextStyle(
-                            color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.5),
                             fontSize: 12)
                         .merge(Default_Theme.secondoryTextStyleMedium),
                   ),
@@ -63,7 +64,8 @@ class _AppUISettingsState extends State<AppUISettings> {
                   subtitle: Text(
                     "Suggestions from Last.FM will be shown in the home screen. (Login & Restart required)",
                     style: TextStyle(
-                            color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.5),
                             fontSize: 12)
                         .merge(Default_Theme.secondoryTextStyleMedium),
                   ),
@@ -93,7 +95,8 @@ class _AppUISettingsState extends State<AppUISettings> {
                 subtitle: Text(
                   "Manage the source engines you want to use for Music search. (Restart required)",
                   style: TextStyle(
-                          color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.5),
                           fontSize: 12)
                       .merge(Default_Theme.secondoryTextStyleMedium),
                 ),
@@ -126,7 +129,8 @@ class _AppUISettingsState extends State<AppUISettings> {
                 subtitle: Text(
                   "Manage the chart sources you want to see in the home screen.",
                   style: TextStyle(
-                          color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.5),
                           fontSize: 12)
                       .merge(Default_Theme.secondoryTextStyleMedium),
                 ),

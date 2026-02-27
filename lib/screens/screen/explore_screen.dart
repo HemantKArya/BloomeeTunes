@@ -1,11 +1,14 @@
 import 'dart:developer';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
+import 'package:Bloomee/services/db/dao/history_dao.dart';
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/model/media_playlist_model.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
@@ -15,12 +18,12 @@ import 'package:flutter/material.dart';
 import 'package:Bloomee/screens/screen/home_views/notification_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_view.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'chart/carousal_widget.dart';
 import '../widgets/horizontal_card_view.dart';
-import '../widgets/tabList_widget.dart';
+import '../widgets/tab_list_widget.dart';
 import 'package:badges/badges.dart' as badges;
 
 class ExploreScreen extends StatefulWidget {
@@ -31,7 +34,9 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   bool isUpdateChecked = false;
-  YTMusicCubit yTMusicCubit = YTMusicCubit();
+  late final CacheDAO _cacheDao = CacheDAO(DBProvider.db);
+  late final HistoryDAO _historyDao = HistoryDAO(DBProvider.db);
+  late final YTMusicCubit yTMusicCubit = YTMusicCubit(_cacheDao);
   Future<MediaPlaylist> lFMData =
       Future.value(const MediaPlaylist(mediaItems: [], playlistName: ""));
 
@@ -65,7 +70,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<RecentlyCubit>(
-            create: (context) => RecentlyCubit(),
+            create: (context) => RecentlyCubit(_historyDao),
             lazy: false,
           ),
           BlocProvider(
@@ -73,7 +78,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             lazy: false,
           ),
           BlocProvider(
-            create: (context) => FetchChartCubit(),
+            create: (context) => FetchChartCubit(DBProvider.appSuppDir),
             lazy: false,
           ),
         ],

@@ -1,20 +1,30 @@
 import 'dart:async';
 import 'dart:developer';
-import 'package:Bloomee/blocs/mediaPlayer/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/model/lyrics_models.dart';
-import 'package:Bloomee/model/songModel.dart';
-import 'package:Bloomee/repository/Lyrics/lyrics.dart';
-import 'package:Bloomee/routes_and_consts/global_conts.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/repository/lyrics/lyrics.dart';
+import 'package:Bloomee/core/constants/app_constants.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/db/dao/lyrics_dao.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 part 'lyrics_state.dart';
 
 class LyricsCubit extends Cubit<LyricsState> {
+  final LyricsDAO _lyricsDao;
+  final SettingsDAO _settingsDao;
   StreamSubscription? _mediaItemSubscription;
-  LyricsCubit(BloomeePlayerCubit playerCubit) : super(LyricsInitial()) {
+
+  LyricsCubit(
+    BloomeePlayerCubit playerCubit, {
+    required LyricsDAO lyricsDao,
+    required SettingsDAO settingsDao,
+  })  : _lyricsDao = lyricsDao,
+        _settingsDao = settingsDao,
+        super(LyricsInitial()) {
     _mediaItemSubscription =
         playerCubit.bloomeePlayer.mediaItem.stream.listen((v) {
       if (v != null) {
@@ -28,7 +38,7 @@ class LyricsCubit extends Cubit<LyricsState> {
       return;
     } else {
       emit(LyricsLoading(mediaItem));
-      Lyrics? lyrics = await BloomeeDBService.getLyrics(mediaItem.id);
+      Lyrics? lyrics = await _lyricsDao.getLyrics(mediaItem.id);
       if (lyrics == null) {
         try {
           lyrics = await LyricsRepository.getLyrics(
@@ -39,10 +49,9 @@ class LyricsCubit extends Cubit<LyricsState> {
           }
           lyrics = lyrics.copyWith(mediaID: mediaItem.id);
           emit(LyricsLoaded(lyrics, mediaItem));
-          BloomeeDBService.getSettingBool(GlobalStrConsts.autoSaveLyrics)
-              .then((value) {
+          _settingsDao.getSettingBool(SettingKeys.autoSaveLyrics).then((value) {
             if ((value ?? false) && lyrics != null) {
-              BloomeeDBService.putLyrics(lyrics);
+              _lyricsDao.putLyrics(lyrics);
               log("Lyrics saved for ID: ${mediaItem.id} Duration: ${lyrics.duration}",
                   name: "LyricsCubit");
             }
@@ -62,7 +71,7 @@ class LyricsCubit extends Cubit<LyricsState> {
 
   void setLyricsToDB(Lyrics lyrics, String mediaID) {
     final l1 = lyrics.copyWith(mediaID: mediaID);
-    BloomeeDBService.putLyrics(l1).then((v) {
+    _lyricsDao.putLyrics(l1).then((v) {
       emit(LyricsLoaded(l1, state.mediaItem));
     });
     log("Lyrics updated for ID: ${l1.mediaID} Duration: ${l1.duration}",
@@ -70,7 +79,7 @@ class LyricsCubit extends Cubit<LyricsState> {
   }
 
   void deleteLyricsFromDB(MediaItemModel mediaItem) {
-    BloomeeDBService.removeLyricsById(mediaItem.id).then((value) {
+    _lyricsDao.removeLyricsById(mediaItem.id).then((value) {
       emit(LyricsInitial());
       getLyrics(mediaItem);
 

@@ -1,27 +1,31 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:developer';
-import 'package:Bloomee/model/MediaPlaylistModel.dart';
+import 'package:Bloomee/model/media_playlist_model.dart';
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/model/artist_onl_model.dart';
 import 'package:Bloomee/model/playlist_onl_model.dart';
 import 'package:equatable/equatable.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/GlobalDB.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
-import 'package:Bloomee/services/db/cubit/bloomee_db_cubit.dart';
+import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/services/db/dao/collection_dao.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 part 'library_items_state.dart';
 
 class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   StreamSubscription? playlistWatcherDB;
   StreamSubscription? savedCollecsWatcherDB;
-  final BloomeeDBCubit bloomeeDBCubit;
+  final PlaylistDAO _playlistDao;
+  final CollectionDAO _collectionDao;
 
   LibraryItemsCubit({
-    required this.bloomeeDBCubit,
-  }) : super(LibraryItemsLoading()) {
+    required PlaylistDAO playlistDao,
+    required CollectionDAO collectionDao,
+  })  : _playlistDao = playlistDao,
+        _collectionDao = collectionDao,
+        super(LibraryItemsLoading()) {
     // Start with a loading state
     _initialize();
   }
@@ -45,19 +49,18 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   }
 
   Future<void> _getDBWatchers() async {
-    playlistWatcherDB =
-        (await BloomeeDBService.getPlaylistsWatcher()).listen((_) {
+    playlistWatcherDB = (await _playlistDao.getPlaylistsWatcher()).listen((_) {
       getAndEmitPlaylists();
     });
     savedCollecsWatcherDB =
-        (await BloomeeDBService.getSavedCollecsWatcher()).listen((_) {
+        (await _collectionDao.getSavedCollecsWatcher()).listen((_) {
       getAndEmitSavedOnlCollections();
     });
   }
 
   Future<void> getAndEmitPlaylists() async {
     try {
-      final mediaPlaylists = await BloomeeDBService.getPlaylists4Library();
+      final mediaPlaylists = await _playlistDao.getPlaylists4Library();
       final playlistItems = mediaPlaylistsDB2ItemProperties(mediaPlaylists);
 
       // When emitting, copy existing parts of the state to avoid losing data
@@ -72,7 +75,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
 
   Future<void> getAndEmitSavedOnlCollections() async {
     try {
-      final collections = await BloomeeDBService.getSavedCollections();
+      final collections = await _collectionDao.getSavedCollections();
       final artists = collections.whereType<ArtistModel>().toList();
       final albums = collections.whereType<AlbumModel>().toList();
       final onlinePlaylists =
@@ -105,42 +108,79 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
 
   void removePlaylist(MediaPlaylistDB mediaPlaylistDB) {
     if (mediaPlaylistDB.playlistName != "Null") {
-      BloomeeDBService.removePlaylist(mediaPlaylistDB);
+      _playlistDao.removePlaylist(mediaPlaylistDB);
       // The watcher will automatically trigger a state update.
       SnackbarService.showMessage(
           "Playlist ${mediaPlaylistDB.playlistName} removed");
     }
   }
 
-  Future<void> addToPlaylist(
-      MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB,
+  Future<void> addToPlaylist(MediaItemModel mediaItem, String playlistName,
       {bool showSnackbar = true}) async {
-    if (mediaPlaylistDB.playlistName != "Null") {
-      await bloomeeDBCubit.addMediaItemToPlaylist(mediaItem, mediaPlaylistDB,
-          showSnackbar: showSnackbar);
-      // The watcher will automatically trigger a state update.
+    if (playlistName != "Null") {
+      await _playlistDao.addMediaItem(
+          mediaItemToMediaItemDB(mediaItem), playlistName);
+      if (showSnackbar) {
+        SnackbarService.showMessage(
+            "${mediaItem.title} is added to $playlistName!!");
+      }
     }
   }
 
-  void removeFromPlaylist(
-      MediaItemModel mediaItem, MediaPlaylistDB mediaPlaylistDB,
+  void removeFromPlaylist(MediaItemModel mediaItem, String playlistName,
       {bool showSnackbar = true}) {
-    if (mediaPlaylistDB.playlistName != "Null") {
-      bloomeeDBCubit.removeMediaFromPlaylist(mediaItem, mediaPlaylistDB,
-          showSnackbar: showSnackbar);
-      // The watcher will automatically trigger a state update.
+    if (playlistName != "Null") {
+      _playlistDao
+          .removeMediaItemFromPlaylist(mediaItemToMediaItemDB(mediaItem),
+              MediaPlaylistDB(playlistName: playlistName))
+          .then((_) {
+        if (showSnackbar) {
+          SnackbarService.showMessage(
+              "${mediaItem.title} is removed from $playlistName!!");
+        }
+      });
     }
   }
 
   Future<List<MediaItemModel>?> getPlaylist(String playlistName) async {
     try {
-      final playlist =
-          await BloomeeDBService.getPlaylistItemsByName(playlistName);
+      final playlist = await _playlistDao.getPlaylistItemsByName(playlistName);
 
-      return playlist?.map((e) => MediaItemDB2MediaItem(e)).toList();
+      return playlist?.map((e) => mediaItemDBToMediaItem(e)).toList();
     } catch (e) {
       log("Error in getting playlist: $e", name: "libItemCubit");
       return null;
     }
+  }
+
+  /// Check if a media item is liked.
+  Future<bool> isMediaLiked(MediaItemModel mediaItem) async {
+    return _playlistDao.isMediaLiked(mediaItemToMediaItemDB(mediaItem));
+  }
+
+  /// Like/unlike a media item.
+  Future<void> likeMediaItem(MediaItemModel mediaItem, bool isLiked) async {
+    await _playlistDao.addMediaItem(mediaItemToMediaItemDB(mediaItem), "Liked");
+    await _playlistDao.likeMediaItem(mediaItemToMediaItemDB(mediaItem),
+        isLiked: isLiked);
+  }
+
+  /// Create a new empty playlist.
+  Future<void> createPlaylist(String name) async {
+    await _playlistDao.addPlaylist(MediaPlaylistDB(playlistName: name));
+    SnackbarService.showMessage("Playlist '$name' created!");
+  }
+
+  /// Get all playlist names that contain a given song.
+  Future<Set<String>> getPlaylistsContainingSong(String mediaId) async {
+    final names = await _playlistDao.getPlaylistsContainingSong(mediaId);
+    return names.toSet();
+  }
+
+  /// Get a playlist as a MediaPlaylist model by name.
+  Future<MediaPlaylist?> getPlaylistByName(String name) async {
+    final playlistDB = await _playlistDao.getPlaylist(name);
+    if (playlistDB == null) return null;
+    return playlistDBToMediaPlaylist(playlistDB);
   }
 }

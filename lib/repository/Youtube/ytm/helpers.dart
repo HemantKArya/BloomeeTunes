@@ -1,5 +1,7 @@
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 
 Future<Map<String, String>> initializeHeaders({String language = 'en'}) async {
   Map<String, String> h = {
@@ -14,7 +16,7 @@ Future<Map<String, String>> initializeHeaders({String language = 'en'}) async {
     'Accept-Language': language,
   };
   // String? visitorId = Hive.box('SETTINGS').get('VISITOR_ID');
-  String? visitorId = await BloomeeDBService.getAPICache("VISITOR_ID");
+  String? visitorId = await CacheDAO(DBProvider.db).getAPICache("VISITOR_ID");
   if (visitorId != null) {
     h['X-Goog-Visitor-Id'] = visitorId;
   }
@@ -31,7 +33,7 @@ Future<Map<String, dynamic>> initializeContext() async {
     'context': {
       'client': {
         "hl": "en-IN",
-        "gl": await BloomeeDBService.getSettingStr(GlobalStrConsts.countryCode,
+        "gl": await SettingsDAO(DBProvider.db).getSettingStr(SettingKeys.countryCode,
             defaultValue: "IN"),
         'clientName': 'WEB_REMIX',
         'clientVersion': '1.$date.01.00',

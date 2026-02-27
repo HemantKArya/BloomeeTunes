@@ -2,12 +2,11 @@ import 'dart:developer';
 
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
-import 'package:Bloomee/routes_and_consts/global_str_consts.dart';
+import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
+import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/bloomee_db_service.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LastDotFM extends StatefulWidget {
@@ -51,12 +50,10 @@ class _LastDotFMState extends State<LastDotFM> {
 
   Future<void> getKeysFromDB() async {
     log("Getting Last.FM Keys from DB", name: "Last.FM");
-    username =
-        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMUsername);
-    final apiKey =
-        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMApiKey);
-    final apiSecret =
-        await BloomeeDBService.getApiTokenDB(GlobalStrConsts.lFMSecret);
+    final lastdotfmCubit = context.read<LastdotfmCubit>();
+    username = await lastdotfmCubit.getApiToken(CacheKeys.lFMUsername);
+    final apiKey = await lastdotfmCubit.getApiToken(CacheKeys.lFMApiKey);
+    final apiSecret = await lastdotfmCubit.getApiToken(CacheKeys.lFMSecret);
     if (apiKey != null) {
       apiKeyController.text = apiKey;
     }

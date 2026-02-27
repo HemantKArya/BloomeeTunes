@@ -1,18 +1,20 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 import 'package:Bloomee/model/playlist_onl_model.dart';
-import 'package:Bloomee/repository/Youtube/ytm/ytmusic.dart';
+import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
+import 'package:Bloomee/services/db/dao/search_history_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/model/album_onl_model.dart';
 import 'package:Bloomee/model/artist_onl_model.dart';
-import 'package:Bloomee/model/saavnModel.dart';
-import 'package:Bloomee/model/songModel.dart';
+import 'package:Bloomee/model/saavn_model.dart';
+import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/model/source_engines.dart';
 import 'package:Bloomee/model/youtube_vid_model.dart';
 import 'package:Bloomee/model/yt_music_model.dart';
-import 'package:Bloomee/repository/Saavn/saavn_api.dart';
-import 'package:Bloomee/repository/Youtube/youtube_api.dart';
+import 'package:Bloomee/repository/saavn/saavn_api.dart';
+import 'package:Bloomee/repository/youtube/youtube_api.dart';
 
 enum LoadingState { initial, loading, loaded, noInternet }
 
@@ -136,7 +138,12 @@ final class FetchSearchResultsLoaded extends FetchSearchResultsState {
 //------------------------------------------------------------------------
 
 class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
-  FetchSearchResultsCubit() : super(FetchSearchResultsInitial()) {
+  final SearchHistoryDAO _searchHistoryDao;
+
+  FetchSearchResultsCubit({SearchHistoryDAO? searchHistoryDao})
+      : _searchHistoryDao =
+            searchHistoryDao ?? SearchHistoryDAO(DBProvider.db),
+        super(FetchSearchResultsInitial()) {
     YTMusic();
   }
 
@@ -407,5 +414,10 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
 
   void clearSearch() {
     emit(FetchSearchResultsInitial());
+  }
+
+  /// Save a query to search history.
+  Future<void> saveSearchHistory(String query) async {
+    await _searchHistoryDao.putSearchHistory(query);
   }
 }

@@ -8,7 +8,7 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/lastfm_setting.d
 import 'package:Bloomee/screens/screen/home_views/setting_views/player_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/updates_setting.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/theme_data/default.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class SettingsView extends StatelessWidget {
