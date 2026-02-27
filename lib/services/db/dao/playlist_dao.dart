@@ -407,8 +407,8 @@ class PlaylistDAO {
   Future<void> removeMediaItem(MediaItemDB mediaItemDB) async {
     Isar isarDB = await _db;
     bool res = false;
-    isarDB.writeTxnSync(
-        () => res = isarDB.mediaItemDBs.deleteSync(mediaItemDB.id!));
+    await isarDB.writeTxn(
+        () async => res = await isarDB.mediaItemDBs.delete(mediaItemDB.id!));
     if (res) {
       log("${mediaItemDB.title} is Deleted!!", name: "DB");
     }
