@@ -56,6 +56,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   bool _isDisposed = false;
   Completer<void>? _transitionCancellation; // Cancellable transitions
+  DateTime? _lastSkipTime; // For rapid skip detection (700ms threshold)
 
   // Stream subscriptions
   StreamSubscription? _engineStateSub;
@@ -428,18 +429,44 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   // ─── Track Playing ─────────────────────────────────────────────────────────
 
   /// Play a [MediaItemModel] by resolving its audio URI and opening the engine.
-  /// Cancels any previous transition in progress (allows skip during loading).
-  /// Lets the engine handle crossfade vs direct open based on configuration.
+  ///
+  /// ## Decision tree (deterministic, handles all edge cases):
+  ///
+  /// 1. Cancel any pending transition (CancellationToken pattern)
+  /// 2. Detect rapid skip (< 700ms between skips)
+  /// 3. Update UI immediately (new track metadata + loading spinner)
+  /// 4. Transition based on state:
+  ///
+  ///    **No crossfade:**
+  ///    - Preloaded & not rapid → instant swap to preloaded standby
+  ///    - Otherwise → stop all, resolve URI, open direct
+  ///
+  ///    **Crossfade enabled:**
+  ///    - Preloaded & not rapid → smooth crossfade to standby
+  ///    - Rapid skip → stop all immediately, resolve URI, open direct
+  ///    - Not preloaded & not rapid → fadeout old ∥ resolve URI, then open
   Future<void> _playTrack(MediaItemModel track,
       {bool doPlay = true, Duration? initialPosition}) async {
     if (_isDisposed) return;
 
-    // Cancel any pending transition - allows skip during loading/buffering
+    // ── 1. Cancel previous transition (CancellationToken) ──
     _transitionCancellation?.complete();
     _transitionCancellation = Completer<void>();
-    final cancellation = _transitionCancellation!;
+    final cancel = _transitionCancellation!;
+
+    // ── 2. Rapid skip detection (700ms threshold) ──
+    final now = DateTime.now();
+    const rapidThreshold = Duration(milliseconds: 700);
+    final isRapidSkip = _lastSkipTime != null &&
+        now.difference(_lastSkipTime!) < rapidThreshold;
+    _lastSkipTime = now;
+
+    // ── 3. Capture transition state BEFORE any async work ──
+    final crossfadeEnabled = engine.crossfadeDuration > Duration.zero;
+    final preloaded = engine.isPreloaded;
 
     try {
+      // Audio session
       if (doPlay) {
         final granted = await _activateAudioSession();
         if (!granted) {
@@ -448,14 +475,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           return;
         }
       }
+      if (cancel.isCompleted) return;
 
-      // Check if cancelled (user skipped to another track)
-      if (cancellation.isCompleted) return;
-
-      // 1. Update notification with new track info (shows "loading").
+      // ── Update UI + show spinner ──
       final artUriStr =
           formatImgURL(track.artUri?.toString() ?? '', ImageQuality.medium);
-      // Only reconstruct if artUri changed (small optimization)
       if (_currentTrack.artUri?.toString() != artUriStr) {
         _currentTrack = MediaItemModel(
           id: track.id,
@@ -471,47 +495,85 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         _currentTrack = track;
       }
       mediaItem.add(_currentTrack);
-
-      // Immediately enter loading state so UI shows spinner right away
-      // (before we start the potentially slow URI resolution).
       engine.setLoadingState();
 
-      // 2. Resolve audio source URI.
-      final (uri, offline) =
-          await _resolveUri(track).timeout(const Duration(seconds: 15));
+      // ── 4. Execute transition ──
+      if (!crossfadeEnabled) {
+        // ─── NO CROSSFADE ───
+        if (!isRapidSkip && preloaded) {
+          // Best case: instant swap to preloaded standby
+          await engine.activatePreloaded(autoPlay: doPlay);
+        } else {
+          // Stop everything, resolve URI, open fresh
+          await engine.stop();
+          if (cancel.isCompleted) return;
 
-      // Check if cancelled after slow network operation
-      if (cancellation.isCompleted) return;
+          final (uri, offline) =
+              await _resolveUri(track).timeout(const Duration(seconds: 15));
+          if (cancel.isCompleted) return;
+          isOffline.add(offline);
 
-      isOffline.add(offline);
+          await engine.openDirect(uri, autoPlay: doPlay);
+        }
+      } else {
+        // ─── CROSSFADE ENABLED ───
+        if (!isRapidSkip && preloaded) {
+          // Smooth crossfade to preloaded standby
+          await engine.crossfadeToPreloaded(engine.crossfadeDuration);
+        } else if (isRapidSkip) {
+          // Rapid skip: hard stop, resolve, open fresh
+          await engine.stop();
+          if (cancel.isCompleted) return;
 
-      // 3. Let engine decide: crossfade if playing and crossfadeDuration > 0,
-      //    otherwise direct open. DON'T stop() first — that kills crossfade.
-      //    Only stop if no crossfade is configured (for clean slate).
-      if (engine.crossfadeDuration == Duration.zero) {
-        await engine.stop();
+          final (uri, offline) =
+              await _resolveUri(track).timeout(const Duration(seconds: 15));
+          if (cancel.isCompleted) return;
+          isOffline.add(offline);
+
+          await engine.openDirect(uri, autoPlay: doPlay);
+        } else {
+          // Not preloaded, not rapid: fadeout old ∥ resolve URI in parallel
+          final fadeoutDone = engine.fadeOutActive(const Duration(seconds: 2));
+          final resolveDone =
+              _resolveUri(track).timeout(const Duration(seconds: 15));
+
+          // Wait for URI resolution (may finish before fadeout)
+          late final (Uri, bool) resolved;
+          try {
+            resolved = await resolveDone;
+          } catch (e) {
+            // If resolve fails, still wait for fadeout to prevent orphan loop
+            await fadeoutDone;
+            rethrow;
+          }
+          if (cancel.isCompleted) return;
+
+          // Wait for fadeout to finish too
+          await fadeoutDone;
+          if (cancel.isCompleted) return;
+
+          final (uri, offline) = resolved;
+          isOffline.add(offline);
+
+          await engine.openDirect(uri, autoPlay: doPlay);
+        }
       }
 
-      await engine.open(uri, autoPlay: doPlay);
+      // ── 5. Post-transition ──
+      if (cancel.isCompleted) return;
 
-      // 4. Seek if needed.
       if (initialPosition != null && initialPosition > Duration.zero) {
         await engine.seek(initialPosition);
       }
 
-      // 5. Clear errors on success.
       _errorHandler.clearError();
       _errorHandler.clearRetryAttempts(track.id);
-
-      // 6. Pre-resolve next track for gapless playback.
       _preResolveNextTrack();
-
-      // 7. Check for related songs.
       await _checkRelatedSongs();
 
       log('Now playing: ${track.title}', name: 'BloomeeMusicPlayer');
     } on TimeoutException catch (e) {
-      if (cancellation.isCompleted) return;
+      if (cancel.isCompleted) return;
       log('Timeout loading ${track.title}: $e', name: 'BloomeeMusicPlayer');
       _errorHandler.handleError(
         PlayerErrorType.networkError,
@@ -520,13 +582,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         e,
       );
     } catch (e) {
-      if (cancellation.isCompleted) return;
+      if (cancel.isCompleted) return;
       log('Failed to play ${track.title}: $e', name: 'BloomeeMusicPlayer');
       final type = _errorHandler.categorizeError(e);
       _errorHandler.handleError(type, e.toString(), track, e);
     } finally {
-      // Only clear if this was the active transition
-      if (_transitionCancellation == cancellation) {
+      if (_transitionCancellation == cancel) {
         _transitionCancellation = null;
       }
     }

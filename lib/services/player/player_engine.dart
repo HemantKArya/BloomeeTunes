@@ -45,9 +45,14 @@ class PlayerEngine {
 
   // ── Cross-fade ──
   Duration crossfadeDuration = Duration.zero;
-  bool _isCrossfading = false;
-  Completer<void>? _crossfadeCompleter; // Signals cancellation to running fade
-  Completer<void>? _crossfadeDone; // Signals that fade cleanup is finished
+
+  // ── Transition tracking ──
+  // Monotonic generation counter. Incremented by stop() and every transition
+  // method (openDirect, activatePreloaded, crossfadeToPreloaded, fadeOutActive).
+  // Running loops compare their captured generation to the current value;
+  // a mismatch means "a newer transition started — abort immediately".
+  int _generation = 0;
+  bool _isTransitioning = false; // suppresses volume stream during fade/xfade
 
   // ── Gapless pre-load ──
   Uri? _preloadedNextUri;
@@ -58,6 +63,8 @@ class PlayerEngine {
 
   // ── User volume (0..1) — preserved across cross-fade transitions ──
   double _userVolume = 1.0;
+  double _playerAVolume = 100.0;
+  double _playerBVolume = 100.0;
 
   // ── Media presence — used by _deriveState to avoid idle flicker ──
   bool _hasMedia = false;
@@ -159,7 +166,12 @@ class PlayerEngine {
         }
       }),
       player.stream.volume.listen((v) {
-        if (_isActive(isA) && !_isCrossfading) {
+        if (isA) {
+          _playerAVolume = v;
+        } else {
+          _playerBVolume = v;
+        }
+        if (_isActive(isA) && !_isTransitioning) {
           _volumeSubject.add((v / 100.0).clamp(0.0, 1.0));
         }
       }),
@@ -208,138 +220,207 @@ class PlayerEngine {
   void setLoadingState() {
     if (_disposed) return;
     _stateSubject.add(EngineState.loading);
-    // Don't reset position/duration — keep showing last known values while
-    // loading. Prevents seek bar from jumping to zero during track transition.
   }
 
-  /// Open a URI and optionally start playback.
-  /// Stops any currently playing audio first to prevent overlap.
-  /// Cancels and awaits cleanup of any ongoing crossfade transition.
-  Future<void> open(Uri uri, {bool autoPlay = true}) async {
+  // ─── Transition Primitives ─────────────────────────────────────────────────
+  //
+  // The orchestrator (BloomeeMusicPlayer) implements the skip decision tree
+  // and calls these deterministic building blocks. Every transition method:
+  //   1. Increments _generation → aborts any previous running loop
+  //   2. Does exactly ONE thing
+  //   3. Completes fully — no fire-and-forget background work
+
+  /// Open a URI on the active player (direct open, no crossfade).
+  Future<void> openDirect(Uri uri, {bool autoPlay = true}) async {
     if (_disposed) return;
-
-    // Signal cancellation and wait for the old crossfade to fully exit
-    // before manipulating the players again — prevents the race condition
-    // where both crossfades touch the same player concurrently.
-    if (_crossfadeCompleter != null && !_crossfadeCompleter!.isCompleted) {
-      _crossfadeCompleter!.complete();
-      await _crossfadeDone?.future;
-    }
-
-    if (crossfadeDuration > Duration.zero && _active.state.playing) {
-      await _crossfadeOpen(uri, autoPlay: autoPlay);
-    } else {
-      await _directOpen(uri, autoPlay: autoPlay);
-    }
-  }
-
-  Future<void> _directOpen(Uri uri, {bool autoPlay = true}) async {
+    _generation++;
+    _isTransitioning = false;
     _hasMedia = false;
     _stateSubject.add(EngineState.loading);
-    // Don't reset position/duration here — let the player streams update them
-    // naturally after open(). Resetting to zero breaks seek during loading.
     try {
       await _active.open(Media(uri.toString()), play: autoPlay);
       _hasMedia = true;
+      if (_eqEnabled) await _applyEqualizer();
     } catch (e) {
       log('Failed to open: $e', name: 'PlayerEngine');
       _stateSubject.add(EngineState.error);
       _errorController.add(e.toString());
-      // Consistent with crossfade: emit error on stream, do not rethrow
     }
   }
 
-  Future<void> _crossfadeOpen(Uri uri, {bool autoPlay = true}) async {
-    // Fresh completers for this crossfade run
-    _crossfadeCompleter = Completer<void>();
-    _crossfadeDone = Completer<void>();
-    final cancellation = _crossfadeCompleter!;
-    final done = _crossfadeDone!;
+  /// Activate the preloaded standby player as the new active.
+  /// Swaps active/standby, sets correct volume, starts playback.
+  /// Only valid when [isPreloaded] is true.
+  Future<void> activatePreloaded({bool autoPlay = true}) async {
+    if (_disposed || !_standbyPreloaded) return;
+    _generation++;
+    _isTransitioning = false;
 
-    _isCrossfading = true;
-    _hasMedia = false;
     final oldPlayer = _active;
     final newPlayer = _standby;
 
+    // Swap so stream subscriptions route to the correct player
+    _aIsActive = !_aIsActive;
+    _standbyPreloaded = false;
+    _preloadedNextUri = null;
+    _hasMedia = true;
+
+    // Stop old, set volume, play new
     try {
-      await newPlayer.setVolume(0);
+      await oldPlayer.stop();
+    } catch (_) {}
+    await newPlayer.setVolume(_userVolume * 100.0);
+    if (autoPlay) await newPlayer.play();
 
-      // Check if standby was preloaded with this URI
-      if (_standbyPreloaded && _preloadedNextUri == uri) {
-        // Standby already has the track buffered, just start playing
-        if (autoPlay) await newPlayer.play();
-        _standbyPreloaded = false;
-        _preloadedNextUri = null;
-      } else {
-        await newPlayer.open(Media(uri.toString()), play: autoPlay);
-      }
+    _stateSubject.add(EngineState.ready);
+    if (_eqEnabled) await _applyEqualizer();
+  }
 
+  /// Crossfade from active (old) to preloaded standby (new) over [duration].
+  /// Increments [_generation]; any previous loop aborts on mismatch.
+  /// After crossfade, old player is stopped and roles are swapped.
+  Future<void> crossfadeToPreloaded(Duration duration) async {
+    if (_disposed || !_standbyPreloaded) return;
+
+    final gen = ++_generation;
+    _isTransitioning = true;
+
+    final oldPlayer = _active;
+    final newPlayer = _standby;
+    final oldStartVol = _aIsActive ? _playerAVolume : _playerBVolume;
+    final newStartVol = _aIsActive ? _playerBVolume : _playerAVolume;
+
+    try {
+      // Start new player silent
+      await newPlayer.setVolume(newStartVol.clamp(0.0, 100.0));
+      await newPlayer.play();
+
+      // Swap so streams report the new player's state
       _aIsActive = !_aIsActive;
+      _standbyPreloaded = false;
+      _preloadedNextUri = null;
       _hasMedia = true;
       _stateSubject.add(EngineState.ready);
 
-      // Re-apply EQ to the new active player (MPV resets af on open)
       if (_eqEnabled) await _applyEqualizer();
 
-      final targetVol = _userVolume * 100.0;
+      // Crossfade ramp — Stopwatch-based for jitter-resistant timing
       const steps = 20;
-      final totalMs = crossfadeDuration.inMilliseconds;
-      // Use a Stopwatch so accumulated event-loop jitter is corrected each step
+      final totalMs = duration.inMilliseconds;
       final sw = Stopwatch()..start();
 
       for (int i = 1; i <= steps; i++) {
-        if (_disposed || cancellation.isCompleted) break;
+        if (_generation != gen || _disposed) return;
 
-        // Sleep only the remaining time to hit the target timestamp
         final targetMs = (totalMs * i) ~/ steps;
         final sleepMs = targetMs - sw.elapsedMilliseconds;
         if (sleepMs > 0) {
           await Future.delayed(Duration(milliseconds: sleepMs));
         }
+        if (_generation != gen || _disposed) return;
 
-        if (_disposed || cancellation.isCompleted) break;
-
-        // Use elapsed time for the actual progress — stays accurate under jitter
         final progress = (sw.elapsedMilliseconds / totalMs).clamp(0.0, 1.0);
+        final targetVol =
+            _userVolume * 100.0; // Re-read for live volume changes
+        final oldVol = oldStartVol * (1.0 - progress);
+        final newVol = newStartVol + ((targetVol - newStartVol) * progress);
         await Future.wait([
-          oldPlayer.setVolume(targetVol * (1.0 - progress)),
-          newPlayer.setVolume(targetVol * progress),
+          oldPlayer.setVolume(oldVol.clamp(0.0, 100.0)),
+          newPlayer.setVolume(newVol.clamp(0.0, 100.0)),
         ]);
       }
 
-      // Ensure new player is at full volume regardless of cancellation
-      await newPlayer.setVolume(targetVol);
-      await oldPlayer.stop();
-      // Reset old player volume for the next time it's used as standby
-      await oldPlayer.setVolume(targetVol);
+      if (_generation != gen || _disposed) return;
+
+      // Cleanup: ensure new at full volume, stop old
+      final vol = _userVolume * 100.0;
+      await newPlayer.setVolume(vol);
+      try {
+        await oldPlayer.stop();
+        await oldPlayer.setVolume(vol); // Reset for next use as standby
+      } catch (_) {}
     } catch (e) {
-      log('Cross-fade error: $e', name: 'PlayerEngine');
+      log('Crossfade error: $e', name: 'PlayerEngine');
       _stateSubject.add(EngineState.error);
       _errorController.add(e.toString());
     } finally {
-      _isCrossfading = false;
-      done.complete(); // Signal that cleanup is truly finished
+      if (_generation == gen) {
+        _isTransitioning = false;
+      }
+    }
+  }
+
+  /// Fade out the active player over [duration], then stop it.
+  /// Increments [_generation]; any previous loop aborts on mismatch.
+  /// After this returns, the active player is stopped and silent.
+  Future<void> fadeOutActive(Duration duration) async {
+    if (_disposed) return;
+
+    // Nothing to fade if not playing — just stop
+    if (!_active.state.playing) {
+      try {
+        await _active.stop();
+      } catch (_) {}
+      return;
+    }
+
+    final gen = ++_generation;
+    _isTransitioning = true;
+
+    final player = _active;
+    final startVol = (_aIsActive ? _playerAVolume : _playerBVolume)
+        .clamp(0.0, _userVolume * 100.0);
+
+    try {
+      const steps = 15;
+      final totalMs = duration.inMilliseconds;
+      final sw = Stopwatch()..start();
+
+      for (int i = 1; i <= steps; i++) {
+        if (_generation != gen || _disposed) return;
+
+        final targetMs = (totalMs * i) ~/ steps;
+        final sleepMs = targetMs - sw.elapsedMilliseconds;
+        if (sleepMs > 0) {
+          await Future.delayed(Duration(milliseconds: sleepMs));
+        }
+        if (_generation != gen || _disposed) return;
+
+        final progress = (sw.elapsedMilliseconds / totalMs).clamp(0.0, 1.0);
+        final nextVol = startVol * (1.0 - progress);
+        await player.setVolume(nextVol.clamp(0.0, 100.0));
+      }
+
+      // Fadeout complete — stop and reset volume for reuse
+      if (_generation == gen) {
+        await player.stop();
+        await player.setVolume(_userVolume * 100.0);
+      }
+    } catch (e) {
+      log('Fadeout error: $e', name: 'PlayerEngine');
+    } finally {
+      if (_generation == gen) {
+        _isTransitioning = false;
+      }
     }
   }
 
   /// Stop playback and reset to idle state.
-  /// Cancels any ongoing crossfade and silences both players.
+  /// Increments [_generation] to abort any running transition.
   Future<void> stop() async {
     if (_disposed) return;
 
-    // Signal cancellation and wait for crossfade cleanup to finish
-    if (_crossfadeCompleter != null && !_crossfadeCompleter!.isCompleted) {
-      _crossfadeCompleter!.complete();
-      await _crossfadeDone?.future;
-    }
-    _isCrossfading = false;
+    _generation++;
+    _isTransitioning = false;
     _hasMedia = false;
     _standbyPreloaded = false;
     _preloadedNextUri = null;
 
     try {
-      // Stop both players — standby may have audio from crossfade or preload
       await Future.wait([_playerA.stop(), _playerB.stop()]);
+      // Reset volume on both for a clean slate
+      final vol = _userVolume * 100.0;
+      await Future.wait([_playerA.setVolume(vol), _playerB.setVolume(vol)]);
     } catch (e) {
       log('Stop error: $e', name: 'PlayerEngine');
     }
@@ -381,7 +462,14 @@ class PlayerEngine {
   Future<void> setVolume(double value) async {
     if (_disposed) return;
     _userVolume = value.clamp(0.0, 1.0);
-    await _active.setVolume(_userVolume * 100.0);
+    if (_isTransitioning) {
+      // During crossfade/fadeout the loop applies _userVolume proportionally.
+      // Just storing the value is sufficient — the loop re-reads it each step.
+    } else {
+      // Set on both players so standby is at correct volume for next transition
+      final vol = _userVolume * 100.0;
+      await Future.wait([_playerA.setVolume(vol), _playerB.setVolume(vol)]);
+    }
     _volumeSubject.add(_userVolume);
   }
 
@@ -405,7 +493,7 @@ class PlayerEngine {
   /// Actually prebuffer the next track by opening it in the standby player
   /// with play: false. This ensures near-instant transition.
   Future<void> preloadNext(Uri uri) async {
-    if (_disposed || _isCrossfading) return;
+    if (_disposed || _isTransitioning) return;
 
     // Don't preload if already preloaded with same URI
     if (_standbyPreloaded && _preloadedNextUri == uri) return;
@@ -429,7 +517,7 @@ class PlayerEngine {
   Future<void> clearPreload() async {
     _preloadedNextUri = null;
     _standbyPreloaded = false;
-    if (!_isCrossfading) {
+    if (!_isTransitioning) {
       try {
         await _standby.stop();
       } catch (_) {}
@@ -522,11 +610,9 @@ class PlayerEngine {
     if (_disposed) return;
     _disposed = true; // Set early — guards all async paths below
 
-    // Cancel any crossfade in progress before tearing down
-    if (_crossfadeCompleter != null && !_crossfadeCompleter!.isCompleted) {
-      _crossfadeCompleter!.complete();
-      await _crossfadeDone?.future;
-    }
+    // Abort any running transition loops (they check _disposed and _generation)
+    _generation++;
+    _isTransitioning = false;
 
     for (final sub in _subs) {
       await sub.cancel();
