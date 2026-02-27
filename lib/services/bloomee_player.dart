@@ -20,6 +20,7 @@ import 'package:Bloomee/services/discord_service.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/ytstream_source.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -28,12 +29,12 @@ import 'package:rxdart/rxdart.dart';
 /// and [PlayerErrorHandler].
 ///
 /// ## Key design decisions
-/// - **Stop-before-load**: When switching tracks, old audio is stopped
-///   immediately before the new track loads, preventing audible bleed.
+/// - **Crossfade-aware loading**: Delegates to the engine's crossfade logic
+///   when transitioning tracks, enabling smooth dual-player transitions.
 /// - **Completion-based auto-next**: Uses the engine's [completionStream]
 ///   instead of position-based polling for reliable track advancement.
-/// - **Gapless playback**: Pre-resolves the next track's URI while the
-///   current track plays, enabling near-instant transition on completion.
+/// - **Gapless playback**: Pre-resolves and prebuffers the next track's URI
+///   in the standby player for near-instant transition on completion.
 /// - **MediaItemModel as internal type**: Internal queue stores [MediaItemModel];
 ///   no conversion needed since [MediaItemModel] extends [MediaItem] directly.
 class BloomeeMusicPlayer extends BaseAudioHandler
@@ -54,14 +55,24 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       BehaviorSubject<LoopMode>.seeded(LoopMode.off);
 
   bool _isDisposed = false;
-  bool _isTransitioning = false; // Prevents cascading play calls
+  Completer<void>? _transitionCancellation; // Cancellable transitions
 
   // Stream subscriptions
   StreamSubscription? _engineStateSub;
   StreamSubscription? _completionSub;
   StreamSubscription? _errorSub;
   StreamSubscription? _queueSyncSub;
-  StreamSubscription? _positionSub;
+  Timer? _relatedSongTimer;
+  StreamSubscription<AudioInterruptionEvent>? _audioInterruptionSub;
+  StreamSubscription<void>? _audioNoisySub;
+
+  AudioSession? _audioSession;
+  double? _volumeBeforeDuck;
+  bool _resumeAfterInterruption = false;
+
+  // Cached DAOs to avoid allocation in hot path
+  late final DownloadDAO _downloadDao = DownloadDAO(DBProvider.db);
+  late final SettingsDAO _settingsDao = SettingsDAO(DBProvider.db);
 
   // Expose from modular components
   BehaviorSubject<bool> get shuffleMode => _queueManager.shuffleMode;
@@ -78,6 +89,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _initEngine();
     _initModules();
     _initSubscriptions();
+    _initAudioSession();
     _restoreEngineSettings();
   }
 
@@ -86,6 +98,96 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   void _initEngine() {
     _isDisposed = false;
     engine = PlayerEngine();
+  }
+
+  Future<void> _initAudioSession() async {
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(AudioSessionConfiguration.music());
+      _audioSession = session;
+
+      await _audioInterruptionSub?.cancel();
+      _audioInterruptionSub = session.interruptionEventStream.listen((event) {
+        _handleInterruption(event);
+      });
+
+      await _audioNoisySub?.cancel();
+      _audioNoisySub = session.becomingNoisyEventStream.listen((_) async {
+        if (_isDisposed) return;
+        if (engine.playing) {
+          await pause();
+        }
+      });
+
+      log('Audio session configured', name: 'BloomeeMusicPlayer');
+    } catch (e) {
+      log('Failed to initialize audio session: $e', name: 'BloomeeMusicPlayer');
+    }
+  }
+
+  Future<void> _handleInterruption(AudioInterruptionEvent event) async {
+    if (_isDisposed) return;
+
+    if (event.begin) {
+      switch (event.type) {
+        case AudioInterruptionType.duck:
+          _volumeBeforeDuck ??= engine.volume;
+          await engine.setVolume((engine.volume * 0.35).clamp(0.0, 1.0));
+          break;
+        case AudioInterruptionType.pause:
+        case AudioInterruptionType.unknown:
+          _resumeAfterInterruption = engine.playing;
+          if (engine.playing) {
+            await pause();
+          }
+          break;
+      }
+      return;
+    }
+
+    switch (event.type) {
+      case AudioInterruptionType.duck:
+        final previousVolume = _volumeBeforeDuck;
+        _volumeBeforeDuck = null;
+        if (previousVolume != null) {
+          await engine.setVolume(previousVolume.clamp(0.0, 1.0));
+        }
+        break;
+      case AudioInterruptionType.pause:
+        if (_resumeAfterInterruption) {
+          final granted = await _activateAudioSession();
+          if (granted && !_isDisposed) {
+            await play();
+          }
+        }
+        _resumeAfterInterruption = false;
+        break;
+      case AudioInterruptionType.unknown:
+        _resumeAfterInterruption = false;
+        break;
+    }
+  }
+
+  Future<bool> _activateAudioSession() async {
+    try {
+      final session = _audioSession ?? await AudioSession.instance;
+      _audioSession = session;
+      return await session.setActive(true);
+    } catch (e) {
+      log('Failed to activate audio session: $e', name: 'BloomeeMusicPlayer');
+      return false;
+    }
+  }
+
+  Future<void> _deactivateAudioSession() async {
+    try {
+      final session = _audioSession;
+      if (session != null) {
+        await session.setActive(false);
+      }
+    } catch (e) {
+      log('Failed to deactivate audio session: $e', name: 'BloomeeMusicPlayer');
+    }
   }
 
   /// Restore persisted crossfade / equalizer settings on startup.
@@ -183,10 +285,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       queue.add(List<MediaItem>.from(tracks));
     });
 
-    // Position-based related songs check
-    _positionSub = engine.positionStream.listen((_) {
-      EasyThrottle.throttle('loadRelatedSongs', const Duration(seconds: 5),
-          () async => _checkRelatedSongs());
+    // Use a timer for related songs instead of piggybacking on position stream
+    // (which fires every ~100ms). Check every 10 seconds during playback.
+    _relatedSongTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (!_isDisposed && engine.playing) {
+        _checkRelatedSongs();
+      }
     });
   }
 
@@ -239,6 +343,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     if (_isDisposed) return;
+    final granted = await _activateAudioSession();
+    if (!granted) {
+      SnackbarService.showMessage('Audio focus denied. Cannot start playback.');
+      return;
+    }
     await engine.play();
   }
 
@@ -246,15 +355,20 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> pause() async {
     if (_isDisposed) return;
     await engine.pause();
+    // Do NOT deactivate audio session — we still "own" the audio focus while
+    // paused. Deactivating signals to the OS that we're done, allowing other
+    // apps (Spotify, navigation) to resume immediately, causing overlap.
     log('paused', name: 'BloomeeMusicPlayer');
   }
 
   @override
   Future<void> seek(Duration position) async {
+    if (_isDisposed) return;
     await engine.seek(position);
   }
 
   Future<void> seekNSecForward(Duration n) async {
+    if (_isDisposed) return;
     final dur = engine.duration;
     if (dur >= engine.position + n) {
       await engine.seek(engine.position + n);
@@ -264,6 +378,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> seekNSecBackward(Duration n) async {
+    if (_isDisposed) return;
     if (engine.position - n >= Duration.zero) {
       await engine.seek(engine.position - n);
     } else {
@@ -276,12 +391,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     playbackState.add(playbackState.value
         .copyWith(processingState: AudioProcessingState.idle));
     await engine.stop();
+    await _deactivateAudioSession();
     DiscordService.clearPresence();
     await super.stop();
   }
 
   @override
   Future<void> rewind() async {
+    if (_isDisposed) return;
     if (engine.state == EngineState.ready) {
       await engine.seek(Duration.zero);
     } else if (engine.state == EngineState.completed) {
@@ -311,55 +428,90 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   // ─── Track Playing ─────────────────────────────────────────────────────────
 
   /// Play a [MediaItemModel] by resolving its audio URI and opening the engine.
+  /// Cancels any previous transition in progress (allows skip during loading).
+  /// Lets the engine handle crossfade vs direct open based on configuration.
   Future<void> _playTrack(MediaItemModel track,
       {bool doPlay = true, Duration? initialPosition}) async {
-    if (_isDisposed || _isTransitioning) return;
-    _isTransitioning = true;
+    if (_isDisposed) return;
+
+    // Cancel any pending transition - allows skip during loading/buffering
+    _transitionCancellation?.complete();
+    _transitionCancellation = Completer<void>();
+    final cancellation = _transitionCancellation!;
 
     try {
-      // 1. Stop current audio immediately — no overlap.
-      await engine.stop();
+      if (doPlay) {
+        final granted = await _activateAudioSession();
+        if (!granted) {
+          SnackbarService.showMessage(
+              'Audio focus denied. Cannot start playback.');
+          return;
+        }
+      }
 
-      // 2. Update notification with new track info (shows "loading").
+      // Check if cancelled (user skipped to another track)
+      if (cancellation.isCompleted) return;
+
+      // 1. Update notification with new track info (shows "loading").
       final artUriStr =
           formatImgURL(track.artUri?.toString() ?? '', ImageQuality.medium);
-      _currentTrack = MediaItemModel(
-        id: track.id,
-        title: track.title,
-        album: track.album,
-        artUri: Uri.tryParse(artUriStr),
-        artist: track.artist,
-        extras: track.extras,
-        genre: track.genre,
-        duration: track.duration,
-      );
+      // Only reconstruct if artUri changed (small optimization)
+      if (_currentTrack.artUri?.toString() != artUriStr) {
+        _currentTrack = MediaItemModel(
+          id: track.id,
+          title: track.title,
+          album: track.album,
+          artUri: Uri.tryParse(artUriStr),
+          artist: track.artist,
+          extras: track.extras,
+          genre: track.genre,
+          duration: track.duration,
+        );
+      } else {
+        _currentTrack = track;
+      }
       mediaItem.add(_currentTrack);
 
-      // 3. Resolve audio source URI.
+      // Immediately enter loading state so UI shows spinner right away
+      // (before we start the potentially slow URI resolution).
+      engine.setLoadingState();
+
+      // 2. Resolve audio source URI.
       final (uri, offline) =
           await _resolveUri(track).timeout(const Duration(seconds: 15));
+
+      // Check if cancelled after slow network operation
+      if (cancellation.isCompleted) return;
+
       isOffline.add(offline);
 
-      // 4. Open in engine (auto-plays if doPlay).
+      // 3. Let engine decide: crossfade if playing and crossfadeDuration > 0,
+      //    otherwise direct open. DON'T stop() first — that kills crossfade.
+      //    Only stop if no crossfade is configured (for clean slate).
+      if (engine.crossfadeDuration == Duration.zero) {
+        await engine.stop();
+      }
+
       await engine.open(uri, autoPlay: doPlay);
 
-      // 5. Seek if needed.
+      // 4. Seek if needed.
       if (initialPosition != null && initialPosition > Duration.zero) {
         await engine.seek(initialPosition);
       }
 
-      // 6. Clear errors on success.
+      // 5. Clear errors on success.
       _errorHandler.clearError();
       _errorHandler.clearRetryAttempts(track.id);
 
-      // 7. Pre-resolve next track for gapless playback.
+      // 6. Pre-resolve next track for gapless playback.
       _preResolveNextTrack();
 
-      // 8. Check for related songs.
+      // 7. Check for related songs.
       await _checkRelatedSongs();
 
       log('Now playing: ${track.title}', name: 'BloomeeMusicPlayer');
     } on TimeoutException catch (e) {
+      if (cancellation.isCompleted) return;
       log('Timeout loading ${track.title}: $e', name: 'BloomeeMusicPlayer');
       _errorHandler.handleError(
         PlayerErrorType.networkError,
@@ -368,11 +520,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         e,
       );
     } catch (e) {
+      if (cancellation.isCompleted) return;
       log('Failed to play ${track.title}: $e', name: 'BloomeeMusicPlayer');
       final type = _errorHandler.categorizeError(e);
       _errorHandler.handleError(type, e.toString(), track, e);
     } finally {
-      _isTransitioning = false;
+      // Only clear if this was the active transition
+      if (_transitionCancellation == cancellation) {
+        _transitionCancellation = null;
+      }
     }
   }
 
@@ -381,7 +537,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   /// YouTube or Saavn stream URLs.
   Future<(Uri, bool)> _resolveUri(MediaItemModel track) async {
     // Check for offline/downloaded version first.
-    final down = await DownloadDAO(DBProvider.db).getDownloadDB(track);
+    final down = await _downloadDao.getDownloadDB(track);
     if (down != null) {
       log('Playing Offline: ${track.title}', name: 'BloomeeMusicPlayer');
       SnackbarService.showMessage(
@@ -393,9 +549,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     // Resolve stream URL by source.
     if (track.source == 'youtube' || track.source == 'youtube_music') {
-      final quality = await SettingsDAO(DBProvider.db)
-              .getSettingStr(SettingKeys.ytStrmQuality) ??
-          'high';
+      final quality =
+          await _settingsDao.getSettingStr(SettingKeys.ytStrmQuality) ?? 'high';
       final videoId = track.id.replaceAll('youtube', '');
       final streamUri = await resolveYoutubeAudioUri(
         videoId: videoId,
@@ -413,36 +568,54 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
-  /// Pre-resolve the next track's URL so transition is near-instant.
+  /// Pre-resolve and prebuffer the next track for near-instant transition.
+  /// Validates that the next track hasn't changed during the async resolution.
   void _preResolveNextTrack() {
     final nextTrack = _queueManager.peekNext(loopMode: loopMode.value);
     if (nextTrack == null) {
-      engine.clearPreload();
+      unawaited(engine.clearPreload());
       return;
     }
-    _resolveUri(nextTrack).then((result) {
-      engine.preloadNext(result.$1);
+
+    final expectedId = nextTrack.id;
+
+    _resolveUri(nextTrack).then((result) async {
+      // Verify the next track hasn't changed during resolution (could be
+      // seconds for YouTube). If queue changed, discard this preload.
+      final stillNext = _queueManager.peekNext(loopMode: loopMode.value);
+      if (stillNext?.id != expectedId) {
+        log('Next track changed during pre-resolve, discarding',
+            name: 'BloomeeMusicPlayer');
+        unawaited(engine.clearPreload());
+        return;
+      }
+      // Actually prebuffer by opening in standby player
+      await engine.preloadNext(result.$1);
     }).catchError((e) {
       log('Pre-resolve failed: $e', name: 'BloomeeMusicPlayer');
-      engine.clearPreload();
+      unawaited(engine.clearPreload());
     });
   }
 
   /// Called when a track finishes naturally via [completionStream].
   void _onTrackCompleted() {
-    if (_isTransitioning) return;
     if (loopMode.value == LoopMode.one) return; // Engine handles loop-one.
 
     EasyThrottle.throttle(
       'autoNext',
       const Duration(milliseconds: 1000),
       () async {
-        final advanced = _queueManager.advanceToNext(loopMode: loopMode.value);
-        if (advanced) {
-          final next = _queueManager.currentTrack;
-          if (next != null) {
-            await _playTrack(next, doPlay: true);
+        try {
+          final advanced =
+              _queueManager.advanceToNext(loopMode: loopMode.value);
+          if (advanced) {
+            final next = _queueManager.currentTrack;
+            if (next != null) {
+              await _playTrack(next, doPlay: true);
+            }
           }
+        } catch (e) {
+          log('Auto-next failed: $e', name: 'BloomeeMusicPlayer');
         }
       },
     );
@@ -468,7 +641,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (track == null) return;
 
     final MediaItem currentMediaItem = track;
-    final queueItems = List<MediaItem>.from(_queueManager.tracks);
+    // Use the queue directly without copying to avoid allocation pressure
+    final queueItems = _queueManager.tracks;
 
     await _relatedSongsManager.checkForRelatedSongs(
       currentMedia: currentMediaItem,
@@ -495,6 +669,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   bool get isPlayerHealthy => !_isDisposed;
 
+  /// Revive a disposed player.
+  ///
+  /// WARNING: This creates a fresh engine and queue — all playback state,
+  /// queue contents, and loop/shuffle settings are lost. If state persistence
+  /// is needed, restore from storage after calling this.
   Future<void> revive() async {
     if (!_isDisposed) return;
     log('Reviving BloomeeMusicPlayer...', name: 'BloomeeMusicPlayer');
@@ -512,6 +691,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _initEngine();
     _initModules();
     _initSubscriptions();
+    _initAudioSession();
     _isDisposed = false;
 
     playbackState.add(playbackState.value.copyWith(
@@ -638,7 +818,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onTaskRemoved() async {
-    await stop();
+    // _cleanup handles everything including engine stop, dispose, and super.stop()
     await _cleanup();
     return super.onTaskRemoved();
   }
@@ -654,11 +834,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (_isDisposed) return;
     _isDisposed = true;
 
+    // Cancel timer and subscriptions
+    _relatedSongTimer?.cancel();
     await _engineStateSub?.cancel();
     await _completionSub?.cancel();
     await _errorSub?.cancel();
     await _queueSyncSub?.cancel();
-    await _positionSub?.cancel();
+    await _audioInterruptionSub?.cancel();
+    await _audioNoisySub?.cancel();
 
     _errorHandler.dispose();
     _queueManager.dispose();
@@ -673,6 +856,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log('Error disposing engine: $e', name: 'BloomeeMusicPlayer');
     }
 
+    await _deactivateAudioSession();
+
     try {
       await fromPlaylist.close();
       await isOffline.close();
@@ -681,6 +866,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log('Error closing subjects: $e', name: 'BloomeeMusicPlayer');
     }
 
+    // Single call to super.stop() — avoids double-call from onTaskRemoved
     await super.stop();
   }
 }
