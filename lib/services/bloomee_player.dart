@@ -57,6 +57,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   bool _isDisposed = false;
   Completer<void>? _transitionCancellation; // Cancellable transitions
   DateTime? _lastSkipTime; // For rapid skip detection (700ms threshold)
+  String? _preloadedTrackId;
+  bool _preloadedTrackOffline = false;
+  int _preloadEpoch = 0;
 
   // Stream subscriptions
   StreamSubscription? _engineStateSub;
@@ -428,6 +431,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   // ─── Track Playing ─────────────────────────────────────────────────────────
 
+  void _clearPreloadedMarker() {
+    _preloadedTrackId = null;
+    _preloadedTrackOffline = false;
+  }
+
   /// Play a [MediaItemModel] by resolving its audio URI and opening the engine.
   ///
   /// ## Decision tree (deterministic, handles all edge cases):
@@ -463,7 +471,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     // ── 3. Capture transition state BEFORE any async work ──
     final crossfadeEnabled = engine.crossfadeDuration > Duration.zero;
-    final preloaded = engine.isPreloaded;
+    final canUsePreloaded = engine.isPreloaded &&
+        _preloadedTrackId != null &&
+        _preloadedTrackId == track.id;
 
     try {
       // Audio session
@@ -500,12 +510,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       // ── 4. Execute transition ──
       if (!crossfadeEnabled) {
         // ─── NO CROSSFADE ───
-        if (!isRapidSkip && preloaded) {
+        if (!isRapidSkip && canUsePreloaded) {
           // Best case: instant swap to preloaded standby
+          isOffline.add(_preloadedTrackOffline);
           await engine.activatePreloaded(autoPlay: doPlay);
+          _clearPreloadedMarker();
         } else {
           // Stop everything, resolve URI, open fresh
-          await engine.stop();
+          await engine.stop(keepLoadingState: true);
           if (cancel.isCompleted) return;
 
           final (uri, offline) =
@@ -517,12 +529,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         }
       } else {
         // ─── CROSSFADE ENABLED ───
-        if (!isRapidSkip && preloaded) {
+        if (!isRapidSkip && canUsePreloaded) {
           // Smooth crossfade to preloaded standby
+          isOffline.add(_preloadedTrackOffline);
           await engine.crossfadeToPreloaded(engine.crossfadeDuration);
+          _clearPreloadedMarker();
         } else if (isRapidSkip) {
           // Rapid skip: hard stop, resolve, open fresh
-          await engine.stop();
+          await engine.stop(keepLoadingState: true);
           if (cancel.isCompleted) return;
 
           final (uri, offline) =
@@ -632,8 +646,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   /// Pre-resolve and prebuffer the next track for near-instant transition.
   /// Validates that the next track hasn't changed during the async resolution.
   void _preResolveNextTrack() {
+    final thisEpoch = ++_preloadEpoch;
     final nextTrack = _queueManager.peekNext(loopMode: loopMode.value);
     if (nextTrack == null) {
+      _clearPreloadedMarker();
       unawaited(engine.clearPreload());
       return;
     }
@@ -641,19 +657,34 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     final expectedId = nextTrack.id;
 
     _resolveUri(nextTrack).then((result) async {
+      if (_isDisposed || thisEpoch != _preloadEpoch) return;
+
       // Verify the next track hasn't changed during resolution (could be
       // seconds for YouTube). If queue changed, discard this preload.
       final stillNext = _queueManager.peekNext(loopMode: loopMode.value);
       if (stillNext?.id != expectedId) {
         log('Next track changed during pre-resolve, discarding',
             name: 'BloomeeMusicPlayer');
+        if (thisEpoch == _preloadEpoch) {
+          _clearPreloadedMarker();
+        }
         unawaited(engine.clearPreload());
         return;
       }
+
       // Actually prebuffer by opening in standby player
       await engine.preloadNext(result.$1);
+
+      // Mark only if this preload request is still current.
+      if (!_isDisposed && thisEpoch == _preloadEpoch && engine.isPreloaded) {
+        _preloadedTrackId = expectedId;
+        _preloadedTrackOffline = result.$2;
+      }
     }).catchError((e) {
       log('Pre-resolve failed: $e', name: 'BloomeeMusicPlayer');
+      if (thisEpoch == _preloadEpoch) {
+        _clearPreloadedMarker();
+      }
       unawaited(engine.clearPreload());
     });
   }

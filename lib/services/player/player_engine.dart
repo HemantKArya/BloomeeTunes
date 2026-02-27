@@ -233,12 +233,19 @@ class PlayerEngine {
   /// Open a URI on the active player (direct open, no crossfade).
   Future<void> openDirect(Uri uri, {bool autoPlay = true}) async {
     if (_disposed) return;
-    _generation++;
+    final gen = ++_generation;
     _isTransitioning = false;
     _hasMedia = false;
     _stateSubject.add(EngineState.loading);
+    final player = _active;
     try {
-      await _active.open(Media(uri.toString()), play: autoPlay);
+      await player.open(Media(uri.toString()), play: autoPlay);
+      if (_generation != gen || _disposed) {
+        try {
+          await player.stop();
+        } catch (_) {}
+        return;
+      }
       _hasMedia = true;
       if (_eqEnabled) await _applyEqualizer();
     } catch (e) {
@@ -253,24 +260,36 @@ class PlayerEngine {
   /// Only valid when [isPreloaded] is true.
   Future<void> activatePreloaded({bool autoPlay = true}) async {
     if (_disposed || !_standbyPreloaded) return;
-    _generation++;
+    final gen = ++_generation;
     _isTransitioning = false;
 
     final oldPlayer = _active;
     final newPlayer = _standby;
+
+    // Stop old, set volume, play new
+    try {
+      await oldPlayer.stop();
+    } catch (_) {}
+    if (_generation != gen || _disposed) return;
+
+    await newPlayer.setVolume(_userVolume * 100.0);
+    if (_generation != gen || _disposed) return;
+
+    if (autoPlay) await newPlayer.play();
+    if (_generation != gen || _disposed) {
+      if (autoPlay) {
+        try {
+          await newPlayer.stop();
+        } catch (_) {}
+      }
+      return;
+    }
 
     // Swap so stream subscriptions route to the correct player
     _aIsActive = !_aIsActive;
     _standbyPreloaded = false;
     _preloadedNextUri = null;
     _hasMedia = true;
-
-    // Stop old, set volume, play new
-    try {
-      await oldPlayer.stop();
-    } catch (_) {}
-    await newPlayer.setVolume(_userVolume * 100.0);
-    if (autoPlay) await newPlayer.play();
 
     _stateSubject.add(EngineState.ready);
     if (_eqEnabled) await _applyEqualizer();
@@ -294,6 +313,7 @@ class PlayerEngine {
       // Start new player silent
       await newPlayer.setVolume(newStartVol.clamp(0.0, 100.0));
       await newPlayer.play();
+      if (_generation != gen || _disposed) return;
 
       // Swap so streams report the new player's state
       _aIsActive = !_aIsActive;
@@ -407,7 +427,9 @@ class PlayerEngine {
 
   /// Stop playback and reset to idle state.
   /// Increments [_generation] to abort any running transition.
-  Future<void> stop() async {
+  /// When [keepLoadingState] is true, the processing state stays loading
+  /// (used during transitions so the UI doesn't flicker back to play).
+  Future<void> stop({bool keepLoadingState = false}) async {
     if (_disposed) return;
 
     _generation++;
@@ -424,7 +446,9 @@ class PlayerEngine {
     } catch (e) {
       log('Stop error: $e', name: 'PlayerEngine');
     }
-    _stateSubject.add(EngineState.idle);
+    if (!keepLoadingState) {
+      _stateSubject.add(EngineState.idle);
+    }
     _playingSubject.add(false);
     _positionSubject.add(Duration.zero);
     _durationSubject.add(Duration.zero);
