@@ -193,12 +193,16 @@ class PlayerEngine {
 
       _activePlayerSubject
           .switchMap((p) => p.stream.position)
+          // Filter out stale position events that arrive after we manually reset
+          .where((_) => _hasMedia)
           .listen(_positionSubject.add),
       _activePlayerSubject
           .switchMap((p) => p.stream.duration)
+          .where((_) => _hasMedia)
           .listen(_durationSubject.add),
       _activePlayerSubject
           .switchMap((p) => p.stream.buffer)
+          .where((_) => _hasMedia)
           .listen(_bufferedSubject.add),
       _activePlayerSubject
           .switchMap((p) => p.stream.buffering)
@@ -458,9 +462,15 @@ class PlayerEngine {
 
     ++_generation;
     _isTransitioning = false;
-    _hasMedia = false;
+    _hasMedia = false; // Block incoming stale stream events
     _standbyPreloaded = false;
     _preloadedNextUri = null;
+
+    // Immediately reset UI visible metrics before async stop
+    _positionSubject.add(Duration.zero);
+    _durationSubject.add(Duration.zero);
+    _bufferedSubject.add(Duration.zero);
+    _playingSubject.add(false);
 
     try {
       await Future.wait([_playerA.stop(), _playerB.stop()]);
@@ -473,9 +483,6 @@ class PlayerEngine {
     if (!keepLoadingState) {
       _stateSubject.add(EngineState.idle);
     }
-    _playingSubject.add(false);
-    _positionSubject.add(Duration.zero);
-    _durationSubject.add(Duration.zero);
   }
 
   Future<void> play() async {
@@ -657,8 +664,9 @@ class PlayerEngine {
       // Guarded handleCompletion logic prevents flicker
     } else if (_hasMedia) {
       _stateSubject.add(EngineState.ready);
-    } else if (_stateSubject.value == EngineState.loading) {
-      // Keep loading until _hasMedia is set.
+    } else if (_stateSubject.value == EngineState.loading || _isTransitioning) {
+      // Keep loading until _hasMedia is set or we are transitioning.
+      _stateSubject.add(EngineState.loading);
     } else {
       _stateSubject.add(EngineState.idle);
     }

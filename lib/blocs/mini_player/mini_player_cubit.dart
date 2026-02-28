@@ -92,12 +92,16 @@ class MiniPlayerCubit extends Cubit<MiniPlayerState> {
   }
 
   void _listen() {
-    // Combine the 3 streams we care about. Emit on any change.
+    // Combine the streams we care about. Use defer so if BloomeeMusicPlayer is ever revived,
+    // the streams are re-evaluated instead of holding onto old closed streams.
     _sub = Rx.combineLatest3<MediaItem?, EngineState, bool,
         (MediaItem?, EngineState, bool)>(
       _playerCubit.bloomeePlayer.mediaItem,
-      _playerCubit.bloomeePlayer.engine.stateStream,
-      _playerCubit.bloomeePlayer.engine.playingStream,
+      // Dereference engine getter dynamically so revived engines are used
+      Rx.defer(() => _playerCubit.bloomeePlayer.engine.stateStream,
+          reusable: true),
+      Rx.defer(() => _playerCubit.bloomeePlayer.engine.playingStream,
+          reusable: true),
       (media, engineState, playing) => (media, engineState, playing),
     ).listen((record) {
       final (media, engineState, playing) = record;

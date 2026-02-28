@@ -9,7 +9,7 @@ enum PlayerInitState { initializing, initialized, intial }
 class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
   late BloomeeMusicPlayer bloomeePlayer;
   PlayerInitState playerInitState = PlayerInitState.intial;
-  late Stream<ProgressBarStreams> progressStreams;
+  late ValueStream<ProgressBarStreams> progressStreams;
 
   BloomeePlayerCubit() : super(BloomeePlayerInitial()) {
     setupPlayer().then((value) => emit(BloomeePlayerState(isReady: true)));
@@ -28,20 +28,25 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
   }
 
   void _setupProgressStreams() {
-    progressStreams = Rx.defer(
-      () => Rx.combineLatest4(
-          bloomeePlayer.engine.positionStream,
-          bloomeePlayer.engine.durationStream,
-          bloomeePlayer.engine.bufferedStream,
-          bloomeePlayer.engine.playingStream,
-          (Duration position, Duration duration, Duration buffered,
-                  bool playing) =>
-              ProgressBarStreams(
-                  position: position,
-                  duration: duration,
-                  buffered: buffered,
-                  isPlaying: playing)),
-      reusable: true,
+    progressStreams = Rx.combineLatest4(
+      Rx.defer(() => bloomeePlayer.engine.positionStream, reusable: true),
+      Rx.defer(() => bloomeePlayer.engine.durationStream, reusable: true),
+      Rx.defer(() => bloomeePlayer.engine.bufferedStream, reusable: true),
+      Rx.defer(() => bloomeePlayer.engine.playingStream, reusable: true),
+      (Duration position, Duration duration, Duration buffered, bool playing) =>
+          ProgressBarStreams(
+        position: position,
+        duration: duration,
+        buffered: buffered,
+        isPlaying: playing,
+      ),
+    ).shareValueSeeded(
+      ProgressBarStreams(
+        position: Duration.zero,
+        duration: Duration.zero,
+        buffered: Duration.zero,
+        isPlaying: false,
+      ),
     );
   }
 

@@ -1,6 +1,7 @@
-import 'dart:developer';
+import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:async';
+import 'dart:math';
 import 'package:Bloomee/model/song_model.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:rxdart/rxdart.dart';
@@ -98,7 +99,7 @@ class PlayerErrorHandler {
     );
 
     lastError.add(error);
-    log('Player error: $error', name: 'PlayerErrorHandler');
+    dev.log('Player error: $error', name: 'PlayerErrorHandler');
 
     // Show user-friendly error message
     String userMessage = _getUserFriendlyErrorMessage(type, message);
@@ -122,7 +123,7 @@ class PlayerErrorHandler {
         break;
       default:
         // For unknown errors (like MPV warnings), don't retry as they might be harmless
-        log('Non-retriable error encountered: $error',
+        dev.log('Non-retriable error encountered: $error',
             name: 'PlayerErrorHandler');
         break;
     }
@@ -149,7 +150,8 @@ class PlayerErrorHandler {
     if (currentItem == null) return;
 
     if (_totalRetryCount >= 10) {
-      log('Total retry limit reached (10), skipping to next for ${currentItem.title}',
+      dev.log(
+          'Total retry limit reached (10), skipping to next for ${currentItem.title}',
           name: 'PlayerErrorHandler');
       _skipToNextOnError(currentItem);
       return;
@@ -159,7 +161,7 @@ class PlayerErrorHandler {
     final attempts = _retryAttempts[itemId] ?? 0;
 
     if (attempts >= _retryConfig.maxRetries) {
-      log('Max retry attempts reached for ${currentItem.title}',
+      dev.log('Max retry attempts reached for ${currentItem.title}',
           name: 'PlayerErrorHandler');
       _skipToNextOnError(currentItem);
       return;
@@ -172,15 +174,20 @@ class PlayerErrorHandler {
 
     _reconnectionTimer?.cancel();
     _reconnectionTimer = Timer(delay, () async {
-      log('Retrying playback for ${currentItem.title} (attempt ${attempts + 1})',
+      dev.log(
+          'Retrying playback for ${currentItem.title} (attempt ${attempts + 1})',
           name: 'PlayerErrorHandler');
       onRetryCurrentTrack?.call();
     });
   }
 
   Duration _calculateRetryDelay(int attempts) {
-    final delay =
-        _retryConfig.initialDelay * (attempts * _retryConfig.backoffMultiplier);
+    // attempts starts at 0 for the first retry. Use pow to ensure > 0 delay.
+    // attempt 0: 1s * pow(2, 0) = 1s
+    // attempt 1: 1s * pow(2, 1) = 2s
+    // attempt 2: 1s * pow(2, 2) = 4s
+    final delay = _retryConfig.initialDelay *
+        (pow(_retryConfig.backoffMultiplier, attempts));
     return delay > _retryConfig.maxDelay ? _retryConfig.maxDelay : delay;
   }
 
@@ -202,7 +209,8 @@ class PlayerErrorHandler {
     try {
       onSkipToNext?.call();
     } catch (e) {
-      log('Error while calling onSkipToNext: $e', name: 'PlayerErrorHandler');
+      dev.log('Error while calling onSkipToNext: $e',
+          name: 'PlayerErrorHandler');
     }
     _autoSkipPerformed = true;
   }

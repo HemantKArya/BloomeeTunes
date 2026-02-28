@@ -437,38 +437,47 @@ class _LikeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
-    return StreamBuilder<ProgressBarStreams>(
-        stream: bloomeePlayerCubit.progressStreams,
-        builder: (context, progressSnapshot) {
-          final isPlaying = progressSnapshot.data?.isPlaying ?? false;
-          return FutureBuilder(
-            future: context.read<LibraryItemsCubit>().isMediaLiked(
-                mediaItem2MediaItemModel(
-                    bloomeePlayerCubit.bloomeePlayer.currentMedia)),
+    // Listen to mediaItem to avoid rebuilding the FutureBuilder on EVERY position stream tick
+    return StreamBuilder<MediaItem?>(
+        stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
+        builder: (context, mediaSnapshot) {
+          final currentMedia = mediaSnapshot.data;
+          if (currentMedia == null) return const SizedBox.shrink();
+
+          return FutureBuilder<bool>(
+            future: context
+                .read<LibraryItemsCubit>()
+                .isMediaLiked(mediaItem2MediaItemModel(currentMedia)),
             builder: (context, snapshot) {
               final isLiked = snapshot.data ?? false;
-              return Padding(
-                padding: const EdgeInsets.only(left: 0.0, bottom: 3),
-                child: LikeBtnWidget(
-                  isPlaying: isPlaying,
-                  isLiked: isLiked,
-                  iconSize: 25,
-                  onLiked: () {
-                    final media = bloomeePlayerCubit.bloomeePlayer.currentMedia;
-                    context
-                        .read<LibraryItemsCubit>()
-                        .likeMediaItem(mediaItem2MediaItemModel(media), true);
-                    SnackbarService.showMessage("${media.title} is Liked!!");
-                  },
-                  onDisliked: () {
-                    final media = bloomeePlayerCubit.bloomeePlayer.currentMedia;
-                    context
-                        .read<LibraryItemsCubit>()
-                        .likeMediaItem(mediaItem2MediaItemModel(media), false);
-                    SnackbarService.showMessage("${media.title} is Unliked!!");
-                  },
-                ),
-              );
+
+              // Only listen to progress stream here for the isPlaying state
+              // the FutureBuilder is already resolved and won't re-run.
+              return StreamBuilder<ProgressBarStreams>(
+                  stream: bloomeePlayerCubit.progressStreams,
+                  builder: (context, progressSnapshot) {
+                    final isPlaying = progressSnapshot.data?.isPlaying ?? false;
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 0.0, bottom: 3),
+                      child: LikeBtnWidget(
+                        isPlaying: isPlaying,
+                        isLiked: isLiked,
+                        iconSize: 25,
+                        onLiked: () {
+                          context.read<LibraryItemsCubit>().likeMediaItem(
+                              mediaItem2MediaItemModel(currentMedia), true);
+                          SnackbarService.showMessage(
+                              "${currentMedia.title} is Liked!!");
+                        },
+                        onDisliked: () {
+                          context.read<LibraryItemsCubit>().likeMediaItem(
+                              mediaItem2MediaItemModel(currentMedia), false);
+                          SnackbarService.showMessage(
+                              "${currentMedia.title} is Unliked!!");
+                        },
+                      ),
+                    );
+                  });
             },
           );
         });
@@ -806,20 +815,31 @@ class _PlayPauseButton extends StatelessWidget {
           child = const SizedBox();
         }
 
-        return AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(color: buttonColor, spreadRadius: 1, blurRadius: 20)
-              ],
-              shape: BoxShape.circle,
-              color: buttonColor,
-            ),
-            width: 75,
-            height: 75,
-            child:
-                Center(child: SizedBox(width: 35, height: 35, child: child)));
+        return GestureDetector(
+          onTap: () {
+            if (state.isCompleted) {
+              musicPlayer.seek(Duration.zero);
+              musicPlayer.play();
+            } else if (state.hasError) {
+              // Let user try again or skip on tap if stranded
+              musicPlayer.play();
+            }
+          },
+          child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(color: buttonColor, spreadRadius: 1, blurRadius: 20)
+                ],
+                shape: BoxShape.circle,
+                color: buttonColor,
+              ),
+              width: 75,
+              height: 75,
+              child:
+                  Center(child: SizedBox(width: 35, height: 35, child: child))),
+        );
       },
     );
   }

@@ -58,6 +58,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   // ── Concurrency & Cancellation Tokens ──
   CancelableCompleter<void>? _playCompleter;
   CancelableOperation<(Uri, bool)>? _preResolveOp;
+  CancelableOperation<(Uri, bool)>? _currentResolveOp;
   bool _isAdvancing = false;
   bool _checkingRelated = false;
 
@@ -380,6 +381,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _playCompleter?.operation.cancel();
     _playCompleter = null;
     _preResolveOp?.cancel();
+    _currentResolveOp?.cancel();
 
     playbackState.add(playbackState.value
         .copyWith(processingState: AudioProcessingState.idle));
@@ -480,6 +482,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         }
       }
 
+      // 1. MUST cancel previous network resolves FIRST
+      _currentResolveOp?.cancel();
+
       _updateCurrentTrack(track);
       engine.setLoadingState();
 
@@ -498,10 +503,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           if (!alive()) return;
 
           // Now wait for the network. User hears silence and sees the loading UI.
-          final (uri, offline) = await _resolver
-              .resolve(track)
-              .timeout(const Duration(seconds: 15));
-          if (!alive()) return;
+          _currentResolveOp = CancelableOperation.fromFuture(
+              _resolver.resolve(track).timeout(const Duration(seconds: 15)));
+
+          final result = await _currentResolveOp!.valueOrCancellation();
+          if (result == null || !alive()) return;
+          final (uri, offline) = result;
 
           isOffline.add(offline);
           transitionResult = await engine.openDirect(uri, autoPlay: doPlay);
@@ -520,10 +527,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           await engine.stop(keepLoadingState: true);
           if (!alive()) return;
 
-          final (uri, offline) = await _resolver
-              .resolve(track)
-              .timeout(const Duration(seconds: 15));
-          if (!alive()) return;
+          _currentResolveOp = CancelableOperation.fromFuture(
+              _resolver.resolve(track).timeout(const Duration(seconds: 15)));
+
+          final result = await _currentResolveOp!.valueOrCancellation();
+          if (result == null || !alive()) return;
+          final (uri, offline) = result;
 
           isOffline.add(offline);
           transitionResult = await engine.openDirect(uri, autoPlay: doPlay);
@@ -634,12 +643,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (loopMode.value == LoopMode.one || _isAdvancing) return;
     _isAdvancing = true;
 
-    Future(() async {
+    Future.microtask(() async {
       try {
         final advanced = _queueManager.advanceToNext(loopMode: loopMode.value);
         if (advanced) {
           final next = _queueManager.currentTrack;
           if (next != null) await _enqueuePlayTrack(next, doPlay: true);
+        } else {
+          // If queue ended natively, ensure cleanly stopped state.
+          await engine.stop();
         }
       } catch (e) {
         log('Auto-next failed: $e', name: 'BloomeeMusicPlayer');
@@ -730,19 +742,44 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToNext() async {
-    final advanced = _queueManager.advanceToNext(loopMode: loopMode.value);
-    if (advanced) {
-      final next = _queueManager.currentTrack;
-      if (next != null) await _enqueuePlayTrack(next, doPlay: true);
+    // If an auto-advance is mid-flight, wait or skip doing it again.
+    // To keep it simple and robust, cancel whatever is happening and advance
+    _isAdvancing = true;
+    try {
+      final advanced = _queueManager.advanceToNext(loopMode: loopMode.value);
+      if (advanced) {
+        final next = _queueManager.currentTrack;
+        if (next != null) await _enqueuePlayTrack(next, doPlay: true);
+      } else {
+        // Cancel previous intents to avoid ghost playback
+        _playCompleter?.operation.cancel();
+        _playCompleter = null;
+        _currentResolveOp?.cancel();
+        await engine.stop();
+      }
+    } finally {
+      _isAdvancing = false;
     }
   }
 
   @override
   Future<void> skipToPrevious() async {
-    final advanced = _queueManager.advanceToPrevious(loopMode: loopMode.value);
-    if (advanced) {
-      final prev = _queueManager.currentTrack;
-      if (prev != null) await _enqueuePlayTrack(prev, doPlay: true);
+    _isAdvancing = true;
+    try {
+      final advanced =
+          _queueManager.advanceToPrevious(loopMode: loopMode.value);
+      if (advanced) {
+        final prev = _queueManager.currentTrack;
+        if (prev != null) await _enqueuePlayTrack(prev, doPlay: true);
+      } else {
+        // Cancel previous intents to avoid ghost playback
+        _playCompleter?.operation.cancel();
+        _playCompleter = null;
+        _currentResolveOp?.cancel();
+        await engine.stop();
+      }
+    } finally {
+      _isAdvancing = false;
     }
   }
 
@@ -843,6 +880,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _playCompleter?.operation.cancel();
     _playCompleter = null;
     _preResolveOp?.cancel();
+    _currentResolveOp?.cancel();
 
     _relatedSongTimer?.cancel();
     await _engineStateSub?.cancel();
