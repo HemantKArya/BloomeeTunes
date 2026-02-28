@@ -70,9 +70,16 @@ class _EqualizerViewState extends State<EqualizerView>
   // ─── helpers ──────────────────────────────────────────────────────────────
 
   void _onBandChanged(int index, double value) {
-    setState(() => _gains[index] = value);
-    _engine.setEqualizerBandGain(index, value);
-    _selectedPreset = _matchingPreset();
+    setState(() {
+      _gains[index] = value;
+      _selectedPreset = _matchingPreset();
+    });
+  }
+
+  void _onBandChangeEnd(int index, double _) {
+    _engine.setEqualizerBandGain(index, _gains[index], immediate: true);
+    _settingsCubit.setEqBandGains(List<double>.from(_gains));
+    _settingsCubit.setEqPreset(_selectedPreset);
   }
 
   void _applyPreset(String name) {
@@ -82,9 +89,9 @@ class _EqualizerViewState extends State<EqualizerView>
       _selectedPreset = name;
       for (var i = 0; i < _gains.length && i < values.length; i++) {
         _gains[i] = values[i];
-        _engine.setEqualizerBandGain(i, values[i]);
       }
     });
+    _engine.setEqualizerBandGains(_gains, immediate: true);
     _settingsCubit.setEqBandGains(List<double>.from(_gains));
     _settingsCubit.setEqPreset(name);
   }
@@ -297,6 +304,7 @@ class _EqualizerViewState extends State<EqualizerView>
                     maxGain: _maxGain,
                     freqLabel: _freqLabel(bands[i].centerFrequency),
                     onChanged: (v) => _onBandChanged(i, v),
+                    onChangeEnd: (v) => _onBandChangeEnd(i, v),
                   ),
                 );
               }),
@@ -326,6 +334,7 @@ class _BandSlider extends StatelessWidget {
   final double maxGain;
   final String freqLabel;
   final ValueChanged<double> onChanged;
+  final ValueChanged<double>? onChangeEnd;
 
   const _BandSlider({
     required this.gain,
@@ -333,6 +342,7 @@ class _BandSlider extends StatelessWidget {
     required this.maxGain,
     required this.freqLabel,
     required this.onChanged,
+    this.onChangeEnd,
   });
 
   @override
@@ -370,6 +380,7 @@ class _BandSlider extends StatelessWidget {
                 min: minGain,
                 max: maxGain,
                 onChanged: onChanged,
+                onChangeEnd: onChangeEnd,
               ),
             ),
           ),

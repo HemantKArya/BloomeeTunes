@@ -160,6 +160,8 @@ class PlayerEngine {
     EqualizerBand(8000),
     EqualizerBand(16000),
   ];
+  static const Duration _eqApplyDebounce = Duration(milliseconds: 180);
+  Timer? _eqApplyDebounceTimer;
 
   // ────────────────────────────────────────────────────────────────────────────
 
@@ -570,20 +572,54 @@ class PlayerEngine {
 
   Future<void> setEqualizerEnabled(bool enabled) async {
     _eqEnabled = enabled;
+    _eqApplyDebounceTimer?.cancel();
     await _applyEqualizer();
   }
 
-  Future<void> setEqualizerBandGain(int bandIndex, double gain) async {
+  Future<void> setEqualizerBandGain(int bandIndex, double gain,
+      {bool immediate = false}) async {
     if (bandIndex < 0 || bandIndex >= _eqBands.length) return;
     _eqBands[bandIndex].gain = gain.clamp(-12.0, 12.0);
-    if (_eqEnabled) await _applyEqualizer();
+    if (!_eqEnabled) return;
+    if (immediate) {
+      _eqApplyDebounceTimer?.cancel();
+      await _applyEqualizer();
+      return;
+    }
+    _scheduleEqualizerApply();
+  }
+
+  Future<void> setEqualizerBandGains(List<double> gains,
+      {bool immediate = false}) async {
+    final count =
+        gains.length < _eqBands.length ? gains.length : _eqBands.length;
+    for (var i = 0; i < count; i++) {
+      _eqBands[i].gain = gains[i].clamp(-12.0, 12.0);
+    }
+    if (!_eqEnabled) return;
+    if (immediate) {
+      _eqApplyDebounceTimer?.cancel();
+      await _applyEqualizer();
+      return;
+    }
+    _scheduleEqualizerApply();
   }
 
   Future<void> resetEqualizer() async {
     for (final band in _eqBands) {
       band.gain = 0.0;
     }
+    _eqApplyDebounceTimer?.cancel();
     await _applyEqualizer();
+  }
+
+  void _scheduleEqualizerApply() {
+    if (_disposed) return;
+    _eqApplyDebounceTimer?.cancel();
+    _eqApplyDebounceTimer = Timer(_eqApplyDebounce, () {
+      if (_disposed || !_eqEnabled) return;
+      _applyEqualizer();
+    });
   }
 
   Future<void> _applyEqualizer() async {
@@ -636,6 +672,7 @@ class PlayerEngine {
     _newPlayerFader.dispose();
     _fadeCleanupTimer?.cancel();
     _fadeOutCleanupTimer?.cancel();
+    _eqApplyDebounceTimer?.cancel();
 
     ++_generation;
     _isTransitioning = false;
