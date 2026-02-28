@@ -86,22 +86,43 @@ class LoadImageCached extends StatefulWidget {
 }
 
 class _LoadImageCachedState extends State<LoadImageCached> {
+  bool _isValidNetworkUrl(String? url) {
+    if (url == null || url.trim().isEmpty) return false;
+    final parsed = Uri.tryParse(url.trim());
+    return parsed != null &&
+        (parsed.scheme == 'http' || parsed.scheme == 'https') &&
+        (parsed.host.isNotEmpty);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasPrimary = _isValidNetworkUrl(widget.imageUrl);
+    final hasFallback = _isValidNetworkUrl(widget.fallbackUrl);
+
+    if (!hasPrimary && !hasFallback) {
+      return Image(
+        image: AssetImage(widget.placeholderUrl),
+        fit: widget.fit,
+      );
+    }
+
+    final primaryUrl = hasPrimary ? widget.imageUrl : widget.fallbackUrl!;
+    final fallbackUrl = hasPrimary && hasFallback ? widget.fallbackUrl : null;
+
     return CachedNetworkImage(
-      imageUrl: widget.imageUrl,
+      imageUrl: primaryUrl,
       placeholder: (context, url) => Image(
         image: const AssetImage("assets/icons/lazy_loading.png"),
         fit: widget.fit,
       ),
-      errorWidget: (context, url, error) => widget.fallbackUrl == null
+      errorWidget: (context, url, error) => fallbackUrl == null
           ? Image(
               image: AssetImage(widget.placeholderUrl),
               fit: widget.fit,
             )
           : CachedNetworkImage(
               // now using fallback url
-              imageUrl: widget.fallbackUrl!,
+              imageUrl: fallbackUrl,
               memCacheWidth: 500,
               placeholder: (context, url) => Image(
                 image: const AssetImage("assets/icons/lazy_loading.png"),
@@ -122,8 +143,11 @@ class _LoadImageCachedState extends State<LoadImageCached> {
 
 Future<ImageProvider> getImageProvider(String imageUrl,
     {String placeholderUrl = "assets/icons/bloomee_new_logo_c.png"}) async {
-  if (imageUrl != "") {
-    final response = await http.head(Uri.parse(imageUrl));
+  final parsed = Uri.tryParse(imageUrl);
+  if (parsed != null &&
+      (parsed.scheme == 'http' || parsed.scheme == 'https') &&
+      parsed.host.isNotEmpty) {
+    final response = await http.head(parsed);
     if (response.statusCode == 200) {
       CachedNetworkImageProvider cachedImageProvider =
           CachedNetworkImageProvider(imageUrl);
