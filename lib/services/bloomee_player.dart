@@ -108,7 +108,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> _initAudioSession() async {
     try {
       final session = await AudioSession.instance;
-      await session.configure(AudioSessionConfiguration.music());
+      await session.configure(const AudioSessionConfiguration.music());
       _audioSession = session;
 
       await _audioInterruptionSub?.cancel();
@@ -721,9 +721,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   // ─── Queue Operations (BaseAudioHandler interface) ────────────────────────
 
   @override
-  Future<void> playMediaItem(MediaItem item,
+  Future<void> playMediaItem(MediaItem mediaItem,
       {bool doPlay = true, Duration? initialPosition}) async {
-    final track = mediaItem2MediaItemModel(item);
+    final track = mediaItem2MediaItemModel(mediaItem);
     await _enqueuePlayTrack(track,
         doPlay: doPlay, initialPosition: initialPosition);
   }
@@ -776,8 +776,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> addQueueItem(MediaItem item) async {
-    _queueManager.addTrack(mediaItem2MediaItemModel(item));
+  Future<void> addQueueItem(MediaItem mediaItem) async {
+    _queueManager.addTrack(mediaItem2MediaItemModel(mediaItem));
   }
 
   @override
@@ -792,10 +792,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> insertQueueItem(int index, MediaItem item) async {
-    _queueManager.insertTrack(index, mediaItem2MediaItemModel(item));
+  Future<void> insertQueueItem(int index, MediaItem mediaItem) async {
+    _queueManager.insertTrack(index, mediaItem2MediaItemModel(mediaItem));
     try {
-      await super.insertQueueItem(index, item);
+      await super.insertQueueItem(index, mediaItem);
     } catch (e) {
       log('Error syncing insertQueueItem: $e', name: 'BloomeeMusicPlayer');
     }
