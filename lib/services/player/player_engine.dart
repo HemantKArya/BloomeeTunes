@@ -6,13 +6,10 @@ import 'package:rxdart/rxdart.dart';
 
 // ─── Public Types ────────────────────────────────────────────────────────────
 
-/// Playback lifecycle state.
 enum EngineState { idle, loading, buffering, ready, completed, error }
 
-/// Loop mode.
 enum LoopMode { off, one, all }
 
-/// Deterministic result for engine transitions.
 sealed class EngineResult {}
 
 class EngineSuccess extends EngineResult {}
@@ -22,7 +19,6 @@ class EngineFailure extends EngineResult {
   EngineFailure(this.error);
 }
 
-/// A single equalizer frequency band.
 class EqualizerBand {
   final double centerFrequency;
   double gain; // dB, range -12..+12
@@ -32,15 +28,9 @@ class EqualizerBand {
 
 // ─── VolumeFader ─────────────────────────────────────────────────────────────
 
-/// Independent volume interpolator driven by[Timer.periodic] (~30 fps).
-///
-/// Fire-and-forget: call [fade] and the ramp runs without blocking the caller.
-/// Reduced to 32ms intervals to prevent C++ FFI blockages on the Event Loop.
 class VolumeFader {
   Timer? _timer;
 
-  /// Fades[player] volume from [startVol] to [endVol] (0–100 scale)
-  /// over [duration]. Cancels any in-progress fade on this fader.
   void fade(Player player, double startVol, double endVol, Duration duration) {
     _timer?.cancel();
     if (duration == Duration.zero) {
@@ -51,7 +41,6 @@ class VolumeFader {
     final sw = Stopwatch()..start();
     final totalMs = duration.inMilliseconds;
 
-    // ~30 fps update rate. 60 fps (16ms) causes heavy FFI overhead.
     _timer = Timer.periodic(const Duration(milliseconds: 32), (timer) {
       final elapsed = sw.elapsedMilliseconds;
       if (elapsed >= totalMs) {
@@ -75,16 +64,7 @@ class VolumeFader {
 
 // ─── PlayerEngine ────────────────────────────────────────────────────────────
 
-/// Low-level audio engine wrapping media_kit [Player].
-///
-/// ## Architecture
-///
-/// _activePlayerSubject holds the currently active [Player] as a
-/// [BehaviorSubject]. All public streams are wired with switchMap, so
-/// swapping the active player is a single _activePlayerSubject.add(newPlayer)
-/// call — zero manual re-routing, no desyncs possible.
 class PlayerEngine {
-  // ── Dual players ──
   late Player _playerA;
   late Player _playerB;
   bool _aIsActive = true;
@@ -93,40 +73,29 @@ class PlayerEngine {
   Player get _active => _aIsActive ? _playerA : _playerB;
   Player get _standby => _aIsActive ? _playerB : _playerA;
 
-  // ── Reactive active-player subject ──
   late final BehaviorSubject<Player> _activePlayerSubject;
 
-  // ── Cross-fade ──
   Duration crossfadeDuration = Duration.zero;
 
-  // ── VolumeFaders & Timers ──
   final VolumeFader _oldPlayerFader = VolumeFader();
   final VolumeFader _newPlayerFader = VolumeFader();
   Timer? _fadeCleanupTimer;
   Timer? _fadeOutCleanupTimer;
 
-  // ── Transition state ──
   int _generation = 0;
   bool _isTransitioning = false;
 
-  // ── Gapless pre-load ──
   Uri? _preloadedNextUri;
   bool _standbyPreloaded = false;
 
-  // ── Loop tracking ──
   LoopMode _loopMode = LoopMode.off;
-
-  // ── User volume (0..1) ──
   double _userVolume = 1.0;
 
-  // Per-player volume for crossfade start points.
   double _playerAVolume = 100.0;
   double _playerBVolume = 100.0;
 
-  // ── Media presence ──
   bool _hasMedia = false;
 
-  // ── Reactive subjects ──
   final BehaviorSubject<EngineState> _stateSubject =
       BehaviorSubject.seeded(EngineState.idle);
   final BehaviorSubject<bool> _playingSubject = BehaviorSubject.seeded(false);
@@ -146,7 +115,6 @@ class PlayerEngine {
 
   late final List<StreamSubscription> _subs;
 
-  // ── Equalizer ──
   bool _eqEnabled = false;
   final List<EqualizerBand> _eqBands = [
     EqualizerBand(32),
@@ -162,8 +130,6 @@ class PlayerEngine {
   ];
   static const Duration _eqApplyDebounce = Duration(milliseconds: 180);
   Timer? _eqApplyDebounceTimer;
-
-  // ────────────────────────────────────────────────────────────────────────────
 
   PlayerEngine() {
     _playerA = Player(
@@ -182,8 +148,6 @@ class PlayerEngine {
     _subs = _buildSubscriptions();
   }
 
-  // ─── Stream Wiring ──────────────────────────────────────────────────────────
-
   List<StreamSubscription> _buildSubscriptions() {
     return [
       _activePlayerSubject.switchMap((p) => p.stream.playing).listen((playing) {
@@ -191,28 +155,35 @@ class PlayerEngine {
         _deriveState();
       }),
 
+      // 🔴 FIX #1: Removed .where((_) => _hasMedia)
+      // We must let the "0" duration pass through so the UI knows to reset the slider,
+      // while the State Machine (deriveState) handles showing the loading spinner.
       _activePlayerSubject
           .switchMap((p) => p.stream.position)
-          // Filter out stale position events that arrive after we manually reset
-          .where((_) => _hasMedia)
           .listen(_positionSubject.add),
-      _activePlayerSubject
-          .switchMap((p) => p.stream.duration)
-          .where((_) => _hasMedia)
-          .listen(_durationSubject.add),
+
+      _activePlayerSubject.switchMap((p) => p.stream.duration).listen((d) {
+        _durationSubject.add(d);
+        // Trigger state re-evaluation when duration arrives
+        _deriveState();
+      }),
+
       _activePlayerSubject
           .switchMap((p) => p.stream.buffer)
-          .where((_) => _hasMedia)
           .listen(_bufferedSubject.add),
+
       _activePlayerSubject
           .switchMap((p) => p.stream.buffering)
           .listen((_) => _deriveState()),
 
-      // Completion Guard: Prevents false completes caused by stop()
       _activePlayerSubject
           .switchMap((p) => p.stream.completed)
           .listen((completed) {
-        if (completed && _hasMedia && !_disposed) {
+        if (completed &&
+            _hasMedia &&
+            !_disposed &&
+            // Only complete if we actually had valid metadata
+            _stateSubject.value != EngineState.loading) {
           _handleCompletion(_active);
         }
       }),
@@ -225,6 +196,8 @@ class PlayerEngine {
 
       _activePlayerSubject.switchMap((p) => p.stream.error).listen((error) {
         log('Engine error: $error', name: 'PlayerEngine');
+        _hasMedia = false;
+        _playingSubject.add(false);
         _stateSubject.add(EngineState.error);
         _errorController.add(error);
       }),
@@ -234,26 +207,27 @@ class PlayerEngine {
     ];
   }
 
-  // ─── Internal Helpers ──────────────────────────────────────────────────────
-
   void _swapActivePlayer() {
     _aIsActive = !_aIsActive;
     _activePlayerSubject.add(_active);
+    final p = _active;
+    _playingSubject.add(p.state.playing);
+    // 🔴 FIX #2: Always push current state immediately on swap
+    _positionSubject.add(p.state.position);
+    _durationSubject.add(p.state.duration);
+    _bufferedSubject.add(p.state.buffer);
+    // Re-evaluate state immediately to catch the "0 duration" case
+    _deriveState();
   }
 
   void _handleCompletion(Player player) {
     if (_disposed || !_hasMedia) return;
-
-    // Note: LoopMode.one is handled natively by setPlaylistMode(PlaylistMode.single).
-    // Native loop-one doesn't usually emit completion, but if it does, ignore it.
     if (_loopMode == LoopMode.one) return;
-
     _stateSubject.add(EngineState.completed);
     _completionController.add(null);
   }
 
-  // ─── Getters ───────────────────────────────────────────────────────────────
-
+  // ... Getters ...
   EngineState get state => _stateSubject.value;
   bool get playing => _playingSubject.value;
   Duration get position => _positionSubject.value;
@@ -262,7 +236,6 @@ class PlayerEngine {
   double get volume => _volumeSubject.value;
   double get speed => _speedSubject.value;
   LoopMode get loopMode => _loopMode;
-
   Stream<EngineState> get stateStream => _stateSubject.stream;
   Stream<bool> get playingStream => _playingSubject.stream;
   Stream<Duration> get positionStream => _positionSubject.stream;
@@ -273,8 +246,6 @@ class PlayerEngine {
   Stream<void> get completionStream => _completionController.stream;
   Stream<String> get errorStream => _errorController.stream;
 
-  // ─── Playback Control ──────────────────────────────────────────────────────
-
   void setLoadingState() {
     if (_disposed) return;
     _stateSubject.add(EngineState.loading);
@@ -282,7 +253,6 @@ class PlayerEngine {
 
   // ─── Transition Primitives ─────────────────────────────────────────────────
 
-  /// Open a URI directly on the active player. Returns deterministic [EngineResult].
   Future<EngineResult> openDirect(Uri uri, {bool autoPlay = true}) async {
     if (_disposed) return EngineFailure('Engine disposed');
 
@@ -310,7 +280,6 @@ class PlayerEngine {
     }
   }
 
-  /// Instant swap to preloaded standby. Returns deterministic[EngineResult].
   Future<EngineResult> activatePreloaded({bool autoPlay = true}) async {
     if (_disposed || !_standbyPreloaded) return EngineFailure('Not preloaded');
 
@@ -331,6 +300,11 @@ class PlayerEngine {
       if (_generation != gen || _disposed)
         return EngineFailure('Generation mismatch');
 
+      // 🔴 FIX #3: Safety Seek.
+      // Ensure the preloaded player is reset to start. If the network socket
+      // went stale during a long wait, this kickstarts the decoder.
+      await newPlayer.seek(Duration.zero);
+
       await newPlayer.setVolume(_userVolume * 100.0);
       if (_generation != gen || _disposed)
         return EngineFailure('Generation mismatch');
@@ -342,8 +316,8 @@ class PlayerEngine {
       _standbyPreloaded = false;
       _preloadedNextUri = null;
       _hasMedia = true;
+
       _swapActivePlayer();
-      _stateSubject.add(EngineState.ready);
       if (_eqEnabled) await _applyEqualizer();
 
       return EngineSuccess();
@@ -360,7 +334,6 @@ class PlayerEngine {
     }
   }
 
-  /// Crossfade from active to preloaded standby. Returns deterministic[EngineResult].
   Future<EngineResult> crossfadeToPreloaded(Duration duration) async {
     if (_disposed || !_standbyPreloaded) return EngineFailure('Not preloaded');
 
@@ -378,6 +351,8 @@ class PlayerEngine {
 
     try {
       await newPlayer.setVolume(0.0);
+      // Safety seek here as well
+      await newPlayer.seek(Duration.zero);
       await newPlayer.play();
 
       if (_generation != gen || _disposed) {
@@ -391,13 +366,11 @@ class PlayerEngine {
       _preloadedNextUri = null;
       _hasMedia = true;
       _swapActivePlayer();
-      _stateSubject.add(EngineState.ready);
       if (_eqEnabled) await _applyEqualizer();
 
       _oldPlayerFader.fade(oldPlayer, oldStartVol, 0.0, duration);
       _newPlayerFader.fade(newPlayer, 0.0, _userVolume * 100.0, duration);
 
-      // Replaces memory-leaking Future.delayed with Cancellable Timer
       _fadeCleanupTimer = Timer(duration, () {
         if (!_disposed) {
           _oldPlayerFader.cancel();
@@ -422,16 +395,13 @@ class PlayerEngine {
     }
   }
 
-  /// Begin fading out the active player.
   void fadeOutActive(Duration duration) {
     if (_disposed) return;
-
     final player = _active;
     if (!player.state.playing) {
       player.stop().catchError((_) {});
       return;
     }
-
     _isTransitioning = true;
     final startVol = (_aIsActive ? _playerAVolume : _playerBVolume)
         .clamp(0.0, _userVolume * 100.0);
@@ -439,7 +409,6 @@ class PlayerEngine {
     _oldPlayerFader.cancel();
     _oldPlayerFader.fade(player, startVol, 0.0, duration);
 
-    // Replaces Future.delayed
     _fadeOutCleanupTimer?.cancel();
     _fadeOutCleanupTimer = Timer(duration, () {
       if (!_disposed) {
@@ -451,7 +420,6 @@ class PlayerEngine {
     });
   }
 
-  /// Stop all playback, cancelling any in-progress fades.
   Future<void> stop({bool keepLoadingState = false}) async {
     if (_disposed) return;
 
@@ -462,11 +430,10 @@ class PlayerEngine {
 
     ++_generation;
     _isTransitioning = false;
-    _hasMedia = false; // Block incoming stale stream events
+    _hasMedia = false;
     _standbyPreloaded = false;
     _preloadedNextUri = null;
 
-    // Immediately reset UI visible metrics before async stop
     _positionSubject.add(Duration.zero);
     _durationSubject.add(Duration.zero);
     _bufferedSubject.add(Duration.zero);
@@ -498,14 +465,11 @@ class PlayerEngine {
   Future<void> seek(Duration position) async {
     if (_disposed) return;
     final actualDuration = _active.state.duration;
-    if (actualDuration <= Duration.zero) {
-      log('Seek ignored: duration not ready', name: 'PlayerEngine');
-      return;
-    }
+    if (actualDuration <= Duration.zero) return;
+
     final clamped = Duration(
-      milliseconds:
-          position.inMilliseconds.clamp(0, actualDuration.inMilliseconds),
-    );
+        milliseconds:
+            position.inMilliseconds.clamp(0, actualDuration.inMilliseconds));
     await _active.seek(clamped);
   }
 
@@ -528,7 +492,6 @@ class PlayerEngine {
   Future<void> setLoopMode(LoopMode mode) async {
     if (_disposed) return;
     _loopMode = mode;
-    // Utilize native C++ looping for true gapless LoopMode.one
     final mpvMode =
         mode == LoopMode.one ? PlaylistMode.single : PlaylistMode.none;
     await Future.wait([
@@ -537,10 +500,6 @@ class PlayerEngine {
     ]);
   }
 
-  // ─── Gapless Pre-loading ───────────────────────────────────────────────────
-
-  /// [force] allows pre-resolving during an active crossfade
-  /// without triggering the transition block.
   Future<void> preloadNext(Uri uri, {bool force = false}) async {
     if (_disposed) return;
     if (_isTransitioning && !force) return;
@@ -551,9 +510,7 @@ class PlayerEngine {
       await _standby.open(Media(uri.toString()), play: false);
       _preloadedNextUri = uri;
       _standbyPreloaded = true;
-      log('Preloaded next track: $uri', name: 'PlayerEngine');
     } catch (e) {
-      log('Preload failed: $e', name: 'PlayerEngine');
       _preloadedNextUri = null;
       _standbyPreloaded = false;
     }
@@ -661,11 +618,20 @@ class PlayerEngine {
     if (player.state.buffering) {
       _stateSubject.add(EngineState.buffering);
     } else if (player.state.completed) {
-      // Guarded handleCompletion logic prevents flicker
+      // Handled by completion listener
+    } else if (_stateSubject.value == EngineState.error) {
+      // Keep error until explicit new load
     } else if (_hasMedia) {
-      _stateSubject.add(EngineState.ready);
+      // 🔴 FIX #4: The "Dead State" Prevention Logic
+      // If we have media, but duration is 0, we are NOT ready.
+      // We are waiting for the header to decode.
+      // This forces the UI to show a Loading Spinner instead of "0:00 Playing"
+      if (player.state.duration == Duration.zero) {
+        _stateSubject.add(EngineState.loading);
+      } else {
+        _stateSubject.add(EngineState.ready);
+      }
     } else if (_stateSubject.value == EngineState.loading || _isTransitioning) {
-      // Keep loading until _hasMedia is set or we are transitioning.
       _stateSubject.add(EngineState.loading);
     } else {
       _stateSubject.add(EngineState.idle);
@@ -688,10 +654,8 @@ class PlayerEngine {
     for (final sub in _subs) {
       await sub.cancel();
     }
-
     await _activePlayerSubject.close();
     await Future.wait([_playerA.dispose(), _playerB.dispose()]);
-
     await _stateSubject.close();
     await _playingSubject.close();
     await _positionSubject.close();
