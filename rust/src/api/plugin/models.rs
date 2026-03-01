@@ -20,28 +20,6 @@ pub enum ImageLayout {
     Circular,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MappingIds {
-    pub id: String,
-    pub source: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Thumbnail {
-    pub medium: String,
-    pub low: Option<String>,
-    pub high: Option<String>,
-    pub layout: ImageLayout,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SectionLink {
-    pub id: String,
-    pub image: Option<Thumbnail>,
-    pub title: String,
-    pub subtitle: Option<String>,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CardType {
     Carousel,
