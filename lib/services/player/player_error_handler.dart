@@ -2,7 +2,7 @@ import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:async';
 import 'dart:math';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:rxdart/rxdart.dart';
 

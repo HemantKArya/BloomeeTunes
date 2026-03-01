@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/media_playlist_model.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';

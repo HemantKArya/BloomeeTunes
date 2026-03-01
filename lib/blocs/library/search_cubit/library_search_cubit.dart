@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:easy_debounce/easy_debounce.dart';
-import 'package:Bloomee/model/library_search_result.dart';
-import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/artist_onl_model.dart';
-import 'package:Bloomee/model/playlist_onl_model.dart';
+import 'package:Bloomee/core/models/library_search_result.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
+import 'package:Bloomee/core/models/artist_onl_model.dart';
+import 'package:Bloomee/core/models/playlist_onl_model.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 

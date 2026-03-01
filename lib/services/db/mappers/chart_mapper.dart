@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/core/models/chart_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 
 /// Maps between [ChartsCacheDB] / [ChartItemDB] (Isar entities)

@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:rxdart/rxdart.dart';
 

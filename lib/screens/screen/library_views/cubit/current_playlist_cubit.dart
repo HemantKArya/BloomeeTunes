@@ -5,8 +5,8 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:Bloomee/model/media_playlist_model.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 part 'current_playlist_state.dart';
 

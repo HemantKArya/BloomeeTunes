@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';

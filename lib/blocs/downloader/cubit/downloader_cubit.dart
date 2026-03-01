@@ -9,7 +9,7 @@ import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:metadata_god/metadata_god.dart';
 import 'package:path/path.dart' as path;
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/repository/bloomee/download_repository.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';

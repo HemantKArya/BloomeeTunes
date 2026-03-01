@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/artist_onl_model.dart';
-import 'package:Bloomee/model/playlist_onl_model.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
+import 'package:Bloomee/core/models/artist_onl_model.dart';
+import 'package:Bloomee/core/models/playlist_onl_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/mappers/collection_mapper.dart';
 import 'package:isar_community/isar.dart';

@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:Bloomee/model/song_model.dart';
-import 'package:Bloomee/model/youtube_vid_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/youtube_vid_model.dart';
 import 'package:Bloomee/repository/youtube/youtube_api.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
@@ -100,8 +100,8 @@ class ImportPlaylistCubit extends Cubit<ImportPlaylistState> {
         // print("5 ${playlist[i].toString()}");
         MediaItemModel mediaItemModel = fromYtVidSongMap2MediaItem(playlist[i]);
         print("5 ${mediaItemModel.toString()}");
-        await _playlistDao.addMediaItem(
-            mediaItemToMediaItemDB(mediaItemModel), result[0]["metadata"].title);
+        await _playlistDao.addMediaItem(mediaItemToMediaItemDB(mediaItemModel),
+            result[0]["metadata"].title);
       }
     }
     // } catch (e) {

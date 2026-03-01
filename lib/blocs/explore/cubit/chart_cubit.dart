@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/core/models/chart_model.dart';
 import 'package:Bloomee/plugins/charts/chart_defines.dart';
 import 'package:Bloomee/repository/bloomee/chart_repository.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';

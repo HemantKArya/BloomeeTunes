@@ -1,5 +1,5 @@
 import 'package:Bloomee/core/constants/setting_keys.dart';
-import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 

@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/album_onl_model.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';

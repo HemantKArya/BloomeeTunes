@@ -1,8 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:developer';
-// import 'package:Bloomee/model/source_engines.dart';
-import 'package:Bloomee/model/yt_music_model.dart';
+// import 'package:Bloomee/core/models/source_engines.dart';
+import 'package:Bloomee/core/models/yt_music_model.dart';
 import 'package:Bloomee/repository/mixed/mixed_api.dart';
 import 'package:Bloomee/repository/spotify/spotify_api.dart';
 import 'package:Bloomee/repository/youtube/yt_music_api.dart';
@@ -10,8 +10,8 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 // import 'package:Bloomee/utils/country_info.dart';
 import 'package:Bloomee/utils/url_checker.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
-import 'package:Bloomee/model/song_model.dart';
-import 'package:Bloomee/model/youtube_vid_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/youtube_vid_model.dart';
 import 'package:Bloomee/repository/youtube/youtube_api.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
@@ -466,8 +466,8 @@ class ExternalMediaImporter {
                   await MixedAPI().getYtTrackByMeta("$title $artists".trim());
               // }
               if (mediaItem != null) {
-                PlaylistDAO(DBProvider.db)
-                    .addMediaItem(mediaItemToMediaItemDB(mediaItem), albumTitle);
+                PlaylistDAO(DBProvider.db).addMediaItem(
+                    mediaItemToMediaItemDB(mediaItem), albumTitle);
                 yield ImporterState(
                   totalItems: totalItems,
                   importedItems: i,

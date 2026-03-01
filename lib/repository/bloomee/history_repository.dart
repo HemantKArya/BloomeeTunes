@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/media_playlist_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/history_dao.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
@@ -30,8 +30,7 @@ class HistoryRepository {
   /// Removes entries older than the configured retention period.
   Future<void> refreshHistory() => _historyDao.refreshRecentlyPlayed(
         getSettingStr: _settingsDao.getSettingStr,
-        removeMediaItemFromPlaylist:
-            _playlistDao.removeMediaItemFromPlaylist,
+        removeMediaItemFromPlaylist: _playlistDao.removeMediaItemFromPlaylist,
       );
 
   /// Returns recently played items, optionally limited.

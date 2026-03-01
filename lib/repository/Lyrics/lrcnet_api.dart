@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:fuzzywuzzy/fuzzywuzzy.dart' as fw;
-import 'package:Bloomee/model/lyrics_models.dart';
+import 'package:Bloomee/core/models/lyrics_models.dart';
 
 const String lrcURL = "https://lrclib.net/";
 const String lrcSearch = "api/search";

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/services/db/dao/history_dao.dart';
 import 'package:bloc/bloc.dart';
-import 'package:Bloomee/model/media_playlist_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
 part 'history_state.dart';
 
 class HistoryCubit extends Cubit<HistoryState> {

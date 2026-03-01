@@ -1,5 +1,5 @@
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
-import 'package:Bloomee/model/lyrics_models.dart';
+import 'package:Bloomee/core/models/lyrics_models.dart';
 import 'package:Bloomee/repository/lyrics/lyrics.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';

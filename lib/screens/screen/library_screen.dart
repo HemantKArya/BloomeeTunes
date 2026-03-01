@@ -1,8 +1,8 @@
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/artist_onl_model.dart';
-import 'package:Bloomee/model/playlist_onl_model.dart';
-import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
+import 'package:Bloomee/core/models/artist_onl_model.dart';
+import 'package:Bloomee/core/models/playlist_onl_model.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/screens/screen/common_views/artist_view.dart';
 import 'package:Bloomee/screens/screen/common_views/playlist_view.dart';
@@ -24,7 +24,7 @@ import 'package:Bloomee/screens/widgets/libitem_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/library/search_cubit/library_search_cubit.dart';
-import 'package:Bloomee/model/library_search_result.dart';
+import 'package:Bloomee/core/models/library_search_result.dart';
 import 'package:Bloomee/screens/widgets/animated_list_item.dart';
 
 class LibraryScreen extends StatelessWidget {

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/artist_onl_model.dart';
-import 'package:Bloomee/model/playlist_onl_model.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
+import 'package:Bloomee/core/models/artist_onl_model.dart';
+import 'package:Bloomee/core/models/playlist_onl_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 
 /// Maps between [SavedCollectionsDB] (Isar entity) and domain
@@ -41,8 +41,7 @@ AlbumModel formatSavedAlbumOnl(SavedCollectionsDB savedCollectionsDB) {
   );
 }
 
-PlaylistOnlModel formatSavedPlaylistOnl(
-    SavedCollectionsDB savedCollectionsDB) {
+PlaylistOnlModel formatSavedPlaylistOnl(SavedCollectionsDB savedCollectionsDB) {
   Map extra = jsonDecode(savedCollectionsDB.extra ?? "{}");
   return PlaylistOnlModel(
     name: savedCollectionsDB.title,

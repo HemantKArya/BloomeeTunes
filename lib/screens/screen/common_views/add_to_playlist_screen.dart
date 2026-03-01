@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/screens/widgets/create_playlist_bottomsheet.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/core/constants/app_constants.dart';

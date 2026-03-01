@@ -1,5 +1,5 @@
-import 'package:Bloomee/model/media_playlist_model.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 
@@ -63,8 +63,7 @@ class PlaylistRepository {
 
   // --------------- Ordering ---------------
 
-  Future<List<int>> getPlaylistItemsRank(
-          MediaPlaylistDB mediaPlaylistDB) =>
+  Future<List<int>> getPlaylistItemsRank(MediaPlaylistDB mediaPlaylistDB) =>
       _playlistDao.getPlaylistItemsRank(mediaPlaylistDB);
 
   Future<List<int>> getPlaylistItemsRankByName(String playlistName) =>
@@ -91,8 +90,7 @@ class PlaylistRepository {
   Future<Stream<void>> getPlaylistsWatcher() =>
       _playlistDao.getPlaylistsWatcher();
 
-  Future<Stream<void>> getPlaylistWatcher(
-          MediaPlaylistDB mediaPlaylistDB) =>
+  Future<Stream<void>> getPlaylistWatcher(MediaPlaylistDB mediaPlaylistDB) =>
       _playlistDao.getPlaylistWatcher(mediaPlaylistDB);
 
   Future<Stream> getStream4MediaList(MediaPlaylistDB mediaPlaylistDB) =>
@@ -132,8 +130,7 @@ class PlaylistRepository {
 
   // --------------- Like ---------------
 
-  Future<void> likeMediaItem(MediaItemDB mediaItemDB,
-          {bool isLiked = false}) =>
+  Future<void> likeMediaItem(MediaItemDB mediaItemDB, {bool isLiked = false}) =>
       _playlistDao.likeMediaItem(mediaItemDB, isLiked: isLiked);
 
   Future<bool> isMediaLiked(MediaItemDB mediaItemDB) =>

@@ -1,8 +1,8 @@
-import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/saavn_model.dart';
-import 'package:Bloomee/model/song_model.dart';
-import 'package:Bloomee/model/source_engines.dart';
-import 'package:Bloomee/model/yt_music_model.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
+import 'package:Bloomee/core/models/saavn_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
+import 'package:Bloomee/core/models/yt_music_model.dart';
 import 'package:Bloomee/repository/bloomee/collection_repository.dart';
 import 'package:Bloomee/repository/saavn/saavn_api.dart';
 import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';

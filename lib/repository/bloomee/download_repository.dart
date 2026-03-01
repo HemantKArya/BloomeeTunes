@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/download_dao.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
@@ -31,8 +31,7 @@ class DownloadRepository {
   Future<void> removeDownload(MediaItemModel mediaItem) =>
       _downloadDao.removeDownloadDB(
         mediaItem,
-        removeMediaItemFromPlaylist:
-            _playlistDao.removeMediaItemFromPlaylist,
+        removeMediaItemFromPlaylist: _playlistDao.removeMediaItemFromPlaylist,
       );
 
   Future<DownloadDB?> getDownload(MediaItemModel mediaItem) =>

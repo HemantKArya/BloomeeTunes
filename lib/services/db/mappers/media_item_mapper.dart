@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:audio_service/audio_service.dart';
 
@@ -40,4 +40,3 @@ MediaItemModel mediaItemDBToMediaItem(MediaItemDB mediaItemDB) {
         "language": mediaItemDB.language,
       });
 }
-

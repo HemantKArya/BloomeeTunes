@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:math';
 
-import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/core/models/chart_model.dart';
 
 typedef ChartFunction = Future<ChartModel> Function(ChartURL url);
 

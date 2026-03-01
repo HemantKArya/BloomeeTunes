@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/media_playlist_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/mappers/media_item_mapper.dart';
 
@@ -28,4 +28,3 @@ MediaPlaylist playlistDBToMediaPlaylist(MediaPlaylistDB mediaPlaylistDB,
   }
   return mediaPlaylist;
 }
-

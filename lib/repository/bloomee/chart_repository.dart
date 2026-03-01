@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:isolate';
 
-import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/core/models/chart_model.dart';
 import 'package:Bloomee/screens/screen/chart/show_charts.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';
@@ -78,8 +78,7 @@ class ChartRepository {
             db.writeTxnSync(() =>
                 db.chartsCacheDBs.putSync(chartModelToChartCacheDB(chart)));
           }
-          log("Chart Fetched - ${chart.chartName}",
-              name: "ChartRepo Isolate");
+          log("Chart Fetched - ${chart.chartName}", name: "ChartRepo Isolate");
           chartList.add(chart);
         }
       }

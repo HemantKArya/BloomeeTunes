@@ -1,18 +1,18 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-import 'package:Bloomee/model/playlist_onl_model.dart';
+import 'package:Bloomee/core/models/playlist_onl_model.dart';
 import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/services/db/dao/search_history_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/artist_onl_model.dart';
-import 'package:Bloomee/model/saavn_model.dart';
-import 'package:Bloomee/model/song_model.dart';
-import 'package:Bloomee/model/source_engines.dart';
-import 'package:Bloomee/model/youtube_vid_model.dart';
-import 'package:Bloomee/model/yt_music_model.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
+import 'package:Bloomee/core/models/artist_onl_model.dart';
+import 'package:Bloomee/core/models/saavn_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
+import 'package:Bloomee/core/models/youtube_vid_model.dart';
+import 'package:Bloomee/core/models/yt_music_model.dart';
 import 'package:Bloomee/repository/saavn/saavn_api.dart';
 import 'package:Bloomee/repository/youtube/youtube_api.dart';
 
@@ -141,8 +141,7 @@ class FetchSearchResultsCubit extends Cubit<FetchSearchResultsState> {
   final SearchHistoryDAO _searchHistoryDao;
 
   FetchSearchResultsCubit({SearchHistoryDAO? searchHistoryDao})
-      : _searchHistoryDao =
-            searchHistoryDao ?? SearchHistoryDAO(DBProvider.db),
+      : _searchHistoryDao = searchHistoryDao ?? SearchHistoryDAO(DBProvider.db),
         super(FetchSearchResultsInitial()) {
     YTMusic();
   }

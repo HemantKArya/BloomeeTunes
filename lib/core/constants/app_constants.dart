@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 
 /// Application-wide sentinel values and shared model instances.
 /// Previously defined in [routes_and_consts/global_conts.dart].

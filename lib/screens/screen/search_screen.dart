@@ -2,7 +2,7 @@
 import 'dart:developer';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/screens/widgets/album_card.dart';
 import 'package:Bloomee/screens/widgets/artist_card.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
@@ -204,7 +204,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(
                       left: 18, right: 18, top: 5, bottom: 5),
                   child: FutureBuilder(
-                      future: context.read<SettingsCubit>().getAvailableSourceEngines(),
+                      future: context
+                          .read<SettingsCubit>()
+                          .getAvailableSourceEngines(),
                       builder: (context, snapshot) {
                         return snapshot.hasData || snapshot.data != null
                             ? Wrap(

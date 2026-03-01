@@ -1,6 +1,6 @@
-import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/artist_onl_model.dart';
-import 'package:Bloomee/model/playlist_onl_model.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
+import 'package:Bloomee/core/models/artist_onl_model.dart';
+import 'package:Bloomee/core/models/playlist_onl_model.dart';
 import 'package:Bloomee/services/db/dao/collection_dao.dart';
 
 /// Repository for saved online collections (artists, albums, playlists).
@@ -27,8 +27,7 @@ class CollectionRepository {
 
   /// Returns a mixed list of [ArtistModel], [AlbumModel], and
   /// [PlaylistOnlModel] that the user has saved.
-  Future<List> getSavedCollections() =>
-      _collectionDao.getSavedCollections();
+  Future<List> getSavedCollections() => _collectionDao.getSavedCollections();
 
   Future<bool> isSaved(String sourceID) =>
       _collectionDao.isInSavedCollections(sourceID);

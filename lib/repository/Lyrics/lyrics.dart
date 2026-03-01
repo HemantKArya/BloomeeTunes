@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/lyrics_models.dart';
+import 'package:Bloomee/core/models/lyrics_models.dart';
 import 'package:Bloomee/repository/lyrics/lrcnet_api.dart';
 
 class LyricsRepository {

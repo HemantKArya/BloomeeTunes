@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/core/models/chart_model.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:http/http.dart' as http;

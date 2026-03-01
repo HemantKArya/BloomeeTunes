@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/chart_model.dart';
+import 'package:Bloomee/core/models/chart_model.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/repository/youtube/yt_charts_home.dart';

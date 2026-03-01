@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/core/constants/app_constants.dart';
 import 'package:dart_discord_rpc/dart_discord_rpc.dart';
 

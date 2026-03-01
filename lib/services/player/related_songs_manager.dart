@@ -1,6 +1,6 @@
 import 'dart:developer';
-import 'package:Bloomee/model/saavn_model.dart';
-import 'package:Bloomee/model/yt_music_model.dart';
+import 'package:Bloomee/core/models/saavn_model.dart';
+import 'package:Bloomee/core/models/yt_music_model.dart';
 import 'package:Bloomee/repository/saavn/saavn_api.dart';
 import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';

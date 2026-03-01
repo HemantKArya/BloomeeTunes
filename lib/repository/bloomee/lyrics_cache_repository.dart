@@ -1,4 +1,4 @@
-import 'package:Bloomee/model/lyrics_models.dart';
+import 'package:Bloomee/core/models/lyrics_models.dart';
 import 'package:Bloomee/repository/lyrics/lyrics.dart' as lyrics_api;
 import 'package:Bloomee/services/db/dao/lyrics_dao.dart';
 
@@ -42,7 +42,8 @@ class LyricsCacheRepository {
     );
 
     // 3. Cache if successful
-    if ((fetched.lyricsSynced?.isNotEmpty ?? false) && fetched.lyricsSynced != 'null') {
+    if ((fetched.lyricsSynced?.isNotEmpty ?? false) &&
+        fetched.lyricsSynced != 'null') {
       await _lyricsDao.putLyrics(fetched);
     }
 

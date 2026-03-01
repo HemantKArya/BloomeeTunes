@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/lyrics_models.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/lyrics_models.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/repository/lyrics/lyrics.dart';
 import 'package:Bloomee/core/constants/app_constants.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';

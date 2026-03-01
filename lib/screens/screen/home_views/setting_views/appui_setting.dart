@@ -1,5 +1,5 @@
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
 import 'package:Bloomee/screens/screen/chart/show_charts.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';

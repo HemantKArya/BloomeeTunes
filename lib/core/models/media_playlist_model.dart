@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:equatable/equatable.dart';
 
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 
 // Re-export mapper function for convenience.
 export 'package:Bloomee/services/db/mappers/playlist_mapper.dart'

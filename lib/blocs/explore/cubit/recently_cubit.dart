@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:Bloomee/model/media_playlist_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/services/db/dao/history_dao.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,8 +14,7 @@ class RecentlyCubit extends Cubit<RecentlyCubitState> {
   final HistoryDAO _historyDao;
   StreamSubscription<void>? watcher;
 
-  RecentlyCubit(this._historyDao)
-      : super(RecentlyCubitInitial()) {
+  RecentlyCubit(this._historyDao) : super(RecentlyCubitInitial()) {
     getRecentlyPlayed();
     watchRecentlyPlayed();
   }

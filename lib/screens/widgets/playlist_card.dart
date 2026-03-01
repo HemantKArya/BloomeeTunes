@@ -1,5 +1,5 @@
-import 'package:Bloomee/model/playlist_onl_model.dart';
-import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/core/models/playlist_onl_model.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/screens/screen/common_views/playlist_view.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';

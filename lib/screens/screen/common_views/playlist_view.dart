@@ -1,7 +1,7 @@
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/playlist_view/online_playlist_cubit.dart';
-import 'package:Bloomee/model/playlist_onl_model.dart';
-import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/core/models/playlist_onl_model.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/repository/bloomee/collection_repository.dart';
 import 'package:Bloomee/services/db/dao/collection_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';

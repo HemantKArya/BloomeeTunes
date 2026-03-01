@@ -1,7 +1,7 @@
 import 'dart:developer';
 
-import 'package:Bloomee/model/media_playlist_model.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:isar_community/isar.dart';
 

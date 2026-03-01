@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:Bloomee/model/source_engines.dart';
+import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/repository/bloomee/settings_repository.dart';

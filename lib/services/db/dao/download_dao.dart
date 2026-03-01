@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:isar_community/isar.dart';

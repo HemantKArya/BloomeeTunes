@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:Bloomee/model/media_playlist_model.dart';
-import 'package:Bloomee/model/album_onl_model.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/core/models/album_onl_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 
 class ArtistModel {
   String name;

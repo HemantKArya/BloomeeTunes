@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/model/song_model.dart';
+import 'package:Bloomee/core/models/song_model.dart';
 import 'package:Bloomee/repository/mixed/mixed_api.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
@@ -60,8 +60,7 @@ class ChartListTile extends StatelessWidget {
           } catch (e) {
             log(e.toString(), name: "ChartListTile");
           }
-          context.push(
-              "/${RoutePaths.searchScreen}?query=$title by $subtitle");
+          context.push("/${RoutePaths.searchScreen}?query=$title by $subtitle");
           SnackbarService.showMessage(
             "Can't find media. Searching...",
             loading: false,
