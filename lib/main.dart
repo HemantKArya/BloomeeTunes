@@ -149,7 +149,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   // Initialize the player
   // This widget is the root of your application.
-  late StreamSubscription _intentSub;
+  StreamSubscription<SharedMedia>? _intentSub;
   SharedMedia? sharedMedia;
   @override
   void initState() {
@@ -161,31 +161,35 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    final handler = ShareHandlerPlatform.instance;
-    sharedMedia = await handler.getInitialSharedMedia();
+    try {
+      final handler = ShareHandlerPlatform.instance;
+      sharedMedia = await handler.getInitialSharedMedia();
 
-    _intentSub = handler.sharedMediaStream.listen((SharedMedia media) {
-      if (!mounted) return;
-      setState(() {
-        sharedMedia = media;
+      _intentSub = handler.sharedMediaStream.listen((SharedMedia media) {
+        if (!mounted) return;
+        setState(() {
+          sharedMedia = media;
+        });
+        if (sharedMedia != null) {
+          processIncomingIntent(sharedMedia!);
+        }
       });
-      if (sharedMedia != null) {
-        processIncomingIntent(sharedMedia!);
-      }
-    });
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      // If there's initial shared media, process it
-      if (sharedMedia != null) {
-        processIncomingIntent(sharedMedia!);
-      }
-    });
+      setState(() {
+        // If there's initial shared media, process it
+        if (sharedMedia != null) {
+          processIncomingIntent(sharedMedia!);
+        }
+      });
+    } catch (error, stackTrace) {
+      debugPrint('Failed to initialize share handler: $error\n$stackTrace');
+    }
   }
 
   @override
   void dispose() {
-    _intentSub.cancel();
+    _intentSub?.cancel();
     bloomeePlayerCubit.close();
     if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
       DiscordService.clearPresence();
