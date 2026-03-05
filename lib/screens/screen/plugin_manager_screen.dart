@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_event.dart';
@@ -12,112 +13,134 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
-/// Plugin Manager — install, load, unload and inspect plugins.
-///
-/// Accessible from Settings → Plugins. Shows all available `.bex` plugins
-/// discovered in the plugins directory, with load/unload toggles and an
-/// install-from-file button.
-class PluginManagerScreen extends StatelessWidget {
+class PluginManagerScreen extends StatefulWidget {
   const PluginManagerScreen({super.key});
+
+  @override
+  State<PluginManagerScreen> createState() => _PluginManagerScreenState();
+}
+
+class _PluginManagerScreenState extends State<PluginManagerScreen> {
+  // null means "All"
+  PluginType? _selectedFilter;
+
+  // Easily scalable for future plugin types
+  final Map<PluginType?, String> _filterOptions = {
+    null: "All",
+    PluginType.contentResolver: "Content Resolvers",
+    PluginType.chartProvider: "Chart Providers",
+  };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
-      body: SafeArea(
-        child: BlocConsumer<PluginBloc, PluginState>(
-          listenWhen: (prev, curr) =>
-              prev.error != curr.error && curr.error != null,
-          listener: (context, state) {
-            if (state.error != null) {
-              SnackbarService.showMessage(state.error!);
-            }
-          },
-          builder: (context, state) {
-            return CustomScrollView(
-              slivers: [
-                _buildAppBar(context, state),
-                if (!state.isInitialized)
-                  const SliverFillRemaining(
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Default_Theme.accentColor2,
-                      ),
-                    ),
-                  )
-                else if (state.availablePlugins.isEmpty)
-                  const SliverFillRemaining(
-                    child: SignBoardWidget(
-                      message:
-                          "No plugins installed.\nTap + to install a .bex plugin file.",
-                      icon: MingCute.plugin_2_line,
-                    ),
-                  )
-                else ...[
-                  _buildSectionHeader(
-                      'Content Resolvers', state, PluginType.contentResolver),
-                  _buildPluginList(context, state, PluginType.contentResolver),
-                  _buildSectionHeader(
-                      'Chart Providers', state, PluginType.chartProvider),
-                  _buildPluginList(context, state, PluginType.chartProvider),
-                ],
-              ],
+      appBar: _buildAppBar(context),
+      body: BlocConsumer<PluginBloc, PluginState>(
+        listenWhen: (prev, curr) =>
+            prev.error != curr.error && curr.error != null,
+        listener: (context, state) {
+          if (state.error != null) {
+            SnackbarService.showMessage(state.error!);
+          }
+        },
+        builder: (context, state) {
+          if (!state.isInitialized) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Default_Theme.accentColor2,
+                strokeWidth: 3,
+              ),
             );
-          },
-        ),
+          }
+
+          if (state.availablePlugins.isEmpty) {
+            return const SignBoardWidget(
+              message: "No plugins installed.\nTap + to add a .bex file.",
+              icon: MingCute.plugin_2_line,
+            );
+          }
+
+          final filteredPlugins = _selectedFilter == null
+              ? state.availablePlugins
+              : state.availablePlugins
+                  .where((p) => p.pluginType == _selectedFilter)
+                  .toList();
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildChipsHeader(),
+              Expanded(
+                child: _buildPluginGridOrList(context, state, filteredPlugins),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  // ── App Bar ───────────────────────────────────────────────────────────────
+  // ── App Bar ──────────────────────────────────────────────────────────────
 
-  SliverAppBar _buildAppBar(BuildContext context, PluginState state) {
-    return SliverAppBar(
-      floating: true,
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
       backgroundColor: Default_Theme.themeColor,
-      surfaceTintColor: Default_Theme.themeColor,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back,
-            color: Default_Theme.primaryColor1, size: 24),
-        onPressed: () => Navigator.of(context).pop(),
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      leadingWidth: 64,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 12.0),
+        child: Center(
+          child: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: Default_Theme.primaryColor1,
+              size: 24,
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
       ),
       title: Text(
         'Plugins',
         style: const TextStyle(
           color: Default_Theme.primaryColor1,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.5,
         ).merge(Default_Theme.secondoryTextStyleMedium),
       ),
       actions: [
-        if (state.isLoading)
-          const Padding(
-            padding: EdgeInsets.only(right: 8),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Default_Theme.accentColor2,
-              ),
-            ),
-          ),
-        IconButton(
-          padding: const EdgeInsets.all(5),
-          constraints: const BoxConstraints(),
-          tooltip: 'Refresh',
-          icon: const Icon(MingCute.refresh_2_line,
-              color: Default_Theme.primaryColor1, size: 24),
-          onPressed: () {
-            context.read<PluginBloc>().add(const RefreshPlugins());
+        BlocBuilder<PluginBloc, PluginState>(
+          builder: (context, state) {
+            if (state.isLoading) {
+              return const Padding(
+                padding: EdgeInsets.only(right: 16),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Default_Theme.accentColor2,
+                  ),
+                ),
+              );
+            }
+            return IconButton(
+              tooltip: 'Refresh',
+              icon: const Icon(MingCute.refresh_2_line,
+                  color: Default_Theme.primaryColor1, size: 22),
+              onPressed: () {
+                context.read<PluginBloc>().add(const RefreshPlugins());
+              },
+            );
           },
         ),
         IconButton(
-          padding: const EdgeInsets.all(5),
-          constraints: const BoxConstraints(),
           tooltip: 'Install Plugin',
           icon: const Icon(MingCute.add_circle_line,
-              color: Default_Theme.accentColor2, size: 26),
+              color: Default_Theme.accentColor2, size: 24),
           onPressed: () => _installPlugin(context),
         ),
         const SizedBox(width: 8),
@@ -125,77 +148,142 @@ class PluginManagerScreen extends StatelessWidget {
     );
   }
 
-  // ── Section Header ─────────────────────────────────────────────────────────
+  // ── Scalable Chips Header ────────────────────────────────────────────────
 
-  Widget _buildSectionHeader(String title, PluginState state, PluginType type) {
-    final count =
-        state.availablePlugins.where((p) => p.pluginType == type).length;
-    if (count == 0) return const SliverToBoxAdapter(child: SizedBox.shrink());
+  Widget _buildChipsHeader() {
+    return SizedBox(
+      height: 52,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: _filterOptions.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final entry = _filterOptions.entries.elementAt(index);
+          final filterType = entry.key;
+          final label = entry.value;
+          final isSelected = _selectedFilter == filterType;
 
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-        child: Row(
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Default_Theme.primaryColor1,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ).merge(Default_Theme.secondoryTextStyleMedium),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: Default_Theme.accentColor2.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedFilter = filterType;
+                });
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Default_Theme.accentColor2.withValues(alpha: 0.15)
+                      : Default_Theme.primaryColor1.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isSelected
+                        ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+                        : Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                    width: 1.5,
+                  ),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected
+                        ? Default_Theme.accentColor2
+                        : Default_Theme.primaryColor1.withValues(alpha: 0.7),
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ).merge(Default_Theme.secondoryTextStyleMedium),
+                ),
               ),
-              child: Text(
-                '$count',
-                style: TextStyle(
-                  color: Default_Theme.accentColor2.withValues(alpha: 0.9),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ).merge(Default_Theme.secondoryTextStyle),
-              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  // ── Plugin List ────────────────────────────────────────────────────────────
+  // ── Responsive List/Grid View ─────────────────────────────────────────────
 
-  Widget _buildPluginList(
-      BuildContext context, PluginState state, PluginType type) {
-    final plugins =
-        state.availablePlugins.where((p) => p.pluginType == type).toList();
-
+  Widget _buildPluginGridOrList(
+      BuildContext context, PluginState state, List<PluginInfo> plugins) {
     if (plugins.isEmpty) {
-      return const SliverToBoxAdapter(child: SizedBox.shrink());
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              MingCute.ghost_line,
+              size: 48,
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.2),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "No plugins match this filter",
+              style: TextStyle(
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                fontSize: 15,
+              ).merge(Default_Theme.secondoryTextStyle),
+            ),
+          ],
+        ),
+      );
     }
 
-    return SliverList.builder(
-      itemCount: plugins.length,
-      itemBuilder: (context, index) {
-        return AnimatedListItem(
-          index: index,
-          child: _PluginTile(
-            plugin: plugins[index],
-            isLoaded: state.isPluginLoaded(plugins[index].manifest.id),
-            isOperating:
-                state.operatingPluginId == plugins[index].manifest.id &&
-                    state.isLoading,
-          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth > 750) {
+          return GridView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            physics: const BouncingScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 400,
+              mainAxisExtent: 94,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemCount: plugins.length,
+            itemBuilder: (context, index) {
+              return AnimatedListItem(
+                index: index,
+                child: _PluginCard(
+                  plugin: plugins[index],
+                  isLoaded: state.isPluginLoaded(plugins[index].manifest.id),
+                  isLoading:
+                      state.operatingPluginId == plugins[index].manifest.id &&
+                          state.isLoading,
+                ),
+              );
+            },
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          physics: const BouncingScrollPhysics(),
+          itemCount: plugins.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            return AnimatedListItem(
+              index: index,
+              child: _PluginCard(
+                plugin: plugins[index],
+                isLoaded: state.isPluginLoaded(plugins[index].manifest.id),
+                isLoading:
+                    state.operatingPluginId == plugins[index].manifest.id &&
+                        state.isLoading,
+              ),
+            );
+          },
         );
       },
     );
   }
-
-  // ── Install From File ────────────────────────────────────────────────────
 
   Future<void> _installPlugin(BuildContext context) async {
     try {
@@ -206,7 +294,6 @@ class PluginManagerScreen extends StatelessWidget {
       );
 
       if (result == null || result.files.isEmpty) return;
-
       final filePath = result.files.single.path;
       if (filePath == null) return;
 
@@ -223,166 +310,113 @@ class PluginManagerScreen extends StatelessWidget {
   }
 }
 
-// ─── Plugin Tile ───────────────────────────────────────────────────────────
+// ─── Clean, Premium Plugin Card ────────────────────────────────────────────
 
-class _PluginTile extends StatelessWidget {
+class _PluginCard extends StatelessWidget {
   final PluginInfo plugin;
   final bool isLoaded;
-  final bool isOperating;
+  final bool isLoading;
 
-  const _PluginTile({
+  const _PluginCard({
     required this.plugin,
     required this.isLoaded,
-    this.isOperating = false,
+    this.isLoading = false,
   });
-
-  /// Deterministic color from plugin name for the first-letter avatar.
-  Color _avatarColor(String name) {
-    const palette = [
-      Color(0xFF6C5CE7),
-      Color(0xFF00B894),
-      Color(0xFFFDAE61),
-      Color(0xFFE17055),
-      Color(0xFF0984E3),
-      Color(0xFFD63031),
-      Color(0xFF00CEC9),
-      Color(0xFFE84393),
-    ];
-    var hash = 0;
-    for (final c in name.codeUnits) {
-      hash = (hash * 31 + c) & 0x7FFFFFFF;
-    }
-    return palette[hash % palette.length];
-  }
 
   @override
   Widget build(BuildContext context) {
     final manifest = plugin.manifest;
-    final color = _avatarColor(manifest.name);
 
-    return InkWell(
-      onTap: () => _showPluginDetails(context),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isLoaded
-              ? Default_Theme.accentColor2.withValues(alpha: 0.06)
-              : Default_Theme.primaryColor1.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isLoaded
-                ? Default_Theme.accentColor2.withValues(alpha: 0.25)
-                : Default_Theme.primaryColor1.withValues(alpha: 0.08),
-            width: 1,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showPluginDetails(context),
+        borderRadius: BorderRadius.circular(16),
+        highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+        splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isLoaded
+                  ? Default_Theme.accentColor2.withValues(alpha: 0.2)
+                  : Default_Theme.primaryColor1.withValues(alpha: 0.05),
+              width: 1,
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            // First-letter colored avatar
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isLoaded
-                    ? color.withValues(alpha: 0.2)
-                    : color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  manifest.name.isNotEmpty
-                      ? manifest.name[0].toUpperCase()
-                      : '?',
-                  style: TextStyle(
-                    color: isLoaded ? color : color.withValues(alpha: 0.7),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
+          child: Row(
+            children: [
+              // Themed Icon Avatar exactly matching your reference aesthetic
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isLoaded
+                      ? Default_Theme.accentColor2.withValues(alpha: 0.15)
+                      : Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isLoaded
+                        ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+                        : Colors.transparent,
+                    width: 1.5,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    plugin.pluginType == PluginType.contentResolver
+                        ? MingCute.music_2_fill
+                        : MingCute.chart_bar_fill,
+                    color: isLoaded
+                        ? Default_Theme.accentColor2
+                        : Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                    size: 20,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 14),
+              const SizedBox(width: 16),
 
-            // Info column
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          manifest.name,
-                          style: const TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ).merge(Default_Theme.secondoryTextStyle),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${manifest.publisher.name} • v${manifest.version}',
-                    style: TextStyle(
-                      color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                      fontSize: 12,
-                    ).merge(Default_Theme.secondoryTextStyle),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (manifest.hostSite.isNotEmpty) ...[
-                    const SizedBox(height: 5),
-                    Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: manifest.hostSite
-                          .take(3)
-                          .map((site) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: Default_Theme.primaryColor1
-                                      .withValues(alpha: 0.07),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  site,
-                                  style: TextStyle(
-                                    color: Default_Theme.primaryColor1
-                                        .withValues(alpha: 0.45),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                  ).merge(Default_Theme.secondoryTextStyle),
-                                ),
-                              ))
-                          .toList(),
+              // Info column
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      manifest.name,
+                      style: const TextStyle(
+                        color: Default_Theme.primaryColor1,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${manifest.publisher.name} • v${manifest.version}',
+                      style: TextStyle(
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ).merge(Default_Theme.secondoryTextStyle),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-
-            // Load/Unload toggle
-            if (isOperating)
-              const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Default_Theme.accentColor2,
                 ),
-              )
-            else
-              _LoadToggle(
-                isLoaded: isLoaded,
-                onToggle: () {
+              ),
+              const SizedBox(width: 12),
+
+              // Custom Designed Aesthetic Switch (now optimistic!)
+              _CustomSwitch(
+                value: isLoaded,
+                isLoading: isLoading,
+                onChanged: () {
                   final bloc = context.read<PluginBloc>();
                   if (isLoaded) {
                     bloc.add(UnloadPlugin(
@@ -397,7 +431,8 @@ class _PluginTile extends StatelessWidget {
                   }
                 },
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -416,32 +451,123 @@ class _PluginTile extends StatelessWidget {
   }
 }
 
-// ─── Load Toggle ───────────────────────────────────────────────────────────
+// ─── OPTIMISTIC & SMOOTH Custom Switch Widget ──────────────────────────────
+class _CustomSwitch extends StatefulWidget {
+  final bool value;
+  final bool isLoading;
+  final VoidCallback onChanged;
 
-class _LoadToggle extends StatelessWidget {
-  final bool isLoaded;
-  final VoidCallback onToggle;
+  const _CustomSwitch({
+    required this.value,
+    required this.isLoading,
+    required this.onChanged,
+  });
 
-  const _LoadToggle({required this.isLoaded, required this.onToggle});
+  @override
+  State<_CustomSwitch> createState() => _CustomSwitchState();
+}
+
+class _CustomSwitchState extends State<_CustomSwitch> {
+  late bool _localValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _localValue = widget.value;
+  }
+
+  @override
+  void didUpdateWidget(covariant _CustomSwitch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Sync logic: If loading finishes, OR if the bloc force-updates the state externally,
+    // sync our local optimistic value with the true bloc state.
+    if (oldWidget.isLoading && !widget.isLoading) {
+      _localValue = widget.value;
+    } else if (!widget.isLoading && oldWidget.value != widget.value) {
+      _localValue = widget.value;
+    }
+  }
+
+  void _handleTap() {
+    if (widget.isLoading) return; // Prevent double-taps while loading
+
+    // 1. Optimistically update local state for INSTANT fluid animation
+    setState(() {
+      _localValue = !_localValue;
+    });
+
+    // 2. Trigger actual backend event
+    widget.onChanged();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 52,
-      height: 30,
-      child: Switch(
-        value: isLoaded,
-        onChanged: (_) => onToggle(),
-        activeThumbColor: Default_Theme.primaryColor1,
-        activeTrackColor: Default_Theme.accentColor2,
-        inactiveThumbColor: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-        inactiveTrackColor: Default_Theme.primaryColor1.withValues(alpha: 0.15),
+    return GestureDetector(
+      onTap: _handleTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedOpacity(
+        // Dim slightly if a network/load request is actively happening
+        duration: const Duration(milliseconds: 200),
+        opacity: widget.isLoading ? 0.6 : 1.0,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic, // Snappy, clean curve
+          width: 50,
+          height: 28,
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14), // Squircle-like design
+            color: _localValue
+                ? Default_Theme.accentColor2.withValues(alpha: 0.15)
+                : Default_Theme.primaryColor1.withValues(alpha: 0.05),
+            border: Border.all(
+              color: _localValue
+                  ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+                  : Default_Theme.primaryColor1.withValues(alpha: 0.15),
+              width: 1.5,
+            ),
+          ),
+          child: AnimatedAlign(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            alignment:
+                _localValue ? Alignment.centerRight : Alignment.centerLeft,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10), // Inner squircle thumb
+                color: _localValue
+                    ? Default_Theme.accentColor2
+                    : Default_Theme.primaryColor1.withValues(alpha: 0.4),
+              ),
+              // Optional: Show a tiny spinner inside the thumb while loading
+              child: widget.isLoading
+                  ? Center(
+                      child: SizedBox(
+                        width: 10,
+                        height: 10,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: _localValue
+                              ? Default_Theme.themeColor
+                              : Default_Theme.primaryColor1,
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-// ─── Plugin Detail Sheet ──────────────────────────────────────────────────
+// ─── Professional, Clean Bottom Sheet ──────────────────────────────────────
 
 class _PluginDetailSheet extends StatelessWidget {
   final PluginInfo plugin;
@@ -461,39 +587,51 @@ class _PluginDetailSheet extends StatelessWidget {
             state.operatingPluginId == manifest.id && state.isLoading;
 
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: Default_Theme.themeColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border(
+              top: BorderSide(
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+              ),
+            ),
           ),
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Drag handle
+              // Subtle Drag handle
               Center(
                 child: Container(
                   width: 40,
                   height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
+                  margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(2),
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
 
-              // Header: icon + name + version
+              // Header Section
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 52,
-                    height: 52,
+                    width: 60,
+                    height: 60,
                     decoration: BoxDecoration(
                       color: isLoaded
                           ? Default_Theme.accentColor2.withValues(alpha: 0.15)
-                          : Default_Theme.primaryColor1.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(14),
+                          : Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isLoaded
+                            ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+                            : Colors.transparent,
+                        width: 1.5,
+                      ),
                     ),
                     child: Center(
                       child: Icon(
@@ -504,7 +642,7 @@ class _PluginDetailSheet extends StatelessWidget {
                             ? Default_Theme.accentColor2
                             : Default_Theme.primaryColor1
                                 .withValues(alpha: 0.5),
-                        size: 26,
+                        size: 28,
                       ),
                     ),
                   ),
@@ -517,23 +655,25 @@ class _PluginDetailSheet extends StatelessWidget {
                           manifest.name,
                           style: const TextStyle(
                             color: Default_Theme.primaryColor1,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
                           ).merge(Default_Theme.secondoryTextStyleMedium),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 6),
                         Row(
                           children: [
-                            _StatusBadge(isLoaded: isLoaded),
-                            const SizedBox(width: 8),
                             Text(
-                              'v${manifest.version}',
+                              manifest.publisher.name,
                               style: TextStyle(
                                 color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.5),
-                                fontSize: 12,
+                                    .withValues(alpha: 0.6),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ).merge(Default_Theme.secondoryTextStyle),
                             ),
+                            const SizedBox(width: 10),
+                            _StatusBadge(isLoaded: isLoaded),
                           ],
                         ),
                       ],
@@ -541,7 +681,8 @@ class _PluginDetailSheet extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 24),
 
               // Description
               if (manifest.description.isNotEmpty) ...[
@@ -549,72 +690,129 @@ class _PluginDetailSheet extends StatelessWidget {
                   manifest.description,
                   style: TextStyle(
                     color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
-                    fontSize: 14,
+                    fontSize: 15,
                     height: 1.5,
                   ).merge(Default_Theme.secondoryTextStyle),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
               ],
 
-              // Details grid
-              _DetailRow(
-                  label: 'Type',
-                  value: plugin.pluginType == PluginType.contentResolver
-                      ? 'Content Resolver'
-                      : 'Chart Provider'),
-              _DetailRow(label: 'Publisher', value: manifest.publisher.name),
-              _DetailRow(label: 'License', value: manifest.license),
-              if (manifest.homepage.isNotEmpty)
-                _DetailRow(label: 'Homepage', value: manifest.homepage),
-              if (manifest.hostSite.isNotEmpty)
-                _DetailRow(
-                    label: 'Sources', value: manifest.hostSite.join(', ')),
-              if (manifest.capabilities.isNotEmpty)
-                _DetailRow(
-                    label: 'Capabilities',
-                    value: manifest.capabilities.join(', ')),
-              _DetailRow(label: 'Plugin ID', value: manifest.id),
+              // Clean Meta-data Container
+              Container(
+                decoration: BoxDecoration(
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.03),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _DetailRow(label: 'Version', value: manifest.version),
+                    const _DetailDivider(),
+                    _DetailRow(
+                        label: 'Type',
+                        value: plugin.pluginType == PluginType.contentResolver
+                            ? 'Content Resolver'
+                            : 'Chart Provider'),
+                    const _DetailDivider(),
+                    _DetailRow(label: 'License', value: manifest.license),
+                  ],
+                ),
+              ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 36),
 
-              // Action buttons
+              // Actions Layer (Strict Heights for exact Alignment)
               Row(
                 children: [
                   Expanded(
-                    child: _ActionButton(
-                      label: isLoaded ? 'Unload' : 'Load',
-                      icon:
-                          isLoaded ? MingCute.power_line : MingCute.flash_line,
-                      color: isLoaded
-                          ? Default_Theme.primaryColor1
-                          : Default_Theme.accentColor2,
-                      isLoading: operating,
-                      onPressed: () {
-                        final bloc = context.read<PluginBloc>();
-                        if (isLoaded) {
-                          bloc.add(UnloadPlugin(
-                            pluginId: manifest.id,
-                            pluginType: plugin.pluginType,
-                          ));
-                        } else {
-                          bloc.add(LoadPlugin(
-                            pluginId: manifest.id,
-                            pluginType: plugin.pluginType,
-                          ));
-                        }
-                      },
+                    child: SizedBox(
+                      height: 54, // Fixed height for exact alignment
+                      child: ElevatedButton(
+                        onPressed: operating
+                            ? null
+                            : () {
+                                final bloc = context.read<PluginBloc>();
+                                if (isLoaded) {
+                                  bloc.add(UnloadPlugin(
+                                    pluginId: manifest.id,
+                                    pluginType: plugin.pluginType,
+                                  ));
+                                } else {
+                                  bloc.add(LoadPlugin(
+                                    pluginId: manifest.id,
+                                    pluginType: plugin.pluginType,
+                                  ));
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isLoaded
+                              ? Colors.transparent
+                              : Default_Theme.accentColor2
+                                  .withValues(alpha: 0.15),
+                          foregroundColor: isLoaded
+                              ? Default_Theme.primaryColor1
+                              : Default_Theme.accentColor2,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide(
+                              color: isLoaded
+                                  ? Default_Theme.primaryColor1
+                                      .withValues(alpha: 0.15)
+                                  : Default_Theme.accentColor2
+                                      .withValues(alpha: 0.5),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        child: operating
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: isLoaded
+                                      ? Default_Theme.primaryColor1
+                                      : Default_Theme.accentColor2,
+                                ),
+                              )
+                            : Text(
+                                isLoaded ? 'Unload Plugin' : 'Enable Plugin',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ).merge(Default_Theme.secondoryTextStyle),
+                              ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: _ActionButton(
-                      label: 'Delete',
-                      icon: MingCute.delete_2_line,
-                      color: const Color(0xFFFF5252),
-                      isLoading: operating,
-                      onPressed: () {
-                        _confirmDelete(context, manifest.id, manifest.name);
-                      },
+                  // Delete Button
+                  SizedBox(
+                    height: 54, // Perfectly matching height
+                    width: 54, // Creates a perfect square
+                    child: IconButton(
+                      onPressed: operating
+                          ? null
+                          : () => _confirmDelete(
+                              context, manifest.id, manifest.name),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.red.withValues(alpha: 0.15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: BorderSide(
+                            color: Colors.red.withValues(alpha: 0.5),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(
+                        MingCute.delete_2_line,
+                        color: Colors.red,
+                        size: 22,
+                      ),
                     ),
                   ),
                 ],
@@ -628,7 +826,6 @@ class _PluginDetailSheet extends StatelessWidget {
 
   void _confirmDelete(
       BuildContext context, String pluginId, String pluginName) {
-    // Capture bloc reference while context is still mounted.
     final bloc = context.read<PluginBloc>();
 
     showDialog(
@@ -636,39 +833,41 @@ class _PluginDetailSheet extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: Default_Theme.themeColor,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: Default_Theme.primaryColor1.withValues(alpha: 0.15),
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.1),
           ),
         ),
         title: Text(
-          'Delete Plugin',
+          'Delete Plugin?',
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontWeight: FontWeight.bold,
           ).merge(Default_Theme.secondoryTextStyleMedium),
         ),
         content: Text(
-          'Permanently delete "$pluginName"?\n\n'
-          'This will unload the plugin and remove all its files from disk.',
+          'Are you sure you want to delete "$pluginName"? This will permanently remove its files.',
           style: TextStyle(
             color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
+            height: 1.4,
           ).merge(Default_Theme.secondoryTextStyle),
         ),
+        actionsPadding: const EdgeInsets.only(right: 16, bottom: 16),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text(
               'Cancel',
               style: TextStyle(
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.6),
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w600,
               ).merge(Default_Theme.secondoryTextStyle),
             ),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(dialogContext).pop(); // close dialog
-              Navigator.of(context).pop(); // close bottom sheet
+              Navigator.of(dialogContext).pop();
+              Navigator.of(context).pop();
               bloc.add(DeletePlugin(
                 pluginId: pluginId,
                 pluginType: plugin.pluginType,
@@ -676,12 +875,12 @@ class _PluginDetailSheet extends StatelessWidget {
               SnackbarService.showMessage('Deleting $pluginName...',
                   loading: true);
             },
-            child: Text(
+            child: const Text(
               'Delete',
-              style: const TextStyle(
-                color: Color(0xFFFF5252),
-                fontWeight: FontWeight.w600,
-              ).merge(Default_Theme.secondoryTextStyle),
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -690,7 +889,7 @@ class _PluginDetailSheet extends StatelessWidget {
   }
 }
 
-// ─── Helper Widgets ────────────────────────────────────────────────────────
+// ─── Shared UI Helpers ─────────────────────────────────────────────────────
 
 class _StatusBadge extends StatelessWidget {
   final bool isLoaded;
@@ -699,21 +898,27 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: isLoaded
-            ? const Color(0xFF5EFF43).withValues(alpha: 0.15)
+            ? Default_Theme.accentColor2.withValues(alpha: 0.15)
             : Default_Theme.primaryColor1.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isLoaded
+              ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+              : Colors.transparent,
+          width: 1,
+        ),
       ),
       child: Text(
-        isLoaded ? 'Loaded' : 'Unloaded',
+        isLoaded ? 'Active' : 'Inactive',
         style: TextStyle(
           color: isLoaded
-              ? const Color(0xFF5EFF43)
-              : Default_Theme.primaryColor1.withValues(alpha: 0.5),
+              ? Default_Theme.accentColor2
+              : Default_Theme.primaryColor1.withValues(alpha: 0.6),
           fontSize: 11,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ).merge(Default_Theme.secondoryTextStyle),
       ),
     );
@@ -728,28 +933,25 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
-                fontSize: 13,
-              ).merge(Default_Theme.secondoryTextStyle),
-            ),
+          Text(
+            label,
+            style: TextStyle(
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ).merge(Default_Theme.secondoryTextStyle),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.8),
-                fontSize: 13,
-              ).merge(Default_Theme.secondoryTextStyle),
-            ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Default_Theme.primaryColor1,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ).merge(Default_Theme.secondoryTextStyle),
           ),
         ],
       ),
@@ -757,53 +959,14 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final bool isLoading;
-  final VoidCallback onPressed;
-
-  const _ActionButton({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onPressed,
-    this.isLoading = false,
-  });
-
+class _DetailDivider extends StatelessWidget {
+  const _DetailDivider();
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: isLoading ? null : onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color.withValues(alpha: 0.15),
-        foregroundColor: color,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: color.withValues(alpha: 0.3)),
-        ),
-      ),
-      icon: isLoading
-          ? SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: color,
-              ),
-            )
-          : Icon(icon, size: 18),
-      label: Text(
-        isLoading ? 'Working...' : label,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ).merge(Default_Theme.secondoryTextStyle),
-      ),
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
     );
   }
 }
