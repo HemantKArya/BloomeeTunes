@@ -32,7 +32,7 @@ class SongInfoScreen extends StatelessWidget {
   }
 
   IconData _getSourceIcon() {
-    return MingCute.music_2_fill;
+    return MingCute.plugin_2_fill;
   }
 
   @override
