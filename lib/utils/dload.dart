@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -46,7 +46,7 @@ class DownloadTask {
   final String fileName;
   final String targetPath;
   final int maxRetries;
-  final MediaItemModel song;
+  final Track song;
   final AudioMetadata? audioMetadata;
   final StreamController<DownloadStatus> statusController =
       StreamController<DownloadStatus>.broadcast();
@@ -83,7 +83,7 @@ class DownloadEngine {
     required String originalUrl,
     required String directory,
     required String fileName,
-    required MediaItemModel song,
+    required Track song,
     int maxRetries = 3,
     AudioMetadata? audioMetadata,
   }) {

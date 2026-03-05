@@ -1,104 +1,155 @@
-import 'dart:developer';
+﻿import 'dart:developer';
 
-import 'package:Bloomee/core/models/media_playlist_model.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/global_db.dart';
-import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/db/mappers/media_item_mapper.dart';
+import 'package:Bloomee/src/rust/api/plugin/models.dart';
 import 'package:isar_community/isar.dart';
 
-/// DAO for recently played history.
+/// DAO for recording and querying playback history.
+///
+/// Each play creates a [PlaybackHistoryDB] row linked to a [TrackDB].
+/// History entries are indexed by [playedAt] for efficient date-range queries.
 class HistoryDAO {
   final Future<Isar> _db;
+  final TrackDAO _trackDAO;
 
-  const HistoryDAO(this._db);
+  const HistoryDAO(this._db, this._trackDAO);
 
-  Future<void> putRecentlyPlayed(
-    MediaItemDB mediaItemDB, {
-    required Future<int?> Function(MediaItemDB, String) addMediaItem,
-  }) async {
-    Isar isarDB = await _db;
-    int? id;
-    id = await addMediaItem(mediaItemDB, "recently_played");
-    MediaItemDB? item =
-        isarDB.mediaItemDBs.filter().idEqualTo(id).findFirstSync();
+  // ── Write ──────────────────────────────────────────────────────────────────
 
-    if (item != null) {
-      RecentlyPlayedDB? recentlyPlayed = isarDB.recentlyPlayedDBs
-          .filter()
-          .mediaItem((q) => q.idEqualTo(item.id!))
-          .findFirstSync();
-      if (recentlyPlayed != null) {
-        isarDB.writeTxnSync(() => isarDB.recentlyPlayedDBs
-            .putSync(recentlyPlayed..lastPlayed = DateTime.now()));
-      } else {
-        isarDB.writeTxnSync(() => isarDB.recentlyPlayedDBs.putSync(
-            RecentlyPlayedDB(lastPlayed: DateTime.now())
-              ..mediaItem.value = item));
-      }
-    } else {
-      log("Failed to add in Recently_Played", name: "DB");
+  /// Record that [track] was played now.
+  ///
+  /// Accepts a domain [Track] model. Upserts it into [TrackDB] first,
+  /// then writes a new [PlaybackHistoryDB] row. Multiple plays of the
+  /// same track each get their own history row (non-deduplicating log).
+  Future<void> recordPlay(Track track) async {
+    final isar = await _db;
+    final trackId = await _trackDAO.upsertTrack(track);
+    final trackObj = await isar.trackDBs.get(trackId);
+    if (trackObj == null) {
+      log('recordPlay: track ${track.id} not found after upsert',
+          name: 'HistoryDAO');
+      return;
     }
+
+    final entry = PlaybackHistoryDB(playedAt: DateTime.now())
+      ..track.value = trackObj;
+
+    await isar.writeTxn(() async {
+      await isar.playbackHistoryDBs.put(entry);
+      await entry.track.save();
+    });
+    log('Recorded play for ${track.id}', name: 'HistoryDAO');
   }
 
-  Future<void> refreshRecentlyPlayed({
-    required Future<String?> Function(String, {String? defaultValue})
-        getSettingStr,
-    required Future<void> Function(MediaItemDB, MediaPlaylistDB)
-        removeMediaItemFromPlaylist,
-  }) async {
-    Isar isarDB = await _db;
-    List<int> ids = List.empty(growable: true);
+  // ── Read ───────────────────────────────────────────────────────────────────
 
-    int days = int.parse((await getSettingStr(SettingKeys.historyClearTime,
-        defaultValue: "7"))!);
+  /// Return the most recent [limit] history entries as domain [Track] objects.
+  ///
+  /// If [limit] is 0 all entries are returned (use with care).
+  /// Sorted newest-first.
+  Future<List<Track>> getHistory({int limit = 50}) async {
+    final isar = await _db;
+    final query = isar.playbackHistoryDBs.where().sortByPlayedAtDesc();
 
-    List<RecentlyPlayedDB> recentlyPlayed =
-        isarDB.recentlyPlayedDBs.where().findAllSync();
-    for (var element in recentlyPlayed) {
-      if (DateTime.now().difference(element.lastPlayed).inDays > days) {
-        await element.mediaItem.load();
-        if (element.mediaItem.value != null) {
-          log("Removing ${element.mediaItem.value!.title}", name: "DB");
-          removeMediaItemFromPlaylist(element.mediaItem.value!,
-              MediaPlaylistDB(playlistName: "recently_played"));
-          ids.add(element.id!);
-        } else {
-          ids.add(element.id!);
-        }
-      }
-    }
-    isarDB.writeTxn(() => isarDB.recentlyPlayedDBs.deleteAll(ids));
+    final entries =
+        limit > 0 ? await query.limit(limit).findAll() : await query.findAll();
+
+    await Future.wait(entries.map((e) => e.track.load()));
+    await _cleanupBrokenEntries(entries);
+
+    return entries
+        .map((e) => e.track.value)
+        .whereType<TrackDB>()
+        .map(trackDBToTrack)
+        .toList();
   }
 
-  Future<MediaPlaylist> getRecentlyPlayed({int limit = 0}) async {
-    List<MediaItemModel> mediaItems = [];
-    Isar isarDB = await _db;
-    if (limit == 0) {
-      List<RecentlyPlayedDB> recentlyPlayed =
-          isarDB.recentlyPlayedDBs.where().sortByLastPlayedDesc().findAllSync();
-      for (var element in recentlyPlayed) {
-        if (element.mediaItem.value != null) {
-          mediaItems.add(mediaItemDBToMediaItem(element.mediaItem.value!));
-        }
-      }
-    } else {
-      List<RecentlyPlayedDB> recentlyPlayed = isarDB.recentlyPlayedDBs
-          .where()
-          .sortByLastPlayedDesc()
-          .limit(limit)
-          .findAllSync();
-      for (var element in recentlyPlayed) {
-        if (element.mediaItem.value != null) {
-          mediaItems.add(mediaItemDBToMediaItem(element.mediaItem.value!));
-        }
-      }
-    }
-    return MediaPlaylist(
-        mediaItems: mediaItems, playlistName: "Recently Played");
+  /// Return raw [PlaybackHistoryDB] rows sorted newest-first.
+  Future<List<PlaybackHistoryDB>> getRawHistory({int limit = 50}) async {
+    final isar = await _db;
+    final query = isar.playbackHistoryDBs.where().sortByPlayedAtDesc();
+    final entries =
+        limit > 0 ? await query.limit(limit).findAll() : await query.findAll();
+    await Future.wait(entries.map((e) => e.track.load()));
+    await _cleanupBrokenEntries(entries);
+    return entries;
   }
 
-  Future<Stream<void>> watchRecentlyPlayed() async {
-    Isar isarDB = await _db;
-    return isarDB.recentlyPlayedDBs.watchLazy();
+  /// Remove broken history rows where track link is missing.
+  ///
+  /// Returns number of deleted rows.
+  Future<int> purgeBrokenHistoryEntries() async {
+    final isar = await _db;
+    final entries = await isar.playbackHistoryDBs.where().findAll();
+    await Future.wait(entries.map((e) => e.track.load()));
+
+    final brokenIds = entries
+        .where((e) => e.track.value == null)
+        .map((e) => e.id)
+        .toList(growable: false);
+
+    if (brokenIds.isEmpty) return 0;
+
+    final deleted = await isar.writeTxn(() async {
+      return isar.playbackHistoryDBs.deleteAll(brokenIds);
+    });
+
+    log('Purged $deleted broken history entries', name: 'HistoryDAO');
+    return deleted;
+  }
+
+  Future<void> _cleanupBrokenEntries(List<PlaybackHistoryDB> entries) async {
+    final brokenIds = entries
+        .where((e) => e.track.value == null)
+        .map((e) => e.id)
+        .toList(growable: false);
+
+    if (brokenIds.isEmpty) return;
+
+    final isar = await _db;
+    await isar.writeTxn(() async {
+      await isar.playbackHistoryDBs.deleteAll(brokenIds);
+    });
+    log('Removed ${brokenIds.length} broken history entries',
+        name: 'HistoryDAO');
+  }
+
+  // ── Maintenance ───────────────────────────────────────────────────────────
+
+  /// Delete history entries older than [days] days.
+  ///
+  /// Returns the number of rows deleted.
+  Future<int> purgeOldHistory(int days) async {
+    if (days <= 0) return 0;
+    final isar = await _db;
+    final cutoff = DateTime.now().subtract(Duration(days: days));
+    final count = await isar.writeTxn(() =>
+        isar.playbackHistoryDBs.filter().playedAtLessThan(cutoff).deleteAll());
+    log('Purged $count history entries older than $days days',
+        name: 'HistoryDAO');
+    return count;
+  }
+
+  /// Delete a single history entry by its Isar [id].
+  Future<void> removeHistoryEntry(int id) async {
+    final isar = await _db;
+    await isar.writeTxn(() => isar.playbackHistoryDBs.delete(id));
+  }
+
+  /// Delete all history entries.
+  Future<void> clearHistory() async {
+    final isar = await _db;
+    await isar.writeTxn(() => isar.playbackHistoryDBs.clear());
+    log('Cleared all history', name: 'HistoryDAO');
+  }
+
+  // ── Watchers ──────────────────────────────────────────────────────────────
+
+  /// Stream that fires whenever the history collection changes.
+  Future<Stream<void>> watchHistory() async {
+    final isar = await _db;
+    return isar.playbackHistoryDBs.watchLazy(fireImmediately: true);
   }
 }

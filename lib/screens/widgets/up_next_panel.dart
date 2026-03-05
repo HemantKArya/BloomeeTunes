@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/adapters/track_adapter.dart';
 import 'package:Bloomee/screens/widgets/toogle_btn.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:audio_service/audio_service.dart';
@@ -643,7 +643,7 @@ class _DesktopQueueItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final songModel = mediaItem2MediaItemModel(mediaItem);
+    final songModel = mediaItemToTrack(mediaItem);
     return Dismissible(
       key: ValueKey('dismiss_${mediaItem.id}'),
       direction: DismissDirection.startToEnd,
@@ -822,7 +822,7 @@ class _MobileQueueItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final songModel = mediaItem2MediaItemModel(mediaItem);
+    final songModel = mediaItemToTrack(mediaItem);
     // Mobile view: Use long press to reorder (no visible drag handle)
     return ReorderableDelayedDragStartListener(
       index: index,
@@ -1149,7 +1149,7 @@ class _LegacyQueueItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final songModel = mediaItem2MediaItemModel(mediaItem);
+    final songModel = mediaItemToTrack(mediaItem);
     return Dismissible(
       key: ValueKey('dismiss_legacy_${mediaItem.id}'),
       direction: DismissDirection.startToEnd,

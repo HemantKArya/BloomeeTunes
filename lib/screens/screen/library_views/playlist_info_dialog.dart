@@ -49,14 +49,13 @@ class InfoTile extends StatelessWidget {
   }
 }
 
-String getArtists(List<MediaItemModel> mediaItems) {
+String getArtists(List<Track> tracks) {
   String artists = "";
   List<String> artistList = [];
 
-  for (int i = 0; i < mediaItems.length; i++) {
-    if (mediaItems[i].artist != null) {
-      artistList.add(mediaItems[i].artist!);
-    }
+  for (int i = 0; i < tracks.length; i++) {
+    final trackArtists = tracks[i].artists.map((a) => a.name).toList();
+    artistList.addAll(trackArtists);
     if (artistList.length > 4) {
       break;
     }
@@ -93,7 +92,7 @@ Future<dynamic> showPlaylistInfo(
                   children: [
                     ListTile(
                       title: Text(
-                        state.mediaPlaylist.playlistName,
+                        state.playlist.title,
                         style: Default_Theme.secondoryTextStyle.merge(
                           TextStyle(
                               color: fgColor,
@@ -105,53 +104,47 @@ Future<dynamic> showPlaylistInfo(
                     ),
                     InfoTile(
                       title: "Playlist Length",
-                      subtitle:
-                          state.mediaPlaylist.mediaItems.length.toString(),
+                      subtitle: state.playlist.tracks.length.toString(),
                       icon: MingCute.playlist_2_line,
                       fg: fgColor,
                     ),
                     InfoTile(
                       title: "Artists",
-                      subtitle: state.mediaPlaylist.artists ??
-                          getArtists(state.mediaPlaylist.mediaItems),
+                      subtitle: state.playlist.artists != null
+                          ? state.playlist.artists!
+                              .map((a) => a.name)
+                              .join(', ')
+                          : getArtists(state.playlist.tracks),
                       icon: MingCute.group_fill,
                       fg: fgColor,
                     ),
-                    state.mediaPlaylist.description != null
+                    state.playlist.description != null
                         ? InfoTile(
                             title: "Description",
-                            subtitle: state.mediaPlaylist.description!,
+                            subtitle: state.playlist.description!,
                             icon: MingCute.document_2_line,
                             fg: fgColor,
                           )
                         : const SizedBox.shrink(),
-                    state.mediaPlaylist.lastUpdated != null
+                    state.playlist.updatedAt != null
                         ? InfoTile(
                             title: "Last Updated",
-                            subtitle: state.mediaPlaylist.lastUpdated
-                                    ?.toIso8601String() ??
-                                "",
+                            subtitle:
+                                state.playlist.updatedAt?.toIso8601String() ??
+                                    "",
                             icon: MingCute.history_line,
                             fg: fgColor,
                           )
                         : const SizedBox.shrink(),
-                    state.mediaPlaylist.source != null
-                        ? InfoTile(
-                            title: "Source",
-                            subtitle: state.mediaPlaylist.source!,
-                            icon: MingCute.server_line,
-                            fg: fgColor,
-                          )
-                        : const SizedBox.shrink(),
-                    state.mediaPlaylist.permaURL != null
+                    state.playlist.permaURL != null
                         ? InfoTile(
                             title: "Original URL",
-                            subtitle: state.mediaPlaylist.permaURL!,
+                            subtitle: state.playlist.permaURL!,
                             icon: MingCute.external_link_line,
                             fg: fgColor,
                             onTap: () {
                               Clipboard.setData(ClipboardData(
-                                  text: state.mediaPlaylist.permaURL!));
+                                  text: state.playlist.permaURL!));
                               SnackbarService.showMessage(
                                   "URL Copied to Clipboard");
                             },

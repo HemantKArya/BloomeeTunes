@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
@@ -77,7 +77,7 @@ class PlaylistView extends StatelessWidget {
             return AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
               child: (state is! CurrentPlaylistInitial &&
-                      state.mediaPlaylist.mediaItems.isNotEmpty)
+                      state.playlist.tracks.isNotEmpty)
                   ? CustomScrollView(
                       key: const ValueKey('1'),
                       physics: const BouncingScrollPhysics(),
@@ -121,7 +121,7 @@ class PlaylistView extends StatelessWidget {
                             final bool isCollapsed = percentage < 0.4;
 
                             final span = TextSpan(
-                              text: state.mediaPlaylist.playlistName,
+                              text: state.playlist.title,
                               style:
                                   Default_Theme.secondoryTextStyleMedium.merge(
                                 TextStyle(
@@ -148,7 +148,7 @@ class PlaylistView extends StatelessWidget {
                                   left: horizontalPadding,
                                   bottom: isCollapsed ? 16 : 10),
                               title: Text(
-                                state.mediaPlaylist.playlistName,
+                                state.playlist.title,
                                 maxLines: isCollapsed ? 1 : 3,
                                 style: Default_Theme.secondoryTextStyleMedium
                                     .merge(
@@ -166,10 +166,11 @@ class PlaylistView extends StatelessWidget {
                                   children: [
                                     LoadImageCached(
                                         imageUrl: formatImgURL(
-                                            state.mediaPlaylist.mediaItems.first
-                                                .artUri
-                                                .toString(),
-                                            ImageQuality.low)),
+                                            state.playlist.tracks.first
+                                                .thumbnail.url,
+                                            ImageQuality.low),
+                                        fallbackUrl: state.playlist.tracks.first
+                                            .thumbnail.url),
                                     Positioned(
                                         child: Container(
                                       decoration: BoxDecoration(
@@ -232,12 +233,18 @@ class PlaylistView extends StatelessWidget {
                                                 child: LoadImageCached(
                                                     imageUrl: formatImgURL(
                                                         state
-                                                            .mediaPlaylist
-                                                            .mediaItems
+                                                            .playlist
+                                                            .tracks
                                                             .first
-                                                            .artUri
-                                                            .toString(),
-                                                        ImageQuality.high)),
+                                                            .thumbnail
+                                                            .url,
+                                                        ImageQuality.high),
+                                                    fallbackUrl: state
+                                                        .playlist
+                                                        .tracks
+                                                        .first
+                                                        .thumbnail
+                                                        .url),
                                               ),
                                             ),
                                           ),
@@ -299,7 +306,7 @@ class PlaylistView extends StatelessWidget {
                                         children: [
                                           Flexible(
                                             child: Text(
-                                              "${state.mediaPlaylist.isAlbum ? 'Album' : 'Playlist'} • ${state.mediaPlaylist.mediaItems.length} Songs",
+                                              "${(state.playlist.type == PlaylistType.album) ? 'Album' : 'Playlist'} • ${state.playlist.tracks.length} Songs",
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: Default_Theme
@@ -316,7 +323,7 @@ class PlaylistView extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'by ${state.mediaPlaylist.artists ?? 'You'}',
+                                        'by ${state.playlist.artists?.map((a) => a.name).join(', ') ?? 'You'}',
                                         style: Default_Theme.secondoryTextStyle
                                             .merge(TextStyle(
                                           color: Default_Theme.primaryColor1
@@ -336,10 +343,10 @@ class PlaylistView extends StatelessWidget {
                                           .watch<DownloaderCubit>()
                                           .state
                                           .downloaded;
-                                      final allDownloaded = state.mediaPlaylist
-                                              .mediaItems.isNotEmpty &&
-                                          state.mediaPlaylist.mediaItems.every(
-                                              (s) => downloaded
+                                      final allDownloaded = state
+                                              .playlist.tracks.isNotEmpty &&
+                                          state.playlist.tracks.every((s) =>
+                                              downloaded
                                                   .any((d) => d.id == s.id));
 
                                       if (allDownloaded) {
@@ -386,8 +393,7 @@ class PlaylistView extends StatelessWidget {
                                           ),
                                         ),
                                         onPressed: () async {
-                                          final items =
-                                              state.mediaPlaylist.mediaItems;
+                                          final items = state.playlist.tracks;
                                           final count = items.length;
                                           final confirmed =
                                               await showDialog<bool>(
@@ -398,7 +404,7 @@ class PlaylistView extends StatelessWidget {
                                               title: const Text(
                                                   'Download playlist'),
                                               content: Text(
-                                                  'Do you want to download $count songs from "${state.mediaPlaylist.playlistName}"? This will add them to the download queue.'),
+                                                  'Do you want to download $count songs from "${state.playlist.title}"? This will add them to the download queue.'),
                                               actions: [
                                                 TextButton(
                                                   onPressed: () =>
@@ -456,13 +462,11 @@ class PlaylistView extends StatelessWidget {
                                                 .read<BloomeePlayerCubit>()
                                                 .bloomeePlayer
                                                 .loadPlaylist(
-                                                    MediaPlaylist(
-                                                        mediaItems: state
-                                                            .mediaPlaylist
-                                                            .mediaItems,
-                                                        playlistName: state
-                                                            .mediaPlaylist
-                                                            .playlistName),
+                                                    Playlist(
+                                                        tracks: state
+                                                            .playlist.tracks,
+                                                        title: state
+                                                            .playlist.title),
                                                     doPlay: true,
                                                     shuffling: true);
                                           },
@@ -485,8 +489,7 @@ class PlaylistView extends StatelessWidget {
                                               builder: (context, snapshot) {
                                                 if (snapshot.hasData &&
                                                     snapshot.data ==
-                                                        state.mediaPlaylist
-                                                            .playlistName) {
+                                                        state.playlist.title) {
                                                   return StreamBuilder<bool>(
                                                       stream: context
                                                           .read<
@@ -543,13 +546,13 @@ class PlaylistView extends StatelessWidget {
                                                               BloomeePlayerCubit>()
                                                           .bloomeePlayer
                                                           .loadPlaylist(
-                                                              MediaPlaylist(
-                                                                  mediaItems: state
-                                                                      .mediaPlaylist
-                                                                      .mediaItems,
-                                                                  playlistName: state
-                                                                      .mediaPlaylist
-                                                                      .playlistName),
+                                                              Playlist(
+                                                                  tracks: state
+                                                                      .playlist
+                                                                      .tracks,
+                                                                  title: state
+                                                                      .playlist
+                                                                      .title),
                                                               doPlay: true);
                                                     },
                                                     size: 40,
@@ -564,7 +567,7 @@ class PlaylistView extends StatelessWidget {
                                       child: IconButton(
                                           onPressed: () {
                                             showPlaylistOptsInrSheet(
-                                                context, state.mediaPlaylist);
+                                                context, state.playlist);
                                           },
                                           icon: Icon(MingCute.more_2_line,
                                               color: Default_Theme.primaryColor1
@@ -579,35 +582,32 @@ class PlaylistView extends StatelessWidget {
                         SliverPrototypeExtentList.builder(
                           itemBuilder: (context, index) {
                             return SongCardWidget(
-                              key: ValueKey(
-                                  state.mediaPlaylist.mediaItems[index]),
-                              song: state.mediaPlaylist.mediaItems[index],
+                              key: ValueKey(state.playlist.tracks[index]),
+                              song: state.playlist.tracks[index],
                               onTap: () {
                                 context
                                     .read<BloomeePlayerCubit>()
                                     .bloomeePlayer
                                     .loadPlaylist(
-                                        MediaPlaylist(
-                                            mediaItems:
-                                                state.mediaPlaylist.mediaItems,
-                                            playlistName: state
-                                                .mediaPlaylist.playlistName),
+                                        Playlist(
+                                            tracks: state.playlist.tracks,
+                                            title: state.playlist.title),
                                         idx: index,
                                         doPlay: true);
                               },
                               onOptionsTap: () {
                                 showMoreBottomSheet(
                                   context,
-                                  state.mediaPlaylist.mediaItems[index],
+                                  state.playlist.tracks[index],
                                   onDelete: () {
                                     context
                                         .read<LibraryItemsCubit>()
                                         .removeFromPlaylist(
-                                          state.mediaPlaylist.mediaItems[index],
-                                          state.mediaPlaylist.playlistName,
+                                          state.playlist.tracks[index],
+                                          state.playlist.title,
                                         );
                                     SnackbarService.showMessage(
-                                        "${state.mediaPlaylist.mediaItems[index].title} is removed from ${state.mediaPlaylist.playlistName}!!");
+                                        "${state.playlist.tracks[index].title} is removed from ${state.playlist.title}!!");
                                   },
                                   showDelete: true,
                                   showSinglePlay: true,
@@ -615,12 +615,15 @@ class PlaylistView extends StatelessWidget {
                               },
                             );
                           },
-                          itemCount: state.mediaPlaylist.mediaItems.length,
+                          itemCount: state.playlist.tracks.length,
                           prototypeItem: SongCardWidget(
-                            song: MediaItemModel(
+                            song: Track(
                                 id: "prototype",
-                                artist: "prototype",
-                                title: "prototype"),
+                                artists: const [],
+                                title: "prototype",
+                                thumbnail: const Artwork(
+                                    url: '', layout: ImageLayout.square),
+                                isExplicit: false),
                           ),
                         ),
                       ],
@@ -660,7 +663,7 @@ class PlaylistView extends StatelessWidget {
   }
 
   Future<void> _showAddToDownloadProgress(
-      BuildContext context, List<MediaItemModel> items) async {
+      BuildContext context, List<Track> items) async {
     if (items.isEmpty) return;
 
     // Use a dialog with StatefulBuilder to update progress

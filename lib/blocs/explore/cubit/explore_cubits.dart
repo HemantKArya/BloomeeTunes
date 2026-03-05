@@ -1,10 +1,9 @@
-/// Barrel export for split explore cubits.
+/// Barrel export for explore cubits.
 ///
-/// This file is kept for backward-compatible imports.
-/// Individual cubit files live alongside this barrel.
+/// Legacy cubits (chart, trending, ytmusic) have been removed.
+/// Their functionality is now provided by plugin BLoCs:
+/// - ChartBloc (replaces chart_cubit, trending_cubit)
+/// - ContentBloc (replaces ytmusic_cubit)
 library;
 
-export 'trending_cubit.dart';
 export 'recently_cubit.dart';
-export 'chart_cubit.dart';
-export 'ytmusic_cubit.dart';

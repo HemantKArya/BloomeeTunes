@@ -193,7 +193,6 @@ class _TimerViewState extends State<TimerView> {
                       ),
                     ],
                   )),
-                _ => const Center(child: CircularProgressIndicator())
               },
             );
           },

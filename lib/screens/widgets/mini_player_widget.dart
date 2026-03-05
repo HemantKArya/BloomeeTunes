@@ -95,8 +95,9 @@ class MiniPlayerCard extends StatelessWidget {
                   child: Container(
                     color: Default_Theme.themeColor,
                     child: LoadImageCached(
-                      imageUrl: formatImgURL(
-                          song.artUri?.toString() ?? '', ImageQuality.low),
+                      imageUrl:
+                          formatImgURL(song.thumbnail.url, ImageQuality.low),
+                      fallbackUrl: song.thumbnail.url,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -120,7 +121,8 @@ class MiniPlayerCard extends StatelessWidget {
                         height: 61,
                         child: LoadImageCached(
                           imageUrl: formatImgURL(
-                              song.artUri?.toString() ?? '', ImageQuality.low),
+                              song.thumbnail.url, ImageQuality.low),
+                          fallbackUrl: song.thumbnail.url,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -142,7 +144,7 @@ class MiniPlayerCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          song.artist ?? 'Unknown Artist',
+                          song.artists.map((a) => a.name).join(', '),
                           style: Default_Theme.secondoryTextStyle.merge(
                               TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -186,9 +188,7 @@ class MiniPlayerCard extends StatelessWidget {
                       : const SizedBox.shrink(),
                   IconButton(
                       onPressed: () {
-                        context
-                            .read<AddToPlaylistCubit>()
-                            .setMediaItemModel(song);
+                        context.read<AddToPlaylistCubit>().setTrack(song);
                         context.pushNamed(RoutePaths.addToPlaylistScreen);
                       },
                       icon: const Icon(FontAwesome.plus_solid, size: 25)),

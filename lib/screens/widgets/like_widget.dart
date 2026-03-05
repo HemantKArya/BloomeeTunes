@@ -1,16 +1,14 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:icons_plus/icons_plus.dart';
 
-// ignore: must_be_immutable
 class LikeBtnWidget extends StatefulWidget {
-  bool isLiked;
+  final bool isLiked;
   final bool isPlaying;
   final double iconSize;
   final VoidCallback? onLiked;
   final VoidCallback? onDisliked;
-  LikeBtnWidget({
+  const LikeBtnWidget({
     Key? key,
     this.isLiked = false,
     this.isPlaying = false,
@@ -76,16 +74,11 @@ class _LikeBtnWidgetState extends State<LikeBtnWidget>
       builder: (context, child) {
         return IconButton(
           onPressed: () {
-            setState(() {
-              widget.isLiked = !widget.isLiked;
-              if (widget.isLiked) {
-                widget.onLiked?.call();
-                log("Liked");
-              } else {
-                widget.onDisliked?.call();
-                log("DisLiked");
-              }
-            });
+            if (widget.isLiked) {
+              widget.onDisliked?.call();
+            } else {
+              widget.onLiked?.call();
+            }
           },
           icon: Icon(
             widget.isLiked ? AntDesign.heart_fill : AntDesign.heart_outline,

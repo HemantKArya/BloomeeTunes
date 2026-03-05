@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/services.dart';
@@ -13,26 +13,29 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SongInfoScreen extends StatelessWidget {
-  final MediaItemModel song;
+  final Track song;
   const SongInfoScreen({
     Key? key,
     required this.song,
   }) : super(key: key);
 
-  String _formatDuration(Duration? duration) {
-    if (duration == null) return "0:00";
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
+  String _formatDuration(BigInt? durationMs) {
+    if (durationMs == null) return "0:00";
+    final totalSeconds = durationMs.toInt() ~/ 1000;
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
     return "$minutes:${seconds.toString().padLeft(2, '0')}";
   }
 
-  String _getSourceName(String? source) {
-    if (source == null) return "Unknown";
-    return source == "youtube" ? "YouTube" : "JioSaavn";
+  String _getSourceName() {
+    final parts = song.id.split('::');
+    if (parts.length >= 2) return parts[0];
+    return "Unknown";
   }
 
-  IconData _getSourceIcon(String? source) {
-    if (source == "youtube") return MingCute.youtube_fill;
+  IconData _getSourceIcon() {
+    final source = _getSourceName().toLowerCase();
+    if (source.contains('youtube')) return MingCute.youtube_fill;
     return MingCute.music_2_fill;
   }
 
@@ -40,7 +43,6 @@ class SongInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final source = song.extras?["source"];
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
     final isDesktop = ResponsiveBreakpoints.of(context).isDesktop;
 
@@ -107,21 +109,13 @@ class SongInfoScreen extends StatelessWidget {
                           children: [
                             _InfoPill(
                               icon: MingCute.time_fill,
-                              label: _formatDuration(song.duration),
+                              label: _formatDuration(song.durationMs),
                             ),
                             const SizedBox(width: 10),
                             _InfoPill(
-                              icon: _getSourceIcon(source),
-                              label: _getSourceName(source),
+                              icon: _getSourceIcon(),
+                              label: _getSourceName(),
                             ),
-                            if (song.extras?["language"] != null &&
-                                song.extras!["language"] != "Unknown") ...[
-                              const SizedBox(width: 10),
-                              _InfoPill(
-                                icon: MingCute.earth_2_fill,
-                                label: song.extras!["language"],
-                              ),
-                            ],
                           ],
                         ),
                       ),
@@ -143,22 +137,14 @@ class SongInfoScreen extends StatelessWidget {
                           _DetailRow(
                             icon: MingCute.microphone_fill,
                             label: "Artist",
-                            value: song.artist ?? "Unknown",
+                            value: song.artists.map((a) => a.name).join(', '),
                           ),
                           const _DetailDivider(),
                           _DetailRow(
                             icon: MingCute.album_fill,
                             label: "Album",
-                            value: song.album ?? "Unknown",
+                            value: song.album?.title ?? "Unknown",
                           ),
-                          if (song.genre != null && song.genre!.isNotEmpty) ...[
-                            const _DetailDivider(),
-                            _DetailRow(
-                              icon: MingCute.hashtag_fill,
-                              label: "Genre",
-                              value: song.genre!,
-                            ),
-                          ],
                         ],
                       ),
 
@@ -205,7 +191,7 @@ class SongInfoScreen extends StatelessWidget {
                               icon: MingCute.link_3_fill,
                               label: "Copy Link",
                               onTap: () {
-                                final url = song.extras?["perma_url"];
+                                final url = song.url;
                                 if (url != null && url.isNotEmpty) {
                                   Clipboard.setData(ClipboardData(text: url));
                                   SnackbarService.showMessage(
@@ -223,14 +209,14 @@ class SongInfoScreen extends StatelessWidget {
                       const SizedBox(height: 12),
 
                       // Open in Source Button
-                      if (song.extras?["perma_url"] != null)
+                      if (song.url != null)
                         _ActionButton(
                           icon: MingCute.external_link_fill,
-                          label: "Open in ${_getSourceName(source)}",
+                          label: "Open in ${_getSourceName()}",
                           isWide: true,
                           isPrimary: true,
                           onTap: () async {
-                            final url = song.extras!["perma_url"];
+                            final url = song.url;
                             if (url != null) {
                               try {
                                 await launchUrl(Uri.parse(url),
@@ -258,13 +244,13 @@ class SongInfoScreen extends StatelessWidget {
 
 /// Header background with blurred aesthetic view for all devices
 class _HeaderBackground extends StatelessWidget {
-  final MediaItemModel song;
+  final Track song;
 
   const _HeaderBackground({required this.song});
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = formatImgURL(song.artUri.toString(), ImageQuality.high);
+    final imageUrl = formatImgURL(song.thumbnail.url, ImageQuality.high);
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
     // Unified aesthetic view: Blurred background with centered album art
@@ -274,6 +260,7 @@ class _HeaderBackground extends StatelessWidget {
         // Blurred background
         LoadImageCached(
           imageUrl: imageUrl,
+          fallbackUrl: song.thumbnail.url,
           fit: BoxFit.cover,
         ),
         BackdropFilter(
@@ -308,6 +295,7 @@ class _HeaderBackground extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 child: LoadImageCached(
                   imageUrl: imageUrl,
+                  fallbackUrl: song.thumbnail.url,
                   fit: BoxFit.contain,
                 ),
               ),

@@ -69,10 +69,15 @@ class AppRouter {
                   routes: [
                     GoRoute(
                         name: RoutePaths.chartScreen,
-                        path: 'ChartScreen:chartName',
-                        builder: (context, state) => ChartScreen(
-                            chartName:
-                                state.pathParameters['chartName'] ?? "none")),
+                        path: 'ChartScreen',
+                        builder: (context, state) {
+                          final qp = state.uri.queryParameters;
+                          return ChartScreen(
+                            pluginId: qp['pluginId'] ?? '',
+                            chartId: qp['chartId'] ?? '',
+                            chartTitle: qp['chartTitle'] ?? 'Chart',
+                          );
+                        }),
                   ])
             ]),
             StatefulShellBranch(routes: [

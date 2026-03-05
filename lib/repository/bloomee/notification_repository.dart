@@ -28,7 +28,7 @@ class NotificationRepository {
       );
 
   /// Returns all notifications sorted by time (newest first).
-  Future<List<NotificationDB>> getNotifications() =>
+  Future<List<NotificationsDB>> getNotifications() =>
       _notificationDao.getNotifications();
 
   Future<void> clearAll() => _notificationDao.clearNotifications();

@@ -1,21 +1,15 @@
 part of 'recently_cubit.dart';
 
 class RecentlyCubitState {
-  MediaPlaylist mediaPlaylist;
-  RecentlyCubitState({
-    required this.mediaPlaylist,
-  });
+  final List<Track> tracks;
 
-  RecentlyCubitState copyWith({
-    MediaPlaylist? mediaPlaylist,
-  }) {
-    return RecentlyCubitState(
-      mediaPlaylist: mediaPlaylist ?? this.mediaPlaylist,
-    );
+  const RecentlyCubitState({required this.tracks});
+
+  RecentlyCubitState copyWith({List<Track>? tracks}) {
+    return RecentlyCubitState(tracks: tracks ?? this.tracks);
   }
 }
 
 class RecentlyCubitInitial extends RecentlyCubitState {
-  RecentlyCubitInitial()
-      : super(mediaPlaylist: MediaPlaylist(playlistName: "", mediaItems: []));
+  const RecentlyCubitInitial() : super(tracks: const []);
 }

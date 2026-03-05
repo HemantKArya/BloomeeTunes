@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:Bloomee/core/models/app_notification.dart';
 import 'package:Bloomee/services/bloomee_updater_tools.dart';
-import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/notification_dao.dart';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'notification_state.dart';
 
@@ -32,8 +32,18 @@ class NotificationCubit extends Cubit<NotificationState> {
     getNotification();
   }
   void getNotification() async {
-    List<NotificationDB> notifications =
-        await _notificationDao.getNotifications();
+    final dbNotifications = await _notificationDao.getNotifications();
+    final notifications = dbNotifications
+        .map(
+          (n) => AppNotification(
+            title: n.title,
+            body: n.body,
+            type: n.type,
+            url: n.url,
+            payload: n.payload,
+          ),
+        )
+        .toList(growable: false);
     emit(NotificationState(notifications: notifications));
   }
 

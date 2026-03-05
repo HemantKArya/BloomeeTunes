@@ -1,5 +1,5 @@
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/dload.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
@@ -39,8 +39,8 @@ class DownloadingCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCoverArt(BuildContext context, MediaItemModel song,
-      DownloadStatus status, double progress) {
+  Widget _buildCoverArt(BuildContext context, Track song, DownloadStatus status,
+      double progress) {
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -51,9 +51,10 @@ class DownloadingCardWidget extends StatelessWidget {
             height: 55,
             child: LoadImageCached(
               imageUrl: formatImgURL(
-                song.artUri.toString(),
+                song.thumbnail.url,
                 ImageQuality.low,
               ),
+              fallbackUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
               fit: BoxFit.cover,
             ),
           ),
@@ -91,8 +92,7 @@ class DownloadingCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSongInfo(
-      MediaItemModel song, DownloadStatus status, double progress) {
+  Widget _buildSongInfo(Track song, DownloadStatus status, double progress) {
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -113,7 +113,7 @@ class DownloadingCardWidget extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            status.message ?? song.artist ?? "Unknown Artist",
+            status.message ?? song.artists.map((a) => a.name).join(', '),
             textAlign: TextAlign.start,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,

@@ -3,19 +3,19 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:Bloomee/core/models/library_search_result.dart';
-import 'package:Bloomee/core/models/album_onl_model.dart';
-import 'package:Bloomee/core/models/artist_onl_model.dart';
-import 'package:Bloomee/core/models/playlist_onl_model.dart';
-import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 
 part 'library_search_state.dart';
 
-class LibrarySearchCubit extends Cubit<LibrarySearchState> {
-  final PlaylistDAO _playlistDao;
+/// Signature for a function that searches tracks by query string.
+typedef TrackSearchFn = Future<List<Track>> Function(String query);
 
-  LibrarySearchCubit({required PlaylistDAO playlistDao})
-      : _playlistDao = playlistDao,
+class LibrarySearchCubit extends Cubit<LibrarySearchState> {
+  final TrackSearchFn _searchTracks;
+
+  LibrarySearchCubit({required TrackSearchFn searchTracks})
+      : _searchTracks = searchTracks,
         super(LibrarySearchInitial());
 
   String _currentQuery = '';
@@ -53,17 +53,11 @@ class LibrarySearchCubit extends Cubit<LibrarySearchState> {
     emit(LibrarySearchLoading());
 
     try {
-      // 1. Filter in-memory lists
+      // 1. Filter in-memory playlists
       final filteredPlaylists =
           _filterList(itemsState.playlists, query, (p) => p.playlistName);
-      final filteredArtists =
-          _filterList(itemsState.artists, query, (a) => a.name);
-      final filteredAlbums =
-          _filterList(itemsState.albums, query, (a) => a.name);
-      final filteredOnlinePlaylists =
-          _filterList(itemsState.playlistsOnl, query, (p) => p.name);
 
-      // 2. Async Song Search
+      // 2. Async Song Search via TrackDAO
       final songResults = await _searchSongs(query);
 
       // Check if this search is still relevant
@@ -73,9 +67,6 @@ class LibrarySearchCubit extends Cubit<LibrarySearchState> {
         query: query,
         songResults: songResults,
         filteredPlaylists: filteredPlaylists,
-        filteredArtists: filteredArtists,
-        filteredAlbums: filteredAlbums,
-        filteredOnlinePlaylists: filteredOnlinePlaylists,
       ));
     } catch (e) {
       if (_currentQuery != query) return;
@@ -93,9 +84,9 @@ class LibrarySearchCubit extends Cubit<LibrarySearchState> {
   Future<List<SongSearchResult>> _searchSongs(String query) async {
     if (query.length < 2) return [];
 
-    final results = await _playlistDao.searchMediaItemsInLibrary(query);
-    return results
-        .map((r) => SongSearchResult(song: r.$1, playlistName: r.$2))
+    final tracks = await _searchTracks(query);
+    return tracks
+        .map((t) => SongSearchResult(song: t, playlistName: 'Library'))
         .toList();
   }
 }

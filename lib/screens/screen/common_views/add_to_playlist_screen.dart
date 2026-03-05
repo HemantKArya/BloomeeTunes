@@ -1,5 +1,6 @@
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/screens/widgets/animated_list_item.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
@@ -7,10 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/core/constants/sentinel_values.dart';
 import 'package:Bloomee/screens/widgets/create_playlist_bottomsheet.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/core/constants/app_constants.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:icons_plus/icons_plus.dart';
 
@@ -49,15 +50,15 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
 
   /// Loads which playlists the current song belongs to
   Future<void> _loadSongPlaylists() async {
-    final mediaItem = context.read<AddToPlaylistCubit>().state.mediaItemModel;
-    if (mediaItem == mediaItemModelNull) {
+    final mediaItem = context.read<AddToPlaylistCubit>().state.track;
+    if (isTrackNull(mediaItem)) {
       return;
     }
 
     try {
       final playlistNames = await context
           .read<LibraryItemsCubit>()
-          .getPlaylistsContainingSong(mediaItem.id);
+          .getPlaylistsContainingTrack(mediaItem.id);
       _songInPlaylists.value = playlistNames;
     } catch (e) {
       // If error, just continue with empty set
@@ -75,7 +76,8 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
   ) {
     // Filter out system playlists first
     final userPlaylists = playlists.where((p) {
-      return p.playlistName != "recently_played" &&
+      return p.type == PlaylistType.userPlaylist &&
+          p.playlistName != "recently_played" &&
           p.playlistName != SettingKeys.downloadPlaylist;
     }).toList();
 
@@ -88,7 +90,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
 
   void _toggleSongInPlaylist(
     BuildContext context,
-    MediaItemModel song,
+    Track song,
     PlaylistItemProperties playlist,
     bool isInPlaylist,
   ) {
@@ -153,9 +155,9 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
       body: SafeArea(
         child: BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
           builder: (context, addToPlaylistState) {
-            final mediaItem = addToPlaylistState.mediaItemModel;
+            final mediaItem = addToPlaylistState.track;
 
-            if (mediaItem == mediaItemModelNull) {
+            if (isTrackNull(mediaItem)) {
               return const Center(
                 child: SignBoardWidget(
                   message: "No song selected",
@@ -299,7 +301,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
 
 /// Compact song info card showing the song being added
 class _SongInfoCard extends StatelessWidget {
-  final MediaItemModel mediaItem;
+  final Track mediaItem;
 
   const _SongInfoCard({required this.mediaItem});
 
@@ -322,9 +324,11 @@ class _SongInfoCard extends StatelessWidget {
               height: 48,
               child: LoadImageCached(
                 imageUrl: formatImgURL(
-                  mediaItem.artUri.toString(),
+                  mediaItem.thumbnail.url,
                   ImageQuality.low,
                 ),
+                fallbackUrl:
+                    mediaItem.thumbnail.urlLow ?? mediaItem.thumbnail.url,
                 fit: BoxFit.cover,
               ),
             ),
@@ -350,7 +354,7 @@ class _SongInfoCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  mediaItem.artist ?? "Unknown Artist",
+                  mediaItem.artists.map((a) => a.name).join(', '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Default_Theme.secondoryTextStyle.merge(
@@ -481,6 +485,7 @@ class _PlaylistTile extends StatelessWidget {
                       playlist.coverImgUrl ?? '',
                       ImageQuality.low,
                     ),
+                    fallbackUrl: playlist.coverImgUrl ?? '',
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -755,6 +760,7 @@ class _PlaylistAvatar extends StatelessWidget {
             playlist.coverImgUrl ?? '',
             ImageQuality.low,
           ),
+          fallbackUrl: playlist.coverImgUrl ?? '',
           fit: BoxFit.cover,
         ),
       ),

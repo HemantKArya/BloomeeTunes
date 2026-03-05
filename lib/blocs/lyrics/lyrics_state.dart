@@ -4,22 +4,22 @@ part of 'lyrics_cubit.dart';
 class LyricsState extends Equatable {
   const LyricsState(
     this.lyrics,
-    this.mediaItem,
+    this.track,
   );
 
   final Lyrics lyrics;
-  final MediaItemModel mediaItem;
+  final Track track;
 
   @override
-  List<Object> get props => [lyrics, lyrics.id, lyrics.title, mediaItem];
+  List<Object> get props => [lyrics, lyrics.id, lyrics.title, track];
 
   LyricsState copyWith({
     Lyrics? lyrics,
-    MediaItemModel? mediaItem,
+    Track? track,
   }) {
     return LyricsState(
       lyrics ?? this.lyrics,
-      mediaItem ?? this.mediaItem,
+      track ?? this.track,
     );
   }
 }
@@ -33,11 +33,16 @@ final class LyricsInitial extends LyricsState {
                 id: "id",
                 lyricsPlain: "",
                 provider: LyricsProvider.none),
-            mediaItemModelNull);
+            Track(
+                id: 'Null',
+                title: 'Null',
+                artists: const [],
+                thumbnail: const Artwork(url: '', layout: ImageLayout.square),
+                isExplicit: false));
 }
 
 final class LyricsLoading extends LyricsState {
-  LyricsLoading(MediaItemModel mediaItem)
+  LyricsLoading(Track track)
       : super(
             Lyrics(
                 artist: "",
@@ -45,11 +50,11 @@ final class LyricsLoading extends LyricsState {
                 id: "id",
                 lyricsPlain: "",
                 provider: LyricsProvider.none),
-            mediaItem);
+            track);
 }
 
 final class LyricsError extends LyricsState {
-  LyricsError(MediaItemModel mediaItem)
+  LyricsError(Track track)
       : super(
             Lyrics(
                 artist: "",
@@ -57,10 +62,9 @@ final class LyricsError extends LyricsState {
                 id: "id",
                 lyricsPlain: "",
                 provider: LyricsProvider.none),
-            mediaItem);
+            track);
 }
 
 final class LyricsLoaded extends LyricsState {
-  const LyricsLoaded(Lyrics lyrics, MediaItemModel mediaItem)
-      : super(lyrics, mediaItem);
+  const LyricsLoaded(Lyrics lyrics, Track track) : super(lyrics, track);
 }

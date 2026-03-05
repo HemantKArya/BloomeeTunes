@@ -5,7 +5,6 @@ import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/screens/screen/library_views/playlist_edit_view.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:file_picker/file_picker.dart';
@@ -16,8 +15,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-void showPlaylistOptsInrSheet(
-    BuildContext context, MediaPlaylist mediaPlaylist) {
+void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
   showFloatingModalBottomSheet(
     context: context,
     builder: (context) {
@@ -69,9 +67,9 @@ void showPlaylistOptsInrSheet(
                     onPressed: () async {
                       Navigator.pop(context);
                       SnackbarService.showMessage(
-                          "Preparing ${mediaPlaylist.playlistName} for share");
+                          "Preparing ${playlist.title} for share");
                       final _tmpPath = await ImportExportService.exportPlaylist(
-                          mediaPlaylist.playlistName);
+                          playlist.title);
                       _tmpPath != null
                           ? Share.shareXFiles([XFile(_tmpPath)])
                           : null;
@@ -90,10 +88,10 @@ void showPlaylistOptsInrSheet(
                               (await getDownloadsDirectory())?.path.toString();
                         }
                         SnackbarService.showMessage(
-                            "Preparing ${mediaPlaylist.playlistName} for export.");
+                            "Preparing ${playlist.title} for export.");
                         final _tmpPath =
                             await ImportExportService.exportPlaylist(
-                          mediaPlaylist.playlistName,
+                          playlist.title,
                           filePath: path,
                         );
                         SnackbarService.showMessage("Exported to: $_tmpPath");
@@ -142,15 +140,13 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                       Navigator.pop(context);
                       final _list = await context
                           .read<LibraryItemsCubit>()
-                          .getPlaylist(playlistName);
+                          .getPlaylistTracks(playlistName);
                       if (_list != null && _list.isNotEmpty) {
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
                             .loadPlaylist(
-                                MediaPlaylist(
-                                    mediaItems: _list,
-                                    playlistName: playlistName),
+                                Playlist(tracks: _list, title: playlistName),
                                 doPlay: true);
                         SnackbarService.showMessage("Playing $playlistName");
                       }
@@ -163,12 +159,12 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                       Navigator.pop(context);
                       final _list = await context
                           .read<LibraryItemsCubit>()
-                          .getPlaylist(playlistName);
+                          .getPlaylistTracks(playlistName);
                       if (_list != null && _list.isNotEmpty) {
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .addQueueItems(_list);
+                            .addQueueTracks(_list);
                         SnackbarService.showMessage(
                             "Added $playlistName to Queue");
                       }
@@ -215,8 +211,9 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                     icon: MingCute.delete_2_fill,
                     onPressed: () {
                       Navigator.pop(context);
-                      context.read<LibraryItemsCubit>().removePlaylist(
-                          MediaPlaylistDB(playlistName: playlistName));
+                      context
+                          .read<LibraryItemsCubit>()
+                          .removePlaylistByName(playlistName);
                     },
                   ),
                 ],

@@ -2,8 +2,6 @@
 import 'package:Bloomee/blocs/history/cubit/history_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
-import 'package:Bloomee/services/db/dao/history_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/storage_setting.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -46,43 +44,35 @@ class HistoryView extends StatelessWidget {
                 .merge(Default_Theme.secondoryTextStyle),
           ),
         ),
-        body: BlocProvider(
-          create: (context) => HistoryCubit(
-            historyDao: HistoryDAO(DBProvider.db),
-          ),
-          child: BlocBuilder<HistoryCubit, HistoryState>(
-            builder: (context, state) {
-              return (state is HistoryInitial)
-                  ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : ListView.builder(
-                      itemCount: state.mediaPlaylist.mediaItems.length,
-                      shrinkWrap: true,
-                      physics: const BouncingScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        return SongCardWidget(
-                          song: state.mediaPlaylist.mediaItems[index],
-                          onTap: () {
-                            context
-                                .read<BloomeePlayerCubit>()
-                                .bloomeePlayer
-                                .loadPlaylist(
-                                    MediaPlaylist(
-                                        mediaItems:
-                                            state.mediaPlaylist.mediaItems,
-                                        playlistName:
-                                            state.mediaPlaylist.playlistName),
-                                    idx: index,
-                                    doPlay: true);
-                          },
-                          onOptionsTap: () => showMoreBottomSheet(
-                              context, state.mediaPlaylist.mediaItems[index]),
-                        );
-                      },
-                    );
-            },
-          ),
+        body: BlocBuilder<HistoryCubit, HistoryState>(
+          builder: (context, state) {
+            return (state is HistoryInitial)
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : ListView.builder(
+                    itemCount: state.tracks.length,
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      return SongCardWidget(
+                        song: state.tracks[index],
+                        onTap: () {
+                          context
+                              .read<BloomeePlayerCubit>()
+                              .bloomeePlayer
+                              .loadPlaylist(
+                                  Playlist(
+                                      tracks: state.tracks, title: 'History'),
+                                  idx: index,
+                                  doPlay: true);
+                        },
+                        onOptionsTap: () =>
+                            showMoreBottomSheet(context, state.tracks[index]),
+                      );
+                    },
+                  );
+          },
         ),
       ),
     );

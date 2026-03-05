@@ -2,7 +2,7 @@ import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:async';
 import 'dart:math';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -20,7 +20,7 @@ class PlayerError {
   final String message;
   final dynamic originalError;
   final DateTime timestamp;
-  final MediaItemModel? failedTrack;
+  final Track? failedTrack;
 
   PlayerError({
     required this.type,
@@ -89,7 +89,7 @@ class PlayerErrorHandler {
     return PlayerErrorType.unknownError;
   }
 
-  void handleError(PlayerErrorType type, String message, MediaItemModel? track,
+  void handleError(PlayerErrorType type, String message, Track? track,
       [dynamic originalError]) {
     final error = PlayerError(
       type: type,
@@ -146,7 +146,7 @@ class PlayerErrorHandler {
     }
   }
 
-  void _scheduleRetry(MediaItemModel? currentItem) {
+  void _scheduleRetry(Track? currentItem) {
     if (currentItem == null) return;
 
     if (_totalRetryCount >= 10) {
@@ -191,7 +191,7 @@ class PlayerErrorHandler {
     return delay > _retryConfig.maxDelay ? _retryConfig.maxDelay : delay;
   }
 
-  Future<void> _skipToNextOnError(MediaItemModel? currentItem) async {
+  Future<void> _skipToNextOnError(Track? currentItem) async {
     final title = currentItem?.title ?? 'current song';
 
     if (_autoSkipPerformed) {

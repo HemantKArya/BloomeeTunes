@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/repository/bloomee/settings_repository.dart';
@@ -114,15 +113,6 @@ class SettingsCubit extends Cubit<SettingsState> {
     _settingsRepo.getSettingBool(SettingKeys.autoSaveLyrics).then((value) {
       emit(state.copyWith(autoSaveLyrics: value ?? false));
     });
-
-    for (var eg in SourceEngine.values) {
-      _settingsRepo.getSettingBool(eg.value).then((value) {
-        List<bool> switches = List.from(state.sourceEngineSwitches);
-        switches[SourceEngine.values.indexOf(eg)] = value ?? true;
-        emit(state.copyWith(sourceEngineSwitches: switches));
-        log(switches.toString(), name: 'SettingsCubit');
-      });
-    }
 
     Map chartMap = Map.from(state.chartMap);
     _settingsRepo.getSettingStr(SettingKeys.chartShowMap).then((value) {
@@ -261,13 +251,6 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(state.copyWith(historyClearTime: value));
   }
 
-  void setSourceEngineSwitches(int index, bool value) {
-    List<bool> switches = List.from(state.sourceEngineSwitches);
-    switches[index] = value;
-    _settingsRepo.putSettingBool(SourceEngine.values[index].value, value);
-    emit(state.copyWith(sourceEngineSwitches: List.from(switches)));
-  }
-
   // ── Crossfade ────────────────────────────────────────────────────────────
 
   void setCrossfadeDuration(int seconds) {
@@ -301,10 +284,6 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     setDownPath(path);
     log("Download path reset to: $path", name: 'SettingsCubit');
-  }
-
-  Future<List<SourceEngine>> getAvailableSourceEngines() async {
-    return _settingsRepo.getAvailableSourceEngines();
   }
 
   Future<String?> getJsQualityURL(String url, {bool isStreaming = true}) async {

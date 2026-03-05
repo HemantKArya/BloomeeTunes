@@ -1,47 +1,41 @@
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/download_dao.dart';
-import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 
-/// Repository for download operations — orchestrates [DownloadDAO]
-/// with cross-DAO callbacks for playlist management.
-///
-/// Resolves the cross-DAO dependency by providing playlist operations
-/// via the injected [PlaylistDAO].
+/// Repository for download operations — wraps [DownloadDAO].
 class DownloadRepository {
   final DownloadDAO _downloadDao;
-  final PlaylistDAO _playlistDao;
 
-  const DownloadRepository(this._downloadDao, this._playlistDao);
+  const DownloadRepository(this._downloadDao);
 
   Future<void> saveDownload({
     required String fileName,
     required String filePath,
     required DateTime lastDownloaded,
-    required MediaItemModel mediaItem,
+    required Track track,
   }) =>
-      _downloadDao.putDownloadDB(
+      _downloadDao.putDownload(
         fileName: fileName,
         filePath: filePath,
+        track: track,
         lastDownloaded: lastDownloaded,
-        mediaItem: mediaItem,
-        addMediaItem: _playlistDao.addMediaItem,
       );
 
-  Future<void> removeDownload(MediaItemModel mediaItem) =>
-      _downloadDao.removeDownloadDB(
-        mediaItem,
-        removeMediaItemFromPlaylist: _playlistDao.removeMediaItemFromPlaylist,
-      );
+  Future<void> removeDownload(String mediaId) =>
+      _downloadDao.removeDownload(mediaId);
 
-  Future<DownloadDB?> getDownload(MediaItemModel mediaItem) =>
-      _downloadDao.getDownloadDB(mediaItem);
+  Future<DownloadDB?> getDownload(String mediaId) =>
+      _downloadDao.getDownloadRecord(mediaId);
 
   Future<void> updateDownload(DownloadDB downloadDB) =>
-      _downloadDao.updateDownloadDB(downloadDB);
+      _downloadDao.updateDownloadRecord(downloadDB);
 
-  Future<List<MediaItemModel>> getDownloadedSongs() =>
-      _downloadDao.getDownloadedSongs(
-        removeDownload: (mediaItem) => removeDownload(mediaItem),
-      );
+  Future<List<DownloadDB>> getDownloadedSongs() =>
+      _downloadDao.getValidDownloads();
+
+  Future<List<Track>> getDownloadedTracks() =>
+      _downloadDao.getValidDownloadedTracks();
+
+  Future<bool> isDownloaded(String mediaId) =>
+      _downloadDao.isDownloaded(mediaId);
 }

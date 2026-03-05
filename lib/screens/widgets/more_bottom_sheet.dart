@@ -2,12 +2,11 @@ import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/services/import_export_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 void showMoreBottomSheet(
   BuildContext context,
-  MediaItemModel song, {
+  Track song, {
   bool showDelete = false,
   bool showSinglePlay = false,
   bool showAddToQueue = true,
@@ -87,7 +86,7 @@ void showMoreBottomSheet(
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .updateQueue([song], doPlay: true);
+                            .updateQueueTracks([song], doPlay: true);
                         SnackbarService.showMessage("Playing ${song.title}",
                             duration: const Duration(seconds: 2));
                       },
@@ -113,7 +112,7 @@ void showMoreBottomSheet(
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .addPlayNextItem(song);
+                            .addPlayNextTrack(song);
                         SnackbarService.showMessage("Added to Next in Queue",
                             duration: const Duration(seconds: 2));
                       },
@@ -139,7 +138,7 @@ void showMoreBottomSheet(
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .addQueueItem(song);
+                            .addQueueTracks([song]);
                         SnackbarService.showMessage("Added to Queue",
                             duration: const Duration(seconds: 2));
                       },
@@ -161,7 +160,7 @@ void showMoreBottomSheet(
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  context.read<LibraryItemsCubit>().likeMediaItem(song, true);
+                  context.read<LibraryItemsCubit>().setTrackLiked(song, true);
                   SnackbarService.showMessage(
                       "${song.title} is added to Liked!!");
                   // SnackbarService.showMessage("Added to Favorites",
@@ -184,7 +183,7 @@ void showMoreBottomSheet(
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  context.read<AddToPlaylistCubit>().setMediaItemModel(song);
+                  context.read<AddToPlaylistCubit>().setTrack(song);
                   context.pushNamed(RoutePaths.addToPlaylistScreen);
                 },
               ),
@@ -206,9 +205,12 @@ void showMoreBottomSheet(
                   Navigator.pop(context);
                   SnackbarService.showMessage(
                       "Preparing ${song.title} for share.");
-                  final tmpPath = await ImportExportService.exportMediaItem(
-                      mediaItemToMediaItemDB(song));
-                  tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
+                  // TODO: Implement Track-based export
+                  // final tmpPath = await ImportExportService.exportMediaItem(...);
+                  // tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
+                  if (song.url != null && song.url!.isNotEmpty) {
+                    Share.share(song.url!);
+                  }
                 },
               ),
               (isDownloaded == true)
@@ -267,7 +269,7 @@ void showMoreBottomSheet(
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  launchUrl(Uri.parse(song.extras?['perma_url']));
+                  launchUrl(Uri.parse(song.url ?? ''));
                 },
               ),
               Visibility(

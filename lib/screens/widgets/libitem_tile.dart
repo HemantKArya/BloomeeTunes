@@ -82,18 +82,22 @@ class LibItemCard extends StatelessWidget {
                     child: switch (type) {
                       LibItemTypes.userPlaylist => LoadImageCached(
                           imageUrl: formatImgURL(
-                              coverArt.toString(), ImageQuality.medium)),
+                              coverArt.toString(), ImageQuality.medium),
+                          fallbackUrl: coverArt.toString()),
                       LibItemTypes.onlPlaylist => LoadImageCached(
                           imageUrl: formatImgURL(
-                              coverArt.toString(), ImageQuality.medium)),
+                              coverArt.toString(), ImageQuality.medium),
+                          fallbackUrl: coverArt.toString()),
                       LibItemTypes.artist => ClipOval(
                           child: LoadImageCached(
                               imageUrl: formatImgURL(
-                                  coverArt.toString(), ImageQuality.medium)),
+                                  coverArt.toString(), ImageQuality.medium),
+                              fallbackUrl: coverArt.toString()),
                         ),
                       LibItemTypes.album => LoadImageCached(
                           imageUrl: formatImgURL(
-                              coverArt.toString(), ImageQuality.medium)),
+                              coverArt.toString(), ImageQuality.medium),
+                          fallbackUrl: coverArt.toString()),
                     },
                   ),
                 ),

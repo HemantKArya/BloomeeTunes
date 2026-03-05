@@ -19,16 +19,16 @@ class NotificationDAO {
 
     if (unique) {
       final existing =
-          isarDB.notificationDBs.filter().typeEqualTo(type).findFirstSync();
+          isarDB.notificationsDBs.filter().typeEqualTo(type).findFirstSync();
       if (existing != null) {
-        isarDB
-            .writeTxnSync(() => isarDB.notificationDBs.deleteSync(existing.id!));
+        isarDB.writeTxnSync(
+            () => isarDB.notificationsDBs.deleteSync(existing.id));
       }
     }
 
     isarDB.writeTxnSync(
-      () => isarDB.notificationDBs.putSync(
-        NotificationDB(
+      () => isarDB.notificationsDBs.putSync(
+        NotificationsDB(
           title: title,
           body: body,
           time: DateTime.now(),
@@ -40,18 +40,18 @@ class NotificationDAO {
     );
   }
 
-  Future<List<NotificationDB>> getNotifications() async {
+  Future<List<NotificationsDB>> getNotifications() async {
     Isar isarDB = await _db;
-    return isarDB.notificationDBs.where().sortByTimeDesc().findAllSync();
+    return isarDB.notificationsDBs.where().sortByTimeDesc().findAllSync();
   }
 
   Future<void> clearNotifications() async {
     Isar isarDB = await _db;
-    isarDB.writeTxnSync(() => isarDB.notificationDBs.where().deleteAllSync());
+    isarDB.writeTxnSync(() => isarDB.notificationsDBs.where().deleteAllSync());
   }
 
   Future<Stream<void>> watchNotification() async {
     Isar isarDB = await _db;
-    return isarDB.notificationDBs.watchLazy();
+    return isarDB.notificationsDBs.watchLazy();
   }
 }

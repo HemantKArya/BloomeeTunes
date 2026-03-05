@@ -2,28 +2,27 @@
 part of 'settings_cubit.dart';
 
 class SettingsState extends Equatable {
-  bool autoUpdateNotify;
-  bool autoSlideCharts;
-  String downPath;
-  String downQuality;
-  String ytDownQuality;
-  String strmQuality;
-  String ytStrmQuality;
-  String backupPath;
-  bool autoBackup;
-  String historyClearTime;
-  bool autoGetCountry;
-  bool lFMPicks;
-  bool lastFMScrobble;
-  bool autoSaveLyrics;
-  bool autoPlay;
-  String countryCode;
-  List<bool> sourceEngineSwitches;
-  Map chartMap;
-  int crossfadeDuration; // seconds, 0 = disabled
-  bool eqEnabled;
-  List<double> eqBandGains; // 10 gains, -12..+12 dB
-  String eqPreset;
+  final bool autoUpdateNotify;
+  final bool autoSlideCharts;
+  final String downPath;
+  final String downQuality;
+  final String ytDownQuality;
+  final String strmQuality;
+  final String ytStrmQuality;
+  final String backupPath;
+  final bool autoBackup;
+  final String historyClearTime;
+  final bool autoGetCountry;
+  final bool lFMPicks;
+  final bool lastFMScrobble;
+  final bool autoSaveLyrics;
+  final bool autoPlay;
+  final String countryCode;
+  final Map chartMap;
+  final int crossfadeDuration; // seconds, 0 = disabled
+  final bool eqEnabled;
+  final List<double> eqBandGains; // 10 gains, -12..+12 dB
+  final String eqPreset;
   SettingsState({
     required this.autoUpdateNotify,
     required this.autoSlideCharts,
@@ -40,7 +39,6 @@ class SettingsState extends Equatable {
     required this.autoSaveLyrics,
     required this.lFMPicks,
     required this.lastFMScrobble,
-    required this.sourceEngineSwitches,
     required this.chartMap,
     required this.autoPlay,
     required this.crossfadeDuration,
@@ -64,7 +62,6 @@ class SettingsState extends Equatable {
     String? countryCode,
     bool? lFMPicks,
     bool? lastFMScrobble,
-    List<bool>? sourceEngineSwitches,
     Map? chartMap,
     bool? autoSaveLyrics,
     bool? autoPlay,
@@ -88,8 +85,6 @@ class SettingsState extends Equatable {
       countryCode: countryCode ?? this.countryCode,
       lFMPicks: lFMPicks ?? this.lFMPicks,
       lastFMScrobble: lastFMScrobble ?? this.lastFMScrobble,
-      sourceEngineSwitches:
-          List.from(sourceEngineSwitches ?? this.sourceEngineSwitches),
       chartMap: Map.from(chartMap ?? this.chartMap),
       autoSaveLyrics: autoSaveLyrics ?? this.autoSaveLyrics,
       autoPlay: autoPlay ?? this.autoPlay,
@@ -116,7 +111,6 @@ class SettingsState extends Equatable {
         historyClearTime,
         autoGetCountry,
         countryCode,
-        sourceEngineSwitches,
         chartMap,
         lFMPicks,
         lastFMScrobble,
@@ -144,7 +138,6 @@ class SettingsInitial extends SettingsState {
           historyClearTime: "30",
           autoGetCountry: true,
           countryCode: "IN",
-          sourceEngineSwitches: SourceEngine.values.map((e) => true).toList(),
           chartMap: {},
           lFMPicks: false,
           lastFMScrobble: true,

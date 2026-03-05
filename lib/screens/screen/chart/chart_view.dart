@@ -1,154 +1,212 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:Bloomee/core/models/chart_model.dart';
-import 'package:Bloomee/services/db/dao/cache_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/plugins/blocs/chart/chart_bloc.dart';
+import 'package:Bloomee/plugins/blocs/chart/chart_event.dart';
+import 'package:Bloomee/plugins/blocs/chart/chart_state.dart';
+import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
-import 'package:Bloomee/utils/url_launcher.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:icons_plus/icons_plus.dart';
 
-class ChartScreen extends StatefulWidget {
-  final String chartName;
-  final CacheDAO _cacheDao;
-  ChartScreen({Key? key, required this.chartName, CacheDAO? cacheDao})
-      : _cacheDao = cacheDao ?? CacheDAO(DBProvider.db),
-        super(key: key);
+/// Displays the details (items) of a specific chart.
+///
+/// Takes [pluginId] and [chartId] from the route, creates its own
+/// [ChartBloc], and dispatches [LoadChartDetails].
+class ChartScreen extends StatelessWidget {
+  final String pluginId;
+  final String chartId;
+  final String chartTitle;
+
+  const ChartScreen({
+    super.key,
+    required this.pluginId,
+    required this.chartId,
+    required this.chartTitle,
+  });
 
   @override
-  State<ChartScreen> createState() => _ChartScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ChartBloc(pluginService: ServiceLocator.pluginService)
+        ..add(LoadChartDetails(pluginId: pluginId, chartId: chartId)),
+      child: _ChartScreenBody(chartTitle: chartTitle),
+    );
+  }
 }
 
-class _ChartScreenState extends State<ChartScreen> {
-  Future<ChartModel?> chartModel = Future.value(null);
-  Future<ChartModel?> getChart() async {
-    final db = await widget._cacheDao.getChart(widget.chartName);
-    return db != null ? chartCacheDBToChartModel(db) : null;
-  }
+class _ChartScreenBody extends StatelessWidget {
+  final String chartTitle;
 
-  @override
-  void initState() {
-    setState(() {
-      chartModel = getChart();
-    });
-    super.initState();
-  }
+  const _ChartScreenBody({required this.chartTitle});
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: FutureBuilder(
-          future: chartModel,
+        backgroundColor: Default_Theme.themeColor,
+        body: BlocBuilder<ChartBloc, ChartState>(
           builder: (context, state) {
-            if (state.connectionState == ConnectionState.waiting ||
-                state.data == null) {
-              return const Center(
-                child: SizedBox(
-                    height: 50,
-                    width: 50,
-                    child: CircularProgressIndicator(
-                      color: Default_Theme.accentColor2,
-                    )),
-              );
-            } else if (state.data!.chartItems!.isEmpty) {
-              return Center(
-                child: Text("Error: No Item in Chart",
-                    style: Default_Theme.secondoryTextStyleMedium.merge(
-                        const TextStyle(
-                            fontSize: 24,
-                            color: Color.fromARGB(255, 255, 235, 251)))),
-              );
-            } else {
-              return CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  customDiscoverBar(context, state.data!), //AppBar
-                  SliverList(
-                      delegate: SliverChildListDelegate([
-                    ListView.builder(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.only(
-                        top: 5,
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildAppBar(context, state),
+                if (state.chartDetailStatus == ChartStatus.loading)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: SizedBox(
+                        height: 50,
+                        width: 50,
+                        child: CircularProgressIndicator(
+                          color: Default_Theme.accentColor2,
+                        ),
                       ),
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: state.data!.chartItems!.length,
-                      itemBuilder: (context, index) {
-                        return ChartListTile(
-                          title: state.data!.chartItems![index].name!,
-                          subtitle: state.data!.chartItems![index].subtitle!,
-                          imgUrl: state.data!.chartItems![index].imageUrl!,
-                        );
-                      },
                     ),
-                  ]))
-                ],
-              );
-            }
+                  )
+                else if (state.chartDetailStatus == ChartStatus.error)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: SignBoardWidget(
+                        message: state.error ?? 'Failed to load chart',
+                        icon: MingCute.warning_line,
+                      ),
+                    ),
+                  )
+                else if (state.chartItems.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        "No items in chart",
+                        style: Default_Theme.secondoryTextStyleMedium.merge(
+                          const TextStyle(
+                            fontSize: 24,
+                            color: Color.fromARGB(255, 255, 235, 251),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SliverList(
+                    delegate: SliverChildListDelegate([
+                      ListView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.only(top: 5),
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: state.chartItems.length,
+                        itemBuilder: (context, index) {
+                          final chartItem = state.chartItems[index];
+                          final (title, subtitle, imgUrl) =
+                              _extractItemInfo(chartItem);
+                          return ChartListTile(
+                            title: title,
+                            subtitle: subtitle,
+                            imgUrl: imgUrl,
+                          );
+                        },
+                      ),
+                    ]),
+                  ),
+              ],
+            );
           },
         ),
-        backgroundColor: Default_Theme.themeColor,
       ),
     );
   }
 
-  SliverAppBar customDiscoverBar(BuildContext context, ChartModel state) {
+  SliverAppBar _buildAppBar(BuildContext context, ChartState state) {
+    String? coverUrl;
+    if (state.chartItems.isNotEmpty) {
+      final (_, _, url) = _extractItemInfo(state.chartItems.first);
+      coverUrl = url;
+    }
+
     return SliverAppBar(
       floating: true,
+      pinned: state.chartDetailStatus != ChartStatus.loaded,
       surfaceTintColor: Default_Theme.themeColor,
       backgroundColor: Default_Theme.themeColor,
-      expandedHeight: 200,
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(
-            right: 10,
-          ),
-          child: IconButton(
-            icon: const Icon(MingCute.external_link_line),
-            onPressed: () {
-              state.url != null ? launch_Url(Uri.parse(state.url!)) : null;
-            },
-          ),
-        ),
-      ],
+      expandedHeight: coverUrl != null && coverUrl.isNotEmpty ? 200 : null,
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
-        titlePadding:
-            const EdgeInsets.only(left: 8, bottom: 0, right: 0, top: 0),
-        title: Text(state.chartName,
-            textScaler: const TextScaler.linear(1.0),
-            textAlign: TextAlign.start,
-            style: Default_Theme.secondoryTextStyleMedium.merge(const TextStyle(
-                fontSize: 24, color: Color.fromARGB(255, 255, 235, 251)))),
-        background: Stack(
-          children: [
-            LayoutBuilder(builder: (context, constraints) {
-              return SizedBox(
-                width: constraints.maxWidth,
-                child: LoadImageCached(
-                  imageUrl: formatImgURL(
-                      state.chartItems!.first.imageUrl.toString(),
-                      ImageQuality.high),
-                  fit: BoxFit.cover,
-                ),
-              );
-            }),
-            Positioned.fill(
-                child: Container(
-                    decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                  Default_Theme.themeColor.withValues(alpha: 0.8),
-                  Default_Theme.themeColor.withValues(alpha: 0.4),
-                  Default_Theme.themeColor.withValues(alpha: 0.1),
-                  Default_Theme.themeColor.withValues(alpha: 0),
-                ]))))
-          ],
+        titlePadding: const EdgeInsets.only(left: 8, bottom: 0),
+        title: Text(
+          chartTitle,
+          textScaler: const TextScaler.linear(1.0),
+          textAlign: TextAlign.start,
+          style: Default_Theme.secondoryTextStyleMedium.merge(
+            const TextStyle(
+              fontSize: 24,
+              color: Color.fromARGB(255, 255, 235, 251),
+            ),
+          ),
         ),
+        background: coverUrl != null && coverUrl.isNotEmpty
+            ? Stack(
+                children: [
+                  LayoutBuilder(builder: (context, constraints) {
+                    return SizedBox(
+                      width: constraints.maxWidth,
+                      child: LoadImageCached(
+                        imageUrl: formatImgURL(coverUrl!, ImageQuality.high),
+                        fallbackUrl: coverUrl,
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  }),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Default_Theme.themeColor.withValues(alpha: 0.8),
+                            Default_Theme.themeColor.withValues(alpha: 0.4),
+                            Default_Theme.themeColor.withValues(alpha: 0.1),
+                            Default_Theme.themeColor.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : null,
+      ),
+    );
+  }
+
+  /// Extracts (title, subtitle, imageUrl) from a [ChartItem].
+  static (String, String, String) _extractItemInfo(ChartItem chartItem) {
+    return chartItem.item.when(
+      track: (track) => (
+        track.title,
+        track.artists.map((a) => a.name).join(', '),
+        track.thumbnail.url,
+      ),
+      album: (album) => (
+        album.title,
+        album.artists.map((a) => a.name).join(', '),
+        album.thumbnail?.url ?? '',
+      ),
+      artist: (artist) => (
+        artist.name,
+        artist.subtitle ?? '',
+        artist.thumbnail?.url ?? '',
+      ),
+      playlist: (playlist) => (
+        playlist.title,
+        playlist.owner ?? '',
+        playlist.thumbnail.url,
       ),
     );
   }

@@ -1,18 +1,18 @@
 import 'dart:async';
+import 'dart:developer';
 
-import 'package:audio_service/audio_service.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/history_dao.dart';
-import 'package:Bloomee/services/db/dao/playlist_dao.dart';
-import 'package:Bloomee/services/db/mappers/media_item_mapper.dart';
+import 'package:Bloomee/services/db/dao/track_dao.dart';
 
-/// Tracks continuous playback of the current media item and pushes it to
-/// the Recently Played DB only when the item has been played continuously
+/// Tracks continuous playback of the current track and pushes it to
+/// the playback history DB only when the item has been played continuously
 /// for at least [_thresholdSeconds]. Default threshold is 15 seconds.
 class RecentlyPlayedTracker {
   final PlayerEngine _engine;
-  final MediaItem? Function() _getCurrentMediaItem;
+  final Track? Function() _getCurrentTrack;
 
   int _thresholdSeconds;
   double _percentThreshold;
@@ -28,7 +28,7 @@ class RecentlyPlayedTracker {
 
   RecentlyPlayedTracker(
     this._engine,
-    this._getCurrentMediaItem, {
+    this._getCurrentTrack, {
     int thresholdSeconds = 15,
     double percentThreshold = 0.4,
   })  : _thresholdSeconds = thresholdSeconds,
@@ -39,11 +39,11 @@ class RecentlyPlayedTracker {
 
   void _onEngineState(EngineState state) {
     final isPlaying = _engine.playing;
-    final media = _getCurrentMediaItem();
-    final mediaId = media?.id;
+    final track = _getCurrentTrack();
+    final mediaId = track?.id;
 
     if (isPlaying && state == EngineState.ready) {
-      if (media == null) return;
+      if (track == null) return;
       if (_trackingMediaId != mediaId) {
         _trackingMediaId = mediaId;
         _recordedForCurrent = false;
@@ -61,11 +61,11 @@ class RecentlyPlayedTracker {
     }
   }
 
-  void _onPosition(Duration position) {
+  Future<void> _onPosition(Duration position) async {
     if (_trackingMediaId == null || _recordedForCurrent) return;
 
-    final media = _getCurrentMediaItem();
-    if (media == null || media.id != _trackingMediaId) {
+    final track = _getCurrentTrack();
+    if (track == null || track.id != _trackingMediaId) {
       _trackingMediaId = null;
       _startPositionMs = null;
       return;
@@ -97,21 +97,19 @@ class RecentlyPlayedTracker {
     final elapsedMs = currMs - startMs;
 
     final bool reachedTimeThreshold = elapsedMs >= _thresholdSeconds * 1000;
-    final bool reachedPercentThreshold = media.duration != null
-        ? currMs >= (media.duration!.inMilliseconds * _percentThreshold)
-        : false;
+    final durationMs = track.durationMs?.toInt();
+    final bool reachedPercentThreshold =
+        durationMs != null ? currMs >= (durationMs * _percentThreshold) : false;
 
     if (reachedTimeThreshold || reachedPercentThreshold) {
+      _recordedForCurrent = true;
       try {
-        final dbItem = mediaItemToMediaItemDB(media);
-        final playlistDao = PlaylistDAO(DBProvider.db);
-        HistoryDAO(DBProvider.db).putRecentlyPlayed(
-          dbItem,
-          addMediaItem: playlistDao.addMediaItem,
-        );
-        _recordedForCurrent = true;
-      } catch (_) {
-        // Do not crash the tracker on DB failures; ignore silently.
+        final trackDao = TrackDAO(DBProvider.db);
+        final historyDao = HistoryDAO(DBProvider.db, trackDao);
+        await historyDao.recordPlay(track);
+        log('Tracked play for ${track.id}', name: 'RecentlyPlayedTracker');
+      } catch (e) {
+        log('Failed to record play: $e', name: 'RecentlyPlayedTracker');
       }
     }
   }

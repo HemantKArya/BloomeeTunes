@@ -1,14 +1,18 @@
 import 'dart:developer';
 import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
-import 'package:Bloomee/services/db/dao/cache_dao.dart';
-import 'package:Bloomee/services/db/dao/history_dao.dart';
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/plugins/blocs/content/content_bloc.dart';
+import 'package:Bloomee/plugins/blocs/content/content_event.dart';
+import 'package:Bloomee/plugins/blocs/content/content_state.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
@@ -34,25 +38,39 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   bool isUpdateChecked = false;
-  late final CacheDAO _cacheDao = CacheDAO(DBProvider.db);
-  late final HistoryDAO _historyDao = HistoryDAO(DBProvider.db);
-  late final YTMusicCubit yTMusicCubit = YTMusicCubit(_cacheDao);
-  Future<MediaPlaylist> lFMData =
-      Future.value(const MediaPlaylist(mediaItems: [], playlistName: ""));
+  late final ContentBloc _homeContentBloc;
+  Future<List<Track>> lFMData = Future.value(const []);
+
+  bool _homeSectionsRequested = false;
 
   @override
   void initState() {
     super.initState();
+    _homeContentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
+    _loadHomeSections();
   }
 
-  Future<MediaPlaylist> fetchLFMPicks(bool state, BuildContext ctx) async {
+  void _loadHomeSections() {
+    final pluginState = context.read<PluginBloc>().state;
+    final contentResolvers = pluginState.loadedContentResolvers;
+    if (contentResolvers.isNotEmpty) {
+      final pluginId = contentResolvers.first.manifest.id;
+      _homeContentBloc.add(GetHomeSections(pluginId: pluginId));
+      _homeSectionsRequested = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _homeContentBloc.close();
+    super.dispose();
+  }
+
+  Future<List<Track>> fetchLFMPicks(bool state, BuildContext ctx) async {
     if (state) {
       try {
         final data = await lFMData;
-        if (data.mediaItems.isNotEmpty) {
-          return data;
-        }
-
+        if (data.isNotEmpty) return data;
         if (ctx.mounted) {
           lFMData = ctx.read<LastdotfmCubit>().getRecommendedTracks();
         }
@@ -61,31 +79,48 @@ class _ExploreScreenState extends State<ExploreScreen> {
         log(e.toString(), name: "ExploreScreen");
       }
     }
-    return const MediaPlaylist(mediaItems: [], playlistName: "");
+    return const [];
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<RecentlyCubit>(
-            create: (context) => RecentlyCubit(_historyDao),
-            lazy: false,
-          ),
-          BlocProvider(
-            create: (context) => yTMusicCubit,
-            lazy: false,
-          ),
-          BlocProvider(
-            create: (context) => FetchChartCubit(DBProvider.appSuppDir),
-            lazy: false,
-          ),
-        ],
+      child: BlocListener<PluginBloc, PluginState>(
+        listenWhen: (previous, current) {
+          // React to ANY change in loaded content resolvers or plugin IDs.
+          // This covers: first load, plugin load, plugin unload, refresh.
+          return previous.loadedContentResolvers !=
+                  current.loadedContentResolvers ||
+              previous.loadedPluginIds != current.loadedPluginIds;
+        },
+        listener: (context, state) {
+          final activePluginId = _homeContentBloc.state.activePluginId;
+
+          // If the active plugin was unloaded, clear stale sections immediately.
+          if (activePluginId != null &&
+              !state.loadedPluginIds.contains(activePluginId)) {
+            _homeSectionsRequested = false;
+            _homeContentBloc.add(const ClearHomeSections());
+          }
+
+          // If no content resolvers are loaded at all, reset.
+          if (state.loadedContentResolvers.isEmpty) {
+            _homeSectionsRequested = false;
+            _homeContentBloc.add(const ClearHomeSections());
+            return;
+          }
+
+          // If we haven't requested sections yet (or they were cleared),
+          // load from the first available content resolver.
+          if (!_homeSectionsRequested) {
+            _loadHomeSections();
+          }
+        },
         child: Scaffold(
           body: RefreshIndicator(
             onRefresh: () async {
-              await yTMusicCubit.fetchYTMusic();
+              _homeSectionsRequested = false;
+              _loadHomeSections();
             },
             child: CustomScrollView(
               shrinkWrap: true,
@@ -95,7 +130,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 SliverList(
                   delegate: SliverChildListDelegate(
                     [
-                      CaraouselWidget(),
+                      const CaraouselWidget(),
                       Padding(
                         padding: const EdgeInsets.only(top: 15.0),
                         child: SizedBox(
@@ -104,35 +139,41 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               if (state is RecentlyCubitInitial) {
                                 return const Center(
                                   child: SizedBox(
-                                      height: 60,
-                                      width: 60,
-                                      child: CircularProgressIndicator(
-                                        color: Default_Theme.accentColor2,
-                                      )),
+                                    height: 60,
+                                    width: 60,
+                                    child: CircularProgressIndicator(
+                                      color: Default_Theme.accentColor2,
+                                    ),
+                                  ),
                                 );
                               }
-                              if (state.mediaPlaylist.mediaItems.isNotEmpty) {
+                              if (state.tracks.isNotEmpty) {
                                 return InkWell(
                                   onTap: () {
                                     Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const HistoryView()));
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const HistoryView(),
+                                      ),
+                                    );
                                   },
                                   child: TabSongListWidget(
-                                    list:
-                                        state.mediaPlaylist.mediaItems.map((e) {
+                                    list: state.tracks.map((e) {
                                       return SongCardWidget(
                                         song: e,
                                         onTap: () {
                                           context
                                               .read<BloomeePlayerCubit>()
                                               .bloomeePlayer
-                                              .updateQueue(
-                                            [e],
-                                            doPlay: true,
-                                          );
+                                              .loadPlaylist(
+                                                Playlist(
+                                                  tracks: state.tracks,
+                                                  title: 'Recently',
+                                                ),
+                                                idx: state.tracks.indexOf(e),
+                                                doPlay: true,
+                                              );
                                         },
                                         onOptionsTap: () =>
                                             showMoreBottomSheet(context, e),
@@ -152,52 +193,83 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         builder: (context, state) {
                           if (state.lFMPicks) {
                             return FutureBuilder(
-                                future: fetchLFMPicks(state.lFMPicks, context),
-                                builder: (context, snapshot) {
-                                  if (snapshot.hasData &&
-                                      (snapshot.data?.mediaItems.isNotEmpty ??
-                                          false)) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 15.0),
-                                      child: TabSongListWidget(
-                                          list: snapshot.data!.mediaItems
-                                              .map((e) {
-                                            return SongCardWidget(
-                                              song: e,
-                                              onTap: () {
-                                                context
-                                                    .read<BloomeePlayerCubit>()
-                                                    .bloomeePlayer
-                                                    .loadPlaylist(
-                                                      snapshot.data!,
-                                                      idx: snapshot
-                                                          .data!.mediaItems
-                                                          .indexOf(e),
-                                                      doPlay: true,
-                                                    );
-                                              },
-                                              onOptionsTap: () =>
-                                                  showMoreBottomSheet(
-                                                      context, e),
-                                            );
-                                          }).toList(),
-                                          category: "Last.Fm Picks",
-                                          columnSize: 3),
-                                    );
-                                  }
-                                  return const SizedBox.shrink();
-                                });
+                              future: fetchLFMPicks(state.lFMPicks, context),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData &&
+                                    (snapshot.data?.isNotEmpty ?? false)) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 15.0),
+                                    child: TabSongListWidget(
+                                      list: snapshot.data!.map((e) {
+                                        return SongCardWidget(
+                                          song: e,
+                                          onTap: () {
+                                            context
+                                                .read<BloomeePlayerCubit>()
+                                                .bloomeePlayer
+                                                .loadPlaylist(
+                                                  Playlist(
+                                                    tracks: snapshot.data!,
+                                                    title: 'Last.Fm Picks',
+                                                  ),
+                                                  idx:
+                                                      snapshot.data!.indexOf(e),
+                                                  doPlay: true,
+                                                );
+                                          },
+                                          onOptionsTap: () =>
+                                              showMoreBottomSheet(context, e),
+                                        );
+                                      }).toList(),
+                                      category: "Last.Fm Picks",
+                                      columnSize: 3,
+                                    ),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            );
                           }
                           return const SizedBox.shrink();
                         },
                       ),
-                      BlocBuilder<YTMusicCubit, YTMusicCubitState>(
+                      // Home sections from plugin
+                      BlocBuilder<ContentBloc, ContentState>(
+                        bloc: _homeContentBloc,
                         builder: (context, state) {
-                          if (state is YTMusicCubitInitial) {
+                          final loadedResolvers = context
+                              .read<PluginBloc>()
+                              .state
+                              .loadedContentResolvers;
+                          if (loadedResolvers.isEmpty) {
+                            return const SignBoardWidget(
+                              message:
+                                  'No content plugin loaded.\nLoad a Content Resolver in Plugin Manager.',
+                              icon: MingCute.plugin_2_line,
+                            );
+                          }
+
+                          final activePluginId = state.activePluginId;
+                          if (activePluginId != null &&
+                              !context
+                                  .read<PluginBloc>()
+                                  .state
+                                  .loadedPluginIds
+                                  .contains(activePluginId)) {
+                            return const SignBoardWidget(
+                              message:
+                                  'The plugin used by these sections is unloaded.\nRefresh after loading a plugin.',
+                              icon: MingCute.warning_line,
+                            );
+                          }
+
+                          if (state.homeSectionsStatus ==
+                              DetailStatus.loading) {
                             return BlocBuilder<ConnectivityCubit,
                                 ConnectivityState>(
-                              builder: (context, state2) {
-                                if (state2 == ConnectivityState.disconnected) {
+                              builder: (context, connState) {
+                                if (connState ==
+                                    ConnectivityState.disconnected) {
                                   return const SignBoardWidget(
                                     message: "No Internet Connection!",
                                     icon: MingCute.wifi_off_line,
@@ -207,22 +279,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               },
                             );
                           }
+                          final sections = state.homeSections ?? [];
+                          if (sections.isEmpty) return const SizedBox();
                           return ListView.builder(
                             shrinkWrap: true,
                             itemExtent: 275,
                             padding: const EdgeInsets.only(top: 0),
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: state.ytmData["body"]!.length,
+                            itemCount: sections.length,
                             itemBuilder: (context, index) {
                               return HorizontalCardView(
-                                  data: state.ytmData["body"]![index]);
+                                section: sections[index],
+                                pluginId:
+                                    _homeContentBloc.state.activePluginId ?? '',
+                              );
                             },
                           );
                         },
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -234,9 +311,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 }
 
 class CustomDiscoverBar extends StatelessWidget {
-  const CustomDiscoverBar({
-    super.key,
-  });
+  const CustomDiscoverBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -247,9 +322,15 @@ class CustomDiscoverBar extends StatelessWidget {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Discover",
-              style: Default_Theme.primaryTextStyle.merge(const TextStyle(
-                  fontSize: 34, color: Default_Theme.primaryColor1))),
+          Text(
+            "Discover",
+            style: Default_Theme.primaryTextStyle.merge(
+              const TextStyle(
+                fontSize: 34,
+                color: Default_Theme.primaryColor1,
+              ),
+            ),
+          ),
           const Spacer(),
           const NotificationIcon(),
           const SiteIcon(),
@@ -274,12 +355,17 @@ class NotificationIcon extends StatelessWidget {
             constraints: const BoxConstraints(),
             onPressed: () {
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const NotificationView()));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationView(),
+                ),
+              );
             },
-            icon: const Icon(MingCute.notification_line,
-                color: Default_Theme.primaryColor1, size: 30.0),
+            icon: const Icon(
+              MingCute.notification_line,
+              color: Default_Theme.primaryColor1,
+              size: 30.0,
+            ),
           );
         }
         return badges.Badge(
@@ -287,10 +373,13 @@ class NotificationIcon extends StatelessWidget {
             padding: const EdgeInsets.all(1.5),
             child: Text(
               state.notifications.length.toString(),
-              style: Default_Theme.primaryTextStyle.merge(const TextStyle(
+              style: Default_Theme.primaryTextStyle.merge(
+                const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: Default_Theme.primaryColor2)),
+                  color: Default_Theme.primaryColor2,
+                ),
+              ),
             ),
           ),
           badgeStyle: const badges.BadgeStyle(
@@ -303,12 +392,17 @@ class NotificationIcon extends StatelessWidget {
             constraints: const BoxConstraints(),
             onPressed: () {
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const NotificationView()));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationView(),
+                ),
+              );
             },
-            icon: const Icon(MingCute.notification_line,
-                color: Default_Theme.primaryColor1, size: 30.0),
+            icon: const Icon(
+              MingCute.notification_line,
+              color: Default_Theme.primaryColor1,
+              size: 30.0,
+            ),
           ),
         );
       },
@@ -325,11 +419,16 @@ class TimerIcon extends StatelessWidget {
       padding: const EdgeInsets.all(5),
       constraints: const BoxConstraints(),
       onPressed: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const TimerView()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TimerView()),
+        );
       },
-      icon: const Icon(MingCute.stopwatch_line,
-          color: Default_Theme.primaryColor1, size: 30.0),
+      icon: const Icon(
+        MingCute.stopwatch_line,
+        color: Default_Theme.primaryColor1,
+        size: 30.0,
+      ),
     );
   }
 }
@@ -343,11 +442,16 @@ class SettingsIcon extends StatelessWidget {
       padding: const EdgeInsets.all(5),
       constraints: const BoxConstraints(),
       onPressed: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const SettingsView()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SettingsView()),
+        );
       },
-      icon: const Icon(MingCute.settings_3_line,
-          color: Default_Theme.primaryColor1, size: 30.0),
+      icon: const Icon(
+        MingCute.settings_3_line,
+        color: Default_Theme.primaryColor1,
+        size: 30.0,
+      ),
     );
   }
 }
@@ -362,10 +466,15 @@ class SiteIcon extends StatelessWidget {
       constraints: const BoxConstraints(),
       onPressed: () {
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => const About()));
+          context,
+          MaterialPageRoute(builder: (context) => const About()),
+        );
       },
-      icon: const Icon(MingCute.flower_4_fill,
-          color: Default_Theme.primaryColor1, size: 28.0),
+      icon: const Icon(
+        MingCute.flower_4_fill,
+        color: Default_Theme.primaryColor1,
+        size: 28.0,
+      ),
     );
   }
 }

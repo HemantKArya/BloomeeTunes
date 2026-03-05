@@ -2,14 +2,18 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
-import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:Bloomee/utils/audio_tagger.dart';
 import 'package:Bloomee/utils/dload.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
+import 'package:Bloomee/plugins/utils/media_id.dart';
+import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
+import 'package:Bloomee/core/events/global_event_bus.dart';
+import 'package:Bloomee/services/plugin/plugin_service.dart';
+import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:metadata_god/metadata_god.dart';
 import 'package:path/path.dart' as path;
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/repository/bloomee/download_repository.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -18,7 +22,6 @@ import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 part 'downloader_state.dart';
 
@@ -27,22 +30,21 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   final LibraryItemsCubit libraryItemsCubit;
   final DownloadRepository _downloadRepo;
   final SettingsDAO _settingsDao;
-  final SettingsRepository _settingsRepo;
+  final PluginService _pluginService;
   final DownloadEngine _downloadEngine = DownloadEngine();
   final List<DownloadProgress> _activeDownloads = [];
-  final YoutubeExplode _yt = YoutubeExplode();
   StreamSubscription? _librarySubscription;
-  List<MediaItemModel> _downloadedSongs = [];
+  List<Track> _downloadedSongs = [];
 
   DownloaderCubit({
     required this.connectivityCubit,
     required this.libraryItemsCubit,
     required DownloadRepository downloadRepo,
     required SettingsDAO settingsDao,
-    required SettingsRepository settingsRepo,
+    required PluginService pluginService,
   })  : _downloadRepo = downloadRepo,
         _settingsDao = settingsDao,
-        _settingsRepo = settingsRepo,
+        _pluginService = pluginService,
         super(DownloaderInitial()) {
     _downloadEngine.onTaskAdded = _handleNewTask;
     MetadataGod.initialize();
@@ -52,16 +54,13 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
   Future<Directory> _getDownloadDirectory() async {
     if (Platform.isAndroid || Platform.isIOS) {
-      // For Android and iOS, use the internal storage's downloads directory
       final directory = (await getDownloadsDirectory()) ??
           await getApplicationDocumentsDirectory();
       return directory;
     }
-    // For other platforms, use the application documents directory by default
-    // This can be adjusted based on your requirements
-    final path = await _settingsDao.getSettingStr(SettingKeys.downPathSetting);
-    if (path != null) {
-      return Directory(path);
+    final p = await _settingsDao.getSettingStr(SettingKeys.downPathSetting);
+    if (p != null) {
+      return Directory(p);
     }
     return await getApplicationDocumentsDirectory();
   }
@@ -75,8 +74,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   }
 
   Future<void> _loadDownloadedSongs() async {
-    final list = await _downloadRepo.getDownloadedSongs();
-    _downloadedSongs = List<MediaItemModel>.from(list);
+    _downloadedSongs = await _downloadRepo.getDownloadedTracks();
     _emitUpdatedState();
   }
 
@@ -99,7 +97,6 @@ class DownloaderCubit extends Cubit<DownloaderState> {
           state: DownloadState.queued, message: "In Queue"),
     );
     _activeDownloads.insert(0, newItem);
-
     _emitUpdatedState();
 
     task.statusStream.listen((status) {
@@ -109,7 +106,6 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         _activeDownloads[index] = DownloadProgress(task: task, status: status);
 
         if (status.state == DownloadState.completed) {
-          // Pass the completed task to the handler
           _onDownloadComplete(task);
         } else if (status.state == DownloadState.failed) {
           _onDownloadFailed(task);
@@ -120,27 +116,22 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     });
   }
 
-  /// --- NEW: Handles saving metadata to the database after completion ---
   void _onDownloadComplete(DownloadTask task) async {
     log("Downloaded ${task.fileName}", name: "DownloaderCubit");
     SnackbarService.showMessage(
         "Downloaded ${task.audioMetadata?.title ?? task.fileName}");
 
-    // Only save to DB if it was a song with a MediaItemModel
     final downloadDirectory = path.dirname(task.targetPath);
     await _downloadRepo.saveDownload(
         fileName: task.fileName,
         filePath: downloadDirectory,
         lastDownloaded: DateTime.now(),
-        mediaItem: task.song);
+        track: task.song);
     log("Saved metadata for ${task.fileName} to the database.",
         name: "DownloaderCubit");
 
-    // Remove the task from the active downloads list
     _activeDownloads
         .removeWhere((item) => item.task.originalUrl == task.originalUrl);
-
-    // Reload downloaded songs to include the newly completed download
     await _loadDownloadedSongs();
   }
 
@@ -148,70 +139,140 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     log("Failed to download ${task.fileName}", name: "DownloaderCubit");
     SnackbarService.showMessage(
         "Failed to download ${task.audioMetadata?.title ?? task.fileName}");
-
-    // Remove the task from the active downloads list
     _activeDownloads
         .removeWhere((item) => item.task.originalUrl == task.originalUrl);
     _emitUpdatedState();
   }
 
-  /// --- NEW: Checks the database and filesystem for an existing download ---
-  Future<bool> _isAlreadyDownloaded(MediaItemModel song) async {
-    final dbRecord = await _downloadRepo.getDownload(song);
+  Future<bool> _isAlreadyDownloaded(Track song) async {
+    final dbRecord = await _downloadRepo.getDownload(song.id);
     if (dbRecord != null) {
       final file = File(path.join(dbRecord.filePath, dbRecord.fileName));
       if (await file.exists()) {
         log("${song.title} is already downloaded and file exists.",
             name: "DownloaderCubit");
-        return true; // The download exists in DB and on disk.
+        return true;
       } else {
-        // The record is stale (in DB but file is missing), so remove it.
         log("Stale DB record found for ${song.title}. Removing.",
             name: "DownloaderCubit");
-        await _downloadRepo.removeDownload(song);
+        await _downloadRepo.removeDownload(song.id);
         return false;
       }
     }
-    return false; // No record found in the database.
+    return false;
+  }
+
+  /// Resolve a stream URL for [track] via the plugin system.
+  Future<String> _resolveStreamUrl(Track track) async {
+    final parts = tryParseMediaId(track.id);
+    if (parts == null) {
+      if (track.url != null &&
+          (track.url!.startsWith('http://') ||
+              track.url!.startsWith('https://'))) {
+        return track.url!;
+      }
+      throw Exception(
+        'Cannot resolve download URL for "${track.title}" — '
+        'malformed media ID: "${track.id}"',
+      );
+    }
+
+    final response = await _pluginService.execute(
+      pluginId: parts.pluginId,
+      request: PluginRequest.contentResolver(
+        ContentResolverCommand.getStreams(id: parts.localId),
+      ),
+    );
+
+    return response.when(
+      streams: (tracks) {
+        final streamUrl = tracks
+            .map((t) => t.url)
+            .whereType<String>()
+            .where((u) => u.trim().isNotEmpty)
+            .firstWhere(
+              (_) => true,
+              orElse: () => '',
+            );
+        if (streamUrl.isEmpty) {
+          throw Exception('No streams returned for "${track.title}"');
+        }
+        return streamUrl;
+      },
+      albumDetails: (_) => throw _unexpectedResponse('albumDetails'),
+      artistDetails: (_) => throw _unexpectedResponse('artistDetails'),
+      playlistDetails: (_) => throw _unexpectedResponse('playlistDetails'),
+      search: (_) => throw _unexpectedResponse('search'),
+      moreTracks: (_) => throw _unexpectedResponse('moreTracks'),
+      moreAlbums: (_) => throw _unexpectedResponse('moreAlbums'),
+      homeSections: (_) => throw _unexpectedResponse('homeSections'),
+      loadMoreItems: (_) => throw _unexpectedResponse('loadMoreItems'),
+      charts: (_) => throw _unexpectedResponse('charts'),
+      chartDetails: (_) => throw _unexpectedResponse('chartDetails'),
+      ack: () => throw _unexpectedResponse('ack'),
+    );
+  }
+
+  Exception _unexpectedResponse(String type) =>
+      Exception('Unexpected response type: $type for GetStreams');
+
+  String _artistStr(Track track) => track.artists.map((a) => a.name).join(', ');
+
+  String _sanitizeFileComponent(String value, {int maxLength = 80}) {
+    final cleaned = value
+        .replaceAll(RegExp(r'[<>:"/\\|?*\x00-\x1F]'), '_')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim()
+        .replaceAll(RegExp(r'[. ]+$'), '');
+
+    if (cleaned.isEmpty) return 'unknown';
+    if (cleaned.length <= maxLength) return cleaned;
+    return cleaned.substring(0, maxLength).trim();
+  }
+
+  String _buildDownloadFileName(Track song, String extension) {
+    final safeTitle = _sanitizeFileComponent(song.title, maxLength: 70);
+    final artistText = _artistStr(song);
+    final safeArtist = _sanitizeFileComponent(
+      artistText.isEmpty ? 'Unknown Artist' : artistText,
+      maxLength: 50,
+    );
+    final idSuffix = song.id.hashCode.toUnsigned(32).toRadixString(16);
+    return '$safeTitle - $safeArtist [$idSuffix].$extension';
   }
 
   /// The main public method to initiate a new download.
-  Future<void> downloadSong(MediaItemModel song,
-      {bool showSnackbar = true}) async {
+  Future<void> downloadSong(Track song, {bool showSnackbar = true}) async {
     if (connectivityCubit.state != ConnectivityState.connected) {
       if (showSnackbar) SnackbarService.showMessage("No internet connection.");
       return;
     }
 
-    // --- NEW: Perform pre-download checks ---
-    if (_activeDownloads
-        .any((item) => item.task.originalUrl == song.extras!['perma_url'])) {
-      if (showSnackbar)
+    // Pre-download checks
+    if (_activeDownloads.any((item) => item.task.originalUrl == song.id)) {
+      if (showSnackbar) {
         SnackbarService.showMessage("${song.title} is already in the queue.");
+      }
       return;
     }
 
     if (await _isAlreadyDownloaded(song)) {
-      if (showSnackbar)
+      if (showSnackbar) {
         SnackbarService.showMessage("${song.title} is already downloaded.");
+      }
       return;
     }
 
-    // Get directory for both placeholder and actual download
     final directory = await _getDownloadDirectory();
-
-    // Create placeholder task immediately to show resolving state
-    final sanitizedTitle =
-        song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
-    final tempFileName = "$sanitizedTitle.temp";
+    final tempFileName = '${_sanitizeFileComponent(song.title)}.temp';
 
     final placeholderTask = DownloadTask(
-      url: "placeholder", // Will be filled later
-      originalUrl: song.extras!['perma_url'],
+      url: "placeholder",
+      originalUrl: song.id,
       fileName: tempFileName,
       targetPath: path.join(directory.path, tempFileName),
       maxRetries: 3,
-      audioMetadata: null, // Will be filled later
+      audioMetadata: null,
       song: song,
     );
 
@@ -226,99 +287,44 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     _activeDownloads.insert(0, placeholderProgress);
     _emitUpdatedState();
 
-    if (showSnackbar)
+    if (showSnackbar) {
       SnackbarService.showMessage("Preparing download for ${song.title}...");
+    }
 
     try {
-      // Update status to fetching metadata
-      final index = _activeDownloads.indexWhere(
-          (item) => item.task.originalUrl == song.extras!['perma_url']);
+      final index = _activeDownloads
+          .indexWhere((item) => item.task.originalUrl == song.id);
       if (index != -1) {
         _activeDownloads[index] = DownloadProgress(
           task: placeholderTask,
           status: const DownloadStatus(
             state: DownloadState.fetchingMetadata,
-            // message: "Fetching metadata...",
           ),
         );
         _emitUpdatedState();
       }
 
-      String downloadUrl;
-      String fileName;
-      AudioMetadata? metadata;
+      final downloadUrl = await _resolveStreamUrl(song);
+      final artist = _artistStr(song);
+      final ext = _guessExtension(downloadUrl);
+      final fileName = _buildDownloadFileName(song, ext);
+      final durationMs = song.durationMs;
+      final metadata = AudioMetadata(
+        title: song.title,
+        artist: artist.isNotEmpty ? artist : "Unknown Artist",
+        album: song.album?.title ?? "Unknown Album",
+        artworkUrl: formatImgURL(song.thumbnail.url, ImageQuality.high),
+        duration: durationMs != null
+            ? Duration(milliseconds: durationMs.toInt())
+            : null,
+      );
 
-      if (song.extras!['source'] == 'youtube' ||
-          (song.extras!['perma_url'].toString()).contains('youtube')) {
-        final video = await _yt.videos.get(song.id.replaceAll("youtube", ""));
-        var manifest = await _yt.videos.streams.getManifest(video.id,
-            requireWatchPage: true, ytClients: [YoutubeApiClient.androidVr]);
-        AudioOnlyStreamInfo? audioStreamInfo;
-        await _settingsDao
-            .getSettingStr(SettingKeys.ytDownQuality)
-            .then((quality) {
-          if (quality == "High") {
-            audioStreamInfo = manifest.audioOnly
-                .where(
-                  (stream) => stream.container == StreamContainer.mp4,
-                )
-                .withHighestBitrate();
-          } else {
-            audioStreamInfo = manifest.audioOnly
-                .where(
-                  (stream) => stream.container == StreamContainer.mp4,
-                )
-                .sortByBitrate()
-                .first;
-          }
-        });
-        audioStreamInfo ??= manifest.audioOnly.withHighestBitrate();
-
-        if (audioStreamInfo == null) {
-          throw Exception("No suitable audio stream found for ${video.title}");
-        }
-
-        downloadUrl = audioStreamInfo!.url.toString();
-        final sanitizedTitle =
-            song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
-        fileName =
-            '$sanitizedTitle by ${song.artist} - ${song.id}.${audioStreamInfo!.container.name}';
-        metadata = AudioMetadata(
-          title: song.title,
-          artist: song.artist ?? "Unknown Artist",
-          album: song.album ?? "Unknown Album",
-          artworkUrl: formatImgURL(song.artUri.toString(), ImageQuality.high),
-          duration: song.duration,
-        );
-      } else {
-        downloadUrl = song.extras!['url'];
-        final quality =
-            await _settingsDao.getSettingStr(SettingKeys.downQuality);
-        if (quality == "High") {
-          downloadUrl = (await _settingsRepo.getJsQualityURL(downloadUrl,
-              isStreaming: false))!;
-        } else {
-          downloadUrl = (await _settingsRepo.getJsQualityURL(downloadUrl,
-              isStreaming: false))!;
-        }
-        final sanitizedTitle =
-            song.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
-        fileName = '$sanitizedTitle by ${song.artist} - ${song.id}.m4a';
-        metadata = AudioMetadata(
-          title: song.title,
-          artist: song.artist ?? "Unknown Artist",
-          album: song.album ?? "Unknown Album",
-          artworkUrl: formatImgURL(song.artUri.toString(), ImageQuality.high),
-        );
-      }
-
-      // Remove the placeholder from active downloads before adding the real task
-      _activeDownloads.removeWhere(
-          (item) => item.task.originalUrl == song.extras!['perma_url']);
+      // Remove placeholder before adding the real task
+      _activeDownloads.removeWhere((item) => item.task.originalUrl == song.id);
 
       _downloadEngine.addDownload(
         url: downloadUrl,
-        originalUrl: song.extras!['perma_url'],
+        originalUrl: song.id,
         directory: directory.path,
         fileName: fileName,
         maxRetries: 3,
@@ -326,26 +332,55 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         song: song,
       );
 
-      if (showSnackbar)
+      if (showSnackbar) {
         SnackbarService.showMessage("Added ${song.title} to download queue");
+      }
+    } on PluginException catch (e) {
+      log("Plugin error while preparing download for ${song.title}",
+          error: e, name: "DownloaderCubit");
+
+      _activeDownloads.removeWhere((item) => item.task.originalUrl == song.id);
+      _emitUpdatedState();
+
+      if (e is PluginNotLoadedException && e.pluginId != null) {
+        GlobalEventBus.instance
+            .emitError(AppError.pluginNotLoaded(pluginId: e.pluginId!));
+      }
+
+      if (showSnackbar) {
+        SnackbarService.showMessage(e.message);
+      }
     } catch (e) {
       log("Failed to prepare download for ${song.title}",
           error: e, name: "DownloaderCubit");
 
-      // Remove the placeholder on error
-      _activeDownloads.removeWhere(
-          (item) => item.task.originalUrl == song.extras!['perma_url']);
+      _activeDownloads.removeWhere((item) => item.task.originalUrl == song.id);
       _emitUpdatedState();
 
-      if (showSnackbar)
+      if (showSnackbar) {
         SnackbarService.showMessage("Error: Could not process URL.");
+      }
     }
+  }
+
+  /// Guess a file extension from the stream URL.
+  String _guessExtension(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      final p = uri.path.toLowerCase();
+      if (p.endsWith('.m4a')) return 'm4a';
+      if (p.endsWith('.mp3')) return 'mp3';
+      if (p.endsWith('.ogg')) return 'ogg';
+      if (p.endsWith('.opus')) return 'opus';
+      if (p.endsWith('.webm')) return 'webm';
+      if (p.endsWith('.mp4')) return 'mp4';
+    }
+    return 'm4a'; // sensible default
   }
 
   @override
   Future<void> close() {
     _librarySubscription?.cancel();
-    _yt.close();
     return super.close();
   }
 
@@ -355,13 +390,13 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   }
 
   /// Get the download info for a song, if available.
-  Future<DownloadDB?> getDownloadInfo(MediaItemModel song) async {
-    return _downloadRepo.getDownload(song);
+  Future<DownloadDB?> getDownloadInfo(Track song) async {
+    return _downloadRepo.getDownload(song.id);
   }
 
   /// Remove a downloaded song and its file.
-  Future<void> removeDownload(MediaItemModel song) async {
-    await _downloadRepo.removeDownload(song);
+  Future<void> removeDownload(Track song) async {
+    await _downloadRepo.removeDownload(song.id);
     await _loadDownloadedSongs();
     SnackbarService.showMessage("${song.title} download removed");
   }

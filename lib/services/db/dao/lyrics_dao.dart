@@ -1,56 +1,40 @@
-import 'package:Bloomee/core/models/lyrics_models.dart';
+﻿import 'package:Bloomee/core/models/lyrics_models.dart';
 import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/services/db/mappers/lyrics_mapper.dart';
 import 'package:isar_community/isar.dart';
 
-/// DAO for lyrics cache.
+/// DAO for cached lyrics. Uses [lyricsToLyricsDB] and [lyricsDBToLyrics]
+/// from [lyrics_mapper.dart] — no inline mapping.
 class LyricsDAO {
   final Future<Isar> _db;
 
   const LyricsDAO(this._db);
 
+  /// Store or replace lyrics for [lyrics.mediaID].
   Future<void> putLyrics(Lyrics lyrics, {int? offset}) async {
-    if (lyrics.mediaID != null) {
-      Isar isarDB = await _db;
-      isarDB.writeTxnSync(() => isarDB.lyricsDBs.putSync(LyricsDB(
-            mediaID: lyrics.mediaID!,
-            sourceId: lyrics.id,
-            plainLyrics: lyrics.lyricsPlain,
-            syncedLyrics: lyrics.lyricsSynced,
-            title: lyrics.title,
-            source: "lrcnet",
-            artist: lyrics.artist,
-            album: lyrics.album,
-            duration: double.parse(lyrics.duration ?? "0").toInt(),
-            offset: offset,
-            url: lyrics.url,
-          )));
-    }
+    if (lyrics.mediaID == null || lyrics.mediaID!.isEmpty) return;
+    final isar = await _db;
+    await isar.writeTxn(() => isar.lyricsDBs.put(lyricsToLyricsDB(lyrics, offset: offset)));
   }
 
+  /// Retrieve cached lyrics for [mediaID], or null if not cached.
   Future<Lyrics?> getLyrics(String mediaID) async {
-    Isar isarDB = await _db;
-    LyricsDB? lyricsDB =
-        isarDB.lyricsDBs.filter().mediaIDEqualTo(mediaID).findFirstSync();
-    if (lyricsDB != null) {
-      return Lyrics(
-        id: lyricsDB.sourceId,
-        title: lyricsDB.title,
-        artist: lyricsDB.artist,
-        album: lyricsDB.album,
-        duration: lyricsDB.duration.toString(),
-        lyricsPlain: lyricsDB.plainLyrics,
-        lyricsSynced: lyricsDB.syncedLyrics,
-        provider: LyricsProvider.lrcnet,
-        url: lyricsDB.url,
-        mediaID: lyricsDB.mediaID,
-      );
-    }
-    return null;
+    final isar = await _db;
+    final row =
+        await isar.lyricsDBs.filter().mediaIDEqualTo(mediaID).findFirst();
+    return lyricsDBToLyrics(row);
   }
 
+  /// Delete the cached lyrics entry for [mediaID].
   Future<void> removeLyricsById(String mediaID) async {
-    Isar isarDB = await _db;
-    isarDB.writeTxnSync(() =>
-        isarDB.lyricsDBs.filter().mediaIDEqualTo(mediaID).deleteAllSync());
+    final isar = await _db;
+    await isar.writeTxn(
+        () => isar.lyricsDBs.filter().mediaIDEqualTo(mediaID).deleteAll());
+  }
+
+  /// Delete ALL cached lyrics.
+  Future<void> clearAll() async {
+    final isar = await _db;
+    await isar.writeTxn(() => isar.lyricsDBs.clear());
   }
 }

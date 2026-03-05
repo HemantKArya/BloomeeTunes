@@ -1,500 +1,193 @@
+//DB version 3
 import 'dart:convert';
-
 import 'package:isar_community/isar.dart';
-
 part 'global_db.g.dart';
 
-@collection
-class MediaPlaylistDB {
-  Id get isarId => fastHash(playlistName);
-  String playlistName;
-  List<int> mediaRanks = List.empty(growable: true);
-  DateTime? lastUpdated;
-  MediaPlaylistDB({
-    required this.playlistName,
-    this.lastUpdated,
-  });
-  @Backlink(to: "mediaInPlaylistsDB")
-  IsarLinks<MediaItemDB> mediaItems = IsarLinks<MediaItemDB>();
-
-  @override
-  bool operator ==(covariant MediaPlaylistDB other) {
-    if (identical(this, other)) return true;
-
-    return other.playlistName == playlistName;
-  }
-
-  @override
-  int get hashCode => playlistName.hashCode;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'playlistName': playlistName,
-      'lastUpdated': lastUpdated?.millisecondsSinceEpoch,
-    };
-  }
-
-  factory MediaPlaylistDB.fromMap(Map<String, dynamic> map) {
-    return MediaPlaylistDB(
-      playlistName: map['playlistName'] ?? '',
-      lastUpdated: map['lastUpdated'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'])
-          : null,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory MediaPlaylistDB.fromJson(String source) =>
-      MediaPlaylistDB.fromMap(json.decode(source));
+enum ImageLayoutDB {
+  square,
+  portrait,
+  landscape,
+  banner,
+  circular,
 }
 
-@collection
-class PlaylistsInfoDB {
-  Id get isarId => fastHash(playlistName);
-  String playlistName;
-  bool? isAlbum;
-  String? artURL;
-  String? description;
-  String? permaURL;
-  String? source;
-  String? artists;
-  DateTime lastUpdated;
-
-  PlaylistsInfoDB({
-    required this.playlistName,
-    required this.lastUpdated,
-    this.isAlbum,
-    this.artURL,
-    this.description,
-    this.permaURL,
-    this.source,
-    this.artists,
-  });
-
-  @override
-  bool operator ==(covariant PlaylistsInfoDB other) {
-    if (identical(this, other)) return true;
-
-    return other.playlistName == playlistName;
-  }
-
-  @override
-  int get hashCode {
-    return playlistName.hashCode;
-  }
-
-  @override
-  String toString() {
-    return 'PlaylistsInfoDB(playlistName: $playlistName, isAlbum: $isAlbum, artURL: $artURL, description: $description, permaURL: $permaURL, source: $source, artists: $artists, lastUpdated: $lastUpdated)';
-  }
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'playlistName': playlistName,
-      'isAlbum': isAlbum,
-      'artURL': artURL,
-      'description': description,
-      'permaURL': permaURL,
-      'source': source,
-      'artists': artists,
-      'lastUpdated': lastUpdated.millisecondsSinceEpoch,
-    };
-  }
-
-  factory PlaylistsInfoDB.fromMap(Map<String, dynamic> map) {
-    return PlaylistsInfoDB(
-      playlistName: map['playlistName'] as String,
-      isAlbum: map['isAlbum'] != null ? map['isAlbum'] as bool : null,
-      artURL: map['artURL'] != null ? map['artURL'] as String : null,
-      description:
-          map['description'] != null ? map['description'] as String : null,
-      permaURL: map['permaURL'] != null ? map['permaURL'] as String : null,
-      source: map['source'] != null ? map['source'] as String : null,
-      artists: map['artists'] != null ? map['artists'] as String : null,
-      lastUpdated:
-          DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'] as int),
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory PlaylistsInfoDB.fromJson(String source) =>
-      PlaylistsInfoDB.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-@collection
-class MediaItemDB {
-  Id? id = Isar.autoIncrement;
-  @Index()
-  String title;
-  String album;
-  String artist;
-  String artURL;
-  String genre;
-  int? duration;
-  String mediaID;
-  String streamingURL;
-  String? source;
-  String permaURL;
-  String language;
-  bool isLiked = false;
-
-  // @Backlink(to: "mediaItems")
-  IsarLinks<MediaPlaylistDB> mediaInPlaylistsDB = IsarLinks<MediaPlaylistDB>();
-
-  MediaItemDB({
-    this.id,
-    required this.title,
-    required this.album,
-    required this.artist,
-    required this.artURL,
-    required this.genre,
-    required this.mediaID,
-    required this.streamingURL,
-    this.source,
-    this.duration,
-    required this.permaURL,
-    required this.language,
-    required this.isLiked,
-  });
-
-  @override
-  bool operator ==(covariant MediaItemDB other) {
-    if (identical(this, other)) return true;
-
-    return other.id == id &&
-        other.title == title &&
-        other.album == album &&
-        other.artist == artist &&
-        other.artURL == artURL &&
-        other.genre == genre &&
-        other.mediaID == mediaID &&
-        other.streamingURL == streamingURL &&
-        other.source == source &&
-        other.duration == duration &&
-        other.permaURL == permaURL &&
-        other.language == language;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode ^
-        title.hashCode ^
-        album.hashCode ^
-        artist.hashCode ^
-        artURL.hashCode ^
-        genre.hashCode ^
-        mediaID.hashCode ^
-        streamingURL.hashCode ^
-        source.hashCode ^
-        duration.hashCode ^
-        permaURL.hashCode ^
-        language.hashCode;
-  }
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': null,
-      'title': title,
-      'album': album,
-      'artist': artist,
-      'artURL': artURL,
-      'genre': genre,
-      'duration': duration,
-      'mediaID': mediaID,
-      'streamingURL': streamingURL,
-      'source': source,
-      'permaURL': permaURL,
-      'language': language,
-      'isLiked': isLiked,
-      'mediaInPlaylists': mediaInPlaylistsDB.map((e) => e.toJson()).toList()
-    };
-  }
-
-  factory MediaItemDB.fromMap(Map<String, dynamic> map) {
-    return MediaItemDB(
-      id: null,
-      title: map['title'] as String,
-      album: map['album'] as String,
-      artist: map['artist'] as String,
-      artURL: map['artURL'] as String,
-      genre: map['genre'] as String,
-      duration: map['duration'] != null ? map['duration'] as int : null,
-      mediaID: map['mediaID'] as String,
-      streamingURL: map['streamingURL'] as String,
-      source: map['source'] != null ? map['source'] as String : null,
-      permaURL: map['permaURL'] as String,
-      language: map['language'] as String,
-      isLiked: map['isLiked'] as bool,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory MediaItemDB.fromJson(String source) =>
-      MediaItemDB.fromMap(json.decode(source) as Map<String, dynamic>);
-}
-
-int fastHash(String string) {
-  var hash = 0xcbf29ce484222325;
-
-  var i = 0;
-  while (i < string.length) {
-    final codeUnit = string.codeUnitAt(i++);
-    hash ^= codeUnit >> 8;
-    hash *= 0x100000001b3;
-    hash ^= codeUnit & 0xFF;
-    hash *= 0x100000001b3;
-  }
-
-  return hash;
-}
-
-@collection
-class AppSettingsStrDB {
-  Id get isarId => fastHash(settingName);
-  String settingName;
-  String settingValue;
-  String? settingValue2;
-  DateTime? lastUpdated;
-  AppSettingsStrDB({
-    required this.settingName,
-    required this.settingValue,
-    this.settingValue2,
-    this.lastUpdated,
-  });
-
-  @override
-  bool operator ==(covariant AppSettingsStrDB other) {
-    if (identical(this, other)) return true;
-
-    return other.settingName == settingName &&
-        other.settingValue == settingValue;
-  }
-
-  @override
-  int get hashCode => settingName.hashCode ^ settingValue.hashCode;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'settingName': settingName,
-      'settingValue': settingValue,
-      'settingValue2': settingValue2,
-      'lastUpdated': lastUpdated?.millisecondsSinceEpoch,
-    };
-  }
-
-  factory AppSettingsStrDB.fromMap(Map<String, dynamic> map) {
-    return AppSettingsStrDB(
-      settingName: map['settingName'] ?? '',
-      settingValue: map['settingValue'] ?? '',
-      settingValue2: map['settingValue2'],
-      lastUpdated: map['lastUpdated'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'])
-          : null,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory AppSettingsStrDB.fromJson(String source) =>
-      AppSettingsStrDB.fromMap(json.decode(source));
-}
-
-@collection
-class AppSettingsBoolDB {
-  Id get isarId => fastHash(settingName);
-  String settingName;
-  bool settingValue;
-  AppSettingsBoolDB({
-    required this.settingName,
-    required this.settingValue,
-  });
-
-  @override
-  bool operator ==(covariant AppSettingsBoolDB other) {
-    if (identical(this, other)) return true;
-
-    return other.settingName == settingName &&
-        other.settingValue == settingValue;
-  }
-
-  @override
-  int get hashCode => settingName.hashCode ^ settingValue.hashCode;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'settingName': settingName,
-      'settingValue': settingValue,
-    };
-  }
-
-  factory AppSettingsBoolDB.fromMap(Map<String, dynamic> map) {
-    return AppSettingsBoolDB(
-      settingName: map['settingName'] ?? '',
-      settingValue: map['settingValue'] ?? false,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory AppSettingsBoolDB.fromJson(String source) =>
-      AppSettingsBoolDB.fromMap(json.decode(source));
-}
-
-@collection
-class ChartsCacheDB {
-  Id get isarId => fastHash(chartName);
-  String chartName;
-  DateTime lastUpdated;
-  String? permaURL;
-  List<ChartItemDB> chartItems;
-  ChartsCacheDB({
-    required this.chartName,
-    required this.lastUpdated,
-    required this.chartItems,
-    this.permaURL,
-  });
+enum PlaylistTypeDB {
+  userPlaylist,
+  album,
+  artist,
+  remotePlaylist,
 }
 
 @embedded
-class ChartItemDB {
-  String? title;
-  String? artist;
-  String? artURL;
+class ArtworkDB {
+  late String url;
+  String? urlLow;
+  String? urlHigh;
+
+  @enumerated
+  ImageLayoutDB layout = ImageLayoutDB.square;
 }
 
-@collection
-class RecentlyPlayedDB {
-  Id? id;
-  DateTime lastPlayed;
-  RecentlyPlayedDB({
-    this.id,
-    required this.lastPlayed,
-  });
-  IsarLink<MediaItemDB> mediaItem = IsarLink<MediaItemDB>();
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'lastPlayed': lastPlayed.millisecondsSinceEpoch,
-    };
-  }
-
-  factory RecentlyPlayedDB.fromMap(Map<String, dynamic> map) {
-    return RecentlyPlayedDB(
-      id: map['id'],
-      lastPlayed: DateTime.fromMillisecondsSinceEpoch(map['lastPlayed']),
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory RecentlyPlayedDB.fromJson(String source) =>
-      RecentlyPlayedDB.fromMap(json.decode(source));
-}
-
-@collection
-class YtLinkCacheDB {
-  Id get isarId => fastHash(videoId);
-  String videoId;
-  String? lowQURL;
-  String highQURL;
-  int expireAt;
-  YtLinkCacheDB({
-    required this.videoId,
-    required this.lowQURL,
-    required this.highQURL,
-    required this.expireAt,
-  });
-}
-
-@collection
-class DownloadDB {
-  Id? id = Isar.autoIncrement;
-  String fileName;
-  String filePath;
-  DateTime? lastDownloaded;
-  String mediaId;
-  DownloadDB({
-    this.id,
-    required this.fileName,
-    required this.filePath,
-    required this.lastDownloaded,
-    required this.mediaId,
-  });
-}
-
-@collection
-class SavedCollectionsDB {
-  Id get isarId => fastHash(title);
-  String title;
-  String sourceId;
-  String source;
-  String type;
-  String coverArt;
-  String sourceURL;
+@embedded
+class ArtistSummaryDB {
+  String? name;
+  ArtworkDB? thumbnail;
+  String? url;
+  String? mediaId;
   String? subtitle;
-  DateTime lastUpdated;
-  String? extra;
-  SavedCollectionsDB({
-    required this.title,
-    required this.type,
-    required this.coverArt,
-    required this.sourceURL,
-    required this.sourceId,
-    required this.source,
-    required this.lastUpdated,
+}
+
+@embedded
+class AlbumSummaryDB {
+  String name;
+  ArtworkDB? thumbnail;
+  String? year;
+  String? url;
+  List<ArtistSummaryDB>? artists;
+  String? mediaId;
+
+  AlbumSummaryDB({
+    String? title,
+    this.thumbnail,
+    this.year,
+    this.url,
+    this.artists,
+    this.mediaId,
+  }) : name = title ?? '';
+}
+
+@embedded
+class RemotePlaylistSummaryDB {
+  String name;
+  List<ArtistSummaryDB>? artists;
+  ArtworkDB? thumbnail;
+  String? subtitle;
+  AlbumSummaryDB? album;
+  String? mediaId;
+  String? url;
+
+  RemotePlaylistSummaryDB({
+    String? title,
+    this.artists,
+    this.thumbnail,
     this.subtitle,
-    this.extra,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'title': title,
-      'sourceId': sourceId,
-      'source': source,
-      'type': type,
-      'coverArt': coverArt,
-      'sourceURL': sourceURL,
-      'subtitle': subtitle,
-      'lastUpdated': lastUpdated.millisecondsSinceEpoch,
-      'extra': extra,
-    };
-  }
-
-  factory SavedCollectionsDB.fromMap(Map<String, dynamic> map) {
-    return SavedCollectionsDB(
-      title: map['title'] ?? '',
-      sourceId: map['sourceId'] ?? '',
-      source: map['source'] ?? '',
-      type: map['type'] ?? '',
-      coverArt: map['coverArt'] ?? '',
-      sourceURL: map['sourceURL'] ?? '',
-      subtitle: map['subtitle'],
-      lastUpdated: DateTime.fromMillisecondsSinceEpoch(map['lastUpdated']),
-      extra: map['extra'],
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory SavedCollectionsDB.fromJson(String source) =>
-      SavedCollectionsDB.fromMap(json.decode(source));
+    this.album,
+    this.mediaId,
+    this.url,
+  }) : name = title ?? '';
 }
 
 @collection
-class NotificationDB {
-  Id? id = Isar.autoIncrement;
+class TrackDB {
+  Id id = Isar.autoIncrement;
+
+  @Index(unique: true, replace: true)
+  String mediaId;
+
+  @Index(type: IndexType.value, caseSensitive: false)
+  String title;
+
+  List<ArtistSummaryDB>? artists;
+  AlbumSummaryDB? album;
+  ArtworkDB? thumbnail;
+  int? durationMs;
+  String? genre;
+  String? language;
+  bool isExplicit;
+
+  TrackDB({
+    required this.mediaId,
+    required this.title,
+    this.artists,
+    this.album,
+    this.thumbnail,
+    this.durationMs,
+    this.genre,
+    this.language,
+    this.isExplicit = false,
+  });
+}
+
+@collection
+class PlaylistDB {
+  Id id = Isar.autoIncrement;
+  @Index(type: IndexType.value, caseSensitive: false, unique: true)
+  String name;
+  String? subtitle;
+  String? description;
+  ArtworkDB? thumbnail;
+  List<ArtistSummaryDB>? artists;
+  AlbumSummaryDB? album;
+  RemotePlaylistSummaryDB? remotePlaylist;
+
+  @enumerated
+  PlaylistTypeDB type;
+
+  @Index()
+  int get typeIndex => type.index;
+
+  DateTime createdAt;
+  DateTime updatedAt;
+
+  @Backlink(to: 'playlist')
+  final entries = IsarLinks<PlaylistEntryDB>();
+
+  PlaylistDB({
+    required this.name,
+    this.subtitle,
+    this.description,
+    this.thumbnail,
+    this.artists,
+    this.album,
+    this.remotePlaylist,
+    this.type = PlaylistTypeDB.userPlaylist,
+    DateTime? createdat,
+    DateTime? updatedat,
+  })  : createdAt = createdat ?? DateTime.now(),
+        updatedAt = updatedat ?? DateTime.now();
+}
+
+@collection
+class PlaylistEntryDB {
+  Id id = Isar.autoIncrement;
+
+  final playlist = IsarLink<PlaylistDB>();
+  final track = IsarLink<TrackDB>();
+
+  @Index(composite: [CompositeIndex('position')])
+  int? playlistId;
+
+  int position;
+  DateTime addedAt;
+
+  PlaylistEntryDB({
+    this.playlistId,
+    this.position = 0,
+    DateTime? addedAtOverride,
+  }) : addedAt = addedAtOverride ?? DateTime.now();
+
+  void syncPlaylistId() {
+    playlistId = playlist.value?.id;
+  }
+}
+
+@collection
+class NotificationsDB {
+  Id id = Isar.autoIncrement;
+
   String title;
   String body;
+
+  @Index()
   String type;
+
   String? url;
   String? payload;
+
+  @Index()
   DateTime? time;
-  NotificationDB({
-    this.id,
+
+  NotificationsDB({
     required this.title,
     required this.body,
     required this.time,
@@ -506,9 +199,13 @@ class NotificationDB {
 
 @collection
 class LyricsDB {
-  Id get isarId => fastHash(mediaID);
+  Id id = Isar.autoIncrement;
+
   String sourceId;
+
+  @Index(composite: [CompositeIndex('sourceId')], unique: true, replace: true)
   String mediaID;
+
   String plainLyrics;
   String title;
   String artist;
@@ -518,6 +215,7 @@ class LyricsDB {
   int? duration;
   String? url;
   String? syncedLyrics;
+
   LyricsDB({
     required this.sourceId,
     required this.mediaID,
@@ -535,30 +233,228 @@ class LyricsDB {
 
 @collection
 class SearchHistoryDB {
-  Id get isarId => fastHash(query);
+  Id id = Isar.autoIncrement;
+
+  @Index(unique: true, replace: true)
   String query;
+
+  @Index()
   DateTime lastSearched;
+
   SearchHistoryDB({
     required this.query,
     required this.lastSearched,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'query': query,
-      'lastSearched': lastSearched.millisecondsSinceEpoch,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'query': query,
+        'lastSearched': lastSearched.millisecondsSinceEpoch,
+      };
 
-  factory SearchHistoryDB.fromMap(Map<String, dynamic> map) {
-    return SearchHistoryDB(
-      query: map['query'] ?? '',
-      lastSearched: DateTime.fromMillisecondsSinceEpoch(map['lastSearched']),
-    );
-  }
+  factory SearchHistoryDB.fromMap(Map<String, dynamic> map) => SearchHistoryDB(
+        query: (map['query'] as String?) ?? '',
+        lastSearched:
+            DateTime.fromMillisecondsSinceEpoch(map['lastSearched'] as int),
+      );
 
   String toJson() => json.encode(toMap());
 
   factory SearchHistoryDB.fromJson(String source) =>
-      SearchHistoryDB.fromMap(json.decode(source));
+      SearchHistoryDB.fromMap(json.decode(source) as Map<String, dynamic>);
+}
+
+@collection
+class DownloadDB {
+  Id id = Isar.autoIncrement;
+
+  String fileName;
+  String filePath;
+  DateTime? lastDownloaded;
+
+  @Index(unique: true, replace: true)
+  String mediaId;
+
+  DownloadDB({
+    required this.fileName,
+    required this.filePath,
+    required this.lastDownloaded,
+    required this.mediaId,
+  });
+}
+
+@collection
+class AppSettingsStrDB {
+  Id id = Isar.autoIncrement;
+
+  @Index(unique: true, replace: true)
+  String settingName;
+
+  String settingValue;
+  String? settingValue2;
+  DateTime? lastUpdated;
+
+  AppSettingsStrDB({
+    required this.settingName,
+    required this.settingValue,
+    this.settingValue2,
+    this.lastUpdated,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is AppSettingsStrDB &&
+        other.settingName == settingName &&
+        other.settingValue == settingValue;
+  }
+
+  @override
+  int get hashCode => Object.hash(settingName, settingValue);
+
+  Map<String, dynamic> toMap() => {
+        'settingName': settingName,
+        'settingValue': settingValue,
+        'settingValue2': settingValue2,
+        'lastUpdated': lastUpdated?.millisecondsSinceEpoch,
+      };
+
+  factory AppSettingsStrDB.fromMap(Map<String, dynamic> map) =>
+      AppSettingsStrDB(
+        settingName: (map['settingName'] as String?) ?? '',
+        settingValue: (map['settingValue'] as String?) ?? '',
+        settingValue2: map['settingValue2'] as String?,
+        lastUpdated: map['lastUpdated'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'] as int)
+            : null,
+      );
+
+  String toJson() => json.encode(toMap());
+
+  factory AppSettingsStrDB.fromJson(String source) =>
+      AppSettingsStrDB.fromMap(json.decode(source) as Map<String, dynamic>);
+}
+
+@collection
+class AppSettingsBoolDB {
+  Id id = Isar.autoIncrement;
+
+  @Index(unique: true, replace: true)
+  String settingName;
+
+  bool settingValue;
+
+  AppSettingsBoolDB({
+    required this.settingName,
+    required this.settingValue,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is AppSettingsBoolDB &&
+        other.settingName == settingName &&
+        other.settingValue == settingValue;
+  }
+
+  @override
+  int get hashCode => Object.hash(settingName, settingValue);
+
+  Map<String, dynamic> toMap() => {
+        'settingName': settingName,
+        'settingValue': settingValue,
+      };
+
+  factory AppSettingsBoolDB.fromMap(Map<String, dynamic> map) =>
+      AppSettingsBoolDB(
+        settingName: (map['settingName'] as String?) ?? '',
+        settingValue: (map['settingValue'] as bool?) ?? false,
+      );
+
+  String toJson() => json.encode(toMap());
+
+  factory AppSettingsBoolDB.fromJson(String source) =>
+      AppSettingsBoolDB.fromMap(json.decode(source) as Map<String, dynamic>);
+}
+
+@collection
+class PlaybackHistoryDB {
+  Id id = Isar.autoIncrement;
+
+  final track = IsarLink<TrackDB>();
+
+  @Index()
+  DateTime playedAt;
+
+  PlaybackHistoryDB({
+    TrackDB? trackObj,
+    required this.playedAt,
+  }) {
+    if (trackObj != null) {
+      track.value = trackObj;
+    }
+  }
+}
+
+@collection
+class CacheEntryDB {
+  Id id = Isar.autoIncrement;
+
+  @Index(unique: true, replace: true)
+  String key;
+
+  @Index()
+  String value;
+
+  String? blob;
+  DateTime? lastUpdated;
+
+  @Index()
+  DateTime? ttl;
+
+  CacheEntryDB({
+    required this.key,
+    required this.value,
+    this.blob,
+    this.lastUpdated,
+    this.ttl,
+  });
+
+  @ignore
+  bool get isExpired => ttl != null && DateTime.now().isAfter(ttl!);
+}
+
+/// Persists plugin key-value storage entries to Isar.
+///
+/// Rust plugin storage is in-memory (for instant sync WASM reads).
+/// This collection mirrors it persistently so data survives app restarts.
+/// On startup, all entries are preloaded back into Rust via [pluginStoragePreload].
+///
+/// Composite key format: `"{pluginId}/{key}"`.
+@collection
+class PluginStorageEntity {
+  Id id = Isar.autoIncrement;
+
+  /// Composite key: `"{pluginId}/{key}"`.
+  @Index(unique: true, replace: true)
+  late String compositeKey;
+
+  /// The plugin that owns this entry.
+  @Index()
+  late String pluginId;
+
+  /// The storage key within the plugin's namespace.
+  late String key;
+
+  /// The stored value (arbitrary string — plugins may store JSON).
+  late String value;
+
+  /// Last time this entry was written.
+  DateTime updatedAt;
+
+  PluginStorageEntity({
+    required this.pluginId,
+    required this.key,
+    required this.value,
+    required this.updatedAt,
+  }) : compositeKey = '$pluginId/$key';
 }

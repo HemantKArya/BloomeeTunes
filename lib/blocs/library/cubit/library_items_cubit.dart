@@ -1,186 +1,286 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:developer';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
-import 'package:Bloomee/core/models/album_onl_model.dart';
-import 'package:Bloomee/core/models/artist_onl_model.dart';
-import 'package:Bloomee/core/models/playlist_onl_model.dart';
-import 'package:equatable/equatable.dart';
-import 'package:Bloomee/core/models/song_model.dart';
-import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/services/db/dao/library_dao.dart';
 import 'package:Bloomee/services/db/global_db.dart';
-import 'package:Bloomee/services/db/dao/collection_dao.dart';
+import 'package:Bloomee/services/db/mappers/media_item_mapper.dart';
+import 'package:Bloomee/services/db/mappers/playlist_mapper.dart';
+import 'package:equatable/equatable.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 part 'library_items_state.dart';
 
+/// Manages the user's library: local playlists and saved remote collections.
+///
+/// Combines data from [PlaylistDAO] (user playlists) and [LibraryDAO] (saved
+/// remote collections). Emits view-model state using only domain types — no
+/// DB types leak into the state layer.
 class LibraryItemsCubit extends Cubit<LibraryItemsState> {
-  StreamSubscription? playlistWatcherDB;
-  StreamSubscription? savedCollecsWatcherDB;
+  StreamSubscription? _playlistWatcher;
   final PlaylistDAO _playlistDao;
-  final CollectionDAO _collectionDao;
+  final LibraryDAO _libraryDao;
 
   LibraryItemsCubit({
     required PlaylistDAO playlistDao,
-    required CollectionDAO collectionDao,
+    required LibraryDAO libraryDao,
   })  : _playlistDao = playlistDao,
-        _collectionDao = collectionDao,
+        _libraryDao = libraryDao,
         super(LibraryItemsLoading()) {
-    // Start with a loading state
     _initialize();
   }
 
   @override
   Future<void> close() {
-    playlistWatcherDB?.cancel();
-    savedCollecsWatcherDB?.cancel();
+    _playlistWatcher?.cancel();
     return super.close();
   }
 
   Future<void> _initialize() async {
-    // Initial fetch
-    await Future.wait([
-      getAndEmitPlaylists(),
-      getAndEmitSavedOnlCollections(),
-    ]);
-
-    // Setup watchers for subsequent updates
-    _getDBWatchers();
+    await _playlistDao.purgeBrokenPlaylistEntries();
+    await _fetchPlaylists();
+    _setupWatchers();
   }
 
-  Future<void> _getDBWatchers() async {
-    playlistWatcherDB = (await _playlistDao.getPlaylistsWatcher()).listen((_) {
-      getAndEmitPlaylists();
-    });
-    savedCollecsWatcherDB =
-        (await _collectionDao.getSavedCollecsWatcher()).listen((_) {
-      getAndEmitSavedOnlCollections();
+  Future<void> _setupWatchers() async {
+    _playlistWatcher = (await _playlistDao.watchAllPlaylists()).listen((_) {
+      _fetchPlaylists();
     });
   }
 
-  Future<void> getAndEmitPlaylists() async {
+  /// Fetch all playlists (user + remote collections) and emit as domain items.
+  Future<void> _fetchPlaylists() async {
     try {
-      final mediaPlaylists = await _playlistDao.getPlaylists4Library();
-      final playlistItems = mediaPlaylistsDB2ItemProperties(mediaPlaylists);
-
-      // When emitting, copy existing parts of the state to avoid losing data
-      emit(state.copyWith(
-        playlists: playlistItems,
-      ));
+      final allPlaylists = await _playlistDao.getAllPlaylists();
+      final items = await _toItemProperties(allPlaylists);
+      emit(state.copyWith(playlists: items));
     } catch (e) {
-      log("Error fetching playlists: $e", name: "LibraryItemsCubit");
-      emit(const LibraryItemsError("Failed to load your playlists."));
+      log('Error fetching playlists: $e', name: 'LibraryItemsCubit');
+      emit(const LibraryItemsError('Failed to load your playlists.'));
     }
   }
 
-  Future<void> getAndEmitSavedOnlCollections() async {
-    try {
-      final collections = await _collectionDao.getSavedCollections();
-      final artists = collections.whereType<ArtistModel>().toList();
-      final albums = collections.whereType<AlbumModel>().toList();
-      final onlinePlaylists =
-          collections.whereType<PlaylistOnlModel>().toList();
+  /// Convert DB rows to view-model items using only domain types.
+  Future<List<PlaylistItemProperties>> _toItemProperties(
+      List<PlaylistDB> dbs) async {
+    final items = <PlaylistItemProperties>[];
 
-      emit(state.copyWith(
-        artists: artists,
-        albums: albums,
-        playlistsOnl: onlinePlaylists,
-      ));
-    } catch (e) {
-      log("Error fetching saved collections: $e", name: "LibraryItemsCubit");
-      emit(const LibraryItemsError("Failed to load your saved items."));
+    for (final p in dbs) {
+      // Map using the playlist mapper to get a domain Playlist.
+      final domainPlaylist = playlistDBToPlaylist(p);
+
+      String? subtitle;
+      if (domainPlaylist.subtitle != null &&
+          domainPlaylist.subtitle!.trim().isNotEmpty) {
+        subtitle = domainPlaylist.subtitle!.trim();
+      } else if (domainPlaylist.type == PlaylistType.userPlaylist) {
+        final trackCount = (await _playlistDao.getPlaylistTracks(p.id)).length;
+        subtitle = '$trackCount ${trackCount == 1 ? 'track' : 'tracks'}';
+      }
+
+      final coverUrl = await _resolveCoverUrl(p);
+
+      items.add(
+        PlaylistItemProperties(
+          playlistName: domainPlaylist.title,
+          subTitle: subtitle,
+          coverImgUrl: coverUrl,
+          type: domainPlaylist.type,
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  /// Resolve a cover image URL: direct thumbnail for remote, first track for user.
+  Future<String?> _resolveCoverUrl(PlaylistDB playlist) async {
+    // Try direct thumbnail first (works for all types).
+    final thumb = playlist.thumbnail;
+    if (thumb != null && thumb.url.isNotEmpty) {
+      return thumb.url;
+    }
+
+    // For artists, try embedded artist thumbnail.
+    if (playlist.type == PlaylistTypeDB.artist &&
+        playlist.artists != null &&
+        playlist.artists!.isNotEmpty) {
+      final artistThumb = playlist.artists!.first.thumbnail;
+      if (artistThumb != null && artistThumb.url.isNotEmpty) {
+        return artistThumb.url;
+      }
+    }
+
+    // For user playlists, use first track's artwork.
+    if (playlist.type == PlaylistTypeDB.userPlaylist) {
+      final tracks = await _playlistDao.getPlaylistTracks(playlist.id);
+      if (tracks.isNotEmpty) {
+        final trackUrl = tracks.first.thumbnail?.url;
+        if (trackUrl != null && trackUrl.isNotEmpty) return trackUrl;
+      }
+    }
+
+    return null;
+  }
+
+  // ── Playlist CRUD ──────────────────────────────────────────────────────────
+
+  /// Create a new empty playlist.
+  Future<void> createPlaylist(String name) async {
+    await _playlistDao.createPlaylist(name);
+    SnackbarService.showMessage("Playlist '$name' created!");
+  }
+
+  /// Delete a playlist by its Isar id.
+  void removePlaylistById(int playlistId) {
+    _playlistDao.deletePlaylist(playlistId);
+    SnackbarService.showMessage('Playlist removed');
+  }
+
+  /// Delete a playlist by name.
+  void removePlaylistByName(String name) {
+    if (name.isNotEmpty && name != 'Null') {
+      _playlistDao.deletePlaylistByName(name);
+      SnackbarService.showMessage('Playlist "$name" removed');
     }
   }
 
-  List<PlaylistItemProperties> mediaPlaylistsDB2ItemProperties(
-      List<MediaPlaylist> mediaPlaylists) {
-    return mediaPlaylists
-        .map((element) => PlaylistItemProperties(
-              playlistName: element.playlistName,
-              subTitle: "${element.mediaItems.length} Items",
-              coverImgUrl: element.imgUrl ??
-                  (element.mediaItems.isNotEmpty
-                      ? element.mediaItems.first.artUri?.toString()
-                      : null),
-            ))
-        .toList();
-  }
+  // ── Track management ───────────────────────────────────────────────────────
 
-  void removePlaylist(MediaPlaylistDB mediaPlaylistDB) {
-    if (mediaPlaylistDB.playlistName != "Null") {
-      _playlistDao.removePlaylist(mediaPlaylistDB);
-      // The watcher will automatically trigger a state update.
-      SnackbarService.showMessage(
-          "Playlist ${mediaPlaylistDB.playlistName} removed");
-    }
-  }
-
-  Future<void> addToPlaylist(MediaItemModel mediaItem, String playlistName,
+  /// Add a [Track] to a named playlist.
+  Future<void> addToPlaylist(Track track, String playlistName,
       {bool showSnackbar = true}) async {
-    if (playlistName != "Null") {
-      await _playlistDao.addMediaItem(
-          mediaItemToMediaItemDB(mediaItem), playlistName);
+    if (playlistName == 'Null' || playlistName.isEmpty) return;
+    try {
+      await _playlistDao.addTrackToPlaylistByName(playlistName, track);
+      if (showSnackbar) {
+        SnackbarService.showMessage('${track.title} added to $playlistName');
+      }
+    } catch (e) {
+      log('Failed to add "${track.title}" to "$playlistName": $e',
+          name: 'LibraryItemsCubit');
       if (showSnackbar) {
         SnackbarService.showMessage(
-            "${mediaItem.title} is added to $playlistName!!");
+            'Failed to add to playlist: ${e.toString().split('\n').first}');
       }
     }
   }
 
-  void removeFromPlaylist(MediaItemModel mediaItem, String playlistName,
-      {bool showSnackbar = true}) {
-    if (playlistName != "Null") {
-      _playlistDao
-          .removeMediaItemFromPlaylist(mediaItemToMediaItemDB(mediaItem),
-              MediaPlaylistDB(playlistName: playlistName))
-          .then((_) {
-        if (showSnackbar) {
-          SnackbarService.showMessage(
-              "${mediaItem.title} is removed from $playlistName!!");
-        }
-      });
+  /// Remove a [Track] from a named playlist.
+  Future<void> removeFromPlaylist(Track track, String playlistName,
+      {bool showSnackbar = true}) async {
+    if (playlistName == 'Null' || playlistName.isEmpty) return;
+    final playlist = await _playlistDao.getPlaylistByName(playlistName);
+    if (playlist == null) return;
+    await _playlistDao.removeTrackFromPlaylist(playlist.id, track.id);
+    if (showSnackbar) {
+      SnackbarService.showMessage('${track.title} removed from $playlistName');
     }
   }
 
-  Future<List<MediaItemModel>?> getPlaylist(String playlistName) async {
+  /// Get all tracks in a named playlist.
+  Future<List<Track>?> getPlaylistTracks(String playlistName) async {
     try {
-      final playlist = await _playlistDao.getPlaylistItemsByName(playlistName);
-
-      return playlist?.map((e) => mediaItemDBToMediaItem(e)).toList();
+      final playlist = await _playlistDao.getPlaylistByName(playlistName);
+      if (playlist == null) return null;
+      final trackDBs = await _playlistDao.getPlaylistTracks(playlist.id);
+      return trackDBs.map(trackDBToTrack).toList();
     } catch (e) {
-      log("Error in getting playlist: $e", name: "libItemCubit");
+      log('Error getting playlist: $e', name: 'LibraryItemsCubit');
       return null;
     }
   }
 
-  /// Check if a media item is liked.
-  Future<bool> isMediaLiked(MediaItemModel mediaItem) async {
-    return _playlistDao.isMediaLiked(mediaItemToMediaItemDB(mediaItem));
+  // ── Like helpers ───────────────────────────────────────────────────────────
+
+  /// Check if a track is in the "Liked" playlist.
+  Future<bool> isTrackLiked(Track track) async {
+    return _playlistDao.isTrackLiked(track.id);
   }
 
-  /// Like/unlike a media item.
-  Future<void> likeMediaItem(MediaItemModel mediaItem, bool isLiked) async {
-    await _playlistDao.addMediaItem(mediaItemToMediaItemDB(mediaItem), "Liked");
-    await _playlistDao.likeMediaItem(mediaItemToMediaItemDB(mediaItem),
-        isLiked: isLiked);
+  /// Like or unlike a track.
+  Future<void> setTrackLiked(Track track, bool liked) async {
+    await _playlistDao.setTrackLiked(track, liked);
   }
 
-  /// Create a new empty playlist.
-  Future<void> createPlaylist(String name) async {
-    await _playlistDao.addPlaylist(MediaPlaylistDB(playlistName: name));
-    SnackbarService.showMessage("Playlist '$name' created!");
-  }
-
-  /// Get all playlist names that contain a given song.
-  Future<Set<String>> getPlaylistsContainingSong(String mediaId) async {
-    final names = await _playlistDao.getPlaylistsContainingSong(mediaId);
+  /// Get all playlist names containing a given track.
+  Future<Set<String>> getPlaylistsContainingTrack(String mediaId) async {
+    final names = await _playlistDao.getPlaylistsContainingTrack(mediaId);
     return names.toSet();
   }
 
-  /// Get a playlist as a MediaPlaylist model by name.
-  Future<MediaPlaylist?> getPlaylistByName(String name) async {
-    final playlistDB = await _playlistDao.getPlaylist(name);
+  /// Load a full [Playlist] domain model by name.
+  Future<Playlist?> getPlaylistByName(String name) async {
+    final playlistDB = await _playlistDao.getPlaylistByName(name);
     if (playlistDB == null) return null;
-    return playlistDBToMediaPlaylist(playlistDB);
+    return _playlistDao.loadPlaylist(name);
+  }
+
+  // ── Remote collection save (delegates to LibraryDAO) ───────────────────────
+
+  Future<void> saveRemoteArtist(
+      {required ArtistSummary artist,
+      required String sourceName,
+      bool showSnackbar = true}) async {
+    await _libraryDao.saveArtist(artist, sourceName: sourceName);
+    if (showSnackbar) {
+      SnackbarService.showMessage('Artist "${artist.name}" saved to library');
+    }
+  }
+
+  Future<void> saveRemoteAlbum(
+      {required AlbumSummary album,
+      required String sourceName,
+      bool showSnackbar = true}) async {
+    await _libraryDao.saveAlbum(album, sourceName: sourceName);
+    if (showSnackbar) {
+      SnackbarService.showMessage('Album "${album.title}" saved to library');
+    }
+  }
+
+  Future<void> saveRemotePlaylist(
+      {required PlaylistSummary playlist,
+      required String sourceName,
+      bool showSnackbar = true}) async {
+    await _libraryDao.saveRemotePlaylist(playlist, sourceName: sourceName);
+    if (showSnackbar) {
+      SnackbarService.showMessage(
+          'Playlist "${playlist.title}" saved to library');
+    }
+  }
+
+  /// Check if a remote collection is already saved (by mediaId).
+  Future<bool> isRemoteSaved(String mediaId, PlaylistType type) {
+    return _libraryDao.isSaved(mediaId, type);
+  }
+
+  /// Remove a saved remote collection by mediaId.
+  Future<void> removeRemoteSaved(String mediaId, PlaylistType type) async {
+    final dbType = playlistTypeToPlaylistTypeDB(type);
+    await _libraryDao.removeByMediaId(mediaId, dbType);
+    SnackbarService.showMessage('Removed from library');
+  }
+
+  // ── Navigation target resolution ──────────────────────────────────────────
+
+  /// Resolve a library item by name into a domain [Playlist] for navigation.
+  ///
+  /// The returned [Playlist] carries embedded artist/album/remotePlaylist
+  /// domain objects. Returns null if not found.
+  Future<Playlist?> resolveLibraryItem(String name) {
+    return _libraryDao.resolveByName(name);
+  }
+
+  // ── Search helper for LibrarySearchCubit ──────────────────────────────────
+
+  /// Search tracks by query, returning domain [Track] objects.
+  ///
+  /// This is a callback-compatible function signature that can be passed
+  /// to [LibrarySearchCubit] so it doesn't need to import DAOs directly.
+  Future<List<Track>> searchTracks(String query) async {
+    final results = await _playlistDao.searchLibrary(query);
+    return results.map((r) => trackDBToTrack(r.$1)).toList();
   }
 }

@@ -1,58 +1,81 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:equatable/equatable.dart';
-
-import 'package:Bloomee/core/models/song_model.dart';
-
 // Re-export mapper function for convenience.
 export 'package:Bloomee/services/db/mappers/playlist_mapper.dart'
-    show playlistDBToMediaPlaylist;
+    show playlistDBToPlaylist;
 
-class MediaPlaylist extends Equatable {
-  final List<MediaItemModel> mediaItems;
-  final String playlistName;
-  final String? imgUrl;
+enum PlaylistType { userPlaylist, album, artist, remotePlaylist }
+
+class Playlist extends Equatable {
+  final List<Track> tracks;
+  final String title;
+  final Artwork? thumbnail;
   final String? permaURL;
+  final String? subtitle;
   final String? description;
-  final String? artists;
-  final bool isAlbum;
-  final String? source;
-  final DateTime? lastUpdated;
-  const MediaPlaylist({
-    required this.mediaItems,
-    required this.playlistName,
-    this.imgUrl,
+  final List<ArtistSummary>? artists;
+  final AlbumSummary? album;
+  final PlaylistSummary? remotePlaylist;
+  final PlaylistType type;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  const Playlist({
+    required this.tracks,
+    required this.title,
+    this.thumbnail,
     this.permaURL,
-    this.description,
     this.artists,
-    this.source,
-    this.lastUpdated,
-    this.isAlbum = false,
+    this.album,
+    this.remotePlaylist,
+    this.subtitle,
+    this.description,
+    this.createdAt,
+    this.updatedAt,
+    this.type = PlaylistType.userPlaylist,
   });
 
   @override
-  List<Object> get props => [mediaItems, playlistName];
+  List<Object> get props => [
+        tracks,
+        title,
+        thumbnail ?? '',
+        permaURL ?? '',
+        subtitle ?? '',
+        description ?? '',
+        artists ?? '',
+        album ?? '',
+        remotePlaylist ?? '',
+        type,
+        createdAt ?? '',
+        updatedAt ?? '',
+      ];
 
-  MediaPlaylist copyWith({
-    List<MediaItemModel>? mediaItems,
-    String? playlistName,
-    String? imgUrl,
+  Playlist copyWith({
+    List<Track>? tracks,
+    String? title,
+    Artwork? thumbnail,
     String? permaURL,
     String? description,
-    String? artists,
-    bool? isAlbum,
-    String? source,
-    DateTime? lastUpdated,
+    List<ArtistSummary>? artists,
+    AlbumSummary? album,
+    PlaylistSummary? remotePlaylist,
+    PlaylistType? type,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
-    return MediaPlaylist(
-      mediaItems: mediaItems ?? this.mediaItems,
-      playlistName: playlistName ?? this.playlistName,
-      imgUrl: imgUrl ?? this.imgUrl,
+    return Playlist(
+      tracks: tracks ?? this.tracks,
+      title: title ?? this.title,
+      thumbnail: thumbnail ?? this.thumbnail,
       permaURL: permaURL ?? this.permaURL,
       description: description ?? this.description,
       artists: artists ?? this.artists,
-      isAlbum: isAlbum ?? this.isAlbum,
-      source: source ?? this.source,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
+      album: album ?? this.album,
+      remotePlaylist: remotePlaylist ?? this.remotePlaylist,
+      type: type ?? this.type,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

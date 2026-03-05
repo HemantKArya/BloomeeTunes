@@ -7,6 +7,7 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting
 import 'package:Bloomee/screens/screen/home_views/setting_views/lastfm_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/player_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/updates_setting.dart';
+import 'package:Bloomee/screens/screen/plugin_manager_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -30,6 +31,18 @@ class SettingsView extends StatelessWidget {
       ),
       body: ListView(
         children: [
+          settingListTile(
+              title: "Plugins",
+              subtitle: "Install, load and manage plugins.",
+              icon: MingCute.plugin_2_fill,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PluginManagerScreen(),
+                  ),
+                );
+              }),
           settingListTile(
               title: "Updates",
               subtitle: "Check for new updates",
@@ -68,7 +81,7 @@ class SettingsView extends StatelessWidget {
               }),
           settingListTile(
               title: "UI Elements & Services",
-              subtitle: "Auto slide, Source Engines etc.",
+              subtitle: "Auto slide, UI tweaks etc.",
               icon: MingCute.display_fill,
               onTap: () {
                 Navigator.push(

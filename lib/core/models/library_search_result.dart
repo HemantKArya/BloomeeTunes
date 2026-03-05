@@ -1,7 +1,7 @@
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 
 class SongSearchResult {
-  final MediaItemModel song;
+  final Track song;
   final String playlistName;
 
   const SongSearchResult({

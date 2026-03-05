@@ -1,10 +1,13 @@
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/blocs/playlist_view/online_playlist_cubit.dart';
-import 'package:Bloomee/core/models/playlist_onl_model.dart';
-import 'package:Bloomee/core/models/source_engines.dart';
-import 'package:Bloomee/repository/bloomee/collection_repository.dart';
-import 'package:Bloomee/services/db/dao/collection_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/core/events/global_event_bus.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/plugins/blocs/content/content_bloc.dart';
+import 'package:Bloomee/plugins/blocs/content/content_event.dart';
+import 'package:Bloomee/plugins/blocs/content/content_state.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -17,35 +20,91 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// Displays online playlist details loaded via the plugin system.
 class OnlPlaylistView extends StatefulWidget {
-  final PlaylistOnlModel playlist;
-  final SourceEngine sourceEngine;
-  const OnlPlaylistView(
-      {super.key, required this.playlist, required this.sourceEngine});
+  final PlaylistSummary playlist;
+  final String pluginId;
+
+  const OnlPlaylistView({
+    super.key,
+    required this.playlist,
+    required this.pluginId,
+  });
 
   @override
   State<OnlPlaylistView> createState() => _OnlPlaylistViewState();
 }
 
 class _OnlPlaylistViewState extends State<OnlPlaylistView> {
-  late OnlPlaylistCubit onlPlaylistCubit;
+  late final ContentBloc _contentBloc;
+  bool _isSaved = false;
+
+  String _sourceName(BuildContext context) {
+    final plugins = context.read<PluginBloc>().state.availablePlugins;
+    for (final plugin in plugins) {
+      if (plugin.manifest.id == widget.pluginId) {
+        return plugin.manifest.name;
+      }
+    }
+    return widget.pluginId;
+  }
+
   @override
   void initState() {
-    onlPlaylistCubit = OnlPlaylistCubit(
-      playlist: widget.playlist,
-      sourceEngine: widget.sourceEngine,
-      collectionRepo: CollectionRepository(CollectionDAO(DBProvider.db)),
-    );
     super.initState();
+    _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
+    // Guard: verify plugin is still loaded before requesting details.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final isLoaded =
+          context.read<PluginBloc>().state.isPluginLoaded(widget.pluginId);
+      if (!isLoaded) {
+        GlobalEventBus.instance.emitError(
+          AppError.pluginNotLoaded(pluginId: widget.pluginId),
+        );
+        return;
+      }
+      _contentBloc.add(LoadPlaylistDetails(
+        pluginId: widget.pluginId,
+        playlistId: widget.playlist.id,
+      ));
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkSavedState());
+  }
+
+  Future<void> _checkSavedState() async {
+    final saved = await context
+        .read<LibraryItemsCubit>()
+        .isRemoteSaved(widget.playlist.id, PlaylistType.remotePlaylist);
+    if (mounted) setState(() => _isSaved = saved);
+  }
+
+  @override
+  void dispose() {
+    _contentBloc.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: BlocBuilder<OnlPlaylistCubit, OnlPlaylistState>(
-          bloc: onlPlaylistCubit,
+        body: BlocBuilder<ContentBloc, ContentState>(
+          bloc: _contentBloc,
           builder: (context, state) {
+            final details = state.playlistDetails;
+            final tracks = details?.tracks.items ?? [];
+            final playlistMeta = <String>[
+              if (widget.playlist.owner != null &&
+                  widget.playlist.owner!.trim().isNotEmpty)
+                widget.playlist.owner!.trim(),
+              if (tracks.isNotEmpty)
+                '${tracks.length} ${tracks.length == 1 ? 'track' : 'tracks'}',
+              if (details?.description != null &&
+                  details!.description!.trim().isNotEmpty)
+                details.description!.trim(),
+            ];
+
             return CustomScrollView(
               slivers: [
                 SliverAppBar(
@@ -55,11 +114,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                     return FlexibleSpaceBar(
                       background: Padding(
                         padding: const EdgeInsets.only(
-                          left: 8,
-                          right: 8,
-                          top: 34,
-                          bottom: 8,
-                        ),
+                            left: 8, right: 8, top: 34, bottom: 8),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
                             maxHeight: constraints.maxHeight,
@@ -74,75 +129,54 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                       MediaQuery.of(context).size.width * 0.4,
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 8,
-                                    right: 8,
-                                    top: 8,
-                                    bottom: 8,
-                                  ),
+                                  padding: const EdgeInsets.all(8),
                                   child: Hero(
-                                    tag: widget.playlist.sourceId,
+                                    tag:
+                                        '${widget.pluginId}_playlist_${widget.playlist.id}',
                                     child: LoadImageCached(
                                       imageUrl: formatImgURL(
-                                          widget.playlist.imageURL,
-                                          ImageQuality.high),
-                                      fit: BoxFit.fitWidth,
+                                        widget.playlist.thumbnail.url,
+                                        ImageQuality.medium,
+                                      ),
+                                      fallbackUrl:
+                                          widget.playlist.thumbnail.url,
                                     ),
                                   ),
                                 ),
                               ),
                               Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(8),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        "Playlist by",
-                                        style: Default_Theme
-                                            .secondoryTextStyleMedium
-                                            .merge(
-                                          TextStyle(
-                                            overflow: TextOverflow.ellipsis,
-                                            fontSize: 14,
-                                            color: Default_Theme.primaryColor1
-                                                .withValues(alpha: 0.4),
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        widget.playlist.artists,
+                                        widget.playlist.title,
                                         maxLines: 3,
                                         style: Default_Theme
                                             .secondoryTextStyleMedium
-                                            .merge(
-                                          TextStyle(
-                                            overflow: TextOverflow.ellipsis,
-                                            fontSize: 14,
-                                            color: Default_Theme.primaryColor1
-                                                .withValues(alpha: 0.9),
-                                          ),
-                                        ),
+                                            .merge(TextStyle(
+                                          overflow: TextOverflow.ellipsis,
+                                          fontSize: 18,
+                                          color: Default_Theme.primaryColor1
+                                              .withValues(alpha: 0.8),
+                                        )),
                                       ),
-                                      state.playlist.description != null
-                                          ? Text(
-                                              state.playlist.description ?? "",
-                                              style: Default_Theme
-                                                  .secondoryTextStyle
-                                                  .merge(
-                                                TextStyle(
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  fontSize: 13,
-                                                  color: Default_Theme
-                                                      .primaryColor1
-                                                      .withValues(alpha: 0.5),
-                                                ),
-                                              ),
-                                            )
-                                          : const SizedBox.shrink(),
+                                      if (playlistMeta.isNotEmpty)
+                                        Text(
+                                          playlistMeta.join(' • '),
+                                          maxLines: 2,
+                                          style: Default_Theme
+                                              .secondoryTextStyle
+                                              .merge(TextStyle(
+                                            overflow: TextOverflow.ellipsis,
+                                            fontSize: 13,
+                                            color: Default_Theme.primaryColor1
+                                                .withValues(alpha: 0.62),
+                                          )),
+                                        ),
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: Padding(
@@ -160,89 +194,94 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                                   ),
                                                 ),
                                                 onPressed: () {
-                                                  if (context
-                                                          .read<
-                                                              BloomeePlayerCubit>()
-                                                          .bloomeePlayer
-                                                          .queueTitle
-                                                          .value !=
-                                                      widget.playlist.name) {
+                                                  if (tracks.isNotEmpty) {
                                                     context
                                                         .read<
                                                             BloomeePlayerCubit>()
                                                         .bloomeePlayer
                                                         .loadPlaylist(
-                                                            state.playlist
-                                                                .playlist,
-                                                            doPlay: true,
-                                                            idx: 0);
-                                                  } else if (!context
-                                                      .read<
-                                                          BloomeePlayerCubit>()
-                                                      .bloomeePlayer
-                                                      .engine
-                                                      .playing) {
-                                                    context
-                                                        .read<
-                                                            BloomeePlayerCubit>()
-                                                        .bloomeePlayer
-                                                        .play();
+                                                          Playlist(
+                                                            tracks: tracks,
+                                                            title: widget
+                                                                .playlist.title,
+                                                          ),
+                                                          doPlay: true,
+                                                          idx: 0,
+                                                        );
                                                   }
                                                 },
-                                                label: const Text(
-                                                  "Play",
-                                                  style: Default_Theme
-                                                      .secondoryTextStyleMedium,
-                                                ),
+                                                label: const Text('Play',
+                                                    style: Default_Theme
+                                                        .secondoryTextStyleMedium),
                                                 icon: const Icon(
-                                                  MingCute.play_fill,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 5,
-                                                ),
-                                                child: IconButton(
-                                                  onPressed: () {
-                                                    onlPlaylistCubit
-                                                        .addToSavedCollections();
-                                                  },
-                                                  icon: state.isSavedCollection
-                                                      ? const Icon(FontAwesome
-                                                          .heart_solid)
-                                                      : const Icon(
-                                                          FontAwesome.heart),
-                                                  color: Default_Theme
-                                                      .accentColor2,
-                                                ),
+                                                    MingCute.play_fill,
+                                                    size: 20),
                                               ),
                                               Tooltip(
-                                                message: "Open Original Link",
+                                                message: _isSaved
+                                                    ? 'Remove from Library'
+                                                    : 'Save to Library',
                                                 child: IconButton(
-                                                  onPressed: () {
-                                                    SnackbarService.showMessage(
-                                                        "Opening original album page.");
-                                                    launchUrl(
-                                                        Uri.parse(state.playlist
-                                                            .sourceURL),
-                                                        mode: LaunchMode
-                                                            .externalApplication);
+                                                  onPressed: () async {
+                                                    final cubit = context.read<
+                                                        LibraryItemsCubit>();
+                                                    if (_isSaved) {
+                                                      await cubit
+                                                          .removeRemoteSaved(
+                                                              widget
+                                                                  .playlist.id,
+                                                              PlaylistType
+                                                                  .remotePlaylist);
+                                                    } else {
+                                                      await cubit
+                                                          .saveRemotePlaylist(
+                                                        playlist:
+                                                            widget.playlist,
+                                                        sourceName: _sourceName(
+                                                            context),
+                                                      );
+                                                    }
+                                                    await _checkSavedState();
                                                   },
-                                                  icon: const Icon(
-                                                    MingCute.external_link_line,
+                                                  icon: Icon(
+                                                    _isSaved
+                                                        ? Icons.favorite
+                                                        : Icons.favorite_border,
                                                     size: 25,
+                                                    color: Default_Theme
+                                                        .accentColor2,
                                                   ),
                                                 ),
                                               ),
+                                              if (widget.playlist.url != null)
+                                                Tooltip(
+                                                  message: 'Open Original Link',
+                                                  child: IconButton(
+                                                    onPressed: () {
+                                                      SnackbarService.showMessage(
+                                                          'Opening original playlist page.');
+                                                      launchUrl(
+                                                        Uri.parse(widget
+                                                            .playlist.url!),
+                                                        mode: LaunchMode
+                                                            .externalApplication,
+                                                      );
+                                                    },
+                                                    icon: const Icon(
+                                                      MingCute
+                                                          .external_link_line,
+                                                      size: 25,
+                                                    ),
+                                                  ),
+                                                ),
                                             ],
                                           ),
                                         ),
-                                      )
+                                      ),
                                     ],
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -250,76 +289,50 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                     );
                   }),
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      bottom: 8,
-                    ),
-                    child: Text(
-                      widget.playlist.name,
-                      maxLines: 3,
-                      textAlign: TextAlign.center,
-                      style: Default_Theme.secondoryTextStyleMedium.merge(
-                        TextStyle(
-                          fontSize: 20,
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.8),
+                if (state.playlistDetailStatus == DetailStatus.loaded &&
+                    tracks.isNotEmpty)
+                  SliverList.builder(
+                    itemCount: tracks.length,
+                    itemBuilder: (context, index) {
+                      return SongCardWidget(
+                        song: tracks[index],
+                        onOptionsTap: () => showMoreBottomSheet(
+                          context,
+                          tracks[index],
+                          showDelete: false,
+                          showSinglePlay: true,
                         ),
+                        onTap: () {
+                          context
+                              .read<BloomeePlayerCubit>()
+                              .bloomeePlayer
+                              .loadPlaylist(
+                                Playlist(
+                                    tracks: tracks,
+                                    title: widget.playlist.title),
+                                doPlay: true,
+                                idx: index,
+                              );
+                        },
+                      );
+                    },
+                  )
+                else if (state.playlistDetailStatus == DetailStatus.error)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        state.error ?? 'Failed to load playlist',
+                        style:
+                            const TextStyle(color: Default_Theme.primaryColor1),
                       ),
                     ),
+                  )
+                else
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
                   ),
-                ),
-                (state is OnlPlaylistLoaded || state.playlist.songs.isNotEmpty)
-                    ? SliverList.builder(
-                        itemBuilder: (context, index) {
-                          return SongCardWidget(
-                            song: state.playlist.songs[index],
-                            onOptionsTap: () {
-                              showMoreBottomSheet(
-                                context,
-                                state.playlist.songs[index],
-                                showDelete: false,
-                                showSinglePlay: true,
-                              );
-                            },
-                            onTap: () {
-                              if (context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .queueTitle
-                                          .value !=
-                                      widget.playlist.name ||
-                                  context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .currentMedia !=
-                                      state.playlist.songs[index]) {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .loadPlaylist(state.playlist.playlist,
-                                        doPlay: true, idx: index);
-                              } else if (!context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .engine
-                                  .playing) {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .play();
-                              }
-                            },
-                          );
-                        },
-                        itemCount: state.playlist.songs.length)
-                    : const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        )),
               ],
             );
           },

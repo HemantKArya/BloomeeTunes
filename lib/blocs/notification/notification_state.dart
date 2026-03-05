@@ -2,7 +2,7 @@
 part of 'notification_cubit.dart';
 
 class NotificationState extends Equatable {
-  final List<NotificationDB> notifications;
+  final List<AppNotification> notifications;
   const NotificationState({
     required this.notifications,
   });

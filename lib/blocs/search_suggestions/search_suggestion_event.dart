@@ -17,3 +17,7 @@ final class SearchSuggestionFetch extends SearchSuggestionEvent {
 final class SearchSuggestionClear extends SearchSuggestionEvent {
   const SearchSuggestionClear(String query) : super(query);
 }
+
+final class SearchSuggestionSave extends SearchSuggestionEvent {
+  const SearchSuggestionSave(String query) : super(query);
+}

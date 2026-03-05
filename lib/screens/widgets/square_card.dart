@@ -1,10 +1,12 @@
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class SquareImgCard extends StatelessWidget {
   final String imgPath;
+  final String? fallbackImgPath;
   final String title;
   final String subtitle;
   final Function? onTap;
@@ -15,6 +17,7 @@ class SquareImgCard extends StatelessWidget {
   const SquareImgCard({
     super.key,
     required this.imgPath,
+    this.fallbackImgPath,
     required this.title,
     required this.subtitle,
     this.onTap,
@@ -40,7 +43,8 @@ class SquareImgCard extends StatelessWidget {
                   height: 150,
                   width: isWide ? 250 : 150,
                   child: LoadImageCached(
-                    imageUrl: imgPath,
+                    imageUrl: formatImgURL(imgPath, ImageQuality.medium),
+                    fallbackUrl: fallbackImgPath,
                   ),
                 ),
                 Visibility(
@@ -131,7 +135,7 @@ class SquareImgCard extends StatelessWidget {
               style: Default_Theme.secondoryTextStyle.merge(TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.62),
                   height: 1.0)),
             ),
           ],

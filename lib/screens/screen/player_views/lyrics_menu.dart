@@ -36,10 +36,9 @@ class _LyricsMenuState extends State<LyricsMenu> {
           onPressed: () {
             showSearch(
               context: context,
-              delegate:
-                  LyricsSearchDelegate(mediaID: widget.state.mediaItem.id),
+              delegate: LyricsSearchDelegate(mediaID: widget.state.track.id),
               query:
-                  "${widget.state.mediaItem.title} ${widget.state.mediaItem.artist}",
+                  "${widget.state.track.title} ${widget.state.track.artists.map((a) => a.name).join(', ')}",
             );
           },
           child: const Row(
@@ -57,9 +56,7 @@ class _LyricsMenuState extends State<LyricsMenu> {
         ),
         MenuItemButton(
           onPressed: () {
-            context
-                .read<LyricsCubit>()
-                .deleteLyricsFromDB(widget.state.mediaItem);
+            context.read<LyricsCubit>().deleteLyricsFromDB(widget.state.track);
           },
           child: const Row(
             children: <Widget>[
@@ -78,7 +75,7 @@ class _LyricsMenuState extends State<LyricsMenu> {
           onPressed: () {
             context
                 .read<LyricsCubit>()
-                .setLyricsToDB(widget.state.lyrics, widget.state.mediaItem.id);
+                .setLyricsToDB(widget.state.lyrics, widget.state.track.id);
           },
           child: const Row(
             children: <Widget>[

@@ -15,17 +15,11 @@ class LibrarySearchSuccess extends LibrarySearchState {
   final String query;
   final List<SongSearchResult> songResults;
   final List<PlaylistItemProperties> filteredPlaylists;
-  final List<ArtistModel> filteredArtists;
-  final List<AlbumModel> filteredAlbums;
-  final List<PlaylistOnlModel> filteredOnlinePlaylists;
 
   const LibrarySearchSuccess({
     required this.query,
     this.songResults = const [],
     this.filteredPlaylists = const [],
-    this.filteredArtists = const [],
-    this.filteredAlbums = const [],
-    this.filteredOnlinePlaylists = const [],
   });
 
   @override
@@ -33,9 +27,6 @@ class LibrarySearchSuccess extends LibrarySearchState {
         query,
         songResults,
         filteredPlaylists,
-        filteredArtists,
-        filteredAlbums,
-        filteredOnlinePlaylists,
       ];
 }
 

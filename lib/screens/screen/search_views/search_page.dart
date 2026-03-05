@@ -1,21 +1,20 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
-import 'package:Bloomee/core/models/source_engines.dart';
+import 'package:Bloomee/plugins/blocs/content/content_bloc.dart';
+import 'package:Bloomee/plugins/blocs/content/content_event.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class SearchPageDelegate extends SearchDelegate {
   List<String> searchList = [];
-  SourceEngine sourceEngine = SourceEngine.eng_YTM;
-  ResultTypes resultType = ResultTypes.songs;
-  SearchPageDelegate(
-    this.sourceEngine,
-    this.resultType,
-  );
+  ContentSearchFilter filter;
+
+  SearchPageDelegate(this.filter);
+
   @override
   String? get searchFieldLabel => "Explore the world of music...";
 
@@ -44,10 +43,16 @@ class SearchPageDelegate extends SearchDelegate {
   @override
   void showResults(BuildContext context) {
     if (query.replaceAll(' ', '').isNotEmpty) {
-      context
-          .read<FetchSearchResultsCubit>()
-          .search(query, sourceEngine: sourceEngine, resultType: resultType);
-      context.read<FetchSearchResultsCubit>().saveSearchHistory(query);
+      // Trigger search on the ContentBloc provided in the widget tree
+      try {
+        final contentBloc = context.read<ContentBloc>();
+        contentBloc.add(SearchContent(query: query, filter: filter));
+      } catch (_) {
+        // ContentBloc may not be in widget tree from here;
+        // The search screen will handle the actual search.
+      }
+      // Save to local search history
+      context.read<SearchSuggestionBloc>().add(SearchSuggestionSave(query));
     }
     close(context, query);
   }
@@ -68,7 +73,6 @@ class SearchPageDelegate extends SearchDelegate {
     return IconButton(
       icon: const Icon(MingCute.arrow_left_fill),
       onPressed: () => Navigator.of(context).pop(),
-      // Exit from the search screen.
     );
   }
 
@@ -83,7 +87,6 @@ class SearchPageDelegate extends SearchDelegate {
         return ListTile(
           title: Text(searchResults[index]),
           onTap: () {
-            // Handle the selected search result.
             close(context, searchResults[index]);
           },
         );
@@ -93,7 +96,6 @@ class SearchPageDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    // final List<String> suggestionList = [];
     context.read<SearchSuggestionBloc>().add(SearchSuggestionFetch(query));
 
     return BlocBuilder<SearchSuggestionBloc, SearchSuggestionState>(
@@ -122,8 +124,7 @@ class SearchPageDelegate extends SearchDelegate {
                       children: [
                         ListView(
                           shrinkWrap: true,
-                          physics:
-                              const NeverScrollableScrollPhysics(), // Disable inner scrolling
+                          physics: const NeverScrollableScrollPhysics(),
                           children: state.dbSuggestionList
                               .map(
                                 (e) => ListTile(
@@ -164,8 +165,7 @@ class SearchPageDelegate extends SearchDelegate {
                         ),
                         ListView.builder(
                           shrinkWrap: true,
-                          physics:
-                              const NeverScrollableScrollPhysics(), // Disable inner scrolling
+                          physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (BuildContext context, int index) {
                             return ListTile(
                               title: Text(
@@ -185,7 +185,6 @@ class SearchPageDelegate extends SearchDelegate {
                               trailing: IconButton(
                                 onPressed: () {
                                   query = state.suggestionList[index];
-                                  // only update the query and not show the results
                                 },
                                 icon: Icon(
                                   MingCute.arrow_left_up_line,

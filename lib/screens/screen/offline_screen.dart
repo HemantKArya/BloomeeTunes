@@ -1,10 +1,13 @@
+import 'dart:developer';
+
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/widgets/downloading_item.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -21,7 +24,7 @@ class OfflineScreen extends StatefulWidget {
 class _OfflineScreenState extends State<OfflineScreen> {
   bool _isSearch = false;
   final TextEditingController _searchController = TextEditingController();
-  List<MediaItemModel> _filteredSongs = [];
+  List<Track> _filteredSongs = [];
 
   @override
   void initState() {
@@ -44,7 +47,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
     setState(() {
       _filteredSongs = downloaderState.downloaded
           .where((song) =>
-              "${song.title.toLowerCase()} ${song.artist?.toLowerCase()}"
+              "${song.title.toLowerCase()} ${song.artists.map((a) => a.name).join(', ').toLowerCase()}"
                   .contains(query))
           .toList();
     });
@@ -96,15 +99,44 @@ class _OfflineScreenState extends State<OfflineScreen> {
                               showOptions: true,
                               delDownBtn: true,
                               onTap: () {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .loadPlaylist(
-                                        MediaPlaylist(
-                                            mediaItems: state.downloaded,
-                                            playlistName: "Offline"),
-                                        idx: state.downloaded.indexOf(song),
-                                        doPlay: true);
+                                final selectedIndex =
+                                    state.downloaded.indexWhere(
+                                  (item) => item.id == song.id,
+                                );
+
+                                if (selectedIndex < 0 ||
+                                    state.downloaded.isEmpty) {
+                                  SnackbarService.showMessage(
+                                      'Unable to open this offline track. Try refreshing downloads.');
+                                  log(
+                                    'Offline play failed: missing track in downloaded list (${song.id})',
+                                    name: 'OfflineScreen',
+                                  );
+                                  return;
+                                }
+
+                                try {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .loadPlaylist(
+                                        Playlist(
+                                          tracks: state.downloaded,
+                                          title: "Offline",
+                                        ),
+                                        idx: selectedIndex,
+                                        doPlay: true,
+                                      );
+                                } catch (e, stack) {
+                                  log(
+                                    'Offline play crashed for ${song.id}',
+                                    name: 'OfflineScreen',
+                                    error: e,
+                                    stackTrace: stack,
+                                  );
+                                  SnackbarService.showMessage(
+                                      'Could not play this offline song. Please try again.');
+                                }
                               },
                               onOptionsTap: () {
                                 showMoreBottomSheet(context, song,

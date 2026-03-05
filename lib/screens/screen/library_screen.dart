@@ -1,19 +1,15 @@
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/core/models/album_onl_model.dart';
-import 'package:Bloomee/core/models/artist_onl_model.dart';
-import 'package:Bloomee/core/models/playlist_onl_model.dart';
-import 'package:Bloomee/core/models/source_engines.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
+import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/screens/screen/common_views/artist_view.dart';
 import 'package:Bloomee/screens/screen/common_views/playlist_view.dart';
-import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
-import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/services/db/dao/playlist_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -34,7 +30,7 @@ class LibraryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => LibrarySearchCubit(
-        playlistDao: PlaylistDAO(DBProvider.db),
+        searchTracks: context.read<LibraryItemsCubit>().searchTracks,
       ),
       child: const _LibraryScreenView(),
     );
@@ -120,10 +116,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
               );
             }
 
-            if (itemsState.playlists.isEmpty &&
-                itemsState.artists.isEmpty &&
-                itemsState.albums.isEmpty &&
-                itemsState.playlistsOnl.isEmpty) {
+            if (itemsState.playlists.isEmpty) {
               return CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
@@ -149,24 +142,12 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                 final filteredPlaylists = isSearching
                     ? searchState.filteredPlaylists
                     : itemsState.playlists;
-                final filteredArtists = isSearching
-                    ? searchState.filteredArtists
-                    : itemsState.artists;
-                final filteredAlbums = isSearching
-                    ? searchState.filteredAlbums
-                    : itemsState.albums;
-                final filteredPlaylistsOnl = isSearching
-                    ? searchState.filteredOnlinePlaylists
-                    : itemsState.playlistsOnl;
                 final filteredSongs = isSearching
                     ? searchState.songResults
                     : <SongSearchResult>[];
 
-                final hasResults = filteredPlaylists.isNotEmpty ||
-                    filteredArtists.isNotEmpty ||
-                    filteredAlbums.isNotEmpty ||
-                    filteredPlaylistsOnl.isNotEmpty ||
-                    filteredSongs.isNotEmpty;
+                final hasResults =
+                    filteredPlaylists.isNotEmpty || filteredSongs.isNotEmpty;
 
                 return CustomScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -207,12 +188,6 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                         _buildSongSearchResults(context, filteredSongs),
                       if (filteredPlaylists.isNotEmpty)
                         _ListOfPlaylists(playlists: filteredPlaylists),
-                      if (filteredArtists.isNotEmpty)
-                        _buildArtistList(context, filteredArtists),
-                      if (filteredAlbums.isNotEmpty)
-                        _buildAlbumList(context, filteredAlbums),
-                      if (filteredPlaylistsOnl.isNotEmpty)
-                        _buildOnlinePlaylistList(context, filteredPlaylistsOnl),
                     ],
                   ],
                 );
@@ -309,8 +284,8 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                     .read<LibraryItemsCubit>()
                     .getPlaylistByName(result.playlistName);
                 if (playlist != null && context.mounted) {
-                  final songIdx = playlist.mediaItems
-                      .indexWhere((s) => s.id == result.song.id);
+                  final songIdx =
+                      playlist.tracks.indexWhere((s) => s.id == result.song.id);
                   context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
                         playlist,
                         idx: songIdx >= 0 ? songIdx : 0,
@@ -320,105 +295,6 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
               },
               onOptionsTap: () {
                 showMoreBottomSheet(context, result.song);
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildArtistList(BuildContext context, List<ArtistModel> artists) {
-    return SliverList.builder(
-      itemCount: artists.length,
-      itemBuilder: (context, index) {
-        final artist = artists[index];
-        return AnimatedListItem(
-          index: index,
-          child: SizedBox(
-            height: 80,
-            child: LibItemCard(
-              title: artist.name,
-              coverArt: artist.imageUrl,
-              subtitle:
-                  'Artist - ${artist.source == "ytm" ? SourceEngine.eng_YTM.value : (artist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
-              type: LibItemTypes.artist,
-              onTap: () {
-                _dismissKeyboard();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ArtistView(artist: artist)),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAlbumList(BuildContext context, List<AlbumModel> albums) {
-    return SliverList.builder(
-      itemCount: albums.length,
-      itemBuilder: (context, index) {
-        final album = albums[index];
-        return AnimatedListItem(
-          index: index,
-          child: SizedBox(
-            height: 80,
-            child: LibItemCard(
-              title: album.name,
-              coverArt: album.imageURL,
-              subtitle:
-                  'Album - ${album.source == "ytm" ? SourceEngine.eng_YTM.value : (album.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
-              type: LibItemTypes.album,
-              onTap: () {
-                _dismissKeyboard();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => AlbumView(album: album)),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildOnlinePlaylistList(
-      BuildContext context, List<PlaylistOnlModel> playlists) {
-    return SliverList.builder(
-      itemCount: playlists.length,
-      itemBuilder: (context, index) {
-        final playlist = playlists[index];
-        return AnimatedListItem(
-          index: index,
-          child: SizedBox(
-            height: 80,
-            child: LibItemCard(
-              title: playlist.name,
-              coverArt: playlist.imageURL,
-              subtitle:
-                  'Playlist - ${playlist.source == "ytm" ? SourceEngine.eng_YTM.value : (playlist.source == 'saavn' ? SourceEngine.eng_JIS.value : SourceEngine.eng_YTV.value)}',
-              type: LibItemTypes.onlPlaylist,
-              onTap: () {
-                _dismissKeyboard();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => OnlPlaylistView(
-                      playlist: playlist,
-                      sourceEngine: playlist.source == "ytm"
-                          ? SourceEngine.eng_YTM
-                          : (playlist.source == 'saavn'
-                              ? SourceEngine.eng_JIS
-                              : SourceEngine.eng_YTV),
-                    ),
-                  ),
-                );
               },
             ),
           ),
@@ -486,6 +362,76 @@ class _ListOfPlaylists extends StatelessWidget {
   final List<PlaylistItemProperties> playlists;
   const _ListOfPlaylists({required this.playlists});
 
+  LibItemTypes _toCardType(PlaylistType type) {
+    switch (type) {
+      case PlaylistType.artist:
+        return LibItemTypes.artist;
+      case PlaylistType.album:
+        return LibItemTypes.album;
+      case PlaylistType.remotePlaylist:
+        return LibItemTypes.onlPlaylist;
+      case PlaylistType.userPlaylist:
+        return LibItemTypes.userPlaylist;
+    }
+  }
+
+  Future<void> _openLibraryItem(
+      BuildContext context, PlaylistItemProperties item) async {
+    if (item.type == PlaylistType.userPlaylist) {
+      context.read<CurrentPlaylistCubit>().setupPlaylist(item.playlistName);
+      context.pushNamed(RoutePaths.playlistView);
+      return;
+    }
+
+    // For remote collections, resolve via the cubit (domain-level, no DB types).
+    final playlist = await context
+        .read<LibraryItemsCubit>()
+        .resolveLibraryItem(item.playlistName);
+    if (!context.mounted || playlist == null) return;
+
+    switch (playlist.type) {
+      case PlaylistType.artist:
+        if (playlist.artists == null || playlist.artists!.isEmpty) return;
+        final artist = playlist.artists!.first;
+        final pluginId = pluginIdOf(artist.id);
+        if (pluginId == null || pluginId.isEmpty) return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ArtistView(artist: artist, pluginId: pluginId),
+          ),
+        );
+        return;
+      case PlaylistType.album:
+        if (playlist.album == null) return;
+        final album = playlist.album!;
+        final pluginId = pluginIdOf(album.id);
+        if (pluginId == null || pluginId.isEmpty) return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AlbumView(album: album, pluginId: pluginId),
+          ),
+        );
+        return;
+      case PlaylistType.remotePlaylist:
+        if (playlist.remotePlaylist == null) return;
+        final remote = playlist.remotePlaylist!;
+        final pluginId = pluginIdOf(remote.id);
+        if (pluginId == null || pluginId.isEmpty) return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                OnlPlaylistView(playlist: remote, pluginId: pluginId),
+          ),
+        );
+        return;
+      case PlaylistType.userPlaylist:
+        return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SliverList.builder(
@@ -501,20 +447,17 @@ class _ListOfPlaylists extends StatelessWidget {
         return AnimatedListItem(
           index: index,
           child: LibItemCard(
-            onTap: () {
-              context
-                  .read<CurrentPlaylistCubit>()
-                  .setupPlaylist(playlist.playlistName);
-              context.pushNamed(RoutePaths.playlistView);
-            },
-            onSecondaryTap: () =>
-                showPlaylistOptsExtSheet(context, playlist.playlistName),
-            onLongPress: () {
-              showPlaylistOptsExtSheet(context, playlist.playlistName);
-            },
+            onTap: () => _openLibraryItem(context, playlist),
+            onSecondaryTap: playlist.type == PlaylistType.userPlaylist
+                ? () => showPlaylistOptsExtSheet(context, playlist.playlistName)
+                : null,
+            onLongPress: playlist.type == PlaylistType.userPlaylist
+                ? () => showPlaylistOptsExtSheet(context, playlist.playlistName)
+                : null,
             title: playlist.playlistName,
-            coverArt: playlist.coverImgUrl.toString(),
-            subtitle: playlist.subTitle ?? "Unknown",
+            coverArt: playlist.coverImgUrl ?? '',
+            subtitle: playlist.subTitle ?? '',
+            type: _toCardType(playlist.type),
           ),
         );
       },

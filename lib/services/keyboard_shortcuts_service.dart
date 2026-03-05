@@ -2,9 +2,10 @@ import 'dart:io' as io;
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/constants/sentinel_values.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:flutter/material.dart';
@@ -288,16 +289,12 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
 
   Future<void> _toggleLike(dynamic player) async {
     final currentMedia = player.currentMedia;
-    if (currentMedia == null) return;
+    if (currentMedia == null || isTrackNull(currentMedia)) return;
 
-    final playlistDao = PlaylistDAO(DBProvider.db);
-    final isCurrentlyLiked =
-        await playlistDao.isMediaLiked(mediaItemToMediaItemDB(currentMedia));
+    final playlistDao = PlaylistDAO(DBProvider.db, TrackDAO(DBProvider.db));
+    final isCurrentlyLiked = await playlistDao.isTrackLiked(currentMedia.id);
     final newLikeState = !isCurrentlyLiked;
-    await playlistDao.addMediaItem(
-        mediaItemToMediaItemDB(currentMedia), "Liked");
-    await playlistDao.likeMediaItem(mediaItemToMediaItemDB(currentMedia),
-        isLiked: newLikeState);
+    await playlistDao.setTrackLiked(currentMedia, newLikeState);
     SnackbarService.showMessage(
         "${currentMedia.title} is ${newLikeState ? 'Liked' : 'Unliked'}!!");
 

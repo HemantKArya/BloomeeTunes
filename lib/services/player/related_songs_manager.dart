@@ -1,31 +1,27 @@
 import 'dart:developer';
-import 'package:Bloomee/core/models/saavn_model.dart';
-import 'package:Bloomee/core/models/yt_music_model.dart';
-import 'package:Bloomee/repository/saavn/saavn_api.dart';
-import 'package:Bloomee/repository/youtube/ytm/ytmusic.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
-import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:Bloomee/services/plugin/plugin_service.dart';
+import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:rxdart/rxdart.dart';
 
-// Static method for compute operation
-Future<Map> _getRelatedSongs(String songId) async {
-  return await SaavnAPI().getRelated(songId);
-}
-
 class RelatedSongsManager {
-  final BehaviorSubject<List<MediaItem>> relatedSongs =
-      BehaviorSubject<List<MediaItem>>.seeded([]);
+  final BehaviorSubject<List<Track>> relatedSongs =
+      BehaviorSubject<List<Track>>.seeded([]);
+  final PluginService _pluginService;
 
   // Callbacks
-  Function(List<MediaItem> items, {bool atLast})? onAddQueueItems;
+  Function(List<Track> items, {bool atLast})? onAddQueueItems;
+
+  RelatedSongsManager(this._pluginService);
 
   Future<void> checkForRelatedSongs({
-    required MediaItem currentMedia,
-    required List<MediaItem> queue,
+    required Track currentMedia,
+    required List<Track> queue,
     required int currentPlayingIdx,
     required LoopMode loopMode,
   }) async {
@@ -39,21 +35,44 @@ class RelatedSongsManager {
     if (queue.isNotEmpty &&
         (queue.length - currentPlayingIdx) < 2 &&
         loopMode != LoopMode.all) {
-      if (currentMedia.extras?["source"] == "saavn") {
-        final songs = await compute(_getRelatedSongs, currentMedia.id);
-        if (songs['total'] > 0) {
-          final List<MediaItem> temp =
-              fromSaavnSongMapList2MediaItemList(songs['songs']);
-          relatedSongs.add(temp.sublist(1));
-          log("Related Songs: ${songs['total']}");
-        }
-      } else if (currentMedia.extras?["source"].contains("youtube") ?? false) {
-        final songs = await YTMusic()
-            .getRelatedSongs(currentMedia.id.replaceAll('youtube', ''));
-        if (songs.isNotEmpty) {
-          final List<MediaItem> temp = ytmMapList2MediaItemList(songs);
-          relatedSongs.add(temp.sublist(1));
-          log("Related Songs: ${songs.length}");
+      final parts = tryParseMediaId(currentMedia.id);
+      if (parts != null) {
+        try {
+          final response = await _pluginService.execute(
+            pluginId: parts.pluginId,
+            request: PluginRequest.contentResolver(
+              ContentResolverCommand.getRadioTracks(id: parts.localId),
+            ),
+          );
+
+          response.when(
+            moreTracks: (pagedTracks) {
+              if (pagedTracks.items.isNotEmpty) {
+                relatedSongs.add(pagedTracks.items);
+                log("Related Songs: ${pagedTracks.items.length}",
+                    name: "RelatedSongsManager");
+              }
+            },
+            streams: (tracks) {
+              if (tracks.isNotEmpty) {
+                relatedSongs.add(tracks);
+                log("Related Songs (streams): ${tracks.length}",
+                    name: "RelatedSongsManager");
+              }
+            },
+            albumDetails: (_) {},
+            artistDetails: (_) {},
+            playlistDetails: (_) {},
+            search: (_) {},
+            moreAlbums: (_) {},
+            homeSections: (_) {},
+            loadMoreItems: (_) {},
+            charts: (_) {},
+            chartDetails: (_) {},
+            ack: () {},
+          );
+        } catch (e) {
+          log("Failed to get related songs: $e", name: "RelatedSongsManager");
         }
       }
     }
@@ -62,7 +81,7 @@ class RelatedSongsManager {
   }
 
   Future<void> loadRelatedSongs({
-    required List<MediaItem> queue,
+    required List<Track> queue,
     required int currentPlayingIdx,
     required LoopMode loopMode,
   }) async {

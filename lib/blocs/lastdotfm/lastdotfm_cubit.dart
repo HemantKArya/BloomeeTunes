@@ -2,11 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/core/models/media_playlist_model.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/core/constants/sentinel_values.dart';
 import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
-import 'package:Bloomee/repository/mixed/mixed_api.dart';
-import 'package:Bloomee/core/constants/app_constants.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
@@ -24,11 +22,10 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
   BloomeePlayerCubit playerCubit;
   final CacheDAO _cacheDao;
   final SettingsDAO _settingsDao;
-  MediaItemModel lastPlayed = mediaItemModelNull;
+  Track lastPlayed = trackNull;
   Stopwatch stopwatch = Stopwatch();
   Stream<dynamic>? playerProgres;
-  BehaviorSubject<MediaItemModel> playedMedia =
-      BehaviorSubject<MediaItemModel>.seeded(mediaItemModelNull);
+  BehaviorSubject<Track> playedMedia = BehaviorSubject<Track>.seeded(trackNull);
 
   LastdotfmCubit({
     required this.playerCubit,
@@ -40,6 +37,7 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     initializeFromDB();
     songTimeTracker();
   }
+
   @override
   close() async {
     playedMedia.close();
@@ -47,47 +45,51 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     super.close();
   }
 
+  /// Helper: extract duration in seconds from a [Track].
+  int _trackDurationSec(Track t) {
+    final ms = t.durationMs?.toInt();
+    return ms != null ? ms ~/ 1000 : 0;
+  }
+
+  Duration? _trackDuration(Track t) {
+    final ms = t.durationMs?.toInt();
+    return ms != null ? Duration(milliseconds: ms) : null;
+  }
+
   Future<void> songTimeTracker() async {
     while (playerCubit.playerInitState != PlayerInitState.initialized) {
-      log("Waiting for player to be intialized.", name: "Last.FM");
+      log('Waiting for player to be initialized.', name: 'Last.FM');
       await Future.delayed(const Duration(seconds: 2));
     }
 
     scrobbleSub = playerCubit.progressStreams.listen((event) {
+      final currentTrack = playerCubit.bloomeePlayer.currentMedia;
+
       if (playerCubit.bloomeePlayer.engine.playing &&
           playerCubit.bloomeePlayer.engine.state == EngineState.ready) {
-        if (lastPlayed != playerCubit.bloomeePlayer.currentMedia ||
-            !stopwatch.isRunning) {
+        if (lastPlayed != currentTrack || !stopwatch.isRunning) {
           if (stopwatch.isRunning) {
             stopwatch.stop();
             stopwatch.reset();
           }
           stopwatch.start();
-          lastPlayed = playerCubit.bloomeePlayer.currentMedia;
+          lastPlayed = currentTrack;
         } else if ((stopwatch.elapsed.inSeconds > 30 ||
                 (stopwatch.elapsed.inSeconds /
-                        (playerCubit.bloomeePlayer.currentMedia.duration ??
-                                const Duration(
-                                    hours:
-                                        1)) // if duration is null, set it to 1 hour to avoid division by zero
+                        (_trackDuration(currentTrack) ??
+                                const Duration(hours: 1))
                             .inSeconds) >
                     0.5) &&
-            playerCubit.bloomeePlayer.currentMedia == lastPlayed &&
-            playerCubit.bloomeePlayer.currentMedia != playedMedia.value) {
-          playedMedia.add(playerCubit.bloomeePlayer.currentMedia);
-          log("Scrobbling: ${playerCubit.bloomeePlayer.currentMedia.title}",
-              name: "Last.FM");
-          scrobble(lastPlayed).then(
-            (value) {
-              if (value) {
-                log("Scrobble success.", name: "Last.FM");
-              } else {
-                log("Scrobble failed.", name: "Last.FM");
-              }
-            },
-          );
+            currentTrack == lastPlayed &&
+            currentTrack != playedMedia.value) {
+          playedMedia.add(currentTrack);
+          log('Scrobbling: ${currentTrack.title}', name: 'Last.FM');
+          scrobble(lastPlayed).then((value) {
+            log(value ? 'Scrobble success.' : 'Scrobble failed.',
+                name: 'Last.FM');
+          });
         }
-      } else if (lastPlayed != playerCubit.bloomeePlayer.currentMedia) {
+      } else if (lastPlayed != currentTrack) {
         stopwatch.stop();
         stopwatch.reset();
       } else {
@@ -97,11 +99,11 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
   }
 
   Future<void> initializeFromDB() async {
-    log("Getting Last.FM Keys from DB", name: "Last.FM");
-    final username = await _cacheDao.getApiTokenDB(CacheKeys.lFMUsername);
-    final apiKey = await _cacheDao.getApiTokenDB(CacheKeys.lFMApiKey);
-    final apiSecret = await _cacheDao.getApiTokenDB(CacheKeys.lFMSecret);
-    final session = await _cacheDao.getApiTokenDB(CacheKeys.lFMSession);
+    log('Getting Last.FM Keys from DB', name: 'Last.FM');
+    final username = await _cacheDao.getApiToken(CacheKeys.lFMUsername);
+    final apiKey = await _cacheDao.getApiToken(CacheKeys.lFMApiKey);
+    final apiSecret = await _cacheDao.getApiToken(CacheKeys.lFMSecret);
+    final session = await _cacheDao.getApiToken(CacheKeys.lFMSession);
 
     if (apiKey != null &&
         apiSecret != null &&
@@ -123,7 +125,7 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
       }
     }
     startUpCheck();
-    log("Last.FM Keys from DB: $apiKey, $apiSecret, $session", name: "Last.FM");
+    log('Last.FM Keys from DB: $apiKey, $apiSecret, $session', name: 'Last.FM');
   }
 
   Future<void> fetchSessionkey(
@@ -132,12 +134,12 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
       required String apiKey}) async {
     try {
       final sessionMap = await LastFmAPI.fetchSessionKey(token);
-      final session = sessionMap["key"]!;
-      final name = sessionMap["name"]!;
-      _cacheDao.putApiTokenDB(CacheKeys.lFMUsername, name, "0");
-      _cacheDao.putApiTokenDB(CacheKeys.lFMSecret, secret, "0");
-      _cacheDao.putApiTokenDB(CacheKeys.lFMApiKey, apiKey, "0");
-      _cacheDao.putApiTokenDB(CacheKeys.lFMSession, session, "0");
+      final session = sessionMap['key']!;
+      final name = sessionMap['name']!;
+      _cacheDao.putApiToken(CacheKeys.lFMUsername, name);
+      _cacheDao.putApiToken(CacheKeys.lFMSecret, secret);
+      _cacheDao.putApiToken(CacheKeys.lFMApiKey, apiKey);
+      _cacheDao.putApiToken(CacheKeys.lFMSession, session);
       log('Session Key: $session', name: 'LastFM API');
 
       if (session.isNotEmpty && apiKey.isNotEmpty && secret.isNotEmpty) {
@@ -152,14 +154,13 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
         ));
       }
     } catch (e) {
-      log("Error: $e", name: "Last.FM");
+      log('Error: $e', name: 'Last.FM');
       emit(LastdotfmFailed(message: e.toString()));
     }
   }
 
   Future<String> startAuth(
       {required String apiKey, required String secret}) async {
-    // Start the authentication process
     LastFmAPI.setAPIKey(apiKey);
     LastFmAPI.setAPISecret(secret);
     final token = await LastFmAPI.fetchRequestToken();
@@ -176,17 +177,17 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     LastFmAPI.apiSecret = null;
     LastFmAPI.username = null;
     emit(LastdotfmInitial());
-    _cacheDao.putApiTokenDB(CacheKeys.lFMSecret, "", "0");
-    _cacheDao.putApiTokenDB(CacheKeys.lFMApiKey, "", "0");
-    _cacheDao.putApiTokenDB(CacheKeys.lFMSession, "", "0");
-    _cacheDao.putApiTokenDB(CacheKeys.lFMUsername, "", "0");
+    _cacheDao.putApiToken(CacheKeys.lFMSecret, '');
+    _cacheDao.putApiToken(CacheKeys.lFMApiKey, '');
+    _cacheDao.putApiToken(CacheKeys.lFMSession, '');
+    _cacheDao.putApiToken(CacheKeys.lFMUsername, '');
   }
 
   startUpCheck() async {
     final lastUnScrobbled = await getLFMTrackedCache();
     if (lastUnScrobbled.isNotEmpty) {
       final isSuccess = await scrobbleTrackList(lastUnScrobbled);
-      log("Scrobble ${isSuccess ? "success" : "failed"}!", name: "Last.FM");
+      log("Scrobble ${isSuccess ? 'success' : 'failed'}!", name: 'Last.FM');
       if (!isSuccess) {
         lFMCacheTrack(lastUnScrobbled);
       }
@@ -207,28 +208,29 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     return false;
   }
 
-  Future<bool> scrobble(MediaItemModel mediaItem) async {
+  Future<bool> scrobble(Track track) async {
     final shouldScrobble = await _settingsDao
         .getSettingBool(CacheKeys.lFMScrobbleSetting, defaultValue: false);
 
-    final durationMin = mediaItem.duration?.inMinutes ?? 20000;
-    final durationSec = mediaItem.duration?.inSeconds ?? 20000;
+    final durationSec = _trackDurationSec(track);
+    final durationMin = durationSec ~/ 60;
 
-    final track = ScrobbleTrack(
-      artist: mediaItem.artist ?? 'Unknown',
-      trackName: mediaItem.title,
+    final scrobbleTrack = ScrobbleTrack(
+      artist: track.artists.map((a) => a.name).join(', ').ifEmpty('Unknown'),
+      trackName: track.title,
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      album: mediaItem.album ?? 'Unknown',
-      duration: mediaItem.duration?.inSeconds ?? 0,
+      album: track.album?.title ?? 'Unknown',
+      duration: durationSec,
       chosenByUser: false,
     );
+
     if (shouldScrobble ?? false) {
       List<ScrobbleTrack> trackList = await getLFMTrackedCache();
-      trackList.add(track);
+      trackList.add(scrobbleTrack);
       try {
         if (LastFmAPI.initialized &&
-            mediaItem != mediaItemModelNull &&
-            durationMin < 15 &&
+            !isTrackNull(track) &&
+            (durationMin < 15 || durationSec == 0) &&
             durationSec > 30) {
           final response = await LastFmAPI.scrobble(trackList);
           log('Scrobble response: $response', name: 'LastFM API');
@@ -244,61 +246,49 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
 
   void lFMCacheTrack(List<ScrobbleTrack> trackList) {
     final trackListMap = trackList.map((e) => e.toJson()).toList();
-    _cacheDao.getAPICache(CacheKeys.lFMTrackedCache).then((value) {
-      if (value != null && value != "null") {
-        log("Cache found: ${trackListMap.toString()}", name: "Last.FM");
-        final trackList2 = value as List;
+    _cacheDao.getCacheValue(CacheKeys.lFMTrackedCache).then((value) {
+      if (value != null && value != 'null') {
+        log('Cache found: ${trackListMap.toString()}', name: 'Last.FM');
+        final trackList2 = jsonDecode(value) as List;
         trackList2.addAll(trackListMap);
-        _cacheDao.putAPICache(CacheKeys.lFMTrackedCache, trackList2.toString());
+        _cacheDao.putCache(CacheKeys.lFMTrackedCache, jsonEncode(trackList2));
       } else {
-        log("No cache found", name: "Last.FM");
-        _cacheDao.putAPICache(
-            CacheKeys.lFMTrackedCache, trackListMap.toString());
+        log('No cache found', name: 'Last.FM');
+        _cacheDao.putCache(CacheKeys.lFMTrackedCache, jsonEncode(trackListMap));
       }
     });
   }
 
   Future<List<ScrobbleTrack>> getLFMTrackedCache() async {
-    final trackList = await _cacheDao.getAPICache(CacheKeys.lFMTrackedCache);
-    await _cacheDao.putAPICache(CacheKeys.lFMTrackedCache, "null");
-    if (trackList != null && trackList.isNotEmpty && trackList != "null") {
+    final trackList = await _cacheDao.getCacheValue(CacheKeys.lFMTrackedCache);
+    await _cacheDao.putCache(CacheKeys.lFMTrackedCache, 'null');
+    if (trackList != null && trackList.isNotEmpty && trackList != 'null') {
       final trackListMap = jsonDecode(trackList) as List;
-      List<ScrobbleTrack> trackListObj = [];
-      for (var element in trackListMap) {
-        trackListObj.add(ScrobbleTrack.fromJson(element));
-      }
-      return trackListObj;
+      return trackListMap.map((e) => ScrobbleTrack.fromJson(e)).toList();
     }
     return [];
   }
 
-  Future<MediaPlaylist> getRecommendedTracks() async {
+  // TODO: Implement via plugin system (search command) when ready.
+  // For now returns an empty list since MixedAPI is removed.
+  Future<List<Track>> getRecommendedTracks() async {
     if (!LastFmAPI.initialized) {
       while (!LastFmAPI.initialized) {
         await Future.delayed(const Duration(seconds: 10));
       }
     }
-    final response = await LastFmAPI.getUserRecommendedList();
-    List<MediaItemModel> mediaItems = [];
-    for (var track in response['playlist']) {
-      String title = track['name'];
-      List<String> artists = [];
-      if (track['artists'] != null) {
-        for (var aItem in track['artists']) {
-          artists.add(aItem['name']);
-        }
-      }
-      final mediaItem =
-          await MixedAPI().getYtTrackByMeta("$title ${artists.join(' ')}");
-      if (mediaItem != null) {
-        mediaItems.add(mediaItem);
-      }
-    }
-    return MediaPlaylist(mediaItems: mediaItems, playlistName: 'Last.FM Picks');
+    // Recommendation logic requires a content-resolver plugin search.
+    // This will be implemented once the UI wires up ContentBloc.
+    return [];
   }
 
   /// Get a cached API token by key.
   Future<String?> getApiToken(String key) async {
-    return _cacheDao.getApiTokenDB(key);
+    return _cacheDao.getApiToken(key);
   }
+}
+
+/// Extension to provide a fallback for empty strings.
+extension _StringExt on String {
+  String ifEmpty(String fallback) => isEmpty ? fallback : this;
 }

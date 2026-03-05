@@ -15,7 +15,7 @@ class DownloadProgress with EquatableMixin {
 
 abstract class DownloaderState extends Equatable {
   final List<DownloadProgress> downloads;
-  final List<MediaItemModel> downloaded;
+  final List<Track> downloaded;
 
   const DownloaderState(
       {this.downloads = const [], this.downloaded = const []});
@@ -31,7 +31,7 @@ class DownloaderInitial extends DownloaderState {}
 class DownloaderLoaded extends DownloaderState {
   const DownloaderLoaded({
     required List<DownloadProgress> downloads,
-    required List<MediaItemModel> downloaded,
+    required List<Track> downloaded,
   }) : super(downloads: downloads, downloaded: downloaded);
 }
 
@@ -39,6 +39,6 @@ class DownloaderLoaded extends DownloaderState {
 /// status, progress, or when a new download is added.
 class DownloaderTasksUpdated extends DownloaderState {
   const DownloaderTasksUpdated(
-      List<DownloadProgress> downloads, List<MediaItemModel> downloaded)
+      List<DownloadProgress> downloads, List<Track> downloaded)
       : super(downloads: downloads, downloaded: downloaded);
 }

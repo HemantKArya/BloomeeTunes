@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:Bloomee/core/models/song_model.dart';
-import 'package:Bloomee/core/constants/app_constants.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/core/constants/sentinel_values.dart';
 import 'package:dart_discord_rpc/dart_discord_rpc.dart';
 
 class DiscordService {
@@ -24,19 +24,21 @@ class DiscordService {
 
   /// Updates the Discord presence
   static void updatePresence({
-    required MediaItemModel mediaItem,
+    required Track track,
     required bool isPlaying,
   }) {
-    if (_discordRPC != null && mediaItem != mediaItemModelNull) {
+    if (_discordRPC != null && !isTrackNull(track)) {
       try {
         _startTimeStamp ??= DateTime.now().millisecondsSinceEpoch;
 
+        final artistStr = track.artists.isNotEmpty
+            ? track.artists.map((a) => a.name).join(', ')
+            : 'Unknown Artist';
+
         _discordRPC!.updatePresence(
           DiscordPresence(
-              details: mediaItem.title,
-              state: isPlaying
-                  ? "Playing・${mediaItem.artist?.isNotEmpty ?? false ? mediaItem.artist : 'Unknown Artist'}"
-                  : "Paused・${mediaItem.artist?.isNotEmpty ?? false ? mediaItem.artist : 'Unknown Artist'}",
+              details: track.title,
+              state: isPlaying ? "Playing・$artistStr" : "Paused・$artistStr",
               largeImageKey: "bloomeetunes_logo",
               largeImageText: "BloomeeTunes",
               startTimeStamp: _startTimeStamp),

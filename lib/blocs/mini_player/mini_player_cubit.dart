@@ -4,7 +4,8 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart' hide MediaItem;
+import 'package:Bloomee/core/adapters/track_adapter.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -16,7 +17,7 @@ import 'package:rxdart/rxdart.dart';
 /// The widget reads [isVisible], [isPlaying], and [isLoading] to decide layout.
 class MiniPlayerState extends Equatable {
   /// The current track metadata. null → nothing loaded yet.
-  final MediaItemModel? track;
+  final Track? track;
 
   /// Whether audio is actively playing.
   final bool isPlaying;
@@ -49,7 +50,7 @@ class MiniPlayerState extends Equatable {
         hasError = false;
 
   MiniPlayerState copyWith({
-    MediaItemModel? track,
+    Track? track,
     bool? isPlaying,
     bool? isLoading,
     bool? isCompleted,
@@ -112,7 +113,7 @@ class MiniPlayerCubit extends Cubit<MiniPlayerState> {
         return;
       }
 
-      final track = mediaItem2MediaItemModel(media);
+      final track = mediaItemToTrack(media);
 
       emit(MiniPlayerState(
         track: track,

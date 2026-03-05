@@ -1,101 +1,126 @@
-import 'dart:developer';
+﻿import 'dart:developer';
 import 'dart:io';
 
-import 'package:Bloomee/core/models/song_model.dart';
-import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/src/rust/api/plugin/models.dart';
 import 'package:isar_community/isar.dart';
 
-/// DAO for download tracking.
+/// DAO for tracking downloaded media files — accepts domain [Track] models.
+///
+/// Each download record links a [DownloadDB] row (file path, time) to a
+/// [TrackDB] entry and the "_DOWNLOADS" system playlist.
 class DownloadDAO {
   final Future<Isar> _db;
+  final TrackDAO _trackDAO;
+  final PlaylistDAO _playlistDAO;
 
-  const DownloadDAO(this._db);
+  static const downloadsPlaylistName = '_DOWNLOADS';
 
-  Future<void> putDownloadDB({
+  const DownloadDAO(this._db, this._trackDAO, this._playlistDAO);
+
+  // ── Write ──────────────────────────────────────────────────────────────────
+
+  /// Record a new download (or update an existing one for the same [mediaId]).
+  ///
+  /// Accepts a domain [Track] model. Upserts it into [TrackDB] and ensures
+  /// it is added to the "_DOWNLOADS" system playlist. If a record with the
+  /// same [mediaId] already exists its file path and timestamp are updated.
+  Future<void> putDownload({
     required String fileName,
     required String filePath,
-    required DateTime lastDownloaded,
-    required MediaItemModel mediaItem,
-    required Future<void> Function(MediaItemDB, String) addMediaItem,
+    required Track track,
+    DateTime? lastDownloaded,
   }) async {
-    DownloadDB downloadDB = DownloadDB(
-      fileName: fileName,
-      filePath: filePath,
-      lastDownloaded: lastDownloaded,
-      mediaId: mediaItem.id,
-    );
-    Isar isarDB = await _db;
-    DownloadDB? existing = isarDB.downloadDBs
-        .filter()
-        .mediaIdEqualTo(mediaItem.id)
-        .findFirstSync();
-    if (existing != null) {
-      existing.fileName = fileName;
-      existing.filePath = filePath;
-      existing.lastDownloaded = lastDownloaded;
-      isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(existing));
-      log("Updated DownloadDB for ${mediaItem.title}", name: "DB");
-      return;
-    }
-    isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(downloadDB));
-    await addMediaItem(
-        mediaItemToMediaItemDB(mediaItem), SettingKeys.downloadPlaylist);
-  }
+    final isar = await _db;
+    lastDownloaded ??= DateTime.now();
 
-  Future<void> removeDownloadDB(
-    MediaItemModel mediaItem, {
-    required Future<void> Function(MediaItemDB, MediaPlaylistDB)
-        removeMediaItemFromPlaylist,
-  }) async {
-    Isar isarDB = await _db;
-    DownloadDB? downloadDB = isarDB.downloadDBs
-        .filter()
-        .mediaIdEqualTo(mediaItem.id)
-        .findFirstSync();
-    if (downloadDB != null) {
-      isarDB.writeTxnSync(() => isarDB.downloadDBs.deleteSync(downloadDB.id!));
-      await removeMediaItemFromPlaylist(mediaItemToMediaItemDB(mediaItem),
-          MediaPlaylistDB(playlistName: SettingKeys.downloadPlaylist));
-    }
+    // Upsert track and ensure the downloads playlist exists.
+    await _trackDAO.upsertTrack(track);
+    final downloadsId =
+        await _playlistDAO.ensurePlaylist(downloadsPlaylistName);
+    await _playlistDAO.addTrackToPlaylist(downloadsId, track);
 
-    try {
-      File file = File("${downloadDB!.filePath}/${downloadDB.fileName}");
-      if (file.existsSync()) {
-        file.deleteSync();
-        log("File Deleted: ${downloadDB.fileName}", name: "DB");
+    // Upsert the DownloadDB row.
+    final existing =
+        await isar.downloadDBs.filter().mediaIdEqualTo(track.id).findFirst();
+
+    await isar.writeTxn(() async {
+      if (existing != null) {
+        existing
+          ..fileName = fileName
+          ..filePath = filePath
+          ..lastDownloaded = lastDownloaded;
+        await isar.downloadDBs.put(existing);
+        log('Updated download record for ${track.id}', name: 'DownloadDAO');
+      } else {
+        final record = DownloadDB(
+          fileName: fileName,
+          filePath: filePath,
+          lastDownloaded: lastDownloaded,
+          mediaId: track.id,
+        );
+        await isar.downloadDBs.put(record);
+        log('Created download record for ${track.id}', name: 'DownloadDAO');
       }
-    } catch (e) {
-      log("Failed to delete file: ${downloadDB!.fileName}",
-          error: e, name: "DB");
+    });
+  }
+
+  /// Remove the download record for [mediaId] and optionally delete the file.
+  Future<void> removeDownload(String mediaId, {bool deleteFile = true}) async {
+    final isar = await _db;
+    final record =
+        await isar.downloadDBs.filter().mediaIdEqualTo(mediaId).findFirst();
+
+    if (record == null) return;
+
+    // Delete the DownloadDB row.
+    await isar.writeTxn(() => isar.downloadDBs.delete(record.id));
+
+    // Remove from _DOWNLOADS playlist.
+    final downloadsPlaylist =
+        await _playlistDAO.getPlaylistByName(downloadsPlaylistName);
+    if (downloadsPlaylist != null) {
+      await _playlistDAO.removeTrackFromPlaylist(downloadsPlaylist.id, mediaId);
+    }
+
+    // Delete the file from disk if it exists.
+    if (deleteFile) {
+      try {
+        final file = File('${record.filePath}/${record.fileName}');
+        if (file.existsSync()) {
+          file.deleteSync();
+          log('Deleted file: ${record.fileName}', name: 'DownloadDAO');
+        }
+      } catch (e) {
+        log('Failed to delete file: ${record.fileName}',
+            error: e, name: 'DownloadDAO');
+      }
     }
   }
 
-  Future<DownloadDB?> getDownloadDB(MediaItemModel mediaItem) async {
-    Isar isarDB = await _db;
-    final temp = isarDB.downloadDBs
-        .filter()
-        .mediaIdEqualTo(mediaItem.id)
-        .findFirstSync();
-    if (temp != null &&
-        File("${temp.filePath}/${temp.fileName}").existsSync()) {
-      return temp;
-    }
-    return null;
+  // ── Read ───────────────────────────────────────────────────────────────────
+
+  /// Return the [DownloadDB] record for [mediaId], or null if not found or the
+  /// file no longer exists on disk.
+  Future<DownloadDB?> getDownloadRecord(String mediaId) async {
+    final isar = await _db;
+    final record =
+        await isar.downloadDBs.filter().mediaIdEqualTo(mediaId).findFirst();
+    if (record == null) return null;
+    final file = File('${record.filePath}/${record.fileName}');
+    if (!file.existsSync()) return null;
+    return record;
   }
 
-  Future<void> updateDownloadDB(DownloadDB downloadDB) async {
-    Isar isarDB = await _db;
-    isarDB.writeTxnSync(() => isarDB.downloadDBs.putSync(downloadDB));
-  }
-
-  Future<List<MediaItemModel>> getDownloadedSongs({
-    required Future<void> Function(MediaItemModel) removeDownload,
-  }) async {
-    Isar isarDB = await _db;
-    List<DownloadDB> downloadedSongs =
-        isarDB.downloadDBs.where(sort: Sort.desc).findAllSync();
-    downloadedSongs.sort((a, b) {
+  /// Return all [DownloadDB] records whose files still exist on disk.
+  ///
+  /// Stale records (missing files) are cleaned up asynchronously.
+  Future<List<DownloadDB>> getValidDownloads() async {
+    final isar = await _db;
+    final all = await isar.downloadDBs.where().findAll();
+    all.sort((a, b) {
       final aDate = a.lastDownloaded;
       final bDate = b.lastDownloaded;
       if (aDate == null && bDate == null) return 0;
@@ -104,22 +129,73 @@ class DownloadDAO {
       return bDate.compareTo(aDate);
     });
 
-    List<MediaItemModel> mediaItems = List.empty(growable: true);
-    for (var element in downloadedSongs) {
-      if (File("${element.filePath}/${element.fileName}").existsSync()) {
-        log("File exists", name: "DB");
-        mediaItems.add(mediaItemDBToMediaItem(isarDB.mediaItemDBs
-            .filter()
-            .mediaIDEqualTo(element.mediaId)
-            .findFirstSync()!));
+    final valid = <DownloadDB>[];
+    final stale = <DownloadDB>[];
+
+    for (final record in all) {
+      if (File('${record.filePath}/${record.fileName}').existsSync()) {
+        valid.add(record);
       } else {
-        log("File not exists ${element.fileName} ", name: "DB");
-        removeDownload(mediaItemDBToMediaItem(isarDB.mediaItemDBs
-            .filter()
-            .mediaIDEqualTo(element.mediaId)
-            .findFirstSync()!));
+        stale.add(record);
       }
     }
-    return mediaItems;
+
+    // Clean up stale records in the background.
+    if (stale.isNotEmpty) {
+      for (final s in stale) {
+        removeDownload(s.mediaId, deleteFile: false);
+      }
+    }
+
+    return valid;
+  }
+
+  /// Return downloaded [Track]s using persisted track metadata.
+  ///
+  /// The order matches [getValidDownloads] (most recent first).
+  /// Falls back to a lightweight track if track metadata is missing.
+  Future<List<Track>> getValidDownloadedTracks() async {
+    final downloads = await getValidDownloads();
+    final result = <Track>[];
+
+    for (final record in downloads) {
+      final track = await _trackDAO.getTrackByMediaId(record.mediaId);
+      if (track != null) {
+        result.add(track);
+        continue;
+      }
+
+      // Fallback for legacy/missing rows; keep app stable.
+      result.add(
+        Track(
+          id: record.mediaId,
+          title: record.fileName,
+          artists: const [],
+          thumbnail: const Artwork(url: '', layout: ImageLayout.square),
+          isExplicit: false,
+        ),
+      );
+    }
+
+    return result;
+  }
+
+  /// Returns true if [mediaId] has a valid download record and the file exists.
+  Future<bool> isDownloaded(String mediaId) async {
+    final record = await getDownloadRecord(mediaId);
+    return record != null;
+  }
+
+  /// Update an existing [DownloadDB] record in-place.
+  Future<void> updateDownloadRecord(DownloadDB record) async {
+    final isar = await _db;
+    await isar.writeTxn(() => isar.downloadDBs.put(record));
+  }
+
+  // ── Watchers ──────────────────────────────────────────────────────────────
+
+  Future<Stream<void>> watchDownloads() async {
+    final isar = await _db;
+    return isar.downloadDBs.watchLazy(fireImmediately: true);
   }
 }

@@ -1,11 +1,14 @@
-import 'package:Bloomee/blocs/artist_view/artist_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/core/models/artist_onl_model.dart';
-import 'package:Bloomee/core/models/source_engines.dart';
-import 'package:Bloomee/repository/bloomee/collection_repository.dart';
-import 'package:Bloomee/services/db/dao/collection_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
-import 'package:Bloomee/screens/screen/common_views/album_view.dart';
+import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/core/events/global_event_bus.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/plugins/blocs/content/content_bloc.dart';
+import 'package:Bloomee/plugins/blocs/content/content_event.dart';
+import 'package:Bloomee/plugins/blocs/content/content_state.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
+import 'package:Bloomee/screens/widgets/album_card.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -19,35 +22,87 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// Displays artist details loaded via the plugin system.
 class ArtistView extends StatefulWidget {
-  final ArtistModel artist;
-  const ArtistView({super.key, required this.artist});
+  final ArtistSummary artist;
+  final String pluginId;
+
+  const ArtistView({super.key, required this.artist, required this.pluginId});
 
   @override
   State<ArtistView> createState() => _ArtistViewState();
 }
 
 class _ArtistViewState extends State<ArtistView> {
-  late ArtistCubit artistCubit;
+  late final ContentBloc _contentBloc;
+  bool _isSaved = false;
+
+  String _sourceName(BuildContext context) {
+    final plugins = context.read<PluginBloc>().state.availablePlugins;
+    for (final plugin in plugins) {
+      if (plugin.manifest.id == widget.pluginId) {
+        return plugin.manifest.name;
+      }
+    }
+    return widget.pluginId;
+  }
+
   @override
   void initState() {
-    artistCubit = ArtistCubit(
-      artist: widget.artist,
-      sourceEngine: widget.artist.source == 'saavn'
-          ? SourceEngine.eng_JIS
-          : SourceEngine.eng_YTM,
-      collectionRepo: CollectionRepository(CollectionDAO(DBProvider.db)),
-    );
     super.initState();
+    _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
+    // Guard: verify plugin is still loaded before requesting details.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final isLoaded =
+          context.read<PluginBloc>().state.isPluginLoaded(widget.pluginId);
+      if (!isLoaded) {
+        GlobalEventBus.instance.emitError(
+          AppError.pluginNotLoaded(pluginId: widget.pluginId),
+        );
+        return;
+      }
+      _contentBloc.add(LoadArtistDetails(
+        pluginId: widget.pluginId,
+        artistId: widget.artist.id,
+      ));
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkSavedState());
+  }
+
+  Future<void> _checkSavedState() async {
+    final saved = await context
+        .read<LibraryItemsCubit>()
+        .isRemoteSaved(widget.artist.id, PlaylistType.artist);
+    if (mounted) setState(() => _isSaved = saved);
+  }
+
+  @override
+  void dispose() {
+    _contentBloc.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: BlocBuilder<ArtistCubit, ArtistState>(
-          bloc: artistCubit,
+        body: BlocBuilder<ContentBloc, ContentState>(
+          bloc: _contentBloc,
           builder: (context, state) {
+            final details = state.artistDetails;
+            final topTracks = details?.topTracks ?? [];
+            final albums = details?.albums.items ?? [];
+            final artistMeta = <String>[
+              if (topTracks.isNotEmpty)
+                '${topTracks.length} ${topTracks.length == 1 ? 'top track' : 'top tracks'}',
+              if (albums.isNotEmpty)
+                '${albums.length} ${albums.length == 1 ? 'album' : 'albums'}',
+              if (widget.artist.subtitle != null &&
+                  widget.artist.subtitle!.trim().isNotEmpty)
+                widget.artist.subtitle!.trim(),
+            ];
+
             return DefaultTabController(
               length: 2,
               child: NestedScrollView(
@@ -60,11 +115,7 @@ class _ArtistViewState extends State<ArtistView> {
                       return FlexibleSpaceBar(
                         background: Padding(
                           padding: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                            top: 34,
-                            bottom: 8,
-                          ),
+                              left: 8, right: 8, top: 34, bottom: 8),
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
                               maxHeight: constraints.maxHeight,
@@ -79,27 +130,27 @@ class _ArtistViewState extends State<ArtistView> {
                                         MediaQuery.of(context).size.width * 0.4,
                                   ),
                                   child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 8,
-                                      right: 8,
-                                      top: 8,
-                                      bottom: 8,
-                                    ),
+                                    padding: const EdgeInsets.all(8),
                                     child: Hero(
-                                        tag: widget.artist.sourceId,
-                                        child: ClipOval(
-                                          child: LoadImageCached(
-                                            imageUrl: formatImgURL(
-                                                widget.artist.imageUrl,
-                                                ImageQuality.medium),
-                                            fit: BoxFit.fitWidth,
+                                      tag:
+                                          '${widget.pluginId}_artist_${widget.artist.id}',
+                                      child: ClipOval(
+                                        child: LoadImageCached(
+                                          imageUrl: formatImgURL(
+                                            widget.artist.thumbnail?.url ?? '',
+                                            ImageQuality.medium,
                                           ),
-                                        )),
+                                          fallbackUrl:
+                                              widget.artist.thumbnail?.url,
+                                          fit: BoxFit.fitWidth,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
+                                    padding: const EdgeInsets.all(8),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -111,43 +162,47 @@ class _ArtistViewState extends State<ArtistView> {
                                           maxLines: 3,
                                           style: Default_Theme
                                               .secondoryTextStyleMedium
-                                              .merge(
-                                            TextStyle(
-                                              overflow: TextOverflow.ellipsis,
-                                              fontSize: 18,
-                                              color: Default_Theme.primaryColor1
-                                                  .withValues(alpha: 0.8),
-                                            ),
-                                          ),
+                                              .merge(TextStyle(
+                                            overflow: TextOverflow.ellipsis,
+                                            fontSize: 18,
+                                            color: Default_Theme.primaryColor1
+                                                .withValues(alpha: 0.8),
+                                          )),
                                         ),
-                                        state.artist.description != null &&
-                                                state.artist.description != ''
-                                            ? Text(
-                                                state.artist.description ?? "",
-                                                style: Default_Theme
-                                                    .secondoryTextStyle
-                                                    .merge(
-                                                  TextStyle(
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    fontSize: 13,
-                                                    color: Default_Theme
-                                                        .primaryColor1
-                                                        .withValues(alpha: 0.5),
-                                                  ),
-                                                ),
-                                              )
-                                            : const SizedBox.shrink(),
+                                        if (artistMeta.isNotEmpty)
+                                          Text(
+                                            artistMeta.join(' • '),
+                                            maxLines: 1,
+                                            style: Default_Theme
+                                                .secondoryTextStyle
+                                                .merge(TextStyle(
+                                              overflow: TextOverflow.ellipsis,
+                                              fontSize: 12.5,
+                                              color: Default_Theme.accentColor2
+                                                  .withValues(alpha: 0.9),
+                                            )),
+                                          ),
+                                        if (details?.description != null &&
+                                            details!.description!.isNotEmpty)
+                                          Text(
+                                            details.description!,
+                                            maxLines: 3,
+                                            style: Default_Theme
+                                                .secondoryTextStyle
+                                                .merge(TextStyle(
+                                              overflow: TextOverflow.ellipsis,
+                                              fontSize: 13,
+                                              color: Default_Theme.primaryColor1
+                                                  .withValues(alpha: 0.5),
+                                            )),
+                                          ),
                                         FittedBox(
                                           fit: BoxFit.scaleDown,
                                           child: Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 5,
-                                            ),
+                                            padding:
+                                                const EdgeInsets.only(top: 5),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
                                               children: [
                                                 OutlinedButton.icon(
                                                   style:
@@ -159,92 +214,96 @@ class _ArtistViewState extends State<ArtistView> {
                                                     ),
                                                   ),
                                                   onPressed: () {
-                                                    if (context
-                                                            .read<
-                                                                BloomeePlayerCubit>()
-                                                            .bloomeePlayer
-                                                            .queueTitle
-                                                            .value !=
-                                                        widget.artist.name) {
+                                                    if (topTracks.isNotEmpty) {
                                                       context
                                                           .read<
                                                               BloomeePlayerCubit>()
                                                           .bloomeePlayer
                                                           .loadPlaylist(
-                                                              state.artist
-                                                                  .playlist,
-                                                              doPlay: true,
-                                                              idx: 0);
-                                                    } else if (!context
-                                                        .read<
-                                                            BloomeePlayerCubit>()
-                                                        .bloomeePlayer
-                                                        .engine
-                                                        .playing) {
-                                                      context
-                                                          .read<
-                                                              BloomeePlayerCubit>()
-                                                          .bloomeePlayer
-                                                          .play();
+                                                            Playlist(
+                                                              tracks: topTracks,
+                                                              title: widget
+                                                                  .artist.name,
+                                                            ),
+                                                            doPlay: true,
+                                                            idx: 0,
+                                                          );
                                                     }
                                                   },
-                                                  label: const Text(
-                                                    "Play",
-                                                    style: Default_Theme
-                                                        .secondoryTextStyleMedium,
-                                                  ),
+                                                  label: const Text('Play',
+                                                      style: Default_Theme
+                                                          .secondoryTextStyleMedium),
                                                   icon: const Icon(
-                                                    MingCute.play_fill,
-                                                    size: 20,
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 5,
-                                                  ),
-                                                  child: IconButton(
-                                                    onPressed: () {
-                                                      artistCubit
-                                                          .addToSavedCollections();
-                                                    },
-                                                    icon: state
-                                                            .isSavedCollection
-                                                        ? const Icon(FontAwesome
-                                                            .heart_solid)
-                                                        : const Icon(
-                                                            FontAwesome.heart),
-                                                    color: Default_Theme
-                                                        .accentColor2,
-                                                  ),
+                                                      MingCute.play_fill,
+                                                      size: 20),
                                                 ),
                                                 Tooltip(
-                                                  message: "Open Original Link",
+                                                  message: _isSaved
+                                                      ? 'Remove from Library'
+                                                      : 'Save to Library',
                                                   child: IconButton(
-                                                    onPressed: () {
-                                                      SnackbarService.showMessage(
-                                                          "Opening original artist page.");
-                                                      launchUrl(
-                                                          Uri.parse(state.artist
-                                                              .sourceURL),
-                                                          mode: LaunchMode
-                                                              .externalApplication);
+                                                    onPressed: () async {
+                                                      final cubit = context.read<
+                                                          LibraryItemsCubit>();
+                                                      if (_isSaved) {
+                                                        await cubit
+                                                            .removeRemoteSaved(
+                                                                widget
+                                                                    .artist.id,
+                                                                PlaylistType
+                                                                    .artist);
+                                                      } else {
+                                                        await cubit
+                                                            .saveRemoteArtist(
+                                                          artist: widget.artist,
+                                                          sourceName:
+                                                              _sourceName(
+                                                                  context),
+                                                        );
+                                                      }
+                                                      await _checkSavedState();
                                                     },
-                                                    icon: const Icon(
-                                                      MingCute
-                                                          .external_link_line,
+                                                    icon: Icon(
+                                                      _isSaved
+                                                          ? Icons.favorite
+                                                          : Icons
+                                                              .favorite_border,
                                                       size: 25,
+                                                      color: Default_Theme
+                                                          .accentColor2,
                                                     ),
                                                   ),
                                                 ),
+                                                if (widget.artist.url != null)
+                                                  Tooltip(
+                                                    message:
+                                                        'Open Original Link',
+                                                    child: IconButton(
+                                                      onPressed: () {
+                                                        SnackbarService.showMessage(
+                                                            'Opening original artist page.');
+                                                        launchUrl(
+                                                          Uri.parse(widget
+                                                              .artist.url!),
+                                                          mode: LaunchMode
+                                                              .externalApplication,
+                                                        );
+                                                      },
+                                                      icon: const Icon(
+                                                        MingCute
+                                                            .external_link_line,
+                                                        size: 25,
+                                                      ),
+                                                    ),
+                                                  ),
                                               ],
                                             ),
                                           ),
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ),
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -254,153 +313,87 @@ class _ArtistViewState extends State<ArtistView> {
                   ),
                   SliverToBoxAdapter(
                     child: TabBar(
-                      labelColor: Default_Theme.primaryColor1,
-                      labelStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Unageo',
-                      ),
                       dividerColor: Colors.transparent,
+                      indicatorColor: Default_Theme.accentColor2,
+                      labelColor: Default_Theme.primaryColor1,
                       unselectedLabelColor:
                           Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                      indicatorColor: Default_Theme.primaryColor1,
                       tabs: const [
-                        Tab(
-                          text: "Top Songs",
-                        ),
-                        Tab(
-                          text: "Top Albums",
-                        ),
+                        Tab(text: 'Top Songs'),
+                        Tab(text: 'Albums'),
                       ],
                     ),
                   ),
                 ],
-                body: (state is ArtistLoaded || (state.artist.songs.isNotEmpty))
+                body: state.artistDetailStatus == DetailStatus.loaded
                     ? TabBarView(
                         children: [
-                          state.artist.songs.isEmpty
-                              ? const SignBoardWidget(
-                                  message: "No song found!",
-                                  icon: MingCute.unhappy_fill,
-                                )
-                              : ListView.builder(
-                                  itemCount: state.artist.songs.length,
+                          // Top Songs tab
+                          topTracks.isNotEmpty
+                              ? ListView.builder(
+                                  itemCount: topTracks.length,
                                   itemBuilder: (context, index) {
                                     return SongCardWidget(
-                                      song: state.artist.songs[index],
-                                      onOptionsTap: () {
-                                        showMoreBottomSheet(
-                                          context,
-                                          state.artist.songs[index],
-                                          showDelete: false,
-                                          showSinglePlay: true,
-                                        );
-                                      },
+                                      song: topTracks[index],
+                                      onOptionsTap: () => showMoreBottomSheet(
+                                        context,
+                                        topTracks[index],
+                                        showDelete: false,
+                                        showSinglePlay: true,
+                                      ),
                                       onTap: () {
-                                        if (context
-                                                    .read<BloomeePlayerCubit>()
-                                                    .bloomeePlayer
-                                                    .queueTitle
-                                                    .value !=
-                                                widget.artist.name ||
-                                            context
-                                                    .read<BloomeePlayerCubit>()
-                                                    .bloomeePlayer
-                                                    .currentMedia !=
-                                                state.artist.songs[index]) {
-                                          context
-                                              .read<BloomeePlayerCubit>()
-                                              .bloomeePlayer
-                                              .loadPlaylist(
-                                                  state.artist.playlist,
-                                                  doPlay: true,
-                                                  idx: index);
-                                        } else if (!context
+                                        context
                                             .read<BloomeePlayerCubit>()
                                             .bloomeePlayer
-                                            .engine
-                                            .playing) {
-                                          context
-                                              .read<BloomeePlayerCubit>()
-                                              .bloomeePlayer
-                                              .play();
-                                        }
+                                            .loadPlaylist(
+                                              Playlist(
+                                                tracks: topTracks,
+                                                title: widget.artist.name,
+                                              ),
+                                              doPlay: true,
+                                              idx: index,
+                                            );
                                       },
                                     );
                                   },
+                                )
+                              : const Center(
+                                  child: SignBoardWidget(
+                                    message: 'No top songs available',
+                                    icon: MingCute.music_2_line,
+                                  ),
                                 ),
-                          state.artist.albums.isEmpty
-                              ? const SignBoardWidget(
-                                  message: "No album found!",
-                                  icon: MingCute.unhappy_fill,
+                          // Albums tab
+                          albums.isNotEmpty
+                              ? SingleChildScrollView(
+                                  child: Wrap(
+                                    alignment: WrapAlignment.center,
+                                    runSpacing: 10,
+                                    children: albums
+                                        .map((album) => AlbumCard(
+                                              album: album,
+                                              pluginId: widget.pluginId,
+                                            ))
+                                        .toList(),
+                                  ),
                                 )
-                              : ListView.builder(
-                                  itemBuilder: (context, index) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 8,
-                                        right: 8,
-                                      ),
-                                      child: ListTile(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => AlbumView(
-                                                album:
-                                                    state.artist.albums[index],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        leading: Hero(
-                                          tag: state
-                                              .artist.albums[index].sourceId,
-                                          child: LoadImageCached(
-                                            imageUrl: state
-                                                .artist.albums[index].imageURL,
-                                          ),
-                                        ),
-                                        title: Text(
-                                          maxLines: 1,
-                                          state.artist.albums[index].name,
-                                          style: Default_Theme
-                                              .secondoryTextStyleMedium
-                                              .merge(
-                                            TextStyle(
-                                              fontSize: 14,
-                                              overflow: TextOverflow.ellipsis,
-                                              color: Default_Theme.primaryColor1
-                                                  .withValues(alpha: 0.9),
-                                            ),
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          state.artist.albums[index]
-                                                  .description ??
-                                              "",
-                                          maxLines: 1,
-                                          style: Default_Theme
-                                              .secondoryTextStyleMedium
-                                              .merge(
-                                            TextStyle(
-                                              fontSize: 12,
-                                              color: Default_Theme.primaryColor1
-                                                  .withValues(alpha: 0.6),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  itemCount: state.artist.albums.length,
-                                )
+                              : const Center(
+                                  child: SignBoardWidget(
+                                    message: 'No albums available',
+                                    icon: MingCute.album_line,
+                                  ),
+                                ),
                         ],
                       )
-                    : const Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                    : state.artistDetailStatus == DetailStatus.error
+                        ? Center(
+                            child: Text(
+                              state.error ?? 'Failed to load artist',
+                              style: const TextStyle(
+                                  color: Default_Theme.primaryColor1),
+                            ),
+                          )
+                        : const Center(child: CircularProgressIndicator()),
               ),
             );
           },

@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:Bloomee/repository/youtube/youtube_api.dart';
 import 'package:Bloomee/services/db/dao/search_history_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -14,10 +13,17 @@ class SearchSuggestionBloc
       : _searchHistoryDao = searchHistoryDao,
         super(const SearchSuggestionLoading()) {
     on<SearchSuggestionFetch>((event, emit) async {
-      final res1 = await getPastSearches(event.query);
-      emit(SearchSuggestionLoaded(state.suggestionList, res1));
-      final res2 = await getOnlineSearchSuggestions(event.query);
-      emit(SearchSuggestionLoaded(res2, res1));
+      final pastSearches = await getPastSearches(event.query);
+      emit(SearchSuggestionLoaded(const [], pastSearches));
+    });
+
+    on<SearchSuggestionSave>((event, emit) async {
+      if (event.query.trim().isEmpty) return;
+      try {
+        await _searchHistoryDao.putSearchHistory(event.query.trim());
+      } catch (e) {
+        log("Error saving search history: $e", name: "SearchSuggestionBloc");
+      }
     });
 
     on<SearchSuggestionClear>((event, emit) async {
@@ -39,20 +45,6 @@ class SearchSuggestionBloc
         log("Error Clearing Search History: $e", name: "SearchSuggestionBloc");
       }
     });
-  }
-
-  Future<List<String>> getOnlineSearchSuggestions(String query) async {
-    List<String> searchSuggestions;
-    if (query.isEmpty || query.replaceAll(" ", "").isEmpty) {
-      return [];
-    }
-    try {
-      searchSuggestions = await YouTubeServices()
-          .getSearchSuggestions(query: query) as List<String>;
-    } catch (e) {
-      searchSuggestions = [];
-    }
-    return searchSuggestions;
   }
 
   Future<List<Map<String, String>>> getPastSearches(String query) async {

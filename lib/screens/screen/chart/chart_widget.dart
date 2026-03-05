@@ -1,37 +1,36 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:math';
+import 'dart:developer' as dev;
+import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:Bloomee/blocs/explore/cubit/explore_cubits.dart';
-import 'package:Bloomee/plugins/charts/chart_defines.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/plugins/utils/media_id.dart';
+import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class ChartWidget extends StatefulWidget {
-  final ChartInfo chartInfo;
+  final ChartSummary chart;
+  final String pluginId;
 
   const ChartWidget({
     super.key,
-    required this.chartInfo,
+    required this.chart,
+    required this.pluginId,
   });
 
   @override
   State<ChartWidget> createState() => _ChartWidgetState();
 }
 
-// create a class which have 2 color variable for text and background
 class TextColorPair {
   final Color color1;
   final Color color2;
-  TextColorPair({
-    required this.color1,
-    required this.color2,
-  });
+  TextColorPair({required this.color1, required this.color2});
 }
 
-// create list of color pair which have some light colors with text color, use proffessinoal colors like pastel colors
 final List<TextColorPair> colorPair = [
   TextColorPair(
     color1: const Color.fromARGB(255, 223, 63, 0).withValues(alpha: 0.9),
@@ -52,15 +51,14 @@ final List<TextColorPair> colorPair = [
 ];
 
 class _ChartWidgetState extends State<ChartWidget> {
-  late final cachedClipPath;
+  late final Widget cachedClipPath;
+  late final Future<String?> _resolvedThumbnailFuture;
   final _random = Random();
   TextColorPair _color = colorPair[0];
+
   @override
   void initState() {
-    setState(() {
-      _color = colorPair[_random.nextInt(colorPair.length)];
-    });
-
+    _color = colorPair[_random.nextInt(colorPair.length)];
     cachedClipPath = ClipPath(
       clipper: ChartCardClipper(),
       child: Container(
@@ -68,15 +66,71 @@ class _ChartWidgetState extends State<ChartWidget> {
           gradient: LinearGradient(
             begin: Alignment.bottomRight,
             end: Alignment.topLeft,
-            colors: [
-              _color.color1,
-              _color.color2,
-            ],
+            colors: [_color.color1, _color.color2],
           ),
         ),
       ),
     );
+    _resolvedThumbnailFuture = _resolveThumbnailUrl();
     super.initState();
+  }
+
+  Future<String?> _resolveThumbnailUrl() async {
+    final direct = widget.chart.thumbnail?.url;
+    if (direct != null && direct.trim().isNotEmpty) {
+      return direct;
+    }
+
+    if (widget.pluginId.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      final localChartId = localIdOf(widget.chart.id) ?? widget.chart.id;
+      final response = await ServiceLocator.pluginService.execute(
+        pluginId: widget.pluginId,
+        request: PluginRequest.chartProvider(
+          ChartProviderCommand.getChartDetails(id: localChartId),
+        ),
+      );
+
+      String? resolved;
+      response.when(
+        chartDetails: (items) {
+          if (items.isNotEmpty) {
+            resolved = items.first.item.when(
+              track: (track) => track.thumbnail.url,
+              album: (album) => album.thumbnail?.url ?? '',
+              artist: (artist) => artist.thumbnail?.url ?? '',
+              playlist: (playlist) => playlist.thumbnail.url,
+            );
+          }
+        },
+        search: (_) {},
+        albumDetails: (_) {},
+        artistDetails: (_) {},
+        playlistDetails: (_) {},
+        streams: (_) {},
+        moreTracks: (_) {},
+        moreAlbums: (_) {},
+        homeSections: (_) {},
+        loadMoreItems: (_) {},
+        charts: (_) {},
+        ack: () {},
+      );
+
+      return (resolved != null && resolved!.trim().isNotEmpty)
+          ? resolved
+          : null;
+    } catch (e, stackTrace) {
+      dev.log(
+        'Failed to resolve chart cover for ${widget.chart.id}',
+        name: 'ChartWidget',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 
   @override
@@ -94,59 +148,57 @@ class _ChartWidgetState extends State<ChartWidget> {
                 ? MediaQuery.of(context).size.width * 0.3
                 : MediaQuery.of(context).size.width * 0.25,
         child: LayoutBuilder(builder: (context, constraints) {
-          return Stack(children: [
-            BlocBuilder<ChartCubit, ChartState>(
-              bloc: BlocProvider.of<ChartCubit>(context),
-              builder: (context, state) {
-                final cachedImage = LoadImageCached(
-                    imageUrl: formatImgURL(state.coverImg, ImageQuality.high),
-                    fit: BoxFit.cover);
-                return AnimatedSwitcher(
-                  duration: const Duration(seconds: 1),
-                  child: state is ChartInitial
-                      ? const PlaceholderWidget()
-                      : SizedBox(
-                          height: constraints.maxHeight,
-                          width: constraints.maxWidth,
-                          child: cachedImage),
-                );
-              },
-            ),
-            Positioned(
-              child: cachedClipPath,
-            ),
-            Positioned(
-              bottom: 4,
-              right: 4,
-              child: SizedBox(
-                width: constraints.maxWidth * 0.9,
-                height: MediaQuery.of(context).size.height * 0.09,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.only(right: 10, bottom: 4, top: 4),
-                    child: Text(
-                      widget.chartInfo.title,
-                      maxLines: 2,
-                      softWrap: true,
-                      textAlign: TextAlign.right,
-                      overflow: TextOverflow.ellipsis,
-                      textWidthBasis: TextWidthBasis.parent,
-                      style: const TextStyle(
-                        // color: _color.textColor.withValues(alpha: 0.95),
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 28,
-                        fontFamily: "Unageo",
-                        fontWeight: FontWeight.w700,
+          return FutureBuilder<String?>(
+            future: _resolvedThumbnailFuture,
+            builder: (context, snapshot) {
+              final thumbnailUrl = snapshot.data;
+              return Stack(children: [
+                if (thumbnailUrl != null && thumbnailUrl.isNotEmpty)
+                  SizedBox(
+                    height: constraints.maxHeight,
+                    width: constraints.maxWidth,
+                    child: LoadImageCached(
+                      imageUrl: formatImgURL(thumbnailUrl, ImageQuality.high),
+                      fallbackUrl: thumbnailUrl,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else
+                  const PlaceholderWidget(),
+                Positioned(child: cachedClipPath),
+                Positioned(
+                  bottom: 4,
+                  right: 4,
+                  child: SizedBox(
+                    width: constraints.maxWidth * 0.9,
+                    height: MediaQuery.of(context).size.height * 0.09,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(right: 10, bottom: 4, top: 4),
+                        child: Text(
+                          widget.chart.title,
+                          maxLines: 2,
+                          softWrap: true,
+                          textAlign: TextAlign.right,
+                          overflow: TextOverflow.ellipsis,
+                          textWidthBasis: TextWidthBasis.parent,
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            fontSize: 28,
+                            fontFamily: "Unageo",
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ]);
+              ]);
+            },
+          );
         }),
       ),
     );
@@ -154,9 +206,7 @@ class _ChartWidgetState extends State<ChartWidget> {
 }
 
 class PlaceholderWidget extends StatelessWidget {
-  const PlaceholderWidget({
-    super.key,
-  });
+  const PlaceholderWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +225,6 @@ class ChartCardClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    // write the path for writing a text over it, shape should be at bottom only
     path.moveTo(0, size.height * 0.75);
     path.lineTo(0, size.height);
     path.lineTo(size.width, size.height);

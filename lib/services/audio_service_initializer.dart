@@ -1,9 +1,6 @@
 import 'dart:io';
-import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
-import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:audio_service/audio_service.dart';
 
 class PlayerInitializer {
@@ -18,9 +15,8 @@ class PlayerInitializer {
   static BloomeeMusicPlayer? bloomeeMusicPlayer;
 
   Future<void> _initialize() async {
-    final settingsRepo = SettingsRepository(SettingsDAO(DBProvider.db));
     bloomeeMusicPlayer = await AudioService.init(
-      builder: () => BloomeeMusicPlayer(settingsRepo),
+      builder: () => BloomeeMusicPlayer(),
       config: const AudioServiceConfig(
         androidStopForegroundOnPause: false,
         androidNotificationChannelId: 'com.BloomeePlayer.notification.status',

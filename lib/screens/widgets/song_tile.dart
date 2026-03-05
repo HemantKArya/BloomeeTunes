@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart' hide MediaItem;
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 
@@ -65,7 +65,7 @@ class _SongCardStyles {
 }
 
 class SongCardWidget extends StatelessWidget {
-  final MediaItemModel song;
+  final Track song;
   final bool showOptions;
   final bool showInfoBtn;
   final bool showPlayBtn;
@@ -120,15 +120,16 @@ class SongCardWidget extends StatelessWidget {
                 mediaItemStream: playerCubit.bloomeePlayer.mediaItem,
               ),
               _SongImage(
-                imageUrl:
-                    formatImgURL(song.artUri.toString(), ImageQuality.low),
+                imageUrl: formatImgURL(song.thumbnail.url, ImageQuality.low),
+                fallbackUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
                 isWide: isWide,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _SongInfo(
                   title: song.title,
-                  subtitle: subtitleOverride ?? song.artist ?? 'Unknown',
+                  subtitle: subtitleOverride ??
+                      song.artists.map((a) => a.name).join(', '),
                 ),
               ),
               if (showPlayBtn)
@@ -139,7 +140,7 @@ class SongCardWidget extends StatelessWidget {
               if (showCopyBtn)
                 _CopyButton(
                   songTitle: song.title,
-                  songArtist: song.artist,
+                  songArtist: song.artists.map((a) => a.name).join(', '),
                 ),
               if (showInfoBtn)
                 _InfoButton(
@@ -259,10 +260,12 @@ class _PlayingIndicatorState extends State<_PlayingIndicator>
 // Extracted widget for song image with RepaintBoundary
 class _SongImage extends StatelessWidget {
   final String imageUrl;
+  final String? fallbackUrl;
   final bool isWide;
 
   const _SongImage({
     required this.imageUrl,
+    this.fallbackUrl,
     required this.isWide,
   });
 
@@ -278,6 +281,7 @@ class _SongImage extends StatelessWidget {
             height: 55,
             child: LoadImageCached(
               imageUrl: imageUrl,
+              fallbackUrl: fallbackUrl,
               fit: BoxFit.cover,
             ),
           ),
@@ -386,7 +390,7 @@ class _CopyButton extends StatelessWidget {
 
 // Info button
 class _InfoButton extends StatelessWidget {
-  final MediaItemModel song;
+  final Track song;
   final VoidCallback? onInfoTap;
 
   const _InfoButton({
@@ -422,7 +426,7 @@ class _InfoButton extends StatelessWidget {
 
 // Delete button
 class _DeleteButton extends StatelessWidget {
-  final MediaItemModel song;
+  final Track song;
   final BloomeePlayerCubit playerCubit;
 
   const _DeleteButton({

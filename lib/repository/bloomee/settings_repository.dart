@@ -1,5 +1,4 @@
 import 'package:Bloomee/core/constants/setting_keys.dart';
-import 'package:Bloomee/core/models/source_engines.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 
@@ -33,27 +32,7 @@ class SettingsRepository {
   Future<Stream<AppSettingsBoolDB?>?> watchSettingBool(String key) =>
       _settingsDao.getWatcher4SettingBool(key);
 
-  // --------------- Source engines (moved from model layer) ---------------
-
-  /// Get list of available source engines based on user country and enabled state.
-  Future<List<SourceEngine>> getAvailableSourceEngines() async {
-    String country =
-        await _settingsDao.getSettingStr(SettingKeys.countryCode) ?? "IN";
-    List<SourceEngine> availSourceEngines = [];
-    for (var engine in SourceEngine.values) {
-      bool isAvailable =
-          await _settingsDao.getSettingBool(engine.value) ?? true;
-      if (isAvailable == true) {
-        if (sourceEngineCountries[engine]!.contains(country) ||
-            sourceEngineCountries[engine]!.isEmpty) {
-          availSourceEngines.add(engine);
-        }
-      }
-    }
-    return availSourceEngines;
-  }
-
-  // --------------- Audio quality (moved from model layer) ---------------
+  // --------------- Audio quality ---------------
 
   /// Get JioSaavn quality URL based on user's streaming/download quality setting.
   Future<String?> getJsQualityURL(String url, {bool isStreaming = true}) async {

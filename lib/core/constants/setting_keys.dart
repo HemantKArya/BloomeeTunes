@@ -59,4 +59,8 @@ class SettingKeys {
   /// Tracks the last changelog version the user has read.
   /// Value format: e.g. "v2.11.6+171".
   static const String readChangelogs = "readChangelogs";
+
+  // ── Plugins ────────────────────────────────────────────────────────────────
+  /// JSON-encoded list of plugin IDs that should auto-load on app startup.
+  static const String autoLoadPluginIds = "autoLoadPluginIds";
 }

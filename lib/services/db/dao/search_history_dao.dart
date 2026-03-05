@@ -14,8 +14,8 @@ class SearchHistoryDAO {
         .queryEqualTo(searchQuery)
         .findFirstSync();
     if (existing != null) {
-      isarDB.writeTxn(() => isarDB.searchHistoryDBs
-          .put(existing..lastSearched = DateTime.now()));
+      isarDB.writeTxn(() =>
+          isarDB.searchHistoryDBs.put(existing..lastSearched = DateTime.now()));
     } else {
       isarDB.writeTxnSync(() => isarDB.searchHistoryDBs.putSync(SearchHistoryDB(
             query: searchQuery,
@@ -35,7 +35,7 @@ class SearchHistoryDAO {
     for (var element in searchHistoryDB) {
       searchHistory.add({
         "query": element.query,
-        "id": element.isarId.toString(),
+        "id": element.id.toString(),
       });
     }
     return searchHistory;
@@ -53,7 +53,7 @@ class SearchHistoryDAO {
     for (var element in searchHistoryDB) {
       searchHistory.add({
         "query": element.query,
-        "id": element.isarId.toString(),
+        "id": element.id.toString(),
       });
     }
     return searchHistory;
@@ -65,7 +65,7 @@ class SearchHistoryDAO {
         isarDB.searchHistoryDBs.where().sortByLastSearchedDesc().findAllSync();
     if (searchHistoryDB.length > 100) {
       final idsToDelete =
-          searchHistoryDB.sublist(100).map((e) => e.isarId).toList();
+          searchHistoryDB.sublist(100).map((e) => e.id).toList();
       isarDB.writeTxn(() => isarDB.searchHistoryDBs.deleteAll(idsToDelete));
     }
   }

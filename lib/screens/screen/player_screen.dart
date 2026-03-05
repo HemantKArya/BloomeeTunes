@@ -1,8 +1,7 @@
-import 'dart:ui';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/adapters/track_adapter.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/screen/player_views/equalizer_view.dart';
 import 'package:Bloomee/screens/widgets/gradient_progress_bar.dart';
@@ -10,7 +9,6 @@ import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
 import 'package:Bloomee/services/bloomee_player.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -248,7 +246,7 @@ class _PlayerUI extends StatelessWidget {
                                     child: ConstrainedBox(
                                       constraints:
                                           const BoxConstraints(minHeight: 200),
-                                      child: LyricsWidget(),
+                                      child: const LyricsWidget(),
                                     ),
                                   ),
                                 ],
@@ -283,15 +281,20 @@ class CoverImageVolSlider extends StatelessWidget {
         child: StreamBuilder<MediaItem?>(
             stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
             builder: (context, snapshot) {
-              final artUri = snapshot.data?.artUri?.toString() ?? "";
               return LayoutBuilder(builder: (context, constraints) {
                 return ConstrainedBox(
                   constraints: BoxConstraints(
                       maxWidth: constraints.maxWidth * 0.98,
                       maxHeight: constraints.maxHeight * 0.98),
                   child: LoadImageCached(
-                      imageUrl: formatImgURL(artUri, ImageQuality.high),
-                      fallbackUrl: formatImgURL(artUri, ImageQuality.medium),
+                      imageUrl: bloomeePlayerCubit.bloomeePlayer
+                              .currentTrackInfo.thumbnail.urlHigh ??
+                          bloomeePlayerCubit
+                              .bloomeePlayer.currentTrackInfo.thumbnail.url,
+                      fallbackUrl: bloomeePlayerCubit.bloomeePlayer
+                              .currentTrackInfo.thumbnail.urlHigh ??
+                          bloomeePlayerCubit
+                              .bloomeePlayer.currentTrackInfo.thumbnail.urlLow,
                       fit: BoxFit.fitWidth),
                 );
               });
@@ -404,7 +407,7 @@ class _DownloadButton extends StatelessWidget {
           return FutureBuilder(
             future: context
                 .read<DownloaderCubit>()
-                .getDownloadInfo(mediaItem2MediaItemModel(currentMedia)),
+                .getDownloadInfo(mediaItemToTrack(currentMedia)),
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 return Padding(
@@ -437,26 +440,24 @@ class _LikeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
-    // Listen to mediaItem to avoid rebuilding the FutureBuilder on EVERY position stream tick
-    return StreamBuilder<MediaItem?>(
-        stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
-        builder: (context, mediaSnapshot) {
-          final currentMedia = mediaSnapshot.data;
-          if (currentMedia == null) return const SizedBox.shrink();
+    return BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+      builder: (context, _) {
+        return StreamBuilder<MediaItem?>(
+          stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
+          builder: (context, mediaSnapshot) {
+            final currentMedia = mediaSnapshot.data;
+            if (currentMedia == null) return const SizedBox.shrink();
 
-          return FutureBuilder<bool>(
-            future: context
-                .read<LibraryItemsCubit>()
-                .isMediaLiked(mediaItem2MediaItemModel(currentMedia)),
-            builder: (context, snapshot) {
-              final isLiked = snapshot.data ?? false;
-
-              // Only listen to progress stream here for the isPlaying state
-              // the FutureBuilder is already resolved and won't re-run.
-              return StreamBuilder<ProgressBarStreams>(
-                  stream: bloomeePlayerCubit.progressStreams,
-                  builder: (context, progressSnapshot) {
-                    final isPlaying = progressSnapshot.data?.isPlaying ?? false;
+            return FutureBuilder<bool>(
+              future: context
+                  .read<LibraryItemsCubit>()
+                  .isTrackLiked(mediaItemToTrack(currentMedia)),
+              builder: (context, snapshot) {
+                final isLiked = snapshot.data ?? false;
+                return StreamBuilder<bool>(
+                  stream: bloomeePlayerCubit.bloomeePlayer.engine.playingStream,
+                  builder: (context, playingSnapshot) {
+                    final isPlaying = playingSnapshot.data ?? false;
                     return Padding(
                       padding: const EdgeInsets.only(left: 0.0, bottom: 3),
                       child: LikeBtnWidget(
@@ -464,23 +465,27 @@ class _LikeButton extends StatelessWidget {
                         isLiked: isLiked,
                         iconSize: 25,
                         onLiked: () {
-                          context.read<LibraryItemsCubit>().likeMediaItem(
-                              mediaItem2MediaItemModel(currentMedia), true);
+                          context.read<LibraryItemsCubit>().setTrackLiked(
+                              mediaItemToTrack(currentMedia), true);
                           SnackbarService.showMessage(
                               "${currentMedia.title} is Liked!!");
                         },
                         onDisliked: () {
-                          context.read<LibraryItemsCubit>().likeMediaItem(
-                              mediaItem2MediaItemModel(currentMedia), false);
+                          context.read<LibraryItemsCubit>().setTrackLiked(
+                              mediaItemToTrack(currentMedia), false);
                           SnackbarService.showMessage(
                               "${currentMedia.title} is Unliked!!");
                         },
                       ),
                     );
-                  });
-            },
-          );
-        });
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 }
 
@@ -765,7 +770,7 @@ class _ExternalLinkControl extends StatelessWidget {
             }),
         onPressed: () async {
           final url = bloomeePlayerCubit
-              .bloomeePlayer.currentMedia.extras?['perma_url'];
+              .bloomeePlayer.mediaItem.valueOrNull?.extras?['perma_url'];
           if (url != null && await canLaunchUrlString(url)) {
             await launchUrlString(url);
           } else {
@@ -893,6 +898,7 @@ class _AmbientImgShadowWidgetState extends State<AmbientImgShadowWidget> {
   void _fetchPalette(String? artUri) async {
     if (artUri == null || artUri.isEmpty) return;
     try {
+      // Use high quality URL for palette generation if available
       final palette = await getPalleteFromImage(artUri);
       if (mounted) {
         setState(() {

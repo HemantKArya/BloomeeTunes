@@ -1,21 +1,15 @@
 part of 'history_cubit.dart';
 
 class HistoryState {
-  MediaPlaylist mediaPlaylist;
-  HistoryState({
-    required this.mediaPlaylist,
-  });
+  final List<Track> tracks;
 
-  HistoryState copyWith({
-    MediaPlaylist? mediaPlaylist,
-  }) {
-    return HistoryState(
-      mediaPlaylist: mediaPlaylist ?? this.mediaPlaylist,
-    );
+  const HistoryState({required this.tracks});
+
+  HistoryState copyWith({List<Track>? tracks}) {
+    return HistoryState(tracks: tracks ?? this.tracks);
   }
 }
 
 class HistoryInitial extends HistoryState {
-  HistoryInitial()
-      : super(mediaPlaylist: MediaPlaylist(playlistName: "", mediaItems: []));
+  const HistoryInitial() : super(tracks: const []);
 }

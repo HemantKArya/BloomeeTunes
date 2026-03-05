@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -16,8 +16,7 @@ List<int> generateRandomIndices(int length) {
 /// The [BloomeeMusicPlayer] reads [currentTrack] after calling navigation
 /// methods and decides what to play.
 class QueueManager {
-  final BehaviorSubject<List<MediaItemModel>> _queue =
-      BehaviorSubject.seeded([]);
+  final BehaviorSubject<List<Track>> _queue = BehaviorSubject.seeded([]);
   final BehaviorSubject<bool> shuffleMode = BehaviorSubject.seeded(false);
   final BehaviorSubject<String> queueTitle = BehaviorSubject.seeded('Queue');
 
@@ -27,14 +26,14 @@ class QueueManager {
 
   // ─── Getters ───────────────────────────────────────────────────────────────
 
-  List<MediaItemModel> get tracks => _queue.value;
-  Stream<List<MediaItemModel>> get tracksStream => _queue.stream;
+  List<Track> get tracks => _queue.value;
+  Stream<List<Track>> get tracksStream => _queue.stream;
   int get currentIndex => _currentIndex;
   int get length => _queue.value.length;
   bool get isEmpty => _queue.value.isEmpty;
   bool get isNotEmpty => _queue.value.isNotEmpty;
 
-  MediaItemModel? get currentTrack {
+  Track? get currentTrack {
     if (_queue.value.isEmpty || _currentIndex >= _queue.value.length) {
       return null;
     }
@@ -61,7 +60,7 @@ class QueueManager {
   }
 
   /// Peek at the next track without advancing the index.
-  MediaItemModel? peekNext({LoopMode loopMode = LoopMode.off}) {
+  Track? peekNext({LoopMode loopMode = LoopMode.off}) {
     if (_queue.value.isEmpty) return null;
 
     if (!shuffleMode.value) {
@@ -160,7 +159,7 @@ class QueueManager {
 
   /// Replace the queue with a new playlist.
   void loadTracks(
-    List<MediaItemModel> tracks, {
+    List<Track> tracks, {
     String playlistName = 'Queue',
     int idx = 0,
     bool shuffling = false,
@@ -204,10 +203,10 @@ class QueueManager {
   }
 
   /// Add a track to the end of the queue. Skips duplicates (by id).
-  void addTrack(MediaItemModel track) {
+  void addTrack(Track track) {
     if (_queue.value.any((t) => t.id == track.id)) return;
     queueTitle.add('Queue');
-    final newQueue = List<MediaItemModel>.from(_queue.value)..add(track);
+    final newQueue = List<Track>.from(_queue.value)..add(track);
     final newIdx = newQueue.length - 1;
     _queue.add(newQueue);
     if (shuffleMode.value && _shuffleList.isNotEmpty) {
@@ -216,9 +215,9 @@ class QueueManager {
   }
 
   /// Add multiple tracks to the queue.
-  void addTracks(List<MediaItemModel> tracks, {bool atLast = false}) {
+  void addTracks(List<Track> tracks, {bool atLast = false}) {
     if (atLast) {
-      final newQueue = List<MediaItemModel>.from(_queue.value)..addAll(tracks);
+      final newQueue = List<Track>.from(_queue.value)..addAll(tracks);
       _queue.add(newQueue);
     } else {
       for (final track in tracks) {
@@ -228,7 +227,7 @@ class QueueManager {
   }
 
   /// Insert a track to play next (after current).
-  void addPlayNext(MediaItemModel track) {
+  void addPlayNext(Track track) {
     if (_queue.value.isEmpty) {
       _queue.add([track]);
       _currentIndex = 0;
@@ -237,8 +236,7 @@ class QueueManager {
     if (_queue.value.any((t) => t.id == track.id)) return;
 
     final insertIdx = _currentIndex + 1;
-    final newQueue = List<MediaItemModel>.from(_queue.value)
-      ..insert(insertIdx, track);
+    final newQueue = List<Track>.from(_queue.value)..insert(insertIdx, track);
     _queue.add(newQueue);
 
     if (shuffleMode.value && _shuffleList.isNotEmpty) {
@@ -250,8 +248,8 @@ class QueueManager {
   }
 
   /// Insert a track at a specific index.
-  void insertTrack(int index, MediaItemModel track) {
-    final queue = List<MediaItemModel>.from(_queue.value);
+  void insertTrack(int index, Track track) {
+    final queue = List<Track>.from(_queue.value);
     final actualIdx = index.clamp(0, queue.length);
     if (actualIdx < queue.length) {
       queue.insert(actualIdx, track);
@@ -277,7 +275,7 @@ class QueueManager {
   void removeTrackAt(int index) {
     if (index >= _queue.value.length) return;
 
-    final newQueue = List<MediaItemModel>.from(_queue.value)..removeAt(index);
+    final newQueue = List<Track>.from(_queue.value)..removeAt(index);
     _queue.add(newQueue);
 
     // Adjust shuffle list.
@@ -312,7 +310,7 @@ class QueueManager {
 
   /// Move a track from one position to another.
   void moveTrack(int oldIndex, int newIndex) {
-    final queue = List<MediaItemModel>.from(_queue.value);
+    final queue = List<Track>.from(_queue.value);
     if (oldIndex < newIndex) newIndex--;
     final item = queue.removeAt(oldIndex);
     queue.insert(newIndex, item);
@@ -346,7 +344,7 @@ class QueueManager {
   }
 
   /// Replace the entire queue with new tracks.
-  void updateQueue(List<MediaItemModel> tracks, {int startIndex = 0}) {
+  void updateQueue(List<Track> tracks, {int startIndex = 0}) {
     _queue.add(tracks);
     _currentIndex = startIndex.clamp(0, tracks.isEmpty ? 0 : tracks.length - 1);
     if (shuffleMode.value && tracks.isNotEmpty) {

@@ -1,20 +1,15 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:developer';
-// import 'package:Bloomee/core/models/source_engines.dart';
-import 'package:Bloomee/core/models/yt_music_model.dart';
-import 'package:Bloomee/repository/mixed/mixed_api.dart';
+import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/repository/spotify/spotify_api.dart';
-import 'package:Bloomee/repository/youtube/yt_music_api.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-// import 'package:Bloomee/utils/country_info.dart';
+import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:Bloomee/utils/url_checker.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
-import 'package:Bloomee/core/models/song_model.dart';
-import 'package:Bloomee/core/models/youtube_vid_model.dart';
-import 'package:Bloomee/repository/youtube/youtube_api.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/dao/track_dao.dart';
 
 class ImporterState {
   int totalItems = 0;
@@ -52,200 +47,108 @@ class ImporterState {
 }
 
 class ExternalMediaImporter {
-  static Stream<ImporterState> ytPlaylistImporter(String url) async* {
-    Uri uri = Uri.parse(url);
-    int count = 0;
-    String? playlistID;
-    if (uri.host == 'youtube.com') {
-      playlistID = uri.queryParameters['list'];
+  /// Search for a track using loaded content-resolver plugins.
+  static Future<Track?> _searchTrackByMeta(String query) async {
+    final pluginService = ServiceLocator.pluginService;
+    final pluginIds = pluginService.getLoadedPlugins();
+    if (pluginIds.isEmpty) {
+      log('No plugins loaded', name: 'MediaImporter');
+      return null;
     }
-    if (uri.host == 'youtu.be') {
-      playlistID = uri.pathSegments.first;
-    }
-    if (playlistID != null) {
-      log("Playlist ID: $playlistID", name: "Playlist Importer");
-      yield ImporterState(
-          totalItems: 0,
-          importedItems: 0,
-          failedItems: 0,
-          isDone: false,
-          isFailed: false,
-          message: "Importing Playlist...with ID: $playlistID");
+
+    for (final pluginId in pluginIds) {
       try {
-        final playlistMeta = await YoutubeExplode().playlists.get(playlistID);
-
-        log("Playlist Name: ${playlistMeta.title}", name: "Playlist Importer");
-        PlaylistDAO(DBProvider.db).createPlaylist(
-          playlistMeta.title,
-          source: 'youtube',
-          artists: playlistMeta.author,
-          description: playlistMeta.author,
-          isAlbum: false,
-          permaURL: playlistMeta.url,
-          artURL: playlistMeta.thumbnails.mediumResUrl,
+        final response = await pluginService.execute(
+          pluginId: pluginId,
+          request: PluginRequest.contentResolver(
+            ContentResolverCommand.search(
+              query: query,
+              filter: ContentSearchFilter.track,
+            ),
+          ),
         );
 
-        yield ImporterState(
-          totalItems: playlistMeta.videoCount ?? 0,
-          importedItems: 0,
-          failedItems: 0,
-          isDone: false,
-          isFailed: false,
-          message: "Importing Playlist: ${playlistMeta.title}",
-        );
-
-        final tempStrm = YoutubeExplode().playlists.getVideos(playlistID);
-        await for (var video in tempStrm) {
-          {
-            var itemMap = await YouTubeServices()
-                .formatVideo(video: video, quality: "High", getUrl: false);
-            var item = fromYtVidSongMap2MediaItem(itemMap!);
-            await PlaylistDAO(DBProvider.db)
-                .addMediaItem(mediaItemToMediaItemDB(item), playlistMeta.title);
-            log("Added: ${item.title}", name: "Playlist Importer");
-            yield ImporterState(
-              totalItems: playlistMeta.videoCount ?? 0,
-              importedItems: ++count,
-              failedItems: 0,
-              isDone: false,
-              isFailed: false,
-              message: "$count/${playlistMeta.videoCount} - ${item.title}",
-            );
+        // Extract first track from search results
+        if (response is PluginResponse_Search) {
+          for (final item in response.field0.items) {
+            if (item is MediaItem_Track) {
+              return item.field0;
+            }
           }
         }
-        yield ImporterState(
-          totalItems: playlistMeta.videoCount ?? 0,
-          importedItems: count,
-          failedItems: 0,
-          isDone: true,
-          isFailed: false,
-          message: "Imported Playlist: ${playlistMeta.title}",
-        );
       } catch (e) {
-        log(e.toString());
-        yield ImporterState(
-          totalItems: 0,
-          importedItems: 0,
-          failedItems: 0,
-          isDone: false,
-          isFailed: true,
-          message: "Failed to import Playlist",
-        );
+        // Plugin doesn't support content-resolver search, try next
+        continue;
       }
     }
+    log('No track found for query: $query', name: 'MediaImporter');
+    return null;
   }
+
+  // --------------- YouTube ---------------
+
+  static Stream<ImporterState> ytPlaylistImporter(String url) async* {
+    yield ImporterState(
+      totalItems: 0,
+      importedItems: 0,
+      failedItems: 0,
+      isDone: false,
+      isFailed: true,
+      message:
+          "YouTube playlist import requires a plugin. Please install a YouTube plugin.",
+    );
+  }
+
+  static Future<Track?> ytMediaImporter(String url) async {
+    SnackbarService.showMessage(
+      "YouTube import requires a plugin. Searching...",
+      loading: true,
+    );
+    // Try to extract video title from URL and search
+    final videoId = extractVideoId(url);
+    if (videoId != null) {
+      final track = await _searchTrackByMeta(videoId);
+      if (track != null) {
+        SnackbarService.showMessage("Found: ${track.title}");
+        return track;
+      }
+    }
+    SnackbarService.showMessage("Could not find track");
+    return null;
+  }
+
+  // --------------- YouTube Music ---------------
 
   static Stream<ImporterState> ytmPlaylistImporter(String url) async* {
-    Uri uri = Uri.parse(url);
-    int count = 0;
-    String? playlistID;
-    if (uri.host == 'music.youtube.com') {
-      playlistID = uri.queryParameters['list'];
-    }
-    log("Playlist ID: $playlistID", name: "Playlist Importer");
     yield ImporterState(
-        totalItems: 0,
-        importedItems: 0,
-        failedItems: 0,
-        isDone: false,
-        isFailed: false,
-        message: "Importing Playlist...with ID: $playlistID");
-
-    if (playlistID != null) {
-      try {
-        final playlistMeta = await YtMusicService().getPlaylist(playlistID);
-        log("Playlist Name: ${playlistMeta['name']}",
-            name: "Playlist Importer");
-
-        PlaylistDAO(DBProvider.db).createPlaylist(
-          playlistMeta['name'],
-          source: 'ytmusic',
-          description: playlistMeta['subtitle'],
-          isAlbum: playlistMeta['type'] == "Album" ? true : false,
-          permaURL: playlistMeta['url'],
-          artURL: (playlistMeta['images'] as List).last,
-        );
-        List<MediaItemModel> mediaItems =
-            fromYtSongMapList2MediaItemList(playlistMeta['songs']);
-        log("Total Items: ${mediaItems.first}", name: "Playlist Importer");
-
-        for (var item in mediaItems) {
-          PlaylistDAO(DBProvider.db)
-              .addMediaItem(mediaItemToMediaItemDB(item), playlistMeta['name']);
-          log("Added: ${item.title}", name: "Playlist Importer");
-          yield ImporterState(
-            totalItems: mediaItems.length,
-            importedItems: ++count,
-            failedItems: 0,
-            isDone: false,
-            isFailed: false,
-            message: "$count/${mediaItems.length} - ${item.title}",
-          );
-        }
-        yield ImporterState(
-          totalItems: mediaItems.length,
-          importedItems: count,
-          failedItems: 0,
-          isDone: true,
-          isFailed: false,
-          message: "Imported Playlist: ${playlistMeta['name']}",
-        );
-      } catch (e) {
-        log(e.toString());
-        yield ImporterState(
-          totalItems: 0,
-          importedItems: 0,
-          failedItems: 0,
-          isDone: false,
-          isFailed: true,
-          message: "Failed to import Playlist",
-        );
-      }
-    }
+      totalItems: 0,
+      importedItems: 0,
+      failedItems: 0,
+      isDone: false,
+      isFailed: true,
+      message:
+          "YouTube Music playlist import requires a plugin. Please install a YouTube Music plugin.",
+    );
   }
 
-  static Future<MediaItemModel?> ytMediaImporter(String url) async {
-    final videoId = extractVideoId(url);
-    SnackbarService.showMessage("Getting Youtube Audio...", loading: true);
-    if (videoId != null) {
-      try {
-        final video = await YoutubeExplode().videos.get(videoId);
-        final itemMap = await YouTubeServices()
-            .formatVideo(video: video, quality: "High", getUrl: false);
-        final item = fromYtVidSongMap2MediaItem(itemMap!);
-        log("Got: ${item.title}", name: "Youtube Importer");
-        SnackbarService.showMessage("Got: ${item.title}");
-        return item;
-      } catch (e) {
-        log(e.toString());
-      }
-    } else {
-      log("Invalid Youtube URL", name: "Youtube Importer");
-      SnackbarService.showMessage("Invalid Youtube URL");
-    }
-    return null;
-  }
-
-  static Future<MediaItemModel?> ytmMediaImporter(String url) async {
+  static Future<Track?> ytmMediaImporter(String url) async {
+    SnackbarService.showMessage(
+      "YouTube Music import requires a plugin. Searching...",
+      loading: true,
+    );
     final videoId = extractYTMusicId(url);
-    SnackbarService.showMessage("Getting Youtube Music Audio...",
-        loading: true);
     if (videoId != null) {
-      try {
-        final itemMap = await YtMusicService().getSongData(videoId: videoId);
-        final item = fromYtSongMap2MediaItem(itemMap);
-        log("Got: ${item.title}", name: "Youtube Music Importer");
-        SnackbarService.showMessage("Got: ${item.title}");
-        return item;
-      } catch (e) {
-        log(e.toString());
+      final track = await _searchTrackByMeta(videoId);
+      if (track != null) {
+        SnackbarService.showMessage("Found: ${track.title}");
+        return track;
       }
-    } else {
-      log("Invalid Youtube Music URL", name: "Youtube Music Importer");
-      SnackbarService.showMessage("Invalid Youtube Music URL");
     }
+    SnackbarService.showMessage("Could not find track");
     return null;
   }
+
+  // --------------- Spotify ---------------
 
   static Stream<ImporterState> sfyPlaylistImporter(
       {required String url, String? playlistID}) async* {
@@ -253,7 +156,6 @@ class ExternalMediaImporter {
     if (playlistID != null) {
       log("Playlist ID: $playlistID", name: "Playlist Importer");
       final accessToken = await SpotifyApi().getAccessTokenCC();
-      String title;
       try {
         yield ImporterState(
           totalItems: 0,
@@ -266,55 +168,42 @@ class ExternalMediaImporter {
         final data =
             await SpotifyApi().getAllTracksOfPlaylist(accessToken, playlistID);
         String playlistTitle = data["playlistName"].toString();
-        // log(data.toString());
         final tracks = data["tracks"] as List;
         int totalItems = tracks.length;
-        String artists;
-        int i = 1;
+
         if (tracks.isNotEmpty) {
-          PlaylistDAO(DBProvider.db).createPlaylist(
-            playlistTitle,
-            source: 'spotify',
-            description: data["description"].toString(),
-            isAlbum: false,
-            permaURL: data["url"].toString(),
-            artURL: data["imgUrl"].toString(),
-          );
+          final trackDao = TrackDAO(DBProvider.db);
+          final playlistDao = PlaylistDAO(DBProvider.db, trackDao);
+          final playlistId = await playlistDao.ensurePlaylist(playlistTitle);
+
+          int imported = 0;
           for (var (e as Map) in tracks) {
             try {
-              title = (e['track']['name']).toString();
-              artists = (e['track']['artists'] as List)
+              final title = (e['track']['name']).toString();
+              final artists = (e['track']['artists'] as List)
                   .map((e) => e['name'])
                   .toList()
                   .join(", ");
-              log("$title by $artists", name: "Playlist Importer");
+
               if (title.isNotEmpty) {
-                MediaItemModel? mediaItem;
-                // final country = await getCountry();
-                // if (sourceEngineCountries[SourceEngine.eng_JIS]!
-                //     .contains(country)) {
-                //   log("Getting from MixedAPI", name: "Playlist Importer");
-                //   mediaItem =
-                //       await MixedAPI().getTrackMixed("$title $artists".trim());
-                // } else {
-                log("Getting from YTM", name: "Playlist Importer");
-                mediaItem = await MixedAPI().getYtTrackByMeta(
-                    "$title $artists".trim(),
-                    useStringMatcher: false);
-                // }
-                if (mediaItem != null) {
-                  PlaylistDAO(DBProvider.db).addMediaItem(
-                      mediaItemToMediaItemDB(mediaItem), playlistTitle);
+                final track =
+                    await _searchTrackByMeta("$title $artists".trim());
+                if (track != null) {
+                  await trackDao.upsertTrack(track);
+                  await playlistDao.addTrackToPlaylist(
+                    playlistId,
+                    track,
+                  );
+                  imported++;
                   yield ImporterState(
                     totalItems: totalItems,
-                    importedItems: i,
+                    importedItems: imported,
                     failedItems: 0,
                     isDone: false,
                     isFailed: false,
-                    message: "Importing($i/$totalItems): ${mediaItem.title}",
+                    message: "Importing($imported/$totalItems): ${track.title}",
                   );
-                  i++;
-                  log("Added: ${mediaItem.title}", name: "Playlist Importer");
+                  log("Added: ${track.title}", name: "Playlist Importer");
                 }
               }
             } catch (e) {
@@ -324,7 +213,7 @@ class ExternalMediaImporter {
           }
           yield ImporterState(
             totalItems: totalItems,
-            importedItems: i - 1,
+            importedItems: imported,
             failedItems: 0,
             isDone: true,
             isFailed: false,
@@ -332,7 +221,6 @@ class ExternalMediaImporter {
           );
           SnackbarService.showMessage("Imported Playlist: $playlistTitle");
         } else {
-          log("Playlist is empty!!", name: "Playlist Importer");
           yield ImporterState(
             totalItems: 0,
             importedItems: 0,
@@ -362,14 +250,13 @@ class ExternalMediaImporter {
         isFailed: true,
         message: "Invalid Playlist URL",
       );
-      log("Invalid Playlist URL", name: "Playlist Importer");
       SnackbarService.showMessage("Invalid Playlist URL");
     }
   }
 
-  static Future<MediaItemModel?> sfyMediaImporter(String url) async {
+  static Future<Track?> sfyMediaImporter(String url) async {
     final accessToken = await SpotifyApi().getAccessTokenCC();
-    SnackbarService.showMessage("Getting Spotify track using MixedAPIs...",
+    SnackbarService.showMessage("Getting Spotify track...",
         duration: const Duration(seconds: 1));
     final trackId = extractSpotifyTrackId(url);
     if (trackId != null) {
@@ -380,24 +267,11 @@ class ExternalMediaImporter {
         final title = "${data['name']} $artists".trim().toLowerCase();
 
         if (title.isNotEmpty) {
-          MediaItemModel? mediaItem;
-          // final country = await getCountry();
-          // if (sourceEngineCountries[SourceEngine.eng_JIS]!.contains(country)) {
-          //   log("Getting from MixedAPI", name: "Playlist Importer");
-          //   mediaItem =
-          //       await MixedAPI().getTrackMixed("$title $artists".trim());
-          // } else {
-          log("Getting from YTM", name: "Playlist Importer");
-          mediaItem =
-              await MixedAPI().getYtTrackByMeta("$title $artists".trim());
-          // }
-          if (mediaItem != null) {
-            log("Got: ${mediaItem.title}", name: "Spotify Importer");
-            SnackbarService.showMessage(
-                "Got Spotify track: ${mediaItem.title}");
-            return mediaItem;
+          final track = await _searchTrackByMeta(title);
+          if (track != null) {
+            SnackbarService.showMessage("Got: ${track.title}");
+            return track;
           } else {
-            log("Not found or failed to import.", name: "Spotify Importer");
             SnackbarService.showMessage("Not found or failed to import.");
           }
         }
@@ -405,7 +279,6 @@ class ExternalMediaImporter {
         log(e.toString());
       }
     } else {
-      log("Invalid Spotify URL", name: "Spotify Importer");
       SnackbarService.showMessage("Invalid Spotify URL");
     }
     return null;
@@ -417,7 +290,6 @@ class ExternalMediaImporter {
     if (albumID != null) {
       log("Album ID: $albumID", name: "Album Importer");
       final accessToken = await SpotifyApi().getAccessTokenCC();
-      String title;
       try {
         yield ImporterState(
           totalItems: 0,
@@ -430,59 +302,45 @@ class ExternalMediaImporter {
         final data = await SpotifyApi().getAllAlbumTracks(accessToken, albumID);
         String albumTitle = data["albumName"].toString();
 
-        PlaylistDAO(DBProvider.db).createPlaylist(
-          albumTitle,
-          source: 'spotify',
-          description: data["description"]?.toString(),
-          isAlbum: true,
-          permaURL: data["url"]?.toString(),
-          artURL: data["imgUrl"]?.toString(),
-          artists: data["artists"]?.toString(),
-        );
+        final trackDao = TrackDAO(DBProvider.db);
+        final playlistDao = PlaylistDAO(DBProvider.db, trackDao);
+        final albumPlaylistId = await playlistDao.ensurePlaylist(albumTitle);
 
         final tracks = data["tracks"] as List;
         int totalItems = tracks.length;
-        String artists;
-        int i = 1;
+        int imported = 0;
+
         if (tracks.isNotEmpty && albumTitle.isNotEmpty) {
           for (var (e as Map) in tracks) {
-            title = (e['name']).toString();
-            artists = (e['artists'] as List)
+            final title = (e['name']).toString();
+            final artists = (e['artists'] as List)
                 .map((e) => e['name'])
                 .toList()
                 .join(", ");
-            log("$title by $artists", name: "Album Importer");
+
             if (title.isNotEmpty) {
-              MediaItemModel? mediaItem;
-              // final country = await getCountry();
-              // if (sourceEngineCountries[SourceEngine.eng_JIS]!
-              //     .contains(country)) {
-              //   log("Getting from MixedAPI", name: "Playlist Importer");
-              //   mediaItem =
-              //       await MixedAPI().getTrackMixed("$title $artists".trim());
-              // } else {
-              log("Getting from YTM", name: "Playlist Importer");
-              mediaItem =
-                  await MixedAPI().getYtTrackByMeta("$title $artists".trim());
-              // }
-              if (mediaItem != null) {
-                PlaylistDAO(DBProvider.db).addMediaItem(
-                    mediaItemToMediaItemDB(mediaItem), albumTitle);
+              final track = await _searchTrackByMeta("$title $artists".trim());
+              if (track != null) {
+                await trackDao.upsertTrack(track);
+                await playlistDao.addTrackToPlaylist(
+                  albumPlaylistId,
+                  track,
+                );
+                imported++;
                 yield ImporterState(
                   totalItems: totalItems,
-                  importedItems: i,
+                  importedItems: imported,
                   failedItems: 0,
                   isDone: false,
                   isFailed: false,
-                  message: "Importing($i/$totalItems): ${mediaItem.title}",
+                  message: "Importing($imported/$totalItems): ${track.title}",
                 );
-                i++;
               }
             }
           }
           yield ImporterState(
             totalItems: totalItems,
-            importedItems: i - 1,
+            importedItems: imported,
             failedItems: 0,
             isDone: true,
             isFailed: false,
@@ -490,7 +348,6 @@ class ExternalMediaImporter {
           );
           SnackbarService.showMessage("Imported Album: $albumTitle");
         } else {
-          log("Album is empty!!", name: "Album Importer");
           yield ImporterState(
             totalItems: 0,
             importedItems: 0,
@@ -520,7 +377,6 @@ class ExternalMediaImporter {
         isFailed: true,
         message: "Invalid Album URL",
       );
-      log("Invalid Album URL", name: "Album Importer");
       SnackbarService.showMessage("Invalid Album URL");
     }
   }

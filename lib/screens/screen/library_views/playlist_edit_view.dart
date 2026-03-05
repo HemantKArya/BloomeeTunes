@@ -1,7 +1,7 @@
 // Page for editing playlist title,description and reordering playlist items
 import 'dart:developer';
 import 'dart:ui';
-import 'package:Bloomee/core/models/song_model.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -21,7 +21,7 @@ class _PlaylistEditViewState extends State<PlaylistEditView> {
   TextEditingController titleController = TextEditingController();
   // ValueNotifier isPlaylistExist = ValueNotifier<bool>(false);
   // ValueNotifier isTitleEmpty = ValueNotifier<bool>(false);
-  List<MediaItemModel> mediaItems = [];
+  List<Track> mediaItems = [];
   List<int> mediaOrder = [];
   @override
   void initState() {
@@ -52,11 +52,11 @@ class _PlaylistEditViewState extends State<PlaylistEditView> {
     return Scaffold(
       body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
         builder: (context, state) {
-          titleController.text = state.mediaPlaylist.playlistName;
-          mediaItems = state.mediaPlaylist.mediaItems;
+          titleController.text = state.playlist.title;
+          mediaItems = state.playlist.tracks;
           if (state is! CurrentPlaylistInitial &&
                   state is! CurrentPlaylistLoading ||
-              state.mediaPlaylist.mediaItems.isNotEmpty) {
+              state.playlist.tracks.isNotEmpty) {
             return CustomScrollView(
               slivers: [
                 SliverAppBar(
@@ -198,20 +198,20 @@ class SliverPlaylistItems extends StatefulWidget {
 
   final CurrentPlaylistState state;
   // Callback function to update the playlistItems
-  final Function(List<MediaItemModel>, List<int>)? updatePlaylistItems;
+  final Function(List<Track>, List<int>)? updatePlaylistItems;
 
   @override
   State<SliverPlaylistItems> createState() => _SliverPlaylistItemsState();
 }
 
 class _SliverPlaylistItemsState extends State<SliverPlaylistItems> {
-  List<MediaItemModel> mediaItems = [];
+  List<Track> mediaItems = [];
   List<int> mediaOrder = [];
 
   @override
   void initState() {
     setState(() {
-      mediaItems = widget.state.mediaPlaylist.mediaItems;
+      mediaItems = widget.state.playlist.tracks;
     });
     context.read<CurrentPlaylistCubit>().getItemOrder().then((value) {
       mediaOrder = value;
@@ -242,7 +242,7 @@ class _SliverPlaylistItemsState extends State<SliverPlaylistItems> {
             if (oldIndex < newIndex) {
               newIndex -= 1;
             }
-            final MediaItemModel item = mediaItems.removeAt(oldIndex);
+            final Track item = mediaItems.removeAt(oldIndex);
             mediaItems.insert(newIndex, item);
             final int itemId = mediaOrder.removeAt(oldIndex);
             mediaOrder.insert(newIndex, itemId);

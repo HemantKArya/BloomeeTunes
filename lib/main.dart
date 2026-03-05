@@ -7,18 +7,25 @@ import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
+import 'package:Bloomee/blocs/history/cubit/history_cubit.dart';
+import 'package:Bloomee/blocs/explore/cubit/recently_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_event.dart';
 import 'package:Bloomee/repository/bloomee/download_repository.dart';
 import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';
-import 'package:Bloomee/services/db/dao/collection_dao.dart';
 import 'package:Bloomee/services/db/dao/download_dao.dart';
+import 'package:Bloomee/services/db/dao/history_dao.dart';
 import 'package:Bloomee/services/db/dao/lyrics_dao.dart';
 import 'package:Bloomee/services/db/dao/notification_dao.dart';
+import 'package:Bloomee/services/db/dao/library_dao.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/services/db/dao/search_history_dao.dart';
+import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/blocs/timer/timer_bloc.dart';
@@ -38,7 +45,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
-import 'package:Bloomee/blocs/search/fetch_search_results.dart';
 import 'package:Bloomee/routes/app_router.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
@@ -58,8 +64,8 @@ void processIncomingIntent(SharedMedia sharedMedia) {
         ExternalMediaImporter.sfyMediaImporter(sharedMedia.content!)
             .then((value) async {
           if (value != null) {
-            await bloomeePlayerCubit.bloomeePlayer.addQueueItem(
-              value,
+            await bloomeePlayerCubit.bloomeePlayer.addQueueTracks(
+              [value],
             );
           }
         });
@@ -77,8 +83,7 @@ void processIncomingIntent(SharedMedia sharedMedia) {
         ExternalMediaImporter.ytMediaImporter(sharedMedia.content!)
             .then((value) async {
           if (value != null) {
-            await bloomeePlayerCubit.bloomeePlayer
-                .updateQueue([value], doPlay: true);
+            await bloomeePlayerCubit.bloomeePlayer.addQueueTracks([value]);
           }
         });
         break;
@@ -190,8 +195,19 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final trackDao = TrackDAO(DBProvider.db);
+    final playlistDao = PlaylistDAO(DBProvider.db, trackDao);
+    final historyDao = HistoryDAO(DBProvider.db, trackDao);
+
     return MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (context) => PluginBloc(
+            pluginService: ServiceLocator.pluginService,
+            eventBus: ServiceLocator.pluginEventBus,
+          )..add(const InitializePluginSystem()),
+          lazy: false,
+        ),
         BlocProvider(
           create: (context) => bloomeePlayerCubit,
           lazy: false,
@@ -220,13 +236,21 @@ class _MyAppState extends State<MyApp> {
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => CurrentPlaylistCubit(),
+          create: (context) => CurrentPlaylistCubit(playlistDao: playlistDao),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => RecentlyCubit(historyDao),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => HistoryCubit(historyDao: historyDao),
           lazy: false,
         ),
         BlocProvider(
           create: (context) => LibraryItemsCubit(
-            playlistDao: PlaylistDAO(DBProvider.db),
-            collectionDao: CollectionDAO(DBProvider.db),
+            playlistDao: playlistDao,
+            libraryDao: LibraryDAO(DBProvider.db),
           ),
         ),
         BlocProvider(
@@ -235,9 +259,6 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => ImportPlaylistCubit(),
-        ),
-        BlocProvider(
-          create: (context) => FetchSearchResultsCubit(),
         ),
         BlocProvider(
           create: (context) => SearchSuggestionBloc(
@@ -264,11 +285,10 @@ class _MyAppState extends State<MyApp> {
             connectivityCubit: context.read<ConnectivityCubit>(),
             libraryItemsCubit: context.read<LibraryItemsCubit>(),
             downloadRepo: DownloadRepository(
-              DownloadDAO(DBProvider.db),
-              PlaylistDAO(DBProvider.db),
+              DownloadDAO(DBProvider.db, trackDao, playlistDao),
             ),
             settingsDao: SettingsDAO(DBProvider.db),
-            settingsRepo: SettingsRepository(SettingsDAO(DBProvider.db)),
+            pluginService: ServiceLocator.pluginService,
           ),
           lazy: false,
         ),

@@ -12,8 +12,10 @@ class SettingsDAO {
   Future<void> putSettingStr(String key, String value) async {
     Isar isarDB = await _db;
     if (key.isNotEmpty && value.isNotEmpty) {
-      isarDB.writeTxnSync(() => isarDB.appSettingsStrDBs
-          .putSync(AppSettingsStrDB(settingName: key, settingValue: value)));
+      await isarDB.writeTxn(() async {
+        await isarDB.appSettingsStrDBs
+            .put(AppSettingsStrDB(settingName: key, settingValue: value));
+      });
     }
   }
 
@@ -37,7 +39,7 @@ class SettingsDAO {
         .filter()
         .settingNameEqualTo(key)
         .findFirstSync()
-        ?.isarId;
+        ?.id;
     if (id != null) {
       return isarDB.appSettingsStrDBs.watchObject(id, fireImmediately: true);
     } else {
@@ -50,8 +52,10 @@ class SettingsDAO {
   Future<void> putSettingBool(String key, bool value) async {
     Isar isarDB = await _db;
     if (key.isNotEmpty) {
-      isarDB.writeTxnSync(() => isarDB.appSettingsBoolDBs
-          .putSync(AppSettingsBoolDB(settingName: key, settingValue: value)));
+      await isarDB.writeTxn(() async {
+        await isarDB.appSettingsBoolDBs
+            .put(AppSettingsBoolDB(settingName: key, settingValue: value));
+      });
     }
   }
 
@@ -69,25 +73,26 @@ class SettingsDAO {
     }
   }
 
-  Future<Stream<AppSettingsBoolDB?>?> getWatcher4SettingBool(
-      String key) async {
+  Future<Stream<AppSettingsBoolDB?>?> getWatcher4SettingBool(String key) async {
     Isar isarDB = await _db;
     int? id = isarDB.appSettingsBoolDBs
         .filter()
         .settingNameEqualTo(key)
         .findFirstSync()
-        ?.isarId;
+        ?.id;
     if (id != null) {
       return isarDB.appSettingsBoolDBs.watchObject(id, fireImmediately: true);
     } else {
-      isarDB.writeTxnSync(() => isarDB.appSettingsBoolDBs
-          .putSync(AppSettingsBoolDB(settingName: key, settingValue: false)));
+      await isarDB.writeTxn(() async {
+        await isarDB.appSettingsBoolDBs
+            .put(AppSettingsBoolDB(settingName: key, settingValue: false));
+      });
       return isarDB.appSettingsBoolDBs.watchObject(
         isarDB.appSettingsBoolDBs
             .filter()
             .settingNameEqualTo(key)
             .findFirstSync()!
-            .isarId,
+            .id,
         fireImmediately: true,
       );
     }

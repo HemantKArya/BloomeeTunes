@@ -1,10 +1,6 @@
+import 'package:Bloomee/utils/external_list_importer.dart';
 import 'package:bloc/bloc.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:Bloomee/core/models/song_model.dart';
-import 'package:Bloomee/core/models/youtube_vid_model.dart';
-import 'package:Bloomee/repository/youtube/youtube_api.dart';
-import 'package:Bloomee/services/db/dao/playlist_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
 
 class ImportPlaylistState {
   String playlistName;
@@ -21,7 +17,6 @@ class ImportPlaylistState {
   @override
   bool operator ==(covariant ImportPlaylistState other) {
     if (identical(this, other)) return true;
-
     return other.playlistName == playlistName &&
         other.itemName == itemName &&
         other.totalLength == totalLength &&
@@ -69,52 +64,36 @@ class ImportPlaylistStateComplete extends ImportPlaylistState {
             currentItem: 1);
 }
 
-//------------------------------------------------------------------------------
+/// Cubit for importing playlists from external URLs.
+///
+/// Uses [ExternalMediaImporter] streams to track import progress.
 class ImportPlaylistCubit extends Cubit<ImportPlaylistState> {
-  BehaviorSubject<ImportPlaylistState> importYtPlaylistBS =
+  BehaviorSubject<ImportPlaylistState> importPlaylistBS =
       BehaviorSubject.seeded(ImportPlaylistStateInitial());
-  final PlaylistDAO _playlistDao;
 
-  ImportPlaylistCubit({PlaylistDAO? playlistDao})
-      : _playlistDao = playlistDao ?? PlaylistDAO(DBProvider.db),
-        super(ImportPlaylistStateInitial());
-  Future<void> fetchYtPlaylistByID(
-    String ytPlaylistID,
-  ) async {
-    importYtPlaylistBS.add(ImportPlaylistStateInitial());
-    // try {
-    final result = await YouTubeServices().fetchPlaylistItems(ytPlaylistID);
-    print("1 ${result.toString()}");
-    final playlist = (result[0]["items"] as List);
-    print("2 ${playlist.toString()}");
-    if (playlist.isNotEmpty) {
-      for (int i = 0; i < playlist.length; i++) {
-        print("4 ${result[0]["metadata"]}");
-        print(playlist[i].toString());
-        importYtPlaylistBS.add(ImportPlaylistState(
-            playlistName: result[0]["metadata"].title,
-            itemName: playlist[i]["title"],
-            totalLength: playlist.length,
-            currentItem: i));
-        // print("${result[0]["metadata"]["title"]} added!!");
-        // print("5 ${playlist[i].toString()}");
-        MediaItemModel mediaItemModel = fromYtVidSongMap2MediaItem(playlist[i]);
-        print("5 ${mediaItemModel.toString()}");
-        await _playlistDao.addMediaItem(mediaItemToMediaItemDB(mediaItemModel),
-            result[0]["metadata"].title);
-      }
+  ImportPlaylistCubit() : super(ImportPlaylistStateInitial());
+
+  /// Import a Spotify playlist by URL.
+  Future<void> importSpotifyPlaylist(String url) async {
+    importPlaylistBS.add(ImportPlaylistStateInitial());
+    await for (final state
+        in ExternalMediaImporter.sfyPlaylistImporter(url: url)) {
+      importPlaylistBS.add(ImportPlaylistState(
+        playlistName: state.message,
+        itemName: state.message,
+        totalLength: state.totalItems,
+        currentItem: state.importedItems,
+      ));
+      if (state.isDone || state.isFailed) break;
     }
-    // } catch (e) {
-    //   print("Error while getting playlist items!! $e");
-    // }
-    importYtPlaylistBS.add(ImportPlaylistStateComplete());
+    importPlaylistBS.add(ImportPlaylistStateComplete());
     await Future.delayed(const Duration(milliseconds: 2000));
-    importYtPlaylistBS.add(ImportPlaylistStateInitial());
+    importPlaylistBS.add(ImportPlaylistStateInitial());
   }
 
   @override
   Future<void> close() async {
-    importYtPlaylistBS.close();
+    importPlaylistBS.close();
     super.close();
   }
 }

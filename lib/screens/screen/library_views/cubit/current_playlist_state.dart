@@ -3,44 +3,36 @@ part of 'current_playlist_cubit.dart';
 
 class CurrentPlaylistState extends Equatable {
   final bool isFetched;
-  final MediaPlaylist mediaPlaylist;
+  final Playlist playlist;
+
   const CurrentPlaylistState({
     required this.isFetched,
-    required this.mediaPlaylist,
+    required this.playlist,
   });
 
   CurrentPlaylistState copyWith({
     bool? isFetched,
-    List<MediaItemModel>? mediaItem,
-    String? playlistName,
-    MediaPlaylist? mediaPlaylist,
+    Playlist? playlist,
   }) {
     return CurrentPlaylistState(
       isFetched: isFetched ?? this.isFetched,
-      mediaPlaylist: mediaPlaylist ?? this.mediaPlaylist,
+      playlist: playlist ?? this.playlist,
     );
   }
 
   @override
-  List<Object?> get props => [
-        isFetched,
-        mediaPlaylist,
-        mediaPlaylist.playlistName,
-        mediaPlaylist.permaURL
-      ];
+  List<Object?> get props => [isFetched, playlist, playlist.title];
 }
 
 final class CurrentPlaylistInitial extends CurrentPlaylistState {
-  CurrentPlaylistInitial()
+  const CurrentPlaylistInitial()
       : super(
-            isFetched: false,
-            mediaPlaylist: MediaPlaylist(mediaItems: [], playlistName: ""));
+            isFetched: false, playlist: const Playlist(tracks: [], title: ''));
 }
 
 final class CurrentPlaylistLoading extends CurrentPlaylistState {
-  CurrentPlaylistLoading()
+  const CurrentPlaylistLoading()
       : super(
             isFetched: false,
-            mediaPlaylist:
-                MediaPlaylist(mediaItems: [], playlistName: "loading"));
+            playlist: const Playlist(tracks: [], title: 'loading'));
 }

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/services/storage_backup_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -151,7 +151,7 @@ class BackupSettings extends StatelessWidget {
                 subtitle:
                     "Create a backup of your data and settings in a backup location.",
                 onTap: () {
-                  DBProvider.createBackUp().then((value) {
+                  StorageBackupService.createBackup().then((value) {
                     if (value != null) {
                       SnackbarService.showMessage("Backup created at $value");
                       if (Platform.isAndroid) {
@@ -169,6 +169,7 @@ class BackupSettings extends StatelessWidget {
                               .catchError((e) {
                             SnackbarService.showMessage(
                                 'Failed to share backup: $e');
+                            return ShareResult.unavailable;
                           });
                         } catch (e) {
                           SnackbarService.showMessage(
@@ -250,7 +251,7 @@ class BackupSettings extends StatelessWidget {
 
                   if (proceed == true) {
                     // Perform reset logic here
-                    await DBProvider.resetDB();
+                    await StorageBackupService.resetAppData();
                     SnackbarService.showMessage(
                         "App has been reset to its default state.");
                   }
@@ -533,11 +534,8 @@ Future<void> _onRestoreTap(BuildContext context) async {
     try {
       // NOTE: This call must be async and ideally run heavy work inside its own isolates.
       // Signature: restoreDB(path, settings, searchHistory, mediaitems)
-      restoreResult = await DBProvider.restoreDB(
+      restoreResult = await StorageBackupService.restoreBackup(
         savedPath,
-        // settings: options.restoreSettings,
-        searchHistory: options.restoreSearchHistory,
-        mediaItems: options.restoreMediaItems,
       );
     } catch (e, st) {
       log("restoreDB threw: $e\n$st", name: "DBProvider");

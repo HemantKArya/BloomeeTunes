@@ -1,10 +1,13 @@
-import 'package:Bloomee/blocs/album_view/album_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/core/models/album_onl_model.dart';
-import 'package:Bloomee/core/models/source_engines.dart';
-import 'package:Bloomee/repository/bloomee/collection_repository.dart';
-import 'package:Bloomee/services/db/dao/collection_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/core/events/global_event_bus.dart';
+import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/plugins/blocs/content/content_bloc.dart';
+import 'package:Bloomee/plugins/blocs/content/content_event.dart';
+import 'package:Bloomee/plugins/blocs/content/content_state.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
+import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -17,58 +20,104 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// Displays album details loaded via the plugin system.
 class AlbumView extends StatefulWidget {
-  final AlbumModel album;
-  const AlbumView({super.key, required this.album});
+  final AlbumSummary album;
+  final String pluginId;
+
+  const AlbumView({super.key, required this.album, required this.pluginId});
 
   @override
   State<AlbumView> createState() => _AlbumViewState();
 }
 
 class _AlbumViewState extends State<AlbumView> {
-  late AlbumCubit albumCubit;
+  late final ContentBloc _contentBloc;
+  bool _isSaved = false;
+
+  String _sourceName(BuildContext context) {
+    final plugins = context.read<PluginBloc>().state.availablePlugins;
+    for (final plugin in plugins) {
+      if (plugin.manifest.id == widget.pluginId) {
+        return plugin.manifest.name;
+      }
+    }
+    return widget.pluginId;
+  }
+
   @override
   void initState() {
-    albumCubit = AlbumCubit(
-      album: widget.album,
-      sourceEngine: widget.album.source == 'saavn'
-          ? SourceEngine.eng_JIS
-          : SourceEngine.eng_YTM,
-      collectionRepo: CollectionRepository(CollectionDAO(DBProvider.db)),
-    );
     super.initState();
+    _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
+    // Guard: verify plugin is still loaded before requesting details.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final isLoaded =
+          context.read<PluginBloc>().state.isPluginLoaded(widget.pluginId);
+      if (!isLoaded) {
+        GlobalEventBus.instance.emitError(
+          AppError.pluginNotLoaded(pluginId: widget.pluginId),
+        );
+        return;
+      }
+      _contentBloc.add(LoadAlbumDetails(
+        pluginId: widget.pluginId,
+        albumId: widget.album.id,
+      ));
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkSavedState());
+  }
+
+  Future<void> _checkSavedState() async {
+    final saved = await context
+        .read<LibraryItemsCubit>()
+        .isRemoteSaved(widget.album.id, PlaylistType.album);
+    if (mounted) setState(() => _isSaved = saved);
+  }
+
+  @override
+  void dispose() {
+    _contentBloc.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: BlocBuilder<AlbumCubit, AlbumState>(
-          bloc: albumCubit,
+        body: BlocBuilder<ContentBloc, ContentState>(
+          bloc: _contentBloc,
           builder: (context, state) {
+            final details = state.albumDetails;
+            final tracks = details?.tracks.items ?? [];
+            final detailArtists = details?.summary.artists
+                    .map((a) => a.name.trim())
+                    .where((name) => name.isNotEmpty)
+                    .toList() ??
+                const <String>[];
+            final albumArtists = detailArtists.join(', ');
+
             return CustomScrollView(
               slivers: [
                 SliverAppBar(
                   expandedHeight:
                       ResponsiveBreakpoints.of(context).isMobile ? 220 : 250,
                   flexibleSpace: LayoutBuilder(builder: (context, constraints) {
-                    String subtitle = widget.album.description ?? "";
-                    if (widget.album.genre != null &&
-                        widget.album.genre != "Unknown") {
-                      subtitle += ' - ${widget.album.genre!}';
-                    }
-                    if (widget.album.language != null) {
-                      subtitle += ' - ${widget.album.language!}';
-                    }
+                    final subtitle = <String>[
+                      if (widget.album.year != null &&
+                          widget.album.year.toString().trim().isNotEmpty)
+                        widget.album.year.toString().trim(),
+                      if (tracks.isNotEmpty)
+                        '${tracks.length} ${tracks.length == 1 ? 'track' : 'tracks'}',
+                      if (widget.album.subtitle != null &&
+                          widget.album.subtitle!.trim().isNotEmpty)
+                        widget.album.subtitle!.trim(),
+                    ].join(' • ');
 
                     return FlexibleSpaceBar(
                       background: Padding(
                         padding: const EdgeInsets.only(
-                          left: 8,
-                          right: 8,
-                          top: 34,
-                          bottom: 8,
-                        ),
+                            left: 8, right: 8, top: 34, bottom: 8),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
                             maxHeight: constraints.maxHeight,
@@ -83,68 +132,64 @@ class _AlbumViewState extends State<AlbumView> {
                                       MediaQuery.of(context).size.width * 0.4,
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 8,
-                                    right: 8,
-                                    top: 8,
-                                    bottom: 8,
-                                  ),
+                                  padding: const EdgeInsets.all(8),
                                   child: Hero(
-                                      tag: widget.album.sourceId,
-                                      child: LoadImageCached(
-                                        imageUrl: formatImgURL(
-                                            widget.album.imageURL,
-                                            ImageQuality.medium),
-                                      )),
+                                    tag:
+                                        '${widget.pluginId}_album_${widget.album.id}',
+                                    child: LoadImageCached(
+                                      imageUrl: formatImgURL(
+                                        widget.album.thumbnail?.url ?? '',
+                                        ImageQuality.medium,
+                                      ),
+                                      fallbackUrl: widget.album.thumbnail?.url,
+                                    ),
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(8),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        "Album by",
+                                        widget.album.title,
+                                        maxLines: 2,
                                         style: Default_Theme
                                             .secondoryTextStyleMedium
-                                            .merge(
-                                          TextStyle(
-                                            overflow: TextOverflow.ellipsis,
-                                            fontSize: 14,
-                                            color: Default_Theme.primaryColor1
-                                                .withValues(alpha: 0.4),
-                                          ),
-                                        ),
+                                            .merge(TextStyle(
+                                          overflow: TextOverflow.ellipsis,
+                                          fontSize: 18,
+                                          color: Default_Theme.primaryColor1
+                                              .withValues(alpha: 0.9),
+                                        )),
                                       ),
-                                      Text(
-                                        widget.album.artists,
-                                        maxLines: 3,
-                                        style: Default_Theme
-                                            .secondoryTextStyleMedium
-                                            .merge(
-                                          TextStyle(
-                                            overflow: TextOverflow.ellipsis,
-                                            fontSize: 14,
-                                            color: Default_Theme.primaryColor1
-                                                .withValues(alpha: 0.9),
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        subtitle,
-                                        style: Default_Theme.secondoryTextStyle
-                                            .merge(
-                                          TextStyle(
+                                      if (albumArtists.isNotEmpty)
+                                        Text(
+                                          albumArtists,
+                                          maxLines: 2,
+                                          style: Default_Theme
+                                              .secondoryTextStyle
+                                              .merge(TextStyle(
                                             overflow: TextOverflow.ellipsis,
                                             fontSize: 13,
                                             color: Default_Theme.primaryColor1
-                                                .withValues(alpha: 0.5),
-                                          ),
+                                                .withValues(alpha: 0.62),
+                                          )),
                                         ),
-                                      ),
+                                      if (subtitle.isNotEmpty)
+                                        Text(
+                                          subtitle,
+                                          style: Default_Theme
+                                              .secondoryTextStyle
+                                              .merge(TextStyle(
+                                            fontSize: 13,
+                                            color: Default_Theme.primaryColor1
+                                                .withValues(alpha: 0.5),
+                                          )),
+                                        ),
                                       FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: Padding(
@@ -162,90 +207,92 @@ class _AlbumViewState extends State<AlbumView> {
                                                   ),
                                                 ),
                                                 onPressed: () {
-                                                  if (context
-                                                          .read<
-                                                              BloomeePlayerCubit>()
-                                                          .bloomeePlayer
-                                                          .queueTitle
-                                                          .value !=
-                                                      widget.album.name) {
+                                                  if (tracks.isNotEmpty) {
                                                     context
                                                         .read<
                                                             BloomeePlayerCubit>()
                                                         .bloomeePlayer
                                                         .loadPlaylist(
-                                                            state
-                                                                .album.playlist,
-                                                            doPlay: true,
-                                                            idx: 0);
-                                                  } else if (!context
-                                                      .read<
-                                                          BloomeePlayerCubit>()
-                                                      .bloomeePlayer
-                                                      .engine
-                                                      .playing) {
-                                                    context
-                                                        .read<
-                                                            BloomeePlayerCubit>()
-                                                        .bloomeePlayer
-                                                        .play();
+                                                          Playlist(
+                                                            tracks: tracks,
+                                                            title: widget
+                                                                .album.title,
+                                                          ),
+                                                          doPlay: true,
+                                                          idx: 0,
+                                                        );
                                                   }
                                                 },
-                                                label: const Text(
-                                                  "Play",
-                                                  style: Default_Theme
-                                                      .secondoryTextStyleMedium,
-                                                ),
+                                                label: const Text('Play',
+                                                    style: Default_Theme
+                                                        .secondoryTextStyleMedium),
                                                 icon: const Icon(
-                                                  MingCute.play_fill,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 5,
-                                                ),
-                                                child: IconButton(
-                                                  onPressed: () {
-                                                    albumCubit
-                                                        .addToSavedCollections();
-                                                  },
-                                                  icon: state
-                                                          .isSavedToCollections
-                                                      ? const Icon(FontAwesome
-                                                          .heart_solid)
-                                                      : const Icon(
-                                                          FontAwesome.heart),
-                                                  color: Default_Theme
-                                                      .accentColor2,
-                                                ),
+                                                    MingCute.play_fill,
+                                                    size: 20),
                                               ),
                                               Tooltip(
-                                                message: "Open Original Link",
+                                                message: _isSaved
+                                                    ? 'Remove from Library'
+                                                    : 'Save to Library',
                                                 child: IconButton(
-                                                  onPressed: () {
-                                                    SnackbarService.showMessage(
-                                                        "Opening original album page.");
-                                                    launchUrl(
-                                                        Uri.parse(state
-                                                            .album.sourceURL),
-                                                        mode: LaunchMode
-                                                            .externalApplication);
+                                                  onPressed: () async {
+                                                    final cubit = context.read<
+                                                        LibraryItemsCubit>();
+                                                    if (_isSaved) {
+                                                      await cubit
+                                                          .removeRemoteSaved(
+                                                              widget.album.id,
+                                                              PlaylistType
+                                                                  .album);
+                                                    } else {
+                                                      await cubit
+                                                          .saveRemoteAlbum(
+                                                        album: widget.album,
+                                                        sourceName: _sourceName(
+                                                            context),
+                                                      );
+                                                    }
+                                                    await _checkSavedState();
                                                   },
-                                                  icon: const Icon(
-                                                    MingCute.external_link_line,
+                                                  icon: Icon(
+                                                    _isSaved
+                                                        ? Icons.favorite
+                                                        : Icons.favorite_border,
                                                     size: 25,
+                                                    color: Default_Theme
+                                                        .accentColor2,
                                                   ),
                                                 ),
                                               ),
+                                              if (widget.album.url != null)
+                                                Tooltip(
+                                                  message: 'Open Original Link',
+                                                  child: IconButton(
+                                                    onPressed: () {
+                                                      SnackbarService.showMessage(
+                                                          'Opening original album page.');
+                                                      launchUrl(
+                                                        Uri.parse(
+                                                            widget.album.url!),
+                                                        mode: LaunchMode
+                                                            .externalApplication,
+                                                      );
+                                                    },
+                                                    icon: const Icon(
+                                                      MingCute
+                                                          .external_link_line,
+                                                      size: 25,
+                                                    ),
+                                                  ),
+                                                ),
                                             ],
                                           ),
                                         ),
-                                      )
+                                      ),
                                     ],
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -255,76 +302,64 @@ class _AlbumViewState extends State<AlbumView> {
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      bottom: 8,
-                    ),
+                    padding:
+                        const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                     child: Text(
-                      widget.album.name,
+                      widget.album.title,
                       maxLines: 3,
                       textAlign: TextAlign.center,
-                      style: Default_Theme.secondoryTextStyleMedium.merge(
-                        TextStyle(
-                          fontSize: 20,
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.8),
-                        ),
-                      ),
+                      style: Default_Theme.secondoryTextStyleMedium
+                          .merge(TextStyle(
+                        fontSize: 20,
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.8),
+                      )),
                     ),
                   ),
                 ),
-                (state is AlbumLoaded ||
-                        (state.album.songs.isNotEmpty &&
-                            state is! AlbumLoading))
-                    ? SliverList.builder(
-                        itemBuilder: (context, index) {
-                          return SongCardWidget(
-                            song: state.album.songs[index],
-                            onOptionsTap: () {
-                              showMoreBottomSheet(
-                                context,
-                                state.album.songs[index],
-                                showDelete: false,
-                                showSinglePlay: true,
+                if (state.albumDetailStatus == DetailStatus.loaded &&
+                    tracks.isNotEmpty)
+                  SliverList.builder(
+                    itemCount: tracks.length,
+                    itemBuilder: (context, index) {
+                      return SongCardWidget(
+                        song: tracks[index],
+                        onOptionsTap: () => showMoreBottomSheet(
+                          context,
+                          tracks[index],
+                          showDelete: false,
+                          showSinglePlay: true,
+                        ),
+                        onTap: () {
+                          context
+                              .read<BloomeePlayerCubit>()
+                              .bloomeePlayer
+                              .loadPlaylist(
+                                Playlist(
+                                    tracks: tracks, title: widget.album.title),
+                                doPlay: true,
+                                idx: index,
                               );
-                            },
-                            onTap: () {
-                              if (context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .queueTitle
-                                          .value !=
-                                      widget.album.name ||
-                                  context
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .currentMedia !=
-                                      state.album.songs[index]) {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .loadPlaylist(state.album.playlist,
-                                        doPlay: true, idx: index);
-                              } else if (!context
-                                  .read<BloomeePlayerCubit>()
-                                  .bloomeePlayer
-                                  .engine
-                                  .playing) {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .play();
-                              }
-                            },
-                          );
                         },
-                        itemCount: state.album.songs.length)
-                    : const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        )),
+                      );
+                    },
+                  )
+                else if (state.albumDetailStatus == DetailStatus.error)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        state.error ?? 'Failed to load album',
+                        style:
+                            const TextStyle(color: Default_Theme.primaryColor1),
+                      ),
+                    ),
+                  )
+                else
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
               ],
             );
           },
