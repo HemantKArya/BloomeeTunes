@@ -12,6 +12,7 @@ use crate::api::plugin::types::{PluginAdapter, PluginType};
 use crate::api::plugin::wasm_runtime::{HostPluginStore, SharedWasmEngine};
 use once_cell::sync::Lazy;
 use std::any::Any;
+use std::collections::HashMap;
 
 use bindgen::exports_chart_api;
 
@@ -28,12 +29,14 @@ static HTTP_CLIENT: Lazy<reqwest::blocking::Client> = Lazy::new(|| {
 #[flutter_rust_bridge::frb(opaque)]
 pub struct ChartProviderHostImpl {
     _plugin_id: String,
+    storage: HashMap<String, String>,
 }
 
 impl ChartProviderHostImpl {
     pub fn new(plugin_id: String) -> Self {
         Self {
             _plugin_id: plugin_id,
+            storage: HashMap::new(),
         }
     }
 }
@@ -107,12 +110,13 @@ impl bindgen::UtilsHost for ChartProviderHostImpl {
             .as_secs()
     }
 
-    fn storage_get(&mut self, _key: String) -> Option<String> {
-        None
+    fn storage_get(&mut self, key: String) -> Option<String> {
+        self.storage.get(&key).cloned()
     }
 
-    fn storage_set(&mut self, _key: String, _value: String) -> bool {
-        false
+    fn storage_set(&mut self, key: String, value: String) -> bool {
+        self.storage.insert(key, value);
+        true
     }
 }
 
@@ -171,8 +175,9 @@ impl Plugin for ChartProviderPluginAdapter {
         use crate::api::plugin::commands::PluginRequest;
         if let PluginRequest::ChartProvider(command) = request {
             let state = &mut self.state;
+            let plugin_id = &self.name;
 
-            match command {
+            let response = match command {
                 ChartProviderCommand::GetCharts => {
                     let func = exports_chart_api::get_get_charts(&state.instance, &mut state.store)
                         .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?;
@@ -196,7 +201,10 @@ impl Plugin for ChartProviderPluginAdapter {
                         result.into_iter().map(to_audio_chart_item).collect(),
                     ))
                 }
-            }
+            }?;
+
+            // Stamp entity IDs with "pluginId::" prefix
+            Ok(stamp_chart_response(plugin_id, response))
         } else {
             Err(PluginError::InvalidConfiguration(format!(
                 "Invalid request type for ChartProvider: {:?}",
@@ -348,5 +356,70 @@ fn to_audio_chart_item(i: bindgen::ChartItem) -> ChartItem {
         change: i.change,
         peak_rank: i.peak_rank,
         weeks_on_chart: i.weeks_on_chart,
+    }
+}
+
+// ── ID Stamping ──────────────────────────────────────────────────────────────
+
+const STAMP_SEP: &str = "::";
+
+fn stamp_id(pid: &str, id: &str) -> String {
+    if id.contains(STAMP_SEP) || id.is_empty() {
+        id.to_string()
+    } else {
+        format!("{}{}{}", pid, STAMP_SEP, id)
+    }
+}
+
+fn stamp_track(pid: &str, mut t: Track) -> Track {
+    t.id = stamp_id(pid, &t.id);
+    t.artists = t.artists.into_iter().map(|a| stamp_artist(pid, a)).collect();
+    t.album = t.album.map(|a| stamp_album(pid, a));
+    t
+}
+
+fn stamp_artist(pid: &str, mut a: ArtistSummary) -> ArtistSummary {
+    a.id = stamp_id(pid, &a.id);
+    a
+}
+
+fn stamp_album(pid: &str, mut a: AlbumSummary) -> AlbumSummary {
+    a.id = stamp_id(pid, &a.id);
+    a.artists = a.artists.into_iter().map(|ar| stamp_artist(pid, ar)).collect();
+    a
+}
+
+fn stamp_media_item(pid: &str, item: MediaItem) -> MediaItem {
+    match item {
+        MediaItem::Track(t) => MediaItem::Track(stamp_track(pid, t)),
+        MediaItem::Album(a) => MediaItem::Album(stamp_album(pid, a)),
+        MediaItem::Artist(a) => MediaItem::Artist(stamp_artist(pid, a)),
+        MediaItem::Playlist(p) => {
+            // Chart provider doesn't produce playlists, but handle for completeness
+            let _ = pid;
+            MediaItem::Playlist(p)
+        }
+    }
+}
+
+fn stamp_chart_summary(pid: &str, mut c: ChartSummary) -> ChartSummary {
+    c.id = stamp_id(pid, &c.id);
+    c
+}
+
+fn stamp_chart_item(pid: &str, mut c: ChartItem) -> ChartItem {
+    c.item = stamp_media_item(pid, c.item);
+    c
+}
+
+fn stamp_chart_response(plugin_id: &str, response: PluginResponse) -> PluginResponse {
+    match response {
+        PluginResponse::Charts(charts) => PluginResponse::Charts(
+            charts.into_iter().map(|c| stamp_chart_summary(plugin_id, c)).collect(),
+        ),
+        PluginResponse::ChartDetails(items) => PluginResponse::ChartDetails(
+            items.into_iter().map(|c| stamp_chart_item(plugin_id, c)).collect(),
+        ),
+        other => other,
     }
 }

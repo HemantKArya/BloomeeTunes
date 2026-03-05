@@ -6,15 +6,16 @@ use crate::api::plugin::commands::{
 use crate::api::plugin::errors::{PluginError, PluginResult};
 use crate::api::plugin::loader::get_instance_with_host;
 use crate::api::plugin::models::{
-    AlbumDetails, AlbumSummary, ArtistDetails, ArtistSummary, Artwork, CardType, ImageLayout,
-    Lyrics, MediaItem, PagedAlbums, PagedMediaItems, PagedTracks, PlaylistDetails,
-    PlaylistSummary, Section, Track,
+    AlbumDetails, AlbumSummary, ArtistDetails, ArtistSummary, Artwork, CardType, ChartItem,
+    ChartSummary, ImageLayout, Lyrics, MediaItem, PagedAlbums, PagedMediaItems, PagedTracks,
+    PlaylistDetails, PlaylistSummary, Section, Track,
 };
 use crate::api::plugin::traits::Plugin;
 use crate::api::plugin::types::{PluginAdapter, PluginType};
 use crate::api::plugin::wasm_runtime::{HostPluginStore, SharedWasmEngine};
 use once_cell::sync::Lazy;
 use std::any::Any;
+use std::collections::HashMap;
 
 use bindgen::{exports_data_source, exports_discovery};
 
@@ -31,12 +32,14 @@ static HTTP_CLIENT: Lazy<reqwest::blocking::Client> = Lazy::new(|| {
 #[flutter_rust_bridge::frb(opaque)]
 pub struct ContentResolverHostImpl {
     _plugin_id: String,
+    storage: HashMap<String, String>,
 }
 
 impl ContentResolverHostImpl {
     pub fn new(plugin_id: String) -> Self {
         Self {
             _plugin_id: plugin_id,
+            storage: HashMap::new(),
         }
     }
 }
@@ -110,12 +113,13 @@ impl bindgen::UtilsHost for ContentResolverHostImpl {
             .as_secs()
     }
 
-    fn storage_get(&mut self, _key: String) -> Option<String> {
-        None
+    fn storage_get(&mut self, key: String) -> Option<String> {
+        self.storage.get(&key).cloned()
     }
 
-    fn storage_set(&mut self, _key: String, _value: String) -> bool {
-        false
+    fn storage_set(&mut self, key: String, value: String) -> bool {
+        self.storage.insert(key, value);
+        true
     }
 }
 
@@ -174,8 +178,9 @@ impl Plugin for ContentResolverPluginAdapter {
         use crate::api::plugin::commands::PluginRequest;
         if let PluginRequest::ContentResolver(command) = request {
             let state = &mut self.state;
+            let plugin_id = &self.name;
 
-            match command {
+            let response = match command {
                 ContentResolverCommand::GetHomeSections => {
                     let func =
                         exports_discovery::get_get_home_sections(&state.instance, &mut state.store)
@@ -338,7 +343,11 @@ impl Plugin for ContentResolverPluginAdapter {
                         .map_err(|e| PluginError::WasmExecutionError(e))?;
                     Ok(PluginResponse::MoreTracks(to_paged_audio_tracks(result)))
                 }
-            }
+            }?;
+
+            // Stamp all entity IDs with "pluginId::" prefix before crossing the FRB boundary.
+            // Streams carry playback URLs, not entity IDs — they are not stamped.
+            Ok(stamp_response(plugin_id, response))
         } else {
             Err(PluginError::InvalidConfiguration(format!(
                 "Invalid request type for ContentResolver: {:?}",
@@ -519,5 +528,122 @@ fn to_bindgen_search_filter(filter: ContentSearchFilter) -> bindgen::SearchFilte
         ContentSearchFilter::Album => bindgen::SearchFilter::Album,
         ContentSearchFilter::Artist => bindgen::SearchFilter::Artist,
         ContentSearchFilter::Playlist => bindgen::SearchFilter::Playlist,
+    }
+}
+
+// ── ID Stamping ──────────────────────────────────────────────────────────────
+// Stamps all entity IDs in a PluginResponse with "pluginId::localId" format.
+// Already-stamped IDs (containing "::") are left untouched.
+// Streams carry playback URLs and synthetic IDs — not stamped.
+
+const STAMP_SEP: &str = "::";
+
+fn stamp_id(plugin_id: &str, id: &str) -> String {
+    if id.contains(STAMP_SEP) {
+        id.to_string()
+    } else {
+        format!("{}{}{}", plugin_id, STAMP_SEP, id)
+    }
+}
+
+fn stamp_track(pid: &str, mut t: Track) -> Track {
+    t.id = stamp_id(pid, &t.id);
+    t.artists = t.artists.into_iter().map(|a| stamp_artist(pid, a)).collect();
+    t.album = t.album.map(|a| stamp_album(pid, a));
+    t
+}
+
+fn stamp_artist(pid: &str, mut a: ArtistSummary) -> ArtistSummary {
+    a.id = stamp_id(pid, &a.id);
+    a
+}
+
+fn stamp_album(pid: &str, mut a: AlbumSummary) -> AlbumSummary {
+    a.id = stamp_id(pid, &a.id);
+    a.artists = a.artists.into_iter().map(|ar| stamp_artist(pid, ar)).collect();
+    a
+}
+
+fn stamp_playlist(pid: &str, mut p: PlaylistSummary) -> PlaylistSummary {
+    p.id = stamp_id(pid, &p.id);
+    p
+}
+
+fn stamp_media_item(pid: &str, item: MediaItem) -> MediaItem {
+    match item {
+        MediaItem::Track(t) => MediaItem::Track(stamp_track(pid, t)),
+        MediaItem::Album(a) => MediaItem::Album(stamp_album(pid, a)),
+        MediaItem::Artist(a) => MediaItem::Artist(stamp_artist(pid, a)),
+        MediaItem::Playlist(p) => MediaItem::Playlist(stamp_playlist(pid, p)),
+    }
+}
+
+fn stamp_section(pid: &str, mut s: Section) -> Section {
+    s.items = s.items.into_iter().map(|i| stamp_media_item(pid, i)).collect();
+    s
+}
+
+fn stamp_chart_summary(pid: &str, mut c: ChartSummary) -> ChartSummary {
+    c.id = stamp_id(pid, &c.id);
+    c
+}
+
+fn stamp_chart_item(pid: &str, mut c: ChartItem) -> ChartItem {
+    c.item = stamp_media_item(pid, c.item);
+    c
+}
+
+fn stamp_paged_media_items(pid: &str, mut p: PagedMediaItems) -> PagedMediaItems {
+    p.items = p.items.into_iter().map(|i| stamp_media_item(pid, i)).collect();
+    p
+}
+
+fn stamp_paged_tracks(pid: &str, mut p: PagedTracks) -> PagedTracks {
+    p.items = p.items.into_iter().map(|t| stamp_track(pid, t)).collect();
+    p
+}
+
+fn stamp_paged_albums(pid: &str, mut p: PagedAlbums) -> PagedAlbums {
+    p.items = p.items.into_iter().map(|a| stamp_album(pid, a)).collect();
+    p
+}
+
+fn stamp_response(plugin_id: &str, response: PluginResponse) -> PluginResponse {
+    match response {
+        PluginResponse::Search(p) => PluginResponse::Search(stamp_paged_media_items(plugin_id, p)),
+        PluginResponse::AlbumDetails(d) => PluginResponse::AlbumDetails(AlbumDetails {
+            summary: stamp_album(plugin_id, d.summary),
+            tracks: stamp_paged_tracks(plugin_id, d.tracks),
+            description: d.description,
+        }),
+        PluginResponse::ArtistDetails(d) => PluginResponse::ArtistDetails(ArtistDetails {
+            summary: stamp_artist(plugin_id, d.summary),
+            top_tracks: d.top_tracks.into_iter().map(|t| stamp_track(plugin_id, t)).collect(),
+            albums: stamp_paged_albums(plugin_id, d.albums),
+            related_artists: d.related_artists.into_iter().map(|a| stamp_artist(plugin_id, a)).collect(),
+            description: d.description,
+        }),
+        PluginResponse::PlaylistDetails(d) => PluginResponse::PlaylistDetails(PlaylistDetails {
+            summary: stamp_playlist(plugin_id, d.summary),
+            tracks: stamp_paged_tracks(plugin_id, d.tracks),
+            description: d.description,
+        }),
+        // Streams carry playback URLs, not routable entity IDs — pass through.
+        PluginResponse::Streams(tracks) => PluginResponse::Streams(tracks),
+        PluginResponse::MoreTracks(p) => PluginResponse::MoreTracks(stamp_paged_tracks(plugin_id, p)),
+        PluginResponse::MoreAlbums(p) => PluginResponse::MoreAlbums(stamp_paged_albums(plugin_id, p)),
+        PluginResponse::HomeSections(sections) => PluginResponse::HomeSections(
+            sections.into_iter().map(|s| stamp_section(plugin_id, s)).collect(),
+        ),
+        PluginResponse::LoadMoreItems(items) => PluginResponse::LoadMoreItems(
+            items.into_iter().map(|i| stamp_media_item(plugin_id, i)).collect(),
+        ),
+        PluginResponse::Charts(charts) => PluginResponse::Charts(
+            charts.into_iter().map(|c| stamp_chart_summary(plugin_id, c)).collect(),
+        ),
+        PluginResponse::ChartDetails(items) => PluginResponse::ChartDetails(
+            items.into_iter().map(|c| stamp_chart_item(plugin_id, c)).collect(),
+        ),
+        PluginResponse::Ack => PluginResponse::Ack,
     }
 }
