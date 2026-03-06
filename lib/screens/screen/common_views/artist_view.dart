@@ -113,7 +113,7 @@ class _ArtistViewState extends State<ArtistView> {
   @override
   Widget build(BuildContext context) {
     final highResImage =
-        widget.artist.thumbnail!.urlHigh ?? widget.artist.thumbnail!.url;
+        widget.artist.thumbnail?.urlHigh ?? widget.artist.thumbnail?.url ?? '';
 
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,

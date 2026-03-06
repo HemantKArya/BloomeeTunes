@@ -1,19 +1,34 @@
-﻿import 'package:Bloomee/core/models/exported.dart';
+﻿// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/screen/common_views/artist_view.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 
-class ArtistCard extends StatelessWidget {
+class ArtistCard extends StatefulWidget {
   final ArtistSummary artist;
   final String pluginId;
-  final ValueNotifier<bool> hovering = ValueNotifier(false);
 
-  ArtistCard({super.key, required this.artist, required this.pluginId});
+  const ArtistCard({
+    super.key,
+    required this.artist,
+    required this.pluginId,
+  });
 
-  void setHovering(bool isHovering) {
-    hovering.value = isHovering;
+  @override
+  State<ArtistCard> createState() => _ArtistCardState();
+}
+
+class _ArtistCardState extends State<ArtistCard> {
+  bool _isHovering = false;
+
+  void _setHovering(bool hovering) {
+    if (mounted) {
+      setState(() {
+        _isHovering = hovering;
+      });
+    }
   }
 
   @override
@@ -21,81 +36,76 @@ class ArtistCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: SizedBox(
-        width: 180,
+        // Set your desired max width here. The circle will scale perfectly to match it.
+        width: 160,
         child: GestureDetector(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    ArtistView(artist: artist, pluginId: pluginId),
+                builder: (context) => ArtistView(
+                  artist: widget.artist,
+                  pluginId: widget.pluginId,
+                ),
               ),
             );
           },
           child: MouseRegion(
-            onEnter: (_) => setHovering(true),
-            onExit: (_) => setHovering(false),
-            child: Card(
-              color: Colors.transparent,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipOval(
-                    child: SizedBox.square(
-                      dimension: 160,
-                      child: Stack(
-                        children: [
-                          LoadImageCached(
-                            imageUrl: artist.thumbnail?.urlLow ??
-                                artist.thumbnail?.url ??
-                                '',
+            onEnter: (_) => _setHovering(true),
+            onExit: (_) => _setHovering(false),
+            // Removed the Card widget to fix alignment/margin issues
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AspectRatio(
+                  aspectRatio: 1.0, // Forces a perfect square footprint
+                  child: ClipOval(
+                    child: Stack(
+                      fit:
+                          StackFit.expand, // Forces children to fill the circle
+                      children: [
+                        LoadImageCached(
+                          imageUrl: widget.artist.thumbnail?.url ?? '',
+                          fit: BoxFit
+                              .cover, // Ensures all resolutions scale correctly
+                        ),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          color: _isHovering
+                              ? Colors.black.withValues(alpha: 0.5)
+                              : Colors.transparent,
+                          child: Center(
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: _isHovering ? 1.0 : 0.0,
+                              child: const Icon(
+                                MingCute.play_circle_line,
+                                color: Colors.white,
+                                size: 50,
+                              ),
+                            ),
                           ),
-                          ValueListenableBuilder(
-                            valueListenable: hovering,
-                            builder: (context, child, value) {
-                              return Positioned.fill(
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  color: hovering.value
-                                      ? Colors.black.withValues(alpha: 0.5)
-                                      : Colors.transparent,
-                                  child: Center(
-                                    child: AnimatedOpacity(
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      opacity: hovering.value ? 1 : 0,
-                                      child: const Icon(
-                                        MingCute.play_circle_line,
-                                        color: Colors.white,
-                                        size: 50,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      artist.name,
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      style: Default_Theme.secondoryTextStyleMedium
-                          .merge(TextStyle(
-                        fontSize: 14,
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.9),
-                      )),
+                ),
+
+                // ─── ARTIST NAME ───
+                const SizedBox(height: 12),
+                Text(
+                  widget.artist.name,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: Default_Theme.secondoryTextStyleMedium.merge(
+                    TextStyle(
+                      fontSize: 14,
+                      color: Default_Theme.primaryColor2.withValues(alpha: 0.9),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

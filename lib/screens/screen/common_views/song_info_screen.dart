@@ -82,7 +82,7 @@ class SongInfoScreen extends StatelessWidget {
           Positioned.fill(
             child: LoadImageCached(
               imageUrl: imageUrl,
-              fallbackUrl: song.thumbnail.url,
+              fallbackUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
               fit: BoxFit.cover,
             ),
           ),
@@ -219,10 +219,12 @@ class SongInfoScreen extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(isMobileView ? 24 : 32),
-          child: LoadImageCached(
-            imageUrl: imageUrl,
-            fallbackUrl: song.thumbnail.url,
-            fit: BoxFit.cover,
+          child: SizedBox.square(
+            child: LoadImageCached(
+              imageUrl: imageUrl,
+              fallbackUrl: song.thumbnail.urlHigh ?? song.thumbnail.url,
+              fit: BoxFit.fitWidth,
+            ),
           ),
         ),
       );
