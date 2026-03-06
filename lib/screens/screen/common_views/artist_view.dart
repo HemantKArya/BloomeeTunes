@@ -112,9 +112,6 @@ class _ArtistViewState extends State<ArtistView> {
 
   @override
   Widget build(BuildContext context) {
-    final highResImage =
-        widget.artist.thumbnail?.urlHigh ?? widget.artist.thumbnail?.url ?? '';
-
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       extendBodyBehindAppBar: true,
@@ -151,8 +148,14 @@ class _ArtistViewState extends State<ArtistView> {
         bloc: _contentBloc,
         builder: (context, state) {
           final details = state.artistDetails;
+          final artistSummary = details?.summary ?? widget.artist;
           final topTracks = details?.topTracks ?? [];
           final albums = details?.albums.items ?? [];
+          final highResImage = artistSummary.thumbnail?.urlHigh ??
+              artistSummary.thumbnail?.url ??
+              widget.artist.thumbnail?.urlHigh ??
+              widget.artist.thumbnail?.url ??
+              '';
 
           final artistMeta = <String>[
             if (topTracks.isNotEmpty)
@@ -161,7 +164,7 @@ class _ArtistViewState extends State<ArtistView> {
               '${albums.length} Album${albums.length == 1 ? '' : 's'}',
           ];
 
-          final cleanSubtitle = _cleanText(widget.artist.subtitle);
+          final cleanSubtitle = _cleanText(artistSummary.subtitle);
           final cleanDesc = _cleanText(details?.description);
 
           return Stack(
@@ -171,7 +174,7 @@ class _ArtistViewState extends State<ArtistView> {
               Positioned.fill(
                 child: LoadImageCached(
                   imageUrl: highResImage,
-                  fallbackUrl: widget.artist.thumbnail?.url,
+                  fallbackUrl: artistSummary.thumbnail?.url,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -214,16 +217,16 @@ class _ArtistViewState extends State<ArtistView> {
                                 return _ArtistHeaderContent(
                                   isMobile: isMobile,
                                   imageUrl: highResImage,
-                                  fallbackUrl: widget.artist.thumbnail?.url,
-                                  title: widget.artist.name,
+                                  fallbackUrl: artistSummary.thumbnail?.url,
+                                  title: artistSummary.name,
                                   subtitle: cleanSubtitle,
                                   meta: artistMeta,
                                   description: cleanDesc,
                                   pluginId: widget.pluginId,
-                                  artistId: widget.artist.id,
+                                  artistId: artistSummary.id,
                                   topTracks: topTracks,
                                   isSaved: _isSaved,
-                                  url: widget.artist.url,
+                                  url: artistSummary.url,
                                   onToggleSave: () async {
                                     final cubit =
                                         context.read<LibraryItemsCubit>();
@@ -295,7 +298,7 @@ class _ArtistViewState extends State<ArtistView> {
                             state.artistDetailStatus == DetailStatus.loadingMore
                         ? TabBarView(
                             children: [
-                              _buildTopTracksTab(topTracks),
+                              _buildTopTracksTab(topTracks, artistSummary.name),
                               _buildAlbumsTab(albums, state),
                             ],
                           )
@@ -324,7 +327,7 @@ class _ArtistViewState extends State<ArtistView> {
 
   // ─── TAB BUILDERS ───
 
-  Widget _buildTopTracksTab(List<Track> topTracks) {
+  Widget _buildTopTracksTab(List<Track> topTracks, String artistName) {
     if (topTracks.isEmpty) {
       return const Center(
         child: SignBoardWidget(
@@ -367,7 +370,7 @@ class _ArtistViewState extends State<ArtistView> {
                             .loadPlaylist(
                               Playlist(
                                 tracks: topTracks,
-                                title: widget.artist.name,
+                                title: artistName,
                               ),
                               doPlay: true,
                               idx: index,

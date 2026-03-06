@@ -26,11 +26,13 @@ import 'package:url_launcher/url_launcher.dart';
 class OnlPlaylistView extends StatefulWidget {
   final PlaylistSummary playlist;
   final String pluginId;
+  final String? heroTag;
 
   const OnlPlaylistView({
     super.key,
     required this.playlist,
     required this.pluginId,
+    this.heroTag,
   });
 
   @override
@@ -123,9 +125,6 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
 
   @override
   Widget build(BuildContext context) {
-    final highResImage =
-        widget.playlist.thumbnail.urlHigh ?? widget.playlist.thumbnail.url;
-
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       // This ensures the App Bar completely overlays the stack without affecting scroll physics
@@ -163,12 +162,15 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
         bloc: _contentBloc,
         builder: (context, state) {
           final details = state.playlistDetails;
+          final playlistSummary = details?.summary ?? widget.playlist;
           final tracks = details?.tracks.items ?? [];
+          final highResImage = playlistSummary.thumbnail.urlHigh ??
+              playlistSummary.thumbnail.url;
 
           final playlistMeta = <String>[
-            if (widget.playlist.owner != null &&
-                widget.playlist.owner!.trim().isNotEmpty)
-              widget.playlist.owner!.trim(),
+            if (playlistSummary.owner != null &&
+                playlistSummary.owner!.trim().isNotEmpty)
+              playlistSummary.owner!.trim(),
             if (tracks.isNotEmpty)
               '${tracks.length} Track${tracks.length == 1 ? '' : 's'}',
           ];
@@ -183,7 +185,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
               Positioned.fill(
                 child: LoadImageCached(
                   imageUrl: highResImage,
-                  fallbackUrl: widget.playlist.thumbnail.url,
+                  fallbackUrl: playlistSummary.thumbnail.url,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -228,12 +230,13 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                               isMobile: isMobile,
                               constraints: constraints,
                               imageUrl: highResImage,
-                              fallbackUrl: widget.playlist.thumbnail.url,
-                              title: widget.playlist.title,
+                              fallbackUrl: playlistSummary.thumbnail.url,
+                              title: playlistSummary.title,
                               meta: playlistMeta,
                               description: cleanDesc,
                               pluginId: widget.pluginId,
-                              playlistId: widget.playlist.id,
+                              playlistId: playlistSummary.id,
+                              heroTag: widget.heroTag,
                               tracks: tracks,
                               isSaved: _isSaved,
                               onToggleSave: () async {
@@ -250,7 +253,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                 }
                                 await _checkSavedState();
                               },
-                              url: widget.playlist.url,
+                              url: playlistSummary.url,
                             );
                           },
                         ),
@@ -290,7 +293,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                       .loadPlaylist(
                                         Playlist(
                                             tracks: tracks,
-                                            title: widget.playlist.title),
+                                            title: playlistSummary.title),
                                         doPlay: true,
                                         idx: index,
                                       );
@@ -375,6 +378,7 @@ class _PlaylistHeaderContent extends StatelessWidget {
   final String? description;
   final String pluginId;
   final String playlistId;
+  final String? heroTag;
   final List<Track> tracks;
   final bool isSaved;
   final VoidCallback onToggleSave;
@@ -390,6 +394,7 @@ class _PlaylistHeaderContent extends StatelessWidget {
     required this.description,
     required this.pluginId,
     required this.playlistId,
+    this.heroTag,
     required this.tracks,
     required this.isSaved,
     required this.onToggleSave,
@@ -440,42 +445,45 @@ class _PlaylistHeaderContent extends StatelessWidget {
 
   /// Bounds the cover gracefully without stretching.
   Widget _buildIntelligentCover() {
-    return Hero(
-      tag: '${pluginId}_playlist_$playlistId',
-      child: Container(
-        height: 260,
-        constraints: BoxConstraints(
-          maxWidth: isMobile
-              ? constraints.maxWidth * 0.85
-              : constraints.maxWidth * 0.40,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 40,
-              offset: const Offset(0, 20),
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.1),
-              blurRadius: 1,
-              offset: const Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: SizedBox.square(
-            child: LoadImageCached(
-              imageUrl: imageUrl,
-              fallbackUrl: fallbackUrl,
-              fit: BoxFit.fitWidth,
-            ),
+    final cover = Container(
+      height: 260,
+      constraints: BoxConstraints(
+        maxWidth: isMobile
+            ? constraints.maxWidth * 0.85
+            : constraints.maxWidth * 0.40,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.1),
+            blurRadius: 1,
+            offset: const Offset(0, -1),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: SizedBox.square(
+          child: LoadImageCached(
+            imageUrl: imageUrl,
+            fallbackUrl: fallbackUrl,
+            fit: BoxFit.cover,
           ),
         ),
       ),
     );
+
+    if (heroTag == null) {
+      return cover;
+    }
+
+    return Hero(tag: heroTag!, child: cover);
   }
 
   Widget _buildPlaylistInfo({required bool isCentered}) {

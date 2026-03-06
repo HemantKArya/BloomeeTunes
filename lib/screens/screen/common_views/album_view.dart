@@ -26,8 +26,14 @@ import 'package:url_launcher/url_launcher.dart';
 class AlbumView extends StatefulWidget {
   final AlbumSummary album;
   final String pluginId;
+  final String? heroTag;
 
-  const AlbumView({super.key, required this.album, required this.pluginId});
+  const AlbumView({
+    super.key,
+    required this.album,
+    required this.pluginId,
+    this.heroTag,
+  });
 
   @override
   State<AlbumView> createState() => _AlbumViewState();
@@ -119,9 +125,6 @@ class _AlbumViewState extends State<AlbumView> {
 
   @override
   Widget build(BuildContext context) {
-    final highResImage =
-        widget.album.thumbnail?.urlHigh ?? widget.album.thumbnail?.url;
-
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       extendBodyBehindAppBar: true,
@@ -158,18 +161,23 @@ class _AlbumViewState extends State<AlbumView> {
         bloc: _contentBloc,
         builder: (context, state) {
           final details = state.albumDetails;
+          final albumSummary = details?.summary ?? widget.album;
           final tracks = details?.tracks.items ?? [];
+          final highResImage = albumSummary.thumbnail?.urlHigh ??
+              albumSummary.thumbnail?.url ??
+              widget.album.thumbnail?.urlHigh ??
+              widget.album.thumbnail?.url ??
+              '';
 
-          final detailArtists = details?.summary.artists
-                  .map((a) => a.name.trim())
-                  .where((name) => name.isNotEmpty)
-                  .toList() ??
-              const <String>[];
+          final detailArtists = albumSummary.artists
+              .map((a) => a.name.trim())
+              .where((name) => name.isNotEmpty)
+              .toList();
           final albumArtists = detailArtists.join(', ');
 
           final metaParts = <String>[];
-          final cleanYear = _cleanText(widget.album.year?.toString());
-          final cleanSubtitle = _cleanText(widget.album.subtitle);
+          final cleanYear = _cleanText(albumSummary.year?.toString());
+          final cleanSubtitle = _cleanText(albumSummary.subtitle);
 
           if (cleanYear != null) metaParts.add(cleanYear);
           if (tracks.isNotEmpty) {
@@ -186,8 +194,8 @@ class _AlbumViewState extends State<AlbumView> {
               // ─── AMBIENT BACKGROUND ───
               Positioned.fill(
                 child: LoadImageCached(
-                  imageUrl: highResImage!,
-                  fallbackUrl: widget.album.thumbnail?.url,
+                  imageUrl: highResImage,
+                  fallbackUrl: albumSummary.thumbnail?.url,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -231,15 +239,16 @@ class _AlbumViewState extends State<AlbumView> {
                               isMobile: isMobile,
                               constraints: constraints,
                               imageUrl: highResImage,
-                              fallbackUrl: widget.album.thumbnail?.url,
-                              title: widget.album.title,
+                              fallbackUrl: albumSummary.thumbnail?.url,
+                              title: albumSummary.title,
                               artists: albumArtists,
                               meta: albumMeta,
                               pluginId: widget.pluginId,
-                              albumId: widget.album.id,
+                              albumId: albumSummary.id,
+                              heroTag: widget.heroTag,
                               tracks: tracks,
                               isSaved: _isSaved,
-                              url: widget.album.url,
+                              url: albumSummary.url,
                               onToggleSave: () async {
                                 final cubit = context.read<LibraryItemsCubit>();
                                 if (_isSaved) {
@@ -286,7 +295,7 @@ class _AlbumViewState extends State<AlbumView> {
                                       .loadPlaylist(
                                         Playlist(
                                             tracks: tracks,
-                                            title: widget.album.title),
+                                            title: albumSummary.title),
                                         doPlay: true,
                                         idx: index,
                                       );
@@ -361,6 +370,7 @@ class _AlbumHeaderContent extends StatelessWidget {
   final String meta;
   final String pluginId;
   final String albumId;
+  final String? heroTag;
   final List<Track> tracks;
   final bool isSaved;
   final String? url;
@@ -376,6 +386,7 @@ class _AlbumHeaderContent extends StatelessWidget {
     required this.meta,
     required this.pluginId,
     required this.albumId,
+    this.heroTag,
     required this.tracks,
     required this.isSaved,
     this.url,
@@ -440,37 +451,39 @@ class _AlbumHeaderContent extends StatelessWidget {
       isMobile ? mobileTargetSize : desktopTargetSize, // max
     );
 
-    return Hero(
-      tag: '${pluginId}_album_$albumId',
-      child: Container(
-        width: coverSize,
-        height: coverSize, // <- forces a square
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 40,
-              offset: const Offset(0, 20),
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.1),
-              blurRadius: 1,
-              offset: const Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: LoadImageCached(
-            imageUrl: imageUrl,
-            fallbackUrl: fallbackUrl,
-            fit: BoxFit
-                .cover, // <- always fills the square; image resolution doesn’t matter
+    final cover = Container(
+      width: coverSize,
+      height: coverSize,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
           ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.1),
+            blurRadius: 1,
+            offset: const Offset(0, -1),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: LoadImageCached(
+          imageUrl: imageUrl,
+          fallbackUrl: fallbackUrl,
+          fit: BoxFit.cover,
         ),
       ),
     );
+
+    if (heroTag == null) {
+      return cover;
+    }
+
+    return Hero(tag: heroTag!, child: cover);
   }
 
   Widget _buildInfo({required bool isCentered}) {

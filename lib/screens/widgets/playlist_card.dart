@@ -23,6 +23,14 @@ class PlaylistCard extends StatefulWidget {
 
 class _PlaylistCardState extends State<PlaylistCard> {
   bool _isHovering = false;
+  late final String _heroTag;
+
+  @override
+  void initState() {
+    super.initState();
+    _heroTag =
+        '${widget.pluginId}_playlist_${widget.playlist.id}_${identityHashCode(this)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +44,7 @@ class _PlaylistCardState extends State<PlaylistCard> {
               builder: (_) => OnlPlaylistView(
                 playlist: widget.playlist,
                 pluginId: widget.pluginId,
+                heroTag: _heroTag,
               ),
             ),
           );
@@ -63,7 +72,7 @@ class _PlaylistCardState extends State<PlaylistCard> {
 
   Widget _buildThumbnail() {
     return Hero(
-      tag: '${widget.pluginId}_playlist_${widget.playlist.id}',
+      tag: _heroTag,
       child: AspectRatio(
         aspectRatio: 1,
         child: ClipRRect(

@@ -18,6 +18,14 @@ class AlbumCard extends StatefulWidget {
 
 class _AlbumCardState extends State<AlbumCard> {
   bool _isHovering = false;
+  late final String _heroTag;
+
+  @override
+  void initState() {
+    super.initState();
+    _heroTag =
+        '${widget.pluginId}_album_${widget.album.id}_${identityHashCode(this)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +40,7 @@ class _AlbumCardState extends State<AlbumCard> {
               builder: (context) => AlbumView(
                 album: widget.album,
                 pluginId: widget.pluginId,
+                heroTag: _heroTag,
               ),
             ),
           );
@@ -70,7 +79,7 @@ class _AlbumCardState extends State<AlbumCard> {
                       fit: StackFit.expand,
                       children: [
                         Hero(
-                          tag: '${widget.pluginId}_album_${widget.album.id}',
+                          tag: _heroTag,
                           child: LoadImageCached(
                             imageUrl: widget.album.thumbnail!.urlHigh ??
                                 widget.album.thumbnail!.url,
