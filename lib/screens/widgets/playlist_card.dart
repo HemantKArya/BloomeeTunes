@@ -4,122 +4,135 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 
-class PlaylistCard extends StatelessWidget {
+class PlaylistCard extends StatefulWidget {
   final PlaylistSummary playlist;
   final String pluginId;
-  final ValueNotifier<bool> hovering = ValueNotifier(false);
+  final double cardWidth;
 
-  PlaylistCard({
+  const PlaylistCard({
     super.key,
     required this.playlist,
     required this.pluginId,
+    this.cardWidth = 180,
   });
 
-  void setHovering(bool isHovering) {
-    hovering.value = isHovering;
-  }
+  @override
+  State<PlaylistCard> createState() => _PlaylistCardState();
+}
+
+class _PlaylistCardState extends State<PlaylistCard> {
+  bool _isHovering = false;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
-        child: SizedBox(
-          width: ResponsiveBreakpoints.of(context).isMobile
-              ? constraints.maxWidth * 0.45
-              : 220,
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OnlPlaylistView(
-                    playlist: playlist,
-                    pluginId: pluginId,
-                  ),
-                ),
-              );
-            },
-            child: MouseRegion(
-              onEnter: (_) => setHovering(true),
-              onExit: (_) => setHovering(false),
-              child: Card(
-                color: Colors.transparent,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Hero(
-                      tag: '${pluginId}_playlist_${playlist.id}',
-                      child: Stack(
-                        children: [
-                          LoadImageCached(
-                            imageUrl: playlist.thumbnail.url,
-                            fallbackUrl: playlist.thumbnail.url,
-                          ),
-                          ValueListenableBuilder(
-                            valueListenable: hovering,
-                            builder: (context, child, value) {
-                              return Positioned.fill(
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  color: hovering.value
-                                      ? Colors.black.withValues(alpha: 0.5)
-                                      : Colors.transparent,
-                                  child: Center(
-                                    child: AnimatedOpacity(
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      opacity: hovering.value ? 1 : 0,
-                                      child: const Icon(
-                                        MingCute.play_circle_line,
-                                        color: Colors.white,
-                                        size: 50,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        playlist.title,
-                        maxLines: 2,
-                        textAlign: TextAlign.center,
-                        style: Default_Theme.secondoryTextStyleMedium
-                            .merge(TextStyle(
-                          fontSize: 14,
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.9),
-                        )),
-                      ),
-                    ),
-                    if (playlist.owner != null && playlist.owner!.isNotEmpty)
-                      Text(
-                        playlist.owner!,
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: Default_Theme.secondoryTextStyleMedium
-                            .merge(TextStyle(
-                          fontSize: 12,
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.7),
-                        )),
-                      ),
-                  ],
-                ),
+    return SizedBox(
+      width: widget.cardWidth,
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OnlPlaylistView(
+                playlist: widget.playlist,
+                pluginId: widget.pluginId,
               ),
             ),
+          );
+        },
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _isHovering = true),
+          onExit: (_) => setState(() => _isHovering = false),
+          cursor: SystemMouseCursors.click,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildThumbnail(),
+              const SizedBox(height: 8),
+              _buildTitle(),
+              if (widget.playlist.owner != null &&
+                  widget.playlist.owner!.isNotEmpty)
+                _buildOwner(),
+            ],
           ),
         ),
-      );
-    });
+      ),
+    );
+  }
+
+  Widget _buildThumbnail() {
+    return Hero(
+      tag: '${widget.pluginId}_playlist_${widget.playlist.id}',
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(
+                color: Default_Theme.primaryColor2.withValues(alpha: 0.04),
+              ),
+              LoadImageCached(
+                imageUrl: widget.playlist.thumbnail.url,
+                fallbackUrl: widget.playlist.thumbnail.url,
+                fit: BoxFit.fitWidth,
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                color: _isHovering
+                    ? Colors.black.withValues(alpha: 0.45)
+                    : Colors.transparent,
+                child: Center(
+                  child: AnimatedOpacity(
+                    opacity: _isHovering ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(
+                      MingCute.play_circle_line,
+                      color: Colors.white,
+                      size: 42,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Text(
+      widget.playlist.title,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: Default_Theme.secondoryTextStyleMedium.merge(
+        TextStyle(
+          fontSize: 13,
+          color: Default_Theme.primaryColor1.withValues(alpha: 0.9),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOwner() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        widget.playlist.owner!,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        style: Default_Theme.secondoryTextStyleMedium.merge(
+          TextStyle(
+            fontSize: 11,
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.55),
+          ),
+        ),
+      ),
+    );
   }
 }

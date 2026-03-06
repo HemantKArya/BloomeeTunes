@@ -933,8 +933,8 @@ class _SearchScreenState extends State<SearchScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverToBoxAdapter(
         child: Wrap(
-          spacing: 16,
-          runSpacing: 16,
+          spacing: 20,
+          runSpacing: 28,
           alignment: WrapAlignment.start,
           children: children,
         ),
