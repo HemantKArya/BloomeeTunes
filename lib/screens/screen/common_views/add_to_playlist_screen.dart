@@ -31,7 +31,6 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    // Load which playlists contain this song after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadSongPlaylists();
     });
@@ -47,7 +46,6 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     super.dispose();
   }
 
-  /// Loads which playlists the current song belongs to
   Future<void> _loadSongPlaylists() async {
     final mediaItem = context.read<AddToPlaylistCubit>().state.track;
     if (isTrackNull(mediaItem)) {
@@ -60,7 +58,6 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
           .getPlaylistsContainingTrack(mediaItem.id);
       _songInPlaylists.value = playlistNames;
     } catch (e) {
-      // If error, just continue with empty set
       _songInPlaylists.value = {};
     }
   }
@@ -73,7 +70,6 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     List<PlaylistItemProperties> playlists,
     String query,
   ) {
-    // Filter out system playlists first
     final userPlaylists = playlists.where((p) {
       return p.type == PlaylistType.userPlaylist &&
           p.playlistName != "recently_played" &&
@@ -94,7 +90,6 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     bool isInPlaylist,
   ) {
     if (isInPlaylist) {
-      // Remove from playlist - no snackbar, checkbox animation provides feedback
       context.read<LibraryItemsCubit>().removeFromPlaylist(
             song,
             playlist.playlistName,
@@ -103,7 +98,6 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
       _songInPlaylists.value = Set.from(_songInPlaylists.value)
         ..remove(playlist.playlistName);
     } else {
-      // Add to playlist - no snackbar, checkbox animation provides feedback
       context.read<LibraryItemsCubit>().addToPlaylist(
             song,
             playlist.playlistName,
@@ -167,19 +161,12 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
 
             return Column(
               children: [
-                // Song Info Card (Compact)
                 _SongInfoCard(mediaItem: mediaItem),
-
-                // Already Added Playlists Stack
                 BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
                   builder: (context, libraryState) {
                     return ValueListenableBuilder<Set<String>>(
                       valueListenable: _songInPlaylists,
                       builder: (context, songPlaylists, _) {
-                        if (songPlaylists.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-
                         final playlists = libraryState.playlists
                             .where((p) =>
                                 songPlaylists.contains(p.playlistName) &&
@@ -187,27 +174,16 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                 p.playlistName != SettingKeys.downloadPlaylist)
                             .toList();
 
-                        if (playlists.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: _StackedPlaylistAvatars(playlists: playlists),
-                        );
+                        return _AnimatedAvatarSection(playlists: playlists);
                       },
                     );
                   },
                 ),
-
-                // Search Bar
                 _SearchBar(
                   controller: _searchController,
                   focusNode: _searchFocusNode,
                   searchQuery: _searchQuery,
                 ),
-
-                // Playlists List
                 Expanded(
                   child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
                     builder: (context, libraryState) {
@@ -243,6 +219,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                           return ValueListenableBuilder<Set<String>>(
                             valueListenable: _songInPlaylists,
                             builder: (context, songPlaylists, _) {
+                              // +1 for the Create New Playlist tile at top
                               return ListView.builder(
                                 padding: const EdgeInsets.only(
                                   left: 16,
@@ -250,9 +227,17 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                   bottom: 100,
                                 ),
                                 physics: const BouncingScrollPhysics(),
-                                itemCount: filteredPlaylists.length,
+                                itemCount: filteredPlaylists.length + 1,
                                 itemBuilder: (context, index) {
-                                  final playlist = filteredPlaylists[index];
+                                  // First item: Create New Playlist
+                                  if (index == 0) {
+                                    return _CreatePlaylistTile(
+                                      onTap: () =>
+                                          createPlaylistBottomSheet(context),
+                                    );
+                                  }
+
+                                  final playlist = filteredPlaylists[index - 1];
                                   final isInPlaylist = songPlaylists
                                       .contains(playlist.playlistName);
                                   return AnimatedListItem(
@@ -283,22 +268,74 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'add_to_playlist_fab',
-        backgroundColor: Default_Theme.accentColor2,
-        elevation: 2,
-        onPressed: () => createPlaylistBottomSheet(context),
-        child: const Icon(
-          Icons.add_rounded,
-          size: 28,
-          color: Default_Theme.primaryColor1,
+      // FAB removed — Create New Playlist is now inline in the list
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Inline Create New Playlist tile
+// ─────────────────────────────────────────────
+class _CreatePlaylistTile extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _CreatePlaylistTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          splashColor: Default_Theme.accentColor2.withValues(alpha: 0.08),
+          highlightColor: Default_Theme.accentColor2.withValues(alpha: 0.04),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Default_Theme.accentColor2.withValues(alpha: 0.1),
+                    border: Border.all(
+                      color: Default_Theme.accentColor2.withValues(alpha: 0.25),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: Default_Theme.accentColor2,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Text(
+                  'Create New Playlist',
+                  style: Default_Theme.secondoryTextStyleMedium.merge(
+                    const TextStyle(
+                      color: Default_Theme.accentColor2,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-/// Compact song info card showing the song being added
+// ─────────────────────────────────────────────
+// Everything below is UNCHANGED from before
+// ─────────────────────────────────────────────
+
 class _SongInfoCard extends StatelessWidget {
   final Track mediaItem;
 
@@ -315,7 +352,6 @@ class _SongInfoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Album Art
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
@@ -330,8 +366,6 @@ class _SongInfoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-
-          // Song Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,7 +403,6 @@ class _SongInfoCard extends StatelessWidget {
   }
 }
 
-/// Search bar widget with clear button
 class _SearchBar extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -445,7 +478,6 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-/// Individual playlist tile - clean, minimal design
 class _PlaylistTile extends StatelessWidget {
   final PlaylistItemProperties playlist;
   final bool isInPlaylist;
@@ -470,7 +502,6 @@ class _PlaylistTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           child: Row(
             children: [
-              // Playlist Cover
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
@@ -484,8 +515,6 @@ class _PlaylistTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-
-              // Playlist Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -518,8 +547,6 @@ class _PlaylistTile extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Checkmark indicator (only when in playlist)
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
                 transitionBuilder: (child, animation) {
@@ -561,6 +588,34 @@ class _PlaylistTile extends StatelessWidget {
   }
 }
 
+class _AnimatedAvatarSection extends StatelessWidget {
+  final List<PlaylistItemProperties> playlists;
+
+  const _AnimatedAvatarSection({required this.playlists});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool hasPlaylists = playlists.isNotEmpty;
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        opacity: hasPlaylists ? 1.0 : 0.0,
+        child: hasPlaylists
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: _StackedPlaylistAvatars(playlists: playlists),
+              )
+            : const SizedBox(width: double.infinity, height: 0),
+      ),
+    );
+  }
+}
+
 class _StackedPlaylistAvatars extends StatefulWidget {
   final List<PlaylistItemProperties> playlists;
 
@@ -577,18 +632,12 @@ class _StackedPlaylistAvatarsState extends State<_StackedPlaylistAvatars> {
     final playlists = widget.playlists;
     final totalCount = playlists.length;
     const double avatarSize = 40.0;
-    // Overlap amount when collapsed
     const double collapsedOverlap = 20.0;
-    // Horizontal padding from screen edges
     const double horizontalPadding = 32.0;
 
     final double screenWidth = MediaQuery.of(context).size.width;
     final double availableWidth = screenWidth - horizontalPadding;
 
-    // Calculate how many avatars can fit when collapsed (stacked)
-    // Total width = avatarSize + (n-1) * (avatarSize - collapsedOverlap)
-    // availableWidth >= avatarSize + (maxCollapsed - 1) * (avatarSize - collapsedOverlap)
-    // Solving for maxCollapsed:
     final int maxVisible =
         ((availableWidth - avatarSize) / (avatarSize - collapsedOverlap) + 1)
             .floor()
@@ -597,7 +646,6 @@ class _StackedPlaylistAvatarsState extends State<_StackedPlaylistAvatars> {
     final bool hasOverflow = maxVisible < totalCount;
     final int displayCount = hasOverflow ? maxVisible : totalCount;
 
-    // Items to display (last one may be the overflow indicator)
     final List<PlaylistItemProperties> visiblePlaylists =
         hasOverflow ? playlists.sublist(0, displayCount - 1) : playlists;
 
@@ -605,7 +653,6 @@ class _StackedPlaylistAvatarsState extends State<_StackedPlaylistAvatars> {
     final List<PlaylistItemProperties> overflowPlaylists =
         hasOverflow ? playlists.sublist(displayCount - 1) : [];
 
-    // Calculate total width for centering
     final int itemsToRender = hasOverflow ? displayCount : totalCount;
     final double totalWidth =
         avatarSize + (itemsToRender - 1) * (avatarSize - collapsedOverlap);
@@ -613,56 +660,54 @@ class _StackedPlaylistAvatarsState extends State<_StackedPlaylistAvatars> {
     final double startX = (screenWidth - totalWidth) / 2;
 
     return SizedBox(
-      height: avatarSize + 20, // Add some padding for tooltip/shadow
+      height: avatarSize + 20,
       width: screenWidth,
       child: Stack(
         alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
-          // Render overflow indicator first (at the bottom of the stack)
           if (hasOverflow)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.elasticOut,
+            Positioned(
               left: startX +
                   (displayCount - 1) * (avatarSize - collapsedOverlap) +
-                  8, // Offset slightly to the right for visibility
+                  8,
               top: 10,
-              child: Tooltip(
-                message:
-                    overflowPlaylists.map((p) => p.playlistName).join(', '),
-                preferBelow: false,
-                verticalOffset: 24,
-                triggerMode: TooltipTriggerMode.tap,
-                child: _OverflowAvatar(
-                  count: overflowCount,
-                  size: avatarSize,
+              child: _StaggeredAvatarEntrance(
+                index: displayCount - 1,
+                child: Tooltip(
+                  message:
+                      overflowPlaylists.map((p) => p.playlistName).join(', '),
+                  preferBelow: false,
+                  verticalOffset: 24,
+                  triggerMode: TooltipTriggerMode.tap,
+                  child: _OverflowAvatar(
+                    count: overflowCount,
+                    size: avatarSize,
+                  ),
                 ),
               ),
             ),
-          // Render visible playlist avatars in reverse order (last to first)
-          // so first item ends up on top of the stack
           ...List.generate(visiblePlaylists.length, (index) {
-            // Reverse the index for rendering order
             final reverseIndex = visiblePlaylists.length - 1 - index;
             final playlist = visiblePlaylists[reverseIndex];
 
             final double itemOffset =
                 reverseIndex * (avatarSize - collapsedOverlap);
 
-            return AnimatedPositioned(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.elasticOut,
+            return Positioned(
               left: startX + itemOffset,
               top: 10,
-              child: Tooltip(
-                message: playlist.playlistName,
-                preferBelow: false,
-                verticalOffset: 24,
-                triggerMode: TooltipTriggerMode.tap,
-                child: _PlaylistAvatar(
-                  playlist: playlist,
-                  size: avatarSize,
+              child: _StaggeredAvatarEntrance(
+                index: reverseIndex,
+                child: Tooltip(
+                  message: playlist.playlistName,
+                  preferBelow: false,
+                  verticalOffset: 24,
+                  triggerMode: TooltipTriggerMode.tap,
+                  child: _PlaylistAvatar(
+                    playlist: playlist,
+                    size: avatarSize,
+                  ),
                 ),
               ),
             );
@@ -673,7 +718,73 @@ class _StackedPlaylistAvatarsState extends State<_StackedPlaylistAvatars> {
   }
 }
 
-/// Overflow indicator showing "+N" count
+class _StaggeredAvatarEntrance extends StatefulWidget {
+  final int index;
+  final Widget child;
+
+  const _StaggeredAvatarEntrance({
+    required this.index,
+    required this.child,
+  });
+
+  @override
+  State<_StaggeredAvatarEntrance> createState() =>
+      _StaggeredAvatarEntranceState();
+}
+
+class _StaggeredAvatarEntranceState extends State<_StaggeredAvatarEntrance>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _opacity = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    Future.delayed(
+      Duration(milliseconds: 60 * widget.index),
+      () {
+        if (mounted) _controller.forward();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(
+        position: _slide,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class _OverflowAvatar extends StatelessWidget {
   final int count;
   final double size;
