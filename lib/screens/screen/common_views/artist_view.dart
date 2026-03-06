@@ -37,7 +37,6 @@ class ArtistView extends StatefulWidget {
 
 class _ArtistViewState extends State<ArtistView> {
   late final ContentBloc _contentBloc;
-  final ScrollController _albumScrollController = ScrollController();
   bool _isSaved = false;
 
   String _sourceName(BuildContext context) {
@@ -54,7 +53,6 @@ class _ArtistViewState extends State<ArtistView> {
   void initState() {
     super.initState();
     _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
-    _albumScrollController.addListener(_onAlbumScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -81,9 +79,8 @@ class _ArtistViewState extends State<ArtistView> {
     if (mounted) setState(() => _isSaved = saved);
   }
 
-  void _onAlbumScroll() {
-    if (!_albumScrollController.hasClients) return;
-
+  // Handle Load More without a manual controller
+  void _loadMoreAlbums() {
     final details = _contentBloc.state.artistDetails;
     final nextPageToken = details?.albums.nextPageToken;
     final status = _contentBloc.state.artistDetailStatus;
@@ -94,20 +91,15 @@ class _ArtistViewState extends State<ArtistView> {
       return;
     }
 
-    final remaining = _albumScrollController.position.maxScrollExtent -
-        _albumScrollController.offset;
-    if (remaining <= 320) {
-      _contentBloc.add(LoadMoreArtistAlbums(
-        pluginId: widget.pluginId,
-        artistId: widget.artist.id,
-        pageToken: nextPageToken,
-      ));
-    }
+    _contentBloc.add(LoadMoreArtistAlbums(
+      pluginId: widget.pluginId,
+      artistId: widget.artist.id,
+      pageToken: nextPageToken,
+    ));
   }
 
   @override
   void dispose() {
-    _albumScrollController.dispose();
     _contentBloc.close();
     super.dispose();
   }
@@ -176,7 +168,7 @@ class _ArtistViewState extends State<ArtistView> {
           return Stack(
             fit: StackFit.expand,
             children: [
-              // ─── AMBIENT BACKGROUND ───
+              // ─── BACKGROUND ───
               Positioned.fill(
                 child: LoadImageCached(
                   imageUrl: highResImage,
@@ -204,191 +196,116 @@ class _ArtistViewState extends State<ArtistView> {
                 ),
               ),
 
-              // ─── SCROLLABLE TABS CONTENT ───
+              // ─── NESTED SCROLL VIEW ───
               SafeArea(
                 bottom: false,
                 top: false,
                 child: DefaultTabController(
                   length: 2,
                   child: NestedScrollView(
-                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                      // ─── INTRINSIC HEIGHT HEADER ───
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 100),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final isMobile = constraints.maxWidth < 750;
-
-                              return _ArtistHeaderContent(
-                                isMobile: isMobile,
-                                imageUrl: highResImage,
-                                fallbackUrl: widget.artist.thumbnail?.url,
-                                title: widget.artist.name,
-                                subtitle: cleanSubtitle,
-                                meta: artistMeta,
-                                description: cleanDesc,
-                                pluginId: widget.pluginId,
-                                artistId: widget.artist.id,
-                                topTracks: topTracks,
-                                isSaved: _isSaved,
-                                url: widget.artist.url,
-                                onToggleSave: () async {
-                                  final cubit =
-                                      context.read<LibraryItemsCubit>();
-                                  if (_isSaved) {
-                                    await cubit.removeRemoteSaved(
-                                        widget.artist.id, PlaylistType.artist);
-                                  } else {
-                                    await cubit.saveRemoteArtist(
-                                      artist: widget.artist,
-                                      sourceName: _sourceName(context),
-                                    );
-                                  }
-                                  await _checkSavedState();
-                                },
-                              );
-                            },
+                    headerSliverBuilder: (context, innerBoxIsScrolled) {
+                      return <Widget>[
+                        // 1. The Artist Info Header (Scrolls away)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 100),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isMobile = constraints.maxWidth < 750;
+                                return _ArtistHeaderContent(
+                                  isMobile: isMobile,
+                                  imageUrl: highResImage,
+                                  fallbackUrl: widget.artist.thumbnail?.url,
+                                  title: widget.artist.name,
+                                  subtitle: cleanSubtitle,
+                                  meta: artistMeta,
+                                  description: cleanDesc,
+                                  pluginId: widget.pluginId,
+                                  artistId: widget.artist.id,
+                                  topTracks: topTracks,
+                                  isSaved: _isSaved,
+                                  url: widget.artist.url,
+                                  onToggleSave: () async {
+                                    final cubit =
+                                        context.read<LibraryItemsCubit>();
+                                    if (_isSaved) {
+                                      await cubit.removeRemoteSaved(
+                                          widget.artist.id,
+                                          PlaylistType.artist);
+                                    } else {
+                                      await cubit.saveRemoteArtist(
+                                        artist: widget.artist,
+                                        sourceName: _sourceName(context),
+                                      );
+                                    }
+                                    await _checkSavedState();
+                                  },
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                      // ─── MODERN STICKY TAB BAR (FIXED) ───
-                      SliverPersistentHeader(
-                        pinned: true,
-                        delegate: _SliverAppBarDelegate(
-                          TabBar(
-                            dividerColor: Colors.transparent,
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            // Modern segmented pill design for the indicator
-                            indicator: BoxDecoration(
-                              color: Default_Theme.accentColor2
-                                  .withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: Default_Theme.accentColor2
+
+                        // 2. The Sticky Tab Bar (Pins at top)
+                        // CRITICAL: We wrap THIS in SliverOverlapAbsorber
+                        SliverOverlapAbsorber(
+                          handle:
+                              NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                  context),
+                          sliver: SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _SliverAppBarDelegate(
+                              TabBar(
+                                dividerColor: Colors.transparent,
+                                indicatorSize: TabBarIndicatorSize.tab,
+                                indicator: BoxDecoration(
+                                  color: Default_Theme.accentColor2
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Default_Theme.accentColor2
+                                        .withValues(alpha: 0.5),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                splashBorderRadius: BorderRadius.circular(24),
+                                labelColor: Default_Theme.accentColor2,
+                                unselectedLabelColor: Default_Theme
+                                    .primaryColor1
                                     .withValues(alpha: 0.6),
-                                width: 1.5,
+                                labelStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ).merge(Default_Theme.secondoryTextStyleMedium),
+                                unselectedLabelStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ).merge(Default_Theme.secondoryTextStyle),
+                                tabs: const [
+                                  Tab(text: 'Top Songs'),
+                                  Tab(text: 'Albums'),
+                                ],
                               ),
                             ),
-                            splashBorderRadius: BorderRadius.circular(24),
-                            labelColor: Default_Theme.accentColor2,
-                            unselectedLabelColor: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.6),
-                            labelStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ).merge(Default_Theme.secondoryTextStyleMedium),
-                            unselectedLabelStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ).merge(Default_Theme.secondoryTextStyle),
-                            tabs: const [
-                              Tab(text: 'Top Songs'),
-                              Tab(text: 'Albums'),
-                            ],
                           ),
                         ),
-                      ),
-                    ],
-                    // ─── TAB BODY ───
+                      ];
+                    },
+                    // 3. The Body (Tabs)
                     body: state.artistDetailStatus == DetailStatus.loaded ||
                             state.artistDetailStatus == DetailStatus.loadingMore
                         ? TabBarView(
                             children: [
-                              // TOP SONGS TAB
-                              topTracks.isNotEmpty
-                                  ? ListView.builder(
-                                      padding: const EdgeInsets.only(
-                                          top: 8, bottom: 100),
-                                      physics: const BouncingScrollPhysics(),
-                                      itemCount: topTracks.length,
-                                      itemBuilder: (context, index) {
-                                        return AnimatedListItem(
-                                          index: index,
-                                          child: SongCardWidget(
-                                            song: topTracks[index],
-                                            onOptionsTap: () =>
-                                                showMoreBottomSheet(
-                                              context,
-                                              topTracks[index],
-                                              showDelete: false,
-                                              showSinglePlay: true,
-                                            ),
-                                            onTap: () {
-                                              context
-                                                  .read<BloomeePlayerCubit>()
-                                                  .bloomeePlayer
-                                                  .loadPlaylist(
-                                                    Playlist(
-                                                      tracks: topTracks,
-                                                      title: widget.artist.name,
-                                                    ),
-                                                    doPlay: true,
-                                                    idx: index,
-                                                  );
-                                            },
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : const Center(
-                                      child: SignBoardWidget(
-                                        message: 'No top songs available',
-                                        icon: MingCute.music_2_line,
-                                      ),
-                                    ),
-                              // ALBUMS TAB
-                              albums.isNotEmpty
-                                  ? GridView.builder(
-                                      controller: _albumScrollController,
-                                      padding: const EdgeInsets.fromLTRB(
-                                          16, 16, 16, 100),
-                                      physics: const BouncingScrollPhysics(),
-                                      gridDelegate:
-                                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                                        maxCrossAxisExtent: 180,
-                                        mainAxisExtent: 240,
-                                        crossAxisSpacing: 16,
-                                        mainAxisSpacing: 16,
-                                      ),
-                                      itemCount: albums.length +
-                                          (state.artistDetailStatus ==
-                                                  DetailStatus.loadingMore
-                                              ? 1
-                                              : 0),
-                                      itemBuilder: (context, index) {
-                                        if (index == albums.length) {
-                                          return const Center(
-                                            child: CircularProgressIndicator(
-                                              color: Default_Theme.accentColor2,
-                                            ),
-                                          );
-                                        }
-                                        return AnimatedListItem(
-                                          index: index,
-                                          child: AlbumCard(
-                                            album: albums[index],
-                                            pluginId: widget.pluginId,
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : const Center(
-                                      child: SignBoardWidget(
-                                        message: 'No albums available',
-                                        icon: MingCute.album_line,
-                                      ),
-                                    ),
+                              _buildTopTracksTab(topTracks),
+                              _buildAlbumsTab(albums, state),
                             ],
                           )
                         : state.artistDetailStatus == DetailStatus.error
                             ? Center(
                                 child: Text(
                                   state.error ?? 'Failed to load artist',
-                                  style: TextStyle(
-                                    color: Default_Theme.primaryColor1
-                                        .withValues(alpha: 0.5),
-                                  ).merge(Default_Theme.secondoryTextStyle),
+                                  style: const TextStyle(
+                                      color: Default_Theme.primaryColor1),
                                 ),
                               )
                             : const Center(
@@ -405,7 +322,140 @@ class _ArtistViewState extends State<ArtistView> {
       ),
     );
   }
+
+  // ─── TAB BUILDERS ───
+
+  Widget _buildTopTracksTab(List<Track> topTracks) {
+    if (topTracks.isEmpty) {
+      return const Center(
+        child: SignBoardWidget(
+          message: 'No top songs available',
+          icon: MingCute.music_2_line,
+        ),
+      );
+    }
+
+    // Builder is needed to get the inner context for SliverOverlapInjector
+    return Builder(
+      builder: (context) {
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          key: const PageStorageKey('artist_songs'),
+          slivers: [
+            // Inject space equal to the Header (TabBar) height
+            SliverOverlapInjector(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.only(top: 12, bottom: 100),
+              sliver: SliverList.builder(
+                itemCount: topTracks.length,
+                itemBuilder: (context, index) {
+                  return AnimatedListItem(
+                    index: index,
+                    child: SongCardWidget(
+                      song: topTracks[index],
+                      onOptionsTap: () => showMoreBottomSheet(
+                        context,
+                        topTracks[index],
+                        showDelete: false,
+                        showSinglePlay: true,
+                      ),
+                      onTap: () {
+                        context
+                            .read<BloomeePlayerCubit>()
+                            .bloomeePlayer
+                            .loadPlaylist(
+                              Playlist(
+                                tracks: topTracks,
+                                title: widget.artist.name,
+                              ),
+                              doPlay: true,
+                              idx: index,
+                            );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAlbumsTab(List<AlbumSummary> albums, ContentState state) {
+    if (albums.isEmpty) {
+      return const Center(
+        child: SignBoardWidget(
+          message: 'No albums available',
+          icon: MingCute.album_line,
+        ),
+      );
+    }
+
+    return Builder(
+      builder: (context) {
+        return NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            // Trigger Load More when near bottom
+            if (scrollInfo.metrics.pixels >=
+                scrollInfo.metrics.maxScrollExtent - 200) {
+              _loadMoreAlbums();
+            }
+            return false;
+          },
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            key: const PageStorageKey('artist_albums'),
+            slivers: [
+              SliverOverlapInjector(
+                handle:
+                    NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 180,
+                    mainAxisExtent: 230,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index == albums.length) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Default_Theme.accentColor2,
+                          ),
+                        );
+                      }
+                      return AnimatedListItem(
+                        index: index,
+                        child: AlbumCard(
+                          album: albums[index],
+                          pluginId: widget.pluginId,
+                        ),
+                      );
+                    },
+                    childCount: albums.length +
+                        (state.artistDetailStatus == DetailStatus.loadingMore
+                            ? 1
+                            : 0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
+
+// ─── HEADER CONTENT (Artist Info) ───
 
 class _ArtistHeaderContent extends StatelessWidget {
   final bool isMobile;
@@ -573,7 +623,7 @@ class _ArtistHeaderContent extends StatelessWidget {
       spacing: 12,
       runSpacing: 12,
       children: [
-        // ─── STYLIZED OUTLINED PLAY BUTTON (Consistent 44px Height) ───
+        // ─── PREMIUM OUTLINED PLAY BUTTON ───
         SizedBox(
           height: 44,
           child: Material(
@@ -600,9 +650,7 @@ class _ArtistHeaderContent extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 28),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  // Tinted background
                   color: Default_Theme.accentColor2.withValues(alpha: 0.1),
-                  // Defined colored border
                   border: Border.all(
                     color: Default_Theme.accentColor2,
                     width: 1.5,
@@ -628,10 +676,9 @@ class _ArtistHeaderContent extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 12),
 
         // ─── CIRCULAR LIKE BUTTON ───
-        _ArtistCircularButton(
+        _PremiumCircularButton(
           icon:
               isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
           color: isSaved
@@ -643,9 +690,8 @@ class _ArtistHeaderContent extends StatelessWidget {
         ),
 
         // ─── CIRCULAR LINK BUTTON ───
-        if (url != null) ...[
-          const SizedBox(width: 12),
-          _ArtistCircularButton(
+        if (url != null)
+          _PremiumCircularButton(
             icon: MingCute.external_link_line,
             color: Default_Theme.primaryColor1,
             isActive: false,
@@ -658,27 +704,26 @@ class _ArtistHeaderContent extends StatelessWidget {
               );
             },
           ),
-        ],
       ],
     );
   }
 }
 
-// ─── PERFECT CIRCLE ACTION BUTTON ──────────────────────────────────────────
+// ─── REUSABLE CIRCULAR BUTTON ───
 
-class _ArtistCircularButton extends StatelessWidget {
+class _PremiumCircularButton extends StatelessWidget {
   final IconData icon;
   final Color color;
+  final bool isActive;
   final String tooltip;
   final VoidCallback onTap;
-  final bool isActive;
 
-  const _ArtistCircularButton({
+  const _PremiumCircularButton({
     required this.icon,
     required this.color,
+    required this.isActive,
     required this.tooltip,
     required this.onTap,
-    required this.isActive,
   });
 
   @override
@@ -717,7 +762,7 @@ class _ArtistCircularButton extends StatelessWidget {
   }
 }
 
-// ─── GLASSMORPHIC TAB BAR DELEGATE (FIXED) ─────────────────────────────────
+// ─── GLASSMORPHIC TAB DELEGATE ───
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar _tabBar;
@@ -736,8 +781,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
-          // THE FIX: Use a very low opacity or transparent color
-          // so it acts like frosted glass without the "Black Tape" look
+          // Low alpha creates the frosted glass effect without "Black Tape"
           color: Default_Theme.themeColor.withValues(alpha: 0.2),
           alignment: Alignment.center,
           child: Container(
