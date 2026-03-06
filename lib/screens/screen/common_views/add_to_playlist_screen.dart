@@ -3,7 +3,6 @@ import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/screens/widgets/animated_list_item.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -323,10 +322,7 @@ class _SongInfoCard extends StatelessWidget {
               width: 48,
               height: 48,
               child: LoadImageCached(
-                imageUrl: formatImgURL(
-                  mediaItem.thumbnail.url,
-                  ImageQuality.low,
-                ),
+                imageUrl: mediaItem.thumbnail.urlLow ?? mediaItem.thumbnail.url,
                 fallbackUrl:
                     mediaItem.thumbnail.urlLow ?? mediaItem.thumbnail.url,
                 fit: BoxFit.cover,
@@ -481,10 +477,7 @@ class _PlaylistTile extends StatelessWidget {
                   width: 50,
                   height: 50,
                   child: LoadImageCached(
-                    imageUrl: formatImgURL(
-                      playlist.coverImgUrl ?? '',
-                      ImageQuality.low,
-                    ),
+                    imageUrl: playlist.coverImgUrl ?? "",
                     fallbackUrl: playlist.coverImgUrl ?? '',
                     fit: BoxFit.cover,
                   ),
@@ -756,10 +749,7 @@ class _PlaylistAvatar extends StatelessWidget {
       ),
       child: ClipOval(
         child: LoadImageCached(
-          imageUrl: formatImgURL(
-            playlist.coverImgUrl ?? '',
-            ImageQuality.low,
-          ),
+          imageUrl: playlist.coverImgUrl ?? "",
           fallbackUrl: playlist.coverImgUrl ?? '',
           fit: BoxFit.cover,
         ),

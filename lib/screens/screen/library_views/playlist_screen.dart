@@ -12,7 +12,6 @@ import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -165,10 +164,10 @@ class PlaylistView extends StatelessWidget {
                                   fit: StackFit.expand,
                                   children: [
                                     LoadImageCached(
-                                        imageUrl: formatImgURL(
+                                        imageUrl: state.playlist.tracks.first
+                                                .thumbnail.urlLow ??
                                             state.playlist.tracks.first
                                                 .thumbnail.url,
-                                            ImageQuality.low),
                                         fallbackUrl: state.playlist.tracks.first
                                             .thumbnail.url),
                                     Positioned(
@@ -231,20 +230,15 @@ class PlaylistView extends StatelessWidget {
                                                   ],
                                                 ),
                                                 child: LoadImageCached(
-                                                    imageUrl: formatImgURL(
-                                                        state
-                                                            .playlist
-                                                            .tracks
-                                                            .first
-                                                            .thumbnail
-                                                            .url,
-                                                        ImageQuality.high),
-                                                    fallbackUrl: state
-                                                        .playlist
-                                                        .tracks
-                                                        .first
-                                                        .thumbnail
-                                                        .url),
+                                                  imageUrl: state
+                                                          .playlist
+                                                          .tracks
+                                                          .first
+                                                          .thumbnail
+                                                          .urlHigh ??
+                                                      state.playlist.tracks
+                                                          .first.thumbnail.url,
+                                                ),
                                               ),
                                             ),
                                           ),

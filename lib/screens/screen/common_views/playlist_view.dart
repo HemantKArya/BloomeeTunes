@@ -17,7 +17,6 @@ import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -124,10 +123,8 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
 
   @override
   Widget build(BuildContext context) {
-    final highResImage = formatImgURL(
-      widget.playlist.thumbnail.url,
-      ImageQuality.high,
-    );
+    final highResImage =
+        widget.playlist.thumbnail.urlHigh ?? widget.playlist.thumbnail.url;
 
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
@@ -223,13 +220,10 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                     // ─── 1. AUTO-EXPANDING HEADER ───
                     SliverToBoxAdapter(
                       child: Padding(
-                        // Add top padding to account for the transparent AppBar
                         padding: const EdgeInsets.only(top: 100),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            // 750px Breakpoint: If width is less than 750, force vertical mobile layout
                             final isMobile = constraints.maxWidth < 750;
-
                             return _PlaylistHeaderContent(
                               isMobile: isMobile,
                               constraints: constraints,
@@ -269,7 +263,13 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                                 DetailStatus.loadingMore) &&
                         tracks.isNotEmpty)
                       SliverPadding(
-                        padding: const EdgeInsets.only(top: 24, bottom: 120),
+                        padding: EdgeInsets.only(
+                          top: 24,
+                          bottom: state.playlistDetailStatus ==
+                                  DetailStatus.loadingMore
+                              ? 0
+                              : 120,
+                        ),
                         sliver: SliverList.builder(
                           itemCount: tracks.length,
                           itemBuilder: (context, index) {
@@ -301,34 +301,40 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                         ),
                       )
                     else if (state.playlistDetailStatus == DetailStatus.loaded)
-                      const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: SignBoardWidget(
-                            message: 'No tracks available',
-                            icon: MingCute.music_2_line,
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 80, bottom: 120),
+                          child: Center(
+                            child: SignBoardWidget(
+                              message: 'No tracks available',
+                              icon: MingCute.music_2_line,
+                            ),
                           ),
                         ),
                       )
                     else if (state.playlistDetailStatus == DetailStatus.error)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: Text(
-                            state.error ?? 'Failed to load playlist',
-                            style: TextStyle(
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.5),
-                            ).merge(Default_Theme.secondoryTextStyle),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 80, bottom: 120),
+                          child: Center(
+                            child: Text(
+                              state.error ?? 'Failed to load playlist',
+                              style: TextStyle(
+                                color: Default_Theme.primaryColor1
+                                    .withValues(alpha: 0.5),
+                              ).merge(Default_Theme.secondoryTextStyle),
+                            ),
                           ),
                         ),
                       )
                     else
-                      const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: Default_Theme.accentColor2,
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 100, bottom: 120),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Default_Theme.accentColor2,
+                            ),
                           ),
                         ),
                       ),
@@ -336,7 +342,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                     if (state.playlistDetailStatus == DetailStatus.loadingMore)
                       const SliverToBoxAdapter(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
+                          padding: EdgeInsets.only(top: 20, bottom: 120),
                           child: Center(
                             child: CircularProgressIndicator(
                               color: Default_Theme.accentColor2,
@@ -437,10 +443,8 @@ class _PlaylistHeaderContent extends StatelessWidget {
     return Hero(
       tag: '${pluginId}_playlist_$playlistId',
       child: Container(
+        height: 260,
         constraints: BoxConstraints(
-          // Capped heights, but responsive widths.
-          // Desktop gets exactly 40% of screen width max to ensure text has 60% room.
-          maxHeight: isMobile ? 260 : 300,
           maxWidth: isMobile
               ? constraints.maxWidth * 0.85
               : constraints.maxWidth * 0.40,
@@ -462,9 +466,12 @@ class _PlaylistHeaderContent extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: LoadImageCached(
-            imageUrl: imageUrl,
-            fallbackUrl: fallbackUrl,
+          child: SizedBox.square(
+            child: LoadImageCached(
+              imageUrl: imageUrl,
+              fallbackUrl: fallbackUrl,
+              fit: BoxFit.fitWidth,
+            ),
           ),
         ),
       ),

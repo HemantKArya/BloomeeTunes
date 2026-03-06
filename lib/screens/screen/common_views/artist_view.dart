@@ -18,7 +18,6 @@ import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -114,7 +113,7 @@ class _ArtistViewState extends State<ArtistView> {
   @override
   Widget build(BuildContext context) {
     final highResImage =
-        formatImgURL(widget.artist.thumbnail?.url ?? '', ImageQuality.high);
+        widget.artist.thumbnail!.urlHigh ?? widget.artist.thumbnail!.url;
 
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
@@ -656,9 +655,9 @@ class _ArtistHeaderContent extends StatelessWidget {
                     width: 1.5,
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(MingCute.play_fill,
                         size: 20, color: Default_Theme.accentColor2),
                     SizedBox(width: 8),

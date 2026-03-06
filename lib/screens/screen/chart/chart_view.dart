@@ -4,7 +4,6 @@ import 'package:Bloomee/plugins/blocs/chart/chart_bloc.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_event.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_state.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -156,7 +155,7 @@ class _ChartScreenBody extends StatelessWidget {
                     return SizedBox(
                       width: constraints.maxWidth,
                       child: LoadImageCached(
-                        imageUrl: formatImgURL(coverUrl!, ImageQuality.high),
+                        imageUrl: coverUrl!,
                         fallbackUrl: coverUrl,
                         fit: BoxFit.cover,
                       ),

@@ -17,7 +17,6 @@ import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -120,10 +119,8 @@ class _AlbumViewState extends State<AlbumView> {
 
   @override
   Widget build(BuildContext context) {
-    final highResImage = formatImgURL(
-      widget.album.thumbnail?.url ?? '',
-      ImageQuality.high,
-    );
+    final highResImage =
+        widget.album.thumbnail?.urlHigh ?? widget.album.thumbnail?.url;
 
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
@@ -189,7 +186,7 @@ class _AlbumViewState extends State<AlbumView> {
               // ─── AMBIENT BACKGROUND ───
               Positioned.fill(
                 child: LoadImageCached(
-                  imageUrl: highResImage,
+                  imageUrl: highResImage!,
                   fallbackUrl: widget.album.thumbnail?.url,
                   fit: BoxFit.cover,
                 ),
@@ -427,15 +424,27 @@ class _AlbumHeaderContent extends StatelessWidget {
   }
 
   Widget _buildCover() {
+    // Base target size for the cover
+    const double mobileTargetSize = 260;
+    const double desktopTargetSize = 320;
+
+    // How much of the width we want to use
+    final double widthFactor = isMobile ? 0.7 : 0.35;
+
+    // Available width for the cover
+    final double availableWidth = constraints.maxWidth * widthFactor;
+
+    // Final square size (clamped so it doesn’t get too big/small)
+    final double coverSize = availableWidth.clamp(
+      isMobile ? 200.0 : 260.0, // min
+      isMobile ? mobileTargetSize : desktopTargetSize, // max
+    );
+
     return Hero(
       tag: '${pluginId}_album_$albumId',
       child: Container(
-        constraints: BoxConstraints(
-          maxHeight: isMobile ? 260 : 320,
-          maxWidth: isMobile
-              ? constraints.maxWidth * 0.85
-              : constraints.maxWidth * 0.40,
-        ),
+        width: coverSize,
+        height: coverSize, // <- forces a square
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
@@ -456,6 +465,8 @@ class _AlbumHeaderContent extends StatelessWidget {
           child: LoadImageCached(
             imageUrl: imageUrl,
             fallbackUrl: fallbackUrl,
+            fit: BoxFit
+                .cover, // <- always fills the square; image resolution doesn’t matter
           ),
         ),
       ),

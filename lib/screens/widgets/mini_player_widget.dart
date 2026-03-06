@@ -7,7 +7,6 @@ import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -96,8 +95,7 @@ class MiniPlayerCard extends StatelessWidget {
                   child: Container(
                     color: Default_Theme.themeColor,
                     child: LoadImageCached(
-                      imageUrl:
-                          formatImgURL(song.thumbnail.url, ImageQuality.low),
+                      imageUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
                       fallbackUrl: song.thumbnail.url,
                       fit: BoxFit.cover,
                     ),
@@ -121,8 +119,7 @@ class MiniPlayerCard extends StatelessWidget {
                         width: 61,
                         height: 61,
                         child: LoadImageCached(
-                          imageUrl: formatImgURL(
-                              song.thumbnail.url, ImageQuality.low),
+                          imageUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
                           fallbackUrl: song.thumbnail.url,
                           fit: BoxFit.cover,
                         ),

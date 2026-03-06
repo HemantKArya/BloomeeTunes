@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/utils/audio_tagger.dart';
 import 'package:Bloomee/utils/dload.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
 import 'package:Bloomee/core/events/global_event_bus.dart';
@@ -324,7 +323,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         title: song.title,
         artist: artist.isNotEmpty ? artist : "Unknown Artist",
         album: song.album?.title ?? "Unknown Album",
-        artworkUrl: formatImgURL(song.thumbnail.url, ImageQuality.high),
+        artworkUrl: song.thumbnail.urlHigh ?? song.thumbnail.url,
         duration: durationMs != null
             ? Duration(milliseconds: durationMs.toInt())
             : null,

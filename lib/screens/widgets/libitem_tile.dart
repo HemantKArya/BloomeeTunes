@@ -1,6 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -81,23 +80,16 @@ class LibItemCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     child: switch (type) {
                       LibItemTypes.userPlaylist => LoadImageCached(
-                          imageUrl: formatImgURL(
-                              coverArt.toString(), ImageQuality.medium),
-                          fallbackUrl: coverArt.toString()),
+                          imageUrl: coverArt, fallbackUrl: coverArt.toString()),
                       LibItemTypes.onlPlaylist => LoadImageCached(
-                          imageUrl: formatImgURL(
-                              coverArt.toString(), ImageQuality.medium),
-                          fallbackUrl: coverArt.toString()),
+                          imageUrl: coverArt, fallbackUrl: coverArt.toString()),
                       LibItemTypes.artist => ClipOval(
                           child: LoadImageCached(
-                              imageUrl: formatImgURL(
-                                  coverArt.toString(), ImageQuality.medium),
+                              imageUrl: coverArt,
                               fallbackUrl: coverArt.toString()),
                         ),
                       LibItemTypes.album => LoadImageCached(
-                          imageUrl: formatImgURL(
-                              coverArt.toString(), ImageQuality.medium),
-                          fallbackUrl: coverArt.toString()),
+                          imageUrl: coverArt, fallbackUrl: coverArt.toString()),
                     },
                   ),
                 ),

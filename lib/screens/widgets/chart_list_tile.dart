@@ -1,6 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/core/constants/route_paths.dart';
@@ -49,7 +48,7 @@ class ChartListTile extends StatelessWidget {
                     height: 60,
                     width: 80,
                     child: LoadImageCached(
-                      imageUrl: formatImgURL(imgUrl, ImageQuality.low),
+                      imageUrl: imgUrl,
                       fallbackUrl: imgUrl,
                       fit: BoxFit.cover,
                     ),
@@ -58,7 +57,7 @@ class ChartListTile extends StatelessWidget {
                     height: 60,
                     width: 60,
                     child: LoadImageCached(
-                      imageUrl: formatImgURL(imgUrl, ImageQuality.low),
+                      imageUrl: imgUrl,
                       fallbackUrl: imgUrl,
                     ),
                   ),

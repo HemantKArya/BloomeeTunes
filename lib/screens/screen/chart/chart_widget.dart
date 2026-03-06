@@ -2,7 +2,6 @@
 import 'dart:math';
 import 'dart:developer' as dev;
 import 'package:Bloomee/core/di/service_locator.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/core/models/exported.dart';
@@ -158,7 +157,7 @@ class _ChartWidgetState extends State<ChartWidget> {
                     height: constraints.maxHeight,
                     width: constraints.maxWidth,
                     child: LoadImageCached(
-                      imageUrl: formatImgURL(thumbnailUrl, ImageQuality.high),
+                      imageUrl: thumbnailUrl,
                       fallbackUrl: thumbnailUrl,
                       fit: BoxFit.cover,
                     ),

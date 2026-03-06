@@ -2,7 +2,6 @@ import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/dload.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -50,11 +49,7 @@ class DownloadingCardWidget extends StatelessWidget {
             width: 55,
             height: 55,
             child: LoadImageCached(
-              imageUrl: formatImgURL(
-                song.thumbnail.url,
-                ImageQuality.low,
-              ),
-              fallbackUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
+              imageUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
               fit: BoxFit.cover,
             ),
           ),

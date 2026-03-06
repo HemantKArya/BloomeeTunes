@@ -1,5 +1,4 @@
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -43,7 +42,7 @@ class SquareImgCard extends StatelessWidget {
                   height: 150,
                   width: isWide ? 250 : 150,
                   child: LoadImageCached(
-                    imageUrl: formatImgURL(imgPath, ImageQuality.medium),
+                    imageUrl: imgPath,
                     fallbackUrl: fallbackImgPath,
                   ),
                 ),

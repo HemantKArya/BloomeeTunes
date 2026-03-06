@@ -1,7 +1,6 @@
 ﻿import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/screen/common_views/playlist_view.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -56,10 +55,7 @@ class PlaylistCard extends StatelessWidget {
                       child: Stack(
                         children: [
                           LoadImageCached(
-                            imageUrl: formatImgURL(
-                              playlist.thumbnail.url,
-                              ImageQuality.medium,
-                            ),
+                            imageUrl: playlist.thumbnail.url,
                             fallbackUrl: playlist.thumbnail.url,
                           ),
                           ValueListenableBuilder(

@@ -2,7 +2,6 @@
 import 'package:Bloomee/screens/screen/common_views/song_info_screen.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -121,7 +120,7 @@ class SongCardWidget extends StatelessWidget {
                 mediaItemStream: playerCubit.bloomeePlayer.mediaItem,
               ),
               _SongImage(
-                imageUrl: formatImgURL(song.thumbnail.url, ImageQuality.low),
+                imageUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
                 fallbackUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
                 isWide: isWide,
               ),
@@ -241,12 +240,12 @@ class _PlayingIndicatorState extends State<_PlayingIndicator>
           sizeFactor: _slideAnimation,
           child: FadeTransition(
             opacity: _slideAnimation,
-            child: Center(
+            child: const Center(
               child: SizedBox(
                 width: _indicatorWidth,
-                child: const Icon(
+                child: Icon(
                   FontAwesome.caret_right_solid,
-                  color: Default_Theme.accentColor1,
+                  color: Default_Theme.accentColor2,
                   size: 25,
                 ),
               ),

@@ -9,7 +9,6 @@ import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -183,10 +182,10 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
               image: snapshot.data?.artUri != null
                   ? DecorationImage(
                       image: NetworkImage(
-                        formatImgURL(
-                          snapshot.data!.artUri.toString(),
-                          ImageQuality.low,
-                        ),
+                        bloomeePlayerCubit.bloomeePlayer.currentTrackInfo
+                                .thumbnail.urlLow ??
+                            bloomeePlayerCubit
+                                .bloomeePlayer.currentTrackInfo.thumbnail.url,
                       ),
                       fit: BoxFit.cover,
                     )
