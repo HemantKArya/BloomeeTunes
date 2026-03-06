@@ -219,7 +219,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
   List<Section> dco_decode_list_section(dynamic raw);
+
+  @protected
+  List<StreamSource> dco_decode_list_stream_source(dynamic raw);
 
   @protected
   List<Track> dco_decode_list_track(dynamic raw);
@@ -263,6 +269,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
   @protected
+  List<(String, String)>? dco_decode_opt_list_record_string_string(dynamic raw);
+
+  @protected
   PagedAlbums dco_decode_paged_albums(dynamic raw);
 
   @protected
@@ -299,7 +308,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PluginType dco_decode_plugin_type(dynamic raw);
 
   @protected
+  Quality dco_decode_quality(dynamic raw);
+
+  @protected
+  (String, String) dco_decode_record_string_string(dynamic raw);
+
+  @protected
   Section dco_decode_section(dynamic raw);
+
+  @protected
+  StreamSource dco_decode_stream_source(dynamic raw);
 
   @protected
   Track dco_decode_track(dynamic raw);
@@ -517,7 +535,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<(String, String)> sse_decode_list_record_string_string(
+      SseDeserializer deserializer);
+
+  @protected
   List<Section> sse_decode_list_section(SseDeserializer deserializer);
+
+  @protected
+  List<StreamSource> sse_decode_list_stream_source(
+      SseDeserializer deserializer);
 
   @protected
   List<Track> sse_decode_list_track(SseDeserializer deserializer);
@@ -563,6 +589,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
+  List<(String, String)>? sse_decode_opt_list_record_string_string(
+      SseDeserializer deserializer);
+
+  @protected
   PagedAlbums sse_decode_paged_albums(SseDeserializer deserializer);
 
   @protected
@@ -602,7 +632,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PluginType sse_decode_plugin_type(SseDeserializer deserializer);
 
   @protected
+  Quality sse_decode_quality(SseDeserializer deserializer);
+
+  @protected
+  (String, String) sse_decode_record_string_string(
+      SseDeserializer deserializer);
+
+  @protected
   Section sse_decode_section(SseDeserializer deserializer);
+
+  @protected
+  StreamSource sse_decode_stream_source(SseDeserializer deserializer);
 
   @protected
   Track sse_decode_track(SseDeserializer deserializer);
@@ -826,7 +866,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       Uint8List self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_record_string_string(
+      List<(String, String)> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_section(List<Section> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_stream_source(
+      List<StreamSource> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_track(List<Track> self, SseSerializer serializer);
@@ -875,6 +923,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_list_record_string_string(
+      List<(String, String)>? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_paged_albums(PagedAlbums self, SseSerializer serializer);
 
   @protected
@@ -919,7 +971,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_plugin_type(PluginType self, SseSerializer serializer);
 
   @protected
+  void sse_encode_quality(Quality self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_string_string(
+      (String, String) self, SseSerializer serializer);
+
+  @protected
   void sse_encode_section(Section self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_stream_source(StreamSource self, SseSerializer serializer);
 
   @protected
   void sse_encode_track(Track self, SseSerializer serializer);

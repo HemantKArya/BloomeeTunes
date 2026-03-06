@@ -9,7 +9,7 @@ import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'models.freezed.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `HttpMethod`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 class AlbumDetails {
   final AlbumSummary summary;
@@ -424,6 +424,14 @@ class PlaylistSummary {
           url == other.url;
 }
 
+enum Quality {
+  low,
+  medium,
+  high,
+  lossless,
+  ;
+}
+
 class Section {
   final String id;
   final String title;
@@ -461,6 +469,41 @@ class Section {
           cardType == other.cardType &&
           items == other.items &&
           moreLink == other.moreLink;
+}
+
+class StreamSource {
+  final String url;
+  final Quality quality;
+  final String format;
+  final List<(String, String)>? headers;
+  final BigInt? expiresAt;
+
+  const StreamSource({
+    required this.url,
+    required this.quality,
+    required this.format,
+    this.headers,
+    this.expiresAt,
+  });
+
+  @override
+  int get hashCode =>
+      url.hashCode ^
+      quality.hashCode ^
+      format.hashCode ^
+      headers.hashCode ^
+      expiresAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StreamSource &&
+          runtimeType == other.runtimeType &&
+          url == other.url &&
+          quality == other.quality &&
+          format == other.format &&
+          headers == other.headers &&
+          expiresAt == other.expiresAt;
 }
 
 class Track {

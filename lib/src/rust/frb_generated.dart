@@ -2347,9 +2347,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<(String, String)> dco_decode_list_record_string_string(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_record_string_string).toList();
+  }
+
+  @protected
   List<Section> dco_decode_list_section(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_section).toList();
+  }
+
+  @protected
+  List<StreamSource> dco_decode_list_stream_source(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_stream_source).toList();
   }
 
   @protected
@@ -2483,6 +2495,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_u_64(raw);
+  }
+
+  @protected
+  List<(String, String)>? dco_decode_opt_list_record_string_string(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_record_string_string(raw);
   }
 
   @protected
@@ -2706,7 +2725,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         );
       case 3:
         return PluginResponse_Streams(
-          dco_decode_list_track(raw[1]),
+          dco_decode_list_stream_source(raw[1]),
         );
       case 4:
         return PluginResponse_Search(
@@ -2750,6 +2769,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Quality dco_decode_quality(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return Quality.values[raw as int];
+  }
+
+  @protected
+  (String, String) dco_decode_record_string_string(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2) {
+      throw Exception('Expected 2 elements, got ${arr.length}');
+    }
+    return (
+      dco_decode_String(arr[0]),
+      dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
   Section dco_decode_section(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -2762,6 +2800,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       cardType: dco_decode_card_type(arr[3]),
       items: dco_decode_list_media_item(arr[4]),
       moreLink: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  StreamSource dco_decode_stream_source(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return StreamSource(
+      url: dco_decode_String(arr[0]),
+      quality: dco_decode_quality(arr[1]),
+      format: dco_decode_String(arr[2]),
+      headers: dco_decode_opt_list_record_string_string(arr[3]),
+      expiresAt: dco_decode_opt_box_autoadd_u_64(arr[4]),
     );
   }
 
@@ -3358,6 +3411,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<(String, String)> sse_decode_list_record_string_string(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <(String, String)>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_record_string_string(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<Section> sse_decode_list_section(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -3365,6 +3431,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <Section>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_section(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<StreamSource> sse_decode_list_stream_source(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <StreamSource>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_stream_source(deserializer));
     }
     return ans_;
   }
@@ -3544,6 +3623,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_u_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<(String, String)>? sse_decode_opt_list_record_string_string(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_record_string_string(deserializer));
     } else {
       return null;
     }
@@ -3746,7 +3837,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         var var_field0 = sse_decode_box_autoadd_playlist_details(deserializer);
         return PluginResponse_PlaylistDetails(var_field0);
       case 3:
-        var var_field0 = sse_decode_list_track(deserializer);
+        var var_field0 = sse_decode_list_stream_source(deserializer);
         return PluginResponse_Streams(var_field0);
       case 4:
         var var_field0 = sse_decode_box_autoadd_paged_media_items(deserializer);
@@ -3784,6 +3875,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Quality sse_decode_quality(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return Quality.values[inner];
+  }
+
+  @protected
+  (String, String) sse_decode_record_string_string(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_field0 = sse_decode_String(deserializer);
+    var var_field1 = sse_decode_String(deserializer);
+    return (var_field0, var_field1);
+  }
+
+  @protected
   Section sse_decode_section(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
@@ -3799,6 +3906,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         cardType: var_cardType,
         items: var_items,
         moreLink: var_moreLink);
+  }
+
+  @protected
+  StreamSource sse_decode_stream_source(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_url = sse_decode_String(deserializer);
+    var var_quality = sse_decode_quality(deserializer);
+    var var_format = sse_decode_String(deserializer);
+    var var_headers = sse_decode_opt_list_record_string_string(deserializer);
+    var var_expiresAt = sse_decode_opt_box_autoadd_u_64(deserializer);
+    return StreamSource(
+        url: var_url,
+        quality: var_quality,
+        format: var_format,
+        headers: var_headers,
+        expiresAt: var_expiresAt);
   }
 
   @protected
@@ -4352,11 +4475,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_record_string_string(
+      List<(String, String)> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_record_string_string(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_section(List<Section> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_section(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_stream_source(
+      List<StreamSource> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_stream_source(item, serializer);
     }
   }
 
@@ -4507,6 +4650,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_u_64(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_record_string_string(
+      List<(String, String)>? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_record_string_string(self, serializer);
     }
   }
 
@@ -4699,7 +4853,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_box_autoadd_playlist_details(field0, serializer);
       case PluginResponse_Streams(field0: final field0):
         sse_encode_i_32(3, serializer);
-        sse_encode_list_track(field0, serializer);
+        sse_encode_list_stream_source(field0, serializer);
       case PluginResponse_Search(field0: final field0):
         sse_encode_i_32(4, serializer);
         sse_encode_box_autoadd_paged_media_items(field0, serializer);
@@ -4733,6 +4887,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_quality(Quality self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_record_string_string(
+      (String, String) self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.$1, serializer);
+    sse_encode_String(self.$2, serializer);
+  }
+
+  @protected
   void sse_encode_section(Section self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
@@ -4741,6 +4909,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_card_type(self.cardType, serializer);
     sse_encode_list_media_item(self.items, serializer);
     sse_encode_opt_String(self.moreLink, serializer);
+  }
+
+  @protected
+  void sse_encode_stream_source(StreamSource self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.url, serializer);
+    sse_encode_quality(self.quality, serializer);
+    sse_encode_String(self.format, serializer);
+    sse_encode_opt_list_record_string_string(self.headers, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.expiresAt, serializer);
   }
 
   @protected

@@ -8,7 +8,7 @@ use crate::api::plugin::loader::get_instance_with_host;
 use crate::api::plugin::models::{
     AlbumDetails, AlbumSummary, ArtistDetails, ArtistSummary, Artwork, CardType, ChartItem,
     ChartSummary, ImageLayout, Lyrics, MediaItem, PagedAlbums, PagedMediaItems, PagedTracks,
-    PlaylistDetails, PlaylistSummary, Section, Track,
+    PlaylistDetails, PlaylistSummary, Quality, Section, StreamSource, Track,
 };
 use crate::api::plugin::traits::Plugin;
 use crate::api::plugin::types::{PluginAdapter, PluginType};
@@ -254,30 +254,9 @@ impl Plugin for ContentResolverPluginAdapter {
                         .call(&mut state.store, id)
                         .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?
                         .map_err(|e| PluginError::WasmExecutionError(e))?;
-                    // Each stream source becomes a minimal Track carrying the URL and quality label.
-                    // The thumbnail is a required field on Track; we use a placeholder empty Artwork.
-                    let placeholder_art = Artwork {
-                        url: String::new(),
-                        url_low: None,
-                        url_high: None,
-                        layout: ImageLayout::Square,
-                    };
-                    let tracks: Vec<Track> = result
-                        .into_iter()
-                        .enumerate()
-                        .map(|(i, s)| Track {
-                            id: format!("stream_{}", i),
-                            title: format!("{:?} • {}", s.quality, s.format),
-                            artists: vec![],
-                            album: None,
-                            duration_ms: None,
-                            thumbnail: placeholder_art.clone(),
-                            url: Some(s.url),
-                            is_explicit: false,
-                            lyrics: None,
-                        })
-                        .collect();
-                    Ok(PluginResponse::Streams(tracks))
+                    Ok(PluginResponse::Streams(
+                        result.into_iter().map(to_audio_stream_source).collect(),
+                    ))
                 }
                 ContentResolverCommand::Search {
                     query,
@@ -411,6 +390,25 @@ fn to_audio_lyrics(l: bindgen::Lyrics) -> Lyrics {
         plain: l.plain,
         synced: l.synced,
         copyright: l.copyright,
+    }
+}
+
+fn to_audio_quality(q: bindgen::Quality) -> Quality {
+    match q {
+        bindgen::Quality::Low => Quality::Low,
+        bindgen::Quality::Medium => Quality::Medium,
+        bindgen::Quality::High => Quality::High,
+        bindgen::Quality::Lossless => Quality::Lossless,
+    }
+}
+
+fn to_audio_stream_source(s: bindgen::StreamSource) -> StreamSource {
+    StreamSource {
+        url: s.url,
+        quality: to_audio_quality(s.quality),
+        format: s.format,
+        headers: s.headers,
+        expires_at: s.expires_at,
     }
 }
 
@@ -629,7 +627,7 @@ fn stamp_response(plugin_id: &str, response: PluginResponse) -> PluginResponse {
             description: d.description,
         }),
         // Streams carry playback URLs, not routable entity IDs — pass through.
-        PluginResponse::Streams(tracks) => PluginResponse::Streams(tracks),
+        PluginResponse::Streams(streams) => PluginResponse::Streams(streams),
         PluginResponse::MoreTracks(p) => PluginResponse::MoreTracks(stamp_paged_tracks(plugin_id, p)),
         PluginResponse::MoreAlbums(p) => PluginResponse::MoreAlbums(stamp_paged_albums(plugin_id, p)),
         PluginResponse::HomeSections(sections) => PluginResponse::HomeSections(

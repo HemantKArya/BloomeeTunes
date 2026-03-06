@@ -102,7 +102,7 @@ sealed class PluginResponse with _$PluginResponse {
     PlaylistDetails field0,
   ) = PluginResponse_PlaylistDetails;
   const factory PluginResponse.streams(
-    List<Track> field0,
+    List<StreamSource> field0,
   ) = PluginResponse_Streams;
   const factory PluginResponse.search(
     PagedMediaItems field0,

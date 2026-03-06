@@ -2043,7 +2043,7 @@ extension PluginResponsePatterns on PluginResponse {
     TResult Function(AlbumDetails field0)? albumDetails,
     TResult Function(ArtistDetails field0)? artistDetails,
     TResult Function(PlaylistDetails field0)? playlistDetails,
-    TResult Function(List<Track> field0)? streams,
+    TResult Function(List<StreamSource> field0)? streams,
     TResult Function(PagedMediaItems field0)? search,
     TResult Function(PagedTracks field0)? moreTracks,
     TResult Function(PagedAlbums field0)? moreAlbums,
@@ -2103,7 +2103,7 @@ extension PluginResponsePatterns on PluginResponse {
     required TResult Function(AlbumDetails field0) albumDetails,
     required TResult Function(ArtistDetails field0) artistDetails,
     required TResult Function(PlaylistDetails field0) playlistDetails,
-    required TResult Function(List<Track> field0) streams,
+    required TResult Function(List<StreamSource> field0) streams,
     required TResult Function(PagedMediaItems field0) search,
     required TResult Function(PagedTracks field0) moreTracks,
     required TResult Function(PagedAlbums field0) moreAlbums,
@@ -2159,7 +2159,7 @@ extension PluginResponsePatterns on PluginResponse {
     TResult? Function(AlbumDetails field0)? albumDetails,
     TResult? Function(ArtistDetails field0)? artistDetails,
     TResult? Function(PlaylistDetails field0)? playlistDetails,
-    TResult? Function(List<Track> field0)? streams,
+    TResult? Function(List<StreamSource> field0)? streams,
     TResult? Function(PagedMediaItems field0)? search,
     TResult? Function(PagedTracks field0)? moreTracks,
     TResult? Function(PagedAlbums field0)? moreAlbums,
@@ -2402,12 +2402,12 @@ class _$PluginResponse_PlaylistDetailsCopyWithImpl<$Res>
 /// @nodoc
 
 class PluginResponse_Streams extends PluginResponse {
-  const PluginResponse_Streams(final List<Track> field0)
+  const PluginResponse_Streams(final List<StreamSource> field0)
       : _field0 = field0,
         super._();
 
-  final List<Track> _field0;
-  List<Track> get field0 {
+  final List<StreamSource> _field0;
+  List<StreamSource> get field0 {
     if (_field0 is EqualUnmodifiableListView) return _field0;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_field0);
@@ -2446,7 +2446,7 @@ abstract mixin class $PluginResponse_StreamsCopyWith<$Res>
           $Res Function(PluginResponse_Streams) _then) =
       _$PluginResponse_StreamsCopyWithImpl;
   @useResult
-  $Res call({List<Track> field0});
+  $Res call({List<StreamSource> field0});
 }
 
 /// @nodoc
@@ -2467,7 +2467,7 @@ class _$PluginResponse_StreamsCopyWithImpl<$Res>
       null == field0
           ? _self._field0
           : field0 // ignore: cast_nullable_to_non_nullable
-              as List<Track>,
+              as List<StreamSource>,
     ));
   }
 }

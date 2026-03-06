@@ -62,6 +62,23 @@ pub struct Lyrics {
     pub copyright: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Quality {
+    Low,
+    Medium,
+    High,
+    Lossless,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StreamSource {
+    pub url: String,
+    pub quality: Quality,
+    pub format: String,
+    pub headers: Option<Vec<(String, String)>>,
+    pub expires_at: Option<u64>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Track {
     pub id: String,

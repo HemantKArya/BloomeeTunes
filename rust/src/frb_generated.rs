@@ -3065,7 +3065,7 @@ const _: fn() = || {
             let _: crate::api::plugin::models::PlaylistDetails = field0;
         }
         crate::api::plugin::commands::PluginResponse::Streams(field0) => {
-            let _: Vec<crate::api::plugin::models::Track> = field0;
+            let _: Vec<crate::api::plugin::models::StreamSource> = field0;
         }
         crate::api::plugin::commands::PluginResponse::Search(field0) => {
             let _: crate::api::plugin::models::PagedMediaItems = field0;
@@ -3576,6 +3576,18 @@ impl SseDecode for Vec<u8> {
     }
 }
 
+impl SseDecode for Vec<(String, String)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<(String, String)>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::plugin::models::Section> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3583,6 +3595,20 @@ impl SseDecode for Vec<crate::api::plugin::models::Section> {
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
             ans_.push(<crate::api::plugin::models::Section>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::plugin::models::StreamSource> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::plugin::models::StreamSource>::sse_decode(
                 deserializer,
             ));
         }
@@ -3788,6 +3814,17 @@ impl SseDecode for Option<u64> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<u64>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<(String, String)>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<(String, String)>>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -4090,7 +4127,7 @@ impl SseDecode for crate::api::plugin::commands::PluginResponse {
             }
             3 => {
                 let mut var_field0 =
-                    <Vec<crate::api::plugin::models::Track>>::sse_decode(deserializer);
+                    <Vec<crate::api::plugin::models::StreamSource>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::Streams(var_field0);
             }
             4 => {
@@ -4150,6 +4187,29 @@ impl SseDecode for crate::api::plugin::types::PluginType {
     }
 }
 
+impl SseDecode for crate::api::plugin::models::Quality {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::plugin::models::Quality::Low,
+            1 => crate::api::plugin::models::Quality::Medium,
+            2 => crate::api::plugin::models::Quality::High,
+            3 => crate::api::plugin::models::Quality::Lossless,
+            _ => unreachable!("Invalid variant for Quality: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for (String, String) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_field0 = <String>::sse_decode(deserializer);
+        let mut var_field1 = <String>::sse_decode(deserializer);
+        return (var_field0, var_field1);
+    }
+}
+
 impl SseDecode for crate::api::plugin::models::Section {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4166,6 +4226,24 @@ impl SseDecode for crate::api::plugin::models::Section {
             card_type: var_cardType,
             items: var_items,
             more_link: var_moreLink,
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::StreamSource {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_url = <String>::sse_decode(deserializer);
+        let mut var_quality = <crate::api::plugin::models::Quality>::sse_decode(deserializer);
+        let mut var_format = <String>::sse_decode(deserializer);
+        let mut var_headers = <Option<Vec<(String, String)>>>::sse_decode(deserializer);
+        let mut var_expiresAt = <Option<u64>>::sse_decode(deserializer);
+        return crate::api::plugin::models::StreamSource {
+            url: var_url,
+            quality: var_quality,
+            format: var_format,
+            headers: var_headers,
+            expires_at: var_expiresAt,
         };
     }
 }
@@ -5387,6 +5465,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::types::PluginType>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::Quality {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Low => 0.into_dart(),
+            Self::Medium => 1.into_dart(),
+            Self::High => 2.into_dart(),
+            Self::Lossless => 3.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::Quality
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::Quality>
+    for crate::api::plugin::models::Quality
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::Quality {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::Section {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -5408,6 +5509,30 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::Section>
     for crate::api::plugin::models::Section
 {
     fn into_into_dart(self) -> crate::api::plugin::models::Section {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::StreamSource {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.url.into_into_dart().into_dart(),
+            self.quality.into_into_dart().into_dart(),
+            self.format.into_into_dart().into_dart(),
+            self.headers.into_into_dart().into_dart(),
+            self.expires_at.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::StreamSource
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::StreamSource>
+    for crate::api::plugin::models::StreamSource
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::StreamSource {
         self
     }
 }
@@ -5850,12 +5975,32 @@ impl SseEncode for Vec<u8> {
     }
 }
 
+impl SseEncode for Vec<(String, String)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <(String, String)>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::plugin::models::Section> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::plugin::models::Section>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::plugin::models::StreamSource> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::plugin::models::StreamSource>::sse_encode(item, serializer);
         }
     }
 }
@@ -6010,6 +6155,16 @@ impl SseEncode for Option<u64> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <u64>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<(String, String)>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<(String, String)>>::sse_encode(value, serializer);
         }
     }
 }
@@ -6231,7 +6386,7 @@ impl SseEncode for crate::api::plugin::commands::PluginResponse {
             }
             crate::api::plugin::commands::PluginResponse::Streams(field0) => {
                 <i32>::sse_encode(3, serializer);
-                <Vec<crate::api::plugin::models::Track>>::sse_encode(field0, serializer);
+                <Vec<crate::api::plugin::models::StreamSource>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::Search(field0) => {
                 <i32>::sse_encode(4, serializer);
@@ -6287,6 +6442,32 @@ impl SseEncode for crate::api::plugin::types::PluginType {
     }
 }
 
+impl SseEncode for crate::api::plugin::models::Quality {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::plugin::models::Quality::Low => 0,
+                crate::api::plugin::models::Quality::Medium => 1,
+                crate::api::plugin::models::Quality::High => 2,
+                crate::api::plugin::models::Quality::Lossless => 3,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for (String, String) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.0, serializer);
+        <String>::sse_encode(self.1, serializer);
+    }
+}
+
 impl SseEncode for crate::api::plugin::models::Section {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6296,6 +6477,17 @@ impl SseEncode for crate::api::plugin::models::Section {
         <crate::api::plugin::models::CardType>::sse_encode(self.card_type, serializer);
         <Vec<crate::api::plugin::models::MediaItem>>::sse_encode(self.items, serializer);
         <Option<String>>::sse_encode(self.more_link, serializer);
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::StreamSource {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.url, serializer);
+        <crate::api::plugin::models::Quality>::sse_encode(self.quality, serializer);
+        <String>::sse_encode(self.format, serializer);
+        <Option<Vec<(String, String)>>>::sse_encode(self.headers, serializer);
+        <Option<u64>>::sse_encode(self.expires_at, serializer);
     }
 }
 

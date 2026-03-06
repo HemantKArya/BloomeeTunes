@@ -2,7 +2,7 @@ use flutter_rust_bridge::frb;
 
 use crate::api::plugin::models::{
     AlbumDetails, ArtistDetails, ChartItem, ChartSummary, MediaItem, PagedAlbums,
-    PagedMediaItems, PagedTracks, PlaylistDetails, Section, Track,
+    PagedMediaItems, PagedTracks, PlaylistDetails, Section, StreamSource,
 };
 
 #[frb(mirror(PluginRequest))]
@@ -77,7 +77,7 @@ pub enum PluginResponse {
     AlbumDetails(AlbumDetails),
     ArtistDetails(ArtistDetails),
     PlaylistDetails(PlaylistDetails),
-    Streams(Vec<Track>),
+    Streams(Vec<StreamSource>),
     Search(PagedMediaItems),
     MoreTracks(PagedTracks),
     MoreAlbums(PagedAlbums),
