@@ -378,7 +378,7 @@ class _ListOfPlaylists extends StatelessWidget {
   Future<void> _openLibraryItem(
       BuildContext context, PlaylistItemProperties item) async {
     if (item.type == PlaylistType.userPlaylist) {
-      context.read<CurrentPlaylistCubit>().setupPlaylist(item.playlistName);
+      context.read<CurrentPlaylistCubit>().setupPlaylist(item.storageKey);
       context.pushNamed(RoutePaths.playlistView);
       return;
     }
@@ -386,7 +386,7 @@ class _ListOfPlaylists extends StatelessWidget {
     // For remote collections, resolve via the cubit (domain-level, no DB types).
     final playlist = await context
         .read<LibraryItemsCubit>()
-        .resolveLibraryItem(item.playlistName);
+        .resolveLibraryItem(item.storageKey);
     if (!context.mounted || playlist == null) return;
 
     switch (playlist.type) {

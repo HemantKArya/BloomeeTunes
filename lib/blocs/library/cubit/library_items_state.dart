@@ -37,17 +37,20 @@ final class LibraryItemsError extends LibraryItemsState {
 /// Uses domain [PlaylistType] — never DB types.
 class PlaylistItemProperties extends Equatable {
   final String playlistName;
+  final String storageKey;
   final String? coverImgUrl;
   final String? subTitle;
   final PlaylistType type;
 
   const PlaylistItemProperties({
     required this.playlistName,
+    required this.storageKey,
     this.coverImgUrl,
     this.subTitle,
     this.type = PlaylistType.userPlaylist,
   });
 
   @override
-  List<Object?> get props => [playlistName, coverImgUrl, subTitle, type];
+  List<Object?> get props =>
+      [playlistName, storageKey, coverImgUrl, subTitle, type];
 }

@@ -61,10 +61,10 @@ class LibraryDAO {
 
     final artistDb = artistSummaryToArtistSummaryDB(artist);
     final row =
-        existing ?? PlaylistDB(name: artist.name, type: PlaylistTypeDB.artist);
+        existing ?? PlaylistDB(name: artist.id, type: PlaylistTypeDB.artist);
 
     row.type = PlaylistTypeDB.artist;
-    row.name = artist.name;
+    row.name = artist.id;
     row.subtitle = 'Artist • $sourceName';
     row.thumbnail = artistDb.thumbnail;
     row.description = artist.subtitle;
@@ -86,10 +86,10 @@ class LibraryDAO {
 
     final albumDb = albumSummaryToAlbumSummaryDB(album);
     final row =
-        existing ?? PlaylistDB(name: album.title, type: PlaylistTypeDB.album);
+        existing ?? PlaylistDB(name: album.id, type: PlaylistTypeDB.album);
 
     row.type = PlaylistTypeDB.album;
-    row.name = album.title;
+    row.name = album.id;
     row.subtitle = 'Album • $sourceName';
     row.thumbnail = albumDb.thumbnail;
     row.description = album.subtitle;
@@ -111,7 +111,7 @@ class LibraryDAO {
         await _findByMediaId(PlaylistTypeDB.remotePlaylist, playlist.id);
 
     final row = existing ??
-        PlaylistDB(name: playlist.title, type: PlaylistTypeDB.remotePlaylist);
+        PlaylistDB(name: playlist.id, type: PlaylistTypeDB.remotePlaylist);
 
     final owner = playlist.owner;
     final ownerArtists = (owner != null && owner.trim().isNotEmpty)
@@ -130,7 +130,7 @@ class LibraryDAO {
     );
 
     row.type = PlaylistTypeDB.remotePlaylist;
-    row.name = playlist.title;
+    row.name = playlist.id;
     row.subtitle = 'Playlist • $sourceName';
     row.thumbnail = remoteSummary.thumbnail;
     row.description = playlist.owner;
@@ -210,14 +210,15 @@ class LibraryDAO {
 
   // ── Resolve navigation target ─────────────────────────────────────────────
 
-  /// Look up a saved collection by [name] and convert to a domain [Playlist].
+  /// Look up a saved collection by its storage key and convert to a domain [Playlist].
   ///
   /// Returns null if not found. The returned [Playlist] carries embedded
   /// artist/album/remotePlaylist domain objects that the cubit can use to
   /// build navigation targets.
-  Future<Playlist?> resolveByName(String name) async {
+  Future<Playlist?> resolveByStorageKey(String storageKey) async {
     final isar = await _db;
-    final db = await isar.playlistDBs.filter().nameEqualTo(name).findFirst();
+    final db =
+        await isar.playlistDBs.filter().nameEqualTo(storageKey).findFirst();
     if (db == null) return null;
     return playlistDBToPlaylist(db);
   }

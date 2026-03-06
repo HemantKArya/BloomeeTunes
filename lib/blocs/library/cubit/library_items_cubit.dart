@@ -85,6 +85,7 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
       items.add(
         PlaylistItemProperties(
           playlistName: domainPlaylist.title,
+          storageKey: p.name,
           subTitle: subtitle,
           coverImgUrl: coverUrl,
           type: domainPlaylist.type,
@@ -265,12 +266,12 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
 
   // ── Navigation target resolution ──────────────────────────────────────────
 
-  /// Resolve a library item by name into a domain [Playlist] for navigation.
+  /// Resolve a library item by storage key into a domain [Playlist] for navigation.
   ///
   /// The returned [Playlist] carries embedded artist/album/remotePlaylist
   /// domain objects. Returns null if not found.
-  Future<Playlist?> resolveLibraryItem(String name) {
-    return _libraryDao.resolveByName(name);
+  Future<Playlist?> resolveLibraryItem(String storageKey) {
+    return _libraryDao.resolveByStorageKey(storageKey);
   }
 
   // ── Search helper for LibrarySearchCubit ──────────────────────────────────
