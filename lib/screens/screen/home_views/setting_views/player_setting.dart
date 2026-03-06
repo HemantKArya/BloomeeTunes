@@ -1,6 +1,8 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/custom_switch.dart';
 import 'package:Bloomee/screens/screen/player_views/equalizer_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,50 +14,60 @@ class PlayerSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
-        centerTitle: true,
+        backgroundColor: Default_Theme.themeColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        leadingWidth: 64,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: Center(
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: Default_Theme.primaryColor1,
+                size: 24,
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
         title: Text(
           'Audio Player',
           style: const TextStyle(
-                  color: Default_Theme.primaryColor1,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)
-              .merge(Default_Theme.secondoryTextStyle),
+            color: Default_Theme.primaryColor1,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
+          ).merge(Default_Theme.secondoryTextStyleMedium),
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             children: [
               // ─── Streaming Quality ─────────────────────────────────────
-              _SectionHeader(label: 'Streaming'),
+              const _SectionHeader(label: 'Streaming'),
               _SettingCard(
                 children: [
                   _QualityChipRow(
-                    title: 'Jiosaavn Quality',
-                    subtitle: 'Audio bitrate for online streams.',
-                    options: const ['96 kbps', '160 kbps', '320 kbps'],
+                    title: 'Streaming Quality',
+                    subtitle: 'Global audio bitrate for online playback.',
+                    options: const ['Low', 'Medium', 'High'],
                     selected: state.strmQuality,
                     onSelected: (v) =>
                         context.read<SettingsCubit>().setStrmQuality(v),
                   ),
-                  _Divider(),
-                  _QualityChipRow(
-                    title: 'YouTube Quality',
-                    subtitle: 'Audio quality for YouTube streams.',
-                    options: const ['Low', 'High'],
-                    selected: state.ytStrmQuality,
-                    onSelected: (v) =>
-                        context.read<SettingsCubit>().setYtStrmQuality(v),
-                  ),
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 28),
 
               // ─── Playback ──────────────────────────────────────────────
-              _SectionHeader(label: 'Playback'),
+              const _SectionHeader(label: 'Playback'),
               _SettingCard(
                 children: [
                   _ToggleTile(
@@ -66,7 +78,7 @@ class PlayerSettings extends StatelessWidget {
                     onChanged: (v) =>
                         context.read<SettingsCubit>().setAutoPlay(v),
                   ),
-                  _Divider(),
+                  const _Divider(),
                   _CrossfadeSlider(
                     value: state.crossfadeDuration,
                     onChanged: (v) {
@@ -77,14 +89,14 @@ class PlayerSettings extends StatelessWidget {
                           .setCrossfadeDuration(Duration(seconds: v));
                     },
                   ),
-                  _Divider(),
+                  const _Divider(),
                   _NavTile(
                     icon: Icons.equalizer_rounded,
                     title: 'Equalizer',
                     subtitle: state.eqEnabled
                         ? 'Enabled — ${state.eqPreset} preset'
                         : '10-band parametric EQ via FFmpeg.',
-                    badge: state.eqEnabled ? 'ON' : null,
+                    badge: state.eqEnabled ? 'Active' : null,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const EqualizerView()),
@@ -93,7 +105,7 @@ class PlayerSettings extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 40),
             ],
           );
         },
@@ -111,15 +123,15 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      padding: const EdgeInsets.only(left: 4, bottom: 12),
       child: Text(
         label.toUpperCase(),
         style: TextStyle(
-          color: Default_Theme.accentColor1,
-          fontSize: 11,
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
+          fontSize: 12,
           fontWeight: FontWeight.w700,
-          letterSpacing: 1.4,
-        ).merge(Default_Theme.secondoryTextStyle),
+          letterSpacing: 1.5,
+        ).merge(Default_Theme.secondoryTextStyleMedium),
       ),
     );
   }
@@ -135,10 +147,11 @@ class _SettingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
+        color: Default_Theme.primaryColor2.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.05),
+          width: 1,
         ),
       ),
       child: Column(
@@ -149,19 +162,49 @@ class _SettingCard extends StatelessWidget {
   }
 }
 
-// ─── Thin Divider ────────────────────────────────────────────────────────────
+// ─── Divider ─────────────────────────────────────────────────────────────────
 
 class _Divider extends StatelessWidget {
+  const _Divider();
   @override
   Widget build(BuildContext context) => Divider(
         height: 1,
         indent: 16,
         endIndent: 16,
-        color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
+        color: Default_Theme.primaryColor2.withValues(alpha: 0.05),
       );
 }
 
-// ─── Quality Chip Row ─────────────────────────────────────────────────────────
+// ─── Setting Icon ────────────────────────────────────────────────────────────
+
+class _SettingIcon extends StatelessWidget {
+  final IconData icon;
+  const _SettingIcon({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Default_Theme.primaryColor2.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          icon,
+          size: 20,
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Generic Quality Chip Row ────────────────────────────────────────────────
 
 class _QualityChipRow extends StatelessWidget {
   final String title;
@@ -181,56 +224,52 @@ class _QualityChipRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Default_Theme.primaryColor1,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ).merge(Default_Theme.secondoryTextStyle),
+          Row(
+            children: [
+              const _SettingIcon(icon: MingCute.cellphone_vibration_line),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Default_Theme.primaryColor2,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color:
+                            Default_Theme.primaryColor2.withValues(alpha: 0.5),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ).merge(Default_Theme.secondoryTextStyle),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-              fontSize: 12,
-            ).merge(Default_Theme.secondoryTextStyle),
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
+          // Custom Chip Wrap
           Wrap(
-            spacing: 8,
+            spacing: 10,
+            runSpacing: 10,
             children: options.map((opt) {
-              final isSelected = opt == selected;
-              return ChoiceChip(
-                label: Text(opt),
-                selected: isSelected,
-                onSelected: (_) => onSelected(opt),
-                labelStyle: TextStyle(
-                  color: isSelected
-                      ? Colors.black
-                      : Default_Theme.primaryColor1.withValues(alpha: 0.7),
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                ).merge(Default_Theme.secondoryTextStyle),
-                selectedColor: Default_Theme.accentColor1,
-                backgroundColor:
-                    Default_Theme.primaryColor1.withValues(alpha: 0.08),
-                side: BorderSide(
-                  color: isSelected
-                      ? Default_Theme.accentColor1
-                      : Default_Theme.primaryColor1.withValues(alpha: 0.12),
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                showCheckmark: false,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              return _CustomQualityChip(
+                label: opt,
+                isSelected: opt == selected,
+                onTap: () => onSelected(opt),
               );
             }).toList(),
           ),
@@ -240,7 +279,62 @@ class _QualityChipRow extends StatelessWidget {
   }
 }
 
-// ─── Toggle Tile ───────────────────────────────────────────────────────────────
+// ─── CUSTOM QUALITY CHIP (Removes blue flash) ────────────────────────────────
+// This widget replaces ChoiceChip to ensure exact color control
+class _CustomQualityChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CustomQualityChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        // Explicitly set splash color to theme (Red/Pink) instead of default Blue
+        splashColor: Default_Theme.accentColor2.withValues(alpha: 0.1),
+        highlightColor: Default_Theme.accentColor2.withValues(alpha: 0.05),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Default_Theme.accentColor2.withValues(alpha: 0.15)
+                : Default_Theme.primaryColor2.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+                  : Default_Theme.primaryColor2.withValues(alpha: 0.05),
+              width: 1.5,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected
+                  ? Default_Theme.accentColor2
+                  : Default_Theme.primaryColor2.withValues(alpha: 0.7),
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            ).merge(Default_Theme.secondoryTextStyleMedium),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Toggle Tile ─────────────────────────────────────────────────────────────
 
 class _ToggleTile extends StatelessWidget {
   final IconData icon;
@@ -260,12 +354,10 @@ class _ToggleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         children: [
-          Icon(icon,
-              size: 22,
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.7)),
+          _SettingIcon(icon: icon),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -274,26 +366,28 @@ class _ToggleTile extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: Default_Theme.primaryColor1,
-                    fontSize: 15,
+                    color: Default_Theme.primaryColor2,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
-                  ).merge(Default_Theme.secondoryTextStyle),
+                    letterSpacing: -0.2,
+                  ).merge(Default_Theme.secondoryTextStyleMedium),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                    fontSize: 12,
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
                   ).merge(Default_Theme.secondoryTextStyle),
                 ),
               ],
             ),
           ),
-          Switch(
+          const SizedBox(width: 12),
+          BloomeeSwitch(
             value: value,
-            onChanged: onChanged,
-            activeColor: Default_Theme.accentColor1,
+            onChanged: () => onChanged(!value),
           ),
         ],
       ),
@@ -301,7 +395,7 @@ class _ToggleTile extends StatelessWidget {
   }
 }
 
-// ─── Nav Tile (with optional status badge) ────────────────────────────────────
+// ─── Nav Tile ────────────────────────────────────────────────────────────────
 
 class _NavTile extends StatelessWidget {
   final IconData icon;
@@ -320,72 +414,80 @@ class _NavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon,
-                size: 22,
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.7)),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+        highlightColor: Default_Theme.primaryColor2.withValues(alpha: 0.05),
+        splashColor: Default_Theme.primaryColor2.withValues(alpha: 0.05),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            children: [
+              _SettingIcon(icon: icon),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Default_Theme.primaryColor2,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color:
+                            Default_Theme.primaryColor2.withValues(alpha: 0.5),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ).merge(Default_Theme.secondoryTextStyle),
+                    ),
+                  ],
+                ),
+              ),
+              if (badge != null) ...[
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Default_Theme.accentColor2.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: Default_Theme.accentColor2.withValues(alpha: 0.5),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    badge!,
                     style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      color: Default_Theme.accentColor2,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
                     ).merge(Default_Theme.secondoryTextStyle),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                      fontSize: 12,
-                    ).merge(Default_Theme.secondoryTextStyle),
-                  ),
-                ],
-              ),
-            ),
-            if (badge != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Default_Theme.accentColor1.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: Default_Theme.accentColor1.withValues(alpha: 0.4),
-                  ),
                 ),
-                child: Text(
-                  badge!,
-                  style: TextStyle(
-                    color: Default_Theme.accentColor1,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ).merge(Default_Theme.secondoryTextStyle),
-                ),
-              ),
-              const SizedBox(width: 8),
+                const SizedBox(width: 12),
+              ],
+              Icon(Icons.chevron_right_rounded,
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.4),
+                  size: 22),
             ],
-            Icon(Icons.chevron_right_rounded,
-                color: Default_Theme.primaryColor2.withValues(alpha: 0.6),
-                size: 20),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-// ─── Crossfade Slider ─────────────────────────────────────────────────────────
+// ─── Crossfade Slider ────────────────────────────────────────────────────────
 
 class _CrossfadeSlider extends StatefulWidget {
   final int value;
@@ -398,7 +500,6 @@ class _CrossfadeSlider extends StatefulWidget {
 }
 
 class _CrossfadeSliderState extends State<_CrossfadeSlider> {
-  // Local state allows smooth dragging before committing to the cubit.
   late double _localValue;
 
   @override
@@ -423,15 +524,13 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.graphic_eq_rounded,
-                  size: 22,
-                  color: Default_Theme.primaryColor1.withValues(alpha: 0.7)),
+              const _SettingIcon(icon: Icons.graphic_eq_rounded),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -440,24 +539,25 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
                     Text(
                       'Crossfade',
                       style: const TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontSize: 15,
+                        color: Default_Theme.primaryColor2,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
-                      ).merge(Default_Theme.secondoryTextStyle),
+                        letterSpacing: -0.2,
+                      ).merge(Default_Theme.secondoryTextStyleMedium),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       _description,
                       style: TextStyle(
                         color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                        fontSize: 12,
+                            Default_Theme.primaryColor2.withValues(alpha: 0.5),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
                       ).merge(Default_Theme.secondoryTextStyle),
                     ),
                   ],
                 ),
               ),
-              // Animated live-value pill
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
                 transitionBuilder: (child, anim) =>
@@ -467,40 +567,41 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
                         'Off',
                         key: const ValueKey('off'),
                         style: TextStyle(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.35),
-                          fontSize: 13,
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.4),
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
-                        ).merge(Default_Theme.secondoryTextStyle),
+                        ).merge(Default_Theme.secondoryTextStyleMedium),
                       )
                     : Text(
                         '${_localValue.toInt()}s',
                         key: ValueKey(_localValue.toInt()),
-                        style: TextStyle(
-                          color: Default_Theme.accentColor1,
-                          fontSize: 15,
+                        style: const TextStyle(
+                          color: Default_Theme.accentColor2,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
-                        ).merge(Default_Theme.secondoryTextStyle),
+                        ).merge(Default_Theme.secondoryTextStyleMedium),
                       ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           SliderTheme(
             data: SliderThemeData(
               trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-              activeTrackColor: Default_Theme.accentColor1,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+              activeTrackColor: Default_Theme.accentColor2,
               inactiveTrackColor:
-                  Default_Theme.primaryColor1.withValues(alpha: 0.12),
-              thumbColor: Default_Theme.accentColor1,
-              overlayColor: Default_Theme.accentColor1.withValues(alpha: 0.15),
-              tickMarkShape: const RoundSliderTickMarkShape(tickMarkRadius: 2),
+                  Default_Theme.primaryColor2.withValues(alpha: 0.1),
+              thumbColor: Default_Theme.accentColor2,
+              overlayColor: Default_Theme.accentColor2.withValues(alpha: 0.15),
+              tickMarkShape:
+                  const RoundSliderTickMarkShape(tickMarkRadius: 2.5),
               activeTickMarkColor:
-                  Default_Theme.accentColor1.withValues(alpha: 0.5),
+                  Default_Theme.themeColor.withValues(alpha: 0.5),
               inactiveTickMarkColor:
-                  Default_Theme.primaryColor1.withValues(alpha: 0.2),
+                  Default_Theme.primaryColor2.withValues(alpha: 0.2),
             ),
             child: Slider(
               min: 0,
@@ -511,7 +612,6 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
               onChangeEnd: (v) => widget.onChanged(v.toInt()),
             ),
           ),
-          // Step labels in sync with tick marks
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Row(
@@ -522,10 +622,10 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
                   v == 0 ? 'Off' : '${v}s',
                   style: TextStyle(
                     color: active
-                        ? Default_Theme.accentColor1
-                        : Default_Theme.primaryColor1.withValues(alpha: 0.28),
-                    fontSize: 10,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+                        ? Default_Theme.accentColor2
+                        : Default_Theme.primaryColor2.withValues(alpha: 0.3),
+                    fontSize: 11,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   ).merge(Default_Theme.secondoryTextStyle),
                 );
               }).toList(),

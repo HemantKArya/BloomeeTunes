@@ -4,6 +4,7 @@ import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
 import 'package:Bloomee/screens/screen/player_views/lyrics_menu.dart';
+import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
@@ -241,11 +242,13 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
             child: StreamBuilder<MediaItem?>(
               stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
               builder: (context, snapshot) {
+                final currentTrack =
+                    bloomeePlayerCubit.bloomeePlayer.currentTrackInfo;
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      snapshot.data?.title ?? "Unknown",
+                      currentTrack.title,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -257,8 +260,9 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      snapshot.data?.artist ?? "Unknown",
+                    TrackMetadataLinks(
+                      track: currentTrack,
+                      showAlbum: currentTrack.album != null,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 13,

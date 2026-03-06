@@ -1,6 +1,7 @@
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/custom_switch.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -225,7 +226,7 @@ class _EqualizerViewState extends State<EqualizerView>
   Widget build(BuildContext context) {
     final bands = _engine.equalizerBands;
     final isEnabled = _engine.equalizerEnabled;
-    final accent = Default_Theme.accentColor2;
+    const accent = Default_Theme.accentColor2;
 
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
@@ -261,11 +262,14 @@ class _EqualizerViewState extends State<EqualizerView>
                                     letterSpacing: 0.2,
                                   ),
                                 ),
-                                _buildToggle(isEnabled, accent, (val) {
-                                  _engine.setEqualizerEnabled(val);
-                                  _settingsCubit.setEqEnabled(val);
-                                  setState(() {});
-                                }),
+                                BloomeeSwitch(
+                                  value: isEnabled,
+                                  onChanged: () {
+                                    _engine.setEqualizerEnabled(!isEnabled);
+                                    _settingsCubit.setEqEnabled(!isEnabled);
+                                    setState(() {});
+                                  },
+                                ),
                               ],
                             ),
                             const SizedBox(height: 32),
@@ -394,42 +398,6 @@ class _EqualizerViewState extends State<EqualizerView>
             ),
           );
         },
-      ),
-    );
-  }
-
-  // ─── UI Components ──────────────────────────────────────────────────────
-
-  Widget _buildToggle(bool value, Color accent, ValueChanged<bool> onChanged) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onChanged(!value);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 44,
-        height: 24,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: value ? accent : Colors.white.withOpacity(0.15),
-        ),
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutBack,
-          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 18,
-            height: 18,
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: value
-                  ? const Color(0xFF1E1E24)
-                  : Colors.white.withOpacity(0.8),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -581,7 +549,7 @@ class _InteractiveEQPainter extends CustomPainter {
 
     final fillPaint = Paint()
       ..shader = ui.Gradient.linear(
-        Offset(0, topPad),
+        const Offset(0, topPad),
         Offset(0, h - bottomPad),
         [
           accentColor.withOpacity(0.08), // Greatly reduced so it's ultra clean

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/services/player/stream_quality_selector.dart';
 import 'package:Bloomee/screens/widgets/setting_tile.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +70,7 @@ class _DownloadSettingsState extends State<DownloadSettings> {
               SettingTile(
                 title: "Download Quality",
                 subtitle:
-                    "Quality of audio files downloaded from online sources.",
+                    "Universal audio quality preference for downloaded streams.",
                 trailing: DropdownButton(
                   value: state.downQuality,
                   style: const TextStyle(
@@ -83,36 +84,8 @@ class _DownloadSettingsState extends State<DownloadSettings> {
                       context.read<SettingsCubit>().setDownQuality(newValue);
                     }
                   },
-                  items: <String>['96 kbps', '160 kbps', '320 kbps']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                onTap: () {},
-              ),
-              SettingTile(
-                title: "Youtube Download Quality",
-                subtitle:
-                    "Quality of Youtube audio files downloaded from Youtube.",
-                trailing: DropdownButton(
-                  value: state.ytDownQuality,
-                  style: const TextStyle(
-                    color: Default_Theme.primaryColor1,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ).merge(Default_Theme.secondoryTextStyle),
-                  underline: const SizedBox(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      context.read<SettingsCubit>().setYtDownQuality(newValue);
-                    }
-                  },
-                  items: <String>['High', 'Low']
+                  items: AudioStreamQualityPreference.values
+                      .map((quality) => quality.label)
                       .map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,

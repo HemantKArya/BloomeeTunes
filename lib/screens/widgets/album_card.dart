@@ -1,6 +1,7 @@
 ﻿import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +21,6 @@ class AlbumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final artistsStr = album.artists.map((a) => a.name).join(', ');
-
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: LayoutBuilder(builder: (context, constraints) {
@@ -102,17 +101,18 @@ class AlbumCard extends StatelessWidget {
                         )),
                       ),
                     ),
-                    Text(
-                      artistsStr,
+                    ArtistListLinks(
+                      artists: album.artists,
                       maxLines: 1,
-                      textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
-                      style: Default_Theme.secondoryTextStyleMedium
-                          .merge(TextStyle(
-                        fontSize: 12,
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.7),
-                      )),
+                      textAlign: TextAlign.center,
+                      style: Default_Theme.secondoryTextStyleMedium.merge(
+                        TextStyle(
+                          fontSize: 12,
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.7),
+                        ),
+                      ),
                     ),
                   ],
                 ),

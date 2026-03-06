@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 
 /// State for [ContentBloc].
 ///
@@ -11,6 +12,7 @@ class ContentState extends Equatable {
   // ── Search ──
   final SearchStatus searchStatus;
   final String searchQuery;
+  final ContentSearchFilter searchFilter;
   final PagedMediaItems? searchResults;
 
   // ── Album Details ──
@@ -27,11 +29,13 @@ class ContentState extends Equatable {
 
   // ── Streams ──
   final DetailStatus streamStatus;
-  final List<Track>? streamTracks;
+  final List<StreamSource>? streamSources;
+  final List<Track>? radioTracks;
 
   // ── Home Sections ──
   final DetailStatus homeSectionsStatus;
   final List<Section>? homeSections;
+  final List<String> loadingHomeSectionIds;
 
   // ── Error ──
   final String? error;
@@ -40,6 +44,7 @@ class ContentState extends Equatable {
     this.activePluginId,
     this.searchStatus = SearchStatus.initial,
     this.searchQuery = '',
+    this.searchFilter = ContentSearchFilter.all,
     this.searchResults,
     this.albumDetailStatus = DetailStatus.initial,
     this.albumDetails,
@@ -48,9 +53,11 @@ class ContentState extends Equatable {
     this.playlistDetailStatus = DetailStatus.initial,
     this.playlistDetails,
     this.streamStatus = DetailStatus.initial,
-    this.streamTracks,
+    this.streamSources,
+    this.radioTracks,
     this.homeSectionsStatus = DetailStatus.initial,
     this.homeSections,
+    this.loadingHomeSectionIds = const [],
     this.error,
   });
 
@@ -58,6 +65,7 @@ class ContentState extends Equatable {
       : activePluginId = null,
         searchStatus = SearchStatus.initial,
         searchQuery = '',
+        searchFilter = ContentSearchFilter.all,
         searchResults = null,
         albumDetailStatus = DetailStatus.initial,
         albumDetails = null,
@@ -66,15 +74,18 @@ class ContentState extends Equatable {
         playlistDetailStatus = DetailStatus.initial,
         playlistDetails = null,
         streamStatus = DetailStatus.initial,
-        streamTracks = null,
+        streamSources = null,
+        radioTracks = null,
         homeSectionsStatus = DetailStatus.initial,
         homeSections = null,
+        loadingHomeSectionIds = const [],
         error = null;
 
   ContentState copyWith({
     String? activePluginId,
     SearchStatus? searchStatus,
     String? searchQuery,
+    ContentSearchFilter? searchFilter,
     PagedMediaItems? searchResults,
     DetailStatus? albumDetailStatus,
     AlbumDetails? albumDetails,
@@ -83,9 +94,11 @@ class ContentState extends Equatable {
     DetailStatus? playlistDetailStatus,
     PlaylistDetails? playlistDetails,
     DetailStatus? streamStatus,
-    List<Track>? streamTracks,
+    List<StreamSource>? streamSources,
+    List<Track>? radioTracks,
     DetailStatus? homeSectionsStatus,
     List<Section>? homeSections,
+    List<String>? loadingHomeSectionIds,
     String? error,
     bool clearError = false,
     bool clearSearchResults = false,
@@ -93,6 +106,7 @@ class ContentState extends Equatable {
     bool clearArtistDetails = false,
     bool clearPlaylistDetails = false,
     bool clearStreams = false,
+    bool clearRadioTracks = false,
     bool clearHomeSections = false,
     bool clearActivePluginId = false,
   }) {
@@ -101,6 +115,7 @@ class ContentState extends Equatable {
           clearActivePluginId ? null : (activePluginId ?? this.activePluginId),
       searchStatus: searchStatus ?? this.searchStatus,
       searchQuery: searchQuery ?? this.searchQuery,
+      searchFilter: searchFilter ?? this.searchFilter,
       searchResults:
           clearSearchResults ? null : (searchResults ?? this.searchResults),
       albumDetailStatus: albumDetailStatus ?? this.albumDetailStatus,
@@ -114,19 +129,27 @@ class ContentState extends Equatable {
           ? null
           : (playlistDetails ?? this.playlistDetails),
       streamStatus: streamStatus ?? this.streamStatus,
-      streamTracks: clearStreams ? null : (streamTracks ?? this.streamTracks),
+      streamSources:
+          clearStreams ? null : (streamSources ?? this.streamSources),
+      radioTracks: clearRadioTracks ? null : (radioTracks ?? this.radioTracks),
       homeSectionsStatus: homeSectionsStatus ?? this.homeSectionsStatus,
       homeSections:
           clearHomeSections ? null : (homeSections ?? this.homeSections),
+      loadingHomeSectionIds:
+          loadingHomeSectionIds ?? this.loadingHomeSectionIds,
       error: clearError ? null : (error ?? this.error),
     );
   }
+
+  bool isHomeSectionLoading(String sectionId) =>
+      loadingHomeSectionIds.contains(sectionId);
 
   @override
   List<Object?> get props => [
         activePluginId,
         searchStatus,
         searchQuery,
+        searchFilter,
         searchResults,
         albumDetailStatus,
         albumDetails,
@@ -135,13 +158,15 @@ class ContentState extends Equatable {
         playlistDetailStatus,
         playlistDetails,
         streamStatus,
-        streamTracks,
+        streamSources,
+        radioTracks,
         homeSectionsStatus,
         homeSections,
+        loadingHomeSectionIds,
         error,
       ];
 }
 
-enum SearchStatus { initial, loading, loaded, error }
+enum SearchStatus { initial, loading, loadingMore, loaded, error }
 
 enum DetailStatus { initial, loading, loaded, loadingMore, error }

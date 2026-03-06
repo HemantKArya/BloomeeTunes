@@ -37,6 +37,7 @@ class OnlPlaylistView extends StatefulWidget {
 
 class _OnlPlaylistViewState extends State<OnlPlaylistView> {
   late final ContentBloc _contentBloc;
+  final ScrollController _scrollController = ScrollController();
   bool _isSaved = false;
 
   String _sourceName(BuildContext context) {
@@ -53,6 +54,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
   void initState() {
     super.initState();
     _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
+    _scrollController.addListener(_onScroll);
     // Guard: verify plugin is still loaded before requesting details.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -79,8 +81,34 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
     if (mounted) setState(() => _isSaved = saved);
   }
 
+  void _onScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    final details = _contentBloc.state.playlistDetails;
+    final nextPageToken = details?.tracks.nextPageToken;
+    final status = _contentBloc.state.playlistDetailStatus;
+    if (nextPageToken == null ||
+        status == DetailStatus.loading ||
+        status == DetailStatus.loadingMore) {
+      return;
+    }
+
+    final remaining =
+        _scrollController.position.maxScrollExtent - _scrollController.offset;
+    if (remaining <= 320) {
+      _contentBloc.add(LoadMorePlaylistTracks(
+        pluginId: widget.pluginId,
+        playlistId: widget.playlist.id,
+        pageToken: nextPageToken,
+      ));
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.dispose();
     _contentBloc.close();
     super.dispose();
   }
@@ -106,6 +134,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
             ];
 
             return CustomScrollView(
+              controller: _scrollController,
               slivers: [
                 SliverAppBar(
                   expandedHeight:
@@ -289,7 +318,9 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                     );
                   }),
                 ),
-                if (state.playlistDetailStatus == DetailStatus.loaded &&
+                if ((state.playlistDetailStatus == DetailStatus.loaded ||
+                        state.playlistDetailStatus ==
+                            DetailStatus.loadingMore) &&
                     tracks.isNotEmpty)
                   SliverList.builder(
                     itemCount: tracks.length,
@@ -317,6 +348,16 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                       );
                     },
                   )
+                else if (state.playlistDetailStatus == DetailStatus.loaded)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        'No tracks available',
+                        style: TextStyle(color: Default_Theme.primaryColor1),
+                      ),
+                    ),
+                  )
                 else if (state.playlistDetailStatus == DetailStatus.error)
                   SliverFillRemaining(
                     hasScrollBody: false,
@@ -332,6 +373,13 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                   const SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(child: CircularProgressIndicator()),
+                  ),
+                if (state.playlistDetailStatus == DetailStatus.loadingMore)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
                   ),
               ],
             );

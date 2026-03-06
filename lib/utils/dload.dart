@@ -47,6 +47,7 @@ class DownloadTask {
   final String targetPath;
   final int maxRetries;
   final Track song;
+  final Map<String, String>? headers;
   final AudioMetadata? audioMetadata;
   final StreamController<DownloadStatus> statusController =
       StreamController<DownloadStatus>.broadcast();
@@ -58,6 +59,7 @@ class DownloadTask {
     required this.targetPath,
     required this.maxRetries,
     required this.song,
+    this.headers,
     this.audioMetadata,
   }) {
     statusController.add(
@@ -84,6 +86,7 @@ class DownloadEngine {
     required String directory,
     required String fileName,
     required Track song,
+    Map<String, String>? headers,
     int maxRetries = 3,
     AudioMetadata? audioMetadata,
   }) {
@@ -95,6 +98,7 @@ class DownloadEngine {
       maxRetries: maxRetries,
       audioMetadata: audioMetadata,
       song: song,
+      headers: headers,
     );
     _queue.add(task);
     onTaskAdded?.call(task);
@@ -170,7 +174,9 @@ class DownloadEngine {
   Future<void> _downloadFile(
       DownloadTask task, Function(double) onProgress) async {
     final uri = Uri.parse(task.url);
-    final response = await http.head(uri).timeout(const Duration(seconds: 10));
+    final response = await http
+        .head(uri, headers: task.headers)
+        .timeout(const Duration(seconds: 10));
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
           'Server responded with status code ${response.statusCode}');
@@ -205,6 +211,7 @@ class DownloadEngine {
         'targetPath': task.targetPath,
         'segmentIndex': i,
         'tempDirPath': tempDirPath, // Pass the temp directory path
+        'headers': task.headers,
         'sendPort': receivePort.sendPort,
       });
       receivePort.listen((data) {
@@ -236,6 +243,7 @@ class DownloadEngine {
     final segmentIndex = args['segmentIndex'] as int;
     final tempDirPath =
         args['tempDirPath'] as String; // Receive the temp directory path
+    final headers = (args['headers'] as Map?)?.cast<String, String>();
 
     // Extract only the file name from the targetPath
     final fileName = path.basename(targetPath);
@@ -245,6 +253,9 @@ class DownloadEngine {
 
     try {
       final request = http.Request('GET', uri);
+      if (headers != null && headers.isNotEmpty) {
+        request.headers.addAll(headers);
+      }
       request.headers['Range'] = 'bytes=$start-$end';
       final response =
           await request.send().timeout(const Duration(seconds: 60));

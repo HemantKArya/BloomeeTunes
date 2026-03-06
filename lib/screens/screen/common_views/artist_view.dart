@@ -35,6 +35,7 @@ class ArtistView extends StatefulWidget {
 
 class _ArtistViewState extends State<ArtistView> {
   late final ContentBloc _contentBloc;
+  final ScrollController _albumScrollController = ScrollController();
   bool _isSaved = false;
 
   String _sourceName(BuildContext context) {
@@ -51,6 +52,7 @@ class _ArtistViewState extends State<ArtistView> {
   void initState() {
     super.initState();
     _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
+    _albumScrollController.addListener(_onAlbumScroll);
     // Guard: verify plugin is still loaded before requesting details.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -77,8 +79,34 @@ class _ArtistViewState extends State<ArtistView> {
     if (mounted) setState(() => _isSaved = saved);
   }
 
+  void _onAlbumScroll() {
+    if (!_albumScrollController.hasClients) {
+      return;
+    }
+
+    final details = _contentBloc.state.artistDetails;
+    final nextPageToken = details?.albums.nextPageToken;
+    final status = _contentBloc.state.artistDetailStatus;
+    if (nextPageToken == null ||
+        status == DetailStatus.loading ||
+        status == DetailStatus.loadingMore) {
+      return;
+    }
+
+    final remaining = _albumScrollController.position.maxScrollExtent -
+        _albumScrollController.offset;
+    if (remaining <= 320) {
+      _contentBloc.add(LoadMoreArtistAlbums(
+        pluginId: widget.pluginId,
+        artistId: widget.artist.id,
+        pageToken: nextPageToken,
+      ));
+    }
+  }
+
   @override
   void dispose() {
+    _albumScrollController.dispose();
     _contentBloc.close();
     super.dispose();
   }
@@ -325,7 +353,8 @@ class _ArtistViewState extends State<ArtistView> {
                     ),
                   ),
                 ],
-                body: state.artistDetailStatus == DetailStatus.loaded
+                body: state.artistDetailStatus == DetailStatus.loaded ||
+                        state.artistDetailStatus == DetailStatus.loadingMore
                     ? TabBarView(
                         children: [
                           // Top Songs tab
@@ -366,15 +395,26 @@ class _ArtistViewState extends State<ArtistView> {
                           // Albums tab
                           albums.isNotEmpty
                               ? SingleChildScrollView(
+                                  controller: _albumScrollController,
                                   child: Wrap(
                                     alignment: WrapAlignment.center,
                                     runSpacing: 10,
-                                    children: albums
-                                        .map((album) => AlbumCard(
-                                              album: album,
-                                              pluginId: widget.pluginId,
-                                            ))
-                                        .toList(),
+                                    children: [
+                                      ...albums.map((album) => AlbumCard(
+                                            album: album,
+                                            pluginId: widget.pluginId,
+                                          )),
+                                      if (state.artistDetailStatus ==
+                                          DetailStatus.loadingMore)
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 20,
+                                          ),
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 )
                               : const Center(

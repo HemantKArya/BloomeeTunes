@@ -86,6 +86,8 @@ class LoadImageCached extends StatefulWidget {
 }
 
 class _LoadImageCachedState extends State<LoadImageCached> {
+  static final Set<String> _failedImageUrls = <String>{};
+
   bool _isValidNetworkUrl(String? url) {
     if (url == null || url.trim().isEmpty) return false;
     final parsed = Uri.tryParse(url.trim());
@@ -109,32 +111,47 @@ class _LoadImageCachedState extends State<LoadImageCached> {
     final primaryUrl = hasPrimary ? widget.imageUrl : widget.fallbackUrl!;
     final fallbackUrl = hasPrimary && hasFallback ? widget.fallbackUrl : null;
 
+    if (_failedImageUrls.contains(primaryUrl) &&
+        (fallbackUrl == null || _failedImageUrls.contains(fallbackUrl))) {
+      return Image(
+        image: AssetImage(widget.placeholderUrl),
+        fit: widget.fit,
+      );
+    }
+
     return CachedNetworkImage(
       imageUrl: primaryUrl,
       placeholder: (context, url) => Image(
         image: const AssetImage("assets/icons/lazy_loading.png"),
         fit: widget.fit,
       ),
-      errorWidget: (context, url, error) => fallbackUrl == null
-          ? Image(
+      errorWidget: (context, url, error) {
+        _failedImageUrls.add(url);
+        if (fallbackUrl == null || _failedImageUrls.contains(fallbackUrl)) {
+          return Image(
+            image: AssetImage(widget.placeholderUrl),
+            fit: widget.fit,
+          );
+        }
+
+        return CachedNetworkImage(
+          imageUrl: fallbackUrl,
+          memCacheWidth: 500,
+          placeholder: (context, url) => Image(
+            image: const AssetImage("assets/icons/lazy_loading.png"),
+            fit: widget.fit,
+          ),
+          errorWidget: (context, url, error) {
+            _failedImageUrls.add(url);
+            return Image(
               image: AssetImage(widget.placeholderUrl),
               fit: widget.fit,
-            )
-          : CachedNetworkImage(
-              // now using fallback url
-              imageUrl: fallbackUrl,
-              memCacheWidth: 500,
-              placeholder: (context, url) => Image(
-                image: const AssetImage("assets/icons/lazy_loading.png"),
-                fit: widget.fit,
-              ),
-              errorWidget: (context, url, error) => Image(
-                image: AssetImage(widget.placeholderUrl),
-                fit: widget.fit,
-              ),
-              fadeInDuration: const Duration(milliseconds: 300),
-              fit: widget.fit,
-            ),
+            );
+          },
+          fadeInDuration: const Duration(milliseconds: 300),
+          fit: widget.fit,
+        );
+      },
       fadeInDuration: const Duration(milliseconds: 300),
       fit: widget.fit,
     );

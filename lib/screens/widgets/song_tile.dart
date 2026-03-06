@@ -12,6 +12,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/exported.dart' hide MediaItem;
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/utils/load_image.dart';
 
 // Cached styles to avoid repeated merges
@@ -127,9 +128,9 @@ class SongCardWidget extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _SongInfo(
+                  song: song,
                   title: song.title,
-                  subtitle: subtitleOverride ??
-                      song.artists.map((a) => a.name).join(', '),
+                  subtitle: subtitleOverride,
                 ),
               ),
               if (showPlayBtn)
@@ -293,10 +294,12 @@ class _SongImage extends StatelessWidget {
 
 // Extracted widget for song info text
 class _SongInfo extends StatelessWidget {
+  final Track song;
   final String title;
-  final String subtitle;
+  final String? subtitle;
 
   const _SongInfo({
+    required this.song,
     required this.title,
     required this.subtitle,
   });
@@ -317,13 +320,21 @@ class _SongInfo extends StatelessWidget {
             style: _SongCardStyles.titleStyle,
           ),
         ),
-        Text(
-          subtitle,
-          textAlign: TextAlign.start,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: _SongCardStyles.subtitleStyle,
-        ),
+        if (subtitle != null)
+          Text(
+            subtitle!,
+            textAlign: TextAlign.start,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: _SongCardStyles.subtitleStyle,
+          )
+        else
+          TrackMetadataLinks(
+            track: song,
+            style: _SongCardStyles.subtitleStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
       ],
     );
   }
@@ -491,10 +502,10 @@ class SongCardDummyWidget extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 5),
                     child: Container(
-                      width: 300,
-                      height: 17,
+                      width: 160,
+                      height: 18,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                         color: Colors.white.withValues(alpha: 0.15),
                       ),
                     ),

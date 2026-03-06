@@ -88,7 +88,9 @@ class PlayerEngine {
 
   // ── Safe Deferred Preload ──
   Uri? _pendingPreloadUri;
+  Map<String, String>? _pendingPreloadHeaders;
   Uri? _preloadedNextUri;
+  Map<String, String>? _preloadedNextHeaders;
   bool _standbyPreloaded = false;
 
   LoopMode _loopMode = LoopMode.off;
@@ -251,7 +253,11 @@ class PlayerEngine {
 
   // ─── Transition Primitives ─────────────────────────────────────────────────
 
-  Future<EngineResult> openDirect(Uri uri, {bool autoPlay = true}) async {
+  Future<EngineResult> openDirect(
+    Uri uri, {
+    Map<String, String>? httpHeaders,
+    bool autoPlay = true,
+  }) async {
     if (_disposed) return EngineFailure('Engine disposed');
     final gen = ++_generation;
 
@@ -273,7 +279,10 @@ class PlayerEngine {
       // We must explicitly snap it back to the user's volume before opening.
       await _active.setVolume(_userVolume * 100.0);
 
-      await _active.open(Media(uri.toString()), play: autoPlay);
+      await _active.open(
+        Media(uri.toString(), httpHeaders: httpHeaders),
+        play: autoPlay,
+      );
       if (_disposed || _generation != gen) return EngineCanceled();
 
       _hasMedia = true;
@@ -337,8 +346,10 @@ class PlayerEngine {
     if (!_standbyPreloaded) {
       if (_pendingPreloadUri != null) {
         final uri = _pendingPreloadUri!;
+        final headers = _pendingPreloadHeaders;
         _pendingPreloadUri = null;
-        return openDirect(uri, autoPlay: true);
+        _pendingPreloadHeaders = null;
+        return openDirect(uri, httpHeaders: headers, autoPlay: true);
       }
       return EngineFailure('Not preloaded');
     }
@@ -394,8 +405,10 @@ class PlayerEngine {
 
           if (_pendingPreloadUri != null) {
             final uri = _pendingPreloadUri!;
+            final headers = _pendingPreloadHeaders;
             _pendingPreloadUri = null;
-            preloadNext(uri);
+            _pendingPreloadHeaders = null;
+            preloadNext(uri, httpHeaders: headers);
           }
         }
       });
@@ -457,7 +470,9 @@ class PlayerEngine {
     _hasMedia = false;
     _standbyPreloaded = false;
     _preloadedNextUri = null;
+    _preloadedNextHeaders = null;
     _pendingPreloadUri = null;
+    _pendingPreloadHeaders = null;
 
     _positionSubject.add(Duration.zero);
     _durationSubject.add(Duration.zero);
@@ -525,29 +540,44 @@ class PlayerEngine {
   // ─── Gapless Pre-loading ───────────────────────────────────────────────────
 
   /// Returns true if the preload was accepted (either executed or queued safely)
-  Future<bool> preloadNext(Uri uri) async {
+  Future<bool> preloadNext(
+    Uri uri, {
+    Map<String, String>? httpHeaders,
+  }) async {
     if (_disposed) return false;
-    if (_standbyPreloaded && _preloadedNextUri == uri) return true;
+    if (_standbyPreloaded &&
+        _preloadedNextUri == uri &&
+        _preloadedNextHeaders == httpHeaders) {
+      return true;
+    }
 
     // Never commandeer the standby player if it's currently crossfading.
     // Queue it instead.
     if (_isTransitioning) {
       _pendingPreloadUri = uri;
+      _pendingPreloadHeaders = httpHeaders;
       _preloadedNextUri = uri;
+      _preloadedNextHeaders = httpHeaders;
       return true;
     }
 
     try {
       await _standby.setVolume(0);
-      await _standby.open(Media(uri.toString()), play: false);
+      await _standby.open(
+        Media(uri.toString(), httpHeaders: httpHeaders),
+        play: false,
+      );
       _preloadedNextUri = uri;
+      _preloadedNextHeaders = httpHeaders;
       _standbyPreloaded = true;
       _pendingPreloadUri = null;
+      _pendingPreloadHeaders = null;
       log('Preloaded next track: $uri', name: 'PlayerEngine');
       return true;
     } catch (e) {
       log('Preload failed: $e', name: 'PlayerEngine');
       _preloadedNextUri = null;
+      _preloadedNextHeaders = null;
       _standbyPreloaded = false;
       return false;
     }
@@ -555,8 +585,10 @@ class PlayerEngine {
 
   Future<void> clearPreload() async {
     _preloadedNextUri = null;
+    _preloadedNextHeaders = null;
     _standbyPreloaded = false;
     _pendingPreloadUri = null;
+    _pendingPreloadHeaders = null;
     if (!_isTransitioning) {
       try {
         await _standby.stop();

@@ -18,6 +18,13 @@ class SearchContent extends ContentEvent {
   });
 }
 
+/// Load the next page of the current search results.
+class LoadMoreSearchContent extends ContentEvent {
+  final String pageToken;
+
+  const LoadMoreSearchContent({required this.pageToken});
+}
+
 /// Set the active content resolver plugin.
 class SetActiveContentPlugin extends ContentEvent {
   final String pluginId;

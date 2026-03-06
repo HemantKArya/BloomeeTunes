@@ -19,6 +19,7 @@ import 'package:Bloomee/repository/bloomee/download_repository.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
+import 'package:Bloomee/services/player/stream_quality_selector.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path_provider/path_provider.dart';
@@ -162,14 +163,18 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     return false;
   }
 
-  /// Resolve a stream URL for [track] via the plugin system.
-  Future<String> _resolveStreamUrl(Track track) async {
+  /// Resolve a download stream for [track] via the plugin system.
+  Future<StreamSource> _resolveDownloadStream(Track track) async {
     final parts = tryParseMediaId(track.id);
     if (parts == null) {
       if (track.url != null &&
           (track.url!.startsWith('http://') ||
               track.url!.startsWith('https://'))) {
-        return track.url!;
+        return StreamSource(
+          url: track.url!,
+          quality: Quality.high,
+          format: _guessExtension(track.url!),
+        );
       }
       throw Exception(
         'Cannot resolve download URL for "${track.title}" — '
@@ -185,19 +190,23 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     );
 
     return response.when(
-      streams: (tracks) {
-        final streamUrl = tracks
-            .map((t) => t.url)
-            .whereType<String>()
-            .where((u) => u.trim().isNotEmpty)
-            .firstWhere(
-              (_) => true,
-              orElse: () => '',
-            );
-        if (streamUrl.isEmpty) {
+      streams: (streams) async {
+        final storedQuality = await _settingsDao.getSettingStr(
+          SettingKeys.downQuality,
+          defaultValue: AudioStreamQualityPreference.medium.label,
+        );
+        final preference = AudioStreamQualityPreferenceX.fromStored(
+          storedQuality,
+        );
+        final selectedStream = StreamQualitySelector.selectDownloadStream(
+          streams,
+          preference: preference,
+        );
+        final streamUrl = selectedStream?.url.trim() ?? '';
+        if (selectedStream == null || streamUrl.isEmpty) {
           throw Exception('No streams returned for "${track.title}"');
         }
-        return streamUrl;
+        return selectedStream;
       },
       albumDetails: (_) => throw _unexpectedResponse('albumDetails'),
       artistDetails: (_) => throw _unexpectedResponse('artistDetails'),
@@ -304,7 +313,9 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         _emitUpdatedState();
       }
 
-      final downloadUrl = await _resolveStreamUrl(song);
+      final selectedStream = await _resolveDownloadStream(song);
+      final downloadUrl = selectedStream.url;
+      final headers = streamHeadersToMap(selectedStream.headers);
       final artist = _artistStr(song);
       final ext = _guessExtension(downloadUrl);
       final fileName = _buildDownloadFileName(song, ext);
@@ -330,6 +341,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         maxRetries: 3,
         audioMetadata: metadata,
         song: song,
+        headers: headers,
       );
 
       if (showSnackbar) {

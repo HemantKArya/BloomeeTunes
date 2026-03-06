@@ -27,6 +27,32 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
 
   StreamSubscription<PluginManagerEvent>? _eventSubscription;
 
+  PluginState _setPluginOperation(
+    PluginState current,
+    String pluginId,
+    PluginOperation operation,
+  ) {
+    final updated = Map<String, PluginOperation>.from(current.pluginOperations)
+      ..[pluginId] = operation;
+    return current.copyWith(
+      isLoading: true,
+      pluginOperations: updated,
+      clearSuccessMessage: true,
+    );
+  }
+
+  PluginState _clearPluginOperation(
+    PluginState current,
+    String pluginId,
+  ) {
+    final updated = Map<String, PluginOperation>.from(current.pluginOperations)
+      ..remove(pluginId);
+    return current.copyWith(
+      isLoading: updated.isNotEmpty,
+      pluginOperations: updated,
+    );
+  }
+
   Future<void> _persistAutoLoadSafe(Set<String> pluginIds) async {
     try {
       await _loadStateService.writeAutoLoadPluginIds(pluginIds);
@@ -75,7 +101,11 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
     Emitter<PluginState> emit,
   ) async {
     try {
-      emit(state.copyWith(isLoading: true, clearError: true));
+      emit(state.copyWith(
+        isLoading: true,
+        clearError: true,
+        clearSuccessMessage: true,
+      ));
 
       if (!_pluginService.isInitialized) {
         emit(state.copyWith(
@@ -83,6 +113,7 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
           loadedPluginIds: const {},
           isInitialized: true,
           isLoading: false,
+          pluginOperations: const {},
           error: 'Plugin system unavailable',
         ));
         return;
@@ -97,6 +128,7 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         loadedPluginIds: loaded.toSet(),
         isInitialized: true,
         isLoading: false,
+        pluginOperations: const {},
       ));
 
       final preferredAutoLoadIds =
@@ -132,9 +164,13 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
     Emitter<PluginState> emit,
   ) async {
     emit(state.copyWith(
-      isLoading: true,
-      operatingPluginId: event.pluginId,
       clearError: true,
+      clearSuccessMessage: true,
+      pluginOperations: {
+        ...state.pluginOperations,
+        event.pluginId: PluginOperation.loading,
+      },
+      isLoading: true,
     ));
 
     try {
@@ -145,9 +181,11 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
       // State update happens via PluginSystemEvent (pluginLoaded).
     } on PluginException catch (e) {
       emit(state.copyWith(
-        isLoading: false,
         error: e.message,
-        clearOperatingPlugin: true,
+        pluginOperations: (Map<String, PluginOperation>.from(
+          state.pluginOperations,
+        )..remove(event.pluginId)),
+        isLoading: state.pluginOperations.length > 1,
       ));
     }
   }
@@ -170,9 +208,13 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
     Emitter<PluginState> emit,
   ) async {
     emit(state.copyWith(
-      isLoading: true,
-      operatingPluginId: event.pluginId,
       clearError: true,
+      clearSuccessMessage: true,
+      pluginOperations: {
+        ...state.pluginOperations,
+        event.pluginId: PluginOperation.unloading,
+      },
+      isLoading: true,
     ));
 
     try {
@@ -183,9 +225,11 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
       // State update happens via PluginSystemEvent (pluginUnloaded).
     } on PluginException catch (e) {
       emit(state.copyWith(
-        isLoading: false,
         error: e.message,
-        clearOperatingPlugin: true,
+        pluginOperations: (Map<String, PluginOperation>.from(
+          state.pluginOperations,
+        )..remove(event.pluginId)),
+        isLoading: state.pluginOperations.length > 1,
       ));
     }
   }
@@ -196,7 +240,11 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
     InstallPlugin event,
     Emitter<PluginState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, clearError: true));
+    emit(state.copyWith(
+      isLoading: true,
+      clearError: true,
+      clearSuccessMessage: true,
+    ));
 
     try {
       final result = await _pluginService.installPlugin(
@@ -226,9 +274,13 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
     Emitter<PluginState> emit,
   ) async {
     emit(state.copyWith(
-      isLoading: true,
-      operatingPluginId: event.pluginId,
       clearError: true,
+      clearSuccessMessage: true,
+      pluginOperations: {
+        ...state.pluginOperations,
+        event.pluginId: PluginOperation.deleting,
+      },
+      isLoading: true,
     ));
 
     try {
@@ -239,16 +291,20 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
       // State update happens via pluginListRefreshed event from Rust.
     } on PluginException catch (e) {
       emit(state.copyWith(
-        isLoading: false,
         error: e.message,
-        clearOperatingPlugin: true,
+        pluginOperations: (Map<String, PluginOperation>.from(
+          state.pluginOperations,
+        )..remove(event.pluginId)),
+        isLoading: state.pluginOperations.length > 1,
       ));
     } catch (e) {
       log('Delete failed for ${event.pluginId}: $e', name: 'PluginBloc');
       emit(state.copyWith(
-        isLoading: false,
         error: 'Failed to delete plugin: $e',
-        clearOperatingPlugin: true,
+        pluginOperations: (Map<String, PluginOperation>.from(
+          state.pluginOperations,
+        )..remove(event.pluginId)),
+        isLoading: state.pluginOperations.length > 1,
       ));
     }
   }
@@ -268,7 +324,7 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         availablePlugins: available,
         loadedPluginIds: loaded.toSet(),
         isLoading: false,
-        clearOperatingPlugin: true,
+        pluginOperations: const {},
       ));
       await _persistAutoLoadSafe(loaded.toSet());
     } catch (e) {
@@ -308,86 +364,77 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
 
     e.when(
       pluginLoading: (pluginId) {
-        emit(state.copyWith(
-          isLoading: true,
-          operatingPluginId: pluginId,
-        ));
+        if (state.operationFor(pluginId) == PluginOperation.deleting) {
+          emit(state.copyWith(isLoading: true));
+          return;
+        }
+        emit(_setPluginOperation(state, pluginId, PluginOperation.loading));
       },
       pluginLoaded: (pluginId, pluginType) {
         final newLoaded = {...state.loadedPluginIds, pluginId};
-        emit(state.copyWith(
+        emit(_clearPluginOperation(state, pluginId).copyWith(
           loadedPluginIds: newLoaded,
-          isLoading: false,
-          clearOperatingPlugin: true,
           clearError: true,
         ));
         unawaited(_persistAutoLoadSafe(newLoaded));
       },
       pluginLoadFailed: (pluginId, error) {
-        emit(state.copyWith(
-          isLoading: false,
+        emit(_clearPluginOperation(state, pluginId).copyWith(
           error: 'Failed to load $pluginId: $error',
-          clearOperatingPlugin: true,
         ));
       },
       pluginUnloading: (pluginId) {
-        emit(state.copyWith(
-          isLoading: true,
-          operatingPluginId: pluginId,
-        ));
+        if (state.operationFor(pluginId) == PluginOperation.deleting) {
+          emit(state.copyWith(isLoading: true));
+          return;
+        }
+        emit(_setPluginOperation(state, pluginId, PluginOperation.unloading));
       },
       pluginUnloaded: (pluginId) {
         final newLoaded = {...state.loadedPluginIds}..remove(pluginId);
-        emit(state.copyWith(
+        final deleting =
+            state.operationFor(pluginId) == PluginOperation.deleting;
+        emit((deleting ? state : _clearPluginOperation(state, pluginId))
+            .copyWith(
           loadedPluginIds: newLoaded,
-          isLoading: false,
-          clearOperatingPlugin: true,
+          isLoading:
+              deleting || state.pluginOperations.length > (deleting ? 0 : 1),
           clearError: true,
         ));
         unawaited(_persistAutoLoadSafe(newLoaded));
       },
       pluginUnloadFailed: (pluginId, error) {
-        emit(state.copyWith(
-          isLoading: false,
+        emit(_clearPluginOperation(state, pluginId).copyWith(
           error: 'Failed to unload $pluginId: $error',
-          clearOperatingPlugin: true,
         ));
       },
       pluginInstalling: (pluginId) {
-        emit(state.copyWith(isLoading: true, operatingPluginId: pluginId));
+        emit(_setPluginOperation(state, pluginId, PluginOperation.installing));
       },
       pluginInstalled: (pluginId) {
-        emit(state.copyWith(
-          isLoading: false,
-          clearOperatingPlugin: true,
-        ));
+        emit(_clearPluginOperation(state, pluginId));
       },
       pluginInstallFailed: (pluginId, error) {
-        emit(state.copyWith(
-          isLoading: false,
+        emit(_clearPluginOperation(state, pluginId).copyWith(
           error: 'Install failed for $pluginId: $error',
-          clearOperatingPlugin: true,
         ));
       },
       pluginDeleting: (pluginId) {
-        emit(state.copyWith(isLoading: true, operatingPluginId: pluginId));
+        emit(_setPluginOperation(state, pluginId, PluginOperation.deleting));
       },
       pluginDeleted: (pluginId) {
         final newLoaded = {...state.loadedPluginIds}..remove(pluginId);
-        emit(state.copyWith(
+        emit(_clearPluginOperation(state, pluginId).copyWith(
           loadedPluginIds: newLoaded,
-          isLoading: false,
-          clearOperatingPlugin: true,
+          successMessage: 'Plugin "$pluginId" deleted successfully.',
         ));
         unawaited(_persistAutoLoadSafe(newLoaded));
         // Refresh to update available list.
         add(const RefreshPlugins());
       },
       pluginDeleteFailed: (pluginId, error) {
-        emit(state.copyWith(
-          isLoading: false,
+        emit(_clearPluginOperation(state, pluginId).copyWith(
           error: 'Delete failed for $pluginId: $error',
-          clearOperatingPlugin: true,
         ));
       },
       pluginListRefreshed: (plugins) {
@@ -397,11 +444,29 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         final loaded = _pluginService.isInitialized
             ? _pluginService.getLoadedPlugins()
             : <String>[];
+        final previousDeletingIds = state.pluginOperations.entries
+            .where((entry) => entry.value == PluginOperation.deleting)
+            .map((entry) => entry.key)
+            .toSet();
+        final availableIds =
+            plugins.map((plugin) => plugin.manifest.id).toSet();
+        final deletedIds = previousDeletingIds.difference(availableIds);
+        final updatedOperations = Map<String, PluginOperation>.from(
+          state.pluginOperations,
+        )..removeWhere(
+            (pluginId, operation) =>
+                operation == PluginOperation.deleting &&
+                !availableIds.contains(pluginId),
+          );
+
         emit(state.copyWith(
           availablePlugins: plugins,
           loadedPluginIds: loaded.toSet(),
-          isLoading: false,
-          clearOperatingPlugin: true,
+          isLoading: updatedOperations.isNotEmpty,
+          pluginOperations: updatedOperations,
+          successMessage: deletedIds.isEmpty
+              ? state.successMessage
+              : 'Plugin "${deletedIds.first}" deleted successfully.',
         ));
         unawaited(_persistAutoLoadSafe(loaded.toSet()));
       },
@@ -412,7 +477,7 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         emit(state.copyWith(isInitialized: true));
       },
       error: (message) {
-        emit(state.copyWith(error: message));
+        emit(state.copyWith(error: message, clearSuccessMessage: true));
       },
     );
   }

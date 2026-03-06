@@ -33,6 +33,7 @@ class AlbumView extends StatefulWidget {
 
 class _AlbumViewState extends State<AlbumView> {
   late final ContentBloc _contentBloc;
+  final ScrollController _scrollController = ScrollController();
   bool _isSaved = false;
 
   String _sourceName(BuildContext context) {
@@ -49,6 +50,7 @@ class _AlbumViewState extends State<AlbumView> {
   void initState() {
     super.initState();
     _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
+    _scrollController.addListener(_onScroll);
     // Guard: verify plugin is still loaded before requesting details.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -75,8 +77,34 @@ class _AlbumViewState extends State<AlbumView> {
     if (mounted) setState(() => _isSaved = saved);
   }
 
+  void _onScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    final details = _contentBloc.state.albumDetails;
+    final nextPageToken = details?.tracks.nextPageToken;
+    final status = _contentBloc.state.albumDetailStatus;
+    if (nextPageToken == null ||
+        status == DetailStatus.loading ||
+        status == DetailStatus.loadingMore) {
+      return;
+    }
+
+    final remaining =
+        _scrollController.position.maxScrollExtent - _scrollController.offset;
+    if (remaining <= 320) {
+      _contentBloc.add(LoadMoreAlbumTracks(
+        pluginId: widget.pluginId,
+        albumId: widget.album.id,
+        pageToken: nextPageToken,
+      ));
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.dispose();
     _contentBloc.close();
     super.dispose();
   }
@@ -98,6 +126,7 @@ class _AlbumViewState extends State<AlbumView> {
             final albumArtists = detailArtists.join(', ');
 
             return CustomScrollView(
+              controller: _scrollController,
               slivers: [
                 SliverAppBar(
                   expandedHeight:
@@ -317,7 +346,8 @@ class _AlbumViewState extends State<AlbumView> {
                     ),
                   ),
                 ),
-                if (state.albumDetailStatus == DetailStatus.loaded &&
+                if ((state.albumDetailStatus == DetailStatus.loaded ||
+                        state.albumDetailStatus == DetailStatus.loadingMore) &&
                     tracks.isNotEmpty)
                   SliverList.builder(
                     itemCount: tracks.length,
@@ -344,6 +374,16 @@ class _AlbumViewState extends State<AlbumView> {
                       );
                     },
                   )
+                else if (state.albumDetailStatus == DetailStatus.loaded)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        'No tracks available',
+                        style: TextStyle(color: Default_Theme.primaryColor1),
+                      ),
+                    ),
+                  )
                 else if (state.albumDetailStatus == DetailStatus.error)
                   SliverFillRemaining(
                     hasScrollBody: false,
@@ -359,6 +399,13 @@ class _AlbumViewState extends State<AlbumView> {
                   const SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(child: CircularProgressIndicator()),
+                  ),
+                if (state.albumDetailStatus == DetailStatus.loadingMore)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
                   ),
               ],
             );

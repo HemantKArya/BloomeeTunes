@@ -46,6 +46,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
+    _scrollController.addListener(_onSearchScroll);
 
     // Pick first loaded content resolver as default
     final pluginState = context.read<PluginBloc>().state;
@@ -68,6 +69,26 @@ class _SearchScreenState extends State<SearchScreen> {
     _filter.dispose();
     _contentBloc.close();
     super.dispose();
+  }
+
+  void _onSearchScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    final state = _contentBloc.state;
+    final nextPageToken = state.searchResults?.nextPageToken;
+    if (nextPageToken == null ||
+        state.searchStatus == SearchStatus.loading ||
+        state.searchStatus == SearchStatus.loadingMore) {
+      return;
+    }
+
+    final remaining =
+        _scrollController.position.maxScrollExtent - _scrollController.offset;
+    if (remaining <= 320) {
+      _contentBloc.add(LoadMoreSearchContent(pageToken: nextPageToken));
+    }
   }
 
   void _doSearch(String query) {
@@ -310,15 +331,19 @@ class _SearchScreenState extends State<SearchScreen> {
                       : BlocBuilder<ContentBloc, ContentState>(
                           bloc: _contentBloc,
                           builder: (context, state) {
-                            if (state.searchStatus == SearchStatus.loading) {
+                            final hasResults = state.searchResults != null;
+                            if (state.searchStatus == SearchStatus.loading &&
+                                !hasResults) {
                               return const Center(
                                 child: CircularProgressIndicator(
                                   color: Default_Theme.accentColor2,
                                 ),
                               );
                             }
-                            if (state.searchStatus == SearchStatus.loaded &&
-                                state.searchResults != null) {
+                            if ((state.searchStatus == SearchStatus.loaded ||
+                                    state.searchStatus ==
+                                        SearchStatus.loadingMore) &&
+                                hasResults) {
                               return _buildSearchResults(state);
                             }
                             if (state.searchStatus == SearchStatus.error) {
@@ -345,6 +370,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildSearchResults(ContentState state) {
     final items = state.searchResults!.items;
+    final isLoadingMore = state.searchStatus == SearchStatus.loadingMore;
     if (items.isEmpty) {
       return const SignBoardWidget(
         message: "No results found!\nTry another keyword or source!",
@@ -424,6 +450,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 .toList(),
           ),
         ],
+        if (isLoadingMore)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: Default_Theme.accentColor2,
+              ),
+            ),
+          ),
       ],
     );
   }

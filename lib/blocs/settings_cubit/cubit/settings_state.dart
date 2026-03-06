@@ -6,9 +6,7 @@ class SettingsState extends Equatable {
   final bool autoSlideCharts;
   final String downPath;
   final String downQuality;
-  final String ytDownQuality;
   final String strmQuality;
-  final String ytStrmQuality;
   final String backupPath;
   final bool autoBackup;
   final String historyClearTime;
@@ -23,14 +21,12 @@ class SettingsState extends Equatable {
   final bool eqEnabled;
   final List<double> eqBandGains; // 10 gains, -12..+12 dB
   final String eqPreset;
-  SettingsState({
+  const SettingsState({
     required this.autoUpdateNotify,
     required this.autoSlideCharts,
     required this.downPath,
     required this.downQuality,
-    required this.ytDownQuality,
     required this.strmQuality,
-    required this.ytStrmQuality,
     required this.backupPath,
     required this.autoBackup,
     required this.historyClearTime,
@@ -52,9 +48,7 @@ class SettingsState extends Equatable {
     bool? autoSlideCharts,
     String? downPath,
     String? downQuality,
-    String? ytDownQuality,
     String? strmQuality,
-    String? ytStrmQuality,
     String? backupPath,
     bool? autoBackup,
     String? historyClearTime,
@@ -75,9 +69,7 @@ class SettingsState extends Equatable {
       autoSlideCharts: autoSlideCharts ?? this.autoSlideCharts,
       downPath: downPath ?? this.downPath,
       downQuality: downQuality ?? this.downQuality,
-      ytDownQuality: ytDownQuality ?? this.ytDownQuality,
       strmQuality: strmQuality ?? this.strmQuality,
-      ytStrmQuality: ytStrmQuality ?? this.ytStrmQuality,
       backupPath: backupPath ?? this.backupPath,
       autoBackup: autoBackup ?? this.autoBackup,
       historyClearTime: historyClearTime ?? this.historyClearTime,
@@ -103,9 +95,7 @@ class SettingsState extends Equatable {
         autoSlideCharts,
         downPath,
         downQuality,
-        ytDownQuality,
         strmQuality,
-        ytStrmQuality,
         backupPath,
         autoBackup,
         historyClearTime,
@@ -129,10 +119,8 @@ class SettingsInitial extends SettingsState {
           autoUpdateNotify: false,
           autoSlideCharts: true,
           downPath: "",
-          downQuality: "320 kbps",
-          ytDownQuality: "High",
-          strmQuality: "96 kbps",
-          ytStrmQuality: "Low",
+          downQuality: "Medium",
+          strmQuality: "Medium",
           backupPath: "",
           autoBackup: true,
           historyClearTime: "30",

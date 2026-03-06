@@ -288,10 +288,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: sections.length,
                             itemBuilder: (context, index) {
+                              final section = sections[index];
                               return HorizontalCardView(
-                                section: sections[index],
+                                section: section,
                                 pluginId:
                                     _homeContentBloc.state.activePluginId ?? '',
+                                canLoadMore: section.moreLink != null,
+                                isLoadingMore:
+                                    state.isHomeSectionLoading(section.id),
+                                onLoadMore: section.moreLink == null
+                                    ? null
+                                    : () {
+                                        _homeContentBloc.add(
+                                          LoadMoreHomeSectionItems(
+                                            pluginId: _homeContentBloc
+                                                    .state.activePluginId ??
+                                                '',
+                                            sectionId: section.id,
+                                            moreLink: section.moreLink!,
+                                          ),
+                                        );
+                                      },
                               );
                             },
                           );

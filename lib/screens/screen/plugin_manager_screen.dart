@@ -38,10 +38,15 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
       appBar: _buildAppBar(context),
       body: BlocConsumer<PluginBloc, PluginState>(
         listenWhen: (prev, curr) =>
-            prev.error != curr.error && curr.error != null,
+            (prev.error != curr.error && curr.error != null) ||
+            (prev.successMessage != curr.successMessage &&
+                curr.successMessage != null),
         listener: (context, state) {
           if (state.error != null) {
             SnackbarService.showMessage(state.error!);
+          }
+          if (state.successMessage != null) {
+            SnackbarService.showMessage(state.successMessage!);
           }
         },
         builder: (context, state) {
@@ -114,7 +119,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
       actions: [
         BlocBuilder<PluginBloc, PluginState>(
           builder: (context, state) {
-            if (state.isLoading) {
+            if (state.hasActiveOperations) {
               return const Padding(
                 padding: EdgeInsets.only(right: 16),
                 child: SizedBox(
@@ -254,9 +259,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
                 child: _PluginCard(
                   plugin: plugins[index],
                   isLoaded: state.isPluginLoaded(plugins[index].manifest.id),
-                  isLoading:
-                      state.operatingPluginId == plugins[index].manifest.id &&
-                          state.isLoading,
+                  operation: state.operationFor(plugins[index].manifest.id),
                 ),
               );
             },
@@ -274,9 +277,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
               child: _PluginCard(
                 plugin: plugins[index],
                 isLoaded: state.isPluginLoaded(plugins[index].manifest.id),
-                isLoading:
-                    state.operatingPluginId == plugins[index].manifest.id &&
-                        state.isLoading,
+                operation: state.operationFor(plugins[index].manifest.id),
               ),
             );
           },
@@ -315,22 +316,24 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
 class _PluginCard extends StatelessWidget {
   final PluginInfo plugin;
   final bool isLoaded;
-  final bool isLoading;
+  final PluginOperation? operation;
 
   const _PluginCard({
     required this.plugin,
     required this.isLoaded,
-    this.isLoading = false,
+    this.operation,
   });
 
   @override
   Widget build(BuildContext context) {
     final manifest = plugin.manifest;
+    final isDeleting = operation == PluginOperation.deleting;
+    final isOperating = operation != null;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => _showPluginDetails(context),
+        onTap: isDeleting ? null : () => _showPluginDetails(context),
         borderRadius: BorderRadius.circular(16),
         highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
         splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
@@ -412,25 +415,27 @@ class _PluginCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
 
-              // Custom Designed Aesthetic Switch (now optimistic!)
-              _CustomSwitch(
-                value: isLoaded,
-                isLoading: isLoading,
-                onChanged: () {
-                  final bloc = context.read<PluginBloc>();
-                  if (isLoaded) {
-                    bloc.add(UnloadPlugin(
-                      pluginId: manifest.id,
-                      pluginType: plugin.pluginType,
-                    ));
-                  } else {
-                    bloc.add(LoadPlugin(
-                      pluginId: manifest.id,
-                      pluginType: plugin.pluginType,
-                    ));
-                  }
-                },
-              ),
+              if (isDeleting)
+                const _InlineOperationIndicator(label: 'Deleting')
+              else
+                _CustomSwitch(
+                  value: isLoaded,
+                  isLoading: isOperating,
+                  onChanged: () {
+                    final bloc = context.read<PluginBloc>();
+                    if (isLoaded) {
+                      bloc.add(UnloadPlugin(
+                        pluginId: manifest.id,
+                        pluginType: plugin.pluginType,
+                      ));
+                    } else {
+                      bloc.add(LoadPlugin(
+                        pluginId: manifest.id,
+                        pluginType: plugin.pluginType,
+                      ));
+                    }
+                  },
+                ),
             ],
           ),
         ),
@@ -583,8 +588,9 @@ class _PluginDetailSheet extends StatelessWidget {
     return BlocBuilder<PluginBloc, PluginState>(
       builder: (context, state) {
         final isLoaded = state.isPluginLoaded(manifest.id);
-        final operating =
-            state.operatingPluginId == manifest.id && state.isLoading;
+        final operation = state.operationFor(manifest.id);
+        final operating = operation != null;
+        final deleting = operation == PluginOperation.deleting;
 
         return Container(
           decoration: BoxDecoration(
@@ -774,12 +780,18 @@ class _PluginDetailSheet extends StatelessWidget {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
                                   color: isLoaded
-                                      ? Default_Theme.primaryColor1
-                                      : Default_Theme.accentColor2,
+                                      ? Colors.red
+                                      : isLoaded
+                                          ? Default_Theme.primaryColor1
+                                          : Default_Theme.accentColor2,
                                 ),
                               )
                             : Text(
-                                isLoaded ? 'Unload Plugin' : 'Enable Plugin',
+                                deleting
+                                    ? 'Deleting...'
+                                    : isLoaded
+                                        ? 'Unload Plugin'
+                                        : 'Enable Plugin',
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -872,8 +884,6 @@ class _PluginDetailSheet extends StatelessWidget {
                 pluginId: pluginId,
                 pluginType: plugin.pluginType,
               ));
-              SnackbarService.showMessage('Deleting $pluginName...',
-                  loading: true);
             },
             child: const Text(
               'Delete',
@@ -882,6 +892,48 @@ class _PluginDetailSheet extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InlineOperationIndicator extends StatelessWidget {
+  final String label;
+
+  const _InlineOperationIndicator({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Default_Theme.accentColor2,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ).merge(Default_Theme.secondoryTextStyleMedium),
           ),
         ],
       ),

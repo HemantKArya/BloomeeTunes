@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/repository/bloomee/settings_repository.dart';
+import 'package:Bloomee/services/player/stream_quality_selector.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,13 +45,19 @@ class SettingsCubit extends Cubit<SettingsState> {
     });
 
     _settingsRepo
-        .getSettingStr(SettingKeys.downQuality, defaultValue: '320 kbps')
+        .getSettingStr(
+      SettingKeys.downQuality,
+      defaultValue: AudioStreamQualityPreference.medium.label,
+    )
         .then((value) {
-      emit(state.copyWith(downQuality: value ?? "320 kbps"));
-    });
-
-    _settingsRepo.getSettingStr(SettingKeys.ytDownQuality).then((value) {
-      emit(state.copyWith(ytDownQuality: value ?? "High"));
+      final normalized = normalizeStoredStreamQualityLabel(
+        value,
+        fallback: AudioStreamQualityPreference.medium.label,
+      );
+      if (value != normalized) {
+        _settingsRepo.putSettingStr(SettingKeys.downQuality, normalized);
+      }
+      emit(state.copyWith(downQuality: normalized));
     });
 
     _settingsRepo
@@ -58,16 +65,14 @@ class SettingsCubit extends Cubit<SettingsState> {
       SettingKeys.strmQuality,
     )
         .then((value) {
-      emit(state.copyWith(strmQuality: value ?? "96 kbps"));
-    });
-
-    _settingsRepo.getSettingStr(SettingKeys.ytStrmQuality).then((value) {
-      if (value == "High" || value == "Low") {
-        emit(state.copyWith(ytStrmQuality: value ?? "Low"));
-      } else {
-        _settingsRepo.putSettingStr(SettingKeys.ytStrmQuality, "Low");
-        emit(state.copyWith(ytStrmQuality: "Low"));
+      final normalized = normalizeStoredStreamQualityLabel(
+        value,
+        fallback: AudioStreamQualityPreference.medium.label,
+      );
+      if (value != normalized) {
+        _settingsRepo.putSettingStr(SettingKeys.strmQuality, normalized);
       }
+      emit(state.copyWith(strmQuality: normalized));
     });
 
     _settingsRepo.getSettingStr(SettingKeys.historyClearTime).then((value) {
@@ -217,23 +222,21 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   void setDownQuality(String value) {
-    _settingsRepo.putSettingStr(SettingKeys.downQuality, value);
-    emit(state.copyWith(downQuality: value));
-  }
-
-  void setYtDownQuality(String value) {
-    _settingsRepo.putSettingStr(SettingKeys.ytDownQuality, value);
-    emit(state.copyWith(ytDownQuality: value));
+    final normalized = normalizeStoredStreamQualityLabel(
+      value,
+      fallback: AudioStreamQualityPreference.medium.label,
+    );
+    _settingsRepo.putSettingStr(SettingKeys.downQuality, normalized);
+    emit(state.copyWith(downQuality: normalized));
   }
 
   void setStrmQuality(String value) {
-    _settingsRepo.putSettingStr(SettingKeys.strmQuality, value);
-    emit(state.copyWith(strmQuality: value));
-  }
-
-  void setYtStrmQuality(String value) {
-    _settingsRepo.putSettingStr(SettingKeys.ytStrmQuality, value);
-    emit(state.copyWith(ytStrmQuality: value));
+    final normalized = normalizeStoredStreamQualityLabel(
+      value,
+      fallback: AudioStreamQualityPreference.medium.label,
+    );
+    _settingsRepo.putSettingStr(SettingKeys.strmQuality, normalized);
+    emit(state.copyWith(strmQuality: normalized));
   }
 
   void setBackupPath(String value) {
@@ -284,10 +287,6 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     setDownPath(path);
     log("Download path reset to: $path", name: 'SettingsCubit');
-  }
-
-  Future<String?> getJsQualityURL(String url, {bool isStreaming = true}) async {
-    return _settingsRepo.getJsQualityURL(url, isStreaming: isStreaming);
   }
 
   /// Generic setting write — for one-off setting updates from UI.

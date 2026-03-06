@@ -2,6 +2,13 @@ import 'package:equatable/equatable.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
 
+enum PluginOperation {
+  loading,
+  unloading,
+  installing,
+  deleting,
+}
+
 /// State for [PluginBloc].
 ///
 /// Tracks available plugins, loaded plugin IDs, installation state,
@@ -19,19 +26,23 @@ class PluginState extends Equatable {
   /// Whether a plugin operation is in progress.
   final bool isLoading;
 
-  /// ID of the plugin currently being operated on (load/unload/install).
-  final String? operatingPluginId;
+  /// Per-plugin active operations.
+  final Map<String, PluginOperation> pluginOperations;
 
   /// Most recent error message, if any.
   final String? error;
+
+  /// Most recent success notification, if any.
+  final String? successMessage;
 
   const PluginState({
     this.availablePlugins = const [],
     this.loadedPluginIds = const {},
     this.isInitialized = false,
     this.isLoading = false,
-    this.operatingPluginId,
+    this.pluginOperations = const {},
     this.error,
+    this.successMessage,
   });
 
   /// Initial state before any operations.
@@ -40,8 +51,9 @@ class PluginState extends Equatable {
         loadedPluginIds = const {},
         isInitialized = false,
         isLoading = false,
-        operatingPluginId = null,
-        error = null;
+        pluginOperations = const {},
+        error = null,
+        successMessage = null;
 
   /// Get loaded content resolver plugins.
   List<PluginInfo> get loadedContentResolvers => availablePlugins
@@ -60,25 +72,32 @@ class PluginState extends Equatable {
   /// Check if a specific plugin is loaded.
   bool isPluginLoaded(String pluginId) => loadedPluginIds.contains(pluginId);
 
+  /// Whether any plugin-specific operation is active.
+  bool get hasActiveOperations => isLoading || pluginOperations.isNotEmpty;
+
+  /// Return the active operation for [pluginId], if any.
+  PluginOperation? operationFor(String pluginId) => pluginOperations[pluginId];
+
   PluginState copyWith({
     List<PluginInfo>? availablePlugins,
     Set<String>? loadedPluginIds,
     bool? isInitialized,
     bool? isLoading,
-    String? operatingPluginId,
+    Map<String, PluginOperation>? pluginOperations,
     String? error,
+    String? successMessage,
     bool clearError = false,
-    bool clearOperatingPlugin = false,
+    bool clearSuccessMessage = false,
   }) {
     return PluginState(
       availablePlugins: availablePlugins ?? this.availablePlugins,
       loadedPluginIds: loadedPluginIds ?? this.loadedPluginIds,
       isInitialized: isInitialized ?? this.isInitialized,
       isLoading: isLoading ?? this.isLoading,
-      operatingPluginId: clearOperatingPlugin
-          ? null
-          : (operatingPluginId ?? this.operatingPluginId),
+      pluginOperations: pluginOperations ?? this.pluginOperations,
       error: clearError ? null : (error ?? this.error),
+      successMessage:
+          clearSuccessMessage ? null : (successMessage ?? this.successMessage),
     );
   }
 
@@ -88,7 +107,8 @@ class PluginState extends Equatable {
         loadedPluginIds,
         isInitialized,
         isLoading,
-        operatingPluginId,
+        pluginOperations,
         error,
+        successMessage,
       ];
 }

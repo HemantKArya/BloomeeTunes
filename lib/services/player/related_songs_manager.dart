@@ -13,6 +13,14 @@ class RelatedSongsManager {
   final BehaviorSubject<List<Track>> relatedSongs =
       BehaviorSubject<List<Track>>.seeded([]);
   final PluginService _pluginService;
+  final Set<String> _fetchedTrackIds = <String>{};
+
+  String? _referenceTrackId;
+  String? _referenceLocalId;
+  String? _pluginId;
+  String? _nextPageToken;
+  bool _isFetching = false;
+  bool _isExhausted = false;
 
   // Callbacks
   Function(List<Track> items, {bool atLast})? onAddQueueItems;
@@ -32,52 +40,39 @@ class RelatedSongsManager {
         await SettingsDAO(DBProvider.db).getSettingBool(SettingKeys.autoPlay);
     if (autoPlay != null && !autoPlay) return;
 
-    if (queue.isNotEmpty &&
+    final shouldQueueMore = queue.isNotEmpty &&
         (queue.length - currentPlayingIdx) < 2 &&
-        loopMode != LoopMode.all) {
-      final parts = tryParseMediaId(currentMedia.id);
-      if (parts != null) {
-        try {
-          final response = await _pluginService.execute(
-            pluginId: parts.pluginId,
-            request: PluginRequest.contentResolver(
-              ContentResolverCommand.getRadioTracks(id: parts.localId),
-            ),
-          );
-
-          response.when(
-            moreTracks: (pagedTracks) {
-              if (pagedTracks.items.isNotEmpty) {
-                relatedSongs.add(pagedTracks.items);
-                log("Related Songs: ${pagedTracks.items.length}",
-                    name: "RelatedSongsManager");
-              }
-            },
-            streams: (tracks) {
-              if (tracks.isNotEmpty) {
-                relatedSongs.add(tracks);
-                log("Related Songs (streams): ${tracks.length}",
-                    name: "RelatedSongsManager");
-              }
-            },
-            albumDetails: (_) {},
-            artistDetails: (_) {},
-            playlistDetails: (_) {},
-            search: (_) {},
-            moreAlbums: (_) {},
-            homeSections: (_) {},
-            loadMoreItems: (_) {},
-            charts: (_) {},
-            chartDetails: (_) {},
-            ack: () {},
-          );
-        } catch (e) {
-          log("Failed to get related songs: $e", name: "RelatedSongsManager");
-        }
-      }
+        loopMode != LoopMode.all;
+    if (!shouldQueueMore) {
+      return;
     }
+
+    final parts = tryParseMediaId(currentMedia.id);
+    if (parts == null) {
+      return;
+    }
+
+    _syncReferenceState(
+      trackId: currentMedia.id,
+      pluginId: parts.pluginId,
+      localId: parts.localId,
+    );
+
+    if (relatedSongs.value.isEmpty) {
+      await _fetchNextRadioPage();
+    }
+
     await loadRelatedSongs(
         queue: queue, currentPlayingIdx: currentPlayingIdx, loopMode: loopMode);
+
+    if (relatedSongs.value.isEmpty) {
+      await _fetchNextRadioPage();
+      await loadRelatedSongs(
+        queue: queue,
+        currentPlayingIdx: currentPlayingIdx,
+        loopMode: loopMode,
+      );
+    }
   }
 
   Future<void> loadRelatedSongs({
@@ -95,6 +90,89 @@ class RelatedSongsManager {
 
   void clearRelatedSongs() {
     relatedSongs.add([]);
+    _fetchedTrackIds.clear();
+    _referenceTrackId = null;
+    _referenceLocalId = null;
+    _pluginId = null;
+    _nextPageToken = null;
+    _isFetching = false;
+    _isExhausted = false;
+  }
+
+  void _syncReferenceState({
+    required String trackId,
+    required String pluginId,
+    required String localId,
+  }) {
+    if (_referenceTrackId == trackId && _pluginId == pluginId) {
+      return;
+    }
+
+    relatedSongs.add([]);
+    _fetchedTrackIds.clear();
+    _referenceTrackId = trackId;
+    _referenceLocalId = localId;
+    _pluginId = pluginId;
+    _nextPageToken = null;
+    _isFetching = false;
+    _isExhausted = false;
+  }
+
+  Future<void> _fetchNextRadioPage() async {
+    if (_isFetching ||
+        _isExhausted ||
+        _pluginId == null ||
+        _referenceLocalId == null) {
+      return;
+    }
+
+    _isFetching = true;
+    try {
+      final response = await _pluginService.execute(
+        pluginId: _pluginId!,
+        request: PluginRequest.contentResolver(
+          ContentResolverCommand.getRadioTracks(
+            id: _referenceLocalId!,
+            pageToken: _nextPageToken,
+          ),
+        ),
+      );
+
+      response.when(
+        moreTracks: (pagedTracks) {
+          final uniqueTracks = pagedTracks.items.where((track) {
+            return _fetchedTrackIds.add(track.id);
+          }).toList(growable: false);
+
+          if (uniqueTracks.isNotEmpty) {
+            relatedSongs.add([...relatedSongs.value, ...uniqueTracks]);
+            log(
+              'Buffered ${uniqueTracks.length} related songs',
+              name: 'RelatedSongsManager',
+            );
+          }
+
+          _nextPageToken = pagedTracks.nextPageToken;
+          _isExhausted =
+              pagedTracks.nextPageToken == null && uniqueTracks.isEmpty;
+        },
+        albumDetails: (_) {},
+        artistDetails: (_) {},
+        playlistDetails: (_) {},
+        streams: (_) {},
+        search: (_) {},
+        moreAlbums: (_) {},
+        homeSections: (_) {},
+        loadMoreItems: (_) {},
+        charts: (_) {},
+        chartDetails: (_) {},
+        ack: () {},
+      );
+    } catch (e) {
+      log('Failed to get related songs: $e', name: 'RelatedSongsManager');
+    } finally {
+      _isFetching = false;
+    }
   }
 
   void dispose() {

@@ -6,6 +6,7 @@ import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/utils/imgurl_formator.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
@@ -143,8 +144,8 @@ class MiniPlayerCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(
-                          song.artists.map((a) => a.name).join(', '),
+                        TrackMetadataLinks(
+                          track: song,
                           style: Default_Theme.secondoryTextStyle.merge(
                               TextStyle(
                                   fontWeight: FontWeight.bold,

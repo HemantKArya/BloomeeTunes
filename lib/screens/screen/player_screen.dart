@@ -8,6 +8,7 @@ import 'package:Bloomee/screens/widgets/gradient_progress_bar.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
+import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -220,9 +221,9 @@ class _PlayerUI extends StatelessWidget {
                   child: TabBarView(
                     controller: tabController,
                     physics: const BouncingScrollPhysics(),
-                    children: [
-                      const CoverImageVolSlider(),
-                      const LyricsWidget(),
+                    children: const [
+                      CoverImageVolSlider(),
+                      LyricsWidget(),
                     ],
                   ),
                 ),
@@ -317,12 +318,12 @@ class _SongInfoRow extends StatelessWidget {
           child: StreamBuilder<MediaItem?>(
             stream: player.mediaItem,
             builder: (context, snapshot) {
-              final mediaItem = snapshot.data;
+              final currentTrack = player.currentTrackInfo;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    mediaItem?.title ?? "Unknown",
+                    currentTrack.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style:
@@ -333,8 +334,9 @@ class _SongInfoRow extends StatelessWidget {
                     )),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    mediaItem?.artist ?? "Unknown",
+                  TrackMetadataLinks(
+                    track: currentTrack,
+                    showAlbum: currentTrack.album != null,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Default_Theme.secondoryTextStyle.merge(TextStyle(

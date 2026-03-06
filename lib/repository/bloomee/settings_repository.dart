@@ -1,4 +1,3 @@
-import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 
@@ -31,25 +30,4 @@ class SettingsRepository {
 
   Future<Stream<AppSettingsBoolDB?>?> watchSettingBool(String key) =>
       _settingsDao.getWatcher4SettingBool(key);
-
-  // --------------- Audio quality ---------------
-
-  /// Get JioSaavn quality URL based on user's streaming/download quality setting.
-  Future<String?> getJsQualityURL(String url, {bool isStreaming = true}) async {
-    String settingKey =
-        isStreaming ? SettingKeys.strmQuality : SettingKeys.downQuality;
-    String? quality = await _settingsDao.getSettingStr(settingKey);
-    String? qualityUrl;
-    switch (quality) {
-      case "96 kbps":
-        qualityUrl = url;
-      case "160 kbps":
-        qualityUrl = url.replaceAll('_96', '_160').replaceAll('_320', '_160');
-      case "320 kbps":
-        qualityUrl = url.replaceAll('_96', '_320').replaceAll('_160', '_320');
-      default:
-        qualityUrl = url.replaceAll('_160', '_96').replaceAll('_320', '_96');
-    }
-    return qualityUrl;
-  }
 }

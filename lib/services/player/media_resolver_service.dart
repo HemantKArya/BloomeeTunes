@@ -1,31 +1,47 @@
 import 'dart:developer';
 
 import 'package:Bloomee/core/events/global_event_bus.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
 import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:Bloomee/services/db/dao/download_dao.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
+import 'package:Bloomee/services/player/stream_quality_selector.dart';
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
+
+class ResolvedMediaSource {
+  final Uri uri;
+  final bool isOffline;
+  final Map<String, String>? headers;
+
+  const ResolvedMediaSource({
+    required this.uri,
+    required this.isOffline,
+    this.headers,
+  });
+}
 
 /// Resolves a [Track] into a playable [Uri].
 ///
 /// Resolution order:
 /// 1. Local downloaded file (offline).
 /// 2. Plugin system — asks the owning plugin for stream URIs via [GetStreams].
-///
-/// Returns `(Uri, isOffline)`.
 class MediaResolverService {
   final DownloadDAO _downloadDao;
+  final SettingsDAO _settingsDao;
   final PluginService _pluginService;
 
   MediaResolverService({
     required DownloadDAO downloadDao,
+    required SettingsDAO settingsDao,
     required PluginService pluginService,
   })  : _downloadDao = downloadDao,
+        _settingsDao = settingsDao,
         _pluginService = pluginService;
 
   /// Factory that creates its own DAO instances from [DBProvider.db].
@@ -34,18 +50,22 @@ class MediaResolverService {
     final playlistDao = PlaylistDAO(DBProvider.db, trackDao);
     return MediaResolverService(
       downloadDao: DownloadDAO(DBProvider.db, trackDao, playlistDao),
+      settingsDao: SettingsDAO(DBProvider.db),
       pluginService: pluginService,
     );
   }
 
   /// Resolve [track] into a playable URI.
-  Future<(Uri, bool isOffline)> resolve(Track track) async {
+  Future<ResolvedMediaSource> resolve(Track track) async {
     // 1. Check for an offline/downloaded version.
     try {
       final down = await _downloadDao.getDownloadRecord(track.id);
       if (down != null) {
         log('Playing Offline: ${track.title}', name: 'MediaResolverService');
-        return (Uri.file('${down.filePath}/${down.fileName}'), true);
+        return ResolvedMediaSource(
+          uri: Uri.file('${down.filePath}/${down.fileName}'),
+          isOffline: true,
+        );
       }
     } catch (e) {
       log('Download check failed: $e', name: 'MediaResolverService');
@@ -94,22 +114,25 @@ class MediaResolverService {
     }
 
     return response.when(
-      streams: (tracks) {
-        if (tracks.isEmpty) {
+      streams: (streams) async {
+        if (streams.isEmpty) {
           throw Exception('No streams returned for "${track.title}"');
         }
 
-        // Find the first usable stream URL instead of assuming index 0 is valid.
-        String? streamUrl;
-        for (final stream in tracks) {
-          final candidate = stream.url?.trim();
-          if (candidate != null && candidate.isNotEmpty) {
-            streamUrl = candidate;
-            break;
-          }
-        }
+        final storedQuality = await _settingsDao.getSettingStr(
+          SettingKeys.strmQuality,
+          defaultValue: AudioStreamQualityPreference.medium.label,
+        );
+        final preference = AudioStreamQualityPreferenceX.fromStored(
+          storedQuality,
+        );
+        final selectedStream = StreamQualitySelector.selectPlaybackStream(
+          streams,
+          preference: preference,
+        );
+        final streamUrl = selectedStream?.url.trim();
 
-        if (streamUrl == null) {
+        if (streamUrl == null || streamUrl.isEmpty) {
           throw Exception(
             'Streams returned for "${track.title}" contain no playable URL',
           );
@@ -127,7 +150,13 @@ class MediaResolverService {
         }
 
         log('Resolved stream: $streamUrl', name: 'MediaResolverService');
-        return (uri, false);
+        return ResolvedMediaSource(
+          uri: uri,
+          isOffline: false,
+          headers: selectedStream == null
+              ? null
+              : streamHeadersToMap(selectedStream.headers),
+        );
       },
       albumDetails: (_) =>
           throw Exception('Unexpected response type: albumDetails'),

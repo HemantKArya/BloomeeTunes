@@ -2,7 +2,7 @@
 /// These replace settings-key constants previously mixed into [GlobalStrConsts].
 ///
 /// Usage:
-///   SettingsDAO.getSettingStr(SettingKeys.downQuality, defaultValue: "96 kbps");
+///   SettingsDAO.getSettingStr(SettingKeys.downQuality, defaultValue: "Medium");
 class SettingKeys {
   SettingKeys._();
 
@@ -12,7 +12,6 @@ class SettingKeys {
 
   // ── Playback ────────────────────────────────────────────────────────────────
   static const String strmQuality = "streamQuality";
-  static const String ytStrmQuality = "ytStreamQuality";
   static const String autoPlay = "autoPlaySimilarItems";
 
   // ── Crossfade ───────────────────────────────────────────────────────────────
@@ -35,7 +34,6 @@ class SettingKeys {
   /// Special playlist name for downloaded tracks.
   static const String downloadPlaylist = "_DOWNLOADS";
   static const String downQuality = "downloadQuality";
-  static const String ytDownQuality = "ytDownloadQuality";
 
   // ── Backup ──────────────────────────────────────────────────────────────────
   static const String backupPath = "backupPath";

@@ -95,6 +95,8 @@ class _GlobalEventListenerState extends State<GlobalEventListener> {
         _throttledSnackbar('Plugin "$id" installed successfully');
       case PluginManagerEvent_PluginLoaded(:final id):
         _throttledSnackbar('Plugin "$id" loaded');
+      case PluginManagerEvent_PluginDeleted(:final id):
+        _throttledSnackbar('Plugin "$id" deleted successfully');
       default:
         break;
     }

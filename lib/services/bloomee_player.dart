@@ -35,6 +35,7 @@ import 'package:rxdart/rxdart.dart';
 ///   the OS on state changes, allowing native iOS/Android to interpolate time natively.
 /// - **Deterministic Transitions**: Consumes sealed [EngineResult] to prevent
 ///   swallowed errors from breaking playback state.
+/// - **Circuit Breaker Error Handling**: Stops infinite skip loops securely on network failures.
 class BloomeeMusicPlayer extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   late PlayerEngine engine;
@@ -56,8 +57,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   // ── Concurrency & Cancellation Tokens ──
   CancelableCompleter<void>? _playCompleter;
-  CancelableOperation<(Uri, bool)>? _preResolveOp;
-  CancelableOperation<(Uri, bool)>? _currentResolveOp;
+  CancelableOperation<ResolvedMediaSource>? _preResolveOp;
+  CancelableOperation<ResolvedMediaSource>? _currentResolveOp;
   bool _isAdvancing = false;
   bool _checkingRelated = false;
 
@@ -70,6 +71,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   StreamSubscription? _completionSub;
   StreamSubscription? _errorSub;
   StreamSubscription? _queueSyncSub;
+  StreamSubscription?
+      _positionSuccessSub; // Validates hardware playback success
   Timer? _relatedSongTimer;
   StreamSubscription<AudioInterruptionEvent>? _audioInterruptionSub;
   StreamSubscription<void>? _audioNoisySub;
@@ -232,8 +235,25 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _relatedSongsManager = RelatedSongsManager(ServiceLocator.pluginService);
     _resolver = MediaResolverService.create(ServiceLocator.pluginService);
 
-    _errorHandler.onSkipToNext = () => skipToNext();
+    // INTERNAL skip handler: doesn't reset circuit breaker!
+    _errorHandler.onSkipToNext = () => _internalSkipToNext();
     _errorHandler.onRetryCurrentTrack = () => _retryCurrentTrack();
+
+    // Circuit Breaker tripped: Halt execution securely.
+    _errorHandler.onStopPlayback = () async {
+      _playCompleter?.operation.cancel();
+      _playCompleter = null;
+      _currentResolveOp?.cancel();
+      _preResolveOp?.cancel();
+
+      playbackState.add(playbackState.value.copyWith(
+        processingState: AudioProcessingState.error,
+        playing: false,
+      ));
+
+      await engine.stop();
+      DiscordService.clearPresence();
+    };
 
     _relatedSongsManager.onAddQueueItems =
         (items, {bool atLast = false}) => addQueueTracks(items, atLast: atLast);
@@ -245,8 +265,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   void _initSubscriptions() {
-    // Exclude position from combineLatest to prevent 60Hz OS battery drain.
-    // distinct() prevents identical tuples from spamming the lock screen.
     _engineStateSub = Rx.combineLatest4(
       engine.stateStream,
       engine.playingStream,
@@ -256,6 +274,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     ).distinct().listen((record) {
       final (state, playing, buffered, speed) = record;
       _broadcastPlaybackState(state, playing, engine.position, buffered, speed);
+    });
+
+    // Hardware-verified playback success tracking
+    // Absolutely guarantees we only reset the circuit breaker if the track plays
+    _positionSuccessSub = engine.positionStream.listen((pos) {
+      if (pos > Duration.zero &&
+          engine.state == EngineState.ready &&
+          engine.playing) {
+        final track = _queueManager.currentTrack;
+        if (track != null) _errorHandler.markTrackSuccess(track.id);
+      }
     });
 
     _completionSub = engine.completionStream.listen((_) {
@@ -308,14 +337,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         MediaAction.seek,
       },
       androidCompactActionIndices: const [0, 1, 2],
-      updatePosition: position, // Captured at the moment of state change
-      updateTime: DateTime.now(), // OS will natively interpolate the rest
+      updatePosition: position,
+      updateTime: DateTime.now(),
       playing: playing,
       bufferedPosition: buffered,
       speed: speed,
     ));
 
-    // Throttle Discord RPC — max once per second during rapid state changes.
     EasyThrottle.throttle(
       'discord_rpc',
       const Duration(milliseconds: 1000),
@@ -339,6 +367,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     if (_isDisposed) return;
+    _errorHandler.resetCircuitBreaker(); // Reset on manual action
     final granted = await _activateAudioSession();
     if (!granted) {
       SnackbarService.showMessage('Audio focus denied. Cannot start playback.');
@@ -381,7 +410,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> stop() async {
-    // 1. MUST cancel in-flight intents FIRST to prevent Zombie playbacks
+    _errorHandler.resetCircuitBreaker(); // Reset on manual action
     _playCompleter?.operation.cancel();
     _playCompleter = null;
     _preResolveOp?.cancel();
@@ -435,13 +464,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     isOffline.add(offline);
   }
 
-  /// Enqueue a play request. Cancels any in-flight request immediately.
-  /// Does NOT complete with an error so callers (like skipToNext) don't crash the app.
   Future<void> _enqueuePlayTrack(Track track,
       {bool doPlay = true, Duration? initialPosition}) {
     if (_isDisposed) return Future.value();
 
-    // Atomically cancel previous, create new completer.
     final prev = _playCompleter;
     final completer = CancelableCompleter<void>(
       onCancel: () =>
@@ -452,13 +478,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     _doPlay(track, completer, doPlay: doPlay, initialPosition: initialPosition);
 
-    // .valueOrCancellation catches nothing by design because errors are
-    // handled internally. Guarantees no Unhandled Futures crash the app!
     return completer.operation.valueOrCancellation().then((_) {});
   }
 
-  /// Core play routine. Consumes [EngineResult] sealed class to enforce deterministic
-  /// error states and prevent "swallowed error" data corruption.
   Future<void> _doPlay(
     Track track,
     CancelableCompleter<void> token, {
@@ -468,7 +490,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     bool alive() => !token.isCanceled && !_isDisposed;
 
     void done() {
-      // NEVER completeError! We handle errors gracefully via UI overlay.
       if (!token.isCompleted && !token.isCanceled) token.complete();
     }
 
@@ -490,53 +511,46 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         }
       }
 
-      // 1. MUST cancel previous network resolves FIRST
       _currentResolveOp?.cancel();
 
       try {
         _updateCurrentTrack(track);
       } catch (e) {
         log('_updateCurrentTrack failed: $e', name: 'BloomeeMusicPlayer');
-        // Non-fatal — continue with playback even if metadata update fails
       }
       engine.setLoadingState();
 
       EngineResult transitionResult;
 
       if (!crossfadeEnabled) {
-        // ─── NO CROSSFADE ───
         if (canUsePreloaded) {
           _setOfflineState(_preloadedTrackOffline);
           transitionResult = await engine.activatePreloaded(autoPlay: doPlay);
           _clearPreloadedMarker();
         } else {
-          // FIX: Stop the old track IMMEDIATELY to give instant auditory feedback.
-          // This ensures the old song dies the millisecond the user presses "Skip".
           await engine.stop(keepLoadingState: true);
           if (!alive()) return;
 
-          // Now wait for the network. User hears silence and sees the loading UI.
           _currentResolveOp = CancelableOperation.fromFuture(
               _resolver.resolve(track).timeout(const Duration(seconds: 15)));
 
           final result = await _currentResolveOp!.valueOrCancellation();
           if (result == null || !alive()) return;
-          final (uri, offline) = result;
 
-          _setOfflineState(offline);
-          transitionResult = await engine.openDirect(uri, autoPlay: doPlay);
+          _setOfflineState(result.isOffline);
+          transitionResult = await engine.openDirect(
+            result.uri,
+            httpHeaders: result.headers,
+            autoPlay: doPlay,
+          );
         }
       } else {
-        // ─── CROSSFADE ENABLED ───
         if (canUsePreloaded) {
           _setOfflineState(_preloadedTrackOffline);
           transitionResult =
               await engine.crossfadeToPreloaded(engine.crossfadeDuration);
           _clearPreloadedMarker();
         } else {
-          // FIX: If not preloaded, it's a manual skip to an unresolved track.
-          // You CANNOT crossfade over an unknown network delay.
-          // Stop immediately for instant feedback.
           await engine.stop(keepLoadingState: true);
           if (!alive()) return;
 
@@ -545,30 +559,33 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
           final result = await _currentResolveOp!.valueOrCancellation();
           if (result == null || !alive()) return;
-          final (uri, offline) = result;
 
-          _setOfflineState(offline);
-          transitionResult = await engine.openDirect(uri, autoPlay: doPlay);
+          _setOfflineState(result.isOffline);
+          transitionResult = await engine.openDirect(
+            result.uri,
+            httpHeaders: result.headers,
+            autoPlay: doPlay,
+          );
         }
       }
 
       if (!alive()) return;
 
-      // Deterministic Error Evaluation
       if (transitionResult is EngineFailure) {
         final err = transitionResult.error;
         final type = _errorHandler.categorizeError(err);
         _errorHandler.handleError(type, err.toString(), track, err);
-        return done(); // Halt execution cleanly
+        return done();
       }
 
-      // Transition Success Setup
       if (initialPosition != null && initialPosition > Duration.zero) {
         await engine.seek(initialPosition);
       }
 
       _errorHandler.clearError();
-      _errorHandler.clearRetryAttempts(track.id);
+      // NOTE: markTrackStarted is omitted here.
+      // Success is verified strictly via the `_positionSuccessSub` stream!
+
       _preResolveNextTrack();
       await _checkRelatedSongs();
 
@@ -591,20 +608,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   void _updateCurrentTrack(Track track) {
-    // Use track as-is without URL reformatting.
-    // Plugins provide properly formatted URLs in Artwork.url/urlLow/urlHigh.
     _currentTrack = track;
-
-    // Convert to audio_service MediaItem for OS notifications.
-    // trackToMediaItem now includes all thumbnail URLs in extras.
     mediaItem.add(trackToMediaItem(_currentTrack));
   }
 
   // ─── Preload ───────────────────────────────────────────────────────────────
-
-// ─── Preload ───────────────────────────────────────────────────────────────
-
-// ─── Preload ───────────────────────────────────────────────────────────────
 
   void _preResolveNextTrack() {
     final nextTrack = _queueManager.peekNext(loopMode: loopMode.value);
@@ -629,12 +637,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         return;
       }
 
-      // Check the boolean result returned by the new engine architecture
-      final success = await engine.preloadNext(result.$1);
+      final success = await engine.preloadNext(
+        result.uri,
+        httpHeaders: result.headers,
+      );
 
       if (!_isDisposed && success) {
         _preloadedTrackId = expectedId;
-        _preloadedTrackOffline = result.$2;
+        _preloadedTrackOffline = result.isOffline;
       }
     }).catchError((e) {
       log('Pre-resolve failed: $e', name: 'BloomeeMusicPlayer');
@@ -646,7 +656,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   // ─── Auto-next / Completion ────────────────────────────────────────────────
 
   void _onTrackCompleted() {
-    // Rely on simple Mutex lock rather than EasyThrottle's time-based race conditions.
     if (loopMode.value == LoopMode.one || _isAdvancing) return;
     _isAdvancing = true;
 
@@ -657,7 +666,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           final next = _queueManager.currentTrack;
           if (next != null) await _enqueuePlayTrack(next, doPlay: true);
         } else {
-          // If queue ended natively, ensure cleanly stopped state.
           await engine.stop();
         }
       } catch (e) {
@@ -684,7 +692,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> _checkRelatedSongs() async {
-    // Mutex prevents concurrent duplicate song generation
     if (_checkingRelated) return;
     _checkingRelated = true;
 
@@ -742,6 +749,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> playMediaItem(MediaItem mi,
       {bool doPlay = true, Duration? initialPosition}) async {
+    _errorHandler.resetCircuitBreaker(); // User intent: reset errors
     final track = mediaItemToTrack(mi);
     await _enqueuePlayTrack(track,
         doPlay: doPlay, initialPosition: initialPosition);
@@ -749,8 +757,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToNext() async {
-    // If an auto-advance is mid-flight, wait or skip doing it again.
-    // To keep it simple and robust, cancel whatever is happening and advance
+    _errorHandler.resetCircuitBreaker(); // User intent: reset errors
+    await _internalSkipToNext();
+  }
+
+  Future<void> _internalSkipToNext() async {
     _isAdvancing = true;
     try {
       final advanced = _queueManager.advanceToNext(loopMode: loopMode.value);
@@ -758,7 +769,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         final next = _queueManager.currentTrack;
         if (next != null) await _enqueuePlayTrack(next, doPlay: true);
       } else {
-        // Cancel previous intents to avoid ghost playback
         _playCompleter?.operation.cancel();
         _playCompleter = null;
         _currentResolveOp?.cancel();
@@ -771,6 +781,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToPrevious() async {
+    _errorHandler.resetCircuitBreaker(); // User intent: reset errors
+    await _internalSkipToPrevious();
+  }
+
+  Future<void> _internalSkipToPrevious() async {
     _isAdvancing = true;
     try {
       final advanced =
@@ -779,7 +794,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         final prev = _queueManager.currentTrack;
         if (prev != null) await _enqueuePlayTrack(prev, doPlay: true);
       } else {
-        // Cancel previous intents to avoid ghost playback
         _playCompleter?.operation.cancel();
         _playCompleter = null;
         _currentResolveOp?.cancel();
@@ -792,6 +806,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> skipToQueueItem(int index) async {
+    _errorHandler.resetCircuitBreaker(); // User intent: reset errors
     _queueManager.jumpTo(index);
     final track = _queueManager.currentTrack;
     if (track != null) await _enqueuePlayTrack(track, doPlay: true);
@@ -799,6 +814,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   Future<void> loadPlaylist(Playlist playlist,
       {int idx = 0, bool doPlay = false, bool shuffling = false}) async {
+    _errorHandler.resetCircuitBreaker(); // User intent: reset errors
     try {
       fromPlaylist.add(true);
       _relatedSongsManager.clearRelatedSongs();
@@ -845,7 +861,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager.addTrack(mediaItemToTrack(mi));
   }
 
-  /// Add a [Track] directly to the queue (preferred over [addQueueItem]).
   Future<void> addQueueTrack(Track track) async {
     _queueManager.addTrack(track);
   }
@@ -857,12 +872,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager.addTracks(tracks, atLast: atLast);
   }
 
-  /// Add [Track] list directly to the queue (preferred over [addQueueItems]).
   Future<void> addQueueTracks(List<Track> tracks, {bool atLast = false}) async {
     _queueManager.addTracks(tracks, atLast: atLast);
   }
 
-  /// Replace queue with [tracks] and optionally begin playback.
   Future<void> updateQueueTracks(List<Track> tracks,
       {bool doPlay = false}) async {
     _queueManager.updateQueue(tracks);
@@ -876,7 +889,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager.addPlayNext(mediaItemToTrack(item));
   }
 
-  /// Add a [Track] to play next (preferred).
   Future<void> addPlayNextTrack(Track track) async {
     _queueManager.addPlayNext(track);
   }
@@ -940,6 +952,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     await _completionSub?.cancel();
     await _errorSub?.cancel();
     await _queueSyncSub?.cancel();
+    await _positionSuccessSub?.cancel(); // Cancel success verifier
     await _audioInterruptionSub?.cancel();
     await _audioNoisySub?.cancel();
 
@@ -958,7 +971,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     await _deactivateAudioSession();
 
-    // Do NOT close UI-bound subjects! Resets them safely instead.
     fromPlaylist.add(false);
     _setOfflineState(false);
     loopMode.add(LoopMode.off);

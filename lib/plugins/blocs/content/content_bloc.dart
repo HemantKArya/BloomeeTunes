@@ -29,6 +29,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
   })  : _pluginService = pluginService,
         super(ContentState(activePluginId: initialPluginId)) {
     on<SearchContent>(_onSearch, transformer: _debounceSearchTransformer());
+    on<LoadMoreSearchContent>(_onLoadMoreSearch);
     on<SetActiveContentPlugin>(_onSetActivePlugin);
     on<LoadAlbumDetails>(_onLoadAlbumDetails);
     on<LoadMoreAlbumTracks>(_onLoadMoreAlbumTracks);
@@ -74,6 +75,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
       emit(state.copyWith(
         searchStatus: SearchStatus.initial,
         searchQuery: '',
+        searchFilter: event.filter,
         clearSearchResults: true,
         clearError: true,
       ));
@@ -83,6 +85,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
     emit(state.copyWith(
       searchStatus: SearchStatus.loading,
       searchQuery: event.query,
+      searchFilter: event.filter,
       clearError: true,
     ));
 
@@ -102,6 +105,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         search: (results) {
           emit(state.copyWith(
             searchStatus: SearchStatus.loaded,
+            searchFilter: event.filter,
             searchResults: results,
           ));
         },
@@ -125,6 +129,76 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
       emit(state.copyWith(
         searchStatus: SearchStatus.error,
         error: 'Search failed: $e',
+      ));
+    }
+  }
+
+  Future<void> _onLoadMoreSearch(
+    LoadMoreSearchContent event,
+    Emitter<ContentState> emit,
+  ) async {
+    final pluginId = state.activePluginId;
+    final currentResults = state.searchResults;
+    final query = state.searchQuery.trim();
+
+    if (pluginId == null ||
+        query.isEmpty ||
+        currentResults == null ||
+        state.searchStatus == SearchStatus.loadingMore) {
+      return;
+    }
+
+    emit(state.copyWith(
+      searchStatus: SearchStatus.loadingMore,
+      clearError: true,
+    ));
+
+    try {
+      final response = await _pluginService.execute(
+        pluginId: pluginId,
+        request: PluginRequest.contentResolver(
+          ContentResolverCommand.search(
+            query: query,
+            filter: state.searchFilter,
+            pageToken: event.pageToken,
+          ),
+        ),
+      );
+
+      response.when(
+        search: (results) {
+          emit(state.copyWith(
+            searchStatus: SearchStatus.loaded,
+            searchResults: PagedMediaItems(
+              items: [...currentResults.items, ...results.items],
+              nextPageToken: results.nextPageToken,
+            ),
+          ));
+        },
+        albumDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        artistDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        playlistDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        streams: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        moreTracks: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        moreAlbums: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        homeSections: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        loadMoreItems: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        charts: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        chartDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        ack: () => _unexpectedResponse(emit, 'searchLoadMore'),
+      );
+    } on PluginException catch (e) {
+      _handlePluginError(emit, e, SearchStatus.loaded);
+    } catch (e, stack) {
+      log(
+        'Search pagination error',
+        error: e,
+        stackTrace: stack,
+        name: 'ContentBloc',
+      );
+      emit(state.copyWith(
+        searchStatus: SearchStatus.loaded,
+        error: 'Failed to load more search results: $e',
       ));
     }
   }
@@ -492,7 +566,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         streams: (tracks) {
           emit(state.copyWith(
             streamStatus: DetailStatus.loaded,
-            streamTracks: tracks,
+            streamSources: tracks,
           ));
         },
         search: (_) => _unexpectedResponse(emit, 'getStreams'),
@@ -583,6 +657,17 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
     Emitter<ContentState> emit,
   ) async {
     try {
+      if (state.isHomeSectionLoading(event.sectionId)) {
+        return;
+      }
+
+      emit(state.copyWith(
+        loadingHomeSectionIds: [
+          ...state.loadingHomeSectionIds,
+          event.sectionId,
+        ],
+      ));
+
       final localId = localIdOf(event.sectionId) ?? event.sectionId;
       final response = await _pluginService.execute(
         pluginId: event.pluginId,
@@ -607,12 +692,17 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
                   subtitle: section.subtitle,
                   cardType: section.cardType,
                   items: [...section.items, ...items],
-                  moreLink: section.moreLink,
+                  moreLink: null,
                 );
               }
               return section;
             }).toList();
-            emit(state.copyWith(homeSections: updated));
+            emit(state.copyWith(
+              homeSections: updated,
+              loadingHomeSectionIds: state.loadingHomeSectionIds
+                  .where((id) => id != event.sectionId)
+                  .toList(growable: false),
+            ));
           }
         },
         search: (_) => _unexpectedResponse(emit, 'loadMore'),
@@ -629,8 +719,18 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
       );
     } on PluginException catch (e) {
       _handlePluginError(emit, e, null, homeSectionsStatus: DetailStatus.error);
+      emit(state.copyWith(
+        loadingHomeSectionIds: state.loadingHomeSectionIds
+            .where((id) => id != event.sectionId)
+            .toList(growable: false),
+      ));
     } catch (e) {
       log('LoadMore error', error: e, name: 'ContentBloc');
+      emit(state.copyWith(
+        loadingHomeSectionIds: state.loadingHomeSectionIds
+            .where((id) => id != event.sectionId)
+            .toList(growable: false),
+      ));
     }
   }
 
@@ -656,7 +756,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         moreTracks: (paged) {
           emit(state.copyWith(
             streamStatus: DetailStatus.loaded,
-            streamTracks: paged.items,
+            radioTracks: paged.items,
           ));
         },
         search: (_) => _unexpectedResponse(emit, 'radioTracks'),
@@ -699,6 +799,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
       clearArtistDetails: true,
       clearPlaylistDetails: true,
       clearStreams: true,
+      clearRadioTracks: true,
       clearError: true,
     ));
   }
@@ -709,6 +810,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
       homeSectionsStatus: DetailStatus.initial,
       clearHomeSections: true,
       clearActivePluginId: true,
+      loadingHomeSectionIds: const [],
       clearError: true,
     ));
   }
@@ -723,16 +825,24 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
       error: 'Unexpected response from plugin',
       searchStatus: state.searchStatus == SearchStatus.loading
           ? SearchStatus.error
-          : null,
+          : state.searchStatus == SearchStatus.loadingMore
+              ? SearchStatus.loaded
+              : null,
       albumDetailStatus: state.albumDetailStatus == DetailStatus.loading
           ? DetailStatus.error
-          : null,
+          : state.albumDetailStatus == DetailStatus.loadingMore
+              ? DetailStatus.loaded
+              : null,
       artistDetailStatus: state.artistDetailStatus == DetailStatus.loading
           ? DetailStatus.error
-          : null,
+          : state.artistDetailStatus == DetailStatus.loadingMore
+              ? DetailStatus.loaded
+              : null,
       playlistDetailStatus: state.playlistDetailStatus == DetailStatus.loading
           ? DetailStatus.error
-          : null,
+          : state.playlistDetailStatus == DetailStatus.loadingMore
+              ? DetailStatus.loaded
+              : null,
       streamStatus: state.streamStatus == DetailStatus.loading
           ? DetailStatus.error
           : null,

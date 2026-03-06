@@ -5,6 +5,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/services.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -245,9 +246,12 @@ class SongInfoScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Text(
-          song.artists.map((a) => a.name).join(', '),
+        TrackMetadataLinks(
+          track: song,
+          showAlbum: song.album != null,
           textAlign: isCentered ? TextAlign.center : TextAlign.left,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: Default_Theme.secondoryTextStyleMedium.merge(
             TextStyle(
               color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
@@ -299,6 +303,19 @@ class SongInfoScreen extends StatelessWidget {
               icon: MingCute.microphone_fill,
               label: "Artist",
               value: song.artists.map((a) => a.name).join(', '),
+              valueWidget: ArtistListLinks(
+                artists: song.artists,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Default_Theme.secondoryTextStyle.merge(
+                  const TextStyle(
+                    color: Default_Theme.primaryColor2,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
+                ),
+              ),
             ),
             if (song.album?.title != null) ...[
               const _DetailDivider(),
@@ -306,6 +323,19 @@ class SongInfoScreen extends StatelessWidget {
                 icon: MingCute.album_fill,
                 label: "Album",
                 value: song.album!.title,
+                valueWidget: AlbumLinkText(
+                  album: song.album!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Default_Theme.secondoryTextStyle.merge(
+                    const TextStyle(
+                      color: Default_Theme.primaryColor2,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
               ),
             ]
           ],
@@ -507,6 +537,7 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Widget? valueWidget;
   final bool isMonospace;
   final int maxLines;
 
@@ -514,6 +545,7 @@ class _DetailRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.valueWidget,
     this.isMonospace = false,
     this.maxLines = 2,
   });
@@ -553,21 +585,25 @@ class _DetailRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  value,
-                  maxLines: maxLines,
-                  overflow: TextOverflow.ellipsis,
-                  style: (isMonospace
-                          ? Default_Theme.tertiaryTextStyle
-                          : Default_Theme.secondoryTextStyleMedium)
-                      .merge(
-                    const TextStyle(
-                      color: Default_Theme.primaryColor2,
-                      fontSize: 16,
-                      height: 1.3,
+                valueWidget ??
+                    Text(
+                      value,
+                      maxLines: maxLines,
+                      overflow: TextOverflow.ellipsis,
+                      style: (isMonospace
+                              ? const TextStyle(fontFamily: 'CodePro')
+                              : const TextStyle())
+                          .merge(
+                        Default_Theme.secondoryTextStyle.merge(
+                          const TextStyle(
+                            color: Default_Theme.primaryColor2,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
               ],
             ),
           ),
