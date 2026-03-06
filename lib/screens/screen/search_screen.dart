@@ -112,14 +112,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _doSearch(String query) {
     if (query.trim().isEmpty || _activePluginId == null) return;
-
-    // Save search history
     context
         .read<SearchSuggestionBloc>()
         .add(SearchSuggestionSave(query.trim()));
-
     _searchFocusNode.unfocus();
-
     _contentBloc.add(SearchContent(
       query: query.trim(),
       filter: _filter.value,
@@ -155,151 +151,243 @@ class _SearchScreenState extends State<SearchScreen> {
     return KeyEventResult.ignored;
   }
 
+  /// --------------------------------------------------------------------------
+  ///  REACTIVE GRADIENT LOGIC
+  /// --------------------------------------------------------------------------
+
+  // Returns a List of 2 colors to create a complex nebula effect
+  List<Color> _getReactiveGradientColors(ContentState state) {
+    // 1. Zero State: Return transparent if nothing is loaded
+    if (state.searchStatus != SearchStatus.loaded &&
+        state.searchStatus != SearchStatus.loadingMore) {
+      return [Colors.transparent, Colors.transparent];
+    }
+
+    final items = state.searchResults?.items;
+    if (items == null || items.isEmpty) {
+      return [Colors.transparent, Colors.transparent];
+    }
+
+    // 2. Seed Generation: Use the Image URL or Title
+    String seedString = "";
+    final firstItem = items.first;
+    switch (firstItem) {
+      case MediaItem_Track(:final field0):
+        seedString = field0.thumbnail.urlLow ?? field0.thumbnail.url;
+      case MediaItem_Album(:final field0):
+        seedString =
+            field0.thumbnail?.urlLow ?? field0.thumbnail?.url ?? field0.title;
+      case MediaItem_Artist(:final field0):
+        seedString =
+            field0.thumbnail?.urlLow ?? field0.thumbnail?.url ?? field0.name;
+      case MediaItem_Playlist(:final field0):
+        seedString = field0.thumbnail.urlLow ?? field0.thumbnail.url;
+    }
+
+    final int hash = seedString.hashCode;
+
+    // 3. Smart Hue Calculation
+    double hue = (hash % 360).abs().toDouble();
+
+    // --- COLOR SANITIZATION ---
+    // In Dark Mode, hues between 60 (Yellow) and 170 (Green) often look "sickly" or "muddy".
+    // We shift them to "Safe Premium Colors" like Teal or Warm Amber.
+    if (hue > 60 && hue < 170) {
+      // If even/odd, pick either Teal (180) or Warm Amber (40)
+      hue = (hash % 2 == 0) ? 180 : 40;
+    }
+
+    // 4. Generate Two Complimentary Colors
+    // We use LOWER Lightness (0.35) and MEDIUM Saturation (0.65) for that "Deep" look.
+    final color1 = HSLColor.fromAHSL(1.0, hue, 0.65, 0.35).toColor();
+
+    // Shift the second color slightly to create depth (Analogous color scheme)
+    final hue2 = (hue + 40) % 360;
+    final color2 = HSLColor.fromAHSL(1.0, hue2, 0.65, 0.30).toColor();
+
+    return [color1, color2];
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         backgroundColor: Default_Theme.themeColor,
-        body: SafeArea(
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildModernSearchBar(),
-              _buildAestheticFilterChips(),
-              if (!_isSearching) _buildPluginsGlassyBox(),
-              if (_isSearching)
-                _buildSuggestionsArea()
-              else
-                _buildContentArea(),
-            ],
-          ),
+        resizeToAvoidBottomInset: false,
+        body: Stack(
+          children: [
+            // --- 1. ATMOSPHERIC BACKGROUND LAYER ---
+            BlocBuilder<ContentBloc, ContentState>(
+              bloc: _contentBloc,
+              builder: (context, state) {
+                final colors = _getReactiveGradientColors(state);
+
+                return AnimatedContainer(
+                  duration: const Duration(
+                      milliseconds: 1500), // Very slow, ambient transition
+                  curve: Curves.easeOutCubic,
+                  width: double.infinity,
+                  // Covers more screen height (75%) so the fade is softer/subtler
+                  height: MediaQuery.of(context).size.height * 0.75,
+                  child: CustomPaint(
+                    painter: NebulaPainter(
+                      // Drastically reduced Opacity (0.18) for "Atmosphere" rather than "Paint"
+                      color1: colors[0].withValues(alpha: 0.18),
+                      color2: colors[1].withValues(alpha: 0.18),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // --- 2. MAIN SCROLLABLE CONTENT ---
+            SafeArea(
+              child: CustomScrollView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildFloatingSearchBar(),
+                  _buildAestheticFilterChips(),
+                  if (!_isSearching) _buildPluginsGlassyBox(),
+                  if (_isSearching)
+                    _buildSuggestionsArea()
+                  else
+                    _buildContentArea(),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // --- BEAUTIFUL MODERN SEARCH BAR ---
-  SliverAppBar _buildModernSearchBar() {
+  // --- FLOATING GLASS SEARCH PILL (No Abrupt Lines) ---
+  SliverAppBar _buildFloatingSearchBar() {
     return SliverAppBar(
       floating: true,
+      snap: true,
+      // IMPORTANT: Transparent background removes the "Abrupt Line"
+      // caused by previous backdrop filters on the app bar itself.
+      backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      backgroundColor: Default_Theme.themeColor,
       titleSpacing: 16,
       toolbarHeight: 70,
       title: Focus(
         onKeyEvent: _handleKeyEvent,
-        child: Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: const Color(0xFF161616), // Deep premium dark
-            borderRadius: BorderRadius.circular(16), // Apple-like squircle
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.06),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              const SizedBox(width: 16),
-              Icon(
-                MingCute.search_2_line,
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _textEditingController,
-                  focusNode: _searchFocusNode,
-                  style: TextStyle(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.95),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  onChanged: (val) {
-                    setState(() => _highlightedSuggestionIndex = -1);
-                    context
-                        .read<SearchSuggestionBloc>()
-                        .add(SearchSuggestionFetch(val));
-                  },
-                  onSubmitted: (val) {
-                    if (_highlightedSuggestionIndex >= 0 &&
-                        _highlightedSuggestionIndex <
-                            _currentCombinedSuggestions.length) {
-                      final selected = _currentCombinedSuggestions[
-                          _highlightedSuggestionIndex];
-                      _textEditingController.text = selected;
-                      _doSearch(selected);
-                    } else {
-                      _doSearch(val);
-                    }
-                  },
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    hintText: "What do you want to listen to?",
-                    hintStyle: TextStyle(
-                      color:
-                          Default_Theme.primaryColor1.withValues(alpha: 0.35),
-                      fontFamily: "Unageo",
-                      fontSize: 15,
-                    ),
-                  ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: BackdropFilter(
+            // The blur is now contained ONLY within the search pill
+            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05), // Glassy fill
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: Colors.white
+                      .withValues(alpha: 0.08), // Subtle frost border
+                  width: 1,
                 ),
               ),
-              ValueListenableBuilder<TextEditingValue>(
-                valueListenable: _textEditingController,
-                builder: (context, value, child) {
-                  if (value.text.isNotEmpty) {
-                    return IconButton(
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      icon: Icon(MingCute.close_fill,
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.5),
-                          size: 18),
-                      onPressed: () {
-                        _textEditingController.clear();
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(width: 16),
+                  Icon(
+                    MingCute.search_2_line,
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _textEditingController,
+                      focusNode: _searchFocusNode,
+                      style: TextStyle(
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.95),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onChanged: (val) {
+                        setState(() => _highlightedSuggestionIndex = -1);
                         context
                             .read<SearchSuggestionBloc>()
-                            .add(const SearchSuggestionFetch(''));
-                        _searchFocusNode.requestFocus();
+                            .add(SearchSuggestionFetch(val));
                       },
-                    );
-                  }
-                  return const SizedBox(width: 16);
-                },
-              )
-            ],
+                      onSubmitted: (val) {
+                        if (_highlightedSuggestionIndex >= 0 &&
+                            _highlightedSuggestionIndex <
+                                _currentCombinedSuggestions.length) {
+                          final selected = _currentCombinedSuggestions[
+                              _highlightedSuggestionIndex];
+                          _textEditingController.text = selected;
+                          _doSearch(selected);
+                        } else {
+                          _doSearch(val);
+                        }
+                      },
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        // Symmetric padding ensures perfect vertical centering
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 14),
+                        hintText: "What do you want to listen to?",
+                        hintStyle: TextStyle(
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.35),
+                          fontFamily: "Unageo",
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _textEditingController,
+                    builder: (context, value, child) {
+                      if (value.text.isNotEmpty) {
+                        return IconButton(
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          icon: Icon(MingCute.close_fill,
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.5),
+                              size: 18),
+                          onPressed: () {
+                            _textEditingController.clear();
+                            context
+                                .read<SearchSuggestionBloc>()
+                                .add(const SearchSuggestionFetch(''));
+                            _searchFocusNode.requestFocus();
+                          },
+                        );
+                      }
+                      return const SizedBox(width: 16);
+                    },
+                  )
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  // --- SEPARATED, AESTHETIC FILTER CHIPS (Compact & Sleek) ---
   Widget _buildAestheticFilterChips() {
     return SliverToBoxAdapter(
       child: ValueListenableBuilder<ContentSearchFilter>(
         valueListenable: _filter,
         builder: (context, filterValue, child) {
           return SizedBox(
-            height: 38, // REDUCED: Was 48. Makes the chip height much sleeker.
+            height: 38,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 2), // REDUCED vertical padding
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
               physics: const BouncingScrollPhysics(),
               itemCount: ContentSearchFilter.values.length,
               separatorBuilder: (context, index) => const SizedBox(width: 8),
@@ -315,14 +403,14 @@ class _SearchScreenState extends State<SearchScreen> {
                   highlightColor: Colors.transparent,
                   onTap: () {
                     _filter.value = e;
-                    if (_textEditingController.text.isNotEmpty)
+                    if (_textEditingController.text.isNotEmpty) {
                       _triggerSearch();
+                    }
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16), // Slightly tighter horizontally too
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: isSelected
@@ -342,8 +430,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             ? Default_Theme.primaryColor2
                             : Default_Theme.primaryColor1
                                 .withValues(alpha: 0.8),
-                        fontSize:
-                            13, // Adjusted slightly to match compact height
+                        fontSize: 13,
                         fontWeight:
                             isSelected ? FontWeight.w700 : FontWeight.w500,
                       ),
@@ -358,7 +445,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // --- REDESIGNED PLUGINS PANEL ---
   Widget _buildPluginsGlassyBox() {
     return SliverToBoxAdapter(
       child: BlocBuilder<PluginBloc, PluginState>(
@@ -385,7 +471,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Row
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
@@ -406,11 +491,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             ),
                             const Spacer(),
-                            // The + icon requested for plugin manager
                             InkWell(
                               borderRadius: BorderRadius.circular(50),
                               onTap: () {
-                                // TODO: Route to Plugin Manager later
+                                // Plugin Manager Route
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(4.0),
@@ -425,10 +509,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
-                      // Horizontal Scrollable Plugins List
                       if (resolvers.isEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(
@@ -467,7 +548,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // The perfectly smooth, splash-less Plugin Chip
   Widget _pluginChip(PluginInfo plugin) {
     final id = plugin.manifest.id;
     final isSelected = _activePluginId == id;
@@ -488,7 +568,6 @@ class _SearchScreenState extends State<SearchScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
-        // REDUCED: vertical padding from 8 to 5.5 for a tighter, compact look
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5.5),
         decoration: BoxDecoration(
           color: isSelected
@@ -511,7 +590,7 @@ class _SearchScreenState extends State<SearchScreen> {
               if (isSelected) ...[
                 const Icon(
                   MingCute.check_line,
-                  size: 13, // Scaled down slightly to match compact box
+                  size: 13,
                   color: Default_Theme.accentColor2,
                 ),
                 const SizedBox(width: 4),
@@ -536,7 +615,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // --- SUGGESTIONS VIEW WITH CLICK BUG FIX ---
   Widget _buildSuggestionsArea() {
     return BlocBuilder<SearchSuggestionBloc, SearchSuggestionState>(
       builder: (context, state) {
@@ -618,15 +696,11 @@ class _SearchScreenState extends State<SearchScreen> {
     required bool isHistory,
     required bool isHighlighted,
   }) {
-    // FIX: Using Listener with onPointerDown intercepts the click instantly,
-    // before the focus is lost and the widget tree is unmounted.
     return Listener(
       onPointerDown: (event) {
         _textEditingController.text = suggestion;
         _doSearch(suggestion);
       },
-      // Using a plain container here. We don't use InkWell because its tap is
-      // delayed by Flutter's gesture arena, which loses the race to the focus node blur.
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Container(
@@ -679,7 +753,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // --- CONTENT RESULTS VIEW ---
   Widget _buildContentArea() {
     return BlocBuilder<ConnectivityCubit, ConnectivityState>(
       builder: (context, connState) {
@@ -867,5 +940,42 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
     );
+  }
+}
+
+class NebulaPainter extends CustomPainter {
+  final Color color1;
+  final Color color2;
+
+  NebulaPainter({required this.color1, required this.color2});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Primary Glow (Top Left) - Increased Radius for softness
+    final paint1 = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.5, -0.6),
+        radius: 1.6, // Was 1.2, made it bigger to diffuse color more
+        colors: [color1, Colors.transparent],
+        stops: const [0.0, 1.0],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    // Secondary Glow (Top Right)
+    final paint2 = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0.5, -0.6),
+        radius: 1.6, // Bigger radius
+        colors: [color2, Colors.transparent],
+        stops: const [0.0, 1.0],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    // Blend Mode ensures colors mix smoothly rather than just stacking
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint1);
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint2);
+  }
+
+  @override
+  bool shouldRepaint(covariant NebulaPainter oldDelegate) {
+    return oldDelegate.color1 != color1 || oldDelegate.color2 != color2;
   }
 }
