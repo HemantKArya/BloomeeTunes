@@ -44,7 +44,7 @@ class CountrySettings extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
               // ── Location ─────────────────────────────────────────────
-              SettingSectionHeader(label: 'Location'),
+              const SettingSectionHeader(label: 'Location'),
               SettingCard(
                 children: [
                   SettingToggleTile(
