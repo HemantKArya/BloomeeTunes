@@ -807,14 +807,27 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> skipToQueueItem(int index) async {
     _errorHandler.resetCircuitBreaker(); // User intent: reset errors
-    _queueManager.jumpTo(index);
-    final track = _queueManager.currentTrack;
-    if (track != null) await _enqueuePlayTrack(track, doPlay: true);
+    // Guard exactly like _internalSkipToNext so a stale completion event
+    // from the previous track cannot race with the user's explicit jump and
+    // advance _currentIndex past the intended position.
+    _isAdvancing = true;
+    try {
+      _queueManager.jumpTo(index);
+      final track = _queueManager.currentTrack;
+      if (track != null) await _enqueuePlayTrack(track, doPlay: true);
+    } finally {
+      _isAdvancing = false;
+    }
   }
 
   Future<void> loadPlaylist(Playlist playlist,
       {int idx = 0, bool doPlay = false, bool shuffling = false}) async {
     _errorHandler.resetCircuitBreaker(); // User intent: reset errors
+    // Prevent any in-flight completion event from racing with our intent.
+    // Without this, a song finishing right as the user loads a new playlist
+    // can call advanceToNext() on the freshly-loaded queue, shifting
+    // _currentIndex and causing the wrong track to start.
+    _isAdvancing = true;
     try {
       fromPlaylist.add(true);
       _relatedSongsManager.clearRelatedSongs();
@@ -853,6 +866,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         'Unable to start playback for this playlist.',
         duration: const Duration(seconds: 3),
       );
+    } finally {
+      _isAdvancing = false;
     }
   }
 
@@ -895,12 +910,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> insertQueueItem(int index, MediaItem mi) async {
+    // _queueSyncSub already propagates the change to the audio_service
+    // queue via _queueManager.tracksStream. Calling super.insertQueueItem
+    // would double-write to the queue subject and risk ordering issues.
     _queueManager.insertTrack(index, mediaItemToTrack(mi));
-    try {
-      await super.insertQueueItem(index, mi);
-    } catch (e) {
-      log('Error syncing insertQueueItem: $e', name: 'BloomeeMusicPlayer');
-    }
   }
 
   @override

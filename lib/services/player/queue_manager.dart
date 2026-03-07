@@ -164,26 +164,44 @@ class QueueManager {
     int idx = 0,
     bool shuffling = false,
   }) {
-    _queue.add(tracks);
+    // Deduplicate by ID, preserving order. We track whether the requested
+    // start index needs to be remapped after deduplication.
+    final seenIds = <String>{};
+    Track? requestedTrack;
+    if (idx >= 0 && idx < tracks.length) {
+      requestedTrack = tracks[idx];
+    }
+    final deduped =
+        tracks.where((t) => seenIds.add(t.id)).toList(growable: false);
+
+    // Remap idx to the deduplicated list so the right song still starts.
+    int remappedIdx = 0;
+    if (requestedTrack != null) {
+      final pos = deduped.indexWhere((t) => t.id == requestedTrack!.id);
+      remappedIdx = pos != -1 ? pos : 0;
+    }
+
+    _queue.add(deduped);
     queueTitle.add(playlistName);
 
     final shouldShuffle = shuffling || shuffleMode.value;
     shuffleMode.add(shouldShuffle);
 
-    if (shouldShuffle && tracks.isNotEmpty) {
-      _shuffleList = generateRandomIndices(tracks.length);
+    if (shouldShuffle && deduped.isNotEmpty) {
+      _shuffleList = generateRandomIndices(deduped.length);
       if (shuffling) {
         _shuffleIndex = 0;
         _currentIndex = _shuffleList[0];
       } else {
-        _shuffleIndex = _shuffleList.indexOf(idx);
+        _shuffleIndex = _shuffleList.indexOf(remappedIdx);
         if (_shuffleIndex == -1) _shuffleIndex = 0;
-        _currentIndex = idx;
+        _currentIndex = remappedIdx;
       }
     } else {
       _shuffleList = [];
       _shuffleIndex = 0;
-      _currentIndex = idx.clamp(0, tracks.isEmpty ? 0 : tracks.length - 1);
+      _currentIndex =
+          remappedIdx.clamp(0, deduped.isEmpty ? 0 : deduped.length - 1);
     }
   }
 
@@ -217,8 +235,21 @@ class QueueManager {
   /// Add multiple tracks to the queue.
   void addTracks(List<Track> tracks, {bool atLast = false}) {
     if (atLast) {
-      final newQueue = List<Track>.from(_queue.value)..addAll(tracks);
+      final existingIds = _queue.value.map((t) => t.id).toSet();
+      final deduplicated =
+          tracks.where((t) => existingIds.add(t.id)).toList(growable: false);
+      if (deduplicated.isEmpty) return;
+      final startIdx = _queue.value.length;
+      final newQueue = List<Track>.from(_queue.value)..addAll(deduplicated);
       _queue.add(newQueue);
+      // Append new indices to the shuffle list so the existing shuffle order
+      // is preserved. Without this, _ensureShuffleListValid would regenerate
+      // the entire order, causing unpredictable jumps.
+      if (shuffleMode.value && _shuffleList.isNotEmpty) {
+        for (int i = 0; i < deduplicated.length; i++) {
+          _shuffleList.add(startIdx + i);
+        }
+      }
     } else {
       for (final track in tracks) {
         addTrack(track);
@@ -249,6 +280,9 @@ class QueueManager {
 
   /// Insert a track at a specific index.
   void insertTrack(int index, Track track) {
+    // Guard against inserting a duplicate ID — same reason as addTrack.
+    if (_queue.value.any((t) => t.id == track.id)) return;
+
     final queue = List<Track>.from(_queue.value);
     final actualIdx = index.clamp(0, queue.length);
     if (actualIdx < queue.length) {
@@ -345,10 +379,14 @@ class QueueManager {
 
   /// Replace the entire queue with new tracks.
   void updateQueue(List<Track> tracks, {int startIndex = 0}) {
-    _queue.add(tracks);
-    _currentIndex = startIndex.clamp(0, tracks.isEmpty ? 0 : tracks.length - 1);
-    if (shuffleMode.value && tracks.isNotEmpty) {
-      _shuffleList = generateRandomIndices(tracks.length);
+    final seenIds = <String>{};
+    final deduped =
+        tracks.where((t) => seenIds.add(t.id)).toList(growable: false);
+    _queue.add(deduped);
+    _currentIndex =
+        startIndex.clamp(0, deduped.isEmpty ? 0 : deduped.length - 1);
+    if (shuffleMode.value && deduped.isNotEmpty) {
+      _shuffleList = generateRandomIndices(deduped.length);
       _shuffleIndex = 0;
     } else {
       _shuffleList = [];

@@ -464,16 +464,23 @@ class _DesktopSongListState extends State<_DesktopSongList> {
               });
             }
 
+            // Defensive deduplication: identical IDs would assign the same
+            // GlobalKey to two ReorderableListView items, causing Flutter's
+            // semantics traversal to recurse infinitely.
+            final seenIds = <String>{};
+            final uniqueQueue =
+                queue.where((m) => seenIds.add(m.id)).toList(growable: false);
+
             return ReorderableListView.builder(
               scrollController: _scrollController,
               physics: const BouncingScrollPhysics(),
-              itemCount: queue.length,
+              itemCount: uniqueQueue.length,
               onReorder: widget.playerCubit.bloomeePlayer.moveQueueItem,
               buildDefaultDragHandles: false,
               itemBuilder: (context, index) {
                 return _QueueItem(
-                  key: ValueKey('desktop_${queue[index].id}'),
-                  mediaItem: queue[index],
+                  key: ValueKey('desktop_${uniqueQueue[index].id}'),
+                  mediaItem: uniqueQueue[index],
                   index: index,
                   playerCubit: widget.playerCubit,
                   isDesktop: true,
@@ -544,13 +551,18 @@ class _SongListSliverState extends State<_SongListSliver> {
               });
             }
 
+            // Defensive deduplication — same reason as the desktop list above.
+            final seenIds = <String>{};
+            final uniqueQueue =
+                queue.where((m) => seenIds.add(m.id)).toList(growable: false);
+
             return SliverReorderableList(
-              itemCount: queue.length,
+              itemCount: uniqueQueue.length,
               onReorder: widget.playerCubit.bloomeePlayer.moveQueueItem,
               itemBuilder: (context, index) {
                 return _QueueItem(
-                  key: ValueKey('mobile_${queue[index].id}'),
-                  mediaItem: queue[index],
+                  key: ValueKey('mobile_${uniqueQueue[index].id}'),
+                  mediaItem: uniqueQueue[index],
                   index: index,
                   playerCubit: widget.playerCubit,
                   isDesktop: false,
