@@ -61,4 +61,8 @@ class SettingKeys {
   // ── Plugins ────────────────────────────────────────────────────────────────
   /// JSON-encoded list of plugin IDs that should auto-load on app startup.
   static const String autoLoadPluginIds = "autoLoadPluginIds";
+
+  /// ID of the content resolver plugin used for home page sections.
+  /// Empty string or null = use the first available content resolver.
+  static const String homePluginId = "homePluginId";
 }

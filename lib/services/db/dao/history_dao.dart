@@ -48,7 +48,8 @@ class HistoryDAO {
   /// Return the most recent [limit] history entries as domain [Track] objects.
   ///
   /// If [limit] is 0 all entries are returned (use with care).
-  /// Sorted newest-first.
+  /// Sorted newest-first. Entries with missing track links are skipped
+  /// but NOT deleted — broken entry cleanup is a separate maintenance task.
   Future<List<Track>> getHistory({int limit = 50}) async {
     final isar = await _db;
     final query = isar.playbackHistoryDBs.where().sortByPlayedAtDesc();
@@ -57,7 +58,6 @@ class HistoryDAO {
         limit > 0 ? await query.limit(limit).findAll() : await query.findAll();
 
     await Future.wait(entries.map((e) => e.track.load()));
-    await _cleanupBrokenEntries(entries);
 
     return entries
         .map((e) => e.track.value)
@@ -67,13 +67,13 @@ class HistoryDAO {
   }
 
   /// Return raw [PlaybackHistoryDB] rows sorted newest-first.
+  /// Entries with missing track links are included but will have null track.
   Future<List<PlaybackHistoryDB>> getRawHistory({int limit = 50}) async {
     final isar = await _db;
     final query = isar.playbackHistoryDBs.where().sortByPlayedAtDesc();
     final entries =
         limit > 0 ? await query.limit(limit).findAll() : await query.findAll();
     await Future.wait(entries.map((e) => e.track.load()));
-    await _cleanupBrokenEntries(entries);
     return entries;
   }
 
@@ -98,22 +98,6 @@ class HistoryDAO {
 
     log('Purged $deleted broken history entries', name: 'HistoryDAO');
     return deleted;
-  }
-
-  Future<void> _cleanupBrokenEntries(List<PlaybackHistoryDB> entries) async {
-    final brokenIds = entries
-        .where((e) => e.track.value == null)
-        .map((e) => e.id)
-        .toList(growable: false);
-
-    if (brokenIds.isEmpty) return;
-
-    final isar = await _db;
-    await isar.writeTxn(() async {
-      await isar.playbackHistoryDBs.deleteAll(brokenIds);
-    });
-    log('Removed ${brokenIds.length} broken history entries',
-        name: 'HistoryDAO');
   }
 
   // ── Maintenance ───────────────────────────────────────────────────────────

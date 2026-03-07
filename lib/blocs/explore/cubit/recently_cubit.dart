@@ -19,7 +19,6 @@ class RecentlyCubit extends Cubit<RecentlyCubitState> {
   }
 
   Future<void> _initialize() async {
-    await _historyDao.purgeBrokenHistoryEntries();
     await _fetchHistory();
     await _watchHistory();
   }

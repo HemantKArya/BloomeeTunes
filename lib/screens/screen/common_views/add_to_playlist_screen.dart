@@ -26,6 +26,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
   final FocusNode _searchFocusNode = FocusNode();
   final ValueNotifier<String> _searchQuery = ValueNotifier('');
   final ValueNotifier<Set<String>> _songInPlaylists = ValueNotifier({});
+  final ValueNotifier<Set<String>> _pendingPlaylistOps = ValueNotifier({});
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     _searchFocusNode.dispose();
     _searchQuery.dispose();
     _songInPlaylists.dispose();
+    _pendingPlaylistOps.dispose();
     super.dispose();
   }
 
@@ -56,8 +58,10 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
       final playlistNames = await context
           .read<LibraryItemsCubit>()
           .getPlaylistsContainingTrack(mediaItem.id);
+      if (!mounted) return;
       _songInPlaylists.value = playlistNames;
     } catch (e) {
+      if (!mounted) return;
       _songInPlaylists.value = {};
     }
   }
@@ -76,35 +80,68 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
           p.playlistName != SettingKeys.downloadPlaylist;
     }).toList();
 
-    if (query.isEmpty) return userPlaylists;
+    final filtered = query.isEmpty
+        ? userPlaylists
+        : userPlaylists.where((element) {
+            return element.playlistName
+                .toLowerCase()
+                .contains(query.toLowerCase());
+          }).toList();
 
-    return userPlaylists.where((element) {
-      return element.playlistName.toLowerCase().contains(query.toLowerCase());
-    }).toList();
+    // Deterministic alphabetical order to prevent shuffling on rebuild.
+    filtered.sort((a, b) =>
+        a.playlistName.toLowerCase().compareTo(b.playlistName.toLowerCase()));
+    return filtered;
   }
 
-  void _toggleSongInPlaylist(
+  Future<void> _toggleSongInPlaylist(
     BuildContext context,
     Track song,
     PlaylistItemProperties playlist,
-    bool isInPlaylist,
-  ) {
+  ) async {
+    if (_pendingPlaylistOps.value.contains(playlist.playlistName)) {
+      return;
+    }
+
+    final isInPlaylist = _songInPlaylists.value.contains(playlist.playlistName);
+
+    _pendingPlaylistOps.value = Set<String>.from(_pendingPlaylistOps.value)
+      ..add(playlist.playlistName);
+
+    final nextMembership = Set<String>.from(_songInPlaylists.value);
     if (isInPlaylist) {
-      context.read<LibraryItemsCubit>().removeFromPlaylist(
-            song,
-            playlist.playlistName,
-            showSnackbar: false,
-          );
-      _songInPlaylists.value = Set.from(_songInPlaylists.value)
-        ..remove(playlist.playlistName);
+      nextMembership.remove(playlist.playlistName);
     } else {
-      context.read<LibraryItemsCubit>().addToPlaylist(
-            song,
-            playlist.playlistName,
-            showSnackbar: false,
-          );
-      _songInPlaylists.value = Set.from(_songInPlaylists.value)
-        ..add(playlist.playlistName);
+      nextMembership.add(playlist.playlistName);
+    }
+    _songInPlaylists.value = nextMembership;
+
+    try {
+      if (isInPlaylist) {
+        await context.read<LibraryItemsCubit>().removeFromPlaylist(
+              song,
+              playlist.playlistName,
+              showSnackbar: false,
+            );
+      } else {
+        await context.read<LibraryItemsCubit>().addToPlaylist(
+              song,
+              playlist.playlistName,
+              showSnackbar: false,
+            );
+      }
+    } catch (_) {
+      final rollbackMembership = Set<String>.from(_songInPlaylists.value);
+      if (isInPlaylist) {
+        rollbackMembership.add(playlist.playlistName);
+      } else {
+        rollbackMembership.remove(playlist.playlistName);
+      }
+      _songInPlaylists.value = rollbackMembership;
+    } finally {
+      if (!mounted) return;
+      _pendingPlaylistOps.value = Set<String>.from(_pendingPlaylistOps.value)
+        ..remove(playlist.playlistName);
     }
   }
 
@@ -172,7 +209,10 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                 songPlaylists.contains(p.playlistName) &&
                                 p.playlistName != "recently_played" &&
                                 p.playlistName != SettingKeys.downloadPlaylist)
-                            .toList();
+                            .toList()
+                          ..sort((a, b) => a.playlistName
+                              .toLowerCase()
+                              .compareTo(b.playlistName.toLowerCase()));
 
                         return _AnimatedAvatarSection(playlists: playlists);
                       },
@@ -219,40 +259,49 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                           return ValueListenableBuilder<Set<String>>(
                             valueListenable: _songInPlaylists,
                             builder: (context, songPlaylists, _) {
-                              // +1 for the Create New Playlist tile at top
-                              return ListView.builder(
-                                padding: const EdgeInsets.only(
-                                  left: 16,
-                                  right: 16,
-                                  bottom: 100,
-                                ),
-                                physics: const BouncingScrollPhysics(),
-                                itemCount: filteredPlaylists.length + 1,
-                                itemBuilder: (context, index) {
-                                  // First item: Create New Playlist
-                                  if (index == 0) {
-                                    return _CreatePlaylistTile(
-                                      onTap: () =>
-                                          createPlaylistBottomSheet(context),
-                                    );
-                                  }
-
-                                  final playlist = filteredPlaylists[index - 1];
-                                  final isInPlaylist = songPlaylists
-                                      .contains(playlist.playlistName);
-                                  return AnimatedListItem(
-                                    key: ValueKey(playlist.playlistName),
-                                    index: index,
-                                    child: _PlaylistTile(
-                                      playlist: playlist,
-                                      isInPlaylist: isInPlaylist,
-                                      onTap: () => _toggleSongInPlaylist(
-                                        context,
-                                        mediaItem,
-                                        playlist,
-                                        isInPlaylist,
-                                      ),
+                              return ValueListenableBuilder<Set<String>>(
+                                valueListenable: _pendingPlaylistOps,
+                                builder: (context, pendingPlaylists, _) {
+                                  return ListView.builder(
+                                    padding: const EdgeInsets.only(
+                                      left: 16,
+                                      right: 16,
+                                      bottom: 100,
                                     ),
+                                    physics: const BouncingScrollPhysics(),
+                                    itemCount: filteredPlaylists.length + 1,
+                                    itemBuilder: (context, index) {
+                                      if (index == 0) {
+                                        return _CreatePlaylistTile(
+                                          onTap: () =>
+                                              createPlaylistBottomSheet(
+                                                  context),
+                                        );
+                                      }
+
+                                      final playlist =
+                                          filteredPlaylists[index - 1];
+                                      final isInPlaylist = songPlaylists
+                                          .contains(playlist.playlistName);
+                                      final isPending = pendingPlaylists
+                                          .contains(playlist.playlistName);
+                                      return AnimatedListItem(
+                                        key: ValueKey(playlist.playlistName),
+                                        index: index,
+                                        child: _PlaylistTile(
+                                          playlist: playlist,
+                                          isInPlaylist: isInPlaylist,
+                                          isPending: isPending,
+                                          onTap: isPending
+                                              ? null
+                                              : () => _toggleSongInPlaylist(
+                                                    context,
+                                                    mediaItem,
+                                                    playlist,
+                                                  ),
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               );
@@ -331,10 +380,6 @@ class _CreatePlaylistTile extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────
-// Everything below is UNCHANGED from before
-// ─────────────────────────────────────────────
 
 class _SongInfoCard extends StatelessWidget {
   final Track mediaItem;
@@ -481,11 +526,13 @@ class _SearchBar extends StatelessWidget {
 class _PlaylistTile extends StatelessWidget {
   final PlaylistItemProperties playlist;
   final bool isInPlaylist;
-  final VoidCallback onTap;
+  final bool isPending;
+  final VoidCallback? onTap;
 
   const _PlaylistTile({
     required this.playlist,
     required this.isInPlaylist,
+    required this.isPending,
     required this.onTap,
   });
 
@@ -552,33 +599,48 @@ class _PlaylistTile extends StatelessWidget {
                 transitionBuilder: (child, animation) {
                   return ScaleTransition(scale: animation, child: child);
                 },
-                child: isInPlaylist
-                    ? Container(
-                        key: const ValueKey('checked'),
+                child: isPending
+                    ? SizedBox(
+                        key: const ValueKey('pending'),
                         width: 32,
                         height: 32,
-                        decoration: BoxDecoration(
-                          color: Default_Theme.accentColor1
-                              .withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          Icons.check_rounded,
-                          color: Default_Theme.accentColor1,
-                          size: 20,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Default_Theme.accentColor1,
+                            backgroundColor: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.12),
+                          ),
                         ),
                       )
-                    : SizedBox(
-                        key: const ValueKey('unchecked'),
-                        width: 32,
-                        height: 32,
-                        child: Icon(
-                          Icons.add_rounded,
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.4),
-                          size: 24,
-                        ),
-                      ),
+                    : isInPlaylist
+                        ? Container(
+                            key: const ValueKey('checked'),
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Default_Theme.accentColor1
+                                  .withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              Icons.check_rounded,
+                              color: Default_Theme.accentColor1,
+                              size: 20,
+                            ),
+                          )
+                        : SizedBox(
+                            key: const ValueKey('unchecked'),
+                            width: 32,
+                            height: 32,
+                            child: Icon(
+                              Icons.add_rounded,
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.4),
+                              size: 24,
+                            ),
+                          ),
               ),
             ],
           ),
@@ -616,20 +678,14 @@ class _AnimatedAvatarSection extends StatelessWidget {
   }
 }
 
-class _StackedPlaylistAvatars extends StatefulWidget {
+class _StackedPlaylistAvatars extends StatelessWidget {
   final List<PlaylistItemProperties> playlists;
 
   const _StackedPlaylistAvatars({required this.playlists});
 
   @override
-  State<_StackedPlaylistAvatars> createState() =>
-      _StackedPlaylistAvatarsState();
-}
-
-class _StackedPlaylistAvatarsState extends State<_StackedPlaylistAvatars> {
-  @override
   Widget build(BuildContext context) {
-    final playlists = widget.playlists;
+    final playlists = this.playlists;
     final totalCount = playlists.length;
     const double avatarSize = 40.0;
     const double collapsedOverlap = 20.0;

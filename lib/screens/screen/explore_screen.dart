@@ -41,23 +41,38 @@ class _ExploreScreenState extends State<ExploreScreen> {
   late final ContentBloc _homeContentBloc;
   Future<List<Track>> lFMData = Future.value(const []);
 
-  bool _homeSectionsRequested = false;
-
   @override
   void initState() {
     super.initState();
     _homeContentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
-    _loadHomeSections();
+    _tryLoadHomeSections();
   }
 
-  void _loadHomeSections() {
+  /// Only loads home sections when both settings are ready and plugins are loaded.
+  void _tryLoadHomeSections() {
+    final settingsState = context.read<SettingsCubit>().state;
+    if (!settingsState.settingsReady) return;
+
     final pluginState = context.read<PluginBloc>().state;
     final contentResolvers = pluginState.loadedContentResolvers;
-    if (contentResolvers.isNotEmpty) {
-      final pluginId = contentResolvers.first.manifest.id;
-      _homeContentBloc.add(GetHomeSections(pluginId: pluginId));
-      _homeSectionsRequested = true;
+    if (contentResolvers.isEmpty) return;
+
+    final pluginId = _effectiveHomePluginId(contentResolvers);
+
+    // Don't reload if we're already showing content from this plugin.
+    if (_homeContentBloc.state.activePluginId == pluginId &&
+        _homeContentBloc.state.homeSections != null) {
+      return;
     }
+
+    _homeContentBloc.add(GetHomeSections(pluginId: pluginId));
+  }
+
+  String _effectiveHomePluginId(List<dynamic> loadedResolvers) {
+    final preferredId = context.read<SettingsCubit>().state.homePluginId;
+    final hasPreferred = preferredId.isNotEmpty &&
+        loadedResolvers.any((plugin) => plugin.manifest.id == preferredId);
+    return hasPreferred ? preferredId : loadedResolvers.first.manifest.id;
   }
 
   @override
@@ -85,42 +100,48 @@ class _ExploreScreenState extends State<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: BlocListener<PluginBloc, PluginState>(
-        listenWhen: (previous, current) {
-          // React to ANY change in loaded content resolvers or plugin IDs.
-          // This covers: first load, plugin load, plugin unload, refresh.
-          return previous.loadedContentResolvers !=
-                  current.loadedContentResolvers ||
-              previous.loadedPluginIds != current.loadedPluginIds;
-        },
-        listener: (context, state) {
-          final activePluginId = _homeContentBloc.state.activePluginId;
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<SettingsCubit, SettingsState>(
+            listenWhen: (previous, current) =>
+                previous.homePluginId != current.homePluginId ||
+                (!previous.settingsReady && current.settingsReady),
+            listener: (context, state) {
+              _homeContentBloc.add(const ClearHomeSections());
+              _tryLoadHomeSections();
+            },
+          ),
+          BlocListener<PluginBloc, PluginState>(
+            listenWhen: (previous, current) {
+              return previous.loadedContentResolvers !=
+                      current.loadedContentResolvers ||
+                  previous.loadedPluginIds != current.loadedPluginIds;
+            },
+            listener: (context, state) {
+              if (state.loadedContentResolvers.isEmpty) {
+                _homeContentBloc.add(const ClearHomeSections());
+                return;
+              }
 
-          // If the active plugin was unloaded, clear stale sections immediately.
-          if (activePluginId != null &&
-              !state.loadedPluginIds.contains(activePluginId)) {
-            _homeSectionsRequested = false;
-            _homeContentBloc.add(const ClearHomeSections());
-          }
+              final activePluginId = _homeContentBloc.state.activePluginId;
+              if (activePluginId != null &&
+                  !state.loadedPluginIds.contains(activePluginId)) {
+                // Active plugin was unloaded — reload from preferred.
+                _homeContentBloc.add(const ClearHomeSections());
+                _tryLoadHomeSections();
+                return;
+              }
 
-          // If no content resolvers are loaded at all, reset.
-          if (state.loadedContentResolvers.isEmpty) {
-            _homeSectionsRequested = false;
-            _homeContentBloc.add(const ClearHomeSections());
-            return;
-          }
-
-          // If we haven't requested sections yet (or they were cleared),
-          // load from the first available content resolver.
-          if (!_homeSectionsRequested) {
-            _loadHomeSections();
-          }
-        },
+              // Plugin list changed — check if preferred plugin is different.
+              _tryLoadHomeSections();
+            },
+          ),
+        ],
         child: Scaffold(
           body: RefreshIndicator(
             onRefresh: () async {
-              _homeSectionsRequested = false;
-              _loadHomeSections();
+              _homeContentBloc.add(const ClearHomeSections());
+              _tryLoadHomeSections();
             },
             child: CustomScrollView(
               shrinkWrap: true,
@@ -249,68 +270,92 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             );
                           }
 
+                          final sections = state.homeSections ?? const [];
+                          final hasSections = sections.isNotEmpty;
                           final activePluginId = state.activePluginId;
                           if (activePluginId != null &&
                               !context
                                   .read<PluginBloc>()
                                   .state
                                   .loadedPluginIds
-                                  .contains(activePluginId)) {
-                            return const SignBoardWidget(
-                              message:
-                                  'The plugin used by these sections is unloaded.\nRefresh after loading a plugin.',
-                              icon: MingCute.warning_line,
+                                  .contains(activePluginId) &&
+                              !hasSections) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: SignBoardWidget(
+                                message:
+                                    'Refreshing Discover source...\nThe previous source is no longer available.',
+                                icon: MingCute.warning_line,
+                              ),
                             );
                           }
 
                           if (state.homeSectionsStatus ==
                               DetailStatus.loading) {
+                            if (hasSections) {
+                              return _HomeSectionsList(
+                                sections: sections,
+                                contentBloc: _homeContentBloc,
+                                state: state,
+                              );
+                            }
+
                             return BlocBuilder<ConnectivityCubit,
                                 ConnectivityState>(
                               builder: (context, connState) {
                                 if (connState ==
                                     ConnectivityState.disconnected) {
-                                  return const SignBoardWidget(
-                                    message: "No Internet Connection!",
-                                    icon: MingCute.wifi_off_line,
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                    child: SignBoardWidget(
+                                      message: 'No Internet Connection!',
+                                      icon: MingCute.wifi_off_line,
+                                    ),
                                   );
                                 }
-                                return const SizedBox();
+
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 40),
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      color: Default_Theme.accentColor2,
+                                    ),
+                                  ),
+                                );
                               },
                             );
                           }
-                          final sections = state.homeSections ?? [];
-                          if (sections.isEmpty) return const SizedBox();
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            itemExtent: 275,
-                            padding: const EdgeInsets.only(top: 0),
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: sections.length,
-                            itemBuilder: (context, index) {
-                              final section = sections[index];
-                              return HorizontalCardView(
-                                section: section,
-                                pluginId:
-                                    _homeContentBloc.state.activePluginId ?? '',
-                                canLoadMore: section.moreLink != null,
-                                isLoadingMore:
-                                    state.isHomeSectionLoading(section.id),
-                                onLoadMore: section.moreLink == null
-                                    ? null
-                                    : () {
-                                        _homeContentBloc.add(
-                                          LoadMoreHomeSectionItems(
-                                            pluginId: _homeContentBloc
-                                                    .state.activePluginId ??
-                                                '',
-                                            sectionId: section.id,
-                                            moreLink: section.moreLink!,
-                                          ),
-                                        );
-                                      },
+
+                          if (state.homeSectionsStatus == DetailStatus.error) {
+                            if (hasSections) {
+                              return _HomeSectionsList(
+                                sections: sections,
+                                contentBloc: _homeContentBloc,
+                                state: state,
                               );
-                            },
+                            }
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: SignBoardWidget(
+                                message: state.error ??
+                                    'Failed to load home sections.',
+                                icon: MingCute.sweats_line,
+                              ),
+                            );
+                          }
+
+                          if (!hasSections) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: SizedBox.shrink(),
+                            );
+                          }
+
+                          return _HomeSectionsList(
+                            sections: sections,
+                            contentBloc: _homeContentBloc,
+                            state: state,
                           );
                         },
                       ),
@@ -323,6 +368,49 @@ class _ExploreScreenState extends State<ExploreScreen> {
           backgroundColor: Default_Theme.themeColor,
         ),
       ),
+    );
+  }
+}
+
+class _HomeSectionsList extends StatelessWidget {
+  final List<Section> sections;
+  final ContentBloc contentBloc;
+  final ContentState state;
+
+  const _HomeSectionsList({
+    required this.sections,
+    required this.contentBloc,
+    required this.state,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemExtent: 275,
+      padding: const EdgeInsets.only(top: 0),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: sections.length,
+      itemBuilder: (context, index) {
+        final section = sections[index];
+        return HorizontalCardView(
+          section: section,
+          pluginId: contentBloc.state.activePluginId ?? '',
+          canLoadMore: section.moreLink != null,
+          isLoadingMore: state.isHomeSectionLoading(section.id),
+          onLoadMore: section.moreLink == null
+              ? null
+              : () {
+                  contentBloc.add(
+                    LoadMoreHomeSectionItems(
+                      pluginId: contentBloc.state.activePluginId ?? '',
+                      sectionId: section.id,
+                      moreLink: section.moreLink!,
+                    ),
+                  );
+                },
+        );
+      },
     );
   }
 }

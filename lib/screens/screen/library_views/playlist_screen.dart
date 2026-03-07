@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/core/models/exported.dart';
@@ -18,15 +17,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
-// LoopMode from player_engine if needed in future
 
 part 'playlist_info_dialog.dart';
 
-class PlaylistView extends StatelessWidget {
+class PlaylistView extends StatefulWidget {
   const PlaylistView({super.key});
 
-  final double titleScale = 1.5;
+  @override
+  State<PlaylistView> createState() => _PlaylistViewState();
+}
 
+class _PlaylistViewState extends State<PlaylistView> {
+  final GlobalKey<SliverAnimatedListState> _listKey =
+      GlobalKey<SliverAnimatedListState>();
+
+  final double titleScale = 1.5;
   final double titleFontSize = 16;
 
   Color _adjustColor(Color color, bool darken, {double amount = 0.1}) {
@@ -573,52 +578,45 @@ class PlaylistView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SliverPrototypeExtentList.builder(
-                          itemBuilder: (context, index) {
-                            return SongCardWidget(
-                              key: ValueKey(state.playlist.tracks[index]),
-                              song: state.playlist.tracks[index],
-                              onTap: () {
-                                context
-                                    .read<BloomeePlayerCubit>()
-                                    .bloomeePlayer
-                                    .loadPlaylist(
-                                        Playlist(
-                                            tracks: state.playlist.tracks,
-                                            title: state.playlist.title),
-                                        idx: index,
-                                        doPlay: true);
-                              },
-                              onOptionsTap: () {
-                                showMoreBottomSheet(
-                                  context,
-                                  state.playlist.tracks[index],
-                                  onDelete: () {
-                                    context
-                                        .read<LibraryItemsCubit>()
-                                        .removeFromPlaylist(
-                                          state.playlist.tracks[index],
-                                          state.playlist.title,
-                                        );
-                                    SnackbarService.showMessage(
-                                        "${state.playlist.tracks[index].title} is removed from ${state.playlist.title}!!");
-                                  },
-                                  showDelete: true,
-                                  showSinglePlay: true,
-                                );
-                              },
+                        SliverAnimatedList(
+                          key: _listKey,
+                          initialItemCount: state.playlist.tracks.length,
+                          itemBuilder: (context, index, animation) {
+                            if (index >= state.playlist.tracks.length) {
+                              return const SizedBox.shrink();
+                            }
+                            final track = state.playlist.tracks[index];
+                            return SizeTransition(
+                              sizeFactor: animation,
+                              child: SongCardWidget(
+                                key: ValueKey(track.id),
+                                song: track,
+                                onTap: () {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .loadPlaylist(
+                                          Playlist(
+                                              tracks: state.playlist.tracks,
+                                              title: state.playlist.title),
+                                          idx: index,
+                                          doPlay: true);
+                                },
+                                onOptionsTap: () {
+                                  showMoreBottomSheet(
+                                    context,
+                                    track,
+                                    onDelete: () {
+                                      _animatedRemoveTrack(
+                                          context, track, index);
+                                    },
+                                    showDelete: true,
+                                    showSinglePlay: true,
+                                  );
+                                },
+                              ),
                             );
                           },
-                          itemCount: state.playlist.tracks.length,
-                          prototypeItem: SongCardWidget(
-                            song: Track(
-                                id: "prototype",
-                                artists: const [],
-                                title: "prototype",
-                                thumbnail: const Artwork(
-                                    url: '', layout: ImageLayout.square),
-                                isExplicit: false),
-                          ),
                         ),
                       ],
                     )
@@ -654,6 +652,28 @@ class PlaylistView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _animatedRemoveTrack(BuildContext context, Track track, int index) {
+    final cubit = context.read<CurrentPlaylistCubit>();
+    final playlistTitle = cubit.state.playlist.title;
+
+    // Animate removal from the list
+    _listKey.currentState?.removeItem(
+      index,
+      (context, animation) => SizeTransition(
+        sizeFactor: animation,
+        child: FadeTransition(
+          opacity: animation,
+          child: SongCardWidget(song: track, showOptions: false),
+        ),
+      ),
+      duration: const Duration(milliseconds: 300),
+    );
+
+    // Optimistically remove from cubit state + persist
+    cubit.removeTrack(track);
+    SnackbarService.showMessage('${track.title} removed from $playlistTitle');
   }
 
   Future<void> _showAddToDownloadProgress(

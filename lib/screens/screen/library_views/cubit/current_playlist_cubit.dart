@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:equatable/equatable.dart';
@@ -37,6 +38,30 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
       isFetched: true,
       playlist: _playlist,
     ));
+  }
+
+  /// Optimistically removes a track from the playlist and persists to DB.
+  ///
+  /// Returns the removed [Track] and its index so the UI can animate removal.
+  Future<(Track, int)?> removeTrack(Track track) async {
+    if (_playlist == null) return null;
+    final tracks = List<Track>.from(_playlist!.tracks);
+    final index = tracks.indexWhere((t) => t.id == track.id);
+    if (index == -1) return null;
+
+    final removed = tracks.removeAt(index);
+    _playlist = _playlist!.copyWith(tracks: tracks);
+
+    // Emit immediately for responsive UI
+    emit(state.copyWith(playlist: _playlist));
+
+    // Persist to DB
+    final playlistDB = await _playlistDao.getPlaylistByName(_playlist!.title);
+    if (playlistDB != null) {
+      await _playlistDao.removeTrackFromPlaylist(playlistDB.id, track.id);
+    }
+
+    return (removed, index);
   }
 
   String getTitle() => state.playlist.title;

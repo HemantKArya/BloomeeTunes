@@ -23,19 +23,43 @@ class TrackDAO {
   ///
   /// Accepts a domain [Track] model, maps to [TrackDB] internally.
   /// Returns the Isar internal auto-increment id.
+  ///
+  /// IMPORTANT: We always look up the existing Isar id first and reuse it.
+  /// Without this, `@Index(unique: true, replace: true)` on `mediaId` would
+  /// delete the old row and create a new one with a *different* auto-increment
+  /// id, silently breaking every `IsarLink<TrackDB>` in `PlaylistEntryDB` rows
+  /// that linked to the old id (causing tracks to vanish from all playlists
+  /// they were added to before the re-upsert).
   Future<int> upsertTrack(Track track) async {
-    final trackDB = trackToTrackDB(track);
     final isar = await _db;
+    final trackDB = trackToTrackDB(track);
+    // Preserve the existing Isar id so `put()` is an in-place update, not a
+    // delete-then-insert that would invalidate all existing link references.
+    final existing =
+        await isar.trackDBs.filter().mediaIdEqualTo(track.id).findFirst();
+    if (existing != null) {
+      trackDB.id = existing.id;
+    }
     return isar.writeTxn(() => isar.trackDBs.put(trackDB));
   }
 
   /// Insert or replace many tracks in a single transaction.
   ///
   /// More efficient than calling [upsertTrack] N times for bulk imports.
+  /// Preserves existing Isar ids to avoid breaking IsarLink references.
   Future<List<int>> upsertTracks(List<Track> tracks) async {
     if (tracks.isEmpty) return [];
-    final trackDBs = tracks.map(trackToTrackDB).toList();
     final isar = await _db;
+    final trackDBs = <TrackDB>[];
+    for (final track in tracks) {
+      final trackDB = trackToTrackDB(track);
+      final existing =
+          await isar.trackDBs.filter().mediaIdEqualTo(track.id).findFirst();
+      if (existing != null) {
+        trackDB.id = existing.id;
+      }
+      trackDBs.add(trackDB);
+    }
     return isar.writeTxn(() => isar.trackDBs.putAll(trackDBs));
   }
 
@@ -120,7 +144,8 @@ class TrackDAO {
     log('Purged orphan track: $mediaId', name: 'TrackDAO');
   }
 
-  /// Scan all tracks and delete those with no playlist entries and no downloads.
+  /// Scan all tracks and delete those with no playlist entries, no downloads,
+  /// and no playback history references.
   ///
   /// Run as periodic maintenance (30 s after startup).
   Future<int> purgeOrphanTracks() async {
@@ -140,6 +165,12 @@ class TrackDAO {
           .mediaIdEqualTo(track.mediaId)
           .findFirst();
       if (hasDownload != null) continue;
+
+      final hasHistory = await isar.playbackHistoryDBs
+          .filter()
+          .track((q) => q.idEqualTo(track.id))
+          .findFirst();
+      if (hasHistory != null) continue;
 
       await isar.writeTxn(() => isar.trackDBs.delete(track.id));
       purged++;

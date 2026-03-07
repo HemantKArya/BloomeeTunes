@@ -2,6 +2,7 @@
 part of 'settings_cubit.dart';
 
 class SettingsState extends Equatable {
+  final bool settingsReady; // true only after all settings loaded from DB
   final bool autoUpdateNotify;
   final bool autoSlideCharts;
   final String downPath;
@@ -21,7 +22,9 @@ class SettingsState extends Equatable {
   final bool eqEnabled;
   final List<double> eqBandGains; // 10 gains, -12..+12 dB
   final String eqPreset;
+  final String homePluginId; // content resolver plugin for home sections
   const SettingsState({
+    required this.settingsReady,
     required this.autoUpdateNotify,
     required this.autoSlideCharts,
     required this.downPath,
@@ -41,9 +44,11 @@ class SettingsState extends Equatable {
     required this.eqEnabled,
     required this.eqBandGains,
     required this.eqPreset,
+    required this.homePluginId,
   });
 
   SettingsState copyWith({
+    bool? settingsReady,
     bool? autoUpdateNotify,
     bool? autoSlideCharts,
     String? downPath,
@@ -63,8 +68,10 @@ class SettingsState extends Equatable {
     bool? eqEnabled,
     List<double>? eqBandGains,
     String? eqPreset,
+    String? homePluginId,
   }) {
     return SettingsState(
+      settingsReady: settingsReady ?? this.settingsReady,
       autoUpdateNotify: autoUpdateNotify ?? this.autoUpdateNotify,
       autoSlideCharts: autoSlideCharts ?? this.autoSlideCharts,
       downPath: downPath ?? this.downPath,
@@ -86,11 +93,13 @@ class SettingsState extends Equatable {
           ? List<double>.from(eqBandGains)
           : List<double>.from(this.eqBandGains),
       eqPreset: eqPreset ?? this.eqPreset,
+      homePluginId: homePluginId ?? this.homePluginId,
     );
   }
 
   @override
   List<Object?> get props => [
+        settingsReady,
         autoUpdateNotify,
         autoSlideCharts,
         downPath,
@@ -110,12 +119,14 @@ class SettingsState extends Equatable {
         eqEnabled,
         eqBandGains,
         eqPreset,
+        homePluginId,
       ];
 }
 
 class SettingsInitial extends SettingsState {
   SettingsInitial()
       : super(
+          settingsReady: false,
           autoUpdateNotify: false,
           autoSlideCharts: true,
           downPath: "",
@@ -135,5 +146,6 @@ class SettingsInitial extends SettingsState {
           eqEnabled: false,
           eqBandGains: List<double>.filled(10, 0.0),
           eqPreset: 'Flat',
+          homePluginId: '',
         );
 }

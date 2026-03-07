@@ -769,8 +769,10 @@ class _SearchScreenState extends State<SearchScreen> {
         return BlocBuilder<ContentBloc, ContentState>(
           bloc: _contentBloc,
           builder: (context, state) {
-            final hasResults = state.searchResults != null;
+            final hasResults = state.searchResults != null &&
+                state.searchResults!.items.isNotEmpty;
 
+            // Loading with no previous results → spinner
             if (state.searchStatus == SearchStatus.loading && !hasResults) {
               return const SliverFillRemaining(
                 hasScrollBody: false,
@@ -780,10 +782,29 @@ class _SearchScreenState extends State<SearchScreen> {
               );
             }
 
+            // Loading with previous results → keep showing them
+            // (avoids flash of "Discover amazing music..." between searches)
+            if (state.searchStatus == SearchStatus.loading && hasResults) {
+              return _buildSliverSearchResults(state);
+            }
+
             if ((state.searchStatus == SearchStatus.loaded ||
                     state.searchStatus == SearchStatus.loadingMore) &&
                 hasResults) {
               return _buildSliverSearchResults(state);
+            }
+
+            // Loaded but empty results
+            if (state.searchStatus == SearchStatus.loaded &&
+                state.searchResults != null &&
+                state.searchResults!.items.isEmpty) {
+              return const SliverFillRemaining(
+                hasScrollBody: false,
+                child: SignBoardWidget(
+                  message: "No results found!\nTry another keyword or source.",
+                  icon: MingCute.ghost_line,
+                ),
+              );
             }
 
             if (state.searchStatus == SearchStatus.error) {
