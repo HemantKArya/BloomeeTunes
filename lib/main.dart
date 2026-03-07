@@ -318,7 +318,9 @@ class _MyAppState extends State<MyApp> {
               child: SizedBox(
                 width: 50,
                 height: 50,
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                  color: Default_Theme.accentColor2,
+                ),
               ),
             );
           } else {

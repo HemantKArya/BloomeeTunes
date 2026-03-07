@@ -57,6 +57,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final contentResolvers = pluginState.loadedContentResolvers;
     if (contentResolvers.isEmpty) return;
 
+    final preferredId = settingsState.homePluginId;
+    // If the user's preferred plugin is installed but not yet loaded, wait for it.
+    // This prevents flashing the wrong plugin's home page on startup.
+    if (preferredId.isNotEmpty) {
+      final isAlreadyLoaded =
+          contentResolvers.any((p) => p.manifest.id == preferredId);
+      if (!isAlreadyLoaded) {
+        final isInstalled = pluginState.availablePlugins
+            .any((p) => p.manifest.id == preferredId);
+        if (isInstalled) return; // Preferred plugin is loading — wait for it
+      }
+    }
+
     final pluginId = _effectiveHomePluginId(contentResolvers);
 
     // Don't reload if we're already showing content from this plugin.
