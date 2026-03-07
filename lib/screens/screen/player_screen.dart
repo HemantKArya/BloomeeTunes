@@ -3,7 +3,7 @@ import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/core/adapters/track_adapter.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
-import 'package:Bloomee/screens/screen/player_views/equalizer_view.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/player_setting.dart';
 import 'package:Bloomee/screens/widgets/gradient_progress_bar.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
@@ -549,10 +549,10 @@ class _PlayerControlsRow extends StatelessWidget {
             onPressed: musicPlayer.skipToNext,
           ),
           bottom: IconButton(
-            icon: const Icon(Icons.equalizer_rounded,
+            icon: const Icon(Icons.settings_rounded,
                 color: Default_Theme.primaryColor1, size: 24),
             onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const EqualizerView())),
+                MaterialPageRoute(builder: (_) => const PlayerSettings())),
           ),
         ),
         _buildControlColumn(

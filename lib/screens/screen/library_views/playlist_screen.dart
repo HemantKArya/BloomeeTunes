@@ -34,6 +34,37 @@ class _PlaylistViewState extends State<PlaylistView> {
   final double titleScale = 1.5;
   final double titleFontSize = 16;
 
+  // Memoised TextPainter — computed once per (title, screenWidth), never on scroll frames.
+  String? _textHeightTitle;
+  double _textHeightForWidth = -1;
+  double _textHeightValue = 0;
+
+  double _getOrComputeTextHeight(String title, double maxWidth) {
+    if (_textHeightTitle == title && _textHeightForWidth == maxWidth) {
+      return _textHeightValue;
+    }
+    // Always use the narrowest padding (endPadding=60) so the result is layout-stable
+    // across the entire scroll range. Avoids TextPainter creation on every scroll frame.
+    const endPadding = 60.0;
+    final span = TextSpan(
+      text: title,
+      style: Default_Theme.secondoryTextStyleMedium.merge(
+        TextStyle(fontSize: titleFontSize, color: Colors.white),
+      ),
+    );
+    final tp = TextPainter(
+      text: span,
+      textDirection: TextDirection.ltr,
+      maxLines: 3,
+      textScaler: TextScaler.linear(titleScale),
+    )..layout(maxWidth: (maxWidth - endPadding).clamp(100.0, double.infinity));
+    _textHeightTitle = title;
+    _textHeightForWidth = maxWidth;
+    _textHeightValue = tp.height;
+    tp.dispose();
+    return _textHeightValue;
+  }
+
   Color _adjustColor(Color color, bool darken, {double amount = 0.1}) {
     final hsl = HSLColor.fromColor(color);
     HSLColor adjustedHsl = darken
@@ -77,6 +108,10 @@ class _PlaylistViewState extends State<PlaylistView> {
         extendBodyBehindAppBar: true,
         body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
           builder: (context, state) {
+            // Compute palette colours once per rebuild instead of 15+ times.
+            final colors = getFBColor(context);
+            final fgColor = colors[0];
+            final bgColor = colors[1];
             const double maxExtent = 300;
             return AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
@@ -92,15 +127,12 @@ class _PlaylistViewState extends State<PlaylistView> {
                             icon: const Icon(
                               Icons.arrow_back,
                             ),
-                            hoverColor:
-                                getFBColor(context)[1].withValues(alpha: 0.3),
-                            highlightColor:
-                                getFBColor(context)[0].withValues(alpha: 0.6),
-                            color: getFBColor(context)[0],
+                            hoverColor: bgColor.withValues(alpha: 0.3),
+                            highlightColor: fgColor.withValues(alpha: 0.6),
+                            color: fgColor,
                             style: ButtonStyle(
                               backgroundColor: WidgetStatePropertyAll(
-                                  getFBColor(context)[1]
-                                      .withValues(alpha: 0.1)),
+                                  bgColor.withValues(alpha: 0.1)),
                             ),
                             onPressed: () {
                               context.pop();
@@ -124,27 +156,11 @@ class _PlaylistViewState extends State<PlaylistView> {
                                     (1.0 - percentage);
                             final bool isCollapsed = percentage < 0.4;
 
-                            final span = TextSpan(
-                              text: state.playlist.title,
-                              style:
-                                  Default_Theme.secondoryTextStyleMedium.merge(
-                                TextStyle(
-                                  fontSize: titleFontSize,
-                                  color: getFBColor(context)[0],
-                                ),
-                              ),
+                            // Memoised — zero TextPainter allocation after first frame.
+                            final textHeight = _getOrComputeTextHeight(
+                              state.playlist.title,
+                              constraints.maxWidth,
                             );
-
-                            final textPainter = TextPainter(
-                                text: span,
-                                textDirection: TextDirection.ltr,
-                                maxLines: 3,
-                                textScaler: TextScaler.linear(titleScale))
-                              ..layout(
-                                  maxWidth:
-                                      constraints.maxWidth - horizontalPadding);
-
-                            final textHeight = textPainter.height;
 
                             return FlexibleSpaceBar(
                               expandedTitleScale: titleScale,
@@ -159,7 +175,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                   TextStyle(
                                     fontSize: titleFontSize,
                                     overflow: TextOverflow.ellipsis,
-                                    color: getFBColor(context)[0],
+                                    color: fgColor,
                                   ),
                                 ),
                               ),
@@ -182,10 +198,8 @@ class _PlaylistViewState extends State<PlaylistView> {
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            getFBColor(context)[1]
-                                                .withValues(alpha: 0.0),
-                                            getFBColor(context)[1]
-                                                .withValues(alpha: 1),
+                                            bgColor.withValues(alpha: 0.0),
+                                            bgColor.withValues(alpha: 1),
                                           ],
                                           stops: const [0.5, 1],
                                         ),
@@ -223,10 +237,8 @@ class _PlaylistViewState extends State<PlaylistView> {
                                                 decoration: BoxDecoration(
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color:
-                                                          getFBColor(context)[1]
-                                                              .withValues(
-                                                                  alpha: 0.2),
+                                                      color: bgColor.withValues(
+                                                          alpha: 0.2),
                                                       spreadRadius: 5,
                                                       blurRadius: 7,
                                                       offset: const Offset(0,
@@ -257,22 +269,19 @@ class _PlaylistViewState extends State<PlaylistView> {
                                           icon: const Icon(
                                             MingCute.information_line,
                                           ),
-                                          hoverColor: getFBColor(context)[1]
-                                              .withValues(alpha: 0.2),
-                                          color: getFBColor(context)[0],
+                                          hoverColor:
+                                              bgColor.withValues(alpha: 0.2),
+                                          color: fgColor,
                                           style: ButtonStyle(
                                             backgroundColor:
-                                                WidgetStatePropertyAll(
-                                                    getFBColor(context)[1]
-                                                        .withValues(
-                                                            alpha: 0.05)),
+                                                WidgetStatePropertyAll(bgColor
+                                                    .withValues(alpha: 0.05)),
                                           ),
                                           onPressed: () {
                                             // dialog to show all infromation about the playlist (playlist name, source, description, original link, type, etc  )
                                             showPlaylistInfo(context, state,
-                                                fgColor: getFBColor(context)[0],
-                                                bgColor:
-                                                    getFBColor(context)[1]);
+                                                fgColor: fgColor,
+                                                bgColor: bgColor);
                                           },
                                         )),
                                     // blur fade effect bottom edge
@@ -354,15 +363,15 @@ class _PlaylistViewState extends State<PlaylistView> {
                                           child: Container(
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
-                                              color: getFBColor(ctx)[1]
-                                                  .withValues(alpha: 0.08),
+                                              color: bgColor.withValues(
+                                                  alpha: 0.08),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
                                               Icons.offline_pin_rounded,
                                               size: 22,
-                                              color: getFBColor(ctx)[0]
-                                                  .withValues(alpha: 0.85),
+                                              color: fgColor.withValues(
+                                                  alpha: 0.85),
                                             ),
                                           ),
                                         );
@@ -377,14 +386,12 @@ class _PlaylistViewState extends State<PlaylistView> {
                                         icon: Icon(
                                           MingCute.download_2_fill,
                                           size: 20,
-                                          color: getFBColor(ctx)[0]
-                                              .withValues(alpha: 0.9),
+                                          color: fgColor.withValues(alpha: 0.9),
                                         ),
                                         style: ButtonStyle(
                                           backgroundColor:
-                                              MaterialStatePropertyAll(
-                                                  getFBColor(ctx)[1]
-                                                      .withValues(alpha: 0.06)),
+                                              MaterialStatePropertyAll(bgColor
+                                                  .withValues(alpha: 0.06)),
                                           shape: MaterialStatePropertyAll(
                                             RoundedRectangleBorder(
                                                 borderRadius:
