@@ -1,8 +1,9 @@
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/screens/widgets/setting_tile.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class CountrySettings extends StatelessWidget {
   const CountrySettings({super.key});
@@ -10,76 +11,72 @@ class CountrySettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
+        backgroundColor: Default_Theme.themeColor,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Default_Theme.primaryColor1),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text(
-          'Country & Language Settings',
+          'Country & Language',
           style: const TextStyle(
-                  color: Default_Theme.primaryColor1,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)
-              .merge(Default_Theme.secondoryTextStyle),
+            color: Default_Theme.primaryColor1,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ).merge(Default_Theme.secondoryTextStyle),
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
+          // Build country name from current code
+          final currentCountryName = countries.entries
+              .firstWhere(
+                (e) => e.value == state.countryCode,
+                orElse: () => const MapEntry('Unknown', ''),
+              )
+              .key;
+
           return ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
-              SwitchListTile(
-                  value: state.autoGetCountry,
-                  subtitle: Text(
-                    "Automatically check the country to your location when you open the app.",
-                    style: TextStyle(
-                            color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.5),
-                            fontSize: 12.5)
-                        .merge(Default_Theme.secondoryTextStyleMedium),
+              // ── Location ─────────────────────────────────────────────
+              SettingSectionHeader(label: 'Location'),
+              SettingCard(
+                children: [
+                  SettingToggleTile(
+                    icon: MingCute.location_line,
+                    title: 'Auto Detect Country',
+                    subtitle:
+                        'Automatically detect your country when the app opens.',
+                    value: state.autoGetCountry,
+                    onChanged: (value) =>
+                        context.read<SettingsCubit>().setAutoGetCountry(value),
                   ),
-                  title: Text(
-                    "Auto check country",
-                    style: const TextStyle(
-                            color: Default_Theme.primaryColor1, fontSize: 17)
-                        .merge(Default_Theme.secondoryTextStyleMedium),
+                  const SettingDivider(),
+                  SettingDropdownTile<String>(
+                    icon: MingCute.globe_line,
+                    title: 'Country',
+                    subtitle: currentCountryName,
+                    value: state.countryCode,
+                    items: countries.entries
+                        .map((e) => SettingDropdownItem<String>(
+                              value: e.value,
+                              label: e.key,
+                            ))
+                        .toList(),
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        context.read<SettingsCubit>().setCountryCode(newValue);
+                      }
+                    },
                   ),
-                  onChanged: (value) {
-                    context.read<SettingsCubit>().setAutoGetCountry(value);
-                  }),
-              SettingTile(
-                title: "Country",
-                subtitle: "Country to set as default for the app.",
-                trailing: DropdownButton(
-                  value: state.countryCode,
-                  isDense: true,
-                  style: const TextStyle(
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.bold,
-                    color: Default_Theme.primaryColor1,
-                    fontSize: 15,
-                  ).merge(Default_Theme.secondoryTextStyle),
-                  underline: const SizedBox(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      context.read<SettingsCubit>().setCountryCode(newValue);
-                    }
-                  },
-                  items: countries.values
-                      .toList()
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: SizedBox(
-                        width: 100,
-                        child: Text(
-                          countries.keys.elementAt(
-                              countries.values.toList().indexOf(value)),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                onTap: () {},
+                ],
               ),
+              const SizedBox(height: 24),
             ],
           );
         },

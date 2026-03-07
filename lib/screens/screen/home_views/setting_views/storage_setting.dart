@@ -1,303 +1,263 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/screens/widgets/setting_tile.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/storage_backup_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class BackupSettings extends StatelessWidget {
   const BackupSettings({super.key});
 
-  // Future<bool> storagePermission() async {
-  //   final DeviceInfoPlugin info =
-  //       DeviceInfoPlugin(); // import 'package:device_info_plus/device_info_plus.dart';
-  //   final AndroidDeviceInfo androidInfo = await info.androidInfo;
-  //   debugPrint('releaseVersion : ${androidInfo.version.release}');
-  //   final int androidVersion = int.parse(androidInfo.version.release);
-  //   bool havePermission = false;
-
-  //   if (androidVersion >= 13) {
-  //     final request = await [
-  //       Permission.videos,
-  //       Permission.photos,
-  //       //..... as needed
-  //     ].request(); //import 'package:permission_handler/permission_handler.dart';
-
-  //     havePermission =
-  //         request.values.every((status) => status == PermissionStatus.granted);
-  //   } else {
-  //     final status = await Permission.storage.request();
-  //     havePermission = status.isGranted;
-  //   }
-
-  //   if (!havePermission) {
-  //     // if no permission then open app-setting
-  //     await openAppSettings();
-  //   }
-
-  //   return havePermission;
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
+        backgroundColor: Default_Theme.themeColor,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Default_Theme.primaryColor1),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text(
           'Storage',
           style: const TextStyle(
-                  color: Default_Theme.primaryColor1,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)
-              .merge(Default_Theme.secondoryTextStyle),
+            color: Default_Theme.primaryColor1,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ).merge(Default_Theme.secondoryTextStyle),
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           return ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
-              SettingTile(
-                title: "Clear History In Every",
-                subtitle: "Clear history after every specified Time.",
-                trailing: DropdownButton(
-                  value: state.historyClearTime,
-                  style: const TextStyle(
-                    color: Default_Theme.primaryColor1,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ).merge(Default_Theme.secondoryTextStyle),
-                  underline: const SizedBox(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      context
-                          .read<SettingsCubit>()
-                          .setHistoryClearTime(newValue);
-                    }
-                  },
-                  items: <String>[
-                    '3',
-                    '7',
-                    '14',
-                    '30',
-                    '60',
-                    '90',
-                    '180',
-                    '365'
-                  ].map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        '$value Days',
-                      ),
-                    );
-                  }).toList(),
-                ),
-                onTap: () {},
-              ),
-              SettingTile(
-                title: "Backup location",
-                subtitle: state.backupPath,
-                onTap: () async {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        backgroundColor: const Color.fromARGB(255, 24, 24, 24),
-                        surfaceTintColor: const Color.fromARGB(255, 24, 24, 24),
-                        title: Text(
-                          "Backup Location",
-                          style: Default_Theme.secondoryTextStyle.merge(
-                            const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        content: Text(
-                          Platform.isAndroid
-                              ? "Currently, the backup will be stored in:\n\n1. Download directory\n2. Android/data/ls.bloomee.musicplayer/data directory\n\nYou can copy the file from these locations."
-                              : "Currently, the backup will be stored in the Downloads directory. You can copy the file from there.",
-                          style: Default_Theme.secondoryTextStyle.merge(
-                            const TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(
-                              "OK",
-                              style: Default_Theme.secondoryTextStyle.merge(
-                                const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-              SettingTile(
-                title: "Create Backup",
-                subtitle:
-                    "Create a backup of your data and settings in a backup location.",
-                onTap: () {
-                  StorageBackupService.createBackup().then((value) {
-                    if (value != null) {
-                      SnackbarService.showMessage("Backup created at $value");
-                      if (Platform.isAndroid) {
-                        // Temporary workaround for Android
-                        try {
-                          final file = XFile(value);
-                          SharePlus.instance
-                              .share(
-                            ShareParams(
-                              files: [file],
-                              text: 'Bloomee backup file',
-                              subject: 'Bloomee Backup',
-                            ),
-                          )
-                              .catchError((e) {
-                            SnackbarService.showMessage(
-                                'Failed to share backup: $e');
-                            return ShareResult.unavailable;
-                          });
-                        } catch (e) {
-                          SnackbarService.showMessage(
-                              'Failed to share backup: $e');
-                        }
+              // ── History ──────────────────────────────────────────────
+              const SettingSectionHeader(label: 'History'),
+              SettingCard(
+                children: [
+                  SettingDropdownTile<String>(
+                    icon: MingCute.history_line,
+                    title: 'Clear History In Every',
+                    subtitle:
+                        'Clear listening history after the chosen period.',
+                    value: state.historyClearTime,
+                    items: ['3', '7', '14', '30', '60', '90', '180', '365']
+                        .map((v) => SettingDropdownItem<String>(
+                              value: v,
+                              label: '$v Days',
+                            ))
+                        .toList(),
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        context
+                            .read<SettingsCubit>()
+                            .setHistoryClearTime(newValue);
                       }
-                    } else {
-                      SnackbarService.showMessage("Backup Failed!");
-                    }
-                  });
-                },
-              ),
-              SettingTile(
-                title: "Restore Backup",
-                subtitle: "Restore your data and settings from a backup file.",
-                onTap: () {
-                  _onRestoreTap(context);
-                },
-              ),
-              SettingTile(
-                title: "Reset Bloomee App",
-                subtitle:
-                    "Clear all your data and reset the app to its default state.",
-                onTap: () async {
-                  final proceed = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) {
-                      return AlertDialog(
-                        backgroundColor: const Color.fromARGB(255, 24, 24, 24),
-                        surfaceTintColor: const Color.fromARGB(255, 24, 24, 24),
-                        title: Text(
-                          "Confirm Reset",
-                          style: Default_Theme.secondoryTextStyle.merge(
-                            const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        content: Text(
-                          "Are you sure you want to reset the Bloomee app? This will delete all your data, including tunes you listened to, and reset the app to its default state. This action cannot be undone.",
-                          style: Default_Theme.secondoryTextStyle.merge(
-                            const TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(ctx).pop(false);
-                            },
-                            child: Text(
-                              "No",
-                              style: Default_Theme.secondoryTextStyle.merge(
-                                const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Default_Theme.accentColor2),
-                            onPressed: () {
-                              Navigator.of(ctx).pop(true);
-                            },
-                            child: Text(
-                              "Yes",
-                              style: Default_Theme.secondoryTextStyle.merge(
-                                const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
                     },
-                  );
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-                  if (proceed == true) {
-                    // Perform reset logic here
-                    await StorageBackupService.resetAppData();
-                    SnackbarService.showMessage(
-                        "App has been reset to its default state.");
-                  }
-                },
-                trailing: const Icon(
-                  Icons.delete,
-                  color: Default_Theme.primaryColor1,
-                ),
+              // ── Backup & Restore ──────────────────────────────────────
+              const SettingSectionHeader(label: 'Backup & Restore'),
+              SettingCard(
+                children: [
+                  Column(
+                    children: [
+                      SettingNavTile(
+                        icon: MingCute.folder_info_line,
+                        title: 'Backup Location',
+                        subtitle: Platform.isAndroid
+                            ? 'Downloads / app-data directory'
+                            : (state.backupPath.isNotEmpty
+                                ? state.backupPath
+                                : 'Downloads directory'),
+                        onTap: () => showDialog(
+                          context: context,
+                          builder: (_) => _BackupLocationDialog(),
+                        ),
+                      ),
+                      const SettingDivider(),
+                      SettingNavTile(
+                        icon: MingCute.save_2_line,
+                        title: 'Create Backup',
+                        subtitle:
+                            'Save your settings and data to a backup file.',
+                        onTap: () {
+                          StorageBackupService.createBackup().then((value) {
+                            if (value != null) {
+                              SnackbarService.showMessage(
+                                  'Backup created at $value');
+                              if (Platform.isAndroid) {
+                                try {
+                                  SharePlus.instance
+                                      .share(ShareParams(
+                                    files: [XFile(value)],
+                                    text: 'Bloomee backup file',
+                                    subject: 'Bloomee Backup',
+                                  ))
+                                      .catchError((e) {
+                                    SnackbarService.showMessage(
+                                        'Failed to share backup: $e');
+                                    return ShareResult.unavailable;
+                                  });
+                                } catch (e) {
+                                  SnackbarService.showMessage(
+                                      'Failed to share backup: $e');
+                                }
+                              }
+                            } else {
+                              SnackbarService.showMessage('Backup Failed!');
+                            }
+                          });
+                        },
+                      ),
+                      const SettingDivider(),
+                      SettingNavTile(
+                        icon: MingCute.restore_line,
+                        title: 'Restore Backup',
+                        subtitle:
+                            'Restore your settings and data from a backup file.',
+                        onTap: () => _onRestoreTap(context),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              SwitchListTile(
-                title: Text("Auto Backup",
-                    style: const TextStyle(
-                            color: Default_Theme.primaryColor1, fontSize: 16)
-                        .merge(Default_Theme.secondoryTextStyleMedium)),
-                subtitle: Text(
-                    "Automatically create a backup of your data on regular basis.",
-                    style: TextStyle(
-                            color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.5),
-                            fontSize: 12)
-                        .merge(Default_Theme.secondoryTextStyleMedium)),
-                value: state.autoBackup,
-                onChanged: (value) {
-                  context.read<SettingsCubit>().setAutoBackup(value);
-                },
+              const SizedBox(height: 20),
+
+              // ── Automatic ─────────────────────────────────────────────
+              const SettingSectionHeader(label: 'Automatic'),
+              SettingCard(
+                children: [
+                  SettingToggleTile(
+                    icon: MingCute.time_fill,
+                    title: 'Auto Backup',
+                    subtitle:
+                        'Periodically create a backup of your data automatically.',
+                    value: state.autoBackup,
+                    onChanged: (value) =>
+                        context.read<SettingsCubit>().setAutoBackup(value),
+                  ),
+                  const SettingDivider(),
+                  SettingToggleTile(
+                    icon: MingCute.music_2_line,
+                    title: 'Auto Save Lyrics',
+                    subtitle: 'Save lyrics automatically when a song plays.',
+                    value: state.autoSaveLyrics,
+                    onChanged: (value) =>
+                        context.read<SettingsCubit>().setAutoSaveLyrics(value),
+                  ),
+                ],
               ),
-              SwitchListTile(
-                  title: Text("Auto Save Lyrics",
-                      style: const TextStyle(
-                              color: Default_Theme.primaryColor1, fontSize: 16)
-                          .merge(Default_Theme.secondoryTextStyleMedium)),
-                  subtitle: Text(
-                      "Automatically save lyrics of the song when played.",
-                      style: TextStyle(
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.5),
-                              fontSize: 12)
-                          .merge(Default_Theme.secondoryTextStyleMedium)),
-                  value: state.autoSaveLyrics,
-                  onChanged: (value) {
-                    context.read<SettingsCubit>().setAutoSaveLyrics(value);
-                  }),
+              const SizedBox(height: 20),
+
+              // ── Danger Zone ───────────────────────────────────────────
+              const SettingSectionHeader(label: 'Danger Zone'),
+              SettingCard(
+                children: [
+                  SettingDestructiveTile(
+                    icon: MingCute.delete_2_fill,
+                    title: 'Reset Bloomee App',
+                    subtitle:
+                        'Delete all data and restore the app to its default state.',
+                    onTap: () async {
+                      final proceed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor:
+                              const Color.fromARGB(255, 24, 24, 24),
+                          surfaceTintColor:
+                              const Color.fromARGB(255, 24, 24, 24),
+                          title: Text(
+                            'Confirm Reset',
+                            style: Default_Theme.secondoryTextStyle.merge(
+                              const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          content: Text(
+                            'Are you sure you want to reset Bloomee? This will delete all your data and cannot be undone.',
+                            style: Default_Theme.secondoryTextStyle.merge(
+                              const TextStyle(
+                                  color: Colors.white, fontSize: 14),
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: Text('Cancel',
+                                  style: Default_Theme.secondoryTextStyle.merge(
+                                      const TextStyle(color: Colors.white))),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red.shade700),
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Reset',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (proceed == true) {
+                        await StorageBackupService.resetAppData();
+                        SnackbarService.showMessage(
+                            'App has been reset to its default state.');
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+class _BackupLocationDialog extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color.fromARGB(255, 24, 24, 24),
+      surfaceTintColor: const Color.fromARGB(255, 24, 24, 24),
+      title: Text(
+        'Backup Location',
+        style: Default_Theme.secondoryTextStyle.merge(
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+      content: Text(
+        Platform.isAndroid
+            ? 'Backups are stored in:\n\n1. Downloads directory\n2. Android/data/ls.bloomee.musicplayer/data\n\nCopy the file from either location.'
+            : 'Backups are stored in the Downloads directory. Copy the file from there.',
+        style: Default_Theme.secondoryTextStyle
+            .merge(const TextStyle(color: Colors.white, fontSize: 14)),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('OK',
+              style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold))),
+        ),
+      ],
     );
   }
 }

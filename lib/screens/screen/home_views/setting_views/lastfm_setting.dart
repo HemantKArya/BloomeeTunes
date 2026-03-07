@@ -1,13 +1,15 @@
-import 'dart:developer';
+﻿import 'dart:developer';
 
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class LastDotFM extends StatefulWidget {
   const LastDotFM({super.key});
@@ -23,29 +25,21 @@ class _LastDotFMState extends State<LastDotFM> {
   String? username;
   bool getBtnVisible = false;
   String? token;
+
   @override
   void initState() {
     apiKeyController.text = "API Key";
     apiSecretController.text = "Api Secret";
     getKeysFromDB();
-
     super.initState();
   }
 
   void authBtnClick() {
-    setState(() {
-      authBtnClicked = true;
-    });
-    Future.delayed(const Duration(seconds: 3), () {
-      setState(() {
-        getBtnVisible = true;
-      });
-    });
-    Future.delayed(const Duration(seconds: 7), () {
-      setState(() {
-        authBtnClicked = false;
-      });
-    });
+    setState(() => authBtnClicked = true);
+    Future.delayed(
+        const Duration(seconds: 3), () => setState(() => getBtnVisible = true));
+    Future.delayed(const Duration(seconds: 7),
+        () => setState(() => authBtnClicked = false));
   }
 
   Future<void> getKeysFromDB() async {
@@ -54,274 +48,248 @@ class _LastDotFMState extends State<LastDotFM> {
     username = await lastdotfmCubit.getApiToken(CacheKeys.lFMUsername);
     final apiKey = await lastdotfmCubit.getApiToken(CacheKeys.lFMApiKey);
     final apiSecret = await lastdotfmCubit.getApiToken(CacheKeys.lFMSecret);
-    if (apiKey != null) {
-      apiKeyController.text = apiKey;
-    }
-    if (apiSecret != null) {
-      apiSecretController.text = apiSecret;
-    }
-
+    if (apiKey != null) apiKeyController.text = apiKey;
+    if (apiSecret != null) apiSecretController.text = apiSecret;
     log("Last.FM Keys from DB: $apiKey, $apiSecret", name: "Last.FM");
     setState(() {});
   }
 
   @override
+  void dispose() {
+    apiKeyController.dispose();
+    apiSecretController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
-        centerTitle: true,
+        backgroundColor: Default_Theme.themeColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        leadingWidth: 64,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: Center(
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: Default_Theme.primaryColor1,
+                size: 24,
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
         title: Text(
-          'Last.FM Settings',
+          'Last.FM',
           style: const TextStyle(
-                  color: Default_Theme.primaryColor1,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)
-              .merge(Default_Theme.secondoryTextStyle),
+            color: Default_Theme.primaryColor1,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
+          ).merge(Default_Theme.secondoryTextStyleMedium),
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
-        builder: (context, state) {
+        builder: (context, settingsState) {
           return ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             children: [
-              SwitchListTile(
-                  value: state.lastFMScrobble,
-                  subtitle: Text(
-                    "Scrobble tracks to Last.FM",
-                    style: TextStyle(
-                            color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.5),
-                            fontSize: 12)
-                        .merge(Default_Theme.secondoryTextStyleMedium),
+              // Scrobbling
+              const SettingSectionHeader(label: 'Scrobbling'),
+              SettingCard(
+                children: [
+                  SettingToggleTile(
+                    icon: FontAwesome.lastfm_brand,
+                    title: 'Scrobble Tracks',
+                    subtitle: 'Send played tracks to your Last.FM profile.',
+                    value: settingsState.lastFMScrobble,
+                    onChanged: (value) {
+                      context.read<SettingsCubit>().setLastFMScrobble(value);
+                      if (value && LastFmAPI.initialized == false) {
+                        SnackbarService.showMessage(
+                            "First Authenticate Last.FM API.");
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          context
+                              .read<SettingsCubit>()
+                              .setLastFMScrobble(false);
+                        });
+                      }
+                    },
                   ),
-                  title: Text(
-                    "Scrobble Tracks",
-                    style: const TextStyle(
-                            color: Default_Theme.primaryColor1, fontSize: 16)
-                        .merge(Default_Theme.secondoryTextStyleMedium),
-                  ),
-                  onChanged: (value) {
-                    context.read<SettingsCubit>().setLastFMScrobble(value);
-                    if (value && LastFmAPI.initialized == false) {
-                      SnackbarService.showMessage(
-                          "First Authenticate Last.FM API.");
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        context.read<SettingsCubit>().setLastFMScrobble(false);
-                      });
-                    }
-                  }),
+                ],
+              ),
 
-              // text box for guiding user to get session key and click buttons
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 16.0, right: 8.0, top: 8, bottom: 8),
-                child: SelectableText(
-                  'To set API Key for Last.FM, \n1. Go to Last.FM create an account there (https://www.last.fm/).\n2. Now generate an API Key and Secret from: https://www.last.fm/api/account/create\n3. Enter the API Key and Secret below and click on \'Start Auth\' to get the session key.\n4. After allowing from browser, click on \'Get and Save Session Key\' to save the session key.',
-                  style: TextStyle(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.5),
-                          fontSize: 12)
-                      .merge(Default_Theme.secondoryTextStyleMedium),
-                ),
-              ),
-              // two text fields for api key and secret and two buttons for start auth and get session key
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 16.0, right: 8.0, top: 8, bottom: 8),
-                child: TextField(
-                  controller: apiKeyController,
-                  decoration: InputDecoration(
-                    labelText: 'API Key',
-                    labelStyle: TextStyle(
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                        fontFamily: 'Unageo',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.5)),
-                    ),
-                    focusedBorder: const UnderlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Default_Theme.primaryColor1),
-                    ),
-                  ),
-                  style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: 'Unageo',
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 16.0, right: 8.0, top: 8, bottom: 8),
-                child: TextField(
-                  controller: apiSecretController,
-                  keyboardType: TextInputType.visiblePassword,
-                  decoration: InputDecoration(
-                    labelText: 'API Secret',
-                    labelStyle: TextStyle(
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                        fontFamily: 'Unageo',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.5)),
-                    ),
-                    focusedBorder: const UnderlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Default_Theme.primaryColor1),
-                    ),
-                  ),
-                  style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: 'Unageo',
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16),
-                ),
-              ),
-              // a green info text to show that authentication is successful
+              const SizedBox(height: 28),
+
+              // Authentication
+              const SettingSectionHeader(label: 'Authentication'),
               BlocBuilder<LastdotfmCubit, LastdotfmState>(
-                builder: (context, state) {
-                  if (state is LastdotfmIntialized) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: 16.0,
-                        right: 8.0,
-                        top: 16,
-                      ),
-                      child: Text(
-                        'Hi, ${state.username},\nLast.FM API is Authenticated.',
-                        style: TextStyle(
-                          color:
-                              Default_Theme.successColor.withValues(alpha: 0.7),
-                          fontSize: 12,
-                          fontFamily: 'Unageo',
+                builder: (context, lfmState) {
+                  return SettingCard(
+                    children: [
+                      // Status indicator
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: lfmState is LastdotfmIntialized
+                                    ? Default_Theme.successColor
+                                    : Colors.red.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                lfmState is LastdotfmIntialized
+                                    ? 'Authenticated as ${lfmState.username}'
+                                    : lfmState is LastdotfmFailed
+                                        ? 'Authentication failed: ${lfmState.message}'
+                                        : 'Not authenticated',
+                                style: TextStyle(
+                                  color: lfmState is LastdotfmIntialized
+                                      ? Default_Theme.successColor
+                                      : lfmState is LastdotfmFailed
+                                          ? Colors.red.withValues(alpha: 0.8)
+                                          : Default_Theme.primaryColor2
+                                              .withValues(alpha: 0.5),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ).merge(Default_Theme.secondoryTextStyle),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  } else if (state is LastdotfmFailed) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: 16.0,
-                        right: 8.0,
-                        top: 16,
+                      const SettingDivider(),
+                      // How-to instructions
+                      const SettingInfoText(
+                        text:
+                            'Steps to authenticate:\n1. Create / open a Last.FM account at last.fm\n2. Generate an API Key at last.fm/api/account/create\n3. Enter your API Key & Secret below\n4. Tap "Start Auth" and approve in the browser\n5. Tap "Get & Save Session Key" to finish',
                       ),
-                      child: Text(
-                        'Last.FM Authentication Failed.\n${state.message}\nHint: First click Start Auth and Sign-In from browser then click Get & Save Session Key button',
-                        style: TextStyle(
-                                color: Colors.red.withValues(alpha: 0.7),
-                                fontSize: 12)
-                            .merge(Default_Theme.secondoryTextStyleMedium),
+                      const SettingDivider(),
+                      SettingTextFieldTile(
+                        label: 'API Key',
+                        controller: apiKeyController,
                       ),
-                    );
-                  } else {
-                    return const SizedBox();
-                  }
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 16.0, right: 8.0, top: 16, bottom: 8),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    BlocBuilder<LastdotfmCubit, LastdotfmState>(
-                      builder: (context, state) {
-                        return ElevatedButton(
-                          onPressed:
-                              state is! LastdotfmIntialized && !authBtnClicked
-                                  ? () async {
-                                      authBtnClick();
-                                      token = await context
-                                          .read<LastdotfmCubit>()
-                                          .startAuth(
-                                              apiKey: apiKeyController.text,
-                                              secret: apiSecretController.text);
-                                    }
-                                  : null,
-                          style: ElevatedButton.styleFrom(
-                            disabledBackgroundColor: Default_Theme.accentColor2
-                                .withValues(alpha: 0.5),
-                            disabledForegroundColor: Default_Theme.primaryColor2
-                                .withValues(alpha: 0.3),
-                            backgroundColor: Default_Theme.accentColor2,
-                            foregroundColor: Default_Theme.primaryColor2,
-                          ),
-                          child: const Text('1. Start Auth'),
-                        );
-                      },
-                    ),
-                    BlocBuilder<LastdotfmCubit, LastdotfmState>(
-                      builder: (context, state) {
-                        return ElevatedButton(
-                          onPressed:
-                              state is! LastdotfmIntialized && getBtnVisible
-                                  ? () {
-                                      if (token != null) {
-                                        context
-                                            .read<LastdotfmCubit>()
-                                            .fetchSessionkey(
-                                              apiKey: apiKeyController.text,
-                                              secret: apiSecretController.text,
-                                              token: token!,
-                                            );
-                                      } else {
-                                        SnackbarService.showMessage(
-                                            "Authentication is not started. Click on Start Autentication.");
-                                      }
-                                    }
-                                  : null,
-                          style: ElevatedButton.styleFrom(
-                            disabledBackgroundColor: Default_Theme.accentColor2
-                                .withValues(alpha: 0.5),
-                            disabledForegroundColor: Default_Theme.primaryColor2
-                                .withValues(alpha: 0.3),
-                            backgroundColor: Default_Theme.accentColor2,
-                            foregroundColor: Default_Theme.primaryColor2,
-                          ),
-                          child: const Text('2. Get & Save Session Key'),
-                        );
-                      },
-                    ),
-                    // log out button
-                    BlocBuilder<LastdotfmCubit, LastdotfmState>(
-                      builder: (context, state) {
-                        return state is LastdotfmIntialized
-                            ? ElevatedButton(
+                      const SettingDivider(),
+                      SettingTextFieldTile(
+                        label: 'API Secret',
+                        controller: apiSecretController,
+                        keyboardType: TextInputType.visiblePassword,
+                      ),
+                      const SettingDivider(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                        child: Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            _AuthButton(
+                              label: '1. Start Auth',
+                              enabled: lfmState is! LastdotfmIntialized &&
+                                  !authBtnClicked,
+                              onPressed: () async {
+                                authBtnClick();
+                                token = await context
+                                    .read<LastdotfmCubit>()
+                                    .startAuth(
+                                      apiKey: apiKeyController.text,
+                                      secret: apiSecretController.text,
+                                    );
+                              },
+                            ),
+                            _AuthButton(
+                              label: '2. Get & Save Session Key',
+                              enabled: lfmState is! LastdotfmIntialized &&
+                                  getBtnVisible,
+                              onPressed: () {
+                                if (token != null) {
+                                  context
+                                      .read<LastdotfmCubit>()
+                                      .fetchSessionkey(
+                                        apiKey: apiKeyController.text,
+                                        secret: apiSecretController.text,
+                                        token: token!,
+                                      );
+                                } else {
+                                  SnackbarService.showMessage(
+                                      "Start Auth first, then approve in browser.");
+                                }
+                              },
+                            ),
+                            if (lfmState is LastdotfmIntialized)
+                              _AuthButton(
+                                label: 'Remove Keys',
+                                enabled: true,
+                                destructive: true,
                                 onPressed: () {
                                   context.read<LastdotfmCubit>().remove();
                                   context
                                       .read<SettingsCubit>()
                                       .setLastFMScrobble(false);
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  disabledBackgroundColor: Default_Theme
-                                      .accentColor2
-                                      .withValues(alpha: 0.5),
-                                  backgroundColor: Default_Theme.accentColor2,
-                                  disabledForegroundColor: Default_Theme
-                                      .primaryColor2
-                                      .withValues(alpha: 0.3),
-                                  foregroundColor: Default_Theme.primaryColor2,
-                                ),
-                                child: const Text('Remove Keys'),
-                              )
-                            : const SizedBox.shrink();
-                      },
-                    ),
-                  ],
-                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
+
+              const SizedBox(height: 40),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+// ─── Auth Button ─────────────────────────────────────────────────────────────
+
+class _AuthButton extends StatelessWidget {
+  final String label;
+  final bool enabled;
+  final bool destructive;
+  final VoidCallback onPressed;
+
+  const _AuthButton({
+    required this.label,
+    required this.enabled,
+    required this.onPressed,
+    this.destructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = destructive ? Colors.red : Default_Theme.accentColor2;
+
+    return ElevatedButton(
+      onPressed: enabled ? onPressed : null,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: activeColor,
+        disabledBackgroundColor: activeColor.withValues(alpha: 0.3),
+        foregroundColor: Default_Theme.primaryColor2,
+        disabledForegroundColor:
+            Default_Theme.primaryColor2.withValues(alpha: 0.4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 0,
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       ),
     );
   }

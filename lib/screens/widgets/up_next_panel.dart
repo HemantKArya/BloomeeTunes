@@ -472,7 +472,7 @@ class _DesktopSongListState extends State<_DesktopSongList> {
               buildDefaultDragHandles: false,
               itemBuilder: (context, index) {
                 return _QueueItem(
-                  key: ValueKey(queue[index].id),
+                  key: ValueKey('desktop_${queue[index].id}'),
                   mediaItem: queue[index],
                   index: index,
                   playerCubit: widget.playerCubit,
@@ -549,7 +549,7 @@ class _SongListSliverState extends State<_SongListSliver> {
               onReorder: widget.playerCubit.bloomeePlayer.moveQueueItem,
               itemBuilder: (context, index) {
                 return _QueueItem(
-                  key: ValueKey(queue[index].id),
+                  key: ValueKey('mobile_${queue[index].id}'),
                   mediaItem: queue[index],
                   index: index,
                   playerCubit: widget.playerCubit,
