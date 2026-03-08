@@ -7,6 +7,7 @@
 /// before [runApp] so that registered services are available at widget-tree build time.
 library service_locator;
 
+import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:Bloomee/services/db/dao/plugin_storage_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/plugin/plugin_event_bus.dart';
@@ -31,6 +32,7 @@ class ServiceLocator {
   static late final PluginEventBus pluginEventBus;
   static late final PluginStorageService pluginStorageService;
   static late final PluginStorageDao pluginStorageDao;
+  static late final CacheDAO cacheDAO;
 
   /// Wire up all application dependencies.
   ///
@@ -43,6 +45,9 @@ class ServiceLocator {
 
     // 1. DAO for plugin storage persistence.
     pluginStorageDao = PluginStorageDao(DBProvider.db);
+
+    // 1b. Cache DAO for API response / pre-fetch caching.
+    cacheDAO = CacheDAO(DBProvider.db);
 
     // 2. Event bus (singleton — connect later during plugin init).
     pluginEventBus = PluginEventBus.instance;

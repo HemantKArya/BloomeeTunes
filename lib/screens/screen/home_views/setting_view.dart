@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/appui_setting.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/plugin_defaults_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/storage_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting.dart';
@@ -76,6 +77,18 @@ class SettingsView extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const PlayerSettings(),
+                  ),
+                );
+              }),
+          settingListTile(
+              title: "Plugin Defaults",
+              subtitle: "Discover source, resolver priority.",
+              icon: MingCute.settings_6_fill,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PluginDefaultsSettings(),
                   ),
                 );
               }),

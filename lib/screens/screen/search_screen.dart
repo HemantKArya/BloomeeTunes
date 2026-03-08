@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
@@ -71,7 +72,11 @@ class _SearchScreenState extends State<SearchScreen> {
     final pluginState = context.read<PluginBloc>().state;
     final resolvers = pluginState.loadedContentResolvers;
     if (resolvers.isNotEmpty) {
-      _activePluginId = resolvers.first.manifest.id;
+      final persistedId = context.read<SettingsCubit>().state.searchPluginId;
+      final hasPersistedPlugin = persistedId.isNotEmpty &&
+          resolvers.any((p) => p.manifest.id == persistedId);
+      _activePluginId =
+          hasPersistedPlugin ? persistedId : resolvers.first.manifest.id;
       _contentBloc.add(SetActiveContentPlugin(pluginId: _activePluginId!));
     }
 
@@ -563,6 +568,7 @@ class _SearchScreenState extends State<SearchScreen> {
           _activePluginId = id;
           _contentBloc.add(SetActiveContentPlugin(pluginId: id));
         });
+        context.read<SettingsCubit>().setSearchPluginId(id);
         if (_textEditingController.text.isNotEmpty) _triggerSearch();
       },
       child: AnimatedContainer(

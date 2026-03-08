@@ -65,4 +65,12 @@ class SettingKeys {
   /// ID of the content resolver plugin used for home page sections.
   /// Empty string or null = use the first available content resolver.
   static const String homePluginId = "homePluginId";
+
+  /// ID of the content resolver plugin last used for search.
+  /// Empty string = use the first available content resolver.
+  static const String searchPluginId = "searchPluginId";
+
+  /// JSON-encoded list of content resolver plugin IDs in priority order
+  /// for the cross-plugin metadata resolver.
+  static const String resolverPriority = "resolverPriority";
 }

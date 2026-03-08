@@ -145,6 +145,25 @@ class SettingsCubit extends Cubit<SettingsState> {
           .then((value) {
         emit(state.copyWith(homePluginId: value ?? ''));
       }),
+      _settingsRepo
+          .getSettingStr(SettingKeys.searchPluginId, defaultValue: '')
+          .then((value) {
+        emit(state.copyWith(searchPluginId: value ?? ''));
+      }),
+      _settingsRepo
+          .getSettingStr(SettingKeys.resolverPriority, defaultValue: '[]')
+          .then((value) {
+        List<String> priority = const [];
+        if (value != null && value.isNotEmpty) {
+          try {
+            priority = (jsonDecode(value) as List).cast<String>();
+          } catch (e) {
+            log('Failed to decode resolver priority: $e',
+                name: 'SettingsCubit');
+          }
+        }
+        emit(state.copyWith(resolverPriority: priority));
+      }),
     ]);
     emit(state.copyWith(settingsReady: true));
   }
@@ -270,6 +289,17 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setHomePluginId(String pluginId) {
     _settingsRepo.putSettingStr(SettingKeys.homePluginId, pluginId);
     emit(state.copyWith(homePluginId: pluginId));
+  }
+
+  void setSearchPluginId(String pluginId) {
+    _settingsRepo.putSettingStr(SettingKeys.searchPluginId, pluginId);
+    emit(state.copyWith(searchPluginId: pluginId));
+  }
+
+  void setResolverPriority(List<String> priority) {
+    _settingsRepo.putSettingStr(
+        SettingKeys.resolverPriority, jsonEncode(priority));
+    emit(state.copyWith(resolverPriority: priority));
   }
 
   Future<void> resetDownPath() async {

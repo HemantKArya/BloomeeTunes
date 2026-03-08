@@ -28,9 +28,6 @@ class PlaylistView extends StatefulWidget {
 }
 
 class _PlaylistViewState extends State<PlaylistView> {
-  final GlobalKey<SliverAnimatedListState> _listKey =
-      GlobalKey<SliverAnimatedListState>();
-
   final double titleScale = 1.5;
   final double titleFontSize = 16;
 
@@ -113,572 +110,562 @@ class _PlaylistViewState extends State<PlaylistView> {
             final fgColor = colors[0];
             final bgColor = colors[1];
             const double maxExtent = 300;
-            return AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              child: (state is! CurrentPlaylistInitial &&
-                      state.playlist.tracks.isNotEmpty)
-                  ? CustomScrollView(
-                      key: const ValueKey('1'),
-                      physics: const BouncingScrollPhysics(),
-                      primary: true,
-                      slivers: [
-                        SliverAppBar(
-                          leading: IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back,
+            return (state is CurrentPlaylistInitial ||
+                    state is CurrentPlaylistLoading)
+                ? const CustomScrollView(
+                    slivers: [
+                      SliverAppBar(),
+                      SliverFillRemaining(
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    ],
+                  )
+                : state.playlist.tracks.isEmpty
+                    ? const CustomScrollView(
+                        slivers: [
+                          SliverAppBar(),
+                          SliverFillRemaining(
+                            child: Center(
+                              child: SignBoardWidget(
+                                message: "No Songs Yet!",
+                                icon: MingCute.playlist_line,
+                              ),
                             ),
-                            hoverColor: bgColor.withValues(alpha: 0.3),
-                            highlightColor: fgColor.withValues(alpha: 0.6),
-                            color: fgColor,
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStatePropertyAll(
-                                  bgColor.withValues(alpha: 0.1)),
+                          )
+                        ],
+                      )
+                    : CustomScrollView(
+                        key: ValueKey(state.playlist.title),
+                        physics: const BouncingScrollPhysics(),
+                        primary: true,
+                        slivers: [
+                          SliverAppBar(
+                            leading: IconButton(
+                              icon: const Icon(
+                                Icons.arrow_back,
+                              ),
+                              hoverColor: bgColor.withValues(alpha: 0.3),
+                              highlightColor: fgColor.withValues(alpha: 0.6),
+                              color: fgColor,
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(
+                                    bgColor.withValues(alpha: 0.1)),
+                              ),
+                              onPressed: () {
+                                context.pop();
+                              },
                             ),
-                            onPressed: () {
-                              context.pop();
-                            },
-                          ),
-                          backgroundColor: Default_Theme.themeColor,
-                          surfaceTintColor: Default_Theme.themeColor,
-                          expandedHeight: maxExtent,
-                          floating: false,
-                          pinned: true,
-                          centerTitle: false,
-                          flexibleSpace:
-                              LayoutBuilder(builder: (context, constraints) {
-                            final double percentage =
-                                (constraints.maxHeight - kToolbarHeight) /
-                                    (maxExtent - kToolbarHeight);
-                            const double startPadding = 20.0;
-                            const double endPadding = 60.0;
-                            final double horizontalPadding = startPadding +
-                                (endPadding - startPadding) *
-                                    (1.0 - percentage);
-                            final bool isCollapsed = percentage < 0.4;
+                            backgroundColor: Default_Theme.themeColor,
+                            surfaceTintColor: Default_Theme.themeColor,
+                            expandedHeight: maxExtent,
+                            floating: false,
+                            pinned: true,
+                            centerTitle: false,
+                            flexibleSpace:
+                                LayoutBuilder(builder: (context, constraints) {
+                              final double percentage =
+                                  (constraints.maxHeight - kToolbarHeight) /
+                                      (maxExtent - kToolbarHeight);
+                              const double startPadding = 20.0;
+                              const double endPadding = 60.0;
+                              final double horizontalPadding = startPadding +
+                                  (endPadding - startPadding) *
+                                      (1.0 - percentage);
+                              final bool isCollapsed = percentage < 0.4;
 
-                            // Memoised — zero TextPainter allocation after first frame.
-                            final textHeight = _getOrComputeTextHeight(
-                              state.playlist.title,
-                              constraints.maxWidth,
-                            );
-
-                            return FlexibleSpaceBar(
-                              expandedTitleScale: titleScale,
-                              titlePadding: EdgeInsets.only(
-                                  left: horizontalPadding,
-                                  bottom: isCollapsed ? 16 : 10),
-                              title: Text(
+                              // Memoised — zero TextPainter allocation after first frame.
+                              final textHeight = _getOrComputeTextHeight(
                                 state.playlist.title,
-                                maxLines: isCollapsed ? 1 : 3,
-                                style: Default_Theme.secondoryTextStyleMedium
-                                    .merge(
-                                  TextStyle(
-                                    fontSize: titleFontSize,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: fgColor,
+                                constraints.maxWidth,
+                              );
+
+                              return FlexibleSpaceBar(
+                                expandedTitleScale: titleScale,
+                                titlePadding: EdgeInsets.only(
+                                    left: horizontalPadding,
+                                    bottom: isCollapsed ? 16 : 10),
+                                title: Text(
+                                  state.playlist.title,
+                                  maxLines: isCollapsed ? 1 : 3,
+                                  style: Default_Theme.secondoryTextStyleMedium
+                                      .merge(
+                                    TextStyle(
+                                      fontSize: titleFontSize,
+                                      overflow: TextOverflow.ellipsis,
+                                      color: fgColor,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              background: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                return Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    LoadImageCached(
-                                        imageUrl: state.playlist.tracks.first
-                                                .thumbnail.urlLow ??
-                                            state.playlist.tracks.first
-                                                .thumbnail.url,
-                                        fallbackUrl: state.playlist.tracks.first
-                                            .thumbnail.url),
-                                    Positioned(
-                                        child: Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            bgColor.withValues(alpha: 0.0),
-                                            bgColor.withValues(alpha: 1),
-                                          ],
-                                          stops: const [0.5, 1],
+                                background: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                  return Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      LoadImageCached(
+                                          imageUrl: state.playlist.tracks.first
+                                                  .thumbnail.urlLow ??
+                                              state.playlist.tracks.first
+                                                  .thumbnail.url,
+                                          fallbackUrl: state.playlist.tracks
+                                              .first.thumbnail.url),
+                                      Positioned(
+                                          child: Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              bgColor.withValues(alpha: 0.0),
+                                              bgColor.withValues(alpha: 1),
+                                            ],
+                                            stops: const [0.5, 1],
+                                          ),
                                         ),
-                                      ),
-                                    )),
+                                      )),
 
-                                    // Lower portion with blur
-                                    Positioned.fill(
-                                      top: MediaQuery.of(context).size.height *
-                                          0.6, // Adjust this position as needed
-                                      child: BackdropFilter(
-                                        filter: ImageFilter.blur(
-                                            sigmaX: 30, sigmaY: 30),
-                                        child: Container(
-                                          color: Colors.black.withValues(
-                                              alpha:
-                                                  0), // Keep the container color transparent
+                                      // Lower portion with blur
+                                      Positioned.fill(
+                                        top: MediaQuery.of(context)
+                                                .size
+                                                .height *
+                                            0.6, // Adjust this position as needed
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(
+                                              sigmaX: 30, sigmaY: 30),
+                                          child: Container(
+                                            color: Colors.black.withValues(
+                                                alpha:
+                                                    0), // Keep the container color transparent
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    Positioned.fill(
-                                      top: 10,
-                                      child: Align(
-                                        alignment: Alignment.topCenter,
-                                        child: SizedBox(
-                                          height: constraints.maxHeight -
-                                              (textHeight + 30),
-                                          child: FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(
-                                                  left: 80, right: 80),
-                                              child: Container(
-                                                // shadow effect
-                                                decoration: BoxDecoration(
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: bgColor.withValues(
-                                                          alpha: 0.2),
-                                                      spreadRadius: 5,
-                                                      blurRadius: 7,
-                                                      offset: const Offset(0,
-                                                          3), // changes position of shadow
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: LoadImageCached(
-                                                  imageUrl: state
-                                                          .playlist
-                                                          .tracks
-                                                          .first
-                                                          .thumbnail
-                                                          .urlHigh ??
-                                                      state.playlist.tracks
-                                                          .first.thumbnail.url,
+                                      Positioned.fill(
+                                        top: 10,
+                                        child: Align(
+                                          alignment: Alignment.topCenter,
+                                          child: SizedBox(
+                                            height: constraints.maxHeight -
+                                                (textHeight + 30),
+                                            child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 80, right: 80),
+                                                child: Container(
+                                                  // shadow effect
+                                                  decoration: BoxDecoration(
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color:
+                                                            bgColor.withValues(
+                                                                alpha: 0.2),
+                                                        spreadRadius: 5,
+                                                        blurRadius: 7,
+                                                        offset: const Offset(0,
+                                                            3), // changes position of shadow
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: LoadImageCached(
+                                                    imageUrl: state
+                                                            .playlist
+                                                            .tracks
+                                                            .first
+                                                            .thumbnail
+                                                            .urlHigh ??
+                                                        state
+                                                            .playlist
+                                                            .tracks
+                                                            .first
+                                                            .thumbnail
+                                                            .url,
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
+                                      Positioned(
+                                          right: 8,
+                                          top: 8,
+                                          child: IconButton(
+                                            icon: const Icon(
+                                              MingCute.information_line,
+                                            ),
+                                            hoverColor:
+                                                bgColor.withValues(alpha: 0.2),
+                                            color: fgColor,
+                                            style: ButtonStyle(
+                                              backgroundColor:
+                                                  WidgetStatePropertyAll(bgColor
+                                                      .withValues(alpha: 0.05)),
+                                            ),
+                                            onPressed: () {
+                                              // dialog to show all infromation about the playlist (playlist name, source, description, original link, type, etc  )
+                                              showPlaylistInfo(context, state,
+                                                  fgColor: fgColor,
+                                                  bgColor: bgColor);
+                                            },
+                                          )),
+                                      // blur fade effect bottom edge
+                                    ],
+                                  );
+                                }),
+                              );
+                            }),
+                          ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 12,
+                                bottom: 12,
+                                left: 20,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                "${(state.playlist.type == PlaylistType.album) ? 'Album' : 'Playlist'} • ${state.playlist.tracks.length} Songs",
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: Default_Theme
+                                                    .secondoryTextStyle
+                                                    .merge(TextStyle(
+                                                  color: Default_Theme
+                                                      .primaryColor1
+                                                      .withValues(alpha: 0.9),
+                                                  fontSize: 12,
+                                                )),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'by ${state.playlist.artists?.map((a) => a.name).join(', ') ?? 'You'}',
+                                          style: Default_Theme
+                                              .secondoryTextStyle
+                                              .merge(TextStyle(
+                                            color: Default_Theme.primaryColor1
+                                                .withValues(alpha: 0.8),
+                                            fontSize: 12,
+                                          )),
+                                        ),
+                                      ],
                                     ),
-                                    Positioned(
-                                        right: 8,
-                                        top: 8,
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            MingCute.information_line,
+                                  ),
+                                  OverflowBar(
+                                    spacing: 0,
+                                    overflowAlignment: OverflowBarAlignment.end,
+                                    children: [
+                                      Builder(builder: (ctx) {
+                                        final downloaded = ctx
+                                            .watch<DownloaderCubit>()
+                                            .state
+                                            .downloaded;
+                                        final allDownloaded = state
+                                                .playlist.tracks.isNotEmpty &&
+                                            state.playlist.tracks.every((s) =>
+                                                downloaded
+                                                    .any((d) => d.id == s.id));
+
+                                        if (allDownloaded) {
+                                          return Tooltip(
+                                            message: 'Available Offline',
+                                            child: Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: bgColor.withValues(
+                                                    alpha: 0.08),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(
+                                                Icons.offline_pin_rounded,
+                                                size: 22,
+                                                color: fgColor.withValues(
+                                                    alpha: 0.85),
+                                              ),
+                                            ),
+                                          );
+                                        }
+
+                                        return IconButton(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              6, 2, 6, 2),
+                                          constraints: const BoxConstraints(
+                                              minWidth: 36, minHeight: 36),
+                                          tooltip: 'Download playlist',
+                                          icon: Icon(
+                                            MingCute.download_2_fill,
+                                            size: 20,
+                                            color:
+                                                fgColor.withValues(alpha: 0.9),
                                           ),
-                                          hoverColor:
-                                              bgColor.withValues(alpha: 0.2),
-                                          color: fgColor,
                                           style: ButtonStyle(
                                             backgroundColor:
-                                                WidgetStatePropertyAll(bgColor
-                                                    .withValues(alpha: 0.05)),
-                                          ),
-                                          onPressed: () {
-                                            // dialog to show all infromation about the playlist (playlist name, source, description, original link, type, etc  )
-                                            showPlaylistInfo(context, state,
-                                                fgColor: fgColor,
-                                                bgColor: bgColor);
-                                          },
-                                        )),
-                                    // blur fade effect bottom edge
-                                  ],
-                                );
-                              }),
-                            );
-                          }),
-                        ),
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 12,
-                              bottom: 12,
-                              left: 20,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              "${(state.playlist.type == PlaylistType.album) ? 'Album' : 'Playlist'} • ${state.playlist.tracks.length} Songs",
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: Default_Theme
-                                                  .secondoryTextStyle
-                                                  .merge(TextStyle(
-                                                color: Default_Theme
-                                                    .primaryColor1
-                                                    .withValues(alpha: 0.9),
-                                                fontSize: 12,
-                                              )),
+                                                MaterialStatePropertyAll(bgColor
+                                                    .withValues(alpha: 0.06)),
+                                            shape: MaterialStatePropertyAll(
+                                              RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8)),
                                             ),
                                           ),
-                                        ],
+                                          onPressed: () async {
+                                            final items = state.playlist.tracks;
+                                            final count = items.length;
+                                            final confirmed =
+                                                await showDialog<bool>(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                backgroundColor:
+                                                    Default_Theme.themeColor,
+                                                title: const Text(
+                                                    'Download playlist'),
+                                                content: Text(
+                                                    'Do you want to download $count songs from "${state.playlist.title}"? This will add them to the download queue.'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, false),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor:
+                                                          Default_Theme
+                                                              .accentColor2,
+                                                      foregroundColor:
+                                                          Default_Theme
+                                                              .primaryColor2,
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 14,
+                                                        vertical: 10,
+                                                      ),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(18),
+                                                      ),
+                                                      elevation: 0,
+                                                    ),
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, true),
+                                                    child: const Text(
+                                                        'Download All'),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            if (confirmed == true) {
+                                              // Show a progress dialog and enqueue items slowly
+                                              await _showAddToDownloadProgress(
+                                                  context, items);
+                                              SnackbarService.showMessage(
+                                                  'Added $count songs to download queue');
+                                            }
+                                          },
+                                        );
+                                      }),
+                                      // --- END: DOWNLOAD / DOWNLOADED INDICATOR ---
+                                      Tooltip(
+                                        message: 'Shuffle',
+                                        child: IconButton(
+                                            onPressed: () {
+                                              context
+                                                  .read<BloomeePlayerCubit>()
+                                                  .bloomeePlayer
+                                                  .loadPlaylist(
+                                                      Playlist(
+                                                          tracks: state
+                                                              .playlist.tracks,
+                                                          title: state
+                                                              .playlist.title),
+                                                      doPlay: true,
+                                                      shuffling: true);
+                                            },
+                                            padding: EdgeInsets.zero,
+                                            icon: Icon(MingCute.shuffle_line,
+                                                color: Default_Theme
+                                                    .primaryColor1
+                                                    .withValues(alpha: 0.8))),
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'by ${state.playlist.artists?.map((a) => a.name).join(', ') ?? 'You'}',
-                                        style: Default_Theme.secondoryTextStyle
-                                            .merge(TextStyle(
-                                          color: Default_Theme.primaryColor1
-                                              .withValues(alpha: 0.8),
-                                          fontSize: 12,
-                                        )),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            right: 2, left: 5),
+                                        child: BlocBuilder<CurrentPlaylistCubit,
+                                            CurrentPlaylistState>(
+                                          builder: (context, state) {
+                                            return StreamBuilder<String>(
+                                                stream: context
+                                                    .watch<BloomeePlayerCubit>()
+                                                    .bloomeePlayer
+                                                    .queueTitle,
+                                                builder: (context, snapshot) {
+                                                  if (snapshot.hasData &&
+                                                      snapshot.data ==
+                                                          state
+                                                              .playlist.title) {
+                                                    return StreamBuilder<bool>(
+                                                        stream: context
+                                                            .read<
+                                                                BloomeePlayerCubit>()
+                                                            .bloomeePlayer
+                                                            .engine
+                                                            .playingStream,
+                                                        builder: (context,
+                                                            snapshot2) {
+                                                          if (snapshot2
+                                                                  .hasData &&
+                                                              (snapshot2.data ??
+                                                                  false)) {
+                                                            return PlayPauseButton(
+                                                              onPause: () => context
+                                                                  .read<
+                                                                      BloomeePlayerCubit>()
+                                                                  .bloomeePlayer
+                                                                  .pause(),
+                                                              onPlay: () => context
+                                                                  .read<
+                                                                      BloomeePlayerCubit>()
+                                                                  .bloomeePlayer
+                                                                  .play(),
+                                                              isPlaying: true,
+                                                              size: 40,
+                                                            );
+                                                          } else {
+                                                            return PlayPauseButton(
+                                                              onPause: () => context
+                                                                  .read<
+                                                                      BloomeePlayerCubit>()
+                                                                  .bloomeePlayer
+                                                                  .pause(),
+                                                              onPlay: () => context
+                                                                  .read<
+                                                                      BloomeePlayerCubit>()
+                                                                  .bloomeePlayer
+                                                                  .play(),
+                                                              isPlaying: false,
+                                                              size: 40,
+                                                            );
+                                                          }
+                                                        });
+                                                  } else {
+                                                    return PlayPauseButton(
+                                                      onPause: () => context
+                                                          .read<
+                                                              BloomeePlayerCubit>()
+                                                          .bloomeePlayer
+                                                          .pause(),
+                                                      onPlay: () {
+                                                        context
+                                                            .read<
+                                                                BloomeePlayerCubit>()
+                                                            .bloomeePlayer
+                                                            .loadPlaylist(
+                                                                Playlist(
+                                                                    tracks: state
+                                                                        .playlist
+                                                                        .tracks,
+                                                                    title: state
+                                                                        .playlist
+                                                                        .title),
+                                                                doPlay: true);
+                                                      },
+                                                      size: 40,
+                                                    );
+                                                  }
+                                                });
+                                          },
+                                        ),
+                                      ),
+                                      Tooltip(
+                                        message: 'More Options',
+                                        child: IconButton(
+                                            onPressed: () {
+                                              showPlaylistOptsInrSheet(
+                                                  context, state.playlist);
+                                            },
+                                            icon: Icon(MingCute.more_2_line,
+                                                color: Default_Theme
+                                                    .primaryColor1
+                                                    .withValues(alpha: 0.8))),
                                       ),
                                     ],
                                   ),
-                                ),
-                                OverflowBar(
-                                  spacing: 0,
-                                  overflowAlignment: OverflowBarAlignment.end,
-                                  children: [
-                                    Builder(builder: (ctx) {
-                                      final downloaded = ctx
-                                          .watch<DownloaderCubit>()
-                                          .state
-                                          .downloaded;
-                                      final allDownloaded = state
-                                              .playlist.tracks.isNotEmpty &&
-                                          state.playlist.tracks.every((s) =>
-                                              downloaded
-                                                  .any((d) => d.id == s.id));
-
-                                      if (allDownloaded) {
-                                        return Tooltip(
-                                          message: 'Available Offline',
-                                          child: Container(
-                                            padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: bgColor.withValues(
-                                                  alpha: 0.08),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Icon(
-                                              Icons.offline_pin_rounded,
-                                              size: 22,
-                                              color: fgColor.withValues(
-                                                  alpha: 0.85),
-                                            ),
-                                          ),
-                                        );
-                                      }
-
-                                      return IconButton(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            6, 2, 6, 2),
-                                        constraints: const BoxConstraints(
-                                            minWidth: 36, minHeight: 36),
-                                        tooltip: 'Download playlist',
-                                        icon: Icon(
-                                          MingCute.download_2_fill,
-                                          size: 20,
-                                          color: fgColor.withValues(alpha: 0.9),
-                                        ),
-                                        style: ButtonStyle(
-                                          backgroundColor:
-                                              MaterialStatePropertyAll(bgColor
-                                                  .withValues(alpha: 0.06)),
-                                          shape: MaterialStatePropertyAll(
-                                            RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8)),
-                                          ),
-                                        ),
-                                        onPressed: () async {
-                                          final items = state.playlist.tracks;
-                                          final count = items.length;
-                                          final confirmed =
-                                              await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              backgroundColor:
-                                                  Default_Theme.themeColor,
-                                              title: const Text(
-                                                  'Download playlist'),
-                                              content: Text(
-                                                  'Do you want to download $count songs from "${state.playlist.title}"? This will add them to the download queue.'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                          context, false),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                ElevatedButton(
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        Default_Theme
-                                                            .accentColor2,
-                                                    foregroundColor:
-                                                        Default_Theme
-                                                            .primaryColor2,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 14,
-                                                      vertical: 10,
-                                                    ),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              18),
-                                                    ),
-                                                    elevation: 0,
-                                                  ),
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                          context, true),
-                                                  child: const Text(
-                                                      'Download All'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                          if (confirmed == true) {
-                                            // Show a progress dialog and enqueue items slowly
-                                            await _showAddToDownloadProgress(
-                                                context, items);
-                                            SnackbarService.showMessage(
-                                                'Added $count songs to download queue');
-                                          }
-                                        },
-                                      );
-                                    }),
-                                    // --- END: DOWNLOAD / DOWNLOADED INDICATOR ---
-                                    Tooltip(
-                                      message: 'Shuffle',
-                                      child: IconButton(
-                                          onPressed: () {
-                                            context
-                                                .read<BloomeePlayerCubit>()
-                                                .bloomeePlayer
-                                                .loadPlaylist(
-                                                    Playlist(
-                                                        tracks: state
-                                                            .playlist.tracks,
-                                                        title: state
-                                                            .playlist.title),
-                                                    doPlay: true,
-                                                    shuffling: true);
-                                          },
-                                          padding: EdgeInsets.zero,
-                                          icon: Icon(MingCute.shuffle_line,
-                                              color: Default_Theme.primaryColor1
-                                                  .withValues(alpha: 0.8))),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          right: 2, left: 5),
-                                      child: BlocBuilder<CurrentPlaylistCubit,
-                                          CurrentPlaylistState>(
-                                        builder: (context, state) {
-                                          return StreamBuilder<String>(
-                                              stream: context
-                                                  .watch<BloomeePlayerCubit>()
-                                                  .bloomeePlayer
-                                                  .queueTitle,
-                                              builder: (context, snapshot) {
-                                                if (snapshot.hasData &&
-                                                    snapshot.data ==
-                                                        state.playlist.title) {
-                                                  return StreamBuilder<bool>(
-                                                      stream: context
-                                                          .read<
-                                                              BloomeePlayerCubit>()
-                                                          .bloomeePlayer
-                                                          .engine
-                                                          .playingStream,
-                                                      builder:
-                                                          (context, snapshot2) {
-                                                        if (snapshot2.hasData &&
-                                                            (snapshot2.data ??
-                                                                false)) {
-                                                          return PlayPauseButton(
-                                                            onPause: () => context
-                                                                .read<
-                                                                    BloomeePlayerCubit>()
-                                                                .bloomeePlayer
-                                                                .pause(),
-                                                            onPlay: () => context
-                                                                .read<
-                                                                    BloomeePlayerCubit>()
-                                                                .bloomeePlayer
-                                                                .play(),
-                                                            isPlaying: true,
-                                                            size: 40,
-                                                          );
-                                                        } else {
-                                                          return PlayPauseButton(
-                                                            onPause: () => context
-                                                                .read<
-                                                                    BloomeePlayerCubit>()
-                                                                .bloomeePlayer
-                                                                .pause(),
-                                                            onPlay: () => context
-                                                                .read<
-                                                                    BloomeePlayerCubit>()
-                                                                .bloomeePlayer
-                                                                .play(),
-                                                            isPlaying: false,
-                                                            size: 40,
-                                                          );
-                                                        }
-                                                      });
-                                                } else {
-                                                  return PlayPauseButton(
-                                                    onPause: () => context
-                                                        .read<
-                                                            BloomeePlayerCubit>()
-                                                        .bloomeePlayer
-                                                        .pause(),
-                                                    onPlay: () {
-                                                      context
-                                                          .read<
-                                                              BloomeePlayerCubit>()
-                                                          .bloomeePlayer
-                                                          .loadPlaylist(
-                                                              Playlist(
-                                                                  tracks: state
-                                                                      .playlist
-                                                                      .tracks,
-                                                                  title: state
-                                                                      .playlist
-                                                                      .title),
-                                                              doPlay: true);
-                                                    },
-                                                    size: 40,
-                                                  );
-                                                }
-                                              });
-                                        },
-                                      ),
-                                    ),
-                                    Tooltip(
-                                      message: 'More Options',
-                                      child: IconButton(
-                                          onPressed: () {
-                                            showPlaylistOptsInrSheet(
-                                                context, state.playlist);
-                                          },
-                                          icon: Icon(MingCute.more_2_line,
-                                              color: Default_Theme.primaryColor1
-                                                  .withValues(alpha: 0.8))),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        SliverAnimatedList(
-                          key: _listKey,
-                          initialItemCount: state.playlist.tracks.length,
-                          itemBuilder: (context, index, animation) {
-                            if (index >= state.playlist.tracks.length) {
-                              return const SizedBox.shrink();
-                            }
-                            final track = state.playlist.tracks[index];
-                            return SizeTransition(
-                              sizeFactor: animation,
-                              child: SongCardWidget(
-                                key: ValueKey(track.id),
-                                song: track,
-                                onTap: () {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .bloomeePlayer
-                                      .loadPlaylist(
-                                          Playlist(
-                                              tracks: state.playlist.tracks,
-                                              title: state.playlist.title),
-                                          idx: index,
-                                          doPlay: true);
-                                },
-                                onOptionsTap: () {
-                                  showMoreBottomSheet(
-                                    context,
-                                    track,
-                                    onDelete: () {
-                                      _animatedRemoveTrack(
-                                          context, track, index);
-                                    },
-                                    showDelete: true,
-                                    showSinglePlay: true,
-                                  );
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    )
-                  : ((state is CurrentPlaylistInitial ||
-                          state is CurrentPlaylistLoading)
-                      ? const CustomScrollView(
-                          key: ValueKey('2'),
-                          slivers: [
-                            SliverAppBar(),
-                            SliverFillRemaining(
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                          ],
-                        )
-                      : const CustomScrollView(
-                          key: ValueKey('3'),
-                          slivers: [
-                            SliverAppBar(),
-                            SliverFillRemaining(
-                              child: Center(
-                                child: SignBoardWidget(
-                                  message: "No Songs Yet!",
-                                  icon: MingCute.playlist_line,
-                                ),
-                              ),
-                            )
-                          ],
-                        )),
-            );
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                if (index >= state.playlist.tracks.length) {
+                                  return null;
+                                }
+                                final track = state.playlist.tracks[index];
+                                return SongCardWidget(
+                                  key: ValueKey(track.id),
+                                  song: track,
+                                  onTap: () {
+                                    context
+                                        .read<BloomeePlayerCubit>()
+                                        .bloomeePlayer
+                                        .loadPlaylist(
+                                            Playlist(
+                                                tracks: state.playlist.tracks,
+                                                title: state.playlist.title),
+                                            idx: index,
+                                            doPlay: true);
+                                  },
+                                  onOptionsTap: () {
+                                    showMoreBottomSheet(
+                                      context,
+                                      track,
+                                      onDelete: () {
+                                        _removeTrack(context, track);
+                                      },
+                                      showDelete: true,
+                                      showSinglePlay: true,
+                                    );
+                                  },
+                                );
+                              },
+                              childCount: state.playlist.tracks.length,
+                            ),
+                          ),
+                        ],
+                      );
           },
         ),
       ),
     );
   }
 
-  void _animatedRemoveTrack(BuildContext context, Track track, int index) {
+  void _removeTrack(BuildContext context, Track track) {
     final cubit = context.read<CurrentPlaylistCubit>();
     final playlistTitle = cubit.state.playlist.title;
-
-    // Animate removal from the list
-    _listKey.currentState?.removeItem(
-      index,
-      (context, animation) => SizeTransition(
-        sizeFactor: animation,
-        child: FadeTransition(
-          opacity: animation,
-          child: SongCardWidget(song: track, showOptions: false),
-        ),
-      ),
-      duration: const Duration(milliseconds: 300),
-    );
-
-    // Optimistically remove from cubit state + persist
     cubit.removeTrack(track);
     SnackbarService.showMessage('${track.title} removed from $playlistTitle');
   }

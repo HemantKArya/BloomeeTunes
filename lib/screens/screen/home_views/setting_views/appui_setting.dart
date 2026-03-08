@@ -4,7 +4,7 @@ import 'package:Bloomee/plugins/blocs/chart/chart_bloc.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_event.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_state.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
-import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
+
 import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -26,7 +26,9 @@ class _AppUISettingsState extends State<AppUISettings> {
   @override
   void initState() {
     super.initState();
-    _chartBloc = ChartBloc(pluginService: ServiceLocator.pluginService);
+    _chartBloc = ChartBloc(
+      pluginService: ServiceLocator.pluginService,
+    );
     _loadCharts();
   }
 
@@ -112,80 +114,6 @@ class _AppUISettingsState extends State<AppUISettings> {
                     },
                   ),
                 ],
-              ),
-              const SizedBox(height: 28),
-              const SettingSectionHeader(label: 'Discover Source'),
-              BlocBuilder<PluginBloc, PluginState>(
-                builder: (context, pluginState) {
-                  final resolvers = pluginState.loadedContentResolvers;
-                  final hasStoredSelection = state.homePluginId.isNotEmpty &&
-                      resolvers.any(
-                          (plugin) => plugin.manifest.id == state.homePluginId);
-                  final selectedPluginId =
-                      hasStoredSelection ? state.homePluginId : '';
-
-                  if (resolvers.isEmpty) {
-                    return SettingCard(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          child: Row(
-                            children: [
-                              const SettingIconBox(
-                                  icon: MingCute.plugin_2_line),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Text(
-                                  'No content resolver loaded. Load a plugin to choose a Discover source.',
-                                  style: TextStyle(
-                                    color: Default_Theme.primaryColor2
-                                        .withValues(alpha: 0.5),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w400,
-                                  ).merge(Default_Theme.secondoryTextStyle),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-
-                  return SettingCard(
-                    children: [
-                      SettingRadioTile<String>(
-                        title: 'Automatic',
-                        subtitle: 'Use the first available content resolver.',
-                        value: '',
-                        groupValue: selectedPluginId,
-                        onChanged: (_) {
-                          context.read<SettingsCubit>().setHomePluginId('');
-                        },
-                      ),
-                      ...resolvers.map((plugin) {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SettingDivider(),
-                            SettingRadioTile<String>(
-                              title: plugin.name,
-                              subtitle: plugin.manifest.id,
-                              value: plugin.manifest.id,
-                              groupValue: selectedPluginId,
-                              onChanged: (_) {
-                                context
-                                    .read<SettingsCubit>()
-                                    .setHomePluginId(plugin.manifest.id);
-                              },
-                            ),
-                          ],
-                        );
-                      }),
-                    ],
-                  );
-                },
               ),
               const SizedBox(height: 28),
               const SettingSectionHeader(label: 'Chart Visibility'),

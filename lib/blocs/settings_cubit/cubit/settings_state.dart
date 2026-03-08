@@ -23,6 +23,8 @@ class SettingsState extends Equatable {
   final List<double> eqBandGains; // 10 gains, -12..+12 dB
   final String eqPreset;
   final String homePluginId; // content resolver plugin for home sections
+  final String searchPluginId; // persisted search plugin selection
+  final List<String> resolverPriority; // content resolver priority order
   const SettingsState({
     required this.settingsReady,
     required this.autoUpdateNotify,
@@ -45,6 +47,8 @@ class SettingsState extends Equatable {
     required this.eqBandGains,
     required this.eqPreset,
     required this.homePluginId,
+    required this.searchPluginId,
+    required this.resolverPriority,
   });
 
   SettingsState copyWith({
@@ -69,6 +73,8 @@ class SettingsState extends Equatable {
     List<double>? eqBandGains,
     String? eqPreset,
     String? homePluginId,
+    String? searchPluginId,
+    List<String>? resolverPriority,
   }) {
     return SettingsState(
       settingsReady: settingsReady ?? this.settingsReady,
@@ -94,6 +100,10 @@ class SettingsState extends Equatable {
           : List<double>.from(this.eqBandGains),
       eqPreset: eqPreset ?? this.eqPreset,
       homePluginId: homePluginId ?? this.homePluginId,
+      searchPluginId: searchPluginId ?? this.searchPluginId,
+      resolverPriority: resolverPriority != null
+          ? List<String>.from(resolverPriority)
+          : List<String>.from(this.resolverPriority),
     );
   }
 
@@ -120,6 +130,8 @@ class SettingsState extends Equatable {
         eqBandGains,
         eqPreset,
         homePluginId,
+        searchPluginId,
+        resolverPriority,
       ];
 }
 
@@ -147,5 +159,7 @@ class SettingsInitial extends SettingsState {
           eqBandGains: List<double>.filled(10, 0.0),
           eqPreset: 'Flat',
           homePluginId: '',
+          searchPluginId: '',
+          resolverPriority: const [],
         );
 }

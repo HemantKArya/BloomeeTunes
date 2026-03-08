@@ -25,19 +25,26 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
         super(const CurrentPlaylistInitial());
 
   /// Load a playlist by [playlistName] and emit the loaded state.
+  ///
+  /// Emits playlist data immediately, then generates the palette in the
+  /// background and emits again so the UI can render content before the
+  /// palette is ready.
   Future<void> setupPlaylist(String playlistName) async {
     emit(const CurrentPlaylistLoading());
     _playlist = await _playlistDao.loadPlaylist(playlistName);
 
-    if (_playlist != null && _playlist!.tracks.isNotEmpty) {
-      _paletteGenerator =
-          await getPalleteFromImage(_playlist!.tracks.first.thumbnail.url);
-    }
-
+    // Emit data immediately so the list is visible while palette loads.
     emit(state.copyWith(
       isFetched: true,
       playlist: _playlist,
     ));
+
+    // Generate palette in the background, then re-emit.
+    if (_playlist != null && _playlist!.tracks.isNotEmpty) {
+      _paletteGenerator =
+          await getPalleteFromImage(_playlist!.tracks.first.thumbnail.url);
+      emit(state.copyWith(playlist: _playlist));
+    }
   }
 
   /// Optimistically removes a track from the playlist and persists to DB.
