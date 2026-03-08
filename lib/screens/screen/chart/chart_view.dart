@@ -7,6 +7,7 @@ import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_bloc.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_event.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_state.dart';
@@ -151,8 +152,15 @@ class _ChartScreenBodyState extends State<_ChartScreenBody> {
     bool fallbackOnFailure = true,
   }) async {
     final pluginState = context.read<PluginBloc>().state;
-    final resolverIds =
-        pluginState.loadedContentResolvers.map((p) => p.manifest.id);
+    final priority = context.read<SettingsCubit>().state.resolverPriority;
+    final allIds =
+        pluginState.loadedContentResolvers.map((p) => p.manifest.id).toList();
+    // Priority-listed IDs come first (in user-defined order);
+    // any loaded resolver not in the list is appended at the end.
+    final resolverIds = [
+      ...priority.where(allIds.contains),
+      ...allIds.where((id) => !priority.contains(id)),
+    ];
 
     if (resolverIds.isEmpty) {
       SnackbarService.showMessage(noResolverMessage);
