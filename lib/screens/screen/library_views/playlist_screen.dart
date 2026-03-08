@@ -419,9 +419,9 @@ class _PlaylistViewState extends State<PlaylistView> {
                                           ),
                                           style: ButtonStyle(
                                             backgroundColor:
-                                                MaterialStatePropertyAll(bgColor
+                                                WidgetStatePropertyAll(bgColor
                                                     .withValues(alpha: 0.06)),
-                                            shape: MaterialStatePropertyAll(
+                                            shape: WidgetStatePropertyAll(
                                               RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(8)),
@@ -737,7 +737,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${completed}/${items.length} ${completed == 1 ? 'item' : 'items'}',
+                    '$completed/${items.length} ${completed == 1 ? 'item' : 'items'}',
                     style: Default_Theme.secondoryTextStyle,
                   ),
                   const SizedBox(height: 12),
