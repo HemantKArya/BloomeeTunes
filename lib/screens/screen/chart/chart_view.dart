@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:ui';
 
@@ -48,6 +47,7 @@ class ChartScreen extends StatelessWidget {
       child: _ChartScreenBody(
         chartTitle: chartTitle,
         pluginId: pluginId,
+        chartId: chartId,
       ),
     );
   }
@@ -68,10 +68,12 @@ String chartItemActionIdentity(ChartItem chartItem) {
 class _ChartScreenBody extends StatefulWidget {
   final String chartTitle;
   final String pluginId;
+  final String chartId;
 
   const _ChartScreenBody({
     required this.chartTitle,
     required this.pluginId,
+    required this.chartId,
   });
 
   @override
@@ -292,6 +294,54 @@ class _ChartScreenBodyState extends State<_ChartScreenBody> {
             ),
           ),
         ),
+        actions: [
+          BlocBuilder<ChartBloc, ChartState>(
+            builder: (context, chartState) {
+              final isLoading =
+                  chartState.chartDetailStatus == ChartStatus.loading;
+              return Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: Center(
+                  child: IconButton(
+                    onPressed: isLoading
+                        ? null
+                        : () => context.read<ChartBloc>().add(
+                              ForceRefreshChartDetails(
+                                pluginId: widget.pluginId,
+                                chartId: widget.chartId,
+                              ),
+                            ),
+                    icon: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Default_Theme.themeColor.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Default_Theme.primaryColor1,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.refresh_rounded,
+                              color: Default_Theme.primaryColor1,
+                              size: 20,
+                            ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: BlocBuilder<ChartBloc, ChartState>(
         builder: (context, state) {

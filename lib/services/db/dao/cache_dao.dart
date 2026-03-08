@@ -94,6 +94,29 @@ class CacheDAO {
     log('Cleared all cache', name: 'CacheDAO');
   }
 
+  /// Write multiple cache entries in a single Isar transaction.
+  ///
+  /// More efficient than calling [putCache] in a loop when caching several
+  /// charts at once (e.g. background prefetch).
+  ///
+  /// If a key already exists it is replaced (Isar unique-replace semantics).
+  Future<void> putCacheBatch(
+    Map<String, ({String value, Duration? ttl})> entries,
+  ) async {
+    if (entries.isEmpty) return;
+    final isar = await _db;
+    final now = DateTime.now();
+    final objects = entries.entries
+        .map((e) => CacheEntryDB(
+              key: e.key,
+              value: e.value.value,
+              lastUpdated: now,
+              ttl: e.value.ttl != null ? now.add(e.value.ttl!) : null,
+            ))
+        .toList();
+    await isar.writeTxn(() => isar.cacheEntryDBs.putAll(objects));
+  }
+
   // ── API tokens (AppSettingsStrDB) ─────────────────────────────────────────
 
   /// Store an API token for [apiName] with its expiry in seconds.

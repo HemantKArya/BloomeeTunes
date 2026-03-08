@@ -4,13 +4,16 @@ import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
+import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/core/events/global_event_bus.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/plugins/blocs/content/content_event.dart';
 import 'package:Bloomee/plugins/blocs/content/content_state.dart';
 import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
+import 'package:Bloomee/services/cache/plugin_cache_repository.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/plugins/utils/media_id.dart';
+import 'package:Bloomee/services/plugin_cache_codec.dart';
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 
 /// Handles content resolution: search, album/artist/playlist details,
@@ -22,6 +25,7 @@ import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 /// to cancel in-flight requests when the user types a new query.
 class ContentBloc extends Bloc<ContentEvent, ContentState> {
   final PluginService _pluginService;
+  final PluginCacheRepository _cache = ServiceLocator.pluginCache;
 
   ContentBloc({
     required PluginService pluginService,
@@ -592,7 +596,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
     }
   }
 
-  // ── Home Sections ──────────────────────────────────────────────────────────
+  // ── Home Sections (stale-while-revalidate) ─────────────────────────────────
 
   Future<void> _onGetHomeSections(
     GetHomeSections event,
@@ -612,6 +616,29 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
       clearError: true,
     ));
 
+    final cacheKey = 'home_sections::$pluginId';
+    bool hasCache = false;
+
+    if (!event.bypassCache) {
+      final cached = await _cache.getCachedWithStaleness<List<Section>>(
+        key: cacheKey,
+        type: CacheType.sections,
+        decode: decodeSectionsCacheAsync,
+        stalenessThreshold: const Duration(hours: 2),
+      );
+
+      hasCache = cached.value != null;
+      if (hasCache) {
+        emit(state.copyWith(
+          homeSectionsStatus: DetailStatus.loaded,
+          homeSections: cached.value,
+          activePluginId: pluginId,
+        ));
+        if (!cached.isStale) return;
+        // Stale — continue to background network refresh.
+      }
+    }
+
     try {
       final response = await _pluginService.execute(
         pluginId: pluginId,
@@ -620,6 +647,10 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         ),
       );
 
+      void unexpectedFn() {
+        if (!hasCache) _unexpectedResponse(emit, 'homeSections');
+      }
+
       response.when(
         homeSections: (sections) {
           emit(state.copyWith(
@@ -627,28 +658,41 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             homeSections: sections,
             activePluginId: pluginId,
           ));
+          _cache.put(
+            key: cacheKey,
+            value: sections,
+            type: CacheType.sections,
+            blob: encodeSectionsCache(sections),
+          );
         },
-        search: (_) => _unexpectedResponse(emit, 'homeSections'),
-        albumDetails: (_) => _unexpectedResponse(emit, 'homeSections'),
-        artistDetails: (_) => _unexpectedResponse(emit, 'homeSections'),
-        playlistDetails: (_) => _unexpectedResponse(emit, 'homeSections'),
-        streams: (_) => _unexpectedResponse(emit, 'homeSections'),
-        moreTracks: (_) => _unexpectedResponse(emit, 'homeSections'),
-        moreAlbums: (_) => _unexpectedResponse(emit, 'homeSections'),
-        loadMoreItems: (_) => _unexpectedResponse(emit, 'homeSections'),
-        charts: (_) => _unexpectedResponse(emit, 'homeSections'),
-        chartDetails: (_) => _unexpectedResponse(emit, 'homeSections'),
-        ack: () => _unexpectedResponse(emit, 'homeSections'),
+        search: (_) => unexpectedFn(),
+        albumDetails: (_) => unexpectedFn(),
+        artistDetails: (_) => unexpectedFn(),
+        playlistDetails: (_) => unexpectedFn(),
+        streams: (_) => unexpectedFn(),
+        moreTracks: (_) => unexpectedFn(),
+        moreAlbums: (_) => unexpectedFn(),
+        loadMoreItems: (_) => unexpectedFn(),
+        charts: (_) => unexpectedFn(),
+        chartDetails: (_) => unexpectedFn(),
+        ack: () => unexpectedFn(),
       );
     } on PluginException catch (e) {
-      _handlePluginError(emit, e, null, homeSectionsStatus: DetailStatus.error);
+      if (!hasCache) {
+        _handlePluginError(emit, e, null,
+            homeSectionsStatus: DetailStatus.error);
+      } else {
+        log('Background home sections refresh failed: $e', name: 'ContentBloc');
+      }
     } catch (e, stack) {
       log('Home sections error',
           error: e, stackTrace: stack, name: 'ContentBloc');
-      emit(state.copyWith(
-        homeSectionsStatus: DetailStatus.error,
-        error: 'Failed to load home sections: $e',
-      ));
+      if (!hasCache) {
+        emit(state.copyWith(
+          homeSectionsStatus: DetailStatus.error,
+          error: 'Failed to load home sections: $e',
+        ));
+      }
     }
   }
 

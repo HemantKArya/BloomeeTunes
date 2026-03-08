@@ -98,7 +98,12 @@ class GetStreams extends ContentEvent {
 /// Get home page sections from the active content resolver.
 class GetHomeSections extends ContentEvent {
   final String? pluginId;
-  const GetHomeSections({this.pluginId});
+
+  /// When true, skips the cache and forces a fresh network fetch.
+  /// Use for pull-to-refresh.
+  final bool bypassCache;
+
+  const GetHomeSections({this.pluginId, this.bypassCache = false});
 }
 
 /// Load more items for a home section.

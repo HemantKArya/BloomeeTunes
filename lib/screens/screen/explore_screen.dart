@@ -153,8 +153,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
         child: Scaffold(
           body: RefreshIndicator(
             onRefresh: () async {
-              _homeContentBloc.add(const ClearHomeSections());
-              _tryLoadHomeSections();
+              final pluginId = _effectiveHomePluginId(
+                context.read<PluginBloc>().state.loadedContentResolvers,
+              );
+              _homeContentBloc.add(
+                GetHomeSections(pluginId: pluginId, bypassCache: true),
+              );
             },
             child: CustomScrollView(
               shrinkWrap: true,
