@@ -3,6 +3,9 @@ use crate::api::plugin::errors::PluginError;
 use crate::api::plugin::plugin::PluginManager;
 use crate::api::plugin::plugin_info::PluginInfo;
 use crate::api::plugin::types::{PluginInstallResult, PluginType};
+use crate::api::downloader::{
+    DownloadManager, DownloadManagerEvent, DownloadTaskSnapshot, EnqueueDownloadRequest,
+};
 use crate::frb_generated::StreamSink;
 use flutter_rust_bridge::frb;
 
@@ -29,6 +32,77 @@ pub async fn init_plugin_event_stream(
     sink: StreamSink<PluginManagerEvent>,
 ) {
     manager.init_event_stream(sink).await;
+}
+
+#[frb]
+pub async fn create_download_manager(
+    plugin_manager: &PluginManager,
+    state_dir: String,
+    temp_dir: String,
+    max_concurrent_tasks: u32,
+) -> Result<DownloadManager, String> {
+    DownloadManager::new(
+        plugin_manager.clone(),
+        state_dir,
+        temp_dir,
+        max_concurrent_tasks,
+    )
+    .await
+}
+
+#[frb]
+pub async fn init_download_event_stream(
+    manager: &DownloadManager,
+    sink: StreamSink<DownloadManagerEvent>,
+) {
+    manager.init_event_stream(sink).await;
+}
+
+#[frb]
+pub async fn restore_download_tasks(
+    manager: &DownloadManager,
+) -> Result<Vec<DownloadTaskSnapshot>, String> {
+    manager.restore_tasks().await
+}
+
+#[frb]
+pub async fn enqueue_download_task(
+    manager: &DownloadManager,
+    request: EnqueueDownloadRequest,
+) -> Result<String, String> {
+    manager.enqueue(request).await
+}
+
+#[frb]
+pub fn get_download_task_snapshots(manager: &DownloadManager) -> Vec<DownloadTaskSnapshot> {
+    manager.get_snapshots()
+}
+
+#[frb]
+pub async fn pause_download_task(manager: &DownloadManager, task_id: String) -> bool {
+    manager.pause_task(task_id).await
+}
+
+#[frb]
+pub async fn resume_download_task(manager: &DownloadManager, task_id: String) -> bool {
+    manager.resume_task(task_id).await
+}
+
+#[frb]
+pub async fn cancel_download_task(
+    manager: &DownloadManager,
+    task_id: String,
+    delete_partial: bool,
+) -> bool {
+    manager.cancel_task(task_id, delete_partial).await
+}
+
+#[frb]
+pub async fn acknowledge_download_persisted(
+    manager: &DownloadManager,
+    task_id: String,
+) -> bool {
+    manager.acknowledge_persisted(task_id).await
 }
 
 // ============================================================================

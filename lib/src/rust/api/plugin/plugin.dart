@@ -11,7 +11,7 @@ import 'types.dart';
 
 // These functions are ignored because they are not marked as `pub`: `do_load_plugin`, `emit`, `get_available_plugins_internal`, `load_plugin_from_resolved_path`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `StorageKey`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `eq`, `fmt`, `hash`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `eq`, `fmt`, `hash`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `handle_plugin_request`
 // These functions have error during generation (see debug logs or enable `stop_on_error: true` for more details): `new`
 

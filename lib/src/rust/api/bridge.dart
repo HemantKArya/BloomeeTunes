@@ -4,6 +4,8 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import 'downloader.dart';
+import 'downloader/types.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'plugin/commands.dart';
 import 'plugin/events.dart';
@@ -24,6 +26,59 @@ String greet({required String name}) =>
 Stream<PluginManagerEvent> initPluginEventStream(
         {required PluginManager manager}) =>
     RustLib.instance.api.crateApiBridgeInitPluginEventStream(manager: manager);
+
+Future<DownloadManager> createDownloadManager(
+        {required PluginManager pluginManager,
+        required String stateDir,
+        required String tempDir,
+        required int maxConcurrentTasks}) =>
+    RustLib.instance.api.crateApiBridgeCreateDownloadManager(
+        pluginManager: pluginManager,
+        stateDir: stateDir,
+        tempDir: tempDir,
+        maxConcurrentTasks: maxConcurrentTasks);
+
+Stream<DownloadManagerEvent> initDownloadEventStream(
+        {required DownloadManager manager}) =>
+    RustLib.instance.api
+        .crateApiBridgeInitDownloadEventStream(manager: manager);
+
+Future<List<DownloadTaskSnapshot>> restoreDownloadTasks(
+        {required DownloadManager manager}) =>
+    RustLib.instance.api.crateApiBridgeRestoreDownloadTasks(manager: manager);
+
+Future<String> enqueueDownloadTask(
+        {required DownloadManager manager,
+        required EnqueueDownloadRequest request}) =>
+    RustLib.instance.api
+        .crateApiBridgeEnqueueDownloadTask(manager: manager, request: request);
+
+Future<List<DownloadTaskSnapshot>> getDownloadTaskSnapshots(
+        {required DownloadManager manager}) =>
+    RustLib.instance.api
+        .crateApiBridgeGetDownloadTaskSnapshots(manager: manager);
+
+Future<bool> pauseDownloadTask(
+        {required DownloadManager manager, required String taskId}) =>
+    RustLib.instance.api
+        .crateApiBridgePauseDownloadTask(manager: manager, taskId: taskId);
+
+Future<bool> resumeDownloadTask(
+        {required DownloadManager manager, required String taskId}) =>
+    RustLib.instance.api
+        .crateApiBridgeResumeDownloadTask(manager: manager, taskId: taskId);
+
+Future<bool> cancelDownloadTask(
+        {required DownloadManager manager,
+        required String taskId,
+        required bool deletePartial}) =>
+    RustLib.instance.api.crateApiBridgeCancelDownloadTask(
+        manager: manager, taskId: taskId, deletePartial: deletePartial);
+
+Future<bool> acknowledgeDownloadPersisted(
+        {required DownloadManager manager, required String taskId}) =>
+    RustLib.instance.api.crateApiBridgeAcknowledgeDownloadPersisted(
+        manager: manager, taskId: taskId);
 
 /// Set a storage value for a plugin (instant in-memory, emits event for Dart)
 Future<bool> pluginStorageSet(

@@ -11,7 +11,6 @@ import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/core/models/exported.dart';
-import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/plugins/blocs/content/content_bloc.dart';
 import 'package:Bloomee/plugins/blocs/content/content_event.dart';
@@ -888,14 +887,13 @@ class _SearchScreenState extends State<SearchScreen> {
                         context
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
-                            .loadPlaylist(
-                              Playlist(
-                                  tracks: tracks, title: state.searchQuery),
-                              idx: index,
-                              doPlay: true,
-                            );
+                            .updateQueueTracks(
+                          [track],
+                          doPlay: true,
+                        );
                       },
-                      onOptionsTap: () => showMoreBottomSheet(context, track),
+                      onOptionsTap: () => showMoreBottomSheet(context, track,
+                          showSinglePlay: true),
                     ),
                   );
                 },

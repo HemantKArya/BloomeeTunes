@@ -27,6 +27,7 @@ import 'package:path/path.dart' as p;
 /// The [PluginManager] itself is protected by `RwLock` on the Rust side.
 class PluginService {
   PluginManager? _manager;
+  Future<void>? _initializing;
 
   /// Whether the service has been initialized.
   bool get isInitialized => _manager != null;
@@ -52,6 +53,29 @@ class PluginService {
   Future<void> initialize({String? pluginsDir}) async {
     if (_manager != null) {
       log('PluginService already initialized', name: 'PluginService');
+      return;
+    }
+
+    final inFlight = _initializing;
+    if (inFlight != null) {
+      await inFlight;
+      return;
+    }
+
+    final future = _initializeInternal(pluginsDir: pluginsDir);
+    _initializing = future;
+
+    try {
+      await future;
+    } finally {
+      if (identical(_initializing, future)) {
+        _initializing = null;
+      }
+    }
+  }
+
+  Future<void> _initializeInternal({String? pluginsDir}) async {
+    if (_manager != null) {
       return;
     }
 
@@ -291,8 +315,9 @@ class PluginService {
     if (m != null) {
       await bridge.shutdownPluginManager(manager: m);
       _manager = null;
-      log('PluginService disposed', name: 'PluginService');
     }
+    _initializing = null;
+    log('PluginService disposed', name: 'PluginService');
   }
 
   // ── Error Mapping ──────────────────────────────────────────────────────────

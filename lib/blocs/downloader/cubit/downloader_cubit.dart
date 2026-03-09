@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
-import 'package:Bloomee/utils/audio_tagger.dart';
-import 'package:Bloomee/utils/dload.dart';
-import 'package:Bloomee/plugins/utils/media_id.dart';
-import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
-import 'package:Bloomee/core/events/global_event_bus.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
-import 'package:Bloomee/src/rust/api/plugin/commands.dart';
-import 'package:metadata_god/metadata_god.dart';
+import 'package:Bloomee/services/download/rust_download_service.dart';
+import 'package:Bloomee/src/rust/api/downloader/types.dart';
+import 'package:Bloomee/utils/download_types.dart';
 import 'package:path/path.dart' as path;
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/core/models/exported.dart';
@@ -18,7 +15,6 @@ import 'package:Bloomee/repository/bloomee/download_repository.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
-import 'package:Bloomee/services/player/stream_quality_selector.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,10 +27,14 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   final DownloadRepository _downloadRepo;
   final SettingsDAO _settingsDao;
   final PluginService _pluginService;
-  final DownloadEngine _downloadEngine = DownloadEngine();
+  final RustDownloadService _downloadService = RustDownloadService();
+  Future<void>? _serviceInitialization;
   final List<DownloadProgress> _activeDownloads = [];
   StreamSubscription? _librarySubscription;
+  StreamSubscription<DownloadManagerEvent>? _downloadSubscription;
   List<Track> _downloadedSongs = [];
+  final Set<String> _persistingTaskIds = <String>{};
+  bool _restoredSnapshots = false;
 
   DownloaderCubit({
     required this.connectivityCubit,
@@ -46,10 +46,41 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         _settingsDao = settingsDao,
         _pluginService = pluginService,
         super(DownloaderInitial()) {
-    _downloadEngine.onTaskAdded = _handleNewTask;
-    MetadataGod.initialize();
     _setupLibrarySubscription();
     _loadDownloadedSongs();
+    unawaited(_warmUpDownloadService());
+  }
+
+  Future<void> _warmUpDownloadService() async {
+    try {
+      await _ensureDownloadServiceReady();
+    } catch (error, stackTrace) {
+      log(
+        'Failed to initialize Rust download service',
+        name: 'DownloaderCubit',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _ensureDownloadServiceReady() {
+    if (_downloadService.isInitialized && _downloadSubscription != null) {
+      return Future.value();
+    }
+
+    final inFlight = _serviceInitialization;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = _initializeDownloadService();
+    _serviceInitialization = future.whenComplete(() {
+      if (!_downloadService.isInitialized || _downloadSubscription == null) {
+        _serviceInitialization = null;
+      }
+    });
+    return _serviceInitialization!;
   }
 
   Future<Directory> _getDownloadDirectory() async {
@@ -90,58 +121,191 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     await _loadDownloadedSongs();
   }
 
-  void _handleNewTask(DownloadTask task) {
-    final newItem = DownloadProgress(
-      task: task,
-      status: const DownloadStatus(
-          state: DownloadState.queued, message: "In Queue"),
+  Future<void> _initializeDownloadService() async {
+    await _pluginService.initialize();
+
+    final supportDirectory = await getApplicationSupportDirectory();
+    final tempDirectory = await getTemporaryDirectory();
+    await _downloadService.initialize(
+      pluginManager: _pluginService.manager,
+      stateDir: path.join(supportDirectory.path, 'download_manager'),
+      tempDir: path.join(tempDirectory.path, 'bloomee_downloads'),
     );
-    _activeDownloads.insert(0, newItem);
-    _emitUpdatedState();
 
-    task.statusStream.listen((status) {
-      final index = _activeDownloads
-          .indexWhere((item) => item.task.originalUrl == task.originalUrl);
-      if (index != -1) {
-        _activeDownloads[index] = DownloadProgress(task: task, status: status);
+    _downloadSubscription ??= _downloadService.events.listen(
+      _handleDownloadEvent,
+      onError: (Object error, StackTrace stackTrace) {
+        log(
+          'Rust download event stream failed',
+          name: 'DownloaderCubit',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      },
+    );
 
-        if (status.state == DownloadState.completed) {
-          _onDownloadComplete(task);
-        } else if (status.state == DownloadState.failed) {
-          _onDownloadFailed(task);
-        }
+    if (_restoredSnapshots) {
+      return;
+    }
 
-        _emitUpdatedState();
+    final snapshots = await _downloadService.restoreTasks();
+    _restoredSnapshots = true;
+    if (snapshots.isNotEmpty) {
+      for (final snapshot in snapshots) {
+        _upsertSnapshot(snapshot, emitState: false);
       }
-    });
+      _emitUpdatedState();
+    }
   }
 
-  void _onDownloadComplete(DownloadTask task) async {
-    log("Downloaded ${task.fileName}", name: "DownloaderCubit");
-    SnackbarService.showMessage(
-        "Downloaded ${task.audioMetadata?.title ?? task.fileName}");
+  void _handleDownloadEvent(DownloadManagerEvent event) {
+    event.map(
+      taskUpdated: (value) {
+        final snapshot = value.field0;
+        _upsertSnapshot(snapshot);
+        if (snapshot.state == DownloadTaskState.failed) {
+          SnackbarService.showMessage(
+            snapshot.lastError ?? 'Failed to download ${snapshot.track.title}',
+          );
+        }
+      },
+      taskCompletedPendingAck: (value) {
+        final snapshot = value.field0;
+        _upsertSnapshot(snapshot);
+        unawaited(_persistCompletedSnapshot(snapshot));
+      },
+      taskRemoved: (value) {
+        _activeDownloads.removeWhere(
+          (item) => item.task.taskId == value.taskId,
+        );
+        _emitUpdatedState();
+      },
+      recoverySummary: (value) {
+        if (value.restored > 0) {
+          SnackbarService.showMessage(
+            'Restored ${value.restored} download${value.restored == 1 ? '' : 's'} after restart',
+          );
+        }
+      },
+    );
+  }
 
-    final downloadDirectory = path.dirname(task.targetPath);
-    await _downloadRepo.saveDownload(
-        fileName: task.fileName,
+  Future<void> _persistCompletedSnapshot(DownloadTaskSnapshot snapshot) async {
+    if (!_persistingTaskIds.add(snapshot.taskId)) {
+      return;
+    }
+
+    try {
+      final filePath = snapshot.targetPath;
+      if (filePath.isEmpty) {
+        throw StateError('Completed download has no target path');
+      }
+
+      final fileName = snapshot.fileName.isNotEmpty
+          ? snapshot.fileName
+          : path.basename(filePath);
+      final downloadDirectory = path.dirname(filePath);
+
+      await _downloadRepo.saveDownload(
+        fileName: fileName,
         filePath: downloadDirectory,
         lastDownloaded: DateTime.now(),
-        track: task.song);
-    log("Saved metadata for ${task.fileName} to the database.",
-        name: "DownloaderCubit");
-
-    _activeDownloads
-        .removeWhere((item) => item.task.originalUrl == task.originalUrl);
-    await _loadDownloadedSongs();
+        track: snapshot.track,
+      );
+      await _downloadService.acknowledgePersisted(snapshot.taskId);
+      SnackbarService.showMessage('Downloaded ${snapshot.track.title}');
+      await _loadDownloadedSongs();
+    } catch (error, stackTrace) {
+      log(
+        'Failed to persist completed download ${snapshot.taskId}',
+        name: 'DownloaderCubit',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      SnackbarService.showMessage(
+        'Downloaded file is ready, but saving it to the library failed.',
+      );
+    } finally {
+      _persistingTaskIds.remove(snapshot.taskId);
+    }
   }
 
-  void _onDownloadFailed(DownloadTask task) {
-    log("Failed to download ${task.fileName}", name: "DownloaderCubit");
-    SnackbarService.showMessage(
-        "Failed to download ${task.audioMetadata?.title ?? task.fileName}");
-    _activeDownloads
-        .removeWhere((item) => item.task.originalUrl == task.originalUrl);
-    _emitUpdatedState();
+  void _upsertSnapshot(
+    DownloadTaskSnapshot snapshot, {
+    bool emitState = true,
+  }) {
+    final progress = _progressFromSnapshot(snapshot);
+    final index = _activeDownloads.indexWhere(
+      (item) => item.task.taskId == snapshot.taskId,
+    );
+
+    if (index == -1) {
+      _activeDownloads.insert(0, progress);
+    } else {
+      _activeDownloads[index] = progress;
+    }
+
+    if (emitState) {
+      _emitUpdatedState();
+    }
+  }
+
+  DownloadProgress _progressFromSnapshot(DownloadTaskSnapshot snapshot) {
+    final filePath = snapshot.targetPath.isNotEmpty
+        ? snapshot.targetPath
+        : snapshot.tempPath;
+
+    final downloadTask = DownloadTask(
+      taskId: snapshot.taskId,
+      song: snapshot.track,
+      mediaId: snapshot.track.id,
+      fileName: snapshot.fileName.isNotEmpty
+          ? snapshot.fileName
+          : path.basename(filePath),
+      targetPath: snapshot.targetPath,
+    );
+
+    return DownloadProgress(
+      task: downloadTask,
+      status: DownloadStatus(
+        state: _mapDownloadState(snapshot.state),
+        progress: snapshot.progress.clamp(0.0, 1.0),
+        message: snapshot.message,
+        filePath: snapshot.targetPath.isNotEmpty ? snapshot.targetPath : null,
+      ),
+    );
+  }
+
+  DownloadState _mapDownloadState(DownloadTaskState state) {
+    switch (state) {
+      case DownloadTaskState.queued:
+        return DownloadState.queued;
+      case DownloadTaskState.resolving:
+        return DownloadState.resolving;
+      case DownloadTaskState.downloading:
+        return DownloadState.downloading;
+      case DownloadTaskState.paused:
+        return DownloadState.paused;
+      case DownloadTaskState.retrying:
+        return DownloadState.retrying;
+      case DownloadTaskState.writingMetadata:
+        return DownloadState.fetchingMetadata;
+      case DownloadTaskState.completedPendingAck:
+        return DownloadState.completed;
+      case DownloadTaskState.failed:
+        return DownloadState.failed;
+      case DownloadTaskState.cancelled:
+        return DownloadState.cancelled;
+    }
+  }
+
+  DownloadProgress? _findDownloadByMediaId(String mediaId) {
+    try {
+      return _activeDownloads
+          .firstWhere((item) => item.task.mediaId == mediaId);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<bool> _isAlreadyDownloaded(Track song) async {
@@ -162,104 +326,39 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     return false;
   }
 
-  /// Resolve a download stream for [track] via the plugin system.
-  Future<StreamSource> _resolveDownloadStream(Track track) async {
-    final parts = tryParseMediaId(track.id);
-    if (parts == null) {
-      if (track.url != null &&
-          (track.url!.startsWith('http://') ||
-              track.url!.startsWith('https://'))) {
-        return StreamSource(
-          url: track.url!,
-          quality: Quality.high,
-          format: _guessExtension(track.url!),
-        );
-      }
-      throw Exception(
-        'Cannot resolve download URL for "${track.title}" — '
-        'malformed media ID: "${track.id}"',
-      );
-    }
-
-    final response = await _pluginService.execute(
-      pluginId: parts.pluginId,
-      request: PluginRequest.contentResolver(
-        ContentResolverCommand.getStreams(id: parts.localId),
-      ),
-    );
-
-    return response.when(
-      streams: (streams) async {
-        final storedQuality = await _settingsDao.getSettingStr(
-          SettingKeys.downQuality,
-          defaultValue: AudioStreamQualityPreference.medium.label,
-        );
-        final preference = AudioStreamQualityPreferenceX.fromStored(
-          storedQuality,
-        );
-        final selectedStream = StreamQualitySelector.selectDownloadStream(
-          streams,
-          preference: preference,
-        );
-        final streamUrl = selectedStream?.url.trim() ?? '';
-        if (selectedStream == null || streamUrl.isEmpty) {
-          throw Exception('No streams returned for "${track.title}"');
-        }
-        return selectedStream;
-      },
-      albumDetails: (_) => throw _unexpectedResponse('albumDetails'),
-      artistDetails: (_) => throw _unexpectedResponse('artistDetails'),
-      playlistDetails: (_) => throw _unexpectedResponse('playlistDetails'),
-      search: (_) => throw _unexpectedResponse('search'),
-      moreTracks: (_) => throw _unexpectedResponse('moreTracks'),
-      moreAlbums: (_) => throw _unexpectedResponse('moreAlbums'),
-      homeSections: (_) => throw _unexpectedResponse('homeSections'),
-      loadMoreItems: (_) => throw _unexpectedResponse('loadMoreItems'),
-      charts: (_) => throw _unexpectedResponse('charts'),
-      chartDetails: (_) => throw _unexpectedResponse('chartDetails'),
-      ack: () => throw _unexpectedResponse('ack'),
-    );
-  }
-
-  Exception _unexpectedResponse(String type) =>
-      Exception('Unexpected response type: $type for GetStreams');
-
-  String _artistStr(Track track) => track.artists.map((a) => a.name).join(', ');
-
-  String _sanitizeFileComponent(String value, {int maxLength = 80}) {
-    final cleaned = value
-        .replaceAll(RegExp(r'[<>:"/\\|?*\x00-\x1F]'), '_')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim()
-        .replaceAll(RegExp(r'[. ]+$'), '');
-
-    if (cleaned.isEmpty) return 'unknown';
-    if (cleaned.length <= maxLength) return cleaned;
-    return cleaned.substring(0, maxLength).trim();
-  }
-
-  String _buildDownloadFileName(Track song, String extension) {
-    final safeTitle = _sanitizeFileComponent(song.title, maxLength: 70);
-    final artistText = _artistStr(song);
-    final safeArtist = _sanitizeFileComponent(
-      artistText.isEmpty ? 'Unknown Artist' : artistText,
-      maxLength: 50,
-    );
-    final idSuffix = song.id.hashCode.toUnsigned(32).toRadixString(16);
-    return '$safeTitle - $safeArtist [$idSuffix].$extension';
-  }
-
   /// The main public method to initiate a new download.
   Future<void> downloadSong(Track song, {bool showSnackbar = true}) async {
+    try {
+      await _ensureDownloadServiceReady();
+    } catch (error, stackTrace) {
+      log(
+        'Failed to prepare download service for ${song.title}',
+        name: 'DownloaderCubit',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (showSnackbar) {
+        SnackbarService.showMessage('Error: Download service is unavailable.');
+      }
+      return;
+    }
+
     if (connectivityCubit.state != ConnectivityState.connected) {
       if (showSnackbar) SnackbarService.showMessage("No internet connection.");
       return;
     }
 
     // Pre-download checks
-    if (_activeDownloads.any((item) => item.task.originalUrl == song.id)) {
-      if (showSnackbar) {
-        SnackbarService.showMessage("${song.title} is already in the queue.");
+    final existingDownload = _findDownloadByMediaId(song.id);
+    if (existingDownload != null) {
+      if (existingDownload.status.state == DownloadState.paused ||
+          existingDownload.status.state == DownloadState.failed) {
+        await resumeDownload(existingDownload.task.taskId);
+        if (showSnackbar) {
+          SnackbarService.showMessage('Resuming ${song.title}...');
+        }
+      } else if (showSnackbar) {
+        SnackbarService.showMessage('${song.title} is already in the queue.');
       }
       return;
     }
@@ -272,127 +371,62 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     }
 
     final directory = await _getDownloadDirectory();
-    final tempFileName = '${_sanitizeFileComponent(song.title)}.temp';
-
-    final placeholderTask = DownloadTask(
-      url: "placeholder",
-      originalUrl: song.id,
-      fileName: tempFileName,
-      targetPath: path.join(directory.path, tempFileName),
-      maxRetries: 3,
-      audioMetadata: null,
-      song: song,
-    );
-
-    final placeholderProgress = DownloadProgress(
-      task: placeholderTask,
-      status: const DownloadStatus(
-        state: DownloadState.resolving,
-        message: "Resolving download URL...",
-      ),
-    );
-
-    _activeDownloads.insert(0, placeholderProgress);
-    _emitUpdatedState();
 
     if (showSnackbar) {
       SnackbarService.showMessage("Preparing download for ${song.title}...");
     }
 
     try {
-      final index = _activeDownloads
-          .indexWhere((item) => item.task.originalUrl == song.id);
-      if (index != -1) {
-        _activeDownloads[index] = DownloadProgress(
-          task: placeholderTask,
-          status: const DownloadStatus(
-            state: DownloadState.fetchingMetadata,
-          ),
-        );
-        _emitUpdatedState();
-      }
-
-      final selectedStream = await _resolveDownloadStream(song);
-      final downloadUrl = selectedStream.url;
-      final headers = streamHeadersToMap(selectedStream.headers);
-      final artist = _artistStr(song);
-      final ext = _guessExtension(downloadUrl);
-      final fileName = _buildDownloadFileName(song, ext);
-      final durationMs = song.durationMs;
-      final metadata = AudioMetadata(
-        title: song.title,
-        artist: artist.isNotEmpty ? artist : "Unknown Artist",
-        album: song.album?.title ?? "Unknown Album",
-        artworkUrl: song.thumbnail.urlHigh ?? song.thumbnail.url,
-        duration: durationMs != null
-            ? Duration(milliseconds: durationMs.toInt())
-            : null,
+      final storedQuality = await _settingsDao.getSettingStr(
+        SettingKeys.downQuality,
+        defaultValue: 'Medium',
       );
-
-      // Remove placeholder before adding the real task
-      _activeDownloads.removeWhere((item) => item.task.originalUrl == song.id);
-
-      _downloadEngine.addDownload(
-        url: downloadUrl,
-        originalUrl: song.id,
-        directory: directory.path,
-        fileName: fileName,
-        maxRetries: 3,
-        audioMetadata: metadata,
-        song: song,
-        headers: headers,
+      await _downloadService.enqueue(
+        request: EnqueueDownloadRequest(
+          track: song,
+          downloadDir: directory.path,
+          preferredQuality: storedQuality ?? 'Medium',
+        ),
       );
 
       if (showSnackbar) {
-        SnackbarService.showMessage("Added ${song.title} to download queue");
+        SnackbarService.showMessage('Added ${song.title} to download queue');
       }
-    } on PluginException catch (e) {
-      log("Plugin error while preparing download for ${song.title}",
-          error: e, name: "DownloaderCubit");
-
-      _activeDownloads.removeWhere((item) => item.task.originalUrl == song.id);
-      _emitUpdatedState();
-
-      if (e is PluginNotLoadedException && e.pluginId != null) {
-        GlobalEventBus.instance
-            .emitError(AppError.pluginNotLoaded(pluginId: e.pluginId!));
-      }
+    } catch (e, stackTrace) {
+      log(
+        'Failed to queue download for ${song.title}',
+        name: 'DownloaderCubit',
+        error: e,
+        stackTrace: stackTrace,
+      );
 
       if (showSnackbar) {
-        SnackbarService.showMessage(e.message);
-      }
-    } catch (e) {
-      log("Failed to prepare download for ${song.title}",
-          error: e, name: "DownloaderCubit");
-
-      _activeDownloads.removeWhere((item) => item.task.originalUrl == song.id);
-      _emitUpdatedState();
-
-      if (showSnackbar) {
-        SnackbarService.showMessage("Error: Could not process URL.");
+        SnackbarService.showMessage('Error: Could not start download.');
       }
     }
   }
 
-  /// Guess a file extension from the stream URL.
-  String _guessExtension(String url) {
-    final uri = Uri.tryParse(url);
-    if (uri != null) {
-      final p = uri.path.toLowerCase();
-      if (p.endsWith('.m4a')) return 'm4a';
-      if (p.endsWith('.mp3')) return 'mp3';
-      if (p.endsWith('.ogg')) return 'ogg';
-      if (p.endsWith('.opus')) return 'opus';
-      if (p.endsWith('.webm')) return 'webm';
-      if (p.endsWith('.mp4')) return 'mp4';
-    }
-    return 'm4a'; // sensible default
+  Future<void> pauseDownload(String taskId) async {
+    await _ensureDownloadServiceReady();
+    await _downloadService.pause(taskId);
+  }
+
+  Future<void> resumeDownload(String taskId) async {
+    await _ensureDownloadServiceReady();
+    await _downloadService.resume(taskId);
+  }
+
+  Future<void> cancelDownload(String taskId) async {
+    await _ensureDownloadServiceReady();
+    await _downloadService.cancel(taskId);
   }
 
   @override
-  Future<void> close() {
-    _librarySubscription?.cancel();
-    return super.close();
+  Future<void> close() async {
+    await _librarySubscription?.cancel();
+    await _downloadSubscription?.cancel();
+    await _downloadService.dispose();
+    await super.close();
   }
 
   /// Check whether a song is downloaded.

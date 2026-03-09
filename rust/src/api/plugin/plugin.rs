@@ -41,6 +41,7 @@ impl StorageKey {
 // PLUGIN MANAGER
 // ============================================================================
 
+#[derive(Clone)]
 #[flutter_rust_bridge::frb(opaque)]
 pub struct PluginManager {
     /// Thread-safe plugin registry (tokio RwLock - async-safe)

@@ -10,7 +10,11 @@ class DownloadProgress with EquatableMixin {
   DownloadProgress({required this.task, required this.status});
 
   @override
-  List<Object?> get props => [task.originalUrl, status.state, status.progress];
+  List<Object?> get props => [
+        task.taskId.isEmpty ? task.mediaId : task.taskId,
+        status.state,
+        status.progress,
+      ];
 }
 
 abstract class DownloaderState extends Equatable {
