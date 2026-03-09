@@ -72,9 +72,6 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
       _isSearch = !_isSearch;
       if (!_isSearch) {
         _searchController.clear();
-        final state = context.read<LocalMusicCubit>().state;
-        _filteredTracks =
-            state is LocalMusicLoaded ? List<Track>.from(state.tracks) : [];
       }
     });
   }
@@ -184,32 +181,35 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
             children: [
               Icon(Icons.shield_outlined,
                   color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
-                  size: 56),
-              const SizedBox(height: 16),
-              Text('Audio Access Required',
-                  style: Default_Theme.secondoryTextStyleMedium.merge(
-                      const TextStyle(
-                          color: Default_Theme.primaryColor1, fontSize: 18))),
-              const SizedBox(height: 8),
+                  size: 64),
+              const SizedBox(height: 20),
+              const Text('Storage Access Required',
+                  style: TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
               Text(
-                'Grant permission to scan and play music stored on your device.',
+                'Please grant permission to scan and play audio files stored on your device.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: Default_Theme.primaryColor2.withValues(alpha: 0.6),
-                    fontSize: 13,
-                    fontFamily: 'ReThink-Sans'),
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
+                    fontSize: 14,
+                    height: 1.4),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               FilledButton.icon(
                 onPressed: () =>
                     context.read<LocalMusicCubit>().resolvePermissionAction(),
-                icon: const Icon(Icons.lock_open_rounded, size: 18),
+                icon: const Icon(Icons.lock_open_rounded, size: 20),
                 label: const Text('Grant Permission'),
                 style: FilledButton.styleFrom(
                   backgroundColor: Default_Theme.accentColor2,
                   foregroundColor: Colors.white,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],
@@ -226,12 +226,12 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CircularProgressIndicator(color: Default_Theme.accentColor2),
-            SizedBox(height: 16),
-            Text('Scanning for music…',
+            SizedBox(height: 20),
+            Text('Scanning device for audio files...',
                 style: TextStyle(
                     color: Default_Theme.primaryColor2,
-                    fontSize: 14,
-                    fontFamily: 'ReThink-Sans')),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500)),
           ],
         ),
       ),
@@ -250,9 +250,11 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
 
   List<Widget> _buildLoadedSlivers(
       BuildContext context, LocalMusicLoaded state) {
-    if (_filteredTracks.isEmpty && _searchController.text.isEmpty) {
-      _filteredTracks = state.tracks;
-    }
+    // Resolve exactly which tracks to show to prevent logical mismatched plays.
+    final displayedTracks =
+        _isSearch && _searchController.text.trim().isNotEmpty
+            ? _filteredTracks
+            : state.tracks;
 
     final widgets = <Widget>[];
 
@@ -267,37 +269,39 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
           child: Row(
             children: [
               Text(
-                '${state.tracks.length} track${state.tracks.length == 1 ? '' : 's'}',
+                '${displayedTracks.length} track${displayedTracks.length == 1 ? '' : 's'}',
                 style: TextStyle(
                     color: Default_Theme.primaryColor2.withValues(alpha: 0.6),
                     fontSize: 13,
                     fontFamily: 'ReThink-Sans'),
               ),
               const Spacer(),
-              _ActionChipButton(
-                icon: MingCute.shuffle_line,
-                label: 'Shuffle',
-                onTap: () => context
-                    .read<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .loadPlaylist(
-                      Playlist(tracks: state.tracks, title: 'Local Music'),
-                      doPlay: true,
-                      shuffling: true,
-                    ),
-              ),
-              const SizedBox(width: 8),
-              _ActionChipButton(
-                icon: MingCute.play_fill,
-                label: 'Play All',
-                onTap: () => context
-                    .read<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .loadPlaylist(
-                      Playlist(tracks: state.tracks, title: 'Local Music'),
-                      doPlay: true,
-                    ),
-              ),
+              if (displayedTracks.isNotEmpty) ...[
+                _ActionChipButton(
+                  icon: MingCute.shuffle_line,
+                  label: 'Shuffle',
+                  onTap: () => context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .loadPlaylist(
+                        Playlist(tracks: displayedTracks, title: 'Local Music'),
+                        doPlay: true,
+                        shuffling: true,
+                      ),
+                ),
+                const SizedBox(width: 8),
+                _ActionChipButton(
+                  icon: MingCute.play_fill,
+                  label: 'Play All',
+                  onTap: () => context
+                      .read<BloomeePlayerCubit>()
+                      .bloomeePlayer
+                      .loadPlaylist(
+                        Playlist(tracks: displayedTracks, title: 'Local Music'),
+                        doPlay: true,
+                      ),
+                ),
+              ],
             ],
           ),
         ),
@@ -313,36 +317,49 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
               children: [
                 const SignBoardWidget(
                     message: 'No local music found',
-                    icon: MingCute.folder_open_line),
-                const SizedBox(height: 16),
+                    icon: MingCute.music_2_line),
+                const SizedBox(height: 24),
                 if (!LocalMusicService.isMobile)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: FilledButton.icon(
                       onPressed: () =>
                           context.read<LocalMusicCubit>().addFolderViaPicker(),
-                      icon: const Icon(Icons.create_new_folder_outlined,
-                          size: 18),
+                      icon: const Icon(MingCute.new_folder_line, size: 20),
                       label: const Text('Add Music Folder'),
                       style: FilledButton.styleFrom(
                         backgroundColor: Default_Theme.accentColor2,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                       ),
                     ),
                   ),
                 OutlinedButton.icon(
                   onPressed: () => context.read<LocalMusicCubit>().scan(),
-                  icon: const Icon(MingCute.refresh_2_line, size: 18),
+                  icon: const Icon(MingCute.refresh_2_line, size: 20),
                   label: const Text('Scan Now'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Default_Theme.primaryColor2,
+                    foregroundColor: Default_Theme.primaryColor1,
                     side: BorderSide(
                         color:
-                            Default_Theme.primaryColor2.withValues(alpha: 0.3)),
+                            Default_Theme.primaryColor2.withValues(alpha: 0.2)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      );
+    } else if (displayedTracks.isEmpty) {
+      widgets.add(
+        const SliverFillRemaining(
+          child: Center(
+            child: SignBoardWidget(
+                message: 'No tracks found matching your search.',
+                icon: MingCute.search_2_line),
           ),
         ),
       );
@@ -351,21 +368,15 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              final track = _filteredTracks[index];
+              final track = displayedTracks[index];
               return SongCardWidget(
                 key: ValueKey('local-track-${track.id}'),
                 song: track,
                 showOptions: true,
                 onTap: () {
-                  final selectedIndex =
-                      state.tracks.indexWhere((t) => t.id == track.id);
-                  if (selectedIndex < 0) {
-                    SnackbarService.showMessage('Unable to play this track.');
-                    return;
-                  }
                   context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
-                        Playlist(tracks: state.tracks, title: 'Local Music'),
-                        idx: selectedIndex,
+                        Playlist(tracks: displayedTracks, title: 'Local Music'),
+                        idx: index,
                         doPlay: true,
                       );
                 },
@@ -375,7 +386,7 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                 },
               );
             },
-            childCount: _filteredTracks.length,
+            childCount: displayedTracks.length,
           ),
         ),
       );
@@ -389,101 +400,48 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
       BuildContext context, List<String> folders) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  'Watched folders',
-                  style: Default_Theme.secondoryTextStyleMedium.merge(
-                    const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Desktop scans only the folders you keep here.',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color:
-                          Default_Theme.primaryColor2.withValues(alpha: 0.56),
-                      fontSize: 11,
-                      fontFamily: 'ReThink-Sans',
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                FilledButton.icon(
-                  onPressed: () =>
-                      context.read<LocalMusicCubit>().addFolderViaPicker(),
-                  icon: const Icon(Icons.add_rounded, size: 15),
-                  label: const Text('Add'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor:
-                        Default_Theme.accentColor2.withValues(alpha: 0.9),
-                    foregroundColor: Colors.white,
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(0, 34),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-              ],
+            const Text(
+              'Music Folders',
+              style: TextStyle(
+                color: Default_Theme.primaryColor1,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 12,
+              runSpacing: 12,
               children: folders.map((folder) {
                 return Tooltip(
                   message: folder,
                   child: Container(
-                    constraints: const BoxConstraints(maxWidth: 280),
-                    padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
+                    constraints: const BoxConstraints(maxWidth: 260),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Default_Theme.primaryColor2.withValues(alpha: 0.08),
-                          Default_Theme.accentColor2.withValues(alpha: 0.05),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(18),
+                      color:
+                          Default_Theme.primaryColor2.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color:
-                            Default_Theme.primaryColor2.withValues(alpha: 0.12),
+                            Default_Theme.primaryColor2.withValues(alpha: 0.08),
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: Default_Theme.primaryColor2
-                                .withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            MingCute.folder_2_line,
-                            color: Default_Theme.primaryColor1,
-                            size: 15,
-                          ),
+                        Icon(
+                          MingCute.folder_2_fill,
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.6),
+                          size: 22,
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,9 +453,8 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: Default_Theme.primaryColor1,
-                                  fontSize: 12.5,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  fontFamily: 'ReThink-Sans',
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -508,31 +465,28 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                                 style: TextStyle(
                                   color: Default_Theme.primaryColor2
                                       .withValues(alpha: 0.5),
-                                  fontSize: 10.5,
-                                  fontFamily: 'ReThink-Sans',
+                                  fontSize: 11,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         IconButton(
                           tooltip: 'Remove folder',
                           onPressed: () => context
                               .read<LocalMusicCubit>()
                               .removeFolder(folder),
                           icon: Icon(
-                            Icons.close_rounded,
-                            size: 16,
+                            MingCute.close_line,
+                            size: 18,
                             color: Default_Theme.primaryColor2
-                                .withValues(alpha: 0.82),
+                                .withValues(alpha: 0.6),
                           ),
                           style: IconButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            backgroundColor: Default_Theme.primaryColor2
-                                .withValues(alpha: 0.08),
-                            minimumSize: const Size(30, 30),
-                            maximumSize: const Size(30, 30),
+                            minimumSize: const Size(32, 32),
+                            maximumSize: const Size(32, 32),
                           ),
                         ),
                       ],
@@ -551,9 +505,10 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
     return SliverAppBar(
       floating: true,
       pinned: false,
-      surfaceTintColor: Default_Theme.themeColor,
+      surfaceTintColor: Colors.transparent,
       backgroundColor: Default_Theme.themeColor,
       automaticallyImplyLeading: false,
+      titleSpacing: 16,
       title: AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         child: _isSearch
@@ -563,11 +518,11 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                 autofocus: true,
                 cursorColor: Default_Theme.primaryColor1,
                 decoration: InputDecoration(
-                  hintText: 'Search local music…',
+                  hintText: 'Search local music...',
                   border: InputBorder.none,
                   hintStyle: TextStyle(
                       color:
-                          Default_Theme.primaryColor1.withValues(alpha: 0.5)),
+                          Default_Theme.primaryColor1.withValues(alpha: 0.4)),
                 ),
                 style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
                     color: Default_Theme.primaryColor1, fontSize: 16.0)),
@@ -587,32 +542,27 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
       ),
       actions: [
         if (!_isSearch && state is LocalMusicLoaded)
-          Tooltip(
-            message: 'Scan for music',
-            child: IconButton(
-              icon: const Icon(MingCute.refresh_2_line,
-                  color: Default_Theme.primaryColor1),
-              onPressed: () => context.read<LocalMusicCubit>().scan(),
-            ),
+          IconButton(
+            tooltip: 'Rescan Device',
+            icon: const Icon(MingCute.refresh_2_line,
+                color: Default_Theme.primaryColor1),
+            onPressed: () => context.read<LocalMusicCubit>().scan(),
           ),
         if (!_isSearch && !LocalMusicService.isMobile)
-          Tooltip(
-            message: 'Add folder',
-            child: IconButton(
-              icon: const Icon(Icons.create_new_folder_outlined,
-                  color: Default_Theme.primaryColor1),
-              onPressed: () =>
-                  context.read<LocalMusicCubit>().addFolderViaPicker(),
-            ),
-          ),
-        Tooltip(
-          message: _isSearch ? 'Close search' : 'Search',
-          child: IconButton(
-            icon: Icon(_isSearch ? Icons.close : Icons.search,
+          IconButton(
+            tooltip: 'Add Folder',
+            icon: const Icon(MingCute.new_folder_line,
                 color: Default_Theme.primaryColor1),
-            onPressed: _toggleSearch,
+            onPressed: () =>
+                context.read<LocalMusicCubit>().addFolderViaPicker(),
           ),
+        IconButton(
+          tooltip: _isSearch ? 'Close search' : 'Search',
+          icon: Icon(_isSearch ? Icons.close : MingCute.search_2_line,
+              color: Default_Theme.primaryColor1),
+          onPressed: _toggleSearch,
         ),
+        const SizedBox(width: 8),
       ],
     );
   }
@@ -679,34 +629,40 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF0D1B2A),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text('Delete Track',
-          style: Default_Theme.secondoryTextStyleMedium.merge(const TextStyle(
-              color: Default_Theme.primaryColor1, fontSize: 18))),
+      backgroundColor: Default_Theme.themeColor,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+            color: Default_Theme.primaryColor2.withValues(alpha: 0.1)),
+      ),
+      title: const Text('Delete Track',
+          style: TextStyle(
+              color: Default_Theme.primaryColor1,
+              fontSize: 20,
+              fontWeight: FontWeight.bold)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Delete "${widget.trackTitle}" from your device? This cannot be undone.',
+            'Are you sure you want to delete "${widget.trackTitle}" from your device? This action cannot be undone.',
             style: TextStyle(
                 color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
-                fontSize: 14,
-                fontFamily: 'ReThink-Sans'),
+                fontSize: 15,
+                height: 1.4),
           ),
           if (widget.linkedPlaylists.isNotEmpty) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Text(
-              'It will also be removed from:',
+              'This track will also be removed from the following playlists:',
               style: TextStyle(
-                color: Default_Theme.primaryColor2.withValues(alpha: 0.72),
-                fontSize: 12,
+                color: Default_Theme.primaryColor2.withValues(alpha: 0.9),
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                fontFamily: 'ReThink-Sans',
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -719,47 +675,62 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
                       ),
                       decoration: BoxDecoration(
                         color:
-                            Default_Theme.primaryColor2.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(999),
+                            Default_Theme.primaryColor2.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: Default_Theme.primaryColor2
-                              .withValues(alpha: 0.16),
+                              .withValues(alpha: 0.1),
                         ),
                       ),
-                      child: Text(
-                        playlist,
-                        style: const TextStyle(
-                          color: Default_Theme.primaryColor1,
-                          fontSize: 12,
-                          fontFamily: 'ReThink-Sans',
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(MingCute.playlist_2_line,
+                              size: 14,
+                              color: Default_Theme.primaryColor2
+                                  .withValues(alpha: 0.8)),
+                          const SizedBox(width: 6),
+                          Text(
+                            playlist,
+                            style: const TextStyle(
+                              color: Default_Theme.primaryColor1,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   )
                   .toList(),
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Row(
             children: [
               SizedBox(
-                width: 20,
-                height: 20,
+                width: 24,
+                height: 24,
                 child: Checkbox(
                   value: _dontAskAgain,
                   onChanged: (v) => setState(() => _dontAskAgain = v ?? false),
                   activeColor: Default_Theme.accentColor2,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
                   side: BorderSide(
                       color:
                           Default_Theme.primaryColor2.withValues(alpha: 0.5)),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text("Don't ask again",
-                  style: TextStyle(
-                      color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
-                      fontSize: 13,
-                      fontFamily: 'ReThink-Sans')),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: () => setState(() => _dontAskAgain = !_dontAskAgain),
+                child: Text("Don't ask me again",
+                    style: TextStyle(
+                        color:
+                            Default_Theme.primaryColor2.withValues(alpha: 0.8),
+                        fontSize: 14)),
+              ),
             ],
           ),
         ],
@@ -769,7 +740,7 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text('Cancel',
               style: TextStyle(
-                  color: Default_Theme.primaryColor2.withValues(alpha: 0.7))),
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.8))),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(
