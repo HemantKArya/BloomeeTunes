@@ -71,9 +71,7 @@ String convertJsonToM3U(Map<String, dynamic> jsonData) {
           throw FormatException("Missing 'streamingURL' for track: $title");
         }
 
-        // Create the EXTINF line with duration and display title.
         buffer.writeln("#EXTINF:${duration.toString()}, $artist - $title");
-        // Optional additional tags for extended metadata.
         buffer.writeln("#EXTALB: $album");
         buffer.writeln("#EXTART: $artist");
         buffer.writeln("#EXTGENRE: $genre");

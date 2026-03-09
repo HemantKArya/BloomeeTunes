@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1582878327;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1806068831;
 
 // Section: executor
 
@@ -3741,6 +3741,43 @@ fn wire__crate__api__plugin__types__plugin_type_type_string_impl(
         },
     )
 }
+fn wire__crate__api__local_music__read_audio_metadata_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "read_audio_metadata",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_file_path = <String>::sse_decode(&mut deserializer);
+            let api_cover_cache_dir = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::local_music::read_audio_metadata(
+                        api_file_path,
+                        api_cover_cache_dir,
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__bridge__refresh_available_plugins_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3919,6 +3956,44 @@ fn wire__crate__api__bridge__resume_download_task_impl(
                     })()
                     .await,
                 )
+            }
+        },
+    )
+}
+fn wire__crate__api__local_music__scan_audio_files_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "scan_audio_files",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_directories = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_cover_cache_dir = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::local_music::scan_audio_files(
+                            api_directories,
+                            api_cover_cache_dir,
+                        ))?;
+                    Ok(output_ok)
+                })())
             }
         },
     )
@@ -4847,6 +4922,20 @@ impl SseDecode for Vec<crate::api::downloader::types::DownloadTaskSnapshot> {
     }
 }
 
+impl SseDecode for Vec<crate::api::local_music::LocalTrackMeta> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::local_music::LocalTrackMeta>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::plugin::models::MediaItem> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4924,6 +5013,34 @@ impl SseDecode for Vec<crate::api::plugin::models::Track> {
             ));
         }
         return ans_;
+    }
+}
+
+impl SseDecode for crate::api::local_music::LocalTrackMeta {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_filePath = <String>::sse_decode(deserializer);
+        let mut var_title = <Option<String>>::sse_decode(deserializer);
+        let mut var_artists = <Vec<String>>::sse_decode(deserializer);
+        let mut var_album = <Option<String>>::sse_decode(deserializer);
+        let mut var_albumArtist = <Option<String>>::sse_decode(deserializer);
+        let mut var_year = <Option<u32>>::sse_decode(deserializer);
+        let mut var_genre = <Option<String>>::sse_decode(deserializer);
+        let mut var_durationMs = <Option<u64>>::sse_decode(deserializer);
+        let mut var_coverArtPath = <Option<String>>::sse_decode(deserializer);
+        let mut var_fileSize = <u64>::sse_decode(deserializer);
+        return crate::api::local_music::LocalTrackMeta {
+            file_path: var_filePath,
+            title: var_title,
+            artists: var_artists,
+            album: var_album,
+            album_artist: var_albumArtist,
+            year: var_year,
+            genre: var_genre,
+            duration_ms: var_durationMs,
+            cover_art_path: var_coverArtPath,
+            file_size: var_fileSize,
+        };
     }
 }
 
@@ -5876,26 +5993,35 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        69 => wire__crate__api__bridge__refresh_available_plugins_impl(
+        69 => wire__crate__api__local_music__read_audio_metadata_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        70 => {
+        70 => wire__crate__api__bridge__refresh_available_plugins_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        71 => {
             wire__crate__api__bridge__restore_download_tasks_impl(port, ptr, rust_vec_len, data_len)
         }
-        71 => {
+        72 => {
             wire__crate__api__bridge__resume_download_task_impl(port, ptr, rust_vec_len, data_len)
         }
-        72 => wire__crate__api__bridge__scan_bex_files_impl(port, ptr, rust_vec_len, data_len),
-        73 => wire__crate__api__bridge__shutdown_plugin_manager_impl(
+        73 => {
+            wire__crate__api__local_music__scan_audio_files_impl(port, ptr, rust_vec_len, data_len)
+        }
+        74 => wire__crate__api__bridge__scan_bex_files_impl(port, ptr, rust_vec_len, data_len),
+        75 => wire__crate__api__bridge__shutdown_plugin_manager_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        74 => wire__crate__api__bridge__unload_plugin_impl(port, ptr, rust_vec_len, data_len),
+        76 => wire__crate__api__bridge__unload_plugin_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -6506,6 +6632,35 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::ImageLayout>
     for crate::api::plugin::models::ImageLayout
 {
     fn into_into_dart(self) -> crate::api::plugin::models::ImageLayout {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::local_music::LocalTrackMeta {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.file_path.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.artists.into_into_dart().into_dart(),
+            self.album.into_into_dart().into_dart(),
+            self.album_artist.into_into_dart().into_dart(),
+            self.year.into_into_dart().into_dart(),
+            self.genre.into_into_dart().into_dart(),
+            self.duration_ms.into_into_dart().into_dart(),
+            self.cover_art_path.into_into_dart().into_dart(),
+            self.file_size.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::local_music::LocalTrackMeta
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::local_music::LocalTrackMeta>
+    for crate::api::local_music::LocalTrackMeta
+{
+    fn into_into_dart(self) -> crate::api::local_music::LocalTrackMeta {
         self
     }
 }
@@ -7624,6 +7779,16 @@ impl SseEncode for Vec<crate::api::downloader::types::DownloadTaskSnapshot> {
     }
 }
 
+impl SseEncode for Vec<crate::api::local_music::LocalTrackMeta> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::local_music::LocalTrackMeta>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::plugin::models::MediaItem> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7681,6 +7846,22 @@ impl SseEncode for Vec<crate::api::plugin::models::Track> {
         for item in self {
             <crate::api::plugin::models::Track>::sse_encode(item, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::local_music::LocalTrackMeta {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.file_path, serializer);
+        <Option<String>>::sse_encode(self.title, serializer);
+        <Vec<String>>::sse_encode(self.artists, serializer);
+        <Option<String>>::sse_encode(self.album, serializer);
+        <Option<String>>::sse_encode(self.album_artist, serializer);
+        <Option<u32>>::sse_encode(self.year, serializer);
+        <Option<String>>::sse_encode(self.genre, serializer);
+        <Option<u64>>::sse_encode(self.duration_ms, serializer);
+        <Option<String>>::sse_encode(self.cover_art_path, serializer);
+        <u64>::sse_encode(self.file_size, serializer);
     }
 }
 

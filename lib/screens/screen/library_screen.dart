@@ -440,7 +440,8 @@ class _ListOfPlaylists extends StatelessWidget {
         final playlist = playlists[index];
         // Filter out specific playlists directly in the builder
         if (playlist.playlistName == SettingKeys.recentlyPlayedPlaylist ||
-            playlist.playlistName == SettingKeys.downloadPlaylist) {
+            playlist.playlistName == SettingKeys.downloadPlaylist ||
+            playlist.playlistName == SettingKeys.localMusicPlaylist) {
           return const SizedBox.shrink();
         }
 

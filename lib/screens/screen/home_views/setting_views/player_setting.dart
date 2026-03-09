@@ -80,6 +80,17 @@ class PlayerSettings extends StatelessWidget {
                         context.read<SettingsCubit>().setAutoPlay(v),
                   ),
                   const SettingDivider(),
+                  SettingToggleTile(
+                    icon: MingCute.search_2_line,
+                    title: 'Auto Fallback Playback',
+                    subtitle:
+                        'If a plugin is missing or returns no streams, try a compatible resolver for playback only.',
+                    value: state.autoResolveUnavailableTracks,
+                    onChanged: (v) => context
+                        .read<SettingsCubit>()
+                        .setAutoResolveUnavailableTracks(v),
+                  ),
+                  const SettingDivider(),
                   _CrossfadeSlider(
                     value: state.crossfadeDuration,
                     onChanged: (v) {

@@ -23,4 +23,5 @@ class RoutePaths {
   /// Import-media sub-route under Library
   static const String importMediaFromPlatforms = "ImportMediaFromPlatforms";
   static const String chartScreen = "ChartScreen";
+  static const String localMusicScreen = "LocalMusic";
 }

@@ -435,17 +435,13 @@ class _AlbumHeaderContent extends StatelessWidget {
   }
 
   Widget _buildCover() {
-    // Base target size for the cover
     const double mobileTargetSize = 260;
     const double desktopTargetSize = 320;
 
-    // How much of the width we want to use
     final double widthFactor = isMobile ? 0.7 : 0.35;
 
-    // Available width for the cover
     final double availableWidth = constraints.maxWidth * widthFactor;
 
-    // Final square size (clamped so it doesn’t get too big/small)
     final double coverSize = availableWidth.clamp(
       isMobile ? 200.0 : 260.0, // min
       isMobile ? mobileTargetSize : desktopTargetSize, // max

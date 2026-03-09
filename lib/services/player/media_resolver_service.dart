@@ -84,6 +84,13 @@ class MediaResolverService {
       );
     }
 
+    if (parts.pluginId == 'local') {
+      throw Exception(
+        'Local file not found for "${track.title}" — '
+        'it may have been deleted or moved.',
+      );
+    }
+
     log(
         'Resolving streams for "${track.title}" '
         '(plugin: ${parts.pluginId}, id: ${parts.localId})',

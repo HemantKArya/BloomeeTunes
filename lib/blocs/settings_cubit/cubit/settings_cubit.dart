@@ -84,6 +84,11 @@ class SettingsCubit extends Cubit<SettingsState> {
           .then((value) {
         emit(state.copyWith(autoPlay: value ?? true));
       }),
+      _settingsRepo
+          .getSettingBool(SettingKeys.autoResolveUnavailableTracks)
+          .then((value) {
+        emit(state.copyWith(autoResolveUnavailableTracks: value ?? true));
+      }),
       _settingsRepo.getSettingBool(CacheKeys.lFMUIPicks).then((value) {
         emit(state.copyWith(lFMPicks: value ?? false));
       }),
@@ -178,6 +183,14 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setAutoPlay(bool value) async {
     await _settingsRepo.putSettingBool(SettingKeys.autoPlay, value);
     emit(state.copyWith(autoPlay: value));
+  }
+
+  Future<void> setAutoResolveUnavailableTracks(bool value) async {
+    await _settingsRepo.putSettingBool(
+      SettingKeys.autoResolveUnavailableTracks,
+      value,
+    );
+    emit(state.copyWith(autoResolveUnavailableTracks: value));
   }
 
   void autoUpdate() {

@@ -16,6 +16,7 @@ class SettingsState extends Equatable {
   final bool lastFMScrobble;
   final bool autoSaveLyrics;
   final bool autoPlay;
+  final bool autoResolveUnavailableTracks;
   final String countryCode;
   final Map chartMap;
   final int crossfadeDuration; // seconds, 0 = disabled
@@ -42,6 +43,7 @@ class SettingsState extends Equatable {
     required this.lastFMScrobble,
     required this.chartMap,
     required this.autoPlay,
+    required this.autoResolveUnavailableTracks,
     required this.crossfadeDuration,
     required this.eqEnabled,
     required this.eqBandGains,
@@ -68,6 +70,7 @@ class SettingsState extends Equatable {
     Map? chartMap,
     bool? autoSaveLyrics,
     bool? autoPlay,
+    bool? autoResolveUnavailableTracks,
     int? crossfadeDuration,
     bool? eqEnabled,
     List<double>? eqBandGains,
@@ -93,6 +96,8 @@ class SettingsState extends Equatable {
       chartMap: Map.from(chartMap ?? this.chartMap),
       autoSaveLyrics: autoSaveLyrics ?? this.autoSaveLyrics,
       autoPlay: autoPlay ?? this.autoPlay,
+      autoResolveUnavailableTracks:
+          autoResolveUnavailableTracks ?? this.autoResolveUnavailableTracks,
       crossfadeDuration: crossfadeDuration ?? this.crossfadeDuration,
       eqEnabled: eqEnabled ?? this.eqEnabled,
       eqBandGains: eqBandGains != null
@@ -125,6 +130,7 @@ class SettingsState extends Equatable {
         lastFMScrobble,
         autoSaveLyrics,
         autoPlay,
+        autoResolveUnavailableTracks,
         crossfadeDuration,
         eqEnabled,
         eqBandGains,
@@ -154,6 +160,7 @@ class SettingsInitial extends SettingsState {
           lastFMScrobble: true,
           autoSaveLyrics: false,
           autoPlay: true,
+          autoResolveUnavailableTracks: true,
           crossfadeDuration: 0,
           eqEnabled: false,
           eqBandGains: List<double>.filled(10, 0.0),

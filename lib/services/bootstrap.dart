@@ -1,6 +1,9 @@
 import 'dart:developer';
 
+import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
+import 'package:Bloomee/services/local_music_service.dart';
 import 'package:Bloomee/src/rust/frb_generated.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -38,5 +41,18 @@ Future<void> bootstrapApp() async {
     // with degraded functionality (no plugin content).
     log('Plugin system initialization failed (non-fatal)',
         error: e, stackTrace: stack, name: 'Bootstrap');
+  }
+
+  // Auto-scan local music folders if enabled (fire-and-forget).
+  try {
+    final settingsDao = SettingsDAO(DBProvider.db);
+    final autoScan =
+        await settingsDao.getSettingBool(SettingKeys.localMusicAutoScan) ??
+            true;
+    if (autoScan) {
+      LocalMusicService.create().scanAndPersist();
+    }
+  } catch (e) {
+    log('Local music auto-scan skipped', error: e, name: 'Bootstrap');
   }
 }

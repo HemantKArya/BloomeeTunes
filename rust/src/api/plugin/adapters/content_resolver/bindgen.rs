@@ -1,7 +1,7 @@
 // AUTO-GENERATED WIT BINDINGS for wasm-component-layer
 // DO NOT EDIT - Regenerate using wit-bindgen-wcl
 
-#![allow(dead_code, unused_imports, ambiguous_glob_reexports)]
+#![allow(dead_code, unused_imports, unused_variables, ambiguous_glob_reexports)]
 
 use anyhow::*;
 use waclay::*;

@@ -7,6 +7,8 @@
 /// MediaItem or MediaItemModel directly.
 library track_adapter;
 
+import 'dart:io';
+
 import 'package:Bloomee/core/models/exported.dart' hide MediaItem;
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:audio_service/audio_service.dart';
@@ -40,15 +42,42 @@ MediaItem trackToMediaItem(Track track) {
 
 /// Validate a thumbnail URL before creating an [artUri] for MediaItem.
 ///
-/// Returns `null` for empty, malformed, or non-HTTP(S) URLs so the
-/// platform media session won't crash on invalid URIs.
+/// Accepts HTTP(S) URLs and `file://` URIs (for local track artwork).
+/// Raw absolute paths (e.g. `/data/...` or `C:\...`) are converted to
+/// `file://` URIs so the platform media session can load them.
+/// Returns `null` for empty or malformed strings.
 Uri? _safeArtUri(String url) {
   if (url.isEmpty) return null;
-  final uri = Uri.tryParse(url);
+
+  final trimmed = url.trim();
+
+  // Raw absolute path → convert to file URI.
+  if (trimmed.startsWith('/') || RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(trimmed)) {
+    try {
+      final file = File(trimmed);
+      if (file.existsSync()) return Uri.file(trimmed);
+    } catch (_) {}
+    return null;
+  }
+
+  final uri = Uri.tryParse(trimmed);
   if (uri == null) return null;
-  if (uri.scheme != 'http' && uri.scheme != 'https') return null;
-  if (uri.host.isEmpty) return null;
-  return uri;
+
+  // file:// URI — validate the file exists.
+  if (uri.scheme == 'file') {
+    try {
+      final path = uri.toFilePath();
+      if (File(path).existsSync()) return uri;
+    } catch (_) {}
+    return null;
+  }
+
+  // HTTP(S) — require a real host.
+  if ((uri.scheme == 'http' || uri.scheme == 'https') && uri.host.isNotEmpty) {
+    return uri;
+  }
+
+  return null;
 }
 
 /// Convert an audio_service [MediaItem] back to a minimal [Track].

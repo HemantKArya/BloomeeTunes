@@ -111,6 +111,7 @@ class DBProvider {
     // Ensure standard playlists exist during startup.
     playlistDAO.ensurePlaylist(likedPlaylist);
     playlistDAO.ensurePlaylist(downloadPlaylist);
+    playlistDAO.ensurePlaylist(localMusicPlaylist);
 
     Future.delayed(const Duration(seconds: 30), () async {
       // Read configured history retention days.
@@ -151,10 +152,12 @@ class DBProvider {
   static const downloadPlaylist = '_DOWNLOADS';
   static const recentlyPlayedPlaylist = 'recently_played';
   static const likedPlaylist = 'Liked';
+  static const localMusicPlaylist = '_LOCAL_MUSIC';
   static final standardPlaylists = [
     downloadPlaylist,
     recentlyPlayedPlaylist,
     likedPlaylist,
+    localMusicPlaylist,
   ];
 
   /// Get the database backup file path.

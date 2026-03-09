@@ -24,7 +24,6 @@ class LyricsCacheRepository {
     Duration? duration,
     LyricsProvider provider = LyricsProvider.none,
   }) async {
-    // 1. Try cache
     final cached = await _lyricsDao.getLyrics(mediaID);
     if (cached != null &&
         (cached.lyricsSynced?.isNotEmpty ?? false) &&
@@ -32,7 +31,6 @@ class LyricsCacheRepository {
       return cached;
     }
 
-    // 2. Fetch from API
     final fetched = await lyrics_api.LyricsRepository.getLyrics(
       title,
       artist,
@@ -41,7 +39,6 @@ class LyricsCacheRepository {
       provider: provider,
     );
 
-    // 3. Cache if successful
     if ((fetched.lyricsSynced?.isNotEmpty ?? false) &&
         fetched.lyricsSynced != 'null') {
       await _lyricsDao.putLyrics(fetched);

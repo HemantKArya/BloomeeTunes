@@ -52,6 +52,11 @@ class RelatedSongsManager {
       return;
     }
 
+    if (parts.pluginId == kLocalPluginId) {
+      clearRelatedSongs();
+      return;
+    }
+
     _syncReferenceState(
       trackId: currentMedia.id,
       pluginId: parts.pluginId,

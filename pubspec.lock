@@ -98,7 +98,7 @@ packages:
     source: hosted
     version: "3.1.2"
   bloc:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: bloc
       sha256: e18b8e7825e9921d67a6d256dba0b6015ece8a577eb0a411845c46a352994d78
@@ -920,7 +920,7 @@ packages:
     source: hosted
     version: "0.3.3+7"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: "75cca69d1490965be98c73ceaea117e8a04dd21217b37b292c9ddbec0d955bc5"
@@ -1039,6 +1039,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.1"
+  photo_manager:
+    dependency: "direct main"
+    description:
+      name: photo_manager
+      sha256: fb3bc8ea653370f88742b3baa304700107c83d12748aa58b2b9f2ed3ef15e6c2
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.9.0"
   platform:
     dependency: transitive
     description:

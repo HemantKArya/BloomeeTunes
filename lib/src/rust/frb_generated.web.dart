@@ -9,6 +9,7 @@
 import 'api/bridge.dart';
 import 'api/downloader.dart';
 import 'api/downloader/types.dart';
+import 'api/local_music.dart';
 import 'api/plugin/commands.dart';
 import 'api/plugin/events.dart';
 import 'api/plugin/manifest.dart';
@@ -267,6 +268,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
+  List<LocalTrackMeta> dco_decode_list_local_track_meta(dynamic raw);
+
+  @protected
   List<MediaItem> dco_decode_list_media_item(dynamic raw);
 
   @protected
@@ -283,6 +287,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<Track> dco_decode_list_track(dynamic raw);
+
+  @protected
+  LocalTrackMeta dco_decode_local_track_meta(dynamic raw);
 
   @protected
   Lyrics dco_decode_lyrics(dynamic raw);
@@ -634,6 +641,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  List<LocalTrackMeta> sse_decode_list_local_track_meta(
+      SseDeserializer deserializer);
+
+  @protected
   List<MediaItem> sse_decode_list_media_item(SseDeserializer deserializer);
 
   @protected
@@ -652,6 +663,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<Track> sse_decode_list_track(SseDeserializer deserializer);
+
+  @protected
+  LocalTrackMeta sse_decode_local_track_meta(SseDeserializer deserializer);
 
   @protected
   Lyrics sse_decode_lyrics(SseDeserializer deserializer);
@@ -1013,6 +1027,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       List<DownloadTaskSnapshot> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_local_track_meta(
+      List<LocalTrackMeta> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_media_item(
       List<MediaItem> self, SseSerializer serializer);
 
@@ -1033,6 +1051,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_list_track(List<Track> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_local_track_meta(
+      LocalTrackMeta self, SseSerializer serializer);
 
   @protected
   void sse_encode_lyrics(Lyrics self, SseSerializer serializer);

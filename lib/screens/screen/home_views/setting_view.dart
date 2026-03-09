@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/appui_setting.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/local_music_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/plugin_defaults_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/storage_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.dart';
@@ -65,6 +66,18 @@ class SettingsView extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const DownloadSettings(),
+                  ),
+                );
+              }),
+          settingListTile(
+              title: "Local Tracks",
+              subtitle: "Scan, manage folders and auto-scan settings.",
+              icon: MingCute.music_2_line,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LocalMusicSettings(),
                   ),
                 );
               }),

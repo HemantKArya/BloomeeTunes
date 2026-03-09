@@ -25,6 +25,8 @@ rand = "0.8"
 url = "2.5"
 tracing = "0.1"
 lofty = "0.22.4"
+sha2 = "0.10"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp", "webp"] }
 
 [profile.release]
 opt-level = "z"     # Optimize for size

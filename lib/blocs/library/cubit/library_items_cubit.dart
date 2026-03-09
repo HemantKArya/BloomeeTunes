@@ -277,9 +277,6 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   // ── Search helper for LibrarySearchCubit ──────────────────────────────────
 
   /// Search tracks by query, returning domain [Track] objects.
-  ///
-  /// This is a callback-compatible function signature that can be passed
-  /// to [LibrarySearchCubit] so it doesn't need to import DAOs directly.
   Future<List<Track>> searchTracks(String query) async {
     final results = await _playlistDao.searchLibrary(query);
     return results.map((r) => trackDBToTrack(r.$1)).toList();

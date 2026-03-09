@@ -9,6 +9,7 @@ import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/utils/load_image.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -174,18 +175,20 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
     return StreamBuilder<MediaItem?>(
       stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
       builder: (context, snapshot) {
+        final artworkUrl = bloomeePlayerCubit
+                .bloomeePlayer.currentTrackInfo.thumbnail.urlLow ??
+            bloomeePlayerCubit.bloomeePlayer.currentTrackInfo.thumbnail.url;
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 800),
           child: Container(
             key: ValueKey(snapshot.data?.artUri),
             decoration: BoxDecoration(
-              image: snapshot.data?.artUri != null
+              image: artworkUrl.isNotEmpty
                   ? DecorationImage(
-                      image: NetworkImage(
-                        bloomeePlayerCubit.bloomeePlayer.currentTrackInfo
-                                .thumbnail.urlLow ??
-                            bloomeePlayerCubit
-                                .bloomeePlayer.currentTrackInfo.thumbnail.url,
+                      image: getImageProviderSync(
+                        artworkUrl,
+                        fallbackUrl: bloomeePlayerCubit
+                            .bloomeePlayer.currentTrackInfo.thumbnail.url,
                       ),
                       fit: BoxFit.cover,
                     )

@@ -77,7 +77,8 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
     final userPlaylists = playlists.where((p) {
       return p.type == PlaylistType.userPlaylist &&
           p.playlistName != "recently_played" &&
-          p.playlistName != SettingKeys.downloadPlaylist;
+          p.playlistName != SettingKeys.downloadPlaylist &&
+          p.playlistName != SettingKeys.localMusicPlaylist;
     }).toList();
 
     final filtered = query.isEmpty
@@ -208,7 +209,10 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                             .where((p) =>
                                 songPlaylists.contains(p.playlistName) &&
                                 p.playlistName != "recently_played" &&
-                                p.playlistName != SettingKeys.downloadPlaylist)
+                                p.playlistName !=
+                                    SettingKeys.downloadPlaylist &&
+                                p.playlistName !=
+                                    SettingKeys.localMusicPlaylist)
                             .toList()
                           ..sort((a, b) => a.playlistName
                               .toLowerCase()

@@ -72,7 +72,6 @@ class _OfflineScreenState extends State<OfflineScreen> {
         backgroundColor: Default_Theme.themeColor,
         body: BlocBuilder<DownloaderCubit, DownloaderState>(
           builder: (context, state) {
-            // This ensures the list is correctly populated on initial build
             if (_searchController.text.isEmpty) {
               _filteredSongs = state.downloaded;
             }
@@ -207,7 +206,6 @@ class _OfflineScreenState extends State<OfflineScreen> {
   }
 
   Widget _buildTitle() {
-    // Using a ValueKey tells the AnimatedSwitcher that this is a distinct widget.
     return Container(
       key: const ValueKey('title'),
       child: Row(
@@ -223,7 +221,6 @@ class _OfflineScreenState extends State<OfflineScreen> {
   }
 
   Widget _buildSearchField() {
-    // Using a ValueKey tells the AnimatedSwitcher that this is a new, distinct widget.
     return Container(
       key: const ValueKey('search'),
       child: TextField(

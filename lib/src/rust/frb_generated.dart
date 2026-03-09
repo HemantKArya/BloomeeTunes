@@ -6,6 +6,7 @@
 import 'api/bridge.dart';
 import 'api/downloader.dart';
 import 'api/downloader/types.dart';
+import 'api/local_music.dart';
 import 'api/plugin/commands.dart';
 import 'api/plugin/events.dart';
 import 'api/plugin/manifest.dart';
@@ -80,7 +81,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1582878327;
+  int get rustContentHash => 1806068831;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -337,6 +338,9 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiPluginTypesPluginTypeTypeString(
       {required PluginType that});
 
+  Future<LocalTrackMeta> crateApiLocalMusicReadAudioMetadata(
+      {required String filePath, required String coverCacheDir});
+
   Future<void> crateApiBridgeRefreshAvailablePlugins(
       {required PluginManager manager});
 
@@ -345,6 +349,9 @@ abstract class RustLibApi extends BaseApi {
 
   Future<bool> crateApiBridgeResumeDownloadTask(
       {required DownloadManager manager, required String taskId});
+
+  Future<List<LocalTrackMeta>> crateApiLocalMusicScanAudioFiles(
+      {required List<String> directories, required String coverCacheDir});
 
   Future<List<String>> crateApiBridgeScanBexFiles({required String directory});
 
@@ -2311,6 +2318,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<LocalTrackMeta> crateApiLocalMusicReadAudioMetadata(
+      {required String filePath, required String coverCacheDir}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(filePath, serializer);
+        sse_encode_String(coverCacheDir, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 69, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_local_track_meta,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiLocalMusicReadAudioMetadataConstMeta,
+      argValues: [filePath, coverCacheDir],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiLocalMusicReadAudioMetadataConstMeta =>
+      const TaskConstMeta(
+        debugName: "read_audio_metadata",
+        argNames: ["filePath", "coverCacheDir"],
+      );
+
+  @override
   Future<void> crateApiBridgeRefreshAvailablePlugins(
       {required PluginManager manager}) {
     return handler.executeNormal(NormalTask(
@@ -2319,7 +2353,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 69, port: port_);
+            funcId: 70, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2346,7 +2380,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDownloadManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 70, port: port_);
+            funcId: 71, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_download_task_snapshot,
@@ -2374,7 +2408,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             manager, serializer);
         sse_encode_String(taskId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 71, port: port_);
+            funcId: 72, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -2393,13 +2427,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<List<LocalTrackMeta>> crateApiLocalMusicScanAudioFiles(
+      {required List<String> directories, required String coverCacheDir}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_list_String(directories, serializer);
+        sse_encode_String(coverCacheDir, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 73, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_local_track_meta,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiLocalMusicScanAudioFilesConstMeta,
+      argValues: [directories, coverCacheDir],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiLocalMusicScanAudioFilesConstMeta =>
+      const TaskConstMeta(
+        debugName: "scan_audio_files",
+        argNames: ["directories", "coverCacheDir"],
+      );
+
+  @override
   Future<List<String>> crateApiBridgeScanBexFiles({required String directory}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(directory, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 72, port: port_);
+            funcId: 74, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -2425,7 +2486,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 73, port: port_);
+            funcId: 75, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2456,7 +2517,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(pluginId, serializer);
         sse_encode_plugin_type(pluginType, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 74, port: port_);
+            funcId: 76, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3086,6 +3147,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<LocalTrackMeta> dco_decode_list_local_track_meta(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_local_track_meta).toList();
+  }
+
+  @protected
   List<MediaItem> dco_decode_list_media_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_media_item).toList();
@@ -3119,6 +3186,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<Track> dco_decode_list_track(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_track).toList();
+  }
+
+  @protected
+  LocalTrackMeta dco_decode_local_track_meta(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    return LocalTrackMeta(
+      filePath: dco_decode_String(arr[0]),
+      title: dco_decode_opt_String(arr[1]),
+      artists: dco_decode_list_String(arr[2]),
+      album: dco_decode_opt_String(arr[3]),
+      albumArtist: dco_decode_opt_String(arr[4]),
+      year: dco_decode_opt_box_autoadd_u_32(arr[5]),
+      genre: dco_decode_opt_String(arr[6]),
+      durationMs: dco_decode_opt_box_autoadd_u_64(arr[7]),
+      coverArtPath: dco_decode_opt_String(arr[8]),
+      fileSize: dco_decode_u_64(arr[9]),
+    );
   }
 
   @protected
@@ -4289,6 +4376,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<LocalTrackMeta> sse_decode_list_local_track_meta(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LocalTrackMeta>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_local_track_meta(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<MediaItem> sse_decode_list_media_item(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -4355,6 +4455,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ans_.add(sse_decode_track(deserializer));
     }
     return ans_;
+  }
+
+  @protected
+  LocalTrackMeta sse_decode_local_track_meta(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_filePath = sse_decode_String(deserializer);
+    var var_title = sse_decode_opt_String(deserializer);
+    var var_artists = sse_decode_list_String(deserializer);
+    var var_album = sse_decode_opt_String(deserializer);
+    var var_albumArtist = sse_decode_opt_String(deserializer);
+    var var_year = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_genre = sse_decode_opt_String(deserializer);
+    var var_durationMs = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_coverArtPath = sse_decode_opt_String(deserializer);
+    var var_fileSize = sse_decode_u_64(deserializer);
+    return LocalTrackMeta(
+        filePath: var_filePath,
+        title: var_title,
+        artists: var_artists,
+        album: var_album,
+        albumArtist: var_albumArtist,
+        year: var_year,
+        genre: var_genre,
+        durationMs: var_durationMs,
+        coverArtPath: var_coverArtPath,
+        fileSize: var_fileSize);
   }
 
   @protected
@@ -5484,6 +5610,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_local_track_meta(
+      List<LocalTrackMeta> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_local_track_meta(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_media_item(
       List<MediaItem> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -5537,6 +5673,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     for (final item in self) {
       sse_encode_track(item, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_local_track_meta(
+      LocalTrackMeta self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.filePath, serializer);
+    sse_encode_opt_String(self.title, serializer);
+    sse_encode_list_String(self.artists, serializer);
+    sse_encode_opt_String(self.album, serializer);
+    sse_encode_opt_String(self.albumArtist, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.year, serializer);
+    sse_encode_opt_String(self.genre, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.durationMs, serializer);
+    sse_encode_opt_String(self.coverArtPath, serializer);
+    sse_encode_u_64(self.fileSize, serializer);
   }
 
   @protected

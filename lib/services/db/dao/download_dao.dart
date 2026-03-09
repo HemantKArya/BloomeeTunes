@@ -1,6 +1,7 @@
 ﻿import 'dart:developer';
 import 'dart:io';
 
+import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/global_db.dart';
@@ -75,17 +76,14 @@ class DownloadDAO {
 
     if (record == null) return;
 
-    // Delete the DownloadDB row.
     await isar.writeTxn(() => isar.downloadDBs.delete(record.id));
 
-    // Remove from _DOWNLOADS playlist.
     final downloadsPlaylist =
         await _playlistDAO.getPlaylistByName(downloadsPlaylistName);
     if (downloadsPlaylist != null) {
       await _playlistDAO.removeTrackFromPlaylist(downloadsPlaylist.id, mediaId);
     }
 
-    // Delete the file from disk if it exists.
     if (deleteFile) {
       try {
         final file = File('${record.filePath}/${record.fileName}');
@@ -98,6 +96,50 @@ class DownloadDAO {
             error: e, name: 'DownloadDAO');
       }
     }
+  }
+
+  /// Record a file mapping without touching any playlist (for local music).
+  ///
+  /// Unlike [putDownload], this only upserts [TrackDB] + [DownloadDB] rows.
+  Future<void> putDownloadRecord({
+    required String fileName,
+    required String filePath,
+    required Track track,
+    DateTime? lastDownloaded,
+  }) async {
+    final isar = await _db;
+    lastDownloaded ??= DateTime.now();
+
+    await _trackDAO.upsertTrack(track);
+
+    final existing =
+        await isar.downloadDBs.filter().mediaIdEqualTo(track.id).findFirst();
+
+    await isar.writeTxn(() async {
+      if (existing != null) {
+        existing
+          ..fileName = fileName
+          ..filePath = filePath
+          ..lastDownloaded = lastDownloaded;
+        await isar.downloadDBs.put(existing);
+      } else {
+        await isar.downloadDBs.put(DownloadDB(
+          fileName: fileName,
+          filePath: filePath,
+          lastDownloaded: lastDownloaded,
+          mediaId: track.id,
+        ));
+      }
+    });
+  }
+
+  /// Remove a [DownloadDB] record without deleting the underlying file.
+  Future<void> removeDownloadRecord(String mediaId) async {
+    final isar = await _db;
+    final record =
+        await isar.downloadDBs.filter().mediaIdEqualTo(mediaId).findFirst();
+    if (record == null) return;
+    await isar.writeTxn(() => isar.downloadDBs.delete(record.id));
   }
 
   // ── Read ───────────────────────────────────────────────────────────────────
@@ -153,12 +195,15 @@ class DownloadDAO {
   /// Return downloaded [Track]s using persisted track metadata.
   ///
   /// The order matches [getValidDownloads] (most recent first).
+  /// Excludes locally scanned tracks (they have their own playlist).
   /// Falls back to a lightweight track if track metadata is missing.
   Future<List<Track>> getValidDownloadedTracks() async {
     final downloads = await getValidDownloads();
     final result = <Track>[];
 
     for (final record in downloads) {
+      if (isLocalMediaId(record.mediaId)) continue;
+
       final track = await _trackDAO.getTrackByMediaId(record.mediaId);
       if (track != null) {
         result.add(track);

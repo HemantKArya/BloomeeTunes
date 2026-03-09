@@ -7,6 +7,9 @@
 /// No other file in the codebase should construct or destructure this format.
 library media_id;
 
+import 'dart:convert' show utf8;
+import 'package:crypto/crypto.dart' show sha256;
+
 /// The separator between pluginId and localId in a media ID.
 const String kMediaIdSeparator = '::';
 
@@ -82,3 +85,26 @@ String? localIdOf(String id) => tryParseMediaId(id)?.localId;
 
 /// Check whether an ID is a properly stamped composite media ID.
 bool isStampedId(String id) => id.contains(kMediaIdSeparator);
+
+// ── Local music ─────────────────────────────────────────────────────────────
+
+/// The pseudo-plugin ID used for locally scanned audio files.
+const String kLocalPluginId = 'local';
+
+/// Returns `true` if [id] belongs to a locally scanned track.
+bool isLocalMediaId(String id) => pluginIdOf(id) == kLocalPluginId;
+
+/// Build a deterministic media ID for a local file.
+///
+/// Uses SHA-256 of the absolute path so IDs are safe, stable, and unique.
+String buildLocalMediaId(String absoluteFilePath) {
+  final hash = sha256.convert(utf8.encode(absoluteFilePath)).toString();
+  return buildMediaId(kLocalPluginId, hash);
+}
+
+/// Build a deterministic media ID for an Android MediaStore audio asset.
+///
+/// Uses the stable MediaStore row ID (not the file path, which may be a
+/// temporary cache path on Android 10).
+String buildMobileLocalMediaId(String assetId) =>
+    buildMediaId(kLocalPluginId, assetId);

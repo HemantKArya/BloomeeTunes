@@ -53,14 +53,10 @@ class LibrarySearchCubit extends Cubit<LibrarySearchState> {
     emit(LibrarySearchLoading());
 
     try {
-      // 1. Filter in-memory playlists
       final filteredPlaylists =
           _filterList(itemsState.playlists, query, (p) => p.playlistName);
-
-      // 2. Async Song Search via TrackDAO
       final songResults = await _searchSongs(query);
 
-      // Check if this search is still relevant
       if (_currentQuery != query) return;
 
       emit(LibrarySearchSuccess(

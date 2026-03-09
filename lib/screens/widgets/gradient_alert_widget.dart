@@ -96,7 +96,6 @@ class _GradientDialogState extends State<GradientDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Small gradient header strip with centered title
               Container(
                 width: double.infinity,
                 padding:
@@ -121,8 +120,6 @@ class _GradientDialogState extends State<GradientDialog> {
                   ),
                 ),
               ),
-
-              // Body area (keeps plain background)
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 12, 18, 6),
                 child: Column(
@@ -145,15 +142,11 @@ class _GradientDialogState extends State<GradientDialog> {
                   ],
                 ),
               ),
-
-              // Buttons row
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Build action buttons from provided list. If none provided,
-                    // show a single OK button that just closes the dialog.
                     ...?_buildActions(context, preset),
                   ],
                 ),

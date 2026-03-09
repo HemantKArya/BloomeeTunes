@@ -256,7 +256,6 @@ class PluginService {
     required String pluginId,
     required PluginType pluginType,
   }) async {
-    // 1. Unload if currently loaded.
     final loaded = await bridge.isPluginLoaded(
       manager: manager,
       pluginId: pluginId,
@@ -266,7 +265,6 @@ class PluginService {
       await unloadPlugin(pluginId: pluginId, pluginType: pluginType);
     }
 
-    // 2. Find the plugin info to get its directory path.
     final info =
         await getPluginInfo(pluginId: pluginId, pluginType: pluginType);
     if (info == null) {
@@ -283,7 +281,6 @@ class PluginService {
           name: 'PluginService');
     }
 
-    // 3. Refresh to update available list.
     await refreshPlugins();
     log('Plugin deleted: $pluginId', name: 'PluginService');
   }

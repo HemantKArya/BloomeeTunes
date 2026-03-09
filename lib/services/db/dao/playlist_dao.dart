@@ -1,4 +1,4 @@
-﻿import 'dart:developer';
+import 'dart:developer';
 
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
@@ -246,6 +246,53 @@ class PlaylistDAO {
       for (final e in newEntries) {
         await e.playlist.save();
         await e.track.save();
+      }
+
+      playlist.updatedAt = DateTime.now();
+      await isar.playlistDBs.put(playlist);
+    });
+  }
+
+  /// Replace the full ordered contents of [playlistId] with [tracks].
+  Future<void> setPlaylistTracks(int playlistId, List<Track> tracks) async {
+    final isar = await _db;
+    final seenIds = <String>{};
+    final orderedUniqueTracks =
+        tracks.where((track) => seenIds.add(track.id)).toList(growable: false);
+    final trackIds = await _trackDAO.upsertTracks(orderedUniqueTracks);
+
+    await isar.writeTxn(() async {
+      final playlist = await isar.playlistDBs.get(playlistId);
+      if (playlist == null) return;
+
+      final existingEntries = await isar.playlistEntryDBs
+          .filter()
+          .playlistIdEqualTo(playlistId)
+          .findAll();
+      if (existingEntries.isNotEmpty) {
+        await isar.playlistEntryDBs
+            .deleteAll(existingEntries.map((entry) => entry.id).toList());
+      }
+
+      final newEntries = <PlaylistEntryDB>[];
+      for (int index = 0; index < trackIds.length; index++) {
+        final trackObj = await isar.trackDBs.get(trackIds[index]);
+        if (trackObj == null) continue;
+        final entry = PlaylistEntryDB(
+          playlistId: playlistId,
+          position: index,
+        )
+          ..playlist.value = playlist
+          ..track.value = trackObj;
+        newEntries.add(entry);
+      }
+
+      if (newEntries.isNotEmpty) {
+        await isar.playlistEntryDBs.putAll(newEntries);
+        for (final entry in newEntries) {
+          await entry.playlist.save();
+          await entry.track.save();
+        }
       }
 
       playlist.updatedAt = DateTime.now();

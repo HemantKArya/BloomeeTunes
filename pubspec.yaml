@@ -20,6 +20,7 @@ dependencies:
   icons_plus: ^5.0.0
   cached_network_image: ^3.4.1
   flutter_bloc: ^9.1.1
+  bloc: ^9.0.0
   dart_des: ^1.0.2
   http: ^1.5.0
   convert: ^3.1.1
@@ -37,6 +38,7 @@ dependencies:
     version: ^3.3.0-dev.3
 
   path_provider: ^2.1.0
+  path: ^1.9.0
   modal_bottom_sheet: ^3.0.0
   html_unescape: ^2.0.0
   marquee: ^2.2.3
@@ -58,6 +60,7 @@ dependencies:
   crypto: ^3.0.5
   dart_discord_rpc: ^0.0.2
   mime: ^2.0.0
+  photo_manager: ^3.9.0
 
 
   # audio service dependencies

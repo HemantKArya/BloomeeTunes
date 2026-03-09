@@ -292,7 +292,6 @@ class _GradientProgressBarState extends State<GradientProgressBar>
       parent: _animationController,
       curve: widget.animationCurve,
     );
-    // Set initial state
     if (widget.isPlaying) {
       _animationController.value = 1.0;
     }
@@ -349,7 +348,6 @@ class _GradientProgressBarState extends State<GradientProgressBar>
   }
 
   void _handleDragStart(DragStartDetails details, BoxConstraints constraints) {
-    // Track is full width, so use full width for calculation
     final trackWidth = constraints.maxWidth;
     final localX = details.localPosition.dx;
     final newValue = (localX / trackWidth).clamp(0.0, 1.0);
@@ -364,7 +362,6 @@ class _GradientProgressBarState extends State<GradientProgressBar>
       DragUpdateDetails details, BoxConstraints constraints) {
     if (!_isDragging) return;
 
-    // Track is full width, so use full width for calculation
     final trackWidth = constraints.maxWidth;
     final localX = details.localPosition.dx;
     final newValue = (localX / trackWidth).clamp(0.0, 1.0);
@@ -390,7 +387,6 @@ class _GradientProgressBarState extends State<GradientProgressBar>
   }
 
   void _handleTap(TapUpDetails details, BoxConstraints constraints) {
-    // Track is full width, so use full width for calculation
     final trackWidth = constraints.maxWidth;
     final localX = details.localPosition.dx;
     final tapValue = (localX / trackWidth).clamp(0.0, 1.0);

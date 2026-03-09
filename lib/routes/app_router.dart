@@ -9,6 +9,7 @@ import 'package:Bloomee/screens/screen/library_screen.dart';
 import 'package:Bloomee/screens/screen/library_views/import_media_view.dart';
 import 'package:Bloomee/screens/screen/library_views/playlist_screen.dart';
 import 'package:Bloomee/screens/screen/offline_screen.dart';
+import 'package:Bloomee/screens/screen/local_music_screen.dart';
 import 'package:Bloomee/screens/screen/search_screen.dart';
 import 'package:Bloomee/screens/screen/chart/chart_view.dart';
 
@@ -115,6 +116,13 @@ class AppRouter {
                     return const SearchScreen();
                   }
                 },
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                name: RoutePaths.localMusicScreen,
+                path: '/LocalMusic',
+                builder: (context, state) => const LocalMusicScreen(),
               ),
             ]),
             StatefulShellBranch(routes: [

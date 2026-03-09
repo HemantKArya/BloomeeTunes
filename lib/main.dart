@@ -4,6 +4,7 @@ import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:Bloomee/blocs/global_events/global_events_cubit.dart';
 import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dart';
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
+import 'package:Bloomee/blocs/local_music/cubit/local_music_cubit.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
 import 'package:Bloomee/blocs/notification/notification_cubit.dart';
@@ -309,6 +310,10 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(
           create: (context) => ShortcutIndicatorCubit(),
           lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => LocalMusicCubit(),
+          lazy: true,
         ),
       ],
       child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(

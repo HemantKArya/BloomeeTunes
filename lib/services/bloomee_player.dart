@@ -1,4 +1,4 @@
-﻿import 'dart:developer';
+import 'dart:developer';
 import 'dart:async';
 import 'dart:convert';
 
@@ -8,6 +8,8 @@ import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/core/constants/sentinel_values.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/plugins/utils/media_id.dart';
+import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
@@ -17,6 +19,8 @@ import 'package:Bloomee/services/player/player_error_handler.dart';
 import 'package:Bloomee/services/player/queue_manager.dart';
 import 'package:Bloomee/services/player/related_songs_manager.dart';
 import 'package:Bloomee/services/player/recently_played_tracker.dart';
+import 'package:Bloomee/services/plugin/plugin_service.dart';
+import 'package:Bloomee/services/smart_track_replacement_service.dart';
 import 'package:Bloomee/services/discord_service.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
@@ -46,6 +50,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   late RelatedSongsManager _relatedSongsManager;
   late RecentlyPlayedTracker _recentlyPlayedTracker;
   late MediaResolverService _resolver;
+  late SmartTrackReplacementService _smartTrackReplacementService;
 
   // State subjects (Kept alive indefinitely to avoid orphaning UI StreamBuilders)
   BehaviorSubject<bool> fromPlaylist = BehaviorSubject<bool>.seeded(false);
@@ -95,6 +100,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   /// The current track as a domain [Track].
   Track get currentTrackInfo => _currentTrack;
+  List<Track> get queueTracks => List<Track>.unmodifiable(_queueManager.tracks);
+  int get currentQueueIndex => _queueManager.currentIndex;
+  PluginService get pluginService => ServiceLocator.pluginService;
 
   BloomeeMusicPlayer() {
     _initEngine();
@@ -234,6 +242,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager = QueueManager();
     _relatedSongsManager = RelatedSongsManager(ServiceLocator.pluginService);
     _resolver = MediaResolverService.create(ServiceLocator.pluginService);
+    _smartTrackReplacementService =
+        SmartTrackReplacementService.create(ServiceLocator.pluginService);
 
     // INTERNAL skip handler: doesn't reset circuit breaker!
     _errorHandler.onSkipToNext = () => _internalSkipToNext();
@@ -496,6 +506,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (!alive()) return;
 
     final crossfadeEnabled = engine.crossfadeDuration > Duration.zero;
+    var resolvedTrack = track;
     final canUsePreloaded = engine.isPreloaded &&
         _preloadedTrackId != null &&
         _preloadedTrackId == track.id;
@@ -531,16 +542,22 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           await engine.stop(keepLoadingState: true);
           if (!alive()) return;
 
-          _currentResolveOp = CancelableOperation.fromFuture(
-              _resolver.resolve(track).timeout(const Duration(seconds: 15)));
+          final resolveOp = CancelableOperation.fromFuture(
+            _resolveTrackWithAutoReplacement(track)
+                .timeout(const Duration(seconds: 15)),
+          );
 
-          final result = await _currentResolveOp!.valueOrCancellation();
+          final result = await resolveOp.valueOrCancellation();
           if (result == null || !alive()) return;
+          resolvedTrack = result.$1;
+          if (resolvedTrack.id != track.id) {
+            _updateCurrentTrack(resolvedTrack);
+          }
 
-          _setOfflineState(result.isOffline);
+          _setOfflineState(result.$2.isOffline);
           transitionResult = await engine.openDirect(
-            result.uri,
-            httpHeaders: result.headers,
+            result.$2.uri,
+            httpHeaders: result.$2.headers,
             autoPlay: doPlay,
           );
         }
@@ -554,16 +571,22 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           await engine.stop(keepLoadingState: true);
           if (!alive()) return;
 
-          _currentResolveOp = CancelableOperation.fromFuture(
-              _resolver.resolve(track).timeout(const Duration(seconds: 15)));
+          final resolveOp = CancelableOperation.fromFuture(
+            _resolveTrackWithAutoReplacement(track)
+                .timeout(const Duration(seconds: 15)),
+          );
 
-          final result = await _currentResolveOp!.valueOrCancellation();
+          final result = await resolveOp.valueOrCancellation();
           if (result == null || !alive()) return;
+          resolvedTrack = result.$1;
+          if (resolvedTrack.id != track.id) {
+            _updateCurrentTrack(resolvedTrack);
+          }
 
-          _setOfflineState(result.isOffline);
+          _setOfflineState(result.$2.isOffline);
           transitionResult = await engine.openDirect(
-            result.uri,
-            httpHeaders: result.headers,
+            result.$2.uri,
+            httpHeaders: result.$2.headers,
             autoPlay: doPlay,
           );
         }
@@ -574,7 +597,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       if (transitionResult is EngineFailure) {
         final err = transitionResult.error;
         final type = _errorHandler.categorizeError(err);
-        _errorHandler.handleError(type, err.toString(), track, err);
+        _errorHandler.handleError(type, err.toString(), resolvedTrack, err);
         return done();
       }
 
@@ -583,8 +606,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       }
 
       _errorHandler.clearError();
-      // NOTE: markTrackStarted is omitted here.
-      // Success is verified strictly via the `_positionSuccessSub` stream!
 
       _preResolveNextTrack();
       await _checkRelatedSongs();
@@ -602,9 +623,57 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log('Failed to play ${track.title}: $e',
           name: 'BloomeeMusicPlayer', error: e, stackTrace: stackTrace);
       final type = _errorHandler.categorizeError(e);
-      _errorHandler.handleError(type, e.toString(), track, e);
+      _errorHandler.handleError(type, e.toString(), resolvedTrack, e);
       done();
     }
+  }
+
+  Future<(Track, ResolvedMediaSource)> _resolveTrackWithAutoReplacement(
+    Track track,
+  ) async {
+    try {
+      final resolved = await _resolver.resolve(track);
+      return (track, resolved);
+    } catch (error) {
+      final replacement = await _tryAutoResolveUnavailableTrack(track, error);
+      if (replacement == null) rethrow;
+      final resolved = await _resolver.resolve(replacement);
+      return (replacement, resolved);
+    }
+  }
+
+  Future<Track?> _tryAutoResolveUnavailableTrack(
+    Track track,
+    Object error,
+  ) async {
+    if (!_isAutoResolvableError(error) || isLocalMediaId(track.id)) {
+      return null;
+    }
+
+    final enabled = await SettingsDAO(DBProvider.db).getSettingBool(
+      SettingKeys.autoResolveUnavailableTracks,
+    );
+    if (enabled == false) return null;
+
+    final replacementCandidate =
+        await _smartTrackReplacementService.findBestReplacement(track);
+    if (replacementCandidate == null) return null;
+
+    SnackbarService.showMessage(
+      'Playing a fallback source for ${track.title} from ${replacementCandidate.pluginName}.',
+      duration: const Duration(seconds: 3),
+    );
+    return replacementCandidate.track;
+  }
+
+  bool _isAutoResolvableError(Object error) {
+    if (error is PluginNotLoadedException || error is PluginNotFoundException) {
+      return true;
+    }
+    final message = error.toString().toLowerCase();
+    return message.contains('no streams returned') ||
+        message.contains('plugin is not loaded') ||
+        message.contains('plugin not found');
   }
 
   void _updateCurrentTrack(Track track) {
@@ -892,8 +961,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> updateQueueTracks(List<Track> tracks,
-      {bool doPlay = false}) async {
-    _queueManager.updateQueue(tracks);
+      {bool doPlay = false, int startIndex = 0}) async {
+    _queueManager.updateQueue(tracks, startIndex: startIndex);
     if (doPlay) {
       final track = _queueManager.currentTrack;
       if (track != null) await _enqueuePlayTrack(track, doPlay: true);

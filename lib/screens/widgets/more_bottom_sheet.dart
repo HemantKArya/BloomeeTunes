@@ -5,6 +5,7 @@ import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/screens/widgets/smart_replace_dialog.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -185,6 +186,25 @@ void showMoreBottomSheet(
                   Navigator.pop(context);
                   context.read<AddToPlaylistCubit>().setTrack(song);
                   context.pushNamed(RoutePaths.addToPlaylistScreen);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  MingCute.search_2_line,
+                  color: Default_Theme.primaryColor1,
+                  size: 28,
+                ),
+                title: const Text(
+                  'Smart Replace',
+                  style: TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontFamily: "Unageo",
+                      fontSize: 17,
+                      fontWeight: FontWeight.w400),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  showSmartReplaceDialog(context, song);
                 },
               ),
               ListTile(

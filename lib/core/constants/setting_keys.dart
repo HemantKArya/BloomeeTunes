@@ -13,6 +13,8 @@ class SettingKeys {
   // ── Playback ────────────────────────────────────────────────────────────────
   static const String strmQuality = "streamQuality";
   static const String autoPlay = "autoPlaySimilarItems";
+  static const String autoResolveUnavailableTracks =
+      "autoResolveUnavailableTracks";
 
   // ── Crossfade ───────────────────────────────────────────────────────────────
   /// Crossfade duration in seconds (0 = disabled). Stored as String.
@@ -73,4 +75,20 @@ class SettingKeys {
   /// JSON-encoded list of content resolver plugin IDs in priority order
   /// for the cross-plugin metadata resolver.
   static const String resolverPriority = "resolverPriority";
+
+  // ── Local music ─────────────────────────────────────────────────────────────
+  /// JSON-encoded list of directory paths to scan for local audio files.
+  static const String localMusicFolders = "localMusicFolders";
+
+  /// Whether to auto-scan local music folders on app startup.
+  static const String localMusicAutoScan = "localMusicAutoScan";
+
+  /// ISO 8601 timestamp of the last local music scan.
+  static const String localMusicLastScan = "localMusicLastScan";
+
+  /// Special playlist name for locally discovered tracks.
+  static const String localMusicPlaylist = "_LOCAL_MUSIC";
+
+  /// Whether to confirm before deleting a local track.
+  static const String localMusicConfirmDelete = 'localMusicConfirmDelete';
 }
