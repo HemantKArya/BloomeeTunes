@@ -228,7 +228,10 @@ pub fn download_task_blocking(
         .map(|g| g.persisted.track.clone())
         .map_err(|_| "Task mutex poisoned during metadata read".to_string())?;
 
-    let metadata_warning = write_audio_metadata(http_client, &final_target_path, &track).err();
+    let metadata_warning = match write_audio_metadata(http_client, &final_target_path, &track) {
+        Ok(warning) => warning,
+        Err(error) => Some(error),
+    };
     let warning = combine_warnings(path_warning, metadata_warning);
 
     on_progress(ProgressUpdate {
@@ -249,9 +252,17 @@ pub fn download_task_blocking(
 /// Write title, artist, album, and cover art to the audio file at `file_path`
 /// using the `lofty` crate.
 ///
-/// This is a best-effort operation. Callers should treat errors as warnings
-/// rather than hard failures — the audio content itself is intact.
-pub fn write_audio_metadata(client: &Client, file_path: &str, track: &Track) -> Result<(), String> {
+/// This is a best-effort operation. Text tags should still be written even
+/// when artwork fetching/parsing fails, because broken cover art should not
+/// discard title/artist/album metadata entirely.
+///
+/// Returns an optional warning string for non-fatal issues such as artwork
+/// download/parse failures.
+pub fn write_audio_metadata(
+    client: &Client,
+    file_path: &str,
+    track: &Track,
+) -> Result<Option<String>, String> {
     let probe = Probe::open(file_path)
         .map_err(|e| format!("Cannot open '{file_path}' for tagging: {e}"))?
         .options(ParseOptions::new().read_properties(false))
@@ -310,15 +321,22 @@ pub fn write_audio_metadata(client: &Client, file_path: &str, track: &Track) -> 
     }
 
     // Embed cover art when available.
-    if let Some(picture) = fetch_cover_picture(client, track)? {
-        tag.remove_picture_type(PictureType::CoverFront);
-        tag.push_picture(picture);
-    }
+    let artwork_warning = match fetch_cover_picture(client, track) {
+        Ok(Some(picture)) => {
+            tag.remove_picture_type(PictureType::CoverFront);
+            tag.push_picture(picture);
+            None
+        }
+        Ok(None) => None,
+        Err(error) => Some(error),
+    };
 
     let _ = file_type;
     tagged_file
         .save_to_path(file_path, WriteOptions::default())
-        .map_err(|e| format!("Failed to save metadata to '{file_path}': {e}"))
+        .map_err(|e| format!("Failed to save metadata to '{file_path}': {e}"))?;
+
+    Ok(artwork_warning)
 }
 
 fn finalize_output_path(
@@ -356,8 +374,14 @@ fn finalize_output_path(
             .map_err(|e| format!("Could not remove stale target: {e}"))?;
     }
 
-    fs::rename(temp_path, &final_target_path)
-        .map_err(|e| format!("Failed to move part file to target: {e}"))?;
+    // Try rename first (same filesystem), fall back to copy+delete for
+    // cross-device moves (common on Android where temp and download dirs
+    // live on different mount points).
+    if let Err(_rename_err) = fs::rename(temp_path, &final_target_path) {
+        fs::copy(temp_path, &final_target_path)
+            .map_err(|e| format!("Failed to copy part file to target: {e}"))?;
+        let _ = fs::remove_file(temp_path);
+    }
 
     if let Ok(mut guard) = task.lock() {
         guard.persisted.file_name = file_name;
