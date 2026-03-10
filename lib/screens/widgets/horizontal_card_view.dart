@@ -115,49 +115,47 @@ class _HorizontalCardViewState extends State<HorizontalCardView> {
               ).merge(Default_Theme.secondoryTextStyle),
             ),
           ),
-          Expanded(
-            child: SizedBox(
-              height: 220,
-              child: Row(
-                children: [
-                  if (Platform.isWindows || Platform.isLinux)
-                    IconButton(
-                      icon: const Icon(MingCute.left_line),
-                      onPressed: _scrollToPrevious,
-                    ),
-                  Expanded(
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      scrollDirection: Axis.horizontal,
-                      itemCount: widget.section.items.length +
-                          (widget.isLoadingMore ? 1 : 0),
-                      itemBuilder: (context, i) {
-                        if (i >= widget.section.items.length) {
-                          return const SizedBox(
-                            width: 96,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: Default_Theme.accentColor2,
-                              ),
-                            ),
-                          );
-                        }
-
-                        final item = widget.section.items[i];
-                        return GestureDetector(
-                          onTap: () => _handleItemTap(context, item),
-                          child: _buildCard(item),
-                        );
-                      },
-                    ),
+          SizedBox(
+            height: 220,
+            child: Row(
+              children: [
+                if (Platform.isWindows || Platform.isLinux)
+                  IconButton(
+                    icon: const Icon(MingCute.left_line),
+                    onPressed: _scrollToPrevious,
                   ),
-                  if (Platform.isWindows || Platform.isLinux)
-                    IconButton(
-                      icon: const Icon(MingCute.right_line),
-                      onPressed: _scrollToNext,
-                    ),
-                ],
-              ),
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: widget.section.items.length +
+                        (widget.isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, i) {
+                      if (i >= widget.section.items.length) {
+                        return const SizedBox(
+                          width: 96,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Default_Theme.accentColor2,
+                            ),
+                          ),
+                        );
+                      }
+
+                      final item = widget.section.items[i];
+                      return _buildCard(
+                        item,
+                        onTap: () => _handleItemTap(context, item),
+                      );
+                    },
+                  ),
+                ),
+                if (Platform.isWindows || Platform.isLinux)
+                  IconButton(
+                    icon: const Icon(MingCute.right_line),
+                    onPressed: _scrollToNext,
+                  ),
+              ],
             ),
           ),
         ],
@@ -220,7 +218,7 @@ class _HorizontalCardViewState extends State<HorizontalCardView> {
     );
   }
 
-  Widget _buildCard(MediaItem item) {
+  Widget _buildCard(MediaItem item, {VoidCallback? onTap}) {
     return item.when(
       track: (track) => SquareImgCard(
         imgPath: track.thumbnail.url,
@@ -228,6 +226,7 @@ class _HorizontalCardViewState extends State<HorizontalCardView> {
         title: track.title,
         subtitle: track.artists.map((a) => a.name).join(', '),
         isList: false,
+        onTap: onTap,
       ),
       album: (album) => SquareImgCard(
         imgPath: album.thumbnail?.url ?? '',
@@ -235,6 +234,7 @@ class _HorizontalCardViewState extends State<HorizontalCardView> {
         title: album.title,
         subtitle: album.artists.map((a) => a.name).join(', '),
         isList: true,
+        onTap: onTap,
       ),
       artist: (artist) => SquareImgCard(
         imgPath: artist.thumbnail?.url ?? '',
@@ -242,6 +242,7 @@ class _HorizontalCardViewState extends State<HorizontalCardView> {
         title: artist.name,
         subtitle: artist.subtitle ?? '',
         isList: false,
+        onTap: onTap,
       ),
       playlist: (playlist) => SquareImgCard(
         imgPath: playlist.thumbnail.url,
@@ -249,6 +250,7 @@ class _HorizontalCardViewState extends State<HorizontalCardView> {
         title: playlist.title,
         subtitle: playlist.owner ?? '',
         isList: true,
+        onTap: onTap,
       ),
     );
   }

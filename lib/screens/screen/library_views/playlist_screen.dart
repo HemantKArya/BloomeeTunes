@@ -15,6 +15,7 @@ import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 
@@ -100,6 +101,7 @@ class _PlaylistViewState extends State<PlaylistView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: true,
@@ -341,7 +343,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                                           children: [
                                             Flexible(
                                               child: Text(
-                                                "${(state.playlist.type == PlaylistType.album) ? 'Album' : 'Playlist'} • ${state.playlist.tracks.length} Songs",
+                                                "${(state.playlist.type == PlaylistType.album) ? l10n.playlistTypeAlbum : l10n.playlistTypePlaylist} \u2022 ${l10n.albumViewTrackCount(state.playlist.tracks.length)}",
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: Default_Theme
@@ -358,7 +360,11 @@ class _PlaylistViewState extends State<PlaylistView> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          'by ${state.playlist.artists?.map((a) => a.name).join(', ') ?? 'You'}',
+                                          l10n.playlistByCreator(state
+                                                  .playlist.artists
+                                                  ?.map((a) => a.name)
+                                                  .join(', ') ??
+                                              l10n.playlistYou),
                                           style: Default_Theme
                                               .secondoryTextStyle
                                               .merge(TextStyle(

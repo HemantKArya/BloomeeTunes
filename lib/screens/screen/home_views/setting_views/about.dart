@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -40,6 +41,7 @@ class About extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: kBackgroundColor,
       extendBodyBehindAppBar: true,
@@ -76,13 +78,13 @@ class About extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Spacer(),
-                    _buildInfoCard(context),
+                    _buildInfoCard(context, l10n),
                     const SizedBox(height: 50),
-                    _buildSupportSection(),
+                    _buildSupportSection(l10n),
                     const Spacer(),
                     // Footer moved to bottom of screen
                     const SizedBox(height: 12),
-                    _buildFooter(),
+                    _buildFooter(l10n),
                     const SizedBox(height: 12),
                   ],
                 ),
@@ -94,7 +96,7 @@ class About extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(BuildContext context) {
+  Widget _buildInfoCard(BuildContext context, AppLocalizations l10n) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(28.0),
       child: BackdropFilter(
@@ -139,9 +141,9 @@ class About extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Crafting symphonies in code.',
-                style: TextStyle(
+              Text(
+                l10n.aboutCraftingSubtitle,
+                style: const TextStyle(
                     fontSize: 16,
                     color: kSecondaryTextColor,
                     fontFamily: 'Gilroy'),
@@ -209,7 +211,7 @@ class About extends StatelessWidget {
                   _InfoPill(
                       icon: Icons.shield_outlined,
                       text: 'Maintainer',
-                      tooltip: 'Follow him on GitHub',
+                      tooltip: l10n.aboutFollowGitHub,
                       onTap: () {
                         launchUrl(Uri.parse('https://github.com/HemantKArya'),
                             mode: LaunchMode.externalApplication);
@@ -218,7 +220,7 @@ class About extends StatelessWidget {
                   _InfoPill(
                       icon: FontAwesome.x_twitter_brand,
                       text: 'Contact',
-                      tooltip: 'Send a business inquiry',
+                      tooltip: l10n.aboutSendInquiry,
                       onTap: () {
                         launchUrl(
                           Uri.parse('https://x.com/iamhemantindia'),
@@ -228,7 +230,7 @@ class About extends StatelessWidget {
                   _InfoPill(
                       icon: FontAwesome.linkedin_brand,
                       text: 'Linkedin',
-                      tooltip: 'Updates and creative highlights',
+                      tooltip: l10n.aboutCreativeHighlights,
                       onTap: () {
                         launchUrl(
                             Uri.parse('https://linkedin.com/in/iamhemantindia'),
@@ -243,16 +245,16 @@ class About extends StatelessWidget {
     );
   }
 
-  Widget _buildSupportSection() {
+  Widget _buildSupportSection(AppLocalizations l10n) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Text(
-            '"Enjoying Bloomee? A small tip keeps it blooming." 🌸',
+            l10n.aboutTipQuote,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
                 color: kSecondaryTextColor, fontSize: 14, fontFamily: 'Gilroy'),
           ),
         ),
@@ -290,15 +292,16 @@ class About extends StatelessWidget {
                   border:
                       Border.all(color: Colors.white.withValues(alpha: 0.15)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(Icons.favorite, color: kPrimaryTextColor, size: 20),
-                    SizedBox(width: 10),
+                    const Icon(Icons.favorite,
+                        color: kPrimaryTextColor, size: 20),
+                    const SizedBox(width: 10),
                     Text(
-                      "I'll help",
-                      style: TextStyle(
+                      l10n.aboutTipButton,
+                      style: const TextStyle(
                         color: kPrimaryTextColor,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -312,17 +315,17 @@ class About extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
-          'I want Bloomee to keep improving.',
+        Text(
+          l10n.aboutTipDesc,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
               color: kSecondaryTextColor, fontSize: 14, fontFamily: 'Gilroy'),
         ),
       ],
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Center(
@@ -336,14 +339,14 @@ class About extends StatelessWidget {
                     Uri.parse("https://hemantkarya.github.io/BloomeeTunes/"),
                     mode: LaunchMode.externalApplication);
               },
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(MingCute.github_fill,
+                  const Icon(MingCute.github_fill,
                       color: kSecondaryTextColor, size: 16),
-                  SizedBox(width: 8),
-                  Text('GitHub',
-                      style: TextStyle(
+                  const SizedBox(width: 8),
+                  Text(l10n.aboutGitHub,
+                      style: const TextStyle(
                           color: kSecondaryTextColor,
                           fontSize: 12,
                           fontFamily: 'Gilroy')),

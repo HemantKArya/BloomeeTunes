@@ -13,6 +13,7 @@ import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:Bloomee/screens/widgets/like_widget.dart';
@@ -62,6 +63,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     final musicPlayer = bloomeePlayerCubit.bloomeePlayer;
     final isMobile = ResponsiveBreakpoints.of(context).smallerOrEqualTo(TABLET);
@@ -95,7 +97,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
         title: Column(
           children: [
             Text(
-              'Enjoying From',
+              l10n.playerEnjoyingFrom,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Default_Theme.primaryColor1,
@@ -107,7 +109,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
               stream: musicPlayer.queueTitle,
               builder: (context, snapshot) {
                 return Text(
-                  snapshot.data ?? "Unknown",
+                  snapshot.data ?? l10n.playerUnknownQueue,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Default_Theme.primaryColor2,
@@ -400,6 +402,7 @@ class _LikeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final player = context.read<BloomeePlayerCubit>().bloomeePlayer;
     return BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
       builder: (context, _) {
@@ -427,13 +430,13 @@ class _LikeButton extends StatelessWidget {
                         context.read<LibraryItemsCubit>().setTrackLiked(
                             mediaItemToTrack(currentMedia), true);
                         SnackbarService.showMessage(
-                            "${currentMedia.title} is Liked!!");
+                            l10n.playerLiked(currentMedia.title));
                       },
                       onDisliked: () {
                         context.read<LibraryItemsCubit>().setTrackLiked(
                             mediaItemToTrack(currentMedia), false);
                         SnackbarService.showMessage(
-                            "${currentMedia.title} is Unliked!!");
+                            l10n.playerUnliked(currentMedia.title));
                       },
                     );
                   },
@@ -676,9 +679,9 @@ class _PlayPauseButton extends StatelessWidget {
         Widget child;
         Color buttonColor = Default_Theme.accentColor2;
 
-        if (state.isLoading) {
+        if (state.isLoading || state.isResolving) {
           child = const CircularProgressIndicator(
-              color: Default_Theme.primaryColor1);
+              strokeWidth: 3, color: Default_Theme.primaryColor1);
           buttonColor = state.isPlaying
               ? Default_Theme.accentColor1
               : Default_Theme.accentColor2;

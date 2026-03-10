@@ -1,6 +1,7 @@
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/custom_switch.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:flutter/material.dart';
@@ -224,6 +225,7 @@ class _EqualizerViewState extends State<EqualizerView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final bands = _engine.equalizerBands;
     final isEnabled = _engine.equalizerEnabled;
     const accent = Default_Theme.accentColor2;
@@ -254,7 +256,7 @@ class _EqualizerViewState extends State<EqualizerView>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Equalizer',
+                                  l10n.eqTitle,
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.95),
                                     fontSize: 16,
@@ -337,6 +339,7 @@ class _EqualizerViewState extends State<EqualizerView>
   // ─── App Bar ────────────────────────────────────────────────────────────
 
   Widget _buildAppBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -348,7 +351,7 @@ class _EqualizerViewState extends State<EqualizerView>
             onPressed: () => Navigator.of(context).pop(),
           ),
           Text(
-            'Equalizer',
+            l10n.eqTitle,
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: 16,
@@ -357,7 +360,7 @@ class _EqualizerViewState extends State<EqualizerView>
             ),
           ),
           IconButton(
-            tooltip: 'Reset to Flat',
+            tooltip: l10n.eqResetTooltip,
             icon: Icon(Icons.refresh_rounded,
                 color: Colors.white.withOpacity(0.7), size: 22),
             onPressed: _resetEQ,

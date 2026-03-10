@@ -20,6 +20,7 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -125,6 +126,7 @@ class _AlbumViewState extends State<AlbumView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       extendBodyBehindAppBar: true,
@@ -181,8 +183,7 @@ class _AlbumViewState extends State<AlbumView> {
 
           if (cleanYear != null) metaParts.add(cleanYear);
           if (tracks.isNotEmpty) {
-            metaParts
-                .add('${tracks.length} Track${tracks.length == 1 ? '' : 's'}');
+            metaParts.add(l10n.albumViewTrackCount(tracks.length));
           }
           if (cleanSubtitle != null) metaParts.add(cleanSubtitle);
 
@@ -306,11 +307,11 @@ class _AlbumViewState extends State<AlbumView> {
                         ),
                       )
                     else if (state.albumDetailStatus == DetailStatus.loaded)
-                      const SliverFillRemaining(
+                      SliverFillRemaining(
                         hasScrollBody: false,
                         child: Center(
                           child: SignBoardWidget(
-                            message: 'No tracks available',
+                            message: l10n.emptyNoTracks,
                             icon: MingCute.music_2_line,
                           ),
                         ),
@@ -320,7 +321,7 @@ class _AlbumViewState extends State<AlbumView> {
                         hasScrollBody: false,
                         child: Center(
                           child: Text(
-                            state.error ?? 'Failed to load album',
+                            state.error ?? l10n.albumViewLoadFailed,
                             style: TextStyle(
                               color: Default_Theme.primaryColor1
                                   .withValues(alpha: 0.5),

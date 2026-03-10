@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:Bloomee/blocs/global_events/global_events_cubit.dart';
 import 'package:Bloomee/core/events/global_event_bus.dart';
 import 'package:Bloomee/screens/screen/common_views/changelog_reader.dart';
-import 'package:Bloomee/screens/widgets/gradient_alert_widget.dart';
+import 'package:Bloomee/screens/widgets/bloomee_ui_kit/bloomee_dialog.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/plugin/plugin_event_bus.dart';
 import 'package:Bloomee/src/rust/api/plugin/events.dart';
@@ -111,40 +111,28 @@ class _GlobalEventListenerState extends State<GlobalEventListener> {
           case UpdateAvailable:
             final s = state as UpdateAvailable;
             log("Update Available: ${s.message}");
-            showDialog(
+            showBloomeeDialog(
               context: dialogContext,
-              builder: (context) {
-                return GradientDialog(
-                  "Update Available",
-                  content: s.message,
-                  presetIndex: 0,
-                  actions: [
-                    GradientDialogAction('Later',
-                        onPressed: () {}, isText: true),
-                    GradientDialogAction('Update Now', onPressed: () {
-                      openURL(s.downloadUrl);
-                    }),
-                  ],
-                );
-              },
+              title: 'Update Available',
+              subtitle: s.message,
+              icon: Icons.system_update_rounded,
+              actions: [
+                BloomeeDialogAction.text('Later'),
+                BloomeeDialogAction.filled('Update Now', onPressed: () {
+                  openURL(s.downloadUrl);
+                }),
+              ],
             );
             break;
           case AlertDialogState:
             final s = state as AlertDialogState;
-            showDialog(
+            showBloomeeDialog(
               context: dialogContext,
-              builder: (context) {
-                return GradientDialog(
-                  s.title,
-                  content: s.content,
-                  presetIndex: 0,
-                  actions: [
-                    GradientDialogAction('OK', onPressed: () {
-                      Navigator.of(context).pop();
-                    }),
-                  ],
-                );
-              },
+              title: s.title,
+              subtitle: s.content,
+              actions: [
+                BloomeeDialogAction.filled('OK'),
+              ],
             );
             break;
           case WhatIsNewState:

@@ -4,6 +4,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:numberpicker/numberpicker.dart';
 
@@ -58,6 +59,7 @@ class _TimerViewState extends State<TimerView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -66,7 +68,7 @@ class _TimerViewState extends State<TimerView> {
         foregroundColor: Default_Theme.primaryColor1,
         centerTitle: true,
         title: Text(
-          'Sleep Timer',
+          l10n.timerTitle,
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 20,
@@ -89,7 +91,7 @@ class _TimerViewState extends State<TimerView> {
                           padding: const EdgeInsets.only(
                               bottom: 60, left: 15, right: 15),
                           child: Text(
-                            "Preparing for a peaceful interlude in…",
+                            l10n.timerInterludeMessage,
                             maxLines: 2,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
@@ -103,9 +105,12 @@ class _TimerViewState extends State<TimerView> {
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            timerLabel(label: "Hours", time: _currentHour),
-                            timerLabel(label: "Minutes", time: _currentMinute),
-                            timerLabel(label: "Seconds", time: _currentSecond),
+                            timerLabel(
+                                label: l10n.timerHours, time: _currentHour),
+                            timerLabel(
+                                label: l10n.timerMinutes, time: _currentMinute),
+                            timerLabel(
+                                label: l10n.timerSeconds, time: _currentSecond),
                           ],
                         ),
                         Padding(
@@ -137,7 +142,7 @@ class _TimerViewState extends State<TimerView> {
                                   ),
                                 ),
                                 Text(
-                                  "Stop Timer",
+                                  l10n.timerStop,
                                   style: const TextStyle(
                                           color: Default_Theme.primaryColor2,
                                           fontSize: 20,
@@ -157,13 +162,13 @@ class _TimerViewState extends State<TimerView> {
                       child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Padding(
-                        padding:
-                            EdgeInsets.only(bottom: 60, left: 10, right: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 60, left: 10, right: 10),
                         child: Text(
-                          "The tunes have rested. Sweet Dreams 🥰.",
+                          l10n.timerFinishedMessage,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: Default_Theme.accentColor2,
                               fontSize: 40,
                               fontFamily: "Unageo",
@@ -183,7 +188,7 @@ class _TimerViewState extends State<TimerView> {
                           ),
                         ),
                         child: Text(
-                          "Got it!",
+                          l10n.timerGotIt,
                           style: const TextStyle(
                                   color: Default_Theme.primaryColor2,
                                   fontSize: 15,
@@ -202,6 +207,7 @@ class _TimerViewState extends State<TimerView> {
   }
 
   Widget timerInitial() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -215,7 +221,7 @@ class _TimerViewState extends State<TimerView> {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Hours",
+                  Text(l10n.timerHours,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                               color: Default_Theme.primaryColor2, fontSize: 25)
@@ -258,7 +264,7 @@ class _TimerViewState extends State<TimerView> {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Minutes",
+                  Text(l10n.timerMinutes,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                               color: Default_Theme.primaryColor2, fontSize: 25)
@@ -301,7 +307,7 @@ class _TimerViewState extends State<TimerView> {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Seconds",
+                  Text(l10n.timerSeconds,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                               color: Default_Theme.primaryColor2, fontSize: 25)
@@ -363,12 +369,12 @@ class _TimerViewState extends State<TimerView> {
                         (_currentMinute * 60) +
                         _currentSecond));
               } else {
-                SnackbarService.showMessage("Please set a time",
+                SnackbarService.showMessage(l10n.timerSetTimeError,
                     duration: const Duration(seconds: 1));
               }
             },
             child: Text(
-              "Start Timer",
+              l10n.timerStart,
               style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,

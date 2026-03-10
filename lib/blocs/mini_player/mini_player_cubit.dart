@@ -25,6 +25,9 @@ class MiniPlayerState extends Equatable {
   /// Whether the engine is loading or buffering (show spinner).
   final bool isLoading;
 
+  /// Whether the player is resolving the media URL (before engine loads).
+  final bool isResolving;
+
   /// Whether the track has finished (show replay icon).
   final bool isCompleted;
 
@@ -35,6 +38,7 @@ class MiniPlayerState extends Equatable {
     this.track,
     this.isPlaying = false,
     this.isLoading = false,
+    this.isResolving = false,
     this.isCompleted = false,
     this.hasError = false,
   });
@@ -46,6 +50,7 @@ class MiniPlayerState extends Equatable {
       : track = null,
         isPlaying = false,
         isLoading = false,
+        isResolving = false,
         isCompleted = false,
         hasError = false;
 
@@ -53,6 +58,7 @@ class MiniPlayerState extends Equatable {
     Track? track,
     bool? isPlaying,
     bool? isLoading,
+    bool? isResolving,
     bool? isCompleted,
     bool? hasError,
   }) {
@@ -60,6 +66,7 @@ class MiniPlayerState extends Equatable {
       track: track ?? this.track,
       isPlaying: isPlaying ?? this.isPlaying,
       isLoading: isLoading ?? this.isLoading,
+      isResolving: isResolving ?? this.isResolving,
       isCompleted: isCompleted ?? this.isCompleted,
       hasError: hasError ?? this.hasError,
     );
@@ -67,7 +74,7 @@ class MiniPlayerState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [track, isPlaying, isLoading, isCompleted, hasError];
+      [track, isPlaying, isLoading, isResolving, isCompleted, hasError];
 }
 
 // ─── Cubit ───────────────────────────────────────────────────────────────────
@@ -93,16 +100,18 @@ class MiniPlayerCubit extends Cubit<MiniPlayerState> {
   }
 
   void _listen() {
-    _sub = Rx.combineLatest3<MediaItem?, EngineState, bool,
-        (MediaItem?, EngineState, bool)>(
+    _sub = Rx.combineLatest4<MediaItem?, EngineState, bool, bool,
+        (MediaItem?, EngineState, bool, bool)>(
       _playerCubit.bloomeePlayer.mediaItem,
       Rx.defer(() => _playerCubit.bloomeePlayer.engine.stateStream,
           reusable: true),
       Rx.defer(() => _playerCubit.bloomeePlayer.engine.playingStream,
           reusable: true),
-      (media, engineState, playing) => (media, engineState, playing),
+      _playerCubit.bloomeePlayer.isResolving,
+      (media, engineState, playing, resolving) =>
+          (media, engineState, playing, resolving),
     ).listen((record) {
-      final (media, engineState, playing) = record;
+      final (media, engineState, playing, resolving) = record;
 
       if (media == null || media.id == 'Null') {
         if (state.isVisible) emit(const MiniPlayerState.hidden());
@@ -116,6 +125,7 @@ class MiniPlayerCubit extends Cubit<MiniPlayerState> {
         isPlaying: playing,
         isLoading: engineState == EngineState.loading ||
             engineState == EngineState.buffering,
+        isResolving: resolving,
         isCompleted: engineState == EngineState.completed,
         hasError: engineState == EngineState.error,
       ));

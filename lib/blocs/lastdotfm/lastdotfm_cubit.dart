@@ -11,21 +11,25 @@ import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
-import 'package:rxdart/subjects.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 part 'lastdotfm_state.dart';
 
 class LastdotfmCubit extends Cubit<LastdotfmState> {
   LastFmAPI lastFmAPI = LastFmAPI();
-  StreamSubscription? scrobbleSub;
+  StreamSubscription? _progressSub;
   BloomeePlayerCubit playerCubit;
   final CacheDAO _cacheDao;
   final SettingsDAO _settingsDao;
-  Track lastPlayed = trackNull;
-  Stopwatch stopwatch = Stopwatch();
-  Stream<dynamic>? playerProgres;
-  BehaviorSubject<Track> playedMedia = BehaviorSubject<Track>.seeded(trackNull);
+
+  /// The track currently being timed for scrobble eligibility.
+  Track _timedTrack = trackNull;
+
+  /// Accumulated play-time for [_timedTrack].
+  final Stopwatch _playWatch = Stopwatch();
+
+  /// Whether [_timedTrack] has already been scrobbled in this play session.
+  bool _scrobbled = false;
 
   LastdotfmCubit({
     required this.playerCubit,
@@ -35,68 +39,172 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
         _settingsDao = settingsDao,
         super(LastdotfmInitial()) {
     initializeFromDB();
-    songTimeTracker();
+    _startTrackingLoop();
   }
 
   @override
-  close() async {
-    playedMedia.close();
-    scrobbleSub?.cancel();
+  Future<void> close() async {
+    _progressSub?.cancel();
     super.close();
   }
 
-  /// Helper: extract duration in seconds from a [Track].
-  int _trackDurationSec(Track t) {
-    final ms = t.durationMs?.toInt();
-    return ms != null ? ms ~/ 1000 : 0;
-  }
+  // ---------------------------------------------------------------------------
+  // Track-time tracking
+  // ---------------------------------------------------------------------------
 
-  Duration? _trackDuration(Track t) {
-    final ms = t.durationMs?.toInt();
-    return ms != null ? Duration(milliseconds: ms) : null;
-  }
-
-  Future<void> songTimeTracker() async {
+  /// Last.fm scrobble rules:
+  /// 1. Track must be longer than 30 seconds.
+  /// 2. Track is scrobbled when played for >= min(duration * 0.5, 240s).
+  Future<void> _startTrackingLoop() async {
     while (playerCubit.playerInitState != PlayerInitState.initialized) {
-      log('Waiting for player to be initialized.', name: 'Last.FM');
       await Future.delayed(const Duration(seconds: 2));
     }
 
-    scrobbleSub = playerCubit.progressStreams.listen((event) {
-      final currentTrack = playerCubit.bloomeePlayer.currentMedia;
-
-      if (playerCubit.bloomeePlayer.engine.playing &&
-          playerCubit.bloomeePlayer.engine.state == EngineState.ready) {
-        if (lastPlayed != currentTrack || !stopwatch.isRunning) {
-          if (stopwatch.isRunning) {
-            stopwatch.stop();
-            stopwatch.reset();
-          }
-          stopwatch.start();
-          lastPlayed = currentTrack;
-        } else if ((stopwatch.elapsed.inSeconds > 30 ||
-                (stopwatch.elapsed.inSeconds /
-                        (_trackDuration(currentTrack) ??
-                                const Duration(hours: 1))
-                            .inSeconds) >
-                    0.5) &&
-            currentTrack == lastPlayed &&
-            currentTrack != playedMedia.value) {
-          playedMedia.add(currentTrack);
-          log('Scrobbling: ${currentTrack.title}', name: 'Last.FM');
-          scrobble(lastPlayed).then((value) {
-            log(value ? 'Scrobble success.' : 'Scrobble failed.',
-                name: 'Last.FM');
-          });
-        }
-      } else if (lastPlayed != currentTrack) {
-        stopwatch.stop();
-        stopwatch.reset();
-      } else {
-        stopwatch.stop();
-      }
+    _progressSub = playerCubit.progressStreams.listen((_) {
+      _onProgressTick();
     });
   }
+
+  void _onProgressTick() {
+    final player = playerCubit.bloomeePlayer;
+    final current = player.currentMedia;
+    final isPlaying =
+        player.engine.playing && player.engine.state == EngineState.ready;
+
+    // Track changed -> reset timing.
+    if (current != _timedTrack) {
+      _resetTiming(current);
+      if (isPlaying) _playWatch.start();
+      return;
+    }
+
+    // Same track.
+    if (isPlaying) {
+      if (!_playWatch.isRunning) _playWatch.start();
+      if (!_scrobbled && _isScrobbleEligible(current)) {
+        _scrobbled = true;
+        log('Scrobbling: ${current.title}', name: 'Last.FM');
+        _scrobbleTrack(current);
+      }
+    } else {
+      // Paused / buffering - pause the stopwatch but keep accumulated time.
+      _playWatch.stop();
+    }
+  }
+
+  void _resetTiming(Track newTrack) {
+    _playWatch
+      ..stop()
+      ..reset();
+    _timedTrack = newTrack;
+    _scrobbled = false;
+  }
+
+  bool _isScrobbleEligible(Track track) {
+    if (isTrackNull(track)) return false;
+    final durationSec = _trackDurationSec(track);
+    // Track must be > 30 seconds (unknown-duration tracks scrobble after 240s).
+    if (durationSec > 0 && durationSec <= 30) return false;
+
+    final elapsed = _playWatch.elapsed.inSeconds;
+    if (durationSec > 0) {
+      // Scrobble after >= min(50% of track, 240 seconds).
+      final threshold = (durationSec * 0.5).ceil().clamp(0, 240);
+      return elapsed >= threshold;
+    }
+    // Unknown duration - scrobble after 4 minutes.
+    return elapsed >= 240;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Scrobble execution
+  // ---------------------------------------------------------------------------
+
+  Future<void> _scrobbleTrack(Track track) async {
+    final shouldScrobble = await _settingsDao.getSettingBool(
+      CacheKeys.lFMScrobbleSetting,
+      defaultValue: false,
+    );
+    if (shouldScrobble != true) return;
+
+    final durationSec = _trackDurationSec(track);
+    final entry = ScrobbleTrack(
+      artist: track.artists.map((a) => a.name).join(', ').ifEmpty('Unknown'),
+      trackName: track.title,
+      album: track.album?.title ?? 'Unknown',
+      duration: durationSec > 0 ? durationSec : null,
+      chosenByUser: false,
+    );
+
+    // Append to offline cache first (safe against crashes).
+    await _appendToCache(entry);
+
+    // Attempt to flush the entire cache.
+    await _flushCache();
+  }
+
+  /// Flush all cached scrobble entries to Last.fm.
+  Future<void> _flushCache() async {
+    if (!LastFmAPI.initialized) return;
+    final cached = await _readCache();
+    if (cached.isEmpty) return;
+
+    try {
+      // Last.fm accepts max 50 tracks per call.
+      for (var i = 0; i < cached.length; i += 50) {
+        final batch = cached.sublist(i, (i + 50).clamp(0, cached.length));
+        final ok = await LastFmAPI.scrobble(batch);
+        if (!ok) {
+          log('Scrobble batch failed (offset $i)', name: 'Last.FM');
+          return; // Keep cache intact for next attempt.
+        }
+      }
+      // All batches succeeded - clear the cache.
+      await _clearCache();
+      log('Scrobble cache flushed (${cached.length} tracks)', name: 'Last.FM');
+    } catch (e) {
+      log('Scrobble failed: $e', name: 'Last.FM');
+      // Cache stays intact for retry on next scrobble or startup.
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Offline cache helpers (uses toMap/fromMap to avoid double-encoding)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _appendToCache(ScrobbleTrack entry) async {
+    final cached = await _readCache();
+    cached.add(entry);
+    await _writeCache(cached);
+  }
+
+  Future<List<ScrobbleTrack>> _readCache() async {
+    final raw = await _cacheDao.getCacheValue(CacheKeys.lFMTrackedCache);
+    if (raw == null || raw.isEmpty || raw == 'null') return [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list
+          .map((e) => ScrobbleTrack.fromMap(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      log('Corrupt scrobble cache, clearing: $e', name: 'Last.FM');
+      await _clearCache();
+      return [];
+    }
+  }
+
+  Future<void> _writeCache(List<ScrobbleTrack> tracks) async {
+    final encoded = jsonEncode(tracks.map((t) => t.toMap()).toList());
+    await _cacheDao.putCache(CacheKeys.lFMTrackedCache, encoded);
+  }
+
+  Future<void> _clearCache() async {
+    await _cacheDao.putCache(CacheKeys.lFMTrackedCache, 'null');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Initialization & auth
+  // ---------------------------------------------------------------------------
 
   Future<void> initializeFromDB() async {
     log('Getting Last.FM Keys from DB', name: 'Last.FM');
@@ -124,8 +232,8 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
             username: username));
       }
     }
-    startUpCheck();
-    log('Last.FM Keys from DB: $apiKey, $apiSecret, $session', name: 'Last.FM');
+    // Flush any leftover scrobbles from previous session.
+    await _flushCache();
   }
 
   Future<void> fetchSessionkey(
@@ -140,7 +248,6 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
       _cacheDao.putApiToken(CacheKeys.lFMSecret, secret);
       _cacheDao.putApiToken(CacheKeys.lFMApiKey, apiKey);
       _cacheDao.putApiToken(CacheKeys.lFMSession, session);
-      log('Session Key: $session', name: 'LastFM API');
 
       if (session.isNotEmpty && apiKey.isNotEmpty && secret.isNotEmpty) {
         LastFmAPI.sessionKey = session;
@@ -165,7 +272,6 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     LastFmAPI.setAPISecret(secret);
     final token = await LastFmAPI.fetchRequestToken();
     final url = LastFmAPI.getAuthUrl(token);
-    log('Auth URL: $url', name: 'LastFM API');
     launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     return token;
   }
@@ -183,112 +289,30 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     _cacheDao.putApiToken(CacheKeys.lFMUsername, '');
   }
 
-  startUpCheck() async {
-    final lastUnScrobbled = await getLFMTrackedCache();
-    if (lastUnScrobbled.isNotEmpty) {
-      final isSuccess = await scrobbleTrackList(lastUnScrobbled);
-      log("Scrobble ${isSuccess ? 'success' : 'failed'}!", name: 'Last.FM');
-      if (!isSuccess) {
-        lFMCacheTrack(lastUnScrobbled);
-      }
-    }
-  }
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
 
-  Future<bool> scrobbleTrackList(List<ScrobbleTrack> trackList) async {
-    if (LastFmAPI.initialized) {
-      try {
-        final response = await LastFmAPI.scrobble(trackList);
-        log('Scrobble response: $response', name: 'LastFM API');
-        return response;
-      } catch (e) {
-        log('Scrobble failed: $e', name: 'LastFM API');
-        lFMCacheTrack(trackList);
-      }
-    }
-    return false;
-  }
-
-  Future<bool> scrobble(Track track) async {
-    final shouldScrobble = await _settingsDao
-        .getSettingBool(CacheKeys.lFMScrobbleSetting, defaultValue: false);
-
-    final durationSec = _trackDurationSec(track);
-    final durationMin = durationSec ~/ 60;
-
-    final scrobbleTrack = ScrobbleTrack(
-      artist: track.artists.map((a) => a.name).join(', ').ifEmpty('Unknown'),
-      trackName: track.title,
-      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      album: track.album?.title ?? 'Unknown',
-      duration: durationSec,
-      chosenByUser: false,
-    );
-
-    if (shouldScrobble ?? false) {
-      List<ScrobbleTrack> trackList = await getLFMTrackedCache();
-      trackList.add(scrobbleTrack);
-      try {
-        if (LastFmAPI.initialized &&
-            !isTrackNull(track) &&
-            (durationMin < 15 || durationSec == 0) &&
-            durationSec > 30) {
-          final response = await LastFmAPI.scrobble(trackList);
-          log('Scrobble response: $response', name: 'LastFM API');
-          return response;
-        }
-      } catch (e) {
-        log('Scrobble failed: $e', name: 'LastFM API');
-        lFMCacheTrack(trackList);
-      }
-    }
-    return false;
-  }
-
-  void lFMCacheTrack(List<ScrobbleTrack> trackList) {
-    final trackListMap = trackList.map((e) => e.toJson()).toList();
-    _cacheDao.getCacheValue(CacheKeys.lFMTrackedCache).then((value) {
-      if (value != null && value != 'null') {
-        log('Cache found: ${trackListMap.toString()}', name: 'Last.FM');
-        final trackList2 = jsonDecode(value) as List;
-        trackList2.addAll(trackListMap);
-        _cacheDao.putCache(CacheKeys.lFMTrackedCache, jsonEncode(trackList2));
-      } else {
-        log('No cache found', name: 'Last.FM');
-        _cacheDao.putCache(CacheKeys.lFMTrackedCache, jsonEncode(trackListMap));
-      }
-    });
-  }
-
-  Future<List<ScrobbleTrack>> getLFMTrackedCache() async {
-    final trackList = await _cacheDao.getCacheValue(CacheKeys.lFMTrackedCache);
-    await _cacheDao.putCache(CacheKeys.lFMTrackedCache, 'null');
-    if (trackList != null && trackList.isNotEmpty && trackList != 'null') {
-      final trackListMap = jsonDecode(trackList) as List;
-      return trackListMap.map((e) => ScrobbleTrack.fromJson(e)).toList();
-    }
-    return [];
+  int _trackDurationSec(Track t) {
+    final ms = t.durationMs?.toInt();
+    return ms != null ? ms ~/ 1000 : 0;
   }
 
   // TODO: Implement via plugin system (search command) when ready.
-  // For now returns an empty list since MixedAPI is removed.
   Future<List<Track>> getRecommendedTracks() async {
     if (!LastFmAPI.initialized) {
       while (!LastFmAPI.initialized) {
         await Future.delayed(const Duration(seconds: 10));
       }
     }
-    // Recommendation logic requires a content-resolver plugin search.
-    // This will be implemented once the UI wires up ContentBloc.
     return [];
   }
 
-  /// Get a cached API token by key.
   Future<String?> getApiToken(String key) async {
     return _cacheDao.getApiToken(key);
   }
 }
 
-/// Extension to provide a fallback for empty strings.
 extension _StringExt on String {
   String ifEmpty(String fallback) => isEmpty ? fallback : this;
 }

@@ -1,4 +1,4 @@
-﻿import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_bloc.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_event.dart';
@@ -11,6 +11,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class AppUISettings extends StatefulWidget {
@@ -48,6 +49,7 @@ class _AppUISettingsState extends State<AppUISettings> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -69,7 +71,7 @@ class _AppUISettingsState extends State<AppUISettings> {
           ),
         ),
         title: Text(
-          'UI & Services',
+          l10n.appuiTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 22,
@@ -84,13 +86,13 @@ class _AppUISettingsState extends State<AppUISettings> {
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             children: [
-              const SettingSectionHeader(label: 'Home Screen'),
+              SettingSectionHeader(label: l10n.settingsHomeScreen),
               SettingCard(
                 children: [
                   SettingToggleTile(
                     icon: MingCute.play_circle_line,
-                    title: 'Auto Slide Charts',
-                    subtitle: 'Slide charts automatically in home screen.',
+                    title: l10n.appuiAutoSlideCharts,
+                    subtitle: l10n.appuiAutoSlideChartsSubtitle,
                     value: state.autoSlideCharts,
                     onChanged: (v) =>
                         context.read<SettingsCubit>().setAutoSlideCharts(v),
@@ -98,9 +100,8 @@ class _AppUISettingsState extends State<AppUISettings> {
                   const SettingDivider(),
                   SettingToggleTile(
                     icon: MingCute.music_2_line,
-                    title: 'Last.FM Picks',
-                    subtitle:
-                        'Show suggestions from Last.FM. Login & restart required.',
+                    title: l10n.exploreLastFmPicks,
+                    subtitle: l10n.appuiLastFmPicksSubtitle,
                     value: state.lFMPicks,
                     onChanged: (v) {
                       context.read<SettingsCubit>().setLastFMExpore(v);
@@ -108,15 +109,14 @@ class _AppUISettingsState extends State<AppUISettings> {
                         Future.delayed(const Duration(milliseconds: 500), () {
                           context.read<SettingsCubit>().setLastFMExpore(false);
                         });
-                        SnackbarService.showMessage(
-                            "Please login to Last.FM first.");
+                        SnackbarService.showMessage(l10n.appuiLoginToLastFm);
                       }
                     },
                   ),
                 ],
               ),
               const SizedBox(height: 28),
-              const SettingSectionHeader(label: 'Chart Visibility'),
+              SettingSectionHeader(label: l10n.settingsChartVisibility),
               BlocBuilder<ChartBloc, ChartState>(
                 bloc: _chartBloc,
                 builder: (context, chartState) {
@@ -133,7 +133,7 @@ class _AppUISettingsState extends State<AppUISettings> {
                               const SizedBox(width: 14),
                               Expanded(
                                 child: Text(
-                                  'No charts available. Load a chart provider plugin.',
+                                  l10n.appuiNoChartsAvailable,
                                   style: TextStyle(
                                     color: Default_Theme.primaryColor2
                                         .withValues(alpha: 0.5),
@@ -156,7 +156,7 @@ class _AppUISettingsState extends State<AppUISettings> {
                         SettingToggleTile(
                           icon: MingCute.chart_bar_line,
                           title: chartState.charts[i].title,
-                          subtitle: 'Show in home carousel.',
+                          subtitle: l10n.appuiShowInCarousel,
                           value: state.chartMap[chartState.charts[i].title] ??
                               true,
                           onChanged: (v) {

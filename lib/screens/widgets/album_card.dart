@@ -30,8 +30,7 @@ class _AlbumCardState extends State<AlbumCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 180),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+      constraints: const BoxConstraints(maxWidth: 168),
       child: GestureDetector(
         onTap: () {
           Navigator.push(
@@ -67,9 +66,9 @@ class _AlbumCardState extends State<AlbumCard> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       )
                     ],
                   ),
@@ -109,58 +108,50 @@ class _AlbumCardState extends State<AlbumCard> {
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
               // ─── 2. TEXT SECTION ───
-              // ─── CHANGED: removed Padding with horizontal symmetry,
-              //     using a fixed-height container to prevent bleed,
-              //     all text centered ───
-              SizedBox(
-                // Fixed height = 2-line title + gap + 1-line artist
-                // 14px font * 1.3 lineHeight * 2 lines ≈ 36 + 2 gap + 18 = 56
-                height: 56,
-                width: double.infinity,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  // ─── CHANGED: center text horizontally ───
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // ─── CHANGED: maxLines 1 → 2, centered ───
-                    Text(
-                      widget.album.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.9),
-                        letterSpacing: -0.2,
-                        // ─── ADDED: explicit line height so 2 lines
-                        //     are predictable and don't overflow ───
-                        height: 1.25,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
-                    ),
-                    const SizedBox(height: 2),
-                    // ─── Artist row — fixed height, centered ───
-                    SizedBox(
-                      height: 18,
-                      child: ArtistListLinks(
-                        artists: widget.album.artists,
-                        maxLines: 1,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: SizedBox(
+                  height: 44,
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.album.title,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        // ─── CHANGED: centered ───
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
                           color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.5),
-                          fontWeight: FontWeight.w500,
-                        ).merge(Default_Theme.secondoryTextStyle),
+                              .withValues(alpha: 0.9),
+                          letterSpacing: -0.2,
+                          height: 1.15,
+                        ).merge(Default_Theme.secondoryTextStyleMedium),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      SizedBox(
+                        height: 12,
+                        child: ArtistListLinks(
+                          artists: widget.album.artists,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.5),
+                            fontWeight: FontWeight.w500,
+                          ).merge(Default_Theme.secondoryTextStyle),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

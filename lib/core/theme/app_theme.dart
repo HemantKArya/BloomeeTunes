@@ -43,6 +43,7 @@ class AppTheme {
       scaffoldBackgroundColor: themeColor,
       dialogBackgroundColor: themeColor,
       primaryColorDark: accentColor2,
+      fontFamily: 'Gilroy',
       primarySwatch: MaterialColor(
         accentColor2.value,
         {

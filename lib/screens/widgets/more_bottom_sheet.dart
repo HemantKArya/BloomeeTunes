@@ -8,6 +8,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/smart_replace_dialog.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -74,9 +75,9 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
-                        'Play with Mix',
-                        style: TextStyle(
+                      title: Text(
+                        AppLocalizations.of(context)!.playerPlayWithMix,
+                        style: const TextStyle(
                             color: Default_Theme.primaryColor1,
                             fontFamily: "Unageo",
                             fontSize: 17,
@@ -88,7 +89,9 @@ void showMoreBottomSheet(
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
                             .updateQueueTracks([song], doPlay: true);
-                        SnackbarService.showMessage("Playing ${song.title}",
+                        SnackbarService.showMessage(
+                            AppLocalizations.of(context)!
+                                .snackbarNowPlaying(song.title),
                             duration: const Duration(seconds: 2));
                       },
                     )
@@ -100,9 +103,9 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
-                        'Play Next',
-                        style: TextStyle(
+                      title: Text(
+                        AppLocalizations.of(context)!.playerPlayNext,
+                        style: const TextStyle(
                             color: Default_Theme.primaryColor1,
                             fontFamily: "Unageo",
                             fontSize: 17,
@@ -114,7 +117,9 @@ void showMoreBottomSheet(
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
                             .addPlayNextTrack(song);
-                        SnackbarService.showMessage("Added to Next in Queue",
+                        SnackbarService.showMessage(
+                            AppLocalizations.of(context)!
+                                .snackbarAddedToNextQueue,
                             duration: const Duration(seconds: 2));
                       },
                     )
@@ -126,9 +131,9 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
-                        'Add to Queue',
-                        style: TextStyle(
+                      title: Text(
+                        AppLocalizations.of(context)!.playerAddToQueue,
+                        style: const TextStyle(
                             color: Default_Theme.primaryColor1,
                             fontFamily: "Unageo",
                             fontSize: 17,
@@ -140,7 +145,8 @@ void showMoreBottomSheet(
                             .read<BloomeePlayerCubit>()
                             .bloomeePlayer
                             .addQueueTracks([song]);
-                        SnackbarService.showMessage("Added to Queue",
+                        SnackbarService.showMessage(
+                            AppLocalizations.of(context)!.snackbarAddedToQueue,
                             duration: const Duration(seconds: 2));
                       },
                     )
@@ -151,9 +157,9 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
-                  'Add to Favorites',
-                  style: TextStyle(
+                title: Text(
+                  AppLocalizations.of(context)!.playerAddToFavorites,
+                  style: const TextStyle(
                       color: Default_Theme.primaryColor1,
                       fontFamily: "Unageo",
                       fontSize: 17,
@@ -162,8 +168,8 @@ void showMoreBottomSheet(
                 onTap: () {
                   Navigator.pop(context);
                   context.read<LibraryItemsCubit>().setTrackLiked(song, true);
-                  SnackbarService.showMessage(
-                      "${song.title} is added to Liked!!");
+                  SnackbarService.showMessage(AppLocalizations.of(context)!
+                      .snackbarAddedToLiked(song.title));
                   // SnackbarService.showMessage("Added to Favorites",
                   //     duration: const Duration(seconds: 2));
                 },
@@ -174,9 +180,9 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
-                  'Add to Playlist',
-                  style: TextStyle(
+                title: Text(
+                  AppLocalizations.of(context)!.menuAddToPlaylist,
+                  style: const TextStyle(
                       color: Default_Theme.primaryColor1,
                       fontFamily: "Unageo",
                       fontSize: 17,
@@ -194,9 +200,9 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
-                  'Smart Replace',
-                  style: TextStyle(
+                title: Text(
+                  AppLocalizations.of(context)!.menuSmartReplace,
+                  style: const TextStyle(
                       color: Default_Theme.primaryColor1,
                       fontFamily: "Unageo",
                       fontSize: 17,
@@ -213,9 +219,9 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
-                  'Share',
-                  style: TextStyle(
+                title: Text(
+                  AppLocalizations.of(context)!.menuShare,
+                  style: const TextStyle(
                       color: Default_Theme.primaryColor1,
                       fontFamily: "Unageo",
                       fontSize: 17,
@@ -223,8 +229,8 @@ void showMoreBottomSheet(
                 ),
                 onTap: () async {
                   Navigator.pop(context);
-                  SnackbarService.showMessage(
-                      "Preparing ${song.title} for share.");
+                  SnackbarService.showMessage(AppLocalizations.of(context)!
+                      .menuSharePreparing(song.title));
                   // TODO: Implement Track-based export
                   // final tmpPath = await ImportExportService.exportMediaItem(...);
                   // tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
@@ -240,9 +246,9 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
-                        'Available Offline',
-                        style: TextStyle(
+                      title: Text(
+                        AppLocalizations.of(context)!.menuAvailableOffline,
+                        style: const TextStyle(
                             color: Default_Theme.primaryColor1,
                             fontFamily: "Unageo",
                             fontSize: 17,
@@ -259,9 +265,9 @@ void showMoreBottomSheet(
                         color: Default_Theme.primaryColor1,
                         size: 28,
                       ),
-                      title: const Text(
-                        'Download',
-                        style: TextStyle(
+                      title: Text(
+                        AppLocalizations.of(context)!.menuDownload,
+                        style: const TextStyle(
                             color: Default_Theme.primaryColor1,
                             fontFamily: "Unageo",
                             fontSize: 17,
@@ -279,17 +285,25 @@ void showMoreBottomSheet(
                   color: Default_Theme.primaryColor1,
                   size: 28,
                 ),
-                title: const Text(
-                  'Open original link',
-                  style: TextStyle(
+                title: Text(
+                  AppLocalizations.of(context)!.menuOpenOriginalLink,
+                  style: const TextStyle(
                       color: Default_Theme.primaryColor1,
                       fontFamily: "Unageo",
                       fontSize: 17,
                       fontWeight: FontWeight.w400),
                 ),
-                onTap: () {
+                onTap: () async {
+                  final l10n = AppLocalizations.of(context)!;
                   Navigator.pop(context);
-                  launchUrl(Uri.parse(song.url ?? ''));
+                  final url = song.url;
+                  if (url == null || url.isEmpty) return;
+                  try {
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.externalApplication);
+                  } catch (_) {
+                    SnackbarService.showMessage(l10n.menuOpenLinkFailed);
+                  }
                 },
               ),
               Visibility(
@@ -300,9 +314,9 @@ void showMoreBottomSheet(
                     color: Default_Theme.primaryColor1,
                     size: 28,
                   ),
-                  title: const Text(
-                    'Delete',
-                    style: TextStyle(
+                  title: Text(
+                    AppLocalizations.of(context)!.menuDeleteTrack,
+                    style: const TextStyle(
                         color: Default_Theme.primaryColor1,
                         fontFamily: "Unageo",
                         fontSize: 17,

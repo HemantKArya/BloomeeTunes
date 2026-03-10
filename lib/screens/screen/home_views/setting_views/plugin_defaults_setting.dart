@@ -6,6 +6,7 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_w
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class PluginDefaultsSettings extends StatelessWidget {
@@ -13,6 +14,7 @@ class PluginDefaultsSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -34,7 +36,7 @@ class PluginDefaultsSettings extends StatelessWidget {
           ),
         ),
         title: Text(
-          'Plugin Defaults',
+          l10n.pluginDefaultsTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 22,
@@ -54,10 +56,10 @@ class PluginDefaultsSettings extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 children: [
                   _buildDiscoverSourceSection(
-                      context, settingsState, resolvers),
+                      context, l10n, settingsState, resolvers),
                   const SizedBox(height: 28),
                   _buildResolverPrioritySection(
-                      context, settingsState, resolvers),
+                      context, l10n, settingsState, resolvers),
                   const SizedBox(height: 40),
                 ],
               );
@@ -70,6 +72,7 @@ class PluginDefaultsSettings extends StatelessWidget {
 
   Widget _buildDiscoverSourceSection(
     BuildContext context,
+    AppLocalizations l10n,
     SettingsState state,
     List<PluginInfo> resolvers,
   ) {
@@ -80,7 +83,7 @@ class PluginDefaultsSettings extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SettingSectionHeader(label: 'Discover Source'),
+        SettingSectionHeader(label: l10n.pluginDefaultsDiscoverHeader),
         if (resolvers.isEmpty)
           SettingCard(
             children: [
@@ -93,7 +96,7 @@ class PluginDefaultsSettings extends StatelessWidget {
                     const SizedBox(width: 14),
                     Expanded(
                       child: Text(
-                        'No content resolver loaded. Load a plugin to choose a Discover source.',
+                        l10n.pluginDefaultsNoResolver,
                         style: TextStyle(
                           color: Default_Theme.primaryColor2
                               .withValues(alpha: 0.5),
@@ -111,8 +114,8 @@ class PluginDefaultsSettings extends StatelessWidget {
           SettingCard(
             children: [
               SettingRadioTile<String>(
-                title: 'Automatic',
-                subtitle: 'Use the first available content resolver.',
+                title: l10n.settingsAutomatic,
+                subtitle: l10n.pluginDefaultsAutomaticSubtitle,
                 value: '',
                 groupValue: selectedPluginId,
                 onChanged: (_) {
@@ -146,6 +149,7 @@ class PluginDefaultsSettings extends StatelessWidget {
 
   Widget _buildResolverPrioritySection(
     BuildContext context,
+    AppLocalizations l10n,
     SettingsState state,
     List<PluginInfo> resolvers,
   ) {
@@ -153,7 +157,7 @@ class PluginDefaultsSettings extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SettingSectionHeader(label: 'Resolver Priority'),
+          SettingSectionHeader(label: l10n.pluginDefaultsPriorityHeader),
           SettingCard(
             children: [
               Padding(
@@ -165,7 +169,7 @@ class PluginDefaultsSettings extends StatelessWidget {
                     const SizedBox(width: 14),
                     Expanded(
                       child: Text(
-                        'No content resolvers loaded. Priority ordering will appear here once plugins are loaded.',
+                        l10n.pluginDefaultsNoPriority,
                         style: TextStyle(
                           color: Default_Theme.primaryColor2
                               .withValues(alpha: 0.5),
@@ -200,11 +204,11 @@ class PluginDefaultsSettings extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SettingSectionHeader(label: 'Resolver Priority'),
+        SettingSectionHeader(label: l10n.pluginDefaultsPriorityHeader),
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
-            'Drag to reorder. Higher priority resolvers are tried first when resolving chart items to playable tracks.',
+            l10n.pluginDefaultsPriorityDesc,
             style: TextStyle(
               color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
               fontSize: 12,

@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -17,6 +18,7 @@ class BackupSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -29,7 +31,7 @@ class BackupSettings extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Storage',
+          l10n.storageSettingTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 20,
@@ -43,19 +45,18 @@ class BackupSettings extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
               // ── History ──────────────────────────────────────────────
-              const SettingSectionHeader(label: 'History'),
+              SettingSectionHeader(label: l10n.settingsHistory),
               SettingCard(
                 children: [
                   SettingDropdownTile<String>(
                     icon: MingCute.history_line,
-                    title: 'Clear History In Every',
-                    subtitle:
-                        'Clear listening history after the chosen period.',
+                    title: l10n.storageClearHistoryEvery,
+                    subtitle: l10n.storageClearHistorySubtitle,
                     value: state.historyClearTime,
                     items: ['3', '7', '14', '30', '60', '90', '180', '365']
                         .map((v) => SettingDropdownItem<String>(
                               value: v,
-                              label: '$v Days',
+                              label: l10n.storageDays(int.parse(v)),
                             ))
                         .toList(),
                     onChanged: (newValue) {
@@ -71,19 +72,19 @@ class BackupSettings extends StatelessWidget {
               const SizedBox(height: 20),
 
               // ── Backup & Restore ──────────────────────────────────────
-              const SettingSectionHeader(label: 'Backup & Restore'),
+              SettingSectionHeader(label: l10n.settingsBackupRestore),
               SettingCard(
                 children: [
                   Column(
                     children: [
                       SettingNavTile(
                         icon: MingCute.folder_info_line,
-                        title: 'Backup Location',
+                        title: l10n.storageBackupLocation,
                         subtitle: Platform.isAndroid
-                            ? 'Downloads / app-data directory'
+                            ? l10n.storageBackupLocationAndroid
                             : (state.backupPath.isNotEmpty
                                 ? state.backupPath
-                                : 'Downloads directory'),
+                                : l10n.storageBackupLocationDownloads),
                         onTap: () => showDialog(
                           context: context,
                           builder: (_) => _BackupLocationDialog(),
@@ -92,14 +93,13 @@ class BackupSettings extends StatelessWidget {
                       const SettingDivider(),
                       SettingNavTile(
                         icon: MingCute.save_2_line,
-                        title: 'Create Backup',
-                        subtitle:
-                            'Save your settings and data to a backup file.',
+                        title: l10n.storageCreateBackup,
+                        subtitle: l10n.storageCreateBackupSubtitle,
                         onTap: () {
                           StorageBackupService.createBackup().then((value) {
                             if (value != null) {
                               SnackbarService.showMessage(
-                                  'Backup created at $value');
+                                  l10n.storageBackupCreatedAt(value));
                               if (Platform.isAndroid) {
                                 try {
                                   SharePlus.instance
@@ -110,16 +110,18 @@ class BackupSettings extends StatelessWidget {
                                   ))
                                       .catchError((e) {
                                     SnackbarService.showMessage(
-                                        'Failed to share backup: $e');
+                                        l10n.storageBackupShareFailed(
+                                            e.toString()));
                                     return ShareResult.unavailable;
                                   });
                                 } catch (e) {
-                                  SnackbarService.showMessage(
-                                      'Failed to share backup: $e');
+                                  SnackbarService.showMessage(l10n
+                                      .storageBackupShareFailed(e.toString()));
                                 }
                               }
                             } else {
-                              SnackbarService.showMessage('Backup Failed!');
+                              SnackbarService.showMessage(
+                                  l10n.storageBackupFailed);
                             }
                           });
                         },
@@ -127,9 +129,8 @@ class BackupSettings extends StatelessWidget {
                       const SettingDivider(),
                       SettingNavTile(
                         icon: MingCute.restore_line,
-                        title: 'Restore Backup',
-                        subtitle:
-                            'Restore your settings and data from a backup file.',
+                        title: l10n.storageRestoreBackup,
+                        subtitle: l10n.storageRestoreBackupSubtitle,
                         onTap: () => _onRestoreTap(context),
                       ),
                     ],
@@ -139,14 +140,13 @@ class BackupSettings extends StatelessWidget {
               const SizedBox(height: 20),
 
               // ── Automatic ─────────────────────────────────────────────
-              const SettingSectionHeader(label: 'Automatic'),
+              SettingSectionHeader(label: l10n.settingsAutomatic),
               SettingCard(
                 children: [
                   SettingToggleTile(
                     icon: MingCute.time_fill,
-                    title: 'Auto Backup',
-                    subtitle:
-                        'Periodically create a backup of your data automatically.',
+                    title: l10n.storageAutoBackup,
+                    subtitle: l10n.storageAutoBackupSubtitle,
                     value: state.autoBackup,
                     onChanged: (value) =>
                         context.read<SettingsCubit>().setAutoBackup(value),
@@ -154,8 +154,8 @@ class BackupSettings extends StatelessWidget {
                   const SettingDivider(),
                   SettingToggleTile(
                     icon: MingCute.music_2_line,
-                    title: 'Auto Save Lyrics',
-                    subtitle: 'Save lyrics automatically when a song plays.',
+                    title: l10n.storageAutoLyrics,
+                    subtitle: l10n.storageAutoLyricsSubtitle,
                     value: state.autoSaveLyrics,
                     onChanged: (value) =>
                         context.read<SettingsCubit>().setAutoSaveLyrics(value),
@@ -165,14 +165,13 @@ class BackupSettings extends StatelessWidget {
               const SizedBox(height: 20),
 
               // ── Danger Zone ───────────────────────────────────────────
-              const SettingSectionHeader(label: 'Danger Zone'),
+              SettingSectionHeader(label: l10n.settingsDangerZone),
               SettingCard(
                 children: [
                   SettingDestructiveTile(
                     icon: MingCute.delete_2_fill,
-                    title: 'Reset Bloomee App',
-                    subtitle:
-                        'Delete all data and restore the app to its default state.',
+                    title: l10n.storageResetApp,
+                    subtitle: l10n.storageResetAppSubtitle,
                     onTap: () async {
                       final proceed = await showDialog<bool>(
                         context: context,
@@ -182,7 +181,7 @@ class BackupSettings extends StatelessWidget {
                           surfaceTintColor:
                               const Color.fromARGB(255, 24, 24, 24),
                           title: Text(
-                            'Confirm Reset',
+                            l10n.storageResetConfirmTitle,
                             style: Default_Theme.secondoryTextStyle.merge(
                               const TextStyle(
                                   color: Colors.white,
@@ -191,7 +190,7 @@ class BackupSettings extends StatelessWidget {
                             ),
                           ),
                           content: Text(
-                            'Are you sure you want to reset Bloomee? This will delete all your data and cannot be undone.',
+                            l10n.storageResetConfirmMessage,
                             style: Default_Theme.secondoryTextStyle.merge(
                               const TextStyle(
                                   color: Colors.white, fontSize: 14),
@@ -200,7 +199,7 @@ class BackupSettings extends StatelessWidget {
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(ctx).pop(false),
-                              child: Text('Cancel',
+                              child: Text(l10n.buttonCancel,
                                   style: Default_Theme.secondoryTextStyle.merge(
                                       const TextStyle(color: Colors.white))),
                             ),
@@ -208,16 +207,15 @@ class BackupSettings extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red.shade700),
                               onPressed: () => Navigator.of(ctx).pop(true),
-                              child: const Text('Reset',
-                                  style: TextStyle(color: Colors.white)),
+                              child: Text(l10n.storageResetButton,
+                                  style: const TextStyle(color: Colors.white)),
                             ),
                           ],
                         ),
                       );
                       if (proceed == true) {
                         await StorageBackupService.resetAppData();
-                        SnackbarService.showMessage(
-                            'App has been reset to its default state.');
+                        SnackbarService.showMessage(l10n.storageResetSuccess);
                       }
                     },
                   ),
@@ -235,25 +233,26 @@ class BackupSettings extends StatelessWidget {
 class _BackupLocationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       backgroundColor: const Color.fromARGB(255, 24, 24, 24),
       surfaceTintColor: const Color.fromARGB(255, 24, 24, 24),
       title: Text(
-        'Backup Location',
+        l10n.storageLocationDialogTitle,
         style: Default_Theme.secondoryTextStyle.merge(
             const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       content: Text(
         Platform.isAndroid
-            ? 'Backups are stored in:\n\n1. Downloads directory\n2. Android/data/ls.bloomee.musicplayer/data\n\nCopy the file from either location.'
-            : 'Backups are stored in the Downloads directory. Copy the file from there.',
+            ? l10n.storageLocationAndroid
+            : l10n.storageLocationOther,
         style: Default_Theme.secondoryTextStyle
             .merge(const TextStyle(color: Colors.white, fontSize: 14)),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('OK',
+          child: Text(l10n.buttonOk,
               style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.bold))),
         ),
@@ -263,6 +262,7 @@ class _BackupLocationDialog extends StatelessWidget {
 }
 
 Future<void> _onRestoreTap(BuildContext context) async {
+  final l10n = AppLocalizations.of(context)!;
   try {
     // 1) Ask user to pick a file
     final result = await FilePicker.platform.pickFiles(
@@ -273,7 +273,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
     );
 
     if (result == null || result.files.isEmpty) {
-      SnackbarService.showMessage("No file selected.");
+      SnackbarService.showMessage(l10n.storageRestoreNoFile);
       return;
     }
 
@@ -282,7 +282,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
     // 2) Save the picked file to internal documents directory
     final savedPath = await _savePickedFileToInternalDir(picked);
     if (savedPath == null) {
-      SnackbarService.showMessage("Failed to save the selected file.");
+      SnackbarService.showMessage(l10n.storageRestoreSaveFailed);
       return;
     }
 
@@ -314,7 +314,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
 
           return AlertDialog(
             backgroundColor: const Color.fromARGB(255, 24, 24, 24),
-            title: Text("Restore Options",
+            title: Text(l10n.storageRestoreOptionsTitle,
                 style: Default_Theme.secondoryTextStyle
                     .merge(const TextStyle(color: Colors.white))),
             content: SingleChildScrollView(
@@ -322,8 +322,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    "Choose which data you want to restore from the selected backup file. "
-                    "Unselect any items you do NOT want to be imported. By default all are selected.",
+                    l10n.storageRestoreOptionsDesc,
                     style: Default_Theme.secondoryTextStyle.merge(
                         const TextStyle(color: Colors.white70, fontSize: 13)),
                   ),
@@ -331,7 +330,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
                   CheckboxListTile(
                     value: selectAll,
                     onChanged: toggleSelectAll,
-                    title: Text("Select All",
+                    title: Text(l10n.storageRestoreSelectAll,
                         style: Default_Theme.secondoryTextStyle
                             .merge(const TextStyle(color: Colors.white))),
                     controlAffinity: ListTileControlAffinity.leading,
@@ -345,7 +344,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
                       setState(() => mediaItems = v ?? false);
                       updateSelectAllFromChildren();
                     },
-                    title: Text("Media items (songs, tracks, library entries)",
+                    title: Text(l10n.storageRestoreMediaItems,
                         style: Default_Theme.secondoryTextStyle
                             .merge(const TextStyle(color: Colors.white))),
                     controlAffinity: ListTileControlAffinity.leading,
@@ -358,34 +357,20 @@ Future<void> _onRestoreTap(BuildContext context) async {
                       setState(() => searchHistory = v ?? false);
                       updateSelectAllFromChildren();
                     },
-                    title: Text("Search history",
+                    title: Text(l10n.storageRestoreSearchHistory,
                         style: Default_Theme.secondoryTextStyle
                             .merge(const TextStyle(color: Colors.white))),
                     controlAffinity: ListTileControlAffinity.leading,
                     activeColor: Default_Theme.accentColor2,
                     checkColor: Colors.white,
                   ),
-                  // CheckboxListTile(
-                  //   value: settingsAndPrefs,
-                  //   onChanged: (v) {
-                  //     setState(() => settingsAndPrefs = v ?? false);
-                  //     updateSelectAllFromChildren();
-                  //   },
-                  //   title: Text(
-                  //       "Settings & preferences (theme, equalizer, tokens)",
-                  //       style: Default_Theme.secondoryTextStyle
-                  //           .merge(const TextStyle(color: Colors.white))),
-                  //   controlAffinity: ListTileControlAffinity.leading,
-                  //   activeColor: Default_Theme.accentColor2,
-                  //   checkColor: Colors.white,
-                  // ),
                 ],
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx2).pop(null),
-                child: Text("Cancel",
+                child: Text(l10n.buttonCancel,
                     style: Default_Theme.secondoryTextStyle
                         .merge(const TextStyle(color: Colors.white))),
               ),
@@ -399,7 +384,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
                     restoreSettings: settingsAndPrefs,
                   ));
                 },
-                child: Text("Continue",
+                child: Text(l10n.storageRestoreContinue,
                     style: Default_Theme.secondoryTextStyle
                         .merge(const TextStyle(color: Colors.white))),
               ),
@@ -418,24 +403,23 @@ Future<void> _onRestoreTap(BuildContext context) async {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: const Color.fromARGB(255, 24, 24, 24),
-          title: Text("Confirm Restore",
+          title: Text(l10n.storageRestoreConfirmTitle,
               style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold))),
           content: Text(
-            "This will overwrite and merge the parts you selected in the app with data from the backup file:\n\n"
-            "${options.restoreMediaItems ? "• Media items\n" : ""}"
-            "${options.restoreSearchHistory ? "• Search history\n" : ""}"
-            // "${options.restoreSettings ? "• Settings & preferences\n" : ""}\n"
-            "Your current data will be modified/merged. Are you sure you want to proceed?",
+            "${l10n.storageRestoreConfirmPrefix}\n\n"
+            "${options.restoreMediaItems ? "${l10n.storageRestoreMediaBullet}\n" : ""}"
+            "${options.restoreSearchHistory ? "${l10n.storageRestoreHistoryBullet}\n" : ""}"
+            "\n${l10n.storageRestoreConfirmSuffix}",
             style: Default_Theme.secondoryTextStyle
                 .merge(const TextStyle(color: Colors.white70, fontSize: 14)),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text("No",
+              child: Text(l10n.storageRestoreNo,
                   style: Default_Theme.secondoryTextStyle
                       .merge(const TextStyle(color: Colors.white))),
             ),
@@ -443,7 +427,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
               style: ElevatedButton.styleFrom(
                   backgroundColor: Default_Theme.accentColor2),
               onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text("Yes, restore",
+              child: Text(l10n.storageRestoreYes,
                   style: Default_Theme.secondoryTextStyle
                       .merge(const TextStyle(color: Colors.white))),
             ),
@@ -474,7 +458,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
                 const CircularProgressIndicator(),
                 const SizedBox(height: 16),
                 Text(
-                  "Restoring selected data...\nPlease wait until the operation completes.",
+                  l10n.storageRestoring,
                   textAlign: TextAlign.center,
                   style: Default_Theme.secondoryTextStyle
                       .merge(const TextStyle(color: Colors.white)),
@@ -540,8 +524,7 @@ Future<void> _onRestoreTap(BuildContext context) async {
     await _showResultDialog(context, success: success, errors: errors);
   } catch (e, st) {
     log("Unexpected error in restore flow: $e\n$st", name: "StorageSetting");
-    SnackbarService.showMessage(
-        "An unexpected error occurred while restoring.");
+    SnackbarService.showMessage(l10n.storageUnexpectedError);
   }
 }
 
@@ -592,13 +575,16 @@ Future<void> _showResultDialog(
   required bool success,
   required List<String> errors,
 }) async {
+  final l10n = AppLocalizations.of(context)!;
   await showDialog(
     context: context,
     builder: (ctx) {
       return AlertDialog(
         backgroundColor: const Color.fromARGB(255, 24, 24, 24),
         title: Text(
-          success ? "Restore Completed" : "Restore Failed",
+          success
+              ? l10n.storageRestoreCompleted
+              : l10n.storageRestoreFailedTitle,
           style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
               color: Colors.white, fontWeight: FontWeight.bold)),
         ),
@@ -608,8 +594,8 @@ Future<void> _showResultDialog(
             children: [
               Text(
                 success
-                    ? "The selected data was restored successfully. For best results, please restart the app now."
-                    : "The restore process failed with the following errors:",
+                    ? l10n.storageRestoreSuccessMessage
+                    : l10n.storageRestoreFailedMessage,
                 style: Default_Theme.secondoryTextStyle
                     .merge(const TextStyle(color: Colors.white)),
               ),
@@ -626,13 +612,13 @@ Future<void> _showResultDialog(
                     )),
               if (!success && errors.isEmpty)
                 Text(
-                  "Unknown error occurred during restore.",
+                  l10n.storageRestoreUnknownError,
                   style: Default_Theme.secondoryTextStyle
                       .merge(const TextStyle(color: Colors.white70)),
                 ),
               const SizedBox(height: 8),
               Text(
-                "Please restart the app for better consistency.",
+                l10n.storageRestoreRestartHint,
                 style: Default_Theme.secondoryTextStyle.merge(
                     const TextStyle(color: Colors.white54, fontSize: 12)),
               ),
@@ -645,7 +631,7 @@ Future<void> _showResultDialog(
                 backgroundColor: Default_Theme.accentColor2),
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
-              "OK",
+              l10n.buttonOk,
               style: Default_Theme.secondoryTextStyle.merge(const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.bold)),
             ),

@@ -1,9 +1,10 @@
-﻿import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/check_update_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class UpdatesSettings extends StatelessWidget {
@@ -11,6 +12,7 @@ class UpdatesSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -32,7 +34,7 @@ class UpdatesSettings extends StatelessWidget {
           ),
         ),
         title: Text(
-          'Updates',
+          l10n.updateSettingTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 22,
@@ -47,13 +49,13 @@ class UpdatesSettings extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             children: [
-              const SettingSectionHeader(label: 'App Updates'),
+              SettingSectionHeader(label: l10n.updateSettingTitle),
               SettingCard(
                 children: [
                   SettingNavTile(
                     icon: MingCute.download_3_fill,
-                    title: 'Check for Updates',
-                    subtitle: 'See if a newer version of Bloomee is available.',
+                    title: l10n.updateCheckForUpdates,
+                    subtitle: l10n.updateCheckSubtitle,
                     roundBottom: false,
                     onTap: () {
                       Navigator.push(
@@ -67,14 +69,11 @@ class UpdatesSettings extends StatelessWidget {
                   const SettingDivider(),
                   SettingToggleTile(
                     icon: MingCute.notification_fill,
-                    title: 'Auto Update Notify',
-                    subtitle:
-                        'Get notified when new updates are available on app start.',
+                    title: l10n.updateAutoNotify,
+                    subtitle: l10n.updateAutoNotifySubtitle,
                     value: state.autoUpdateNotify,
                     onChanged: (value) {
-                      context
-                          .read<SettingsCubit>()
-                          .setAutoUpdateNotify(value);
+                      context.read<SettingsCubit>().setAutoUpdateNotify(value);
                     },
                   ),
                 ],

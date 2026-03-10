@@ -109,4 +109,20 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     await _playlistDao.reorderTrack(playlistDB.id, oldIndex, newIndex);
     await setupPlaylist(_playlist!.title);
   }
+
+  /// Optimistically replaces [original] with [replacement] in the current
+  /// playlist state without re-querying the DB.  Call this after a smart-
+  /// replace operation when the DB has already been updated elsewhere, so the
+  /// UI reflects the change instantly.
+  void replaceTrack(Track original, Track replacement) {
+    if (_playlist == null) return;
+    final updated = _playlist!.tracks
+        .map((t) => t.id == original.id ? replacement : t)
+        .toList(growable: false);
+    _playlist = _playlist!.copyWith(tracks: updated);
+    emit(state.copyWith(playlist: _playlist));
+  }
+
+  /// Returns the name of the currently loaded playlist, or null if none.
+  String? get currentPlaylistName => _playlist?.title;
 }

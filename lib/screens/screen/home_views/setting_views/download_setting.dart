@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/services/player/stream_quality_selector.dart';
@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -47,6 +48,7 @@ Future<bool> storagePermission() async {
 class _DownloadSettingsState extends State<DownloadSettings> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -68,7 +70,7 @@ class _DownloadSettingsState extends State<DownloadSettings> {
           ),
         ),
         title: Text(
-          'Downloads',
+          l10n.downloadSettingTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 22,
@@ -83,14 +85,13 @@ class _DownloadSettingsState extends State<DownloadSettings> {
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             children: [
-              const SettingSectionHeader(label: 'Quality'),
+              SettingSectionHeader(label: l10n.settingsQuality),
               SettingCard(
                 children: [
                   SettingQualityChipRow(
                     icon: MingCute.folder_download_fill,
-                    title: 'Download Quality',
-                    subtitle:
-                        'Universal audio quality preference for downloaded tracks.',
+                    title: l10n.downloadSettingQuality,
+                    subtitle: l10n.downloadSettingQualitySubtitle,
                     options: AudioStreamQualityPreference.values
                         .map((q) => q.label)
                         .toList(),
@@ -100,15 +101,13 @@ class _DownloadSettingsState extends State<DownloadSettings> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 28),
-
-              const SettingSectionHeader(label: 'Storage'),
+              SettingSectionHeader(label: l10n.settingsStorage),
               SettingCard(
                 children: [
                   SettingNavTile(
                     icon: MingCute.folder_fill,
-                    title: 'Download Folder',
+                    title: l10n.downloadSettingFolder,
                     subtitle: state.downPath,
                     roundBottom: Platform.isAndroid,
                     onTap: Platform.isAndroid
@@ -129,8 +128,8 @@ class _DownloadSettingsState extends State<DownloadSettings> {
                     const SettingDivider(),
                     SettingNavTile(
                       icon: MingCute.refresh_1_line,
-                      title: 'Reset Download Folder',
-                      subtitle: 'Restore the default download path.',
+                      title: l10n.downloadSettingResetFolder,
+                      subtitle: l10n.downloadSettingResetFolderSubtitle,
                       roundBottom: true,
                       onTap: () =>
                           context.read<SettingsCubit>().resetDownPath(),
@@ -138,7 +137,6 @@ class _DownloadSettingsState extends State<DownloadSettings> {
                   ],
                 ],
               ),
-
               const SizedBox(height: 40),
             ],
           );

@@ -12,6 +12,7 @@ import 'package:Bloomee/blocs/internet_connectivity/cubit/connectivity_cubit.dar
 import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/plugins/blocs/content/content_bloc.dart';
 import 'package:Bloomee/plugins/blocs/content/content_event.dart';
 import 'package:Bloomee/plugins/blocs/content/content_state.dart';
@@ -340,11 +341,11 @@ class _SearchScreenState extends State<SearchScreen> {
                         // Symmetric padding ensures perfect vertical centering
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 14),
-                        hintText: "What do you want to listen to?",
+                        hintText:
+                            AppLocalizations.of(context)!.searchHintExplore,
                         hintStyle: TextStyle(
                           color: Default_Theme.primaryColor1
                               .withValues(alpha: 0.35),
-                          fontFamily: "Unageo",
                           fontSize: 15,
                         ),
                       ),
@@ -484,7 +485,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 size: 18, color: Default_Theme.accentColor2),
                             const SizedBox(width: 8),
                             Text(
-                              "SOURCES",
+                              AppLocalizations.of(context)!.searchSources,
                               style: Default_Theme.secondoryTextStyleMedium
                                   .copyWith(
                                 fontSize: 12,
@@ -519,7 +520,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
                           child: Text(
-                            "No plugins installed",
+                            AppLocalizations.of(context)!.searchNoPlugins,
                             style: TextStyle(
                               color: Default_Theme.primaryColor1
                                   .withValues(alpha: 0.4),
@@ -640,20 +641,20 @@ class _SearchScreenState extends State<SearchScreen> {
 
           if (_currentCombinedSuggestions.isEmpty &&
               _textEditingController.text.isEmpty) {
-            return const SliverFillRemaining(
+            return SliverFillRemaining(
               hasScrollBody: false,
               child: SignBoardWidget(
-                message: "Start typing to search...",
+                message: AppLocalizations.of(context)!.searchStartTyping,
                 icon: MingCute.keyboard_line,
               ),
             );
           }
 
           if (_currentCombinedSuggestions.isEmpty) {
-            return const SliverFillRemaining(
+            return SliverFillRemaining(
               hasScrollBody: false,
               child: SignBoardWidget(
-                message: "No Suggestions found!",
+                message: AppLocalizations.of(context)!.searchNoSuggestions,
                 icon: MingCute.ghost_line,
               ),
             );
@@ -684,10 +685,10 @@ class _SearchScreenState extends State<SearchScreen> {
           );
         }
 
-        return const SliverFillRemaining(
+        return SliverFillRemaining(
           hasScrollBody: false,
           child: SignBoardWidget(
-            message: "No Suggestions found!",
+            message: AppLocalizations.of(context)!.searchNoSuggestions,
             icon: MingCute.ghost_line,
           ),
         );
@@ -762,11 +763,11 @@ class _SearchScreenState extends State<SearchScreen> {
     return BlocBuilder<ConnectivityCubit, ConnectivityState>(
       builder: (context, connState) {
         if (connState == ConnectivityState.disconnected) {
-          return const SliverFillRemaining(
+          return SliverFillRemaining(
             hasScrollBody: false,
             child: SignBoardWidget(
               icon: MingCute.wifi_off_line,
-              message: "No internet connection!",
+              message: AppLocalizations.of(context)!.emptyNoInternet,
             ),
           );
         }
@@ -803,10 +804,10 @@ class _SearchScreenState extends State<SearchScreen> {
             if (state.searchStatus == SearchStatus.loaded &&
                 state.searchResults != null &&
                 state.searchResults!.items.isEmpty) {
-              return const SliverFillRemaining(
+              return SliverFillRemaining(
                 hasScrollBody: false,
                 child: SignBoardWidget(
-                  message: "No results found!\nTry another keyword or source.",
+                  message: AppLocalizations.of(context)!.searchNoResults,
                   icon: MingCute.ghost_line,
                 ),
               );
@@ -816,16 +817,17 @@ class _SearchScreenState extends State<SearchScreen> {
               return SliverFillRemaining(
                 hasScrollBody: false,
                 child: SignBoardWidget(
-                  message: state.error ?? "Search failed!",
+                  message:
+                      state.error ?? AppLocalizations.of(context)!.searchFailed,
                   icon: MingCute.sweats_line,
                 ),
               );
             }
 
-            return const SliverFillRemaining(
+            return SliverFillRemaining(
               hasScrollBody: false,
               child: SignBoardWidget(
-                message: "Discover amazing music...",
+                message: AppLocalizations.of(context)!.searchDiscover,
                 icon: MingCute.planet_line,
               ),
             );
@@ -838,10 +840,10 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildSliverSearchResults(ContentState state) {
     final items = state.searchResults!.items;
     if (items.isEmpty) {
-      return const SliverFillRemaining(
+      return SliverFillRemaining(
         hasScrollBody: false,
         child: SignBoardWidget(
-          message: "No results found!\nTry another keyword or source.",
+          message: AppLocalizations.of(context)!.searchNoResults,
           icon: MingCute.ghost_line,
         ),
       );
@@ -871,7 +873,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return SliverMainAxisGroup(
       slivers: [
         if (tracks.isNotEmpty) ...[
-          _sliverSectionHeader('Tracks'),
+          _sliverSectionHeader(AppLocalizations.of(context)!.searchTracks),
           SliverPadding(
             padding: const EdgeInsets.only(bottom: 12),
             sliver: SliverList(
@@ -903,19 +905,19 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
         if (albums.isNotEmpty) ...[
-          _sliverSectionHeader('Albums'),
+          _sliverSectionHeader(AppLocalizations.of(context)!.searchAlbums),
           _buildResponsiveGrid(albums
               .map((a) => AlbumCard(album: a, pluginId: pluginId))
               .toList()),
         ],
         if (artists.isNotEmpty) ...[
-          _sliverSectionHeader('Artists'),
+          _sliverSectionHeader(AppLocalizations.of(context)!.searchArtists),
           _buildResponsiveGrid(artists
               .map((a) => ArtistCard(artist: a, pluginId: pluginId))
               .toList()),
         ],
         if (playlists.isNotEmpty) ...[
-          _sliverSectionHeader('Playlists'),
+          _sliverSectionHeader(AppLocalizations.of(context)!.searchPlaylists),
           _buildResponsiveGrid(playlists
               .map((p) => PlaylistCard(playlist: p, pluginId: pluginId))
               .toList()),

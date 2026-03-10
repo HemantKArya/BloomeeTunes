@@ -3,6 +3,7 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_w
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class CountrySettings extends StatelessWidget {
@@ -10,6 +11,13 @@ class CountrySettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final languageItems = [
+      SettingDropdownItem<String>(
+          value: '', label: l10n.countrySettingSystemDefault),
+      const SettingDropdownItem<String>(value: 'en', label: 'English'),
+      const SettingDropdownItem<String>(value: 'hi', label: 'हिन्दी'),
+    ];
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -22,7 +30,7 @@ class CountrySettings extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Country & Language',
+          l10n.countrySettingTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 20,
@@ -32,6 +40,13 @@ class CountrySettings extends StatelessWidget {
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
+          final currentLanguageLabel = languageItems
+              .firstWhere(
+                (item) => item.value == state.languageCode,
+                orElse: () => languageItems.first,
+              )
+              .label;
+
           // Build country name from current code
           final currentCountryName = countries.entries
               .firstWhere(
@@ -43,15 +58,26 @@ class CountrySettings extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
-              // ── Location ─────────────────────────────────────────────
-              const SettingSectionHeader(label: 'Location'),
+              SettingSectionHeader(label: l10n.settingsLanguageCountry),
               SettingCard(
                 children: [
+                  SettingDropdownTile<String>(
+                    icon: MingCute.translate_2_line,
+                    title: l10n.countrySettingLanguageLabel,
+                    subtitle: currentLanguageLabel,
+                    value: state.languageCode,
+                    items: languageItems,
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        context.read<SettingsCubit>().setLanguageCode(newValue);
+                      }
+                    },
+                  ),
+                  const SettingDivider(),
                   SettingToggleTile(
                     icon: MingCute.location_line,
-                    title: 'Auto Detect Country',
-                    subtitle:
-                        'Automatically detect your country when the app opens.',
+                    title: l10n.countrySettingAutoDetect,
+                    subtitle: l10n.countrySettingAutoDetectSubtitle,
                     value: state.autoGetCountry,
                     onChanged: (value) =>
                         context.read<SettingsCubit>().setAutoGetCountry(value),
@@ -59,7 +85,7 @@ class CountrySettings extends StatelessWidget {
                   const SettingDivider(),
                   SettingDropdownTile<String>(
                     icon: MingCute.globe_line,
-                    title: 'Country',
+                    title: l10n.countrySettingCountryLabel,
                     subtitle: currentCountryName,
                     value: state.countryCode,
                     items: countries.entries

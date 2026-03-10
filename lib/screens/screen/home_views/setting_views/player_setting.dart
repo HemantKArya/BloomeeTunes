@@ -6,6 +6,7 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_w
 import 'package:Bloomee/screens/screen/player_views/equalizer_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class PlayerSettings extends StatelessWidget {
@@ -13,6 +14,7 @@ class PlayerSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -34,7 +36,7 @@ class PlayerSettings extends StatelessWidget {
           ),
         ),
         title: Text(
-          'Audio Player',
+          l10n.playerSettingTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 22,
@@ -50,14 +52,18 @@ class PlayerSettings extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             children: [
               // ─── Streaming Quality ─────────────────────────────────────
-              const SettingSectionHeader(label: 'Streaming'),
+              SettingSectionHeader(label: l10n.playerSettingStreamingHeader),
               SettingCard(
                 children: [
                   SettingQualityChipRow(
                     icon: MingCute.cellphone_vibration_line,
-                    title: 'Streaming Quality',
-                    subtitle: 'Global audio bitrate for online playback.',
-                    options: const ['Low', 'Medium', 'High'],
+                    title: l10n.playerSettingStreamQuality,
+                    subtitle: l10n.playerSettingStreamQualitySubtitle,
+                    options: [
+                      l10n.playerSettingQualityLow,
+                      l10n.playerSettingQualityMedium,
+                      l10n.playerSettingQualityHigh,
+                    ],
                     selected: state.strmQuality,
                     onSelected: (v) =>
                         context.read<SettingsCubit>().setStrmQuality(v),
@@ -68,13 +74,13 @@ class PlayerSettings extends StatelessWidget {
               const SizedBox(height: 28),
 
               // ─── Playback ──────────────────────────────────────────────
-              const SettingSectionHeader(label: 'Playback'),
+              SettingSectionHeader(label: l10n.playerSettingPlaybackHeader),
               SettingCard(
                 children: [
                   SettingToggleTile(
                     icon: MingCute.music_2_line,
-                    title: 'Auto Play',
-                    subtitle: 'Enqueue similar songs when the queue ends.',
+                    title: l10n.playerSettingAutoPlay,
+                    subtitle: l10n.playerSettingAutoPlaySubtitle,
                     value: state.autoPlay,
                     onChanged: (v) =>
                         context.read<SettingsCubit>().setAutoPlay(v),
@@ -82,9 +88,8 @@ class PlayerSettings extends StatelessWidget {
                   const SettingDivider(),
                   SettingToggleTile(
                     icon: MingCute.search_2_line,
-                    title: 'Auto Fallback Playback',
-                    subtitle:
-                        'If a plugin is missing or returns no streams, try a compatible resolver for playback only.',
+                    title: l10n.playerSettingAutoFallback,
+                    subtitle: l10n.playerSettingAutoFallbackSubtitle,
                     value: state.autoResolveUnavailableTracks,
                     onChanged: (v) => context
                         .read<SettingsCubit>()
@@ -104,11 +109,14 @@ class PlayerSettings extends StatelessWidget {
                   const SettingDivider(),
                   SettingNavTile(
                     icon: Icons.equalizer_rounded,
-                    title: 'Equalizer',
+                    title: l10n.playerSettingEqualizer,
                     subtitle: state.eqEnabled
-                        ? 'Enabled — ${state.eqPreset} preset'
-                        : '10-band parametric EQ via FFmpeg.',
-                    badge: state.eqEnabled ? 'Active' : null,
+                        ? l10n
+                            .playerSettingEqualizerActivePreset(state.eqPreset)
+                        : l10n.playerSettingEqualizerSubtitle,
+                    badge: state.eqEnabled
+                        ? l10n.playerSettingEqualizerActive
+                        : null,
                     roundBottom: true,
                     onTap: () => Navigator.push(
                       context,
@@ -156,13 +164,13 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
     }
   }
 
-  String get _description {
-    if (_localValue == 0) return 'Tracks switch instantly';
-    return '${_localValue.toInt()}s blend between tracks';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final description = _localValue == 0
+        ? l10n.playerSettingCrossfadeInstant
+        : l10n.playerSettingCrossfadeBlend(_localValue.toInt());
+    final offLabel = l10n.playerSettingCrossfadeOff;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
@@ -177,7 +185,7 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Crossfade',
+                      l10n.playerSettingCrossfade,
                       style: const TextStyle(
                         color: Default_Theme.primaryColor2,
                         fontSize: 16,
@@ -187,7 +195,7 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _description,
+                      description,
                       style: TextStyle(
                         color:
                             Default_Theme.primaryColor2.withValues(alpha: 0.5),
@@ -204,7 +212,7 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
                     FadeTransition(opacity: anim, child: child),
                 child: _localValue == 0
                     ? Text(
-                        'Off',
+                        offLabel,
                         key: const ValueKey('off'),
                         style: TextStyle(
                           color: Default_Theme.primaryColor2
@@ -259,7 +267,7 @@ class _CrossfadeSliderState extends State<_CrossfadeSlider> {
               children: [0, 2, 4, 6, 8, 10, 12].map((v) {
                 final active = _localValue.toInt() == v;
                 return Text(
-                  v == 0 ? 'Off' : '${v}s',
+                  v == 0 ? offLabel : '${v}s',
                   style: TextStyle(
                     color: active
                         ? Default_Theme.accentColor2

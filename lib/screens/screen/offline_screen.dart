@@ -12,6 +12,7 @@ import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class OfflineScreen extends StatefulWidget {
@@ -67,6 +68,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Default_Theme.themeColor,
@@ -77,12 +79,12 @@ class _OfflineScreenState extends State<OfflineScreen> {
             }
             return CustomScrollView(
               slivers: [
-                customDiscoverSliverBar(context),
+                customDiscoverSliverBar(context, l10n),
                 if (state.downloads.isEmpty && state.downloaded.isEmpty)
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     child: Center(
                       child: SignBoardWidget(
-                        message: "No Downloads",
+                        message: l10n.offlineNoDownloads,
                         icon: FontAwesome.download_solid,
                       ),
                     ),
@@ -106,7 +108,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
                                 if (selectedIndex < 0 ||
                                     state.downloaded.isEmpty) {
                                   SnackbarService.showMessage(
-                                      'Unable to open this offline track. Try refreshing downloads.');
+                                      l10n.offlineOpenFailed);
                                   log(
                                     'Offline play failed: missing track in downloaded list (${song.id})',
                                     name: 'OfflineScreen',
@@ -134,7 +136,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
                                     stackTrace: stack,
                                   );
                                   SnackbarService.showMessage(
-                                      'Could not play this offline song. Please try again.');
+                                      l10n.offlinePlayFailed);
                                 }
                               },
                               onOptionsTap: () {
@@ -153,7 +155,8 @@ class _OfflineScreenState extends State<OfflineScreen> {
     );
   }
 
-  SliverAppBar customDiscoverSliverBar(BuildContext context) {
+  SliverAppBar customDiscoverSliverBar(
+      BuildContext context, AppLocalizations l10n) {
     return SliverAppBar(
       floating: true,
       pinned: true,
@@ -177,12 +180,12 @@ class _OfflineScreenState extends State<OfflineScreen> {
             ),
           );
         },
-        child: _isSearch ? _buildSearchField() : _buildTitle(),
+        child: _isSearch ? _buildSearchField(l10n) : _buildTitle(l10n),
       ),
       actions: [
         !_isSearch
             ? Tooltip(
-                message: "Refresh Downloads",
+                message: l10n.offlineRefreshTooltip,
                 child: IconButton(
                   icon: const Icon(MingCute.refresh_2_line),
                   onPressed: () {
@@ -192,7 +195,8 @@ class _OfflineScreenState extends State<OfflineScreen> {
               )
             : const SizedBox.shrink(),
         Tooltip(
-          message: _isSearch ? "Close Search" : "Search",
+          message:
+              _isSearch ? l10n.offlineCloseSearch : l10n.offlineSearchTooltip,
           child: IconButton(
             icon: Icon(
               _isSearch ? Icons.close : Icons.search,
@@ -205,13 +209,13 @@ class _OfflineScreenState extends State<OfflineScreen> {
     );
   }
 
-  Widget _buildTitle() {
+  Widget _buildTitle(AppLocalizations l10n) {
     return Container(
       key: const ValueKey('title'),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Offline",
+          Text(l10n.offlineTitle,
               style: Default_Theme.primaryTextStyle.merge(const TextStyle(
                   fontSize: 34, color: Default_Theme.primaryColor1))),
           const Spacer(),
@@ -220,7 +224,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
     );
   }
 
-  Widget _buildSearchField() {
+  Widget _buildSearchField(AppLocalizations l10n) {
     return Container(
       key: const ValueKey('search'),
       child: TextField(
@@ -228,7 +232,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
         autofocus: true,
         cursorColor: Default_Theme.primaryColor1,
         decoration: InputDecoration(
-          hintText: "Search your songs...",
+          hintText: l10n.offlineSearchHint,
           border: InputBorder.none,
           hintStyle: TextStyle(
               color: Default_Theme.primaryColor1.withValues(alpha: 0.7)),

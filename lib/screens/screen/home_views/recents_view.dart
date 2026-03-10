@@ -8,6 +8,7 @@ import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class HistoryView extends StatelessWidget {
@@ -15,6 +16,7 @@ class HistoryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -36,7 +38,7 @@ class HistoryView extends StatelessWidget {
             ),
           ],
           title: Text(
-            'History',
+            l10n.recentsTitle,
             style: const TextStyle(
                     color: Default_Theme.primaryColor1,
                     fontSize: 20,

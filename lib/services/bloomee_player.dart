@@ -92,6 +92,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   BehaviorSubject<List<Track>> get relatedSongs =>
       _relatedSongsManager.relatedSongs;
 
+  /// Whether the player is currently resolving a media URL (before engine loads).
+  final BehaviorSubject<bool> isResolving = BehaviorSubject<bool>.seeded(false);
+
   @override
   BehaviorSubject<String> get queueTitle => _queueManager.queueTitle;
 
@@ -530,6 +533,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         log('_updateCurrentTrack failed: $e', name: 'BloomeeMusicPlayer');
       }
       engine.setLoadingState();
+      isResolving.add(true);
 
       EngineResult transitionResult;
 
@@ -595,6 +599,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       if (!alive()) return;
 
       if (transitionResult is EngineFailure) {
+        isResolving.add(false);
         final err = transitionResult.error;
         final type = _errorHandler.categorizeError(err);
         _errorHandler.handleError(type, err.toString(), resolvedTrack, err);
@@ -605,6 +610,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         await engine.seek(initialPosition);
       }
 
+      isResolving.add(false);
       _errorHandler.clearError();
 
       _preResolveNextTrack();
@@ -613,12 +619,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log('Now playing: ${track.title}', name: 'BloomeeMusicPlayer');
       done();
     } on TimeoutException catch (e) {
+      isResolving.add(false);
       if (!alive()) return;
       log('Timeout loading ${track.title}: $e', name: 'BloomeeMusicPlayer');
       _errorHandler.handleError(
           PlayerErrorType.networkError, 'Network timeout', track, e);
       done();
     } catch (e, stackTrace) {
+      isResolving.add(false);
       if (!alive()) return;
       log('Failed to play ${track.title}: $e',
           name: 'BloomeeMusicPlayer', error: e, stackTrace: stackTrace);
@@ -1042,6 +1050,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager.dispose();
     _relatedSongsManager.dispose();
     await _recentlyPlayedTracker.dispose();
+    isResolving.close();
 
     DiscordService.clearPresence();
 

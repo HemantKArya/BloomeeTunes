@@ -105,6 +105,9 @@ class SettingsCubit extends Cubit<SettingsState> {
       _settingsRepo.getSettingBool(SettingKeys.autoGetCountry).then((value) {
         emit(state.copyWith(autoGetCountry: value ?? false));
       }),
+      _settingsRepo.getSettingStr(SettingKeys.languageCode).then((value) {
+        emit(state.copyWith(languageCode: value ?? ''));
+      }),
       _settingsRepo.getSettingStr(SettingKeys.countryCode).then((value) {
         emit(state.copyWith(countryCode: value ?? "IN"));
       }),
@@ -204,6 +207,11 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setCountryCode(String value) {
     _settingsRepo.putSettingStr(SettingKeys.countryCode, value);
     emit(state.copyWith(countryCode: value));
+  }
+
+  void setLanguageCode(String value) {
+    _settingsRepo.putSettingStr(SettingKeys.languageCode, value);
+    emit(state.copyWith(languageCode: value));
   }
 
   void setAutoSaveLyrics(bool value) {

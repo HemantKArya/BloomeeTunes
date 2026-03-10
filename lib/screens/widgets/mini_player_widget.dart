@@ -232,12 +232,13 @@ class MiniPlayerCard extends StatelessWidget {
   }
 
   Widget _buildActionButton(BuildContext context) {
-    if (state.isLoading) {
+    if (state.isLoading || state.isResolving) {
       return const Padding(
         padding: EdgeInsets.all(10.0),
         child: SizedBox.square(
             dimension: 20,
             child: CircularProgressIndicator(
+              strokeWidth: 2.5,
               color: Default_Theme.primaryColor1,
             )),
       );

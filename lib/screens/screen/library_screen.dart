@@ -18,6 +18,7 @@ import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/screens/widgets/create_playlist_bottomsheet.dart';
 import 'package:Bloomee/screens/widgets/libitem_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/blocs/library/search_cubit/library_search_cubit.dart';
 import 'package:Bloomee/core/models/library_search_result.dart';
@@ -121,11 +122,11 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   customDiscoverBar(context),
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     child: Center(
                       child: SignBoardWidget(
                         message:
-                            "Your library is feeling lonely. Add some tunes to brighten it up!",
+                            AppLocalizations.of(context)!.libraryEmptyState,
                         icon: MingCute.playlist_fill,
                       ),
                     ),
@@ -175,10 +176,11 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                         ),
                       ),
                     if (_isSearching && !hasResults && !isLoading)
-                      const SliverFillRemaining(
+                      SliverFillRemaining(
                         child: Center(
                           child: SignBoardWidget(
-                            message: "No matches found",
+                            message:
+                                AppLocalizations.of(context)!.emptyNoResults,
                             icon: MingCute.search_line,
                           ),
                         ),
@@ -221,7 +223,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
             ),
           ),
           decoration: InputDecoration(
-            hintText: 'Search library...',
+            hintText: AppLocalizations.of(context)!.searchHintLibrary,
             hintStyle: Default_Theme.secondoryTextStyle.merge(
               TextStyle(
                 color: Default_Theme.primaryColor1.withOpacity(0.4),
@@ -277,7 +279,8 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
             child: SongCardWidget(
               song: result.song,
               showOptions: true,
-              subtitleOverride: 'in ${result.playlistName}',
+              subtitleOverride:
+                  AppLocalizations.of(context)!.libraryIn(result.playlistName),
               onTap: () async {
                 _dismissKeyboard();
                 final playlist = await context
@@ -312,7 +315,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
       title: Row(
         children: [
           Text(
-            "Library",
+            AppLocalizations.of(context)!.libraryTitle,
             style: Default_Theme.primaryTextStyle.merge(
               const TextStyle(
                 fontSize: 34,

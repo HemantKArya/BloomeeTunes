@@ -4,6 +4,7 @@ import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_event.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/screens/widgets/animated_list_item.dart';
+import 'package:Bloomee/screens/widgets/bloomee_ui_kit/bloomee_dialog.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
@@ -11,6 +12,7 @@ import 'package:Bloomee/src/rust/api/plugin/types.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class PluginManagerScreen extends StatefulWidget {
@@ -24,18 +26,18 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
   // null means "All"
   PluginType? _selectedFilter;
 
-  // Easily scalable for future plugin types
-  final Map<PluginType?, String> _filterOptions = {
-    null: "All",
-    PluginType.contentResolver: "Content Resolvers",
-    PluginType.chartProvider: "Chart Providers",
-  };
+  Map<PluginType?, String> _filterOptions(AppLocalizations l10n) => {
+        null: l10n.pluginManagerFilterAll,
+        PluginType.contentResolver: l10n.pluginManagerFilterContent,
+        PluginType.chartProvider: l10n.pluginManagerFilterCharts,
+      };
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
-      appBar: _buildAppBar(context),
+      appBar: _buildAppBar(context, l10n),
       body: BlocConsumer<PluginBloc, PluginState>(
         listenWhen: (prev, curr) =>
             (prev.error != curr.error && curr.error != null) ||
@@ -60,8 +62,8 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
           }
 
           if (state.availablePlugins.isEmpty) {
-            return const SignBoardWidget(
-              message: "No plugins installed.\nTap + to add a .bex file.",
+            return SignBoardWidget(
+              message: l10n.pluginManagerEmpty,
               icon: MingCute.plugin_2_line,
             );
           }
@@ -75,9 +77,10 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildChipsHeader(),
+              _buildChipsHeader(l10n),
               Expanded(
-                child: _buildPluginGridOrList(context, state, filteredPlugins),
+                child: _buildPluginGridOrList(
+                    context, l10n, state, filteredPlugins),
               ),
             ],
           );
@@ -88,7 +91,8 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
 
   // ── App Bar ──────────────────────────────────────────────────────────────
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  PreferredSizeWidget _buildAppBar(
+      BuildContext context, AppLocalizations l10n) {
     return AppBar(
       backgroundColor: Default_Theme.themeColor,
       surfaceTintColor: Colors.transparent,
@@ -108,7 +112,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
         ),
       ),
       title: Text(
-        'Plugins',
+        l10n.pluginManagerTitle,
         style: const TextStyle(
           color: Default_Theme.primaryColor1,
           fontSize: 22,
@@ -133,7 +137,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
               );
             }
             return IconButton(
-              tooltip: 'Refresh',
+              tooltip: l10n.pluginManagerTooltipRefresh,
               icon: const Icon(MingCute.refresh_2_line,
                   color: Default_Theme.primaryColor1, size: 22),
               onPressed: () {
@@ -143,7 +147,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
           },
         ),
         IconButton(
-          tooltip: 'Install Plugin',
+          tooltip: l10n.pluginManagerTooltipInstall,
           icon: const Icon(MingCute.add_circle_line,
               color: Default_Theme.accentColor2, size: 24),
           onPressed: () => _installPlugin(context),
@@ -155,17 +159,18 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
 
   // ── Scalable Chips Header ────────────────────────────────────────────────
 
-  Widget _buildChipsHeader() {
+  Widget _buildChipsHeader(AppLocalizations l10n) {
+    final filterOptions = _filterOptions(l10n);
     return SizedBox(
       height: 52,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        itemCount: _filterOptions.length,
+        itemCount: filterOptions.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
-          final entry = _filterOptions.entries.elementAt(index);
+          final entry = filterOptions.entries.elementAt(index);
           final filterType = entry.key;
           final label = entry.value;
           final isSelected = _selectedFilter == filterType;
@@ -215,8 +220,8 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
 
   // ── Responsive List/Grid View ─────────────────────────────────────────────
 
-  Widget _buildPluginGridOrList(
-      BuildContext context, PluginState state, List<PluginInfo> plugins) {
+  Widget _buildPluginGridOrList(BuildContext context, AppLocalizations l10n,
+      PluginState state, List<PluginInfo> plugins) {
     if (plugins.isEmpty) {
       return Center(
         child: Column(
@@ -229,7 +234,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              "No plugins match this filter",
+              l10n.pluginManagerNoMatch,
               style: TextStyle(
                 color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
                 fontSize: 15,
@@ -287,6 +292,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
   }
 
   Future<void> _installPlugin(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -303,10 +309,11 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
               packedFilePath: filePath,
               shouldLoad: true,
             ));
-        SnackbarService.showMessage('Installing plugin...', loading: true);
+        SnackbarService.showMessage(l10n.pluginManagerInstalling,
+            loading: true);
       }
     } catch (e) {
-      SnackbarService.showMessage('Failed to pick file: $e');
+      SnackbarService.showMessage(l10n.pluginManagerPickFailed(e.toString()));
     }
   }
 }
@@ -840,61 +847,23 @@ class _PluginDetailSheet extends StatelessWidget {
       BuildContext context, String pluginId, String pluginName) {
     final bloc = context.read<PluginBloc>();
 
-    showDialog(
+    showBloomeeDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Default_Theme.themeColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: Default_Theme.primaryColor1.withValues(alpha: 0.1),
-          ),
-        ),
-        title: Text(
-          'Delete Plugin?',
-          style: const TextStyle(
-            color: Default_Theme.primaryColor1,
-            fontWeight: FontWeight.bold,
-          ).merge(Default_Theme.secondoryTextStyleMedium),
-        ),
-        content: Text(
+      title: 'Delete Plugin?',
+      subtitle:
           'Are you sure you want to delete "$pluginName"? This will permanently remove its files.',
-          style: TextStyle(
-            color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
-            height: 1.4,
-          ).merge(Default_Theme.secondoryTextStyle),
-        ),
-        actionsPadding: const EdgeInsets.only(right: 16, bottom: 16),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w600,
-              ).merge(Default_Theme.secondoryTextStyle),
-            ),
-          ),
-          TextButton(
+      icon: Icons.delete_outline_rounded,
+      actions: [
+        BloomeeDialogAction.text('Cancel'),
+        BloomeeDialogAction.filled('Delete', isDestructive: true,
             onPressed: () {
-              Navigator.of(dialogContext).pop();
-              Navigator.of(context).pop();
-              bloc.add(DeletePlugin(
-                pluginId: pluginId,
-                pluginType: plugin.pluginType,
-              ));
-            },
-            child: const Text(
-              'Delete',
-              style: TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
+          Navigator.of(context).pop();
+          bloc.add(DeletePlugin(
+            pluginId: pluginId,
+            pluginType: plugin.pluginType,
+          ));
+        }),
+      ],
     );
   }
 }

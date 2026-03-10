@@ -5,6 +5,8 @@ import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
+import 'package:Bloomee/screens/widgets/bloomee_ui_kit/bloomee_dialog.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -111,12 +113,14 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
 
       await cubit.deleteTrack(track);
       if (!mounted) return;
-      SnackbarService.showMessage('Deleted "${track.title}"');
+      SnackbarService.showMessage(
+          AppLocalizations.of(context)!.snackbarDeletedTrack(track.title));
     } catch (error, stackTrace) {
       log('Failed to delete local track: $error\n$stackTrace',
           name: 'LocalMusicScreen');
       if (!mounted) return;
-      SnackbarService.showMessage('Failed to delete "${track.title}"');
+      SnackbarService.showMessage(
+          AppLocalizations.of(context)!.snackbarDeleteFailed(track.title));
     }
   }
 
@@ -183,14 +187,15 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                   color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
                   size: 64),
               const SizedBox(height: 20),
-              const Text('Storage Access Required',
-                  style: TextStyle(
+              Text(
+                  AppLocalizations.of(context)!.localMusicStorageAccessRequired,
+                  style: const TextStyle(
                       color: Default_Theme.primaryColor1,
                       fontSize: 20,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Text(
-                'Please grant permission to scan and play audio files stored on your device.',
+                AppLocalizations.of(context)!.localMusicStorageAccessDesc,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
@@ -202,7 +207,8 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                 onPressed: () =>
                     context.read<LocalMusicCubit>().resolvePermissionAction(),
                 icon: const Icon(Icons.lock_open_rounded, size: 20),
-                label: const Text('Grant Permission'),
+                label: Text(
+                    AppLocalizations.of(context)!.localMusicGrantPermission),
                 style: FilledButton.styleFrom(
                   backgroundColor: Default_Theme.accentColor2,
                   foregroundColor: Colors.white,
@@ -220,15 +226,15 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
   }
 
   Widget _buildScanningSliver() {
-    return const SliverFillRemaining(
+    return SliverFillRemaining(
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: Default_Theme.accentColor2),
-            SizedBox(height: 20),
-            Text('Scanning device for audio files...',
-                style: TextStyle(
+            const CircularProgressIndicator(color: Default_Theme.accentColor2),
+            const SizedBox(height: 20),
+            Text(AppLocalizations.of(context)!.localMusicScanning,
+                style: const TextStyle(
                     color: Default_Theme.primaryColor2,
                     fontSize: 15,
                     fontWeight: FontWeight.w500)),
@@ -242,7 +248,8 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
     return SliverFillRemaining(
       child: Center(
         child: SignBoardWidget(
-            message: 'Scan failed: ${state.message}',
+            message: AppLocalizations.of(context)!
+                .localMusicScanFailed(state.message),
             icon: Icons.error_outline),
       ),
     );
@@ -269,17 +276,16 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
           child: Row(
             children: [
               Text(
-                '${displayedTracks.length} track${displayedTracks.length == 1 ? '' : 's'}',
+                '${AppLocalizations.of(context)!.localMusicTrackCount(displayedTracks.length)}',
                 style: TextStyle(
                     color: Default_Theme.primaryColor2.withValues(alpha: 0.6),
-                    fontSize: 13,
-                    fontFamily: 'ReThink-Sans'),
+                    fontSize: 13),
               ),
               const Spacer(),
               if (displayedTracks.isNotEmpty) ...[
                 _ActionChipButton(
                   icon: MingCute.shuffle_line,
-                  label: 'Shuffle',
+                  label: AppLocalizations.of(context)!.localMusicShuffle,
                   onTap: () => context
                       .read<BloomeePlayerCubit>()
                       .bloomeePlayer
@@ -292,7 +298,7 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                 const SizedBox(width: 8),
                 _ActionChipButton(
                   icon: MingCute.play_fill,
-                  label: 'Play All',
+                  label: AppLocalizations.of(context)!.localMusicPlayAll,
                   onTap: () => context
                       .read<BloomeePlayerCubit>()
                       .bloomeePlayer
@@ -315,8 +321,9 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SignBoardWidget(
-                    message: 'No local music found',
+                SignBoardWidget(
+                    message:
+                        AppLocalizations.of(context)!.localMusicNoMusicFound,
                     icon: MingCute.music_2_line),
                 const SizedBox(height: 24),
                 if (!LocalMusicService.isMobile)
@@ -326,7 +333,8 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                       onPressed: () =>
                           context.read<LocalMusicCubit>().addFolderViaPicker(),
                       icon: const Icon(MingCute.new_folder_line, size: 20),
-                      label: const Text('Add Music Folder'),
+                      label: Text(
+                          AppLocalizations.of(context)!.localMusicAddFolder),
                       style: FilledButton.styleFrom(
                         backgroundColor: Default_Theme.accentColor2,
                         foregroundColor: Colors.white,
@@ -338,7 +346,7 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                 OutlinedButton.icon(
                   onPressed: () => context.read<LocalMusicCubit>().scan(),
                   icon: const Icon(MingCute.refresh_2_line, size: 20),
-                  label: const Text('Scan Now'),
+                  label: Text(AppLocalizations.of(context)!.localMusicScanNow),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Default_Theme.primaryColor1,
                     side: BorderSide(
@@ -355,10 +363,11 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
       );
     } else if (displayedTracks.isEmpty) {
       widgets.add(
-        const SliverFillRemaining(
+        SliverFillRemaining(
           child: Center(
             child: SignBoardWidget(
-                message: 'No tracks found matching your search.',
+                message:
+                    AppLocalizations.of(context)!.localMusicNoSearchResults,
                 icon: MingCute.search_2_line),
           ),
         ),
@@ -404,9 +413,9 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Music Folders',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.localMusicFolders,
+              style: const TextStyle(
                 color: Default_Theme.primaryColor1,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -473,7 +482,8 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                         ),
                         const SizedBox(width: 8),
                         IconButton(
-                          tooltip: 'Remove folder',
+                          tooltip: AppLocalizations.of(context)!
+                              .localMusicRemoveFolder,
                           onPressed: () => context
                               .read<LocalMusicCubit>()
                               .removeFolder(folder),
@@ -518,7 +528,7 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                 autofocus: true,
                 cursorColor: Default_Theme.primaryColor1,
                 decoration: InputDecoration(
-                  hintText: 'Search local music...',
+                  hintText: AppLocalizations.of(context)!.localMusicSearchHint,
                   border: InputBorder.none,
                   hintStyle: TextStyle(
                       color:
@@ -530,7 +540,7 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
             : Row(
                 key: const ValueKey('title'),
                 children: [
-                  Text('Local',
+                  Text(AppLocalizations.of(context)!.localMusicTitle,
                       style: Default_Theme.primaryTextStyle.merge(
                           const TextStyle(
                               fontSize: 34,
@@ -543,21 +553,23 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
       actions: [
         if (!_isSearch && state is LocalMusicLoaded)
           IconButton(
-            tooltip: 'Rescan Device',
+            tooltip: AppLocalizations.of(context)!.localMusicRescanDevice,
             icon: const Icon(MingCute.refresh_2_line,
                 color: Default_Theme.primaryColor1),
             onPressed: () => context.read<LocalMusicCubit>().scan(),
           ),
         if (!_isSearch && !LocalMusicService.isMobile)
           IconButton(
-            tooltip: 'Add Folder',
+            tooltip: AppLocalizations.of(context)!.localMusicAddFolder,
             icon: const Icon(MingCute.new_folder_line,
                 color: Default_Theme.primaryColor1),
             onPressed: () =>
                 context.read<LocalMusicCubit>().addFolderViaPicker(),
           ),
         IconButton(
-          tooltip: _isSearch ? 'Close search' : 'Search',
+          tooltip: _isSearch
+              ? AppLocalizations.of(context)!.localMusicCloseSearch
+              : AppLocalizations.of(context)!.localMusicOpenSearch,
           icon: Icon(_isSearch ? Icons.close : MingCute.search_2_line,
               color: Default_Theme.primaryColor1),
           onPressed: _toggleSearch,
@@ -595,8 +607,7 @@ class _ActionChipButton extends StatelessWidget {
                   style: const TextStyle(
                       color: Default_Theme.accentColor2,
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'ReThink-Sans')),
+                      fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -628,41 +639,26 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Default_Theme.themeColor,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-            color: Default_Theme.primaryColor2.withValues(alpha: 0.1)),
-      ),
-      title: const Text('Delete Track',
-          style: TextStyle(
-              color: Default_Theme.primaryColor1,
-              fontSize: 20,
-              fontWeight: FontWeight.bold)),
-      content: Column(
+    return BloomeeDialogSurface(
+      title: AppLocalizations.of(context)!.dialogDeleteTrack,
+      subtitle: AppLocalizations.of(context)!
+          .dialogDeleteTrackMessage(widget.trackTitle),
+      icon: Icons.delete_outline_rounded,
+      body: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Are you sure you want to delete "${widget.trackTitle}" from your device? This action cannot be undone.',
-            style: TextStyle(
-                color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
-                fontSize: 15,
-                height: 1.4),
-          ),
           if (widget.linkedPlaylists.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
             Text(
-              'This track will also be removed from the following playlists:',
+              AppLocalizations.of(context)!.dialogDeleteTrackLinkedPlaylists,
               style: TextStyle(
-                color: Default_Theme.primaryColor2.withValues(alpha: 0.9),
+                color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -705,7 +701,7 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
                   .toList(),
             ),
           ],
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Row(
             children: [
               SizedBox(
@@ -725,7 +721,7 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
               const SizedBox(width: 12),
               GestureDetector(
                 onTap: () => setState(() => _dontAskAgain = !_dontAskAgain),
-                child: Text("Don't ask me again",
+                child: Text(AppLocalizations.of(context)!.dialogDontAskAgain,
                     style: TextStyle(
                         color:
                             Default_Theme.primaryColor2.withValues(alpha: 0.8),
@@ -733,24 +729,45 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  foregroundColor:
+                      Default_Theme.primaryColor2.withValues(alpha: 0.72),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                child: Text(AppLocalizations.of(context)!.buttonCancel),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(
+                    context, _DeleteResult(neverAskAgain: _dontAskAgain)),
+                style: TextButton.styleFrom(
+                  backgroundColor:
+                      const Color(0xFFFF4D6A).withValues(alpha: 0.14),
+                  foregroundColor: const Color(0xFFFF4D6A),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+                child: Text(AppLocalizations.of(context)!.buttonDelete),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel',
-              style: TextStyle(
-                  color: Default_Theme.primaryColor2.withValues(alpha: 0.8))),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(
-              context, _DeleteResult(neverAskAgain: _dontAskAgain)),
-          style: FilledButton.styleFrom(
-              backgroundColor: Colors.redAccent.shade200,
-              foregroundColor: Colors.white),
-          child: const Text('Delete'),
-        ),
-      ],
     );
   }
 }

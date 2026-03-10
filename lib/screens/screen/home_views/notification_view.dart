@@ -3,6 +3,7 @@ import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 import 'notification_views/notification_tile.dart';
@@ -12,6 +13,7 @@ class NotificationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return PopScope(
       onPopInvoked: (didPop) {
         if (didPop) {
@@ -33,7 +35,7 @@ class NotificationView extends StatelessWidget {
             ),
           ],
           title: Text(
-            'Notifications',
+            l10n.notificationsTitle,
             style: const TextStyle(
                     color: Default_Theme.primaryColor1,
                     fontSize: 20,
@@ -44,9 +46,9 @@ class NotificationView extends StatelessWidget {
         body: BlocBuilder<NotificationCubit, NotificationState>(
           builder: (context, state) {
             if (state is NotificationInitial || state.notifications.isEmpty) {
-              return const Center(
+              return Center(
                 child: SignBoardWidget(
-                    message: "No Notifications yet!",
+                    message: l10n.notificationsEmpty,
                     icon: MingCute.notification_off_line),
               );
             }

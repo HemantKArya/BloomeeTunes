@@ -23,6 +23,7 @@ import 'package:Bloomee/screens/screen/home_views/notification_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_view.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'chart/carousal_widget.dart';
@@ -217,7 +218,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                             showMoreBottomSheet(context, e),
                                       );
                                     }).toList(),
-                                    category: "Recently",
+                                    category: AppLocalizations.of(context)!
+                                        .exploreRecently,
                                     columnSize: 3,
                                   ),
                                 );
@@ -259,7 +261,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                               showMoreBottomSheet(context, e),
                                         );
                                       }).toList(),
-                                      category: "Last.Fm Picks",
+                                      category: AppLocalizations.of(context)!
+                                          .exploreLastFmPicks,
                                       columnSize: 3,
                                     ),
                                   );
@@ -445,7 +448,7 @@ class CustomDiscoverBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "Discover",
+            AppLocalizations.of(context)!.exploreDiscover,
             style: Default_Theme.primaryTextStyle.merge(
               const TextStyle(
                 fontSize: 34,

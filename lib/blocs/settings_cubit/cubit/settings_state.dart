@@ -17,6 +17,7 @@ class SettingsState extends Equatable {
   final bool autoSaveLyrics;
   final bool autoPlay;
   final bool autoResolveUnavailableTracks;
+  final String languageCode;
   final String countryCode;
   final Map chartMap;
   final int crossfadeDuration; // seconds, 0 = disabled
@@ -37,6 +38,7 @@ class SettingsState extends Equatable {
     required this.autoBackup,
     required this.historyClearTime,
     required this.autoGetCountry,
+    required this.languageCode,
     required this.countryCode,
     required this.autoSaveLyrics,
     required this.lFMPicks,
@@ -64,6 +66,7 @@ class SettingsState extends Equatable {
     bool? autoBackup,
     String? historyClearTime,
     bool? autoGetCountry,
+    String? languageCode,
     String? countryCode,
     bool? lFMPicks,
     bool? lastFMScrobble,
@@ -90,6 +93,7 @@ class SettingsState extends Equatable {
       autoBackup: autoBackup ?? this.autoBackup,
       historyClearTime: historyClearTime ?? this.historyClearTime,
       autoGetCountry: autoGetCountry ?? this.autoGetCountry,
+      languageCode: languageCode ?? this.languageCode,
       countryCode: countryCode ?? this.countryCode,
       lFMPicks: lFMPicks ?? this.lFMPicks,
       lastFMScrobble: lastFMScrobble ?? this.lastFMScrobble,
@@ -124,6 +128,7 @@ class SettingsState extends Equatable {
         autoBackup,
         historyClearTime,
         autoGetCountry,
+        languageCode,
         countryCode,
         chartMap,
         lFMPicks,
@@ -154,6 +159,7 @@ class SettingsInitial extends SettingsState {
           autoBackup: true,
           historyClearTime: "30",
           autoGetCountry: true,
+          languageCode: '',
           countryCode: "IN",
           chartMap: {},
           lFMPicks: false,

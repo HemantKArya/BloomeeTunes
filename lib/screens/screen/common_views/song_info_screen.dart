@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:ui';
 
+import 'package:Bloomee/core/constants/route_paths.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/models/exported.dart';
@@ -8,6 +10,7 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -140,7 +143,7 @@ class SongInfoScreen extends StatelessWidget {
             const SizedBox(height: 32),
             _buildSongTitles(isCentered: true),
             const SizedBox(height: 24),
-            _buildDetailsContent(isMobileView: true),
+            _buildDetailsContent(context, isMobileView: true),
             const SizedBox(height: 100), // Bottom padding
           ],
         ),
@@ -176,7 +179,7 @@ class SongInfoScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   _buildSongTitles(isCentered: false),
                   const SizedBox(height: 32),
-                  _buildDetailsContent(isMobileView: false),
+                  _buildDetailsContent(context, isMobileView: false),
                   const SizedBox(height: 80), // Bottom padding
                 ],
               ),
@@ -266,44 +269,32 @@ class SongInfoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailsContent({required bool isMobileView}) {
+  Widget _buildDetailsContent(BuildContext context,
+      {required bool isMobileView}) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment:
           isMobileView ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
-        // Quick Info Pills
-        Wrap(
-          alignment: isMobileView ? WrapAlignment.center : WrapAlignment.start,
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            _InfoPill(
-              icon: MingCute.time_fill,
-              label: _formatDuration(song.durationMs),
-            ),
-            _InfoPill(
-              icon: _getSourceIcon(),
-              label: _getSourceName(),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 40),
-
-        // Details Section
-        const _SectionHeader(title: "Song Details"),
+        // Song Details Section
+        _SectionHeader(title: l10n.songInfoSectionDetails),
         const SizedBox(height: 16),
         _GlassCard(
           children: [
             _DetailRow(
               icon: MingCute.music_2_fill,
-              label: "Title",
+              label: l10n.songInfoLabelTitle,
               value: song.title,
+              onSearchTap: () => context.pushNamed(
+                RoutePaths.searchScreen,
+                queryParameters: {'query': song.title},
+              ),
+              searchTooltip: l10n.songInfoSearchTitle,
             ),
             const _DetailDivider(),
             _DetailRow(
               icon: MingCute.microphone_fill,
-              label: "Artist",
+              label: l10n.songInfoLabelArtist,
               value: song.artists.map((a) => a.name).join(', '),
               valueWidget: ArtistListLinks(
                 artists: song.artists,
@@ -318,12 +309,22 @@ class SongInfoScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              onSearchTap: song.artists.isNotEmpty
+                  ? () => context.pushNamed(
+                        RoutePaths.searchScreen,
+                        queryParameters: {
+                          'query': song.artists.first.name,
+                        },
+                      )
+                  : null,
+              searchTooltip:
+                  song.artists.isNotEmpty ? l10n.songInfoSearchArtist : null,
             ),
             if (song.album?.title != null) ...[
               const _DetailDivider(),
               _DetailRow(
                 icon: MingCute.album_fill,
-                label: "Album",
+                label: l10n.songInfoLabelAlbum,
                 value: song.album!.title,
                 valueWidget: AlbumLinkText(
                   album: song.album!,
@@ -338,22 +339,47 @@ class SongInfoScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                onSearchTap: () => context.pushNamed(
+                  RoutePaths.searchScreen,
+                  queryParameters: {'query': song.album!.title},
+                ),
+                searchTooltip: l10n.songInfoSearchAlbum,
               ),
-            ]
+            ],
+            const _DetailDivider(),
+            _DetailRow(
+              icon: MingCute.time_fill,
+              label: l10n.songInfoLabelDuration,
+              value: _formatDuration(song.durationMs),
+            ),
+            const _DetailDivider(),
+            _DetailRow(
+              icon: _getSourceIcon(),
+              label: l10n.songInfoLabelSource,
+              value: _getSourceName(),
+            ),
           ],
         ),
 
         const SizedBox(height: 28),
 
         // Technical Info Section
-        const _SectionHeader(title: "Technical Info"),
+        _SectionHeader(title: l10n.songInfoSectionTechnical),
         const SizedBox(height: 16),
         _GlassCard(
           children: [
             _DetailRow(
               icon: MingCute.IDcard_fill,
-              label: "Media ID",
+              label: l10n.songInfoLabelMediaId,
               value: song.id,
+              isMonospace: true,
+              maxLines: 1,
+            ),
+            const _DetailDivider(),
+            _DetailRow(
+              icon: MingCute.plugin_2_fill,
+              label: l10n.songInfoLabelPluginId,
+              value: _getSourceName(),
               isMonospace: true,
               maxLines: 1,
             ),
@@ -363,17 +389,17 @@ class SongInfoScreen extends StatelessWidget {
         const SizedBox(height: 28),
 
         // Actions Section
-        const _SectionHeader(title: "Actions"),
+        _SectionHeader(title: l10n.songInfoSectionActions),
         const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: _ActionButton(
                 icon: MingCute.copy_2_fill,
-                label: "Copy ID",
+                label: l10n.songInfoCopyId,
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: song.id));
-                  SnackbarService.showMessage("Media ID copied");
+                  SnackbarService.showMessage(l10n.songInfoIdCopied);
                 },
               ),
             ),
@@ -381,14 +407,14 @@ class SongInfoScreen extends StatelessWidget {
             Expanded(
               child: _ActionButton(
                 icon: MingCute.link_3_fill,
-                label: "Copy Link",
+                label: l10n.songInfoCopyLink,
                 onTap: () {
                   final url = song.url;
                   if (url != null && url.isNotEmpty) {
                     Clipboard.setData(ClipboardData(text: url));
-                    SnackbarService.showMessage("Link copied");
+                    SnackbarService.showMessage(l10n.songInfoLinkCopied);
                   } else {
-                    SnackbarService.showMessage("No link available");
+                    SnackbarService.showMessage(l10n.songInfoNoLink);
                   }
                 },
               ),
@@ -398,11 +424,10 @@ class SongInfoScreen extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Open in Source Button
-        if (song.url != null)
+        if (song.url != null && song.url!.isNotEmpty)
           _ActionButton(
             icon: MingCute.external_link_fill,
-            label: "Open in browser",
+            label: l10n.songInfoOpenBrowser,
             isWide: true,
             isPrimary: true,
             onTap: () async {
@@ -412,7 +437,7 @@ class SongInfoScreen extends StatelessWidget {
                   await launchUrl(Uri.parse(url),
                       mode: LaunchMode.externalApplication);
                 } catch (e) {
-                  SnackbarService.showMessage("Could not open link");
+                  SnackbarService.showMessage(l10n.songInfoOpenFailed);
                 }
               }
             },
@@ -442,50 +467,6 @@ class _SectionHeader extends StatelessWidget {
             fontSize: 12,
             letterSpacing: 1.5,
             fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoPill extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _InfoPill({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(30),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: Default_Theme.accentColor2.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(
-              color: Default_Theme.accentColor2.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: Default_Theme.accentColor2),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: Default_Theme.secondoryTextStyleMedium.merge(
-                  const TextStyle(
-                    color: Default_Theme.primaryColor2,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -542,6 +523,8 @@ class _DetailRow extends StatelessWidget {
   final Widget? valueWidget;
   final bool isMonospace;
   final int maxLines;
+  final VoidCallback? onSearchTap;
+  final String? searchTooltip;
 
   const _DetailRow({
     required this.icon,
@@ -550,6 +533,8 @@ class _DetailRow extends StatelessWidget {
     this.valueWidget,
     this.isMonospace = false,
     this.maxLines = 2,
+    this.onSearchTap,
+    this.searchTooltip,
   });
 
   @override
@@ -609,6 +594,22 @@ class _DetailRow extends StatelessWidget {
               ],
             ),
           ),
+          if (onSearchTap != null)
+            Tooltip(
+              message: searchTooltip ?? '',
+              child: InkWell(
+                onTap: onSearchTap,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(
+                    MingCute.search_2_line,
+                    size: 16,
+                    color: Default_Theme.accentColor2.withValues(alpha: 0.4),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

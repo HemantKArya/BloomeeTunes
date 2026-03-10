@@ -254,7 +254,6 @@ class PltOptBtn extends StatelessWidget {
                 title,
                 style: const TextStyle(
                     color: Default_Theme.primaryColor1,
-                    fontFamily: "Unageo",
                     fontSize: 17,
                     fontWeight: FontWeight.w400),
               ),

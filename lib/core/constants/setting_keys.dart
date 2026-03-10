@@ -48,6 +48,7 @@ class SettingKeys {
   static const String recentlyPlayedPlaylist = "recently_played";
 
   // ── Location / charts ───────────────────────────────────────────────────────
+  static const String languageCode = "languageCode";
   static const String autoGetCountry = "autoGetCountry";
   static const String countryCode = "countryCode";
   static const String chartShowMap = "chartShowMap";

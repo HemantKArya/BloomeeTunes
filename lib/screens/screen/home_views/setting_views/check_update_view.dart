@@ -2,6 +2,7 @@ import 'package:Bloomee/services/bloomee_updater_tools.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/url_launcher.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class CheckUpdateView extends StatelessWidget {
@@ -9,11 +10,12 @@ class CheckUpdateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          'Check for Updates',
+          l10n.updateCheckTitle,
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 20,
@@ -32,7 +34,7 @@ class CheckUpdateView extends StatelessWidget {
                   children: [
                     const Spacer(),
                     Text(
-                      'Bloomee🌸 is up-to-date!!!',
+                      l10n.updateUpToDate,
                       style: const TextStyle(
                               color: Default_Theme.accentColor2, fontSize: 20)
                           .merge(Default_Theme.secondoryTextStyleMedium),
@@ -57,7 +59,7 @@ class CheckUpdateView extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.only(left: 5),
                                 child: Text(
-                                  "View Latest Pre-Release",
+                                  l10n.updateViewPreRelease,
                                   style: const TextStyle(fontSize: 17).merge(
                                       Default_Theme.secondoryTextStyleMedium),
                                 ),
@@ -71,7 +73,9 @@ class CheckUpdateView extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 20),
                       child: Text(
-                        'Current Version: ${snapshot.data?["currVer"]} + ${snapshot.data?["currBuild"]}',
+                        l10n.updateCurrentVersion(
+                            snapshot.data?["currVer"] ?? '',
+                            snapshot.data?["currBuild"] ?? ''),
                         style: TextStyle(
                                 color: Default_Theme.primaryColor2
                                     .withValues(alpha: 0.5),
@@ -87,7 +91,7 @@ class CheckUpdateView extends StatelessWidget {
                   children: [
                     const Spacer(),
                     Text(
-                      'New Version of Bloomee🌸 is now available!!',
+                      l10n.updateNewVersionAvailable,
                       style: const TextStyle(
                               color: Default_Theme.accentColor2, fontSize: 20)
                           .merge(Default_Theme.tertiaryTextStyle),
@@ -96,7 +100,8 @@ class CheckUpdateView extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        'Version: ${snapshot.data?["newVer"]}+ ${snapshot.data?["newBuild"]}',
+                        l10n.updateVersion(snapshot.data?["newVer"] ?? '',
+                            snapshot.data?["newBuild"] ?? ''),
                         style: TextStyle(
                                 color: Default_Theme.primaryColor1
                                     .withValues(alpha: 0.8),
@@ -120,7 +125,7 @@ class CheckUpdateView extends StatelessWidget {
                               const Icon(Icons.open_in_browser_rounded,
                                   size: 25),
                               Text(
-                                "Download Now",
+                                l10n.updateDownloadNow,
                                 style: const TextStyle(fontSize: 17).merge(
                                     Default_Theme.secondoryTextStyleMedium),
                               ),
@@ -133,7 +138,9 @@ class CheckUpdateView extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 20),
                       child: Text(
-                        'Current Version: ${snapshot.data?["currVer"]} + ${snapshot.data?["currBuild"]}',
+                        l10n.updateCurrentVersion(
+                            snapshot.data?["currVer"] ?? '',
+                            snapshot.data?["currBuild"] ?? ''),
                         style: TextStyle(
                                 color: Default_Theme.primaryColor2
                                     .withValues(alpha: 0.5),
@@ -161,8 +168,7 @@ class CheckUpdateView extends StatelessWidget {
                     builder: (context, constraints) {
                       return SizedBox(
                         width: constraints.maxWidth * 0.6,
-                        child: Text(
-                            'Checking if newer version are availible or not!',
+                        child: Text(l10n.updateChecking,
                             style: const TextStyle(
                                     color: Default_Theme.accentColor2,
                                     fontSize: 20)

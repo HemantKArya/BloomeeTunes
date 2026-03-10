@@ -7,6 +7,7 @@ import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_bloc.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_event.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_state.dart';
@@ -197,13 +198,12 @@ class _ChartScreenBodyState extends State<_ChartScreenBody> {
     if (token == null) {
       return;
     }
-
+    final l10n = AppLocalizations.of(context)!;
     final track = await _resolveChartItem(
       context,
       chartItem,
-      noResolverMessage:
-          'No content resolver loaded. Install a plugin to play.',
-      failureMessage: 'Could not resolve. Searching instead...',
+      noResolverMessage: l10n.chartNoResolver,
+      failureMessage: l10n.chartResolveFailed,
       fallbackOnNoResolver: true,
     );
     if (track == null || !context.mounted) {
@@ -226,12 +226,12 @@ class _ChartScreenBodyState extends State<_ChartScreenBody> {
     if (token == null) {
       return;
     }
-
+    final l10n = AppLocalizations.of(context)!;
     final track = await _resolveChartItem(
       context,
       chartItem,
-      noResolverMessage: 'No content resolver loaded.',
-      failureMessage: 'Could not find a match. Try searching manually.',
+      noResolverMessage: l10n.chartNoResolverAdd,
+      failureMessage: l10n.chartNoMatch,
     );
     if (track == null || !context.mounted) {
       _resetResolveAction(actionKey, token);
@@ -355,16 +355,17 @@ class _ChartScreenBodyState extends State<_ChartScreenBody> {
           if (state.chartDetailStatus == ChartStatus.error) {
             return Center(
               child: SignBoardWidget(
-                message: state.error ?? 'Failed to load chart',
+                message: state.error ??
+                    AppLocalizations.of(context)!.chartLoadFailed,
                 icon: MingCute.warning_line,
               ),
             );
           }
 
           if (state.chartItems.isEmpty) {
-            return const Center(
+            return Center(
               child: SignBoardWidget(
-                message: 'No items in this chart',
+                message: AppLocalizations.of(context)!.chartNoItems,
                 icon: MingCute.playlist_line,
               ),
             );
@@ -521,8 +522,8 @@ class _EditorialHeroMasthead extends StatelessWidget {
                 isMobile ? 28.0 : 44.0,
               ),
               child: isMobile
-                  ? _buildMobileLayout(title, subtitle, imgUrl)
-                  : _buildDesktopLayout(title, subtitle, imgUrl),
+                  ? _buildMobileLayout(context, title, subtitle, imgUrl)
+                  : _buildDesktopLayout(context, title, subtitle, imgUrl),
             ),
           ],
         ),
@@ -530,7 +531,8 @@ class _EditorialHeroMasthead extends StatelessWidget {
     });
   }
 
-  Widget _buildDesktopLayout(String title, String subtitle, String imgUrl) {
+  Widget _buildDesktopLayout(
+      BuildContext context, String title, String subtitle, String imgUrl) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -541,7 +543,7 @@ class _EditorialHeroMasthead extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              _buildRankLabel(),
+              _buildRankLabel(context),
               const SizedBox(height: 12),
               _buildTitle(title, 48),
               if (subtitle.isNotEmpty) ...[
@@ -549,9 +551,9 @@ class _EditorialHeroMasthead extends StatelessWidget {
                 _buildSubtitle(subtitle, 20),
               ],
               const SizedBox(height: 20),
-              _buildStatRow(topItem),
+              _buildStatRow(context, topItem),
               const SizedBox(height: 20),
-              _buildActions(),
+              _buildActions(context),
             ],
           ),
         ),
@@ -559,14 +561,15 @@ class _EditorialHeroMasthead extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileLayout(String title, String subtitle, String imgUrl) {
+  Widget _buildMobileLayout(
+      BuildContext context, String title, String subtitle, String imgUrl) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 8),
         Center(child: _buildArtwork(imgUrl, imgUrl, 220)),
         const SizedBox(height: 24),
-        _buildRankLabel(),
+        _buildRankLabel(context),
         const SizedBox(height: 10),
         _buildTitle(title, 32),
         if (subtitle.isNotEmpty) ...[
@@ -574,14 +577,14 @@ class _EditorialHeroMasthead extends StatelessWidget {
           _buildSubtitle(subtitle, 16),
         ],
         const SizedBox(height: 18),
-        _buildStatRow(topItem),
+        _buildStatRow(context, topItem),
         const SizedBox(height: 18),
-        _buildActions(),
+        _buildActions(context),
       ],
     );
   }
 
-  Widget _buildRankLabel() {
+  Widget _buildRankLabel(BuildContext context) {
     return Text(
       '#1 ON CHART',
       style: Default_Theme.secondoryTextStyleMedium.merge(
@@ -595,7 +598,8 @@ class _EditorialHeroMasthead extends StatelessWidget {
     );
   }
 
-  Widget _buildActions() {
+  Widget _buildActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -604,6 +608,7 @@ class _EditorialHeroMasthead extends StatelessWidget {
               ? null
               : onPlayTap,
           status: playStatus,
+          idleLabel: l10n.chartPlay,
         ),
         const SizedBox(width: 12),
         _HeroIconButton(
@@ -611,7 +616,7 @@ class _EditorialHeroMasthead extends StatelessWidget {
               addStatus == ChartResolveActionStatus.resolving ? null : onAddTap,
           status: addStatus,
           icon: MingCute.add_line,
-          tooltip: 'Add to Playlist',
+          tooltip: l10n.chartAddToPlaylist,
         ),
       ],
     );
@@ -677,16 +682,17 @@ class _EditorialHeroMasthead extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(ChartItem item) {
+  Widget _buildStatRow(BuildContext context, ChartItem item) {
+    final l10n = AppLocalizations.of(context)!;
     final stats = <Widget>[];
     if (item.peakRank != null) {
-      stats.add(_statChip('Peak', '#${item.peakRank}'));
+      stats.add(_statChip(l10n.chartStatPeak, '#${item.peakRank}'));
     }
     if (item.weeksOnChart != null) {
-      stats.add(_statChip('Weeks', '${item.weeksOnChart}'));
+      stats.add(_statChip(l10n.chartStatWeeks, '${item.weeksOnChart}'));
     }
     if (item.change != null) {
-      stats.add(_statChip('Change', '${item.change}'));
+      stats.add(_statChip(l10n.chartStatChange, '${item.change}'));
     }
     if (stats.isEmpty) return const SizedBox.shrink();
     return Wrap(spacing: 8, runSpacing: 8, children: stats);
@@ -805,9 +811,12 @@ class _HeroPlayButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final ChartResolveActionStatus status;
 
+  final String idleLabel;
+
   const _HeroPlayButton({
     required this.onPressed,
     required this.status,
+    required this.idleLabel,
   });
 
   @override
@@ -842,7 +851,7 @@ class _HeroPlayButton extends StatelessWidget {
               key: ValueKey(status),
               status: status,
               icon: MingCute.play_fill,
-              idleLabel: 'Play',
+              idleLabel: idleLabel,
             ),
           ),
         ),
@@ -878,7 +887,7 @@ class _HeroActionContent extends StatelessWidget {
             color: Default_Theme.accentColor2,
           ),
         );
-        label = 'Resolving';
+        label = AppLocalizations.of(context)!.chartResolving;
         break;
       case ChartResolveActionStatus.success:
         leading = const Icon(
@@ -886,7 +895,7 @@ class _HeroActionContent extends StatelessWidget {
           size: 18,
           color: Default_Theme.accentColor2,
         );
-        label = 'Ready';
+        label = AppLocalizations.of(context)!.chartReady;
         break;
       case ChartResolveActionStatus.idle:
         leading = Icon(icon, size: 18, color: Default_Theme.accentColor2);

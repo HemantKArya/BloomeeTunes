@@ -1,4 +1,4 @@
-﻿import 'dart:developer';
+import 'dart:developer';
 
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
@@ -9,6 +9,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class LastDotFM extends StatefulWidget {
@@ -63,6 +64,7 @@ class _LastDotFMState extends State<LastDotFM> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -84,7 +86,7 @@ class _LastDotFMState extends State<LastDotFM> {
           ),
         ),
         title: Text(
-          'Last.FM',
+          l10n.lastfmTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 22,
@@ -100,19 +102,18 @@ class _LastDotFMState extends State<LastDotFM> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             children: [
               // Scrobbling
-              const SettingSectionHeader(label: 'Scrobbling'),
+              SettingSectionHeader(label: l10n.settingsScrobbling),
               SettingCard(
                 children: [
                   SettingToggleTile(
                     icon: FontAwesome.lastfm_brand,
-                    title: 'Scrobble Tracks',
-                    subtitle: 'Send played tracks to your Last.FM profile.',
+                    title: l10n.lastfmScrobbleTracks,
+                    subtitle: l10n.lastfmScrobbleTracksSubtitle,
                     value: settingsState.lastFMScrobble,
                     onChanged: (value) {
                       context.read<SettingsCubit>().setLastFMScrobble(value);
                       if (value && LastFmAPI.initialized == false) {
-                        SnackbarService.showMessage(
-                            "First Authenticate Last.FM API.");
+                        SnackbarService.showMessage(l10n.lastfmAuthFirst);
                         Future.delayed(const Duration(milliseconds: 500), () {
                           context
                               .read<SettingsCubit>()
@@ -127,7 +128,7 @@ class _LastDotFMState extends State<LastDotFM> {
               const SizedBox(height: 28),
 
               // Authentication
-              const SettingSectionHeader(label: 'Authentication'),
+              SettingSectionHeader(label: l10n.settingsAuthentication),
               BlocBuilder<LastdotfmCubit, LastdotfmState>(
                 builder: (context, lfmState) {
                   return SettingCard(
@@ -151,10 +152,10 @@ class _LastDotFMState extends State<LastDotFM> {
                             Expanded(
                               child: Text(
                                 lfmState is LastdotfmIntialized
-                                    ? 'Authenticated as ${lfmState.username}'
+                                    ? '${l10n.lastfmAuthenticatedAs}${lfmState.username}'
                                     : lfmState is LastdotfmFailed
-                                        ? 'Authentication failed: ${lfmState.message}'
-                                        : 'Not authenticated',
+                                        ? '${l10n.lastfmAuthFailed} ${lfmState.message}'
+                                        : l10n.lastfmNotAuthenticated,
                                 style: TextStyle(
                                   color: lfmState is LastdotfmIntialized
                                       ? Default_Theme.successColor
@@ -172,18 +173,15 @@ class _LastDotFMState extends State<LastDotFM> {
                       ),
                       const SettingDivider(),
                       // How-to instructions
-                      const SettingInfoText(
-                        text:
-                            'Steps to authenticate:\n1. Create / open a Last.FM account at last.fm\n2. Generate an API Key at last.fm/api/account/create\n3. Enter your API Key & Secret below\n4. Tap "Start Auth" and approve in the browser\n5. Tap "Get & Save Session Key" to finish',
-                      ),
+                      SettingInfoText(text: l10n.lastfmSteps),
                       const SettingDivider(),
                       SettingTextFieldTile(
-                        label: 'API Key',
+                        label: l10n.lastfmApiKey,
                         controller: apiKeyController,
                       ),
                       const SettingDivider(),
                       SettingTextFieldTile(
-                        label: 'API Secret',
+                        label: l10n.lastfmApiSecret,
                         controller: apiSecretController,
                         keyboardType: TextInputType.visiblePassword,
                       ),
@@ -195,7 +193,7 @@ class _LastDotFMState extends State<LastDotFM> {
                           runSpacing: 10,
                           children: [
                             _AuthButton(
-                              label: '1. Start Auth',
+                              label: l10n.lastfmStartAuth,
                               enabled: lfmState is! LastdotfmIntialized &&
                                   !authBtnClicked,
                               onPressed: () async {
@@ -209,7 +207,7 @@ class _LastDotFMState extends State<LastDotFM> {
                               },
                             ),
                             _AuthButton(
-                              label: '2. Get & Save Session Key',
+                              label: l10n.lastfmGetSession,
                               enabled: lfmState is! LastdotfmIntialized &&
                                   getBtnVisible,
                               onPressed: () {
@@ -223,13 +221,13 @@ class _LastDotFMState extends State<LastDotFM> {
                                       );
                                 } else {
                                   SnackbarService.showMessage(
-                                      "Start Auth first, then approve in browser.");
+                                      l10n.lastfmStartAuthFirst);
                                 }
                               },
                             ),
                             if (lfmState is LastdotfmIntialized)
                               _AuthButton(
-                                label: 'Remove Keys',
+                                label: l10n.lastfmRemoveKeys,
                                 enabled: true,
                                 destructive: true,
                                 onPressed: () {
@@ -256,7 +254,7 @@ class _LastDotFMState extends State<LastDotFM> {
   }
 }
 
-// ─── Auth Button ─────────────────────────────────────────────────────────────
+// --- Auth Button -------------------------------------------------------------
 
 class _AuthButton extends StatelessWidget {
   final String label;

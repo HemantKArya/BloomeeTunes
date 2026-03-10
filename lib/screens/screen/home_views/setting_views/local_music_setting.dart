@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:Bloomee/blocs/local_music/cubit/local_music_cubit.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
@@ -83,8 +84,8 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
     if (mounted) setState(() => _folders = folders);
   }
 
-  String _formatLastScan(String iso) {
-    if (iso.isEmpty) return 'Never';
+  String _formatLastScan(String iso, String neverLabel) {
+    if (iso.isEmpty) return neverLabel;
     try {
       final dt = DateTime.parse(iso).toLocal();
       return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
@@ -96,6 +97,7 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -117,7 +119,7 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
           ),
         ),
         title: Text(
-          'Local Tracks',
+          l10n.localSettingTitle,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 22,
@@ -130,14 +132,13 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
-          const SettingSectionHeader(label: 'Scanning'),
+          SettingSectionHeader(label: l10n.settingsScanning),
           SettingCard(
             children: [
               SettingToggleTile(
                 icon: MingCute.refresh_2_line,
-                title: 'Auto Scan on Startup',
-                subtitle:
-                    'Automatically scan for new local tracks when the app starts.',
+                title: l10n.localSettingAutoScan,
+                subtitle: l10n.localSettingAutoScanSubtitle,
                 value: _autoScan,
                 onChanged: (v) async {
                   setState(() => _autoScan = v);
@@ -148,8 +149,9 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
               const SettingDivider(),
               SettingNavTile(
                 icon: MingCute.time_line,
-                title: 'Last Scan',
-                subtitle: _formatLastScan(_lastScan),
+                title: l10n.localSettingLastScan,
+                subtitle:
+                    _formatLastScan(_lastScan, l10n.localSettingNeverScanned),
                 onTap: () {},
               ),
               const SettingDivider(),
@@ -178,9 +180,9 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Scan Now',
-                                style: TextStyle(
+                              Text(
+                                l10n.localMusicScanNow,
+                                style: const TextStyle(
                                   color: Default_Theme.primaryColor2,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -190,8 +192,8 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
                               const SizedBox(height: 4),
                               Text(
                                 _scanning
-                                    ? 'Scanning in progress…'
-                                    : 'Manually trigger a full library scan.',
+                                    ? l10n.localSettingScanInProgress
+                                    : l10n.localSettingScanNowSubtitle,
                                 style: TextStyle(
                                   color: Default_Theme.primaryColor2
                                       .withValues(alpha: 0.5),
@@ -221,7 +223,7 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
           // Folder management — desktop only
           if (!LocalMusicService.isMobile && !Platform.isIOS) ...[
             const SizedBox(height: 28),
-            const SettingSectionHeader(label: 'Music Folders'),
+            SettingSectionHeader(label: l10n.settingsMusicFolders),
             SettingCard(
               children: [
                 if (_folders.isEmpty)
@@ -229,7 +231,7 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 16),
                     child: Text(
-                      'No folders added. Add a folder to start scanning.',
+                      l10n.localSettingNoFolders,
                       style: TextStyle(
                         color:
                             Default_Theme.primaryColor2.withValues(alpha: 0.5),
@@ -315,7 +317,7 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
                           ),
                           const SizedBox(width: 14),
                           Text(
-                            'Add Folder',
+                            l10n.localSettingAddFolder,
                             style: const TextStyle(
                               color: Default_Theme.accentColor2,
                               fontSize: 16,

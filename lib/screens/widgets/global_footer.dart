@@ -8,6 +8,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/screens/widgets/mini_player_widget.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 
 class GlobalFooter extends StatelessWidget {
   const GlobalFooter({super.key, required this.navigationShell});
@@ -163,17 +164,22 @@ class VerticalNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return NavigationRail(
       backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
-      destinations: const [
+      destinations: [
         NavigationRailDestination(
-            icon: Icon(MingCute.home_4_fill), label: Text('Home')),
+            icon: const Icon(MingCute.home_4_fill),
+            label: Text(AppLocalizations.of(context)!.navHome)),
         NavigationRailDestination(
-            icon: Icon(MingCute.book_5_fill), label: Text('Library')),
+            icon: const Icon(MingCute.book_5_fill),
+            label: Text(AppLocalizations.of(context)!.navLibrary)),
         NavigationRailDestination(
-            icon: Icon(MingCute.search_2_fill), label: Text('Search')),
+            icon: const Icon(MingCute.search_2_fill),
+            label: Text(AppLocalizations.of(context)!.navSearch)),
         NavigationRailDestination(
-            icon: Icon(MingCute.music_2_fill), label: Text('Local')),
+            icon: const Icon(MingCute.music_2_fill),
+            label: Text(AppLocalizations.of(context)!.navLocal)),
         NavigationRailDestination(
-            icon: Icon(MingCute.folder_download_fill), label: Text('Offline')),
+            icon: const Icon(MingCute.folder_download_fill),
+            label: Text(AppLocalizations.of(context)!.navOffline)),
       ],
       selectedIndex: navigationShell.currentIndex,
       minWidth: 65,
@@ -211,26 +217,26 @@ class HorizontalNavBar extends StatelessWidget {
           const TextStyle(color: Default_Theme.accentColor2, fontSize: 18)),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
-      tabs: const [
+      tabs: [
         GButton(
           icon: MingCute.home_4_fill,
-          text: "Home",
+          text: AppLocalizations.of(context)!.navHome,
         ),
         GButton(
           icon: MingCute.book_5_fill,
-          text: "Library",
+          text: AppLocalizations.of(context)!.navLibrary,
         ),
         GButton(
           icon: MingCute.search_2_fill,
-          text: "Search",
+          text: AppLocalizations.of(context)!.navSearch,
         ),
         GButton(
           icon: MingCute.music_2_fill,
-          text: "Local",
+          text: AppLocalizations.of(context)!.navLocal,
         ),
         GButton(
           icon: MingCute.folder_download_fill,
-          text: "Offline",
+          text: AppLocalizations.of(context)!.navOffline,
         ),
       ],
       selectedIndex: navigationShell.currentIndex,
