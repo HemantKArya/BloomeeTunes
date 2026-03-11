@@ -7,8 +7,50 @@ import '../../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `deserialize_manifest_version`, `validate`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `capabilities`, `check`, `created_at`, `from_file`, `has_capability`, `host_sites`, `icon`, `id`, `name`, `new`, `plugin_type`, `publisher`
+
+/// Describes a required key/credential for a plugin.
+///
+/// JSON format:
+/// ```json
+/// {
+///   "api_key": {
+///     "description": "API key for authenticating",
+///     "default": null,
+///     "is_secret": true
+///   }
+/// }
+/// ```
+class KeyRequirement {
+  /// Human-readable description of what this key is used for.
+  final String description;
+
+  /// Default value for this key. `None` means user must provide it.
+  final String? defaultValue;
+
+  /// Whether this key should be treated as a secret (masked in UI).
+  final bool isSecret;
+
+  const KeyRequirement({
+    required this.description,
+    this.defaultValue,
+    required this.isSecret,
+  });
+
+  @override
+  int get hashCode =>
+      description.hashCode ^ defaultValue.hashCode ^ isSecret.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is KeyRequirement &&
+          runtimeType == other.runtimeType &&
+          description == other.description &&
+          defaultValue == other.defaultValue &&
+          isSecret == other.isSecret;
+}
 
 class Manifest {
   final int manifestVersion;
@@ -30,6 +72,18 @@ class Manifest {
   /// but different remote_url, it may indicate impersonation.
   final String? remoteUrl;
 
+  /// Map of key name → requirement describing credentials the plugin needs.
+  final Map<String, KeyRequirement> keysRequired;
+
+  /// URL for the plugin's thumbnail/icon image.
+  final String? thumbnailUrl;
+
+  /// Whether this plugin acts as the primary content resolver (for search routing).
+  final bool resolver;
+
+  /// ISO 8601 timestamp of the last plugin update.
+  final String? lastUpdated;
+
   const Manifest({
     required this.manifestVersion,
     required this.id,
@@ -45,6 +99,10 @@ class Manifest {
     required this.capabilities,
     this.createdAt,
     this.remoteUrl,
+    required this.keysRequired,
+    this.thumbnailUrl,
+    required this.resolver,
+    this.lastUpdated,
   });
 
   @override
@@ -62,7 +120,11 @@ class Manifest {
       hostSite.hashCode ^
       capabilities.hashCode ^
       createdAt.hashCode ^
-      remoteUrl.hashCode;
+      remoteUrl.hashCode ^
+      keysRequired.hashCode ^
+      thumbnailUrl.hashCode ^
+      resolver.hashCode ^
+      lastUpdated.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -82,7 +144,11 @@ class Manifest {
           hostSite == other.hostSite &&
           capabilities == other.capabilities &&
           createdAt == other.createdAt &&
-          remoteUrl == other.remoteUrl;
+          remoteUrl == other.remoteUrl &&
+          keysRequired == other.keysRequired &&
+          thumbnailUrl == other.thumbnailUrl &&
+          resolver == other.resolver &&
+          lastUpdated == other.lastUpdated;
 }
 
 /// Plugin publisher information

@@ -27,6 +27,8 @@ class SettingsState extends Equatable {
   final String homePluginId; // content resolver plugin for home sections
   final String searchPluginId; // persisted search plugin selection
   final List<String> resolverPriority; // content resolver priority order
+  final List<String> lyricsPriority; // lyrics provider plugin priority order
+  final String suggestionPluginId; // search suggestion provider plugin
   const SettingsState({
     required this.settingsReady,
     required this.autoUpdateNotify,
@@ -53,6 +55,8 @@ class SettingsState extends Equatable {
     required this.homePluginId,
     required this.searchPluginId,
     required this.resolverPriority,
+    required this.lyricsPriority,
+    required this.suggestionPluginId,
   });
 
   SettingsState copyWith({
@@ -81,6 +85,8 @@ class SettingsState extends Equatable {
     String? homePluginId,
     String? searchPluginId,
     List<String>? resolverPriority,
+    List<String>? lyricsPriority,
+    String? suggestionPluginId,
   }) {
     return SettingsState(
       settingsReady: settingsReady ?? this.settingsReady,
@@ -113,6 +119,10 @@ class SettingsState extends Equatable {
       resolverPriority: resolverPriority != null
           ? List<String>.from(resolverPriority)
           : List<String>.from(this.resolverPriority),
+      lyricsPriority: lyricsPriority != null
+          ? List<String>.from(lyricsPriority)
+          : List<String>.from(this.lyricsPriority),
+      suggestionPluginId: suggestionPluginId ?? this.suggestionPluginId,
     );
   }
 
@@ -143,6 +153,8 @@ class SettingsState extends Equatable {
         homePluginId,
         searchPluginId,
         resolverPriority,
+        lyricsPriority,
+        suggestionPluginId,
       ];
 }
 
@@ -174,5 +186,7 @@ class SettingsInitial extends SettingsState {
           homePluginId: '',
           searchPluginId: '',
           resolverPriority: const [],
+          lyricsPriority: const [],
+          suggestionPluginId: '',
         );
 }

@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
+import 'package:Bloomee/services/db/dao/plugin_storage_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_event.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
@@ -11,6 +12,7 @@ import 'package:Bloomee/services/plugin/plugin_event_bus.dart';
 import 'package:Bloomee/services/plugin/plugin_load_state_service.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/src/rust/api/plugin/events.dart';
+import 'package:Bloomee/src/rust/api/plugin/types.dart';
 
 /// Manages plugin lifecycle: load, unload, install, refresh.
 ///
@@ -255,6 +257,13 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
       log('Install result: ${result.pluginId} — ${result.status}',
           name: 'PluginBloc');
 
+      if (result.status == PluginInstallStatus.downgraded) {
+        emit(state.copyWith(
+          successMessage:
+              'Plugin "${result.pluginId}" installed (older/same version).',
+        ));
+      }
+
       // Refresh available plugins after install.
       add(const RefreshPlugins());
     } on PluginException catch (e) {
@@ -288,6 +297,12 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         pluginId: event.pluginId,
         pluginType: event.pluginType,
       );
+      // deletePlugin() fires pluginListRefreshed (not pluginDeleted), so
+      // we perform storage cleanup directly here instead of waiting for an
+      // event that never arrives.
+      if (event.cleanStorage) {
+        unawaited(_cleanupPluginStorage(event.pluginId));
+      }
       // State update happens via pluginListRefreshed event from Rust.
     } on PluginException catch (e) {
       emit(state.copyWith(
@@ -480,6 +495,17 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         emit(state.copyWith(error: message, clearSuccessMessage: true));
       },
     );
+  }
+
+  Future<void> _cleanupPluginStorage(String pluginId) async {
+    try {
+      final dao = PluginStorageDao(DBProvider.db);
+      await dao.clearPlugin(pluginId);
+      log('Cleaned storage for deleted plugin: $pluginId', name: 'PluginBloc');
+    } catch (e) {
+      log('Failed to clean storage for plugin $pluginId: $e',
+          name: 'PluginBloc');
+    }
   }
 
   @override

@@ -2,11 +2,8 @@ import 'dart:io';
 
 import 'package:Bloomee/blocs/local_music/cubit/local_music_cubit.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
-import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
-import 'package:Bloomee/services/db/dao/settings_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/local_music_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +19,6 @@ class LocalMusicSettings extends StatefulWidget {
 }
 
 class _LocalMusicSettingsState extends State<LocalMusicSettings> {
-  late final SettingsDAO _settingsDao;
-
   bool _autoScan = true;
   String _lastScan = '';
   List<String> _folders = [];
@@ -34,24 +29,16 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
   @override
   void initState() {
     super.initState();
-    _settingsDao = SettingsDAO(DBProvider.db);
     _load();
   }
 
   Future<void> _load() async {
-    final autoScan = await _settingsDao.getSettingBool(
-      SettingKeys.localMusicAutoScan,
-      defaultValue: true,
-    );
-    final lastScan = await _settingsDao.getSettingStr(
-      SettingKeys.localMusicLastScan,
-      defaultValue: '',
-    );
+    final autoScan = await _cubit.getAutoScan();
+    final lastScan = await _cubit.getLastScan();
     final folders = await _cubit.getFolders();
-    if (!mounted) return;
     setState(() {
-      _autoScan = autoScan ?? true;
-      _lastScan = lastScan ?? '';
+      _autoScan = autoScan;
+      _lastScan = lastScan;
       _folders = folders;
     });
   }
@@ -60,11 +47,8 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
     setState(() => _scanning = true);
     try {
       await _cubit.scan();
-      final lastScan = await _settingsDao.getSettingStr(
-        SettingKeys.localMusicLastScan,
-        defaultValue: '',
-      );
-      if (mounted) setState(() => _lastScan = lastScan ?? '');
+      final lastScan = await _cubit.getLastScan();
+      if (mounted) setState(() => _lastScan = lastScan);
     } finally {
       if (mounted) setState(() => _scanning = false);
     }
@@ -142,8 +126,7 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
                 value: _autoScan,
                 onChanged: (v) async {
                   setState(() => _autoScan = v);
-                  await _settingsDao.putSettingBool(
-                      SettingKeys.localMusicAutoScan, v);
+                  await _cubit.setAutoScan(v);
                 },
               ),
               const SettingDivider(),

@@ -4218,6 +4218,9 @@ const _: fn() = || {
             let _: String = id;
             let _: String = more_link;
         }
+        crate::api::plugin::commands::ContentResolverCommand::GetSegmentsForTrack { id } => {
+            let _: String = id;
+        }
     }
     match None::<crate::api::downloader::types::DownloadManagerEvent>.unwrap() {
         crate::api::downloader::types::DownloadManagerEvent::TaskUpdated(field0) => {
@@ -4259,12 +4262,29 @@ const _: fn() = || {
         let _: String = EnqueueDownloadRequest.download_dir;
         let _: String = EnqueueDownloadRequest.preferred_quality;
     }
+    match None::<crate::api::plugin::commands::LyricsProviderCommand>.unwrap() {
+        crate::api::plugin::commands::LyricsProviderCommand::GetLyrics { metadata } => {
+            let _: crate::api::plugin::models::TrackMetadata = metadata;
+        }
+        crate::api::plugin::commands::LyricsProviderCommand::Search { query } => {
+            let _: String = query;
+        }
+        crate::api::plugin::commands::LyricsProviderCommand::GetLyricsById { id } => {
+            let _: String = id;
+        }
+    }
     match None::<crate::api::plugin::commands::PluginRequest>.unwrap() {
         crate::api::plugin::commands::PluginRequest::ContentResolver(field0) => {
             let _: crate::api::plugin::commands::ContentResolverCommand = field0;
         }
         crate::api::plugin::commands::PluginRequest::ChartProvider(field0) => {
             let _: crate::api::plugin::commands::ChartProviderCommand = field0;
+        }
+        crate::api::plugin::commands::PluginRequest::LyricsProvider(field0) => {
+            let _: crate::api::plugin::commands::LyricsProviderCommand = field0;
+        }
+        crate::api::plugin::commands::PluginRequest::SearchSuggestionProvider(field0) => {
+            let _: crate::api::plugin::commands::SearchSuggestionCommand = field0;
         }
     }
     match None::<crate::api::plugin::commands::PluginResponse>.unwrap() {
@@ -4301,7 +4321,44 @@ const _: fn() = || {
         crate::api::plugin::commands::PluginResponse::ChartDetails(field0) => {
             let _: Vec<crate::api::plugin::models::ChartItem> = field0;
         }
+        crate::api::plugin::commands::PluginResponse::Segments(field0) => {
+            let _: Vec<crate::api::plugin::models::TrackSegment> = field0;
+        }
+        crate::api::plugin::commands::PluginResponse::LyricsResult(field0) => {
+            let _: Option<(
+                crate::api::plugin::models::PluginLyrics,
+                crate::api::plugin::models::LyricsMetadata,
+            )> = field0;
+        }
+        crate::api::plugin::commands::PluginResponse::LyricsSearchResults(field0) => {
+            let _: Vec<crate::api::plugin::models::LyricsMatch> = field0;
+        }
+        crate::api::plugin::commands::PluginResponse::LyricsById(field0, field1) => {
+            let _: crate::api::plugin::models::PluginLyrics = field0;
+            let _: crate::api::plugin::models::LyricsMetadata = field1;
+        }
+        crate::api::plugin::commands::PluginResponse::Suggestions(field0) => {
+            let _: Vec<crate::api::plugin::models::Suggestion> = field0;
+        }
         crate::api::plugin::commands::PluginResponse::Ack => {}
+    }
+    match None::<crate::api::plugin::commands::SearchSuggestionCommand>.unwrap() {
+        crate::api::plugin::commands::SearchSuggestionCommand::GetSuggestions {
+            query,
+            limit,
+            include_entities,
+        } => {
+            let _: String = query;
+            let _: Option<u8> = limit;
+            let _: bool = include_entities;
+        }
+        crate::api::plugin::commands::SearchSuggestionCommand::GetDefaultSuggestions {
+            limit,
+            include_entities,
+        } => {
+            let _: Option<u8> = limit;
+            let _: bool = include_entities;
+        }
     }
 };
 
@@ -4354,6 +4411,15 @@ impl SseDecode for PluginManager {
             flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PluginManager>,
         >>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
+impl SseDecode for std::collections::HashMap<String, crate::api::plugin::manifest::KeyRequirement> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner =
+            <Vec<(String, crate::api::plugin::manifest::KeyRequirement)>>::sse_decode(deserializer);
+        return inner.into_iter().collect();
     }
 }
 
@@ -4675,6 +4741,12 @@ impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
                     more_link: var_moreLink,
                 };
             }
+            11 => {
+                let mut var_id = <String>::sse_decode(deserializer);
+                return crate::api::plugin::commands::ContentResolverCommand::GetSegmentsForTrack {
+                    id: var_id,
+                };
+            }
             _ => {
                 unimplemented!("");
             }
@@ -4799,6 +4871,41 @@ impl SseDecode for crate::api::downloader::types::EnqueueDownloadRequest {
     }
 }
 
+impl SseDecode for crate::api::plugin::models::EntitySuggestion {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_subtitle = <Option<String>>::sse_decode(deserializer);
+        let mut var_kind = <crate::api::plugin::models::EntityType>::sse_decode(deserializer);
+        let mut var_thumbnail =
+            <Option<crate::api::plugin::models::SuggestionArtwork>>::sse_decode(deserializer);
+        return crate::api::plugin::models::EntitySuggestion {
+            id: var_id,
+            title: var_title,
+            subtitle: var_subtitle,
+            kind: var_kind,
+            thumbnail: var_thumbnail,
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::EntityType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::plugin::models::EntityType::Track,
+            1 => crate::api::plugin::models::EntityType::Album,
+            2 => crate::api::plugin::models::EntityType::Artist,
+            3 => crate::api::plugin::models::EntityType::Playlist,
+            4 => crate::api::plugin::models::EntityType::Genre,
+            5 => crate::api::plugin::models::EntityType::Unknown,
+            _ => unreachable!("Invalid variant for EntityType: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for f64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4824,6 +4931,20 @@ impl SseDecode for crate::api::plugin::models::ImageLayout {
             3 => crate::api::plugin::models::ImageLayout::Banner,
             4 => crate::api::plugin::models::ImageLayout::Circular,
             _ => unreachable!("Invalid variant for ImageLayout: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::manifest::KeyRequirement {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_description = <String>::sse_decode(deserializer);
+        let mut var_defaultValue = <Option<String>>::sse_decode(deserializer);
+        let mut var_isSecret = <bool>::sse_decode(deserializer);
+        return crate::api::plugin::manifest::KeyRequirement {
+            description: var_description,
+            default_value: var_defaultValue,
+            is_secret: var_isSecret,
         };
     }
 }
@@ -4936,6 +5057,48 @@ impl SseDecode for Vec<crate::api::local_music::LocalTrackMeta> {
     }
 }
 
+impl SseDecode for Vec<crate::api::plugin::models::LyricsLine> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::plugin::models::LyricsLine>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::plugin::models::LyricsMatch> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::plugin::models::LyricsMatch>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::plugin::models::LyricsToken> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::plugin::models::LyricsToken>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::plugin::models::MediaItem> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4957,6 +5120,20 @@ impl SseDecode for Vec<u8> {
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
             ans_.push(<u8>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<(String, crate::api::plugin::manifest::KeyRequirement)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(
+                <(String, crate::api::plugin::manifest::KeyRequirement)>::sse_decode(deserializer),
+            );
         }
         return ans_;
     }
@@ -5002,6 +5179,20 @@ impl SseDecode for Vec<crate::api::plugin::models::StreamSource> {
     }
 }
 
+impl SseDecode for Vec<crate::api::plugin::models::Suggestion> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::plugin::models::Suggestion>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::plugin::models::Track> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5009,6 +5200,20 @@ impl SseDecode for Vec<crate::api::plugin::models::Track> {
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
             ans_.push(<crate::api::plugin::models::Track>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::plugin::models::TrackSegment> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::plugin::models::TrackSegment>::sse_decode(
                 deserializer,
             ));
         }
@@ -5058,6 +5263,118 @@ impl SseDecode for crate::api::plugin::models::Lyrics {
     }
 }
 
+impl SseDecode for crate::api::plugin::models::LyricsLine {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_startMs = <u32>::sse_decode(deserializer);
+        let mut var_durationMs = <Option<u32>>::sse_decode(deserializer);
+        let mut var_content = <String>::sse_decode(deserializer);
+        let mut var_tokens =
+            <Option<Vec<crate::api::plugin::models::LyricsToken>>>::sse_decode(deserializer);
+        return crate::api::plugin::models::LyricsLine {
+            start_ms: var_startMs,
+            duration_ms: var_durationMs,
+            content: var_content,
+            tokens: var_tokens,
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::LyricsMatch {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_artist = <String>::sse_decode(deserializer);
+        let mut var_album = <Option<String>>::sse_decode(deserializer);
+        let mut var_durationMs = <Option<u64>>::sse_decode(deserializer);
+        let mut var_syncType =
+            <crate::api::plugin::models::LyricsSyncType>::sse_decode(deserializer);
+        return crate::api::plugin::models::LyricsMatch {
+            id: var_id,
+            title: var_title,
+            artist: var_artist,
+            album: var_album,
+            duration_ms: var_durationMs,
+            sync_type: var_syncType,
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::LyricsMetadata {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_source = <Option<String>>::sse_decode(deserializer);
+        let mut var_author = <Option<String>>::sse_decode(deserializer);
+        let mut var_language = <Option<String>>::sse_decode(deserializer);
+        let mut var_copyright = <Option<String>>::sse_decode(deserializer);
+        let mut var_isVerified = <bool>::sse_decode(deserializer);
+        return crate::api::plugin::models::LyricsMetadata {
+            source: var_source,
+            author: var_author,
+            language: var_language,
+            copyright: var_copyright,
+            is_verified: var_isVerified,
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::commands::LyricsProviderCommand {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_metadata =
+                    <crate::api::plugin::models::TrackMetadata>::sse_decode(deserializer);
+                return crate::api::plugin::commands::LyricsProviderCommand::GetLyrics {
+                    metadata: var_metadata,
+                };
+            }
+            1 => {
+                let mut var_query = <String>::sse_decode(deserializer);
+                return crate::api::plugin::commands::LyricsProviderCommand::Search {
+                    query: var_query,
+                };
+            }
+            2 => {
+                let mut var_id = <String>::sse_decode(deserializer);
+                return crate::api::plugin::commands::LyricsProviderCommand::GetLyricsById {
+                    id: var_id,
+                };
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::LyricsSyncType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::plugin::models::LyricsSyncType::None,
+            1 => crate::api::plugin::models::LyricsSyncType::Line,
+            2 => crate::api::plugin::models::LyricsSyncType::Syllable,
+            _ => unreachable!("Invalid variant for LyricsSyncType: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::LyricsToken {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_offsetMs = <u32>::sse_decode(deserializer);
+        let mut var_text = <String>::sse_decode(deserializer);
+        return crate::api::plugin::models::LyricsToken {
+            offset_ms: var_offsetMs,
+            text: var_text,
+        };
+    }
+}
+
 impl SseDecode for crate::api::plugin::manifest::Manifest {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5076,6 +5393,13 @@ impl SseDecode for crate::api::plugin::manifest::Manifest {
         let mut var_capabilities = <Vec<String>>::sse_decode(deserializer);
         let mut var_createdAt = <Option<String>>::sse_decode(deserializer);
         let mut var_remoteUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_keysRequired = <std::collections::HashMap<
+            String,
+            crate::api::plugin::manifest::KeyRequirement,
+        >>::sse_decode(deserializer);
+        let mut var_thumbnailUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_resolver = <bool>::sse_decode(deserializer);
+        let mut var_lastUpdated = <Option<String>>::sse_decode(deserializer);
         return crate::api::plugin::manifest::Manifest {
             manifest_version: var_manifestVersion,
             id: var_id,
@@ -5091,6 +5415,10 @@ impl SseDecode for crate::api::plugin::manifest::Manifest {
             capabilities: var_capabilities,
             created_at: var_createdAt,
             remote_url: var_remoteUrl,
+            keys_required: var_keysRequired,
+            thumbnail_url: var_thumbnailUrl,
+            resolver: var_resolver,
+            last_updated: var_lastUpdated,
         };
     }
 }
@@ -5212,6 +5540,38 @@ impl SseDecode for Option<crate::api::plugin::types::PluginType> {
     }
 }
 
+impl SseDecode
+    for Option<(
+        crate::api::plugin::models::PluginLyrics,
+        crate::api::plugin::models::LyricsMetadata,
+    )>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<(
+                crate::api::plugin::models::PluginLyrics,
+                crate::api::plugin::models::LyricsMetadata,
+            )>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::plugin::models::SuggestionArtwork> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::plugin::models::SuggestionArtwork>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<u32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5228,6 +5588,43 @@ impl SseDecode for Option<u64> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<u64>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u8> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u8>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::plugin::models::LyricsLine>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::plugin::models::LyricsLine>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::plugin::models::LyricsToken>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::plugin::models::LyricsToken>>::sse_decode(
+                deserializer,
+            ));
         } else {
             return None;
         }
@@ -5337,10 +5734,31 @@ impl SseDecode for crate::api::plugin::types::PluginInstallStatus {
         return match inner {
             0 => crate::api::plugin::types::PluginInstallStatus::Installed,
             1 => crate::api::plugin::types::PluginInstallStatus::Updated,
-            2 => crate::api::plugin::types::PluginInstallStatus::AlreadyInstalled,
-            3 => crate::api::plugin::types::PluginInstallStatus::PluginLoaded,
-            4 => crate::api::plugin::types::PluginInstallStatus::Failed,
+            2 => crate::api::plugin::types::PluginInstallStatus::Downgraded,
+            3 => crate::api::plugin::types::PluginInstallStatus::AlreadyInstalled,
+            4 => crate::api::plugin::types::PluginInstallStatus::PluginLoaded,
+            5 => crate::api::plugin::types::PluginInstallStatus::Failed,
             _ => unreachable!("Invalid variant for PluginInstallStatus: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::PluginLyrics {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_plain = <Option<String>>::sse_decode(deserializer);
+        let mut var_lrc = <Option<String>>::sse_decode(deserializer);
+        let mut var_lines =
+            <Option<Vec<crate::api::plugin::models::LyricsLine>>>::sse_decode(deserializer);
+        let mut var_isInstrumental = <bool>::sse_decode(deserializer);
+        let mut var_syncType =
+            <crate::api::plugin::models::LyricsSyncType>::sse_decode(deserializer);
+        return crate::api::plugin::models::PluginLyrics {
+            plain: var_plain,
+            lrc: var_lrc,
+            lines: var_lines,
+            is_instrumental: var_isInstrumental,
+            sync_type: var_syncType,
         };
     }
 }
@@ -5512,6 +5930,20 @@ impl SseDecode for crate::api::plugin::commands::PluginRequest {
                     <crate::api::plugin::commands::ChartProviderCommand>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginRequest::ChartProvider(var_field0);
             }
+            2 => {
+                let mut var_field0 =
+                    <crate::api::plugin::commands::LyricsProviderCommand>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginRequest::LyricsProvider(var_field0);
+            }
+            3 => {
+                let mut var_field0 =
+                    <crate::api::plugin::commands::SearchSuggestionCommand>::sse_decode(
+                        deserializer,
+                    );
+                return crate::api::plugin::commands::PluginRequest::SearchSuggestionProvider(
+                    var_field0,
+                );
+            }
             _ => {
                 unimplemented!("");
             }
@@ -5580,6 +6012,39 @@ impl SseDecode for crate::api::plugin::commands::PluginResponse {
                 return crate::api::plugin::commands::PluginResponse::ChartDetails(var_field0);
             }
             11 => {
+                let mut var_field0 =
+                    <Vec<crate::api::plugin::models::TrackSegment>>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::Segments(var_field0);
+            }
+            12 => {
+                let mut var_field0 = <Option<(
+                    crate::api::plugin::models::PluginLyrics,
+                    crate::api::plugin::models::LyricsMetadata,
+                )>>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::LyricsResult(var_field0);
+            }
+            13 => {
+                let mut var_field0 =
+                    <Vec<crate::api::plugin::models::LyricsMatch>>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::LyricsSearchResults(
+                    var_field0,
+                );
+            }
+            14 => {
+                let mut var_field0 =
+                    <crate::api::plugin::models::PluginLyrics>::sse_decode(deserializer);
+                let mut var_field1 =
+                    <crate::api::plugin::models::LyricsMetadata>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::LyricsById(
+                    var_field0, var_field1,
+                );
+            }
+            15 => {
+                let mut var_field0 =
+                    <Vec<crate::api::plugin::models::Suggestion>>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::Suggestions(var_field0);
+            }
+            16 => {
                 return crate::api::plugin::commands::PluginResponse::Ack;
             }
             _ => {
@@ -5596,6 +6061,8 @@ impl SseDecode for crate::api::plugin::types::PluginType {
         return match inner {
             0 => crate::api::plugin::types::PluginType::ContentResolver,
             1 => crate::api::plugin::types::PluginType::ChartProvider,
+            2 => crate::api::plugin::types::PluginType::LyricsProvider,
+            3 => crate::api::plugin::types::PluginType::SearchSuggestionProvider,
             _ => unreachable!("Invalid variant for PluginType: {}", inner),
         };
     }
@@ -5615,12 +6082,63 @@ impl SseDecode for crate::api::plugin::models::Quality {
     }
 }
 
+impl SseDecode
+    for (
+        crate::api::plugin::models::PluginLyrics,
+        crate::api::plugin::models::LyricsMetadata,
+    )
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_field0 = <crate::api::plugin::models::PluginLyrics>::sse_decode(deserializer);
+        let mut var_field1 = <crate::api::plugin::models::LyricsMetadata>::sse_decode(deserializer);
+        return (var_field0, var_field1);
+    }
+}
+
+impl SseDecode for (String, crate::api::plugin::manifest::KeyRequirement) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_field0 = <String>::sse_decode(deserializer);
+        let mut var_field1 =
+            <crate::api::plugin::manifest::KeyRequirement>::sse_decode(deserializer);
+        return (var_field0, var_field1);
+    }
+}
+
 impl SseDecode for (String, String) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_field0 = <String>::sse_decode(deserializer);
         let mut var_field1 = <String>::sse_decode(deserializer);
         return (var_field0, var_field1);
+    }
+}
+
+impl SseDecode for crate::api::plugin::commands::SearchSuggestionCommand {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_query = <String>::sse_decode(deserializer);
+                let mut var_limit = <Option<u8>>::sse_decode(deserializer);
+                let mut var_includeEntities = <bool>::sse_decode(deserializer);
+                return crate::api::plugin::commands::SearchSuggestionCommand::GetSuggestions {
+                    query: var_query,
+                    limit: var_limit,
+                    include_entities: var_includeEntities,
+                };
+            }
+            1 => {
+                let mut var_limit = <Option<u8>>::sse_decode(deserializer);
+                let mut var_includeEntities = <bool>::sse_decode(deserializer);
+                return crate::api::plugin::commands::SearchSuggestionCommand::GetDefaultSuggestions{limit: var_limit, include_entities: var_includeEntities};
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -5644,6 +6162,25 @@ impl SseDecode for crate::api::plugin::models::Section {
     }
 }
 
+impl SseDecode for crate::api::plugin::models::SegmentType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::plugin::models::SegmentType::Intro,
+            1 => crate::api::plugin::models::SegmentType::Outro,
+            2 => crate::api::plugin::models::SegmentType::Sponsor,
+            3 => crate::api::plugin::models::SegmentType::SelfPromo,
+            4 => crate::api::plugin::models::SegmentType::Interaction,
+            5 => crate::api::plugin::models::SegmentType::MusicOfftopic,
+            6 => crate::api::plugin::models::SegmentType::Chapter,
+            7 => crate::api::plugin::models::SegmentType::Filler,
+            8 => crate::api::plugin::models::SegmentType::Unknown,
+            _ => unreachable!("Invalid variant for SegmentType: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::api::plugin::models::StreamSource {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5658,6 +6195,39 @@ impl SseDecode for crate::api::plugin::models::StreamSource {
             format: var_format,
             headers: var_headers,
             expires_at: var_expiresAt,
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::Suggestion {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_field0 = <String>::sse_decode(deserializer);
+                return crate::api::plugin::models::Suggestion::Query(var_field0);
+            }
+            1 => {
+                let mut var_field0 =
+                    <crate::api::plugin::models::EntitySuggestion>::sse_decode(deserializer);
+                return crate::api::plugin::models::Suggestion::Entity(var_field0);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::SuggestionArtwork {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_url = <String>::sse_decode(deserializer);
+        let mut var_urlLow = <Option<String>>::sse_decode(deserializer);
+        return crate::api::plugin::models::SuggestionArtwork {
+            url: var_url,
+            url_low: var_urlLow,
         };
     }
 }
@@ -5690,6 +6260,41 @@ impl SseDecode for crate::api::plugin::models::Track {
     }
 }
 
+impl SseDecode for crate::api::plugin::models::TrackMetadata {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_artist = <String>::sse_decode(deserializer);
+        let mut var_album = <Option<String>>::sse_decode(deserializer);
+        let mut var_durationMs = <Option<u64>>::sse_decode(deserializer);
+        return crate::api::plugin::models::TrackMetadata {
+            title: var_title,
+            artist: var_artist,
+            album: var_album,
+            duration_ms: var_durationMs,
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::TrackSegment {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_segmentType =
+            <crate::api::plugin::models::SegmentType>::sse_decode(deserializer);
+        let mut var_startMs = <u64>::sse_decode(deserializer);
+        let mut var_endMs = <u64>::sse_decode(deserializer);
+        let mut var_title = <Option<String>>::sse_decode(deserializer);
+        let mut var_isSkippable = <bool>::sse_decode(deserializer);
+        return crate::api::plugin::models::TrackSegment {
+            segment_type: var_segmentType,
+            start_ms: var_startMs,
+            end_ms: var_endMs,
+            title: var_title,
+            is_skippable: var_isSkippable,
+        };
+    }
+}
+
 impl SseDecode for crate::api::plugin::models::Trend {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5699,7 +6304,8 @@ impl SseDecode for crate::api::plugin::models::Trend {
             1 => crate::api::plugin::models::Trend::Down,
             2 => crate::api::plugin::models::Trend::Same,
             3 => crate::api::plugin::models::Trend::NewEntry,
-            4 => crate::api::plugin::models::Trend::Unknown,
+            4 => crate::api::plugin::models::Trend::ReEntry,
+            5 => crate::api::plugin::models::Trend::Unknown,
             _ => unreachable!("Invalid variant for Trend: {}", inner),
         };
     }
@@ -6432,6 +7038,9 @@ impl flutter_rust_bridge::IntoDart
                 more_link.into_into_dart().into_dart(),
             ]
             .into_dart(),
+            crate::api::plugin::commands::ContentResolverCommand::GetSegmentsForTrack { id } => {
+                [11.into_dart(), id.into_into_dart().into_dart()].into_dart()
+            }
             _ => {
                 unimplemented!("");
             }
@@ -6612,6 +7221,55 @@ impl
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::EntitySuggestion {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.subtitle.into_into_dart().into_dart(),
+            self.kind.into_into_dart().into_dart(),
+            self.thumbnail.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::EntitySuggestion
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::EntitySuggestion>
+    for crate::api::plugin::models::EntitySuggestion
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::EntitySuggestion {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::EntityType {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Track => 0.into_dart(),
+            Self::Album => 1.into_dart(),
+            Self::Artist => 2.into_dart(),
+            Self::Playlist => 3.into_dart(),
+            Self::Genre => 4.into_dart(),
+            Self::Unknown => 5.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::EntityType
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::EntityType>
+    for crate::api::plugin::models::EntityType
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::EntityType {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::ImageLayout {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -6632,6 +7290,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::ImageLayout>
     for crate::api::plugin::models::ImageLayout
 {
     fn into_into_dart(self) -> crate::api::plugin::models::ImageLayout {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::manifest::KeyRequirement {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.description.into_into_dart().into_dart(),
+            self.default_value.into_into_dart().into_dart(),
+            self.is_secret.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::manifest::KeyRequirement
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::manifest::KeyRequirement>
+    for crate::api::plugin::manifest::KeyRequirement
+{
+    fn into_into_dart(self) -> crate::api::plugin::manifest::KeyRequirement {
         self
     }
 }
@@ -6687,6 +7367,155 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::Lyrics>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::LyricsLine {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.start_ms.into_into_dart().into_dart(),
+            self.duration_ms.into_into_dart().into_dart(),
+            self.content.into_into_dart().into_dart(),
+            self.tokens.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::LyricsLine
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::LyricsLine>
+    for crate::api::plugin::models::LyricsLine
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::LyricsLine {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::LyricsMatch {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.artist.into_into_dart().into_dart(),
+            self.album.into_into_dart().into_dart(),
+            self.duration_ms.into_into_dart().into_dart(),
+            self.sync_type.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::LyricsMatch
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::LyricsMatch>
+    for crate::api::plugin::models::LyricsMatch
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::LyricsMatch {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::LyricsMetadata {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.source.into_into_dart().into_dart(),
+            self.author.into_into_dart().into_dart(),
+            self.language.into_into_dart().into_dart(),
+            self.copyright.into_into_dart().into_dart(),
+            self.is_verified.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::LyricsMetadata
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::LyricsMetadata>
+    for crate::api::plugin::models::LyricsMetadata
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::LyricsMetadata {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart
+    for FrbWrapper<crate::api::plugin::commands::LyricsProviderCommand>
+{
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self.0 {
+            crate::api::plugin::commands::LyricsProviderCommand::GetLyrics { metadata } => {
+                [0.into_dart(), metadata.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::LyricsProviderCommand::Search { query } => {
+                [1.into_dart(), query.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::LyricsProviderCommand::GetLyricsById { id } => {
+                [2.into_dart(), id.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::plugin::commands::LyricsProviderCommand>
+{
+}
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        FrbWrapper<crate::api::plugin::commands::LyricsProviderCommand>,
+    > for crate::api::plugin::commands::LyricsProviderCommand
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::plugin::commands::LyricsProviderCommand> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::LyricsSyncType {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::None => 0.into_dart(),
+            Self::Line => 1.into_dart(),
+            Self::Syllable => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::LyricsSyncType
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::LyricsSyncType>
+    for crate::api::plugin::models::LyricsSyncType
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::LyricsSyncType {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::LyricsToken {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.offset_ms.into_into_dart().into_dart(),
+            self.text.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::LyricsToken
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::LyricsToken>
+    for crate::api::plugin::models::LyricsToken
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::LyricsToken {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::plugin::manifest::Manifest {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -6704,6 +7533,10 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::manifest::Manifest {
             self.capabilities.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.remote_url.into_into_dart().into_dart(),
+            self.keys_required.into_into_dart().into_dart(),
+            self.thumbnail_url.into_into_dart().into_dart(),
+            self.resolver.into_into_dart().into_dart(),
+            self.last_updated.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -6910,9 +7743,10 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::types::PluginInstallS
         match self {
             Self::Installed => 0.into_dart(),
             Self::Updated => 1.into_dart(),
-            Self::AlreadyInstalled => 2.into_dart(),
-            Self::PluginLoaded => 3.into_dart(),
-            Self::Failed => 4.into_dart(),
+            Self::Downgraded => 2.into_dart(),
+            Self::AlreadyInstalled => 3.into_dart(),
+            Self::PluginLoaded => 4.into_dart(),
+            Self::Failed => 5.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6925,6 +7759,30 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::types::PluginInstallS
     for crate::api::plugin::types::PluginInstallStatus
 {
     fn into_into_dart(self) -> crate::api::plugin::types::PluginInstallStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::PluginLyrics {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.plain.into_into_dart().into_dart(),
+            self.lrc.into_into_dart().into_dart(),
+            self.lines.into_into_dart().into_dart(),
+            self.is_instrumental.into_into_dart().into_dart(),
+            self.sync_type.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::PluginLyrics
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::PluginLyrics>
+    for crate::api::plugin::models::PluginLyrics
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::PluginLyrics {
         self
     }
 }
@@ -7062,6 +7920,12 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::plugin::commands::
             crate::api::plugin::commands::PluginRequest::ChartProvider(field0) => {
                 [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
+            crate::api::plugin::commands::PluginRequest::LyricsProvider(field0) => {
+                [2.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginRequest::SearchSuggestionProvider(field0) => {
+                [3.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
             _ => {
                 unimplemented!("");
             }
@@ -7116,7 +7980,25 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::plugin::commands::
             crate::api::plugin::commands::PluginResponse::ChartDetails(field0) => {
                 [10.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::Ack => [11.into_dart()].into_dart(),
+            crate::api::plugin::commands::PluginResponse::Segments(field0) => {
+                [11.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginResponse::LyricsResult(field0) => {
+                [12.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginResponse::LyricsSearchResults(field0) => {
+                [13.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginResponse::LyricsById(field0, field1) => [
+                14.into_dart(),
+                field0.into_into_dart().into_dart(),
+                field1.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::plugin::commands::PluginResponse::Suggestions(field0) => {
+                [15.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginResponse::Ack => [16.into_dart()].into_dart(),
             _ => {
                 unimplemented!("");
             }
@@ -7140,6 +8022,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::types::PluginType {
         match self {
             Self::ContentResolver => 0.into_dart(),
             Self::ChartProvider => 1.into_dart(),
+            Self::LyricsProvider => 2.into_dart(),
+            Self::SearchSuggestionProvider => 3.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -7179,6 +8063,51 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::Quality>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart
+    for FrbWrapper<crate::api::plugin::commands::SearchSuggestionCommand>
+{
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self.0 {
+            crate::api::plugin::commands::SearchSuggestionCommand::GetSuggestions {
+                query,
+                limit,
+                include_entities,
+            } => [
+                0.into_dart(),
+                query.into_into_dart().into_dart(),
+                limit.into_into_dart().into_dart(),
+                include_entities.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::plugin::commands::SearchSuggestionCommand::GetDefaultSuggestions {
+                limit,
+                include_entities,
+            } => [
+                1.into_dart(),
+                limit.into_into_dart().into_dart(),
+                include_entities.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::plugin::commands::SearchSuggestionCommand>
+{
+}
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        FrbWrapper<crate::api::plugin::commands::SearchSuggestionCommand>,
+    > for crate::api::plugin::commands::SearchSuggestionCommand
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::plugin::commands::SearchSuggestionCommand> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::Section {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -7204,6 +8133,34 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::Section>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::SegmentType {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Intro => 0.into_dart(),
+            Self::Outro => 1.into_dart(),
+            Self::Sponsor => 2.into_dart(),
+            Self::SelfPromo => 3.into_dart(),
+            Self::Interaction => 4.into_dart(),
+            Self::MusicOfftopic => 5.into_dart(),
+            Self::Chapter => 6.into_dart(),
+            Self::Filler => 7.into_dart(),
+            Self::Unknown => 8.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::SegmentType
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::SegmentType>
+    for crate::api::plugin::models::SegmentType
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::SegmentType {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::StreamSource {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -7224,6 +8181,54 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::StreamSource>
     for crate::api::plugin::models::StreamSource
 {
     fn into_into_dart(self) -> crate::api::plugin::models::StreamSource {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::Suggestion {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            crate::api::plugin::models::Suggestion::Query(field0) => {
+                [0.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::models::Suggestion::Entity(field0) => {
+                [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::Suggestion
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::Suggestion>
+    for crate::api::plugin::models::Suggestion
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::Suggestion {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::SuggestionArtwork {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.url.into_into_dart().into_dart(),
+            self.url_low.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::SuggestionArtwork
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::SuggestionArtwork>
+    for crate::api::plugin::models::SuggestionArtwork
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::SuggestionArtwork {
         self
     }
 }
@@ -7256,6 +8261,53 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::Track>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::TrackMetadata {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.artist.into_into_dart().into_dart(),
+            self.album.into_into_dart().into_dart(),
+            self.duration_ms.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::TrackMetadata
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::TrackMetadata>
+    for crate::api::plugin::models::TrackMetadata
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::TrackMetadata {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::TrackSegment {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.segment_type.into_into_dart().into_dart(),
+            self.start_ms.into_into_dart().into_dart(),
+            self.end_ms.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.is_skippable.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::TrackSegment
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::TrackSegment>
+    for crate::api::plugin::models::TrackSegment
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::TrackSegment {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::Trend {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -7263,7 +8315,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::Trend {
             Self::Down => 1.into_dart(),
             Self::Same => 2.into_dart(),
             Self::NewEntry => 3.into_dart(),
-            Self::Unknown => 4.into_dart(),
+            Self::ReEntry => 4.into_dart(),
+            Self::Unknown => 5.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -7305,6 +8358,16 @@ impl SseEncode for PluginManager {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PluginManager>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
+impl SseEncode for std::collections::HashMap<String, crate::api::plugin::manifest::KeyRequirement> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<(String, crate::api::plugin::manifest::KeyRequirement)>>::sse_encode(
+            self.into_iter().collect(),
+            serializer,
+        );
     }
 }
 
@@ -7564,6 +8627,10 @@ impl SseEncode for crate::api::plugin::commands::ContentResolverCommand {
                 <String>::sse_encode(id, serializer);
                 <String>::sse_encode(more_link, serializer);
             }
+            crate::api::plugin::commands::ContentResolverCommand::GetSegmentsForTrack { id } => {
+                <i32>::sse_encode(11, serializer);
+                <String>::sse_encode(id, serializer);
+            }
             _ => {
                 unimplemented!("");
             }
@@ -7676,6 +8743,40 @@ impl SseEncode for crate::api::downloader::types::EnqueueDownloadRequest {
     }
 }
 
+impl SseEncode for crate::api::plugin::models::EntitySuggestion {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <Option<String>>::sse_encode(self.subtitle, serializer);
+        <crate::api::plugin::models::EntityType>::sse_encode(self.kind, serializer);
+        <Option<crate::api::plugin::models::SuggestionArtwork>>::sse_encode(
+            self.thumbnail,
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::EntityType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::plugin::models::EntityType::Track => 0,
+                crate::api::plugin::models::EntityType::Album => 1,
+                crate::api::plugin::models::EntityType::Artist => 2,
+                crate::api::plugin::models::EntityType::Playlist => 3,
+                crate::api::plugin::models::EntityType::Genre => 4,
+                crate::api::plugin::models::EntityType::Unknown => 5,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for f64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7706,6 +8807,15 @@ impl SseEncode for crate::api::plugin::models::ImageLayout {
             },
             serializer,
         );
+    }
+}
+
+impl SseEncode for crate::api::plugin::manifest::KeyRequirement {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.description, serializer);
+        <Option<String>>::sse_encode(self.default_value, serializer);
+        <bool>::sse_encode(self.is_secret, serializer);
     }
 }
 
@@ -7789,6 +8899,36 @@ impl SseEncode for Vec<crate::api::local_music::LocalTrackMeta> {
     }
 }
 
+impl SseEncode for Vec<crate::api::plugin::models::LyricsLine> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::plugin::models::LyricsLine>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::plugin::models::LyricsMatch> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::plugin::models::LyricsMatch>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::plugin::models::LyricsToken> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::plugin::models::LyricsToken>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::plugin::models::MediaItem> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7805,6 +8945,16 @@ impl SseEncode for Vec<u8> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <u8>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<(String, crate::api::plugin::manifest::KeyRequirement)> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <(String, crate::api::plugin::manifest::KeyRequirement)>::sse_encode(item, serializer);
         }
     }
 }
@@ -7839,12 +8989,32 @@ impl SseEncode for Vec<crate::api::plugin::models::StreamSource> {
     }
 }
 
+impl SseEncode for Vec<crate::api::plugin::models::Suggestion> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::plugin::models::Suggestion>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::plugin::models::Track> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::plugin::models::Track>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::plugin::models::TrackSegment> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::plugin::models::TrackSegment>::sse_encode(item, serializer);
         }
     }
 }
@@ -7874,6 +9044,87 @@ impl SseEncode for crate::api::plugin::models::Lyrics {
     }
 }
 
+impl SseEncode for crate::api::plugin::models::LyricsLine {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.start_ms, serializer);
+        <Option<u32>>::sse_encode(self.duration_ms, serializer);
+        <String>::sse_encode(self.content, serializer);
+        <Option<Vec<crate::api::plugin::models::LyricsToken>>>::sse_encode(self.tokens, serializer);
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::LyricsMatch {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.artist, serializer);
+        <Option<String>>::sse_encode(self.album, serializer);
+        <Option<u64>>::sse_encode(self.duration_ms, serializer);
+        <crate::api::plugin::models::LyricsSyncType>::sse_encode(self.sync_type, serializer);
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::LyricsMetadata {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.source, serializer);
+        <Option<String>>::sse_encode(self.author, serializer);
+        <Option<String>>::sse_encode(self.language, serializer);
+        <Option<String>>::sse_encode(self.copyright, serializer);
+        <bool>::sse_encode(self.is_verified, serializer);
+    }
+}
+
+impl SseEncode for crate::api::plugin::commands::LyricsProviderCommand {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::plugin::commands::LyricsProviderCommand::GetLyrics { metadata } => {
+                <i32>::sse_encode(0, serializer);
+                <crate::api::plugin::models::TrackMetadata>::sse_encode(metadata, serializer);
+            }
+            crate::api::plugin::commands::LyricsProviderCommand::Search { query } => {
+                <i32>::sse_encode(1, serializer);
+                <String>::sse_encode(query, serializer);
+            }
+            crate::api::plugin::commands::LyricsProviderCommand::GetLyricsById { id } => {
+                <i32>::sse_encode(2, serializer);
+                <String>::sse_encode(id, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::LyricsSyncType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::plugin::models::LyricsSyncType::None => 0,
+                crate::api::plugin::models::LyricsSyncType::Line => 1,
+                crate::api::plugin::models::LyricsSyncType::Syllable => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::LyricsToken {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.offset_ms, serializer);
+        <String>::sse_encode(self.text, serializer);
+    }
+}
+
 impl SseEncode for crate::api::plugin::manifest::Manifest {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7891,6 +9142,10 @@ impl SseEncode for crate::api::plugin::manifest::Manifest {
         <Vec<String>>::sse_encode(self.capabilities, serializer);
         <Option<String>>::sse_encode(self.created_at, serializer);
         <Option<String>>::sse_encode(self.remote_url, serializer);
+        <std::collections::HashMap<String, crate::api::plugin::manifest::KeyRequirement>>::sse_encode(self.keys_required, serializer);
+        <Option<String>>::sse_encode(self.thumbnail_url, serializer);
+        <bool>::sse_encode(self.resolver, serializer);
+        <Option<String>>::sse_encode(self.last_updated, serializer);
     }
 }
 
@@ -7989,6 +9244,34 @@ impl SseEncode for Option<crate::api::plugin::types::PluginType> {
     }
 }
 
+impl SseEncode
+    for Option<(
+        crate::api::plugin::models::PluginLyrics,
+        crate::api::plugin::models::LyricsMetadata,
+    )>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <(
+                crate::api::plugin::models::PluginLyrics,
+                crate::api::plugin::models::LyricsMetadata,
+            )>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::plugin::models::SuggestionArtwork> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::plugin::models::SuggestionArtwork>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<u32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8005,6 +9288,36 @@ impl SseEncode for Option<u64> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <u64>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u8> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u8>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::plugin::models::LyricsLine>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::plugin::models::LyricsLine>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::plugin::models::LyricsToken>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::plugin::models::LyricsToken>>::sse_encode(value, serializer);
         }
     }
 }
@@ -8079,15 +9392,27 @@ impl SseEncode for crate::api::plugin::types::PluginInstallStatus {
             match self {
                 crate::api::plugin::types::PluginInstallStatus::Installed => 0,
                 crate::api::plugin::types::PluginInstallStatus::Updated => 1,
-                crate::api::plugin::types::PluginInstallStatus::AlreadyInstalled => 2,
-                crate::api::plugin::types::PluginInstallStatus::PluginLoaded => 3,
-                crate::api::plugin::types::PluginInstallStatus::Failed => 4,
+                crate::api::plugin::types::PluginInstallStatus::Downgraded => 2,
+                crate::api::plugin::types::PluginInstallStatus::AlreadyInstalled => 3,
+                crate::api::plugin::types::PluginInstallStatus::PluginLoaded => 4,
+                crate::api::plugin::types::PluginInstallStatus::Failed => 5,
                 _ => {
                     unimplemented!("");
                 }
             },
             serializer,
         );
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::PluginLyrics {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.plain, serializer);
+        <Option<String>>::sse_encode(self.lrc, serializer);
+        <Option<Vec<crate::api::plugin::models::LyricsLine>>>::sse_encode(self.lines, serializer);
+        <bool>::sse_encode(self.is_instrumental, serializer);
+        <crate::api::plugin::models::LyricsSyncType>::sse_encode(self.sync_type, serializer);
     }
 }
 
@@ -8211,6 +9536,18 @@ impl SseEncode for crate::api::plugin::commands::PluginRequest {
                     field0, serializer,
                 );
             }
+            crate::api::plugin::commands::PluginRequest::LyricsProvider(field0) => {
+                <i32>::sse_encode(2, serializer);
+                <crate::api::plugin::commands::LyricsProviderCommand>::sse_encode(
+                    field0, serializer,
+                );
+            }
+            crate::api::plugin::commands::PluginRequest::SearchSuggestionProvider(field0) => {
+                <i32>::sse_encode(3, serializer);
+                <crate::api::plugin::commands::SearchSuggestionCommand>::sse_encode(
+                    field0, serializer,
+                );
+            }
             _ => {
                 unimplemented!("");
             }
@@ -8266,8 +9603,32 @@ impl SseEncode for crate::api::plugin::commands::PluginResponse {
                 <i32>::sse_encode(10, serializer);
                 <Vec<crate::api::plugin::models::ChartItem>>::sse_encode(field0, serializer);
             }
-            crate::api::plugin::commands::PluginResponse::Ack => {
+            crate::api::plugin::commands::PluginResponse::Segments(field0) => {
                 <i32>::sse_encode(11, serializer);
+                <Vec<crate::api::plugin::models::TrackSegment>>::sse_encode(field0, serializer);
+            }
+            crate::api::plugin::commands::PluginResponse::LyricsResult(field0) => {
+                <i32>::sse_encode(12, serializer);
+                <Option<(
+                    crate::api::plugin::models::PluginLyrics,
+                    crate::api::plugin::models::LyricsMetadata,
+                )>>::sse_encode(field0, serializer);
+            }
+            crate::api::plugin::commands::PluginResponse::LyricsSearchResults(field0) => {
+                <i32>::sse_encode(13, serializer);
+                <Vec<crate::api::plugin::models::LyricsMatch>>::sse_encode(field0, serializer);
+            }
+            crate::api::plugin::commands::PluginResponse::LyricsById(field0, field1) => {
+                <i32>::sse_encode(14, serializer);
+                <crate::api::plugin::models::PluginLyrics>::sse_encode(field0, serializer);
+                <crate::api::plugin::models::LyricsMetadata>::sse_encode(field1, serializer);
+            }
+            crate::api::plugin::commands::PluginResponse::Suggestions(field0) => {
+                <i32>::sse_encode(15, serializer);
+                <Vec<crate::api::plugin::models::Suggestion>>::sse_encode(field0, serializer);
+            }
+            crate::api::plugin::commands::PluginResponse::Ack => {
+                <i32>::sse_encode(16, serializer);
             }
             _ => {
                 unimplemented!("");
@@ -8283,6 +9644,8 @@ impl SseEncode for crate::api::plugin::types::PluginType {
             match self {
                 crate::api::plugin::types::PluginType::ContentResolver => 0,
                 crate::api::plugin::types::PluginType::ChartProvider => 1,
+                crate::api::plugin::types::PluginType::LyricsProvider => 2,
+                crate::api::plugin::types::PluginType::SearchSuggestionProvider => 3,
                 _ => {
                     unimplemented!("");
                 }
@@ -8310,11 +9673,61 @@ impl SseEncode for crate::api::plugin::models::Quality {
     }
 }
 
+impl SseEncode
+    for (
+        crate::api::plugin::models::PluginLyrics,
+        crate::api::plugin::models::LyricsMetadata,
+    )
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::plugin::models::PluginLyrics>::sse_encode(self.0, serializer);
+        <crate::api::plugin::models::LyricsMetadata>::sse_encode(self.1, serializer);
+    }
+}
+
+impl SseEncode for (String, crate::api::plugin::manifest::KeyRequirement) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.0, serializer);
+        <crate::api::plugin::manifest::KeyRequirement>::sse_encode(self.1, serializer);
+    }
+}
+
 impl SseEncode for (String, String) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.0, serializer);
         <String>::sse_encode(self.1, serializer);
+    }
+}
+
+impl SseEncode for crate::api::plugin::commands::SearchSuggestionCommand {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::plugin::commands::SearchSuggestionCommand::GetSuggestions {
+                query,
+                limit,
+                include_entities,
+            } => {
+                <i32>::sse_encode(0, serializer);
+                <String>::sse_encode(query, serializer);
+                <Option<u8>>::sse_encode(limit, serializer);
+                <bool>::sse_encode(include_entities, serializer);
+            }
+            crate::api::plugin::commands::SearchSuggestionCommand::GetDefaultSuggestions {
+                limit,
+                include_entities,
+            } => {
+                <i32>::sse_encode(1, serializer);
+                <Option<u8>>::sse_encode(limit, serializer);
+                <bool>::sse_encode(include_entities, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -8330,6 +9743,29 @@ impl SseEncode for crate::api::plugin::models::Section {
     }
 }
 
+impl SseEncode for crate::api::plugin::models::SegmentType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::plugin::models::SegmentType::Intro => 0,
+                crate::api::plugin::models::SegmentType::Outro => 1,
+                crate::api::plugin::models::SegmentType::Sponsor => 2,
+                crate::api::plugin::models::SegmentType::SelfPromo => 3,
+                crate::api::plugin::models::SegmentType::Interaction => 4,
+                crate::api::plugin::models::SegmentType::MusicOfftopic => 5,
+                crate::api::plugin::models::SegmentType::Chapter => 6,
+                crate::api::plugin::models::SegmentType::Filler => 7,
+                crate::api::plugin::models::SegmentType::Unknown => 8,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::api::plugin::models::StreamSource {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8338,6 +9774,33 @@ impl SseEncode for crate::api::plugin::models::StreamSource {
         <String>::sse_encode(self.format, serializer);
         <Option<Vec<(String, String)>>>::sse_encode(self.headers, serializer);
         <Option<u64>>::sse_encode(self.expires_at, serializer);
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::Suggestion {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::plugin::models::Suggestion::Query(field0) => {
+                <i32>::sse_encode(0, serializer);
+                <String>::sse_encode(field0, serializer);
+            }
+            crate::api::plugin::models::Suggestion::Entity(field0) => {
+                <i32>::sse_encode(1, serializer);
+                <crate::api::plugin::models::EntitySuggestion>::sse_encode(field0, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::SuggestionArtwork {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.url, serializer);
+        <Option<String>>::sse_encode(self.url_low, serializer);
     }
 }
 
@@ -8356,6 +9819,27 @@ impl SseEncode for crate::api::plugin::models::Track {
     }
 }
 
+impl SseEncode for crate::api::plugin::models::TrackMetadata {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.artist, serializer);
+        <Option<String>>::sse_encode(self.album, serializer);
+        <Option<u64>>::sse_encode(self.duration_ms, serializer);
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::TrackSegment {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::plugin::models::SegmentType>::sse_encode(self.segment_type, serializer);
+        <u64>::sse_encode(self.start_ms, serializer);
+        <u64>::sse_encode(self.end_ms, serializer);
+        <Option<String>>::sse_encode(self.title, serializer);
+        <bool>::sse_encode(self.is_skippable, serializer);
+    }
+}
+
 impl SseEncode for crate::api::plugin::models::Trend {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8365,7 +9849,8 @@ impl SseEncode for crate::api::plugin::models::Trend {
                 crate::api::plugin::models::Trend::Down => 1,
                 crate::api::plugin::models::Trend::Same => 2,
                 crate::api::plugin::models::Trend::NewEntry => 3,
-                crate::api::plugin::models::Trend::Unknown => 4,
+                crate::api::plugin::models::Trend::ReEntry => 4,
+                crate::api::plugin::models::Trend::Unknown => 5,
                 _ => {
                     unimplemented!("");
                 }

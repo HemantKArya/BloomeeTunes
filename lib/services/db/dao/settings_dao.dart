@@ -11,7 +11,7 @@ class SettingsDAO {
 
   Future<void> putSettingStr(String key, String value) async {
     Isar isarDB = await _db;
-    if (key.isNotEmpty && value.isNotEmpty) {
+    if (key.isNotEmpty) {
       await isarDB.writeTxn(() async {
         await isarDB.appSettingsStrDBs
             .put(AppSettingsStrDB(settingName: key, settingValue: value));

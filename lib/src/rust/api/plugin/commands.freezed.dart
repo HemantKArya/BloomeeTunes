@@ -355,6 +355,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
     TResult Function(ContentResolverCommand_GetHomeSections value)?
         getHomeSections,
     TResult Function(ContentResolverCommand_LoadMore value)? loadMore,
+    TResult Function(ContentResolverCommand_GetSegmentsForTrack value)?
+        getSegmentsForTrack,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -388,6 +390,9 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
         return getHomeSections(_that);
       case ContentResolverCommand_LoadMore() when loadMore != null:
         return loadMore(_that);
+      case ContentResolverCommand_GetSegmentsForTrack()
+          when getSegmentsForTrack != null:
+        return getSegmentsForTrack(_that);
       case _:
         return orElse();
     }
@@ -428,6 +433,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
     required TResult Function(ContentResolverCommand_GetHomeSections value)
         getHomeSections,
     required TResult Function(ContentResolverCommand_LoadMore value) loadMore,
+    required TResult Function(ContentResolverCommand_GetSegmentsForTrack value)
+        getSegmentsForTrack,
   }) {
     final _that = this;
     switch (_that) {
@@ -453,6 +460,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
         return getHomeSections(_that);
       case ContentResolverCommand_LoadMore():
         return loadMore(_that);
+      case ContentResolverCommand_GetSegmentsForTrack():
+        return getSegmentsForTrack(_that);
     }
   }
 
@@ -489,6 +498,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
     TResult? Function(ContentResolverCommand_GetHomeSections value)?
         getHomeSections,
     TResult? Function(ContentResolverCommand_LoadMore value)? loadMore,
+    TResult? Function(ContentResolverCommand_GetSegmentsForTrack value)?
+        getSegmentsForTrack,
   }) {
     final _that = this;
     switch (_that) {
@@ -521,6 +532,9 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
         return getHomeSections(_that);
       case ContentResolverCommand_LoadMore() when loadMore != null:
         return loadMore(_that);
+      case ContentResolverCommand_GetSegmentsForTrack()
+          when getSegmentsForTrack != null:
+        return getSegmentsForTrack(_that);
       case _:
         return null;
     }
@@ -553,6 +567,7 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
     TResult Function(String id, String? pageToken)? getRadioTracks,
     TResult Function()? getHomeSections,
     TResult Function(String id, String moreLink)? loadMore,
+    TResult Function(String id)? getSegmentsForTrack,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -586,6 +601,9 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
         return getHomeSections();
       case ContentResolverCommand_LoadMore() when loadMore != null:
         return loadMore(_that.id, _that.moreLink);
+      case ContentResolverCommand_GetSegmentsForTrack()
+          when getSegmentsForTrack != null:
+        return getSegmentsForTrack(_that.id);
       case _:
         return orElse();
     }
@@ -619,6 +637,7 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
     required TResult Function(String id, String? pageToken) getRadioTracks,
     required TResult Function() getHomeSections,
     required TResult Function(String id, String moreLink) loadMore,
+    required TResult Function(String id) getSegmentsForTrack,
   }) {
     final _that = this;
     switch (_that) {
@@ -644,6 +663,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
         return getHomeSections();
       case ContentResolverCommand_LoadMore():
         return loadMore(_that.id, _that.moreLink);
+      case ContentResolverCommand_GetSegmentsForTrack():
+        return getSegmentsForTrack(_that.id);
     }
   }
 
@@ -674,6 +695,7 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
     TResult? Function(String id, String? pageToken)? getRadioTracks,
     TResult? Function()? getHomeSections,
     TResult? Function(String id, String moreLink)? loadMore,
+    TResult? Function(String id)? getSegmentsForTrack,
   }) {
     final _that = this;
     switch (_that) {
@@ -706,6 +728,9 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
         return getHomeSections();
       case ContentResolverCommand_LoadMore() when loadMore != null:
         return loadMore(_that.id, _that.moreLink);
+      case ContentResolverCommand_GetSegmentsForTrack()
+          when getSegmentsForTrack != null:
+        return getSegmentsForTrack(_that.id);
       case _:
         return null;
     }
@@ -1471,6 +1496,489 @@ class _$ContentResolverCommand_LoadMoreCopyWithImpl<$Res>
 }
 
 /// @nodoc
+
+class ContentResolverCommand_GetSegmentsForTrack
+    extends ContentResolverCommand {
+  const ContentResolverCommand_GetSegmentsForTrack({required this.id})
+      : super._();
+
+  final String id;
+
+  /// Create a copy of ContentResolverCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ContentResolverCommand_GetSegmentsForTrackCopyWith<
+          ContentResolverCommand_GetSegmentsForTrack>
+      get copyWith => _$ContentResolverCommand_GetSegmentsForTrackCopyWithImpl<
+          ContentResolverCommand_GetSegmentsForTrack>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ContentResolverCommand_GetSegmentsForTrack &&
+            (identical(other.id, id) || other.id == id));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, id);
+
+  @override
+  String toString() {
+    return 'ContentResolverCommand.getSegmentsForTrack(id: $id)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ContentResolverCommand_GetSegmentsForTrackCopyWith<$Res>
+    implements $ContentResolverCommandCopyWith<$Res> {
+  factory $ContentResolverCommand_GetSegmentsForTrackCopyWith(
+          ContentResolverCommand_GetSegmentsForTrack value,
+          $Res Function(ContentResolverCommand_GetSegmentsForTrack) _then) =
+      _$ContentResolverCommand_GetSegmentsForTrackCopyWithImpl;
+  @useResult
+  $Res call({String id});
+}
+
+/// @nodoc
+class _$ContentResolverCommand_GetSegmentsForTrackCopyWithImpl<$Res>
+    implements $ContentResolverCommand_GetSegmentsForTrackCopyWith<$Res> {
+  _$ContentResolverCommand_GetSegmentsForTrackCopyWithImpl(
+      this._self, this._then);
+
+  final ContentResolverCommand_GetSegmentsForTrack _self;
+  final $Res Function(ContentResolverCommand_GetSegmentsForTrack) _then;
+
+  /// Create a copy of ContentResolverCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+  }) {
+    return _then(ContentResolverCommand_GetSegmentsForTrack(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+mixin _$LyricsProviderCommand {
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is LyricsProviderCommand);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'LyricsProviderCommand()';
+  }
+}
+
+/// @nodoc
+class $LyricsProviderCommandCopyWith<$Res> {
+  $LyricsProviderCommandCopyWith(
+      LyricsProviderCommand _, $Res Function(LyricsProviderCommand) __);
+}
+
+/// Adds pattern-matching-related methods to [LyricsProviderCommand].
+extension LyricsProviderCommandPatterns on LyricsProviderCommand {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(LyricsProviderCommand_GetLyrics value)? getLyrics,
+    TResult Function(LyricsProviderCommand_Search value)? search,
+    TResult Function(LyricsProviderCommand_GetLyricsById value)? getLyricsById,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case LyricsProviderCommand_GetLyrics() when getLyrics != null:
+        return getLyrics(_that);
+      case LyricsProviderCommand_Search() when search != null:
+        return search(_that);
+      case LyricsProviderCommand_GetLyricsById() when getLyricsById != null:
+        return getLyricsById(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(LyricsProviderCommand_GetLyrics value) getLyrics,
+    required TResult Function(LyricsProviderCommand_Search value) search,
+    required TResult Function(LyricsProviderCommand_GetLyricsById value)
+        getLyricsById,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case LyricsProviderCommand_GetLyrics():
+        return getLyrics(_that);
+      case LyricsProviderCommand_Search():
+        return search(_that);
+      case LyricsProviderCommand_GetLyricsById():
+        return getLyricsById(_that);
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(LyricsProviderCommand_GetLyrics value)? getLyrics,
+    TResult? Function(LyricsProviderCommand_Search value)? search,
+    TResult? Function(LyricsProviderCommand_GetLyricsById value)? getLyricsById,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case LyricsProviderCommand_GetLyrics() when getLyrics != null:
+        return getLyrics(_that);
+      case LyricsProviderCommand_Search() when search != null:
+        return search(_that);
+      case LyricsProviderCommand_GetLyricsById() when getLyricsById != null:
+        return getLyricsById(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(TrackMetadata metadata)? getLyrics,
+    TResult Function(String query)? search,
+    TResult Function(String id)? getLyricsById,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case LyricsProviderCommand_GetLyrics() when getLyrics != null:
+        return getLyrics(_that.metadata);
+      case LyricsProviderCommand_Search() when search != null:
+        return search(_that.query);
+      case LyricsProviderCommand_GetLyricsById() when getLyricsById != null:
+        return getLyricsById(_that.id);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(TrackMetadata metadata) getLyrics,
+    required TResult Function(String query) search,
+    required TResult Function(String id) getLyricsById,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case LyricsProviderCommand_GetLyrics():
+        return getLyrics(_that.metadata);
+      case LyricsProviderCommand_Search():
+        return search(_that.query);
+      case LyricsProviderCommand_GetLyricsById():
+        return getLyricsById(_that.id);
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(TrackMetadata metadata)? getLyrics,
+    TResult? Function(String query)? search,
+    TResult? Function(String id)? getLyricsById,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case LyricsProviderCommand_GetLyrics() when getLyrics != null:
+        return getLyrics(_that.metadata);
+      case LyricsProviderCommand_Search() when search != null:
+        return search(_that.query);
+      case LyricsProviderCommand_GetLyricsById() when getLyricsById != null:
+        return getLyricsById(_that.id);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class LyricsProviderCommand_GetLyrics extends LyricsProviderCommand {
+  const LyricsProviderCommand_GetLyrics({required this.metadata}) : super._();
+
+  final TrackMetadata metadata;
+
+  /// Create a copy of LyricsProviderCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $LyricsProviderCommand_GetLyricsCopyWith<LyricsProviderCommand_GetLyrics>
+      get copyWith => _$LyricsProviderCommand_GetLyricsCopyWithImpl<
+          LyricsProviderCommand_GetLyrics>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is LyricsProviderCommand_GetLyrics &&
+            (identical(other.metadata, metadata) ||
+                other.metadata == metadata));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, metadata);
+
+  @override
+  String toString() {
+    return 'LyricsProviderCommand.getLyrics(metadata: $metadata)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $LyricsProviderCommand_GetLyricsCopyWith<$Res>
+    implements $LyricsProviderCommandCopyWith<$Res> {
+  factory $LyricsProviderCommand_GetLyricsCopyWith(
+          LyricsProviderCommand_GetLyrics value,
+          $Res Function(LyricsProviderCommand_GetLyrics) _then) =
+      _$LyricsProviderCommand_GetLyricsCopyWithImpl;
+  @useResult
+  $Res call({TrackMetadata metadata});
+}
+
+/// @nodoc
+class _$LyricsProviderCommand_GetLyricsCopyWithImpl<$Res>
+    implements $LyricsProviderCommand_GetLyricsCopyWith<$Res> {
+  _$LyricsProviderCommand_GetLyricsCopyWithImpl(this._self, this._then);
+
+  final LyricsProviderCommand_GetLyrics _self;
+  final $Res Function(LyricsProviderCommand_GetLyrics) _then;
+
+  /// Create a copy of LyricsProviderCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? metadata = null,
+  }) {
+    return _then(LyricsProviderCommand_GetLyrics(
+      metadata: null == metadata
+          ? _self.metadata
+          : metadata // ignore: cast_nullable_to_non_nullable
+              as TrackMetadata,
+    ));
+  }
+}
+
+/// @nodoc
+
+class LyricsProviderCommand_Search extends LyricsProviderCommand {
+  const LyricsProviderCommand_Search({required this.query}) : super._();
+
+  final String query;
+
+  /// Create a copy of LyricsProviderCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $LyricsProviderCommand_SearchCopyWith<LyricsProviderCommand_Search>
+      get copyWith => _$LyricsProviderCommand_SearchCopyWithImpl<
+          LyricsProviderCommand_Search>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is LyricsProviderCommand_Search &&
+            (identical(other.query, query) || other.query == query));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, query);
+
+  @override
+  String toString() {
+    return 'LyricsProviderCommand.search(query: $query)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $LyricsProviderCommand_SearchCopyWith<$Res>
+    implements $LyricsProviderCommandCopyWith<$Res> {
+  factory $LyricsProviderCommand_SearchCopyWith(
+          LyricsProviderCommand_Search value,
+          $Res Function(LyricsProviderCommand_Search) _then) =
+      _$LyricsProviderCommand_SearchCopyWithImpl;
+  @useResult
+  $Res call({String query});
+}
+
+/// @nodoc
+class _$LyricsProviderCommand_SearchCopyWithImpl<$Res>
+    implements $LyricsProviderCommand_SearchCopyWith<$Res> {
+  _$LyricsProviderCommand_SearchCopyWithImpl(this._self, this._then);
+
+  final LyricsProviderCommand_Search _self;
+  final $Res Function(LyricsProviderCommand_Search) _then;
+
+  /// Create a copy of LyricsProviderCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? query = null,
+  }) {
+    return _then(LyricsProviderCommand_Search(
+      query: null == query
+          ? _self.query
+          : query // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class LyricsProviderCommand_GetLyricsById extends LyricsProviderCommand {
+  const LyricsProviderCommand_GetLyricsById({required this.id}) : super._();
+
+  final String id;
+
+  /// Create a copy of LyricsProviderCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $LyricsProviderCommand_GetLyricsByIdCopyWith<
+          LyricsProviderCommand_GetLyricsById>
+      get copyWith => _$LyricsProviderCommand_GetLyricsByIdCopyWithImpl<
+          LyricsProviderCommand_GetLyricsById>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is LyricsProviderCommand_GetLyricsById &&
+            (identical(other.id, id) || other.id == id));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, id);
+
+  @override
+  String toString() {
+    return 'LyricsProviderCommand.getLyricsById(id: $id)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $LyricsProviderCommand_GetLyricsByIdCopyWith<$Res>
+    implements $LyricsProviderCommandCopyWith<$Res> {
+  factory $LyricsProviderCommand_GetLyricsByIdCopyWith(
+          LyricsProviderCommand_GetLyricsById value,
+          $Res Function(LyricsProviderCommand_GetLyricsById) _then) =
+      _$LyricsProviderCommand_GetLyricsByIdCopyWithImpl;
+  @useResult
+  $Res call({String id});
+}
+
+/// @nodoc
+class _$LyricsProviderCommand_GetLyricsByIdCopyWithImpl<$Res>
+    implements $LyricsProviderCommand_GetLyricsByIdCopyWith<$Res> {
+  _$LyricsProviderCommand_GetLyricsByIdCopyWithImpl(this._self, this._then);
+
+  final LyricsProviderCommand_GetLyricsById _self;
+  final $Res Function(LyricsProviderCommand_GetLyricsById) _then;
+
+  /// Create a copy of LyricsProviderCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+  }) {
+    return _then(LyricsProviderCommand_GetLyricsById(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
 mixin _$PluginRequest {
   Object get field0;
 
@@ -1515,6 +2023,9 @@ extension PluginRequestPatterns on PluginRequest {
   TResult maybeMap<TResult extends Object?>({
     TResult Function(PluginRequest_ContentResolver value)? contentResolver,
     TResult Function(PluginRequest_ChartProvider value)? chartProvider,
+    TResult Function(PluginRequest_LyricsProvider value)? lyricsProvider,
+    TResult Function(PluginRequest_SearchSuggestionProvider value)?
+        searchSuggestionProvider,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -1523,6 +2034,11 @@ extension PluginRequestPatterns on PluginRequest {
         return contentResolver(_that);
       case PluginRequest_ChartProvider() when chartProvider != null:
         return chartProvider(_that);
+      case PluginRequest_LyricsProvider() when lyricsProvider != null:
+        return lyricsProvider(_that);
+      case PluginRequest_SearchSuggestionProvider()
+          when searchSuggestionProvider != null:
+        return searchSuggestionProvider(_that);
       case _:
         return orElse();
     }
@@ -1546,6 +2062,10 @@ extension PluginRequestPatterns on PluginRequest {
     required TResult Function(PluginRequest_ContentResolver value)
         contentResolver,
     required TResult Function(PluginRequest_ChartProvider value) chartProvider,
+    required TResult Function(PluginRequest_LyricsProvider value)
+        lyricsProvider,
+    required TResult Function(PluginRequest_SearchSuggestionProvider value)
+        searchSuggestionProvider,
   }) {
     final _that = this;
     switch (_that) {
@@ -1553,6 +2073,10 @@ extension PluginRequestPatterns on PluginRequest {
         return contentResolver(_that);
       case PluginRequest_ChartProvider():
         return chartProvider(_that);
+      case PluginRequest_LyricsProvider():
+        return lyricsProvider(_that);
+      case PluginRequest_SearchSuggestionProvider():
+        return searchSuggestionProvider(_that);
     }
   }
 
@@ -1572,6 +2096,9 @@ extension PluginRequestPatterns on PluginRequest {
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(PluginRequest_ContentResolver value)? contentResolver,
     TResult? Function(PluginRequest_ChartProvider value)? chartProvider,
+    TResult? Function(PluginRequest_LyricsProvider value)? lyricsProvider,
+    TResult? Function(PluginRequest_SearchSuggestionProvider value)?
+        searchSuggestionProvider,
   }) {
     final _that = this;
     switch (_that) {
@@ -1579,6 +2106,11 @@ extension PluginRequestPatterns on PluginRequest {
         return contentResolver(_that);
       case PluginRequest_ChartProvider() when chartProvider != null:
         return chartProvider(_that);
+      case PluginRequest_LyricsProvider() when lyricsProvider != null:
+        return lyricsProvider(_that);
+      case PluginRequest_SearchSuggestionProvider()
+          when searchSuggestionProvider != null:
+        return searchSuggestionProvider(_that);
       case _:
         return null;
     }
@@ -1600,6 +2132,8 @@ extension PluginRequestPatterns on PluginRequest {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(ContentResolverCommand field0)? contentResolver,
     TResult Function(ChartProviderCommand field0)? chartProvider,
+    TResult Function(LyricsProviderCommand field0)? lyricsProvider,
+    TResult Function(SearchSuggestionCommand field0)? searchSuggestionProvider,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -1608,6 +2142,11 @@ extension PluginRequestPatterns on PluginRequest {
         return contentResolver(_that.field0);
       case PluginRequest_ChartProvider() when chartProvider != null:
         return chartProvider(_that.field0);
+      case PluginRequest_LyricsProvider() when lyricsProvider != null:
+        return lyricsProvider(_that.field0);
+      case PluginRequest_SearchSuggestionProvider()
+          when searchSuggestionProvider != null:
+        return searchSuggestionProvider(_that.field0);
       case _:
         return orElse();
     }
@@ -1630,6 +2169,9 @@ extension PluginRequestPatterns on PluginRequest {
   TResult when<TResult extends Object?>({
     required TResult Function(ContentResolverCommand field0) contentResolver,
     required TResult Function(ChartProviderCommand field0) chartProvider,
+    required TResult Function(LyricsProviderCommand field0) lyricsProvider,
+    required TResult Function(SearchSuggestionCommand field0)
+        searchSuggestionProvider,
   }) {
     final _that = this;
     switch (_that) {
@@ -1637,6 +2179,10 @@ extension PluginRequestPatterns on PluginRequest {
         return contentResolver(_that.field0);
       case PluginRequest_ChartProvider():
         return chartProvider(_that.field0);
+      case PluginRequest_LyricsProvider():
+        return lyricsProvider(_that.field0);
+      case PluginRequest_SearchSuggestionProvider():
+        return searchSuggestionProvider(_that.field0);
     }
   }
 
@@ -1656,6 +2202,8 @@ extension PluginRequestPatterns on PluginRequest {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(ContentResolverCommand field0)? contentResolver,
     TResult? Function(ChartProviderCommand field0)? chartProvider,
+    TResult? Function(LyricsProviderCommand field0)? lyricsProvider,
+    TResult? Function(SearchSuggestionCommand field0)? searchSuggestionProvider,
   }) {
     final _that = this;
     switch (_that) {
@@ -1663,6 +2211,11 @@ extension PluginRequestPatterns on PluginRequest {
         return contentResolver(_that.field0);
       case PluginRequest_ChartProvider() when chartProvider != null:
         return chartProvider(_that.field0);
+      case PluginRequest_LyricsProvider() when lyricsProvider != null:
+        return lyricsProvider(_that.field0);
+      case PluginRequest_SearchSuggestionProvider()
+          when searchSuggestionProvider != null:
+        return searchSuggestionProvider(_that.field0);
       case _:
         return null;
     }
@@ -1828,6 +2381,165 @@ class _$PluginRequest_ChartProviderCopyWithImpl<$Res>
 }
 
 /// @nodoc
+
+class PluginRequest_LyricsProvider extends PluginRequest {
+  const PluginRequest_LyricsProvider(this.field0) : super._();
+
+  @override
+  final LyricsProviderCommand field0;
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginRequest_LyricsProviderCopyWith<PluginRequest_LyricsProvider>
+      get copyWith => _$PluginRequest_LyricsProviderCopyWithImpl<
+          PluginRequest_LyricsProvider>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginRequest_LyricsProvider &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'PluginRequest.lyricsProvider(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginRequest_LyricsProviderCopyWith<$Res>
+    implements $PluginRequestCopyWith<$Res> {
+  factory $PluginRequest_LyricsProviderCopyWith(
+          PluginRequest_LyricsProvider value,
+          $Res Function(PluginRequest_LyricsProvider) _then) =
+      _$PluginRequest_LyricsProviderCopyWithImpl;
+  @useResult
+  $Res call({LyricsProviderCommand field0});
+
+  $LyricsProviderCommandCopyWith<$Res> get field0;
+}
+
+/// @nodoc
+class _$PluginRequest_LyricsProviderCopyWithImpl<$Res>
+    implements $PluginRequest_LyricsProviderCopyWith<$Res> {
+  _$PluginRequest_LyricsProviderCopyWithImpl(this._self, this._then);
+
+  final PluginRequest_LyricsProvider _self;
+  final $Res Function(PluginRequest_LyricsProvider) _then;
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginRequest_LyricsProvider(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as LyricsProviderCommand,
+    ));
+  }
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $LyricsProviderCommandCopyWith<$Res> get field0 {
+    return $LyricsProviderCommandCopyWith<$Res>(_self.field0, (value) {
+      return _then(_self.copyWith(field0: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class PluginRequest_SearchSuggestionProvider extends PluginRequest {
+  const PluginRequest_SearchSuggestionProvider(this.field0) : super._();
+
+  @override
+  final SearchSuggestionCommand field0;
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginRequest_SearchSuggestionProviderCopyWith<
+          PluginRequest_SearchSuggestionProvider>
+      get copyWith => _$PluginRequest_SearchSuggestionProviderCopyWithImpl<
+          PluginRequest_SearchSuggestionProvider>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginRequest_SearchSuggestionProvider &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'PluginRequest.searchSuggestionProvider(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginRequest_SearchSuggestionProviderCopyWith<$Res>
+    implements $PluginRequestCopyWith<$Res> {
+  factory $PluginRequest_SearchSuggestionProviderCopyWith(
+          PluginRequest_SearchSuggestionProvider value,
+          $Res Function(PluginRequest_SearchSuggestionProvider) _then) =
+      _$PluginRequest_SearchSuggestionProviderCopyWithImpl;
+  @useResult
+  $Res call({SearchSuggestionCommand field0});
+
+  $SearchSuggestionCommandCopyWith<$Res> get field0;
+}
+
+/// @nodoc
+class _$PluginRequest_SearchSuggestionProviderCopyWithImpl<$Res>
+    implements $PluginRequest_SearchSuggestionProviderCopyWith<$Res> {
+  _$PluginRequest_SearchSuggestionProviderCopyWithImpl(this._self, this._then);
+
+  final PluginRequest_SearchSuggestionProvider _self;
+  final $Res Function(PluginRequest_SearchSuggestionProvider) _then;
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginRequest_SearchSuggestionProvider(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as SearchSuggestionCommand,
+    ));
+  }
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SearchSuggestionCommandCopyWith<$Res> get field0 {
+    return $SearchSuggestionCommandCopyWith<$Res>(_self.field0, (value) {
+      return _then(_self.copyWith(field0: value));
+    });
+  }
+}
+
+/// @nodoc
 mixin _$PluginResponse {
   @override
   bool operator ==(Object other) {
@@ -1876,6 +2588,12 @@ extension PluginResponsePatterns on PluginResponse {
     TResult Function(PluginResponse_LoadMoreItems value)? loadMoreItems,
     TResult Function(PluginResponse_Charts value)? charts,
     TResult Function(PluginResponse_ChartDetails value)? chartDetails,
+    TResult Function(PluginResponse_Segments value)? segments,
+    TResult Function(PluginResponse_LyricsResult value)? lyricsResult,
+    TResult Function(PluginResponse_LyricsSearchResults value)?
+        lyricsSearchResults,
+    TResult Function(PluginResponse_LyricsById value)? lyricsById,
+    TResult Function(PluginResponse_Suggestions value)? suggestions,
     TResult Function(PluginResponse_Ack value)? ack,
     required TResult orElse(),
   }) {
@@ -1903,6 +2621,17 @@ extension PluginResponsePatterns on PluginResponse {
         return charts(_that);
       case PluginResponse_ChartDetails() when chartDetails != null:
         return chartDetails(_that);
+      case PluginResponse_Segments() when segments != null:
+        return segments(_that);
+      case PluginResponse_LyricsResult() when lyricsResult != null:
+        return lyricsResult(_that);
+      case PluginResponse_LyricsSearchResults()
+          when lyricsSearchResults != null:
+        return lyricsSearchResults(_that);
+      case PluginResponse_LyricsById() when lyricsById != null:
+        return lyricsById(_that);
+      case PluginResponse_Suggestions() when suggestions != null:
+        return suggestions(_that);
       case PluginResponse_Ack() when ack != null:
         return ack(_that);
       case _:
@@ -1937,6 +2666,12 @@ extension PluginResponsePatterns on PluginResponse {
     required TResult Function(PluginResponse_LoadMoreItems value) loadMoreItems,
     required TResult Function(PluginResponse_Charts value) charts,
     required TResult Function(PluginResponse_ChartDetails value) chartDetails,
+    required TResult Function(PluginResponse_Segments value) segments,
+    required TResult Function(PluginResponse_LyricsResult value) lyricsResult,
+    required TResult Function(PluginResponse_LyricsSearchResults value)
+        lyricsSearchResults,
+    required TResult Function(PluginResponse_LyricsById value) lyricsById,
+    required TResult Function(PluginResponse_Suggestions value) suggestions,
     required TResult Function(PluginResponse_Ack value) ack,
   }) {
     final _that = this;
@@ -1963,6 +2698,16 @@ extension PluginResponsePatterns on PluginResponse {
         return charts(_that);
       case PluginResponse_ChartDetails():
         return chartDetails(_that);
+      case PluginResponse_Segments():
+        return segments(_that);
+      case PluginResponse_LyricsResult():
+        return lyricsResult(_that);
+      case PluginResponse_LyricsSearchResults():
+        return lyricsSearchResults(_that);
+      case PluginResponse_LyricsById():
+        return lyricsById(_that);
+      case PluginResponse_Suggestions():
+        return suggestions(_that);
       case PluginResponse_Ack():
         return ack(_that);
     }
@@ -1993,6 +2738,12 @@ extension PluginResponsePatterns on PluginResponse {
     TResult? Function(PluginResponse_LoadMoreItems value)? loadMoreItems,
     TResult? Function(PluginResponse_Charts value)? charts,
     TResult? Function(PluginResponse_ChartDetails value)? chartDetails,
+    TResult? Function(PluginResponse_Segments value)? segments,
+    TResult? Function(PluginResponse_LyricsResult value)? lyricsResult,
+    TResult? Function(PluginResponse_LyricsSearchResults value)?
+        lyricsSearchResults,
+    TResult? Function(PluginResponse_LyricsById value)? lyricsById,
+    TResult? Function(PluginResponse_Suggestions value)? suggestions,
     TResult? Function(PluginResponse_Ack value)? ack,
   }) {
     final _that = this;
@@ -2019,6 +2770,17 @@ extension PluginResponsePatterns on PluginResponse {
         return charts(_that);
       case PluginResponse_ChartDetails() when chartDetails != null:
         return chartDetails(_that);
+      case PluginResponse_Segments() when segments != null:
+        return segments(_that);
+      case PluginResponse_LyricsResult() when lyricsResult != null:
+        return lyricsResult(_that);
+      case PluginResponse_LyricsSearchResults()
+          when lyricsSearchResults != null:
+        return lyricsSearchResults(_that);
+      case PluginResponse_LyricsById() when lyricsById != null:
+        return lyricsById(_that);
+      case PluginResponse_Suggestions() when suggestions != null:
+        return suggestions(_that);
       case PluginResponse_Ack() when ack != null:
         return ack(_that);
       case _:
@@ -2051,6 +2813,11 @@ extension PluginResponsePatterns on PluginResponse {
     TResult Function(List<MediaItem> field0)? loadMoreItems,
     TResult Function(List<ChartSummary> field0)? charts,
     TResult Function(List<ChartItem> field0)? chartDetails,
+    TResult Function(List<TrackSegment> field0)? segments,
+    TResult Function((PluginLyrics, LyricsMetadata)? field0)? lyricsResult,
+    TResult Function(List<LyricsMatch> field0)? lyricsSearchResults,
+    TResult Function(PluginLyrics field0, LyricsMetadata field1)? lyricsById,
+    TResult Function(List<Suggestion> field0)? suggestions,
     TResult Function()? ack,
     required TResult orElse(),
   }) {
@@ -2078,6 +2845,17 @@ extension PluginResponsePatterns on PluginResponse {
         return charts(_that.field0);
       case PluginResponse_ChartDetails() when chartDetails != null:
         return chartDetails(_that.field0);
+      case PluginResponse_Segments() when segments != null:
+        return segments(_that.field0);
+      case PluginResponse_LyricsResult() when lyricsResult != null:
+        return lyricsResult(_that.field0);
+      case PluginResponse_LyricsSearchResults()
+          when lyricsSearchResults != null:
+        return lyricsSearchResults(_that.field0);
+      case PluginResponse_LyricsById() when lyricsById != null:
+        return lyricsById(_that.field0, _that.field1);
+      case PluginResponse_Suggestions() when suggestions != null:
+        return suggestions(_that.field0);
       case PluginResponse_Ack() when ack != null:
         return ack();
       case _:
@@ -2111,6 +2889,13 @@ extension PluginResponsePatterns on PluginResponse {
     required TResult Function(List<MediaItem> field0) loadMoreItems,
     required TResult Function(List<ChartSummary> field0) charts,
     required TResult Function(List<ChartItem> field0) chartDetails,
+    required TResult Function(List<TrackSegment> field0) segments,
+    required TResult Function((PluginLyrics, LyricsMetadata)? field0)
+        lyricsResult,
+    required TResult Function(List<LyricsMatch> field0) lyricsSearchResults,
+    required TResult Function(PluginLyrics field0, LyricsMetadata field1)
+        lyricsById,
+    required TResult Function(List<Suggestion> field0) suggestions,
     required TResult Function() ack,
   }) {
     final _that = this;
@@ -2137,6 +2922,16 @@ extension PluginResponsePatterns on PluginResponse {
         return charts(_that.field0);
       case PluginResponse_ChartDetails():
         return chartDetails(_that.field0);
+      case PluginResponse_Segments():
+        return segments(_that.field0);
+      case PluginResponse_LyricsResult():
+        return lyricsResult(_that.field0);
+      case PluginResponse_LyricsSearchResults():
+        return lyricsSearchResults(_that.field0);
+      case PluginResponse_LyricsById():
+        return lyricsById(_that.field0, _that.field1);
+      case PluginResponse_Suggestions():
+        return suggestions(_that.field0);
       case PluginResponse_Ack():
         return ack();
     }
@@ -2167,6 +2962,11 @@ extension PluginResponsePatterns on PluginResponse {
     TResult? Function(List<MediaItem> field0)? loadMoreItems,
     TResult? Function(List<ChartSummary> field0)? charts,
     TResult? Function(List<ChartItem> field0)? chartDetails,
+    TResult? Function(List<TrackSegment> field0)? segments,
+    TResult? Function((PluginLyrics, LyricsMetadata)? field0)? lyricsResult,
+    TResult? Function(List<LyricsMatch> field0)? lyricsSearchResults,
+    TResult? Function(PluginLyrics field0, LyricsMetadata field1)? lyricsById,
+    TResult? Function(List<Suggestion> field0)? suggestions,
     TResult? Function()? ack,
   }) {
     final _that = this;
@@ -2193,6 +2993,17 @@ extension PluginResponsePatterns on PluginResponse {
         return charts(_that.field0);
       case PluginResponse_ChartDetails() when chartDetails != null:
         return chartDetails(_that.field0);
+      case PluginResponse_Segments() when segments != null:
+        return segments(_that.field0);
+      case PluginResponse_LyricsResult() when lyricsResult != null:
+        return lyricsResult(_that.field0);
+      case PluginResponse_LyricsSearchResults()
+          when lyricsSearchResults != null:
+        return lyricsSearchResults(_that.field0);
+      case PluginResponse_LyricsById() when lyricsById != null:
+        return lyricsById(_that.field0, _that.field1);
+      case PluginResponse_Suggestions() when suggestions != null:
+        return suggestions(_that.field0);
       case PluginResponse_Ack() when ack != null:
         return ack();
       case _:
@@ -2964,6 +3775,366 @@ class _$PluginResponse_ChartDetailsCopyWithImpl<$Res>
 
 /// @nodoc
 
+class PluginResponse_Segments extends PluginResponse {
+  const PluginResponse_Segments(final List<TrackSegment> field0)
+      : _field0 = field0,
+        super._();
+
+  final List<TrackSegment> _field0;
+  List<TrackSegment> get field0 {
+    if (_field0 is EqualUnmodifiableListView) return _field0;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_field0);
+  }
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_SegmentsCopyWith<PluginResponse_Segments> get copyWith =>
+      _$PluginResponse_SegmentsCopyWithImpl<PluginResponse_Segments>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_Segments &&
+            const DeepCollectionEquality().equals(other._field0, _field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(_field0));
+
+  @override
+  String toString() {
+    return 'PluginResponse.segments(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_SegmentsCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_SegmentsCopyWith(PluginResponse_Segments value,
+          $Res Function(PluginResponse_Segments) _then) =
+      _$PluginResponse_SegmentsCopyWithImpl;
+  @useResult
+  $Res call({List<TrackSegment> field0});
+}
+
+/// @nodoc
+class _$PluginResponse_SegmentsCopyWithImpl<$Res>
+    implements $PluginResponse_SegmentsCopyWith<$Res> {
+  _$PluginResponse_SegmentsCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_Segments _self;
+  final $Res Function(PluginResponse_Segments) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginResponse_Segments(
+      null == field0
+          ? _self._field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as List<TrackSegment>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class PluginResponse_LyricsResult extends PluginResponse {
+  const PluginResponse_LyricsResult([this.field0]) : super._();
+
+  final (PluginLyrics, LyricsMetadata)? field0;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_LyricsResultCopyWith<PluginResponse_LyricsResult>
+      get copyWith => _$PluginResponse_LyricsResultCopyWithImpl<
+          PluginResponse_LyricsResult>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_LyricsResult &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'PluginResponse.lyricsResult(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_LyricsResultCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_LyricsResultCopyWith(
+          PluginResponse_LyricsResult value,
+          $Res Function(PluginResponse_LyricsResult) _then) =
+      _$PluginResponse_LyricsResultCopyWithImpl;
+  @useResult
+  $Res call({(PluginLyrics, LyricsMetadata)? field0});
+}
+
+/// @nodoc
+class _$PluginResponse_LyricsResultCopyWithImpl<$Res>
+    implements $PluginResponse_LyricsResultCopyWith<$Res> {
+  _$PluginResponse_LyricsResultCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_LyricsResult _self;
+  final $Res Function(PluginResponse_LyricsResult) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = freezed,
+  }) {
+    return _then(PluginResponse_LyricsResult(
+      freezed == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as (PluginLyrics, LyricsMetadata)?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class PluginResponse_LyricsSearchResults extends PluginResponse {
+  const PluginResponse_LyricsSearchResults(final List<LyricsMatch> field0)
+      : _field0 = field0,
+        super._();
+
+  final List<LyricsMatch> _field0;
+  List<LyricsMatch> get field0 {
+    if (_field0 is EqualUnmodifiableListView) return _field0;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_field0);
+  }
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_LyricsSearchResultsCopyWith<
+          PluginResponse_LyricsSearchResults>
+      get copyWith => _$PluginResponse_LyricsSearchResultsCopyWithImpl<
+          PluginResponse_LyricsSearchResults>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_LyricsSearchResults &&
+            const DeepCollectionEquality().equals(other._field0, _field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(_field0));
+
+  @override
+  String toString() {
+    return 'PluginResponse.lyricsSearchResults(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_LyricsSearchResultsCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_LyricsSearchResultsCopyWith(
+          PluginResponse_LyricsSearchResults value,
+          $Res Function(PluginResponse_LyricsSearchResults) _then) =
+      _$PluginResponse_LyricsSearchResultsCopyWithImpl;
+  @useResult
+  $Res call({List<LyricsMatch> field0});
+}
+
+/// @nodoc
+class _$PluginResponse_LyricsSearchResultsCopyWithImpl<$Res>
+    implements $PluginResponse_LyricsSearchResultsCopyWith<$Res> {
+  _$PluginResponse_LyricsSearchResultsCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_LyricsSearchResults _self;
+  final $Res Function(PluginResponse_LyricsSearchResults) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginResponse_LyricsSearchResults(
+      null == field0
+          ? _self._field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as List<LyricsMatch>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class PluginResponse_LyricsById extends PluginResponse {
+  const PluginResponse_LyricsById(this.field0, this.field1) : super._();
+
+  final PluginLyrics field0;
+  final LyricsMetadata field1;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_LyricsByIdCopyWith<PluginResponse_LyricsById> get copyWith =>
+      _$PluginResponse_LyricsByIdCopyWithImpl<PluginResponse_LyricsById>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_LyricsById &&
+            (identical(other.field0, field0) || other.field0 == field0) &&
+            (identical(other.field1, field1) || other.field1 == field1));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0, field1);
+
+  @override
+  String toString() {
+    return 'PluginResponse.lyricsById(field0: $field0, field1: $field1)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_LyricsByIdCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_LyricsByIdCopyWith(PluginResponse_LyricsById value,
+          $Res Function(PluginResponse_LyricsById) _then) =
+      _$PluginResponse_LyricsByIdCopyWithImpl;
+  @useResult
+  $Res call({PluginLyrics field0, LyricsMetadata field1});
+}
+
+/// @nodoc
+class _$PluginResponse_LyricsByIdCopyWithImpl<$Res>
+    implements $PluginResponse_LyricsByIdCopyWith<$Res> {
+  _$PluginResponse_LyricsByIdCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_LyricsById _self;
+  final $Res Function(PluginResponse_LyricsById) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+    Object? field1 = null,
+  }) {
+    return _then(PluginResponse_LyricsById(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as PluginLyrics,
+      null == field1
+          ? _self.field1
+          : field1 // ignore: cast_nullable_to_non_nullable
+              as LyricsMetadata,
+    ));
+  }
+}
+
+/// @nodoc
+
+class PluginResponse_Suggestions extends PluginResponse {
+  const PluginResponse_Suggestions(final List<Suggestion> field0)
+      : _field0 = field0,
+        super._();
+
+  final List<Suggestion> _field0;
+  List<Suggestion> get field0 {
+    if (_field0 is EqualUnmodifiableListView) return _field0;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_field0);
+  }
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_SuggestionsCopyWith<PluginResponse_Suggestions>
+      get copyWith =>
+          _$PluginResponse_SuggestionsCopyWithImpl<PluginResponse_Suggestions>(
+              this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_Suggestions &&
+            const DeepCollectionEquality().equals(other._field0, _field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(_field0));
+
+  @override
+  String toString() {
+    return 'PluginResponse.suggestions(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_SuggestionsCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_SuggestionsCopyWith(PluginResponse_Suggestions value,
+          $Res Function(PluginResponse_Suggestions) _then) =
+      _$PluginResponse_SuggestionsCopyWithImpl;
+  @useResult
+  $Res call({List<Suggestion> field0});
+}
+
+/// @nodoc
+class _$PluginResponse_SuggestionsCopyWithImpl<$Res>
+    implements $PluginResponse_SuggestionsCopyWith<$Res> {
+  _$PluginResponse_SuggestionsCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_Suggestions _self;
+  final $Res Function(PluginResponse_Suggestions) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginResponse_Suggestions(
+      null == field0
+          ? _self._field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as List<Suggestion>,
+    ));
+  }
+}
+
+/// @nodoc
+
 class PluginResponse_Ack extends PluginResponse {
   const PluginResponse_Ack() : super._();
 
@@ -2979,6 +4150,436 @@ class PluginResponse_Ack extends PluginResponse {
   @override
   String toString() {
     return 'PluginResponse.ack()';
+  }
+}
+
+/// @nodoc
+mixin _$SearchSuggestionCommand {
+  int? get limit;
+  bool get includeEntities;
+
+  /// Create a copy of SearchSuggestionCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SearchSuggestionCommandCopyWith<SearchSuggestionCommand> get copyWith =>
+      _$SearchSuggestionCommandCopyWithImpl<SearchSuggestionCommand>(
+          this as SearchSuggestionCommand, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SearchSuggestionCommand &&
+            (identical(other.limit, limit) || other.limit == limit) &&
+            (identical(other.includeEntities, includeEntities) ||
+                other.includeEntities == includeEntities));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, limit, includeEntities);
+
+  @override
+  String toString() {
+    return 'SearchSuggestionCommand(limit: $limit, includeEntities: $includeEntities)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SearchSuggestionCommandCopyWith<$Res> {
+  factory $SearchSuggestionCommandCopyWith(SearchSuggestionCommand value,
+          $Res Function(SearchSuggestionCommand) _then) =
+      _$SearchSuggestionCommandCopyWithImpl;
+  @useResult
+  $Res call({int? limit, bool includeEntities});
+}
+
+/// @nodoc
+class _$SearchSuggestionCommandCopyWithImpl<$Res>
+    implements $SearchSuggestionCommandCopyWith<$Res> {
+  _$SearchSuggestionCommandCopyWithImpl(this._self, this._then);
+
+  final SearchSuggestionCommand _self;
+  final $Res Function(SearchSuggestionCommand) _then;
+
+  /// Create a copy of SearchSuggestionCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? limit = freezed,
+    Object? includeEntities = null,
+  }) {
+    return _then(_self.copyWith(
+      limit: freezed == limit
+          ? _self.limit
+          : limit // ignore: cast_nullable_to_non_nullable
+              as int?,
+      includeEntities: null == includeEntities
+          ? _self.includeEntities
+          : includeEntities // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [SearchSuggestionCommand].
+extension SearchSuggestionCommandPatterns on SearchSuggestionCommand {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SearchSuggestionCommand_GetSuggestions value)?
+        getSuggestions,
+    TResult Function(SearchSuggestionCommand_GetDefaultSuggestions value)?
+        getDefaultSuggestions,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case SearchSuggestionCommand_GetSuggestions() when getSuggestions != null:
+        return getSuggestions(_that);
+      case SearchSuggestionCommand_GetDefaultSuggestions()
+          when getDefaultSuggestions != null:
+        return getDefaultSuggestions(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SearchSuggestionCommand_GetSuggestions value)
+        getSuggestions,
+    required TResult Function(
+            SearchSuggestionCommand_GetDefaultSuggestions value)
+        getDefaultSuggestions,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case SearchSuggestionCommand_GetSuggestions():
+        return getSuggestions(_that);
+      case SearchSuggestionCommand_GetDefaultSuggestions():
+        return getDefaultSuggestions(_that);
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(SearchSuggestionCommand_GetSuggestions value)?
+        getSuggestions,
+    TResult? Function(SearchSuggestionCommand_GetDefaultSuggestions value)?
+        getDefaultSuggestions,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case SearchSuggestionCommand_GetSuggestions() when getSuggestions != null:
+        return getSuggestions(_that);
+      case SearchSuggestionCommand_GetDefaultSuggestions()
+          when getDefaultSuggestions != null:
+        return getDefaultSuggestions(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String query, int? limit, bool includeEntities)?
+        getSuggestions,
+    TResult Function(int? limit, bool includeEntities)? getDefaultSuggestions,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case SearchSuggestionCommand_GetSuggestions() when getSuggestions != null:
+        return getSuggestions(_that.query, _that.limit, _that.includeEntities);
+      case SearchSuggestionCommand_GetDefaultSuggestions()
+          when getDefaultSuggestions != null:
+        return getDefaultSuggestions(_that.limit, _that.includeEntities);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String query, int? limit, bool includeEntities)
+        getSuggestions,
+    required TResult Function(int? limit, bool includeEntities)
+        getDefaultSuggestions,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case SearchSuggestionCommand_GetSuggestions():
+        return getSuggestions(_that.query, _that.limit, _that.includeEntities);
+      case SearchSuggestionCommand_GetDefaultSuggestions():
+        return getDefaultSuggestions(_that.limit, _that.includeEntities);
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String query, int? limit, bool includeEntities)?
+        getSuggestions,
+    TResult? Function(int? limit, bool includeEntities)? getDefaultSuggestions,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case SearchSuggestionCommand_GetSuggestions() when getSuggestions != null:
+        return getSuggestions(_that.query, _that.limit, _that.includeEntities);
+      case SearchSuggestionCommand_GetDefaultSuggestions()
+          when getDefaultSuggestions != null:
+        return getDefaultSuggestions(_that.limit, _that.includeEntities);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class SearchSuggestionCommand_GetSuggestions extends SearchSuggestionCommand {
+  const SearchSuggestionCommand_GetSuggestions(
+      {required this.query, this.limit, required this.includeEntities})
+      : super._();
+
+  final String query;
+  @override
+  final int? limit;
+  @override
+  final bool includeEntities;
+
+  /// Create a copy of SearchSuggestionCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SearchSuggestionCommand_GetSuggestionsCopyWith<
+          SearchSuggestionCommand_GetSuggestions>
+      get copyWith => _$SearchSuggestionCommand_GetSuggestionsCopyWithImpl<
+          SearchSuggestionCommand_GetSuggestions>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SearchSuggestionCommand_GetSuggestions &&
+            (identical(other.query, query) || other.query == query) &&
+            (identical(other.limit, limit) || other.limit == limit) &&
+            (identical(other.includeEntities, includeEntities) ||
+                other.includeEntities == includeEntities));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, query, limit, includeEntities);
+
+  @override
+  String toString() {
+    return 'SearchSuggestionCommand.getSuggestions(query: $query, limit: $limit, includeEntities: $includeEntities)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SearchSuggestionCommand_GetSuggestionsCopyWith<$Res>
+    implements $SearchSuggestionCommandCopyWith<$Res> {
+  factory $SearchSuggestionCommand_GetSuggestionsCopyWith(
+          SearchSuggestionCommand_GetSuggestions value,
+          $Res Function(SearchSuggestionCommand_GetSuggestions) _then) =
+      _$SearchSuggestionCommand_GetSuggestionsCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String query, int? limit, bool includeEntities});
+}
+
+/// @nodoc
+class _$SearchSuggestionCommand_GetSuggestionsCopyWithImpl<$Res>
+    implements $SearchSuggestionCommand_GetSuggestionsCopyWith<$Res> {
+  _$SearchSuggestionCommand_GetSuggestionsCopyWithImpl(this._self, this._then);
+
+  final SearchSuggestionCommand_GetSuggestions _self;
+  final $Res Function(SearchSuggestionCommand_GetSuggestions) _then;
+
+  /// Create a copy of SearchSuggestionCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? query = null,
+    Object? limit = freezed,
+    Object? includeEntities = null,
+  }) {
+    return _then(SearchSuggestionCommand_GetSuggestions(
+      query: null == query
+          ? _self.query
+          : query // ignore: cast_nullable_to_non_nullable
+              as String,
+      limit: freezed == limit
+          ? _self.limit
+          : limit // ignore: cast_nullable_to_non_nullable
+              as int?,
+      includeEntities: null == includeEntities
+          ? _self.includeEntities
+          : includeEntities // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class SearchSuggestionCommand_GetDefaultSuggestions
+    extends SearchSuggestionCommand {
+  const SearchSuggestionCommand_GetDefaultSuggestions(
+      {this.limit, required this.includeEntities})
+      : super._();
+
+  @override
+  final int? limit;
+  @override
+  final bool includeEntities;
+
+  /// Create a copy of SearchSuggestionCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SearchSuggestionCommand_GetDefaultSuggestionsCopyWith<
+          SearchSuggestionCommand_GetDefaultSuggestions>
+      get copyWith =>
+          _$SearchSuggestionCommand_GetDefaultSuggestionsCopyWithImpl<
+              SearchSuggestionCommand_GetDefaultSuggestions>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SearchSuggestionCommand_GetDefaultSuggestions &&
+            (identical(other.limit, limit) || other.limit == limit) &&
+            (identical(other.includeEntities, includeEntities) ||
+                other.includeEntities == includeEntities));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, limit, includeEntities);
+
+  @override
+  String toString() {
+    return 'SearchSuggestionCommand.getDefaultSuggestions(limit: $limit, includeEntities: $includeEntities)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SearchSuggestionCommand_GetDefaultSuggestionsCopyWith<
+    $Res> implements $SearchSuggestionCommandCopyWith<$Res> {
+  factory $SearchSuggestionCommand_GetDefaultSuggestionsCopyWith(
+          SearchSuggestionCommand_GetDefaultSuggestions value,
+          $Res Function(SearchSuggestionCommand_GetDefaultSuggestions) _then) =
+      _$SearchSuggestionCommand_GetDefaultSuggestionsCopyWithImpl;
+  @override
+  @useResult
+  $Res call({int? limit, bool includeEntities});
+}
+
+/// @nodoc
+class _$SearchSuggestionCommand_GetDefaultSuggestionsCopyWithImpl<$Res>
+    implements $SearchSuggestionCommand_GetDefaultSuggestionsCopyWith<$Res> {
+  _$SearchSuggestionCommand_GetDefaultSuggestionsCopyWithImpl(
+      this._self, this._then);
+
+  final SearchSuggestionCommand_GetDefaultSuggestions _self;
+  final $Res Function(SearchSuggestionCommand_GetDefaultSuggestions) _then;
+
+  /// Create a copy of SearchSuggestionCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? limit = freezed,
+    Object? includeEntities = null,
+  }) {
+    return _then(SearchSuggestionCommand_GetDefaultSuggestions(
+      limit: freezed == limit
+          ? _self.limit
+          : limit // ignore: cast_nullable_to_non_nullable
+              as int?,
+      includeEntities: null == includeEntities
+          ? _self.includeEntities
+          : includeEntities // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 

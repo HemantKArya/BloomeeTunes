@@ -351,6 +351,7 @@ fn to_audio_chart_item(i: bindgen::ChartItem) -> ChartItem {
             bindgen::Trend::Down => Trend::Down,
             bindgen::Trend::Same => Trend::Same,
             bindgen::Trend::NewEntry => Trend::NewEntry,
+            bindgen::Trend::ReEntry => Trend::ReEntry,
             bindgen::Trend::Unknown => Trend::Unknown,
         },
         change: i.change,

@@ -45,6 +45,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get playerNoLyricsFound => 'गीत के बोल नहीं मिले';
 
   @override
+  String get playerLyricsNoPlugin =>
+      'कोई गीत प्रदाता सेट नहीं है। एक इंस्टॉल करने के लिए Settings → Plugins पर जाएं।';
+
+  @override
   String get playerFullscreenLyrics => 'पूर्ण स्क्रीन बोल';
 
   @override
@@ -795,6 +799,29 @@ class AppLocalizationsHi extends AppLocalizations {
       'क्रमबद्ध करने के लिए खींचें। उच्च प्राथमिकता के रिज़ॉल्वर पहले प्रयास किए जाते हैं।';
 
   @override
+  String get pluginDefaultsLyricsHeader => 'लिरिक्स प्राथमिकता';
+
+  @override
+  String get pluginDefaultsLyricsNone => 'कोई लिरिक्स प्रदाता लोड नहीं है।';
+
+  @override
+  String get pluginDefaultsLyricsDesc =>
+      'लिरिक्स प्रदाताओं को पुनः क्रमित करने के लिए खींचें। पहला प्रदाता पहले आज़माया जाता है।';
+
+  @override
+  String get pluginDefaultsSuggestionsHeader => 'खोज सुझाव';
+
+  @override
+  String get pluginDefaultsSuggestionsNone => 'कोई सुझाव प्रदाता लोड नहीं है।';
+
+  @override
+  String get pluginDefaultsSuggestionsHistoryOnlyTitle => 'कोई नहीं';
+
+  @override
+  String get pluginDefaultsSuggestionsHistoryOnlySubtitle =>
+      'केवल खोज इतिहास का उपयोग करें।';
+
+  @override
   String get storageSettingTitle => 'स्टोरेज';
 
   @override
@@ -1097,6 +1124,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pluginManagerFilterCharts => 'चार्ट प्रदाता';
 
   @override
+  String get pluginManagerFilterLyrics => 'लिरिक्स प्रदाता';
+
+  @override
+  String get pluginManagerFilterSuggestions => 'सुझाव प्रदाता';
+
+  @override
   String get pluginManagerTooltipRefresh => 'रिफ़्रेश';
 
   @override
@@ -1112,6 +1145,102 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get pluginManagerInstalling => 'प्लगइन इंस्टॉल हो रहा है...';
+
+  @override
+  String get pluginManagerTypeContentResolver => 'कंटेंट रिज़ॉल्वर';
+
+  @override
+  String get pluginManagerTypeChartProvider => 'चार्ट प्रदाता';
+
+  @override
+  String get pluginManagerTypeLyricsProvider => 'लिरिक्स प्रदाता';
+
+  @override
+  String get pluginManagerTypeSuggestionProvider => 'खोज सुझाव';
+
+  @override
+  String get pluginManagerDeleteTitle => 'प्लगइन हटाएँ?';
+
+  @override
+  String pluginManagerDeleteMessage(String name) {
+    return 'क्या आप \"$name\" को हटाना चाहते हैं? इससे इसकी फ़ाइलें स्थायी रूप से हट जाएँगी।';
+  }
+
+  @override
+  String get pluginManagerDeleteAction => 'हटाएँ';
+
+  @override
+  String get pluginManagerCancel => 'रद्द करें';
+
+  @override
+  String get pluginManagerEnablePlugin => 'प्लगइन सक्षम करें';
+
+  @override
+  String get pluginManagerUnloadPlugin => 'प्लगइन अनलोड करें';
+
+  @override
+  String get pluginManagerDeleting => 'हटाया जा रहा है...';
+
+  @override
+  String get pluginManagerApiKeysTitle => 'API कुंजियाँ';
+
+  @override
+  String get pluginManagerApiKeysSaved => 'API कुंजियाँ सहेजी गईं';
+
+  @override
+  String get pluginManagerSave => 'सहेजें';
+
+  @override
+  String get pluginManagerDetailVersion => 'Version';
+
+  @override
+  String get pluginManagerDetailType => 'Type';
+
+  @override
+  String get pluginManagerDetailPublisher => 'Publisher';
+
+  @override
+  String get pluginManagerDetailLastUpdated => 'Last Updated';
+
+  @override
+  String get pluginManagerDetailCreated => 'Created';
+
+  @override
+  String get pluginManagerDetailHomepage => 'Homepage';
+
+  @override
+  String get pluginManagerDowngradeTitle => 'Downgrade Plugin?';
+
+  @override
+  String pluginManagerDowngradeMessage(String name) {
+    return 'You are installing an older or equal version of \"$name\". Continue?';
+  }
+
+  @override
+  String get pluginManagerDowngradeAction => 'Install Anyway';
+
+  @override
+  String get pluginManagerDeleteStorageTitle => 'Delete Plugin Data?';
+
+  @override
+  String pluginManagerDeleteStorageMessage(String name) {
+    return 'Also remove saved API keys and settings for \"$name\"?';
+  }
+
+  @override
+  String get pluginManagerDeleteStorageKeep => 'Keep Data';
+
+  @override
+  String get pluginManagerDeleteStorageRemove => 'Remove Data';
+
+  @override
+  String get segmentsSheetTitle => 'सेगमेंट';
+
+  @override
+  String get segmentsSheetEmpty => 'कोई सेगमेंट उपलब्ध नहीं है';
+
+  @override
+  String get segmentsSheetUntitled => 'बिना शीर्षक का सेगमेंट';
 
   @override
   String get smartReplaceTitle => 'स्मार्ट रिप्लेस';

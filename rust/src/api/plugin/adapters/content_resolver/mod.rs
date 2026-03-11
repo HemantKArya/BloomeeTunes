@@ -322,6 +322,11 @@ impl Plugin for ContentResolverPluginAdapter {
                         .map_err(|e| PluginError::WasmExecutionError(e))?;
                     Ok(PluginResponse::MoreTracks(to_paged_audio_tracks(result)))
                 }
+                ContentResolverCommand::GetSegmentsForTrack { id: _ } => {
+                    // Segments are not part of the content resolver WIT interface.
+                    // Return empty list; segment data is expected from dedicated sources.
+                    Ok(PluginResponse::Segments(vec![]))
+                }
             }?;
 
             // Stamp all entity IDs with "pluginId::" prefix before crossing the FRB boundary.
@@ -642,6 +647,11 @@ fn stamp_response(plugin_id: &str, response: PluginResponse) -> PluginResponse {
         PluginResponse::ChartDetails(items) => PluginResponse::ChartDetails(
             items.into_iter().map(|c| stamp_chart_item(plugin_id, c)).collect(),
         ),
+        PluginResponse::Segments(s) => PluginResponse::Segments(s),
+        PluginResponse::LyricsResult(r) => PluginResponse::LyricsResult(r),
+        PluginResponse::LyricsSearchResults(r) => PluginResponse::LyricsSearchResults(r),
+        PluginResponse::LyricsById(l, m) => PluginResponse::LyricsById(l, m),
+        PluginResponse::Suggestions(s) => PluginResponse::Suggestions(s),
         PluginResponse::Ack => PluginResponse::Ack,
     }
 }

@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_event.dart';
@@ -7,6 +8,7 @@ import 'package:Bloomee/screens/widgets/animated_list_item.dart';
 import 'package:Bloomee/screens/widgets/bloomee_ui_kit/bloomee_dialog.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
+import 'package:Bloomee/src/rust/api/plugin/manifest.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
 import 'package:file_picker/file_picker.dart';
@@ -30,6 +32,9 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
         null: l10n.pluginManagerFilterAll,
         PluginType.contentResolver: l10n.pluginManagerFilterContent,
         PluginType.chartProvider: l10n.pluginManagerFilterCharts,
+        PluginType.lyricsProvider: l10n.pluginManagerFilterLyrics,
+        PluginType.searchSuggestionProvider:
+            l10n.pluginManagerFilterSuggestions,
       };
 
   @override
@@ -375,14 +380,12 @@ class _PluginCard extends StatelessWidget {
                   ),
                 ),
                 child: Center(
-                  child: Icon(
-                    plugin.pluginType == PluginType.contentResolver
-                        ? MingCute.music_2_fill
-                        : MingCute.chart_bar_fill,
-                    color: isLoaded
-                        ? Default_Theme.accentColor2
-                        : Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                    size: 20,
+                  child: _pluginAvatar(
+                    manifest: manifest,
+                    type: plugin.pluginType,
+                    isLoaded: isLoaded,
+                    iconSize: 20,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -446,6 +449,63 @@ class _PluginCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  static IconData _pluginTypeIcon(PluginType type) {
+    return switch (type) {
+      PluginType.contentResolver => MingCute.music_2_fill,
+      PluginType.chartProvider => MingCute.chart_bar_fill,
+      PluginType.lyricsProvider => MingCute.align_center_fill,
+      PluginType.searchSuggestionProvider => MingCute.search_fill,
+    };
+  }
+
+  static String _pluginTypeLabel(PluginType type, AppLocalizations l10n) {
+    return switch (type) {
+      PluginType.contentResolver => l10n.pluginManagerTypeContentResolver,
+      PluginType.chartProvider => l10n.pluginManagerTypeChartProvider,
+      PluginType.lyricsProvider => l10n.pluginManagerTypeLyricsProvider,
+      PluginType.searchSuggestionProvider =>
+        l10n.pluginManagerTypeSuggestionProvider,
+    };
+  }
+
+  static Widget _pluginAvatar({
+    required Manifest manifest,
+    required PluginType type,
+    required bool isLoaded,
+    required double iconSize,
+    BorderRadius? borderRadius,
+  }) {
+    final imageUrl = manifest.thumbnailUrl ?? manifest.icon;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: borderRadius ?? BorderRadius.circular(12),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Center(
+            child: Icon(
+              _pluginTypeIcon(type),
+              color: isLoaded
+                  ? Default_Theme.accentColor2
+                  : Default_Theme.primaryColor1.withValues(alpha: 0.5),
+              size: iconSize,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Center(
+      child: Icon(
+        _pluginTypeIcon(type),
+        color: isLoaded
+            ? Default_Theme.accentColor2
+            : Default_Theme.primaryColor1.withValues(alpha: 0.5),
+        size: iconSize,
       ),
     );
   }
@@ -591,6 +651,7 @@ class _PluginDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final manifest = plugin.manifest;
+    final l10n = AppLocalizations.of(context)!;
 
     return BlocBuilder<PluginBloc, PluginState>(
       builder: (context, state) {
@@ -647,15 +708,12 @@ class _PluginDetailSheet extends StatelessWidget {
                       ),
                     ),
                     child: Center(
-                      child: Icon(
-                        plugin.pluginType == PluginType.contentResolver
-                            ? MingCute.music_2_fill
-                            : MingCute.chart_bar_fill,
-                        color: isLoaded
-                            ? Default_Theme.accentColor2
-                            : Default_Theme.primaryColor1
-                                .withValues(alpha: 0.5),
-                        size: 28,
+                      child: _PluginCard._pluginAvatar(
+                        manifest: manifest,
+                        type: plugin.pluginType,
+                        isLoaded: isLoaded,
+                        iconSize: 28,
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                   ),
@@ -721,15 +779,42 @@ class _PluginDetailSheet extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _DetailRow(label: 'Version', value: manifest.version),
+                    _DetailRow(
+                        label: l10n.pluginManagerDetailVersion,
+                        value: manifest.version),
                     const _DetailDivider(),
                     _DetailRow(
-                        label: 'Type',
-                        value: plugin.pluginType == PluginType.contentResolver
-                            ? 'Content Resolver'
-                            : 'Chart Provider'),
-                    const _DetailDivider(),
-                    _DetailRow(label: 'License', value: manifest.license),
+                        label: l10n.pluginManagerDetailType,
+                        value: _PluginCard._pluginTypeLabel(
+                          plugin.pluginType,
+                          l10n,
+                        )),
+                    if (manifest.publisher.name.isNotEmpty) ...[
+                      const _DetailDivider(),
+                      _DetailRow(
+                          label: l10n.pluginManagerDetailPublisher,
+                          value: manifest.publisher.name),
+                    ],
+                    if (manifest.lastUpdated != null &&
+                        manifest.lastUpdated!.isNotEmpty) ...[
+                      const _DetailDivider(),
+                      _DetailRow(
+                          label: l10n.pluginManagerDetailLastUpdated,
+                          value: _formatDate(manifest.lastUpdated!)),
+                    ],
+                    if (manifest.createdAt != null &&
+                        manifest.createdAt!.isNotEmpty) ...[
+                      const _DetailDivider(),
+                      _DetailRow(
+                          label: l10n.pluginManagerDetailCreated,
+                          value: _formatDate(manifest.createdAt!)),
+                    ],
+                    if (manifest.homepage.isNotEmpty) ...[
+                      const _DetailDivider(),
+                      _DetailRow(
+                          label: l10n.pluginManagerDetailHomepage,
+                          value: manifest.homepage),
+                    ],
                   ],
                 ),
               ),
@@ -795,10 +880,10 @@ class _PluginDetailSheet extends StatelessWidget {
                               )
                             : Text(
                                 deleting
-                                    ? 'Deleting...'
+                                    ? l10n.pluginManagerDeleting
                                     : isLoaded
-                                        ? 'Unload Plugin'
-                                        : 'Enable Plugin',
+                                        ? l10n.pluginManagerUnloadPlugin
+                                        : l10n.pluginManagerEnablePlugin,
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -808,6 +893,34 @@ class _PluginDetailSheet extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
+                  // Settings Button (for plugins with keys_required)
+                  if (manifest.keysRequired.isNotEmpty) ...[
+                    SizedBox(
+                      height: 54,
+                      width: 54,
+                      child: IconButton(
+                        onPressed: () => _showKeysDialog(context, manifest),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Default_Theme.accentColor2
+                              .withValues(alpha: 0.15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide(
+                              color: Default_Theme.accentColor2
+                                  .withValues(alpha: 0.5),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.key_rounded,
+                          color: Default_Theme.accentColor2,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
                   // Delete Button
                   SizedBox(
                     height: 54, // Perfectly matching height
@@ -846,24 +959,248 @@ class _PluginDetailSheet extends StatelessWidget {
   void _confirmDelete(
       BuildContext context, String pluginId, String pluginName) {
     final bloc = context.read<PluginBloc>();
+    final l10n = AppLocalizations.of(context)!;
 
     showBloomeeDialog(
       context: context,
-      title: 'Delete Plugin?',
-      subtitle:
-          'Are you sure you want to delete "$pluginName"? This will permanently remove its files.',
+      title: l10n.pluginManagerDeleteTitle,
+      subtitle: l10n.pluginManagerDeleteMessage(pluginName),
       icon: Icons.delete_outline_rounded,
       actions: [
-        BloomeeDialogAction.text('Cancel'),
-        BloomeeDialogAction.filled('Delete', isDestructive: true,
+        BloomeeDialogAction.text(l10n.pluginManagerCancel),
+        BloomeeDialogAction.filled(l10n.pluginManagerDeleteAction,
+            isDestructive: true, onPressed: () {
+          // NOTE: BloomeeDialogSurface._buildAction already calls
+          // Navigator.of(context).pop() using the dialog's own context before
+          // invoking this callback. Do NOT pop again here — doing so would use
+          // the outer (sheet) context and either pop the sheet or crash.
+          if (plugin.manifest.keysRequired.isNotEmpty) {
+            _confirmStorageCleanup(context, bloc, pluginId, pluginName);
+          } else {
+            bloc.add(DeletePlugin(
+              pluginId: pluginId,
+              pluginType: plugin.pluginType,
+            ));
+          }
+        }),
+      ],
+    );
+  }
+
+  void _confirmStorageCleanup(BuildContext context, PluginBloc bloc,
+      String pluginId, String pluginName) {
+    final l10n = AppLocalizations.of(context)!;
+    showBloomeeDialog(
+      context: context,
+      title: l10n.pluginManagerDeleteStorageTitle,
+      subtitle: l10n.pluginManagerDeleteStorageMessage(pluginName),
+      icon: Icons.storage_outlined,
+      actions: [
+        BloomeeDialogAction.text(l10n.pluginManagerDeleteStorageKeep,
             onPressed: () {
-          Navigator.of(context).pop();
           bloc.add(DeletePlugin(
             pluginId: pluginId,
             pluginType: plugin.pluginType,
+            cleanStorage: false,
+          ));
+        }),
+        BloomeeDialogAction.filled(l10n.pluginManagerDeleteStorageRemove,
+            isDestructive: true, onPressed: () {
+          bloc.add(DeletePlugin(
+            pluginId: pluginId,
+            pluginType: plugin.pluginType,
+            cleanStorage: true,
           ));
         }),
       ],
+    );
+  }
+
+  void _showKeysDialog(BuildContext context, Manifest manifest) {
+    final controllers = <String, TextEditingController>{};
+    final dao = ServiceLocator.pluginStorageDao;
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Default_Theme.themeColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return FutureBuilder<Map<String, String>>(
+          future: () async {
+            final existing = <String, String>{};
+            for (final key in manifest.keysRequired.keys) {
+              final entity =
+                  await dao.getEntry(pluginId: manifest.id, key: key);
+              if (entity != null) existing[key] = entity.value;
+            }
+            return existing;
+          }(),
+          builder: (ctx, snapshot) {
+            if (!snapshot.hasData) {
+              return const SizedBox(
+                height: 200,
+                child: Center(
+                    child: CircularProgressIndicator(
+                        color: Default_Theme.accentColor2)),
+              );
+            }
+            final existing = snapshot.data!;
+            for (final entry in manifest.keysRequired.entries) {
+              controllers.putIfAbsent(entry.key,
+                  () => TextEditingController(text: existing[entry.key] ?? ''));
+            }
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                  24, 16, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.pluginManagerApiKeysTitle,
+                    style: const TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ).merge(Default_Theme.secondoryTextStyleMedium),
+                  ),
+                  const SizedBox(height: 16),
+                  ...manifest.keysRequired.entries.map((entry) {
+                    final req = entry.value;
+                    // Use key name as label (e.g. "api_key" → "Api Key")
+                    final keyLabel = entry.key
+                        .replaceAll('_', ' ')
+                        .split(' ')
+                        .map((w) => w.isNotEmpty
+                            ? '${w[0].toUpperCase()}${w.substring(1)}'
+                            : '')
+                        .join(' ');
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: controllers[entry.key],
+                            obscureText: req.isSecret,
+                            style: const TextStyle(
+                                color: Default_Theme.primaryColor1),
+                            decoration: InputDecoration(
+                              labelText: keyLabel,
+                              hintText: req.defaultValue ?? entry.key,
+                              labelStyle: TextStyle(
+                                color: Default_Theme.primaryColor1
+                                    .withValues(alpha: 0.6),
+                              ),
+                              hintStyle: TextStyle(
+                                color: Default_Theme.primaryColor1
+                                    .withValues(alpha: 0.3),
+                              ),
+                              suffixIcon: req.isSecret
+                                  ? Icon(MingCute.eye_close_line,
+                                      color: Default_Theme.primaryColor1
+                                          .withValues(alpha: 0.3),
+                                      size: 18)
+                                  : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Default_Theme.primaryColor1
+                                      .withValues(alpha: 0.15),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Default_Theme.accentColor2,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (req.description.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6, left: 4),
+                              child: Text(
+                                req.description,
+                                style: TextStyle(
+                                  color: Default_Theme.primaryColor1
+                                      .withValues(alpha: 0.4),
+                                  fontSize: 12,
+                                ).merge(Default_Theme.secondoryTextStyle),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        for (final entry in controllers.entries) {
+                          final val = entry.value.text.trim();
+                          if (val.isNotEmpty) {
+                            await dao.putEntry(
+                                pluginId: manifest.id,
+                                key: entry.key,
+                                value: val);
+                          } else {
+                            await dao.deleteEntry(
+                                pluginId: manifest.id, key: entry.key);
+                          }
+                        }
+                        if (ctx.mounted) Navigator.of(ctx).pop();
+                        SnackbarService.showMessage(
+                            l10n.pluginManagerApiKeysSaved);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Default_Theme.accentColor2.withValues(alpha: 0.15),
+                        foregroundColor: Default_Theme.accentColor2,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: BorderSide(
+                            color: Default_Theme.accentColor2
+                                .withValues(alpha: 0.5),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        l10n.pluginManagerSave,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ).merge(Default_Theme.secondoryTextStyle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -943,6 +1280,16 @@ class _StatusBadge extends StatelessWidget {
         ).merge(Default_Theme.secondoryTextStyle),
       ),
     );
+  }
+}
+
+/// Formats an ISO 8601 date string to a human-readable format.
+String _formatDate(String isoDate) {
+  try {
+    final dt = DateTime.parse(isoDate);
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  } catch (_) {
+    return isoDate;
   }
 }
 

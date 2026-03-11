@@ -123,6 +123,12 @@ class LocalMusicCubit extends Cubit<LocalMusicState> {
 
   Future<void> setConfirmDelete(bool value) => _service.setConfirmDelete(value);
 
+  Future<bool> getAutoScan() => _service.getAutoScan();
+
+  Future<void> setAutoScan(bool value) => _service.setAutoScan(value);
+
+  Future<String> getLastScan() => _service.getLastScan();
+
   /// Clean up artwork files not referenced by any track.
   Future<void> cleanOrphanedArtwork() => _service.cleanOrphanedArtwork();
 }

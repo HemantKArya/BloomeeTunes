@@ -59,5 +59,12 @@ class LoadPluginFromInfo extends PluginEvent {
 class DeletePlugin extends PluginEvent {
   final String pluginId;
   final PluginType pluginType;
-  const DeletePlugin({required this.pluginId, required this.pluginType});
+
+  /// Whether to also remove saved storage keys (API keys, etc.) for this plugin.
+  final bool cleanStorage;
+  const DeletePlugin({
+    required this.pluginId,
+    required this.pluginType,
+    this.cleanStorage = true,
+  });
 }

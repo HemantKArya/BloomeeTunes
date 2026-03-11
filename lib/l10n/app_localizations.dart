@@ -170,6 +170,12 @@ abstract class AppLocalizations {
   /// **'No Lyrics Found'**
   String get playerNoLyricsFound;
 
+  /// No description provided for @playerLyricsNoPlugin.
+  ///
+  /// In en, this message translates to:
+  /// **'No lyrics provider configured. Go to Settings → Plugins to install one.'**
+  String get playerLyricsNoPlugin;
+
   /// No description provided for @playerFullscreenLyrics.
   ///
   /// In en, this message translates to:
@@ -1502,6 +1508,48 @@ abstract class AppLocalizations {
   /// **'Drag to reorder. Higher priority resolvers are tried first when resolving chart items to playable tracks.'**
   String get pluginDefaultsPriorityDesc;
 
+  /// No description provided for @pluginDefaultsLyricsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics Priority'**
+  String get pluginDefaultsLyricsHeader;
+
+  /// No description provided for @pluginDefaultsLyricsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No lyrics providers loaded.'**
+  String get pluginDefaultsLyricsNone;
+
+  /// No description provided for @pluginDefaultsLyricsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder lyrics providers. The first provider is tried first.'**
+  String get pluginDefaultsLyricsDesc;
+
+  /// No description provided for @pluginDefaultsSuggestionsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Suggestions'**
+  String get pluginDefaultsSuggestionsHeader;
+
+  /// No description provided for @pluginDefaultsSuggestionsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggestion providers loaded.'**
+  String get pluginDefaultsSuggestionsNone;
+
+  /// No description provided for @pluginDefaultsSuggestionsHistoryOnlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get pluginDefaultsSuggestionsHistoryOnlyTitle;
+
+  /// No description provided for @pluginDefaultsSuggestionsHistoryOnlySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use search history only.'**
+  String get pluginDefaultsSuggestionsHistoryOnlySubtitle;
+
   /// No description provided for @storageSettingTitle.
   ///
   /// In en, this message translates to:
@@ -2018,6 +2066,18 @@ abstract class AppLocalizations {
   /// **'Chart Providers'**
   String get pluginManagerFilterCharts;
 
+  /// No description provided for @pluginManagerFilterLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics Providers'**
+  String get pluginManagerFilterLyrics;
+
+  /// No description provided for @pluginManagerFilterSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion Providers'**
+  String get pluginManagerFilterSuggestions;
+
   /// No description provided for @pluginManagerTooltipRefresh.
   ///
   /// In en, this message translates to:
@@ -2047,6 +2107,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Installing plugin...'**
   String get pluginManagerInstalling;
+
+  /// No description provided for @pluginManagerTypeContentResolver.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Resolver'**
+  String get pluginManagerTypeContentResolver;
+
+  /// No description provided for @pluginManagerTypeChartProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart Provider'**
+  String get pluginManagerTypeChartProvider;
+
+  /// No description provided for @pluginManagerTypeLyricsProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics Provider'**
+  String get pluginManagerTypeLyricsProvider;
+
+  /// No description provided for @pluginManagerTypeSuggestionProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Suggestions'**
+  String get pluginManagerTypeSuggestionProvider;
+
+  /// No description provided for @pluginManagerDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Plugin?'**
+  String get pluginManagerDeleteTitle;
+
+  /// No description provided for @pluginManagerDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"? This will permanently remove its files.'**
+  String pluginManagerDeleteMessage(String name);
+
+  /// No description provided for @pluginManagerDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get pluginManagerDeleteAction;
+
+  /// No description provided for @pluginManagerCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get pluginManagerCancel;
+
+  /// No description provided for @pluginManagerEnablePlugin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Plugin'**
+  String get pluginManagerEnablePlugin;
+
+  /// No description provided for @pluginManagerUnloadPlugin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unload Plugin'**
+  String get pluginManagerUnloadPlugin;
+
+  /// No description provided for @pluginManagerDeleting.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting...'**
+  String get pluginManagerDeleting;
+
+  /// No description provided for @pluginManagerApiKeysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'API Keys'**
+  String get pluginManagerApiKeysTitle;
+
+  /// No description provided for @pluginManagerApiKeysSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'API keys saved'**
+  String get pluginManagerApiKeysSaved;
+
+  /// No description provided for @pluginManagerSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get pluginManagerSave;
+
+  /// No description provided for @pluginManagerDetailVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get pluginManagerDetailVersion;
+
+  /// No description provided for @pluginManagerDetailType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get pluginManagerDetailType;
+
+  /// No description provided for @pluginManagerDetailPublisher.
+  ///
+  /// In en, this message translates to:
+  /// **'Publisher'**
+  String get pluginManagerDetailPublisher;
+
+  /// No description provided for @pluginManagerDetailLastUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Updated'**
+  String get pluginManagerDetailLastUpdated;
+
+  /// No description provided for @pluginManagerDetailCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get pluginManagerDetailCreated;
+
+  /// No description provided for @pluginManagerDetailHomepage.
+  ///
+  /// In en, this message translates to:
+  /// **'Homepage'**
+  String get pluginManagerDetailHomepage;
+
+  /// No description provided for @pluginManagerDowngradeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downgrade Plugin?'**
+  String get pluginManagerDowngradeTitle;
+
+  /// No description provided for @pluginManagerDowngradeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You are installing an older or equal version of \"{name}\". Continue?'**
+  String pluginManagerDowngradeMessage(String name);
+
+  /// No description provided for @pluginManagerDowngradeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Anyway'**
+  String get pluginManagerDowngradeAction;
+
+  /// No description provided for @pluginManagerDeleteStorageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Plugin Data?'**
+  String get pluginManagerDeleteStorageTitle;
+
+  /// No description provided for @pluginManagerDeleteStorageMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Also remove saved API keys and settings for \"{name}\"?'**
+  String pluginManagerDeleteStorageMessage(String name);
+
+  /// No description provided for @pluginManagerDeleteStorageKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Data'**
+  String get pluginManagerDeleteStorageKeep;
+
+  /// No description provided for @pluginManagerDeleteStorageRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Data'**
+  String get pluginManagerDeleteStorageRemove;
+
+  /// No description provided for @segmentsSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Segments'**
+  String get segmentsSheetTitle;
+
+  /// No description provided for @segmentsSheetEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No segments available'**
+  String get segmentsSheetEmpty;
+
+  /// No description provided for @segmentsSheetUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled Segment'**
+  String get segmentsSheetUntitled;
 
   /// No description provided for @smartReplaceTitle.
   ///

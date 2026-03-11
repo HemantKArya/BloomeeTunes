@@ -506,4 +506,332 @@ class _$MediaItem_PlaylistCopyWithImpl<$Res>
   }
 }
 
+/// @nodoc
+mixin _$Suggestion {
+  Object get field0;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is Suggestion &&
+            const DeepCollectionEquality().equals(other.field0, field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(field0));
+
+  @override
+  String toString() {
+    return 'Suggestion(field0: $field0)';
+  }
+}
+
+/// @nodoc
+class $SuggestionCopyWith<$Res> {
+  $SuggestionCopyWith(Suggestion _, $Res Function(Suggestion) __);
+}
+
+/// Adds pattern-matching-related methods to [Suggestion].
+extension SuggestionPatterns on Suggestion {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Suggestion_Query value)? query,
+    TResult Function(Suggestion_Entity value)? entity,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case Suggestion_Query() when query != null:
+        return query(_that);
+      case Suggestion_Entity() when entity != null:
+        return entity(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Suggestion_Query value) query,
+    required TResult Function(Suggestion_Entity value) entity,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case Suggestion_Query():
+        return query(_that);
+      case Suggestion_Entity():
+        return entity(_that);
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(Suggestion_Query value)? query,
+    TResult? Function(Suggestion_Entity value)? entity,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case Suggestion_Query() when query != null:
+        return query(_that);
+      case Suggestion_Entity() when entity != null:
+        return entity(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String field0)? query,
+    TResult Function(EntitySuggestion field0)? entity,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case Suggestion_Query() when query != null:
+        return query(_that.field0);
+      case Suggestion_Entity() when entity != null:
+        return entity(_that.field0);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String field0) query,
+    required TResult Function(EntitySuggestion field0) entity,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case Suggestion_Query():
+        return query(_that.field0);
+      case Suggestion_Entity():
+        return entity(_that.field0);
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String field0)? query,
+    TResult? Function(EntitySuggestion field0)? entity,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case Suggestion_Query() when query != null:
+        return query(_that.field0);
+      case Suggestion_Entity() when entity != null:
+        return entity(_that.field0);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class Suggestion_Query extends Suggestion {
+  const Suggestion_Query(this.field0) : super._();
+
+  @override
+  final String field0;
+
+  /// Create a copy of Suggestion
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $Suggestion_QueryCopyWith<Suggestion_Query> get copyWith =>
+      _$Suggestion_QueryCopyWithImpl<Suggestion_Query>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is Suggestion_Query &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'Suggestion.query(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $Suggestion_QueryCopyWith<$Res>
+    implements $SuggestionCopyWith<$Res> {
+  factory $Suggestion_QueryCopyWith(
+          Suggestion_Query value, $Res Function(Suggestion_Query) _then) =
+      _$Suggestion_QueryCopyWithImpl;
+  @useResult
+  $Res call({String field0});
+}
+
+/// @nodoc
+class _$Suggestion_QueryCopyWithImpl<$Res>
+    implements $Suggestion_QueryCopyWith<$Res> {
+  _$Suggestion_QueryCopyWithImpl(this._self, this._then);
+
+  final Suggestion_Query _self;
+  final $Res Function(Suggestion_Query) _then;
+
+  /// Create a copy of Suggestion
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(Suggestion_Query(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class Suggestion_Entity extends Suggestion {
+  const Suggestion_Entity(this.field0) : super._();
+
+  @override
+  final EntitySuggestion field0;
+
+  /// Create a copy of Suggestion
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $Suggestion_EntityCopyWith<Suggestion_Entity> get copyWith =>
+      _$Suggestion_EntityCopyWithImpl<Suggestion_Entity>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is Suggestion_Entity &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'Suggestion.entity(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $Suggestion_EntityCopyWith<$Res>
+    implements $SuggestionCopyWith<$Res> {
+  factory $Suggestion_EntityCopyWith(
+          Suggestion_Entity value, $Res Function(Suggestion_Entity) _then) =
+      _$Suggestion_EntityCopyWithImpl;
+  @useResult
+  $Res call({EntitySuggestion field0});
+}
+
+/// @nodoc
+class _$Suggestion_EntityCopyWithImpl<$Res>
+    implements $Suggestion_EntityCopyWith<$Res> {
+  _$Suggestion_EntityCopyWithImpl(this._self, this._then);
+
+  final Suggestion_Entity _self;
+  final $Res Function(Suggestion_Entity) _then;
+
+  /// Create a copy of Suggestion
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(Suggestion_Entity(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as EntitySuggestion,
+    ));
+  }
+}
+
 // dart format on

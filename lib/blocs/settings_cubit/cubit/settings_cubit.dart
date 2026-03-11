@@ -172,6 +172,24 @@ class SettingsCubit extends Cubit<SettingsState> {
         }
         emit(state.copyWith(resolverPriority: priority));
       }),
+      _settingsRepo
+          .getSettingStr(SettingKeys.lyricsPriority, defaultValue: '[]')
+          .then((value) {
+        List<String> priority = const [];
+        if (value != null && value.isNotEmpty) {
+          try {
+            priority = (jsonDecode(value) as List).cast<String>();
+          } catch (e) {
+            log('Failed to decode lyrics priority: $e', name: 'SettingsCubit');
+          }
+        }
+        emit(state.copyWith(lyricsPriority: priority));
+      }),
+      _settingsRepo
+          .getSettingStr(SettingKeys.suggestionPluginId, defaultValue: '')
+          .then((value) {
+        emit(state.copyWith(suggestionPluginId: value ?? ''));
+      }),
     ]);
     emit(state.copyWith(settingsReady: true));
   }
@@ -321,6 +339,17 @@ class SettingsCubit extends Cubit<SettingsState> {
     _settingsRepo.putSettingStr(
         SettingKeys.resolverPriority, jsonEncode(priority));
     emit(state.copyWith(resolverPriority: priority));
+  }
+
+  void setLyricsPriority(List<String> priority) {
+    _settingsRepo.putSettingStr(
+        SettingKeys.lyricsPriority, jsonEncode(priority));
+    emit(state.copyWith(lyricsPriority: priority));
+  }
+
+  void setSuggestionPluginId(String pluginId) {
+    _settingsRepo.putSettingStr(SettingKeys.suggestionPluginId, pluginId);
+    emit(state.copyWith(suggestionPluginId: pluginId));
   }
 
   Future<void> resetDownPath() async {

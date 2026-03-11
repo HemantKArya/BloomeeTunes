@@ -9,6 +9,8 @@ use std::future::Future;
 pub enum PluginType {
     ContentResolver,
     ChartProvider,
+    LyricsProvider,
+    SearchSuggestionProvider,
 }
 
 impl PluginType {
@@ -16,6 +18,8 @@ impl PluginType {
         match self {
             PluginType::ContentResolver => "content-resolver",
             PluginType::ChartProvider => "chart-provider",
+            PluginType::LyricsProvider => "lyrics-provider",
+            PluginType::SearchSuggestionProvider => "search-suggestion-provider",
         }
     }
 
@@ -23,6 +27,8 @@ impl PluginType {
         match s {
             "content-resolver" => Some(PluginType::ContentResolver),
             "chart-provider" => Some(PluginType::ChartProvider),
+            "lyrics-provider" => Some(PluginType::LyricsProvider),
+            "search-suggestion-provider" => Some(PluginType::SearchSuggestionProvider),
             _ => None,
         }
     }
@@ -31,6 +37,8 @@ impl PluginType {
         match self {
             PluginType::ContentResolver => "Content resolver (JioSaavn, etc.)",
             PluginType::ChartProvider => "Chart provider (Billboard, etc.)",
+            PluginType::LyricsProvider => "Lyrics provider (synced/plain lyrics)",
+            PluginType::SearchSuggestionProvider => "Search suggestions (autocomplete)",
         }
     }
 }
@@ -52,6 +60,8 @@ pub trait PluginAdapter: Plugin + Sized + Send + Sync + 'static {
 pub enum PluginInstallStatus {
     Installed,
     Updated,
+    /// Same or older version was installed (user chose to replace).
+    Downgraded,
     AlreadyInstalled,
     PluginLoaded,
     Failed,

@@ -45,6 +45,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerNoLyricsFound => 'No Lyrics Found';
 
   @override
+  String get playerLyricsNoPlugin =>
+      'No lyrics provider configured. Go to Settings → Plugins to install one.';
+
+  @override
   String get playerFullscreenLyrics => 'Fullscreen Lyrics';
 
   @override
@@ -795,6 +799,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Drag to reorder. Higher priority resolvers are tried first when resolving chart items to playable tracks.';
 
   @override
+  String get pluginDefaultsLyricsHeader => 'Lyrics Priority';
+
+  @override
+  String get pluginDefaultsLyricsNone => 'No lyrics providers loaded.';
+
+  @override
+  String get pluginDefaultsLyricsDesc =>
+      'Drag to reorder lyrics providers. The first provider is tried first.';
+
+  @override
+  String get pluginDefaultsSuggestionsHeader => 'Search Suggestions';
+
+  @override
+  String get pluginDefaultsSuggestionsNone => 'No suggestion providers loaded.';
+
+  @override
+  String get pluginDefaultsSuggestionsHistoryOnlyTitle => 'None';
+
+  @override
+  String get pluginDefaultsSuggestionsHistoryOnlySubtitle =>
+      'Use search history only.';
+
+  @override
   String get storageSettingTitle => 'Storage';
 
   @override
@@ -1095,6 +1122,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pluginManagerFilterCharts => 'Chart Providers';
 
   @override
+  String get pluginManagerFilterLyrics => 'Lyrics Providers';
+
+  @override
+  String get pluginManagerFilterSuggestions => 'Suggestion Providers';
+
+  @override
   String get pluginManagerTooltipRefresh => 'Refresh';
 
   @override
@@ -1110,6 +1143,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pluginManagerInstalling => 'Installing plugin...';
+
+  @override
+  String get pluginManagerTypeContentResolver => 'Content Resolver';
+
+  @override
+  String get pluginManagerTypeChartProvider => 'Chart Provider';
+
+  @override
+  String get pluginManagerTypeLyricsProvider => 'Lyrics Provider';
+
+  @override
+  String get pluginManagerTypeSuggestionProvider => 'Search Suggestions';
+
+  @override
+  String get pluginManagerDeleteTitle => 'Delete Plugin?';
+
+  @override
+  String pluginManagerDeleteMessage(String name) {
+    return 'Are you sure you want to delete \"$name\"? This will permanently remove its files.';
+  }
+
+  @override
+  String get pluginManagerDeleteAction => 'Delete';
+
+  @override
+  String get pluginManagerCancel => 'Cancel';
+
+  @override
+  String get pluginManagerEnablePlugin => 'Enable Plugin';
+
+  @override
+  String get pluginManagerUnloadPlugin => 'Unload Plugin';
+
+  @override
+  String get pluginManagerDeleting => 'Deleting...';
+
+  @override
+  String get pluginManagerApiKeysTitle => 'API Keys';
+
+  @override
+  String get pluginManagerApiKeysSaved => 'API keys saved';
+
+  @override
+  String get pluginManagerSave => 'Save';
+
+  @override
+  String get pluginManagerDetailVersion => 'Version';
+
+  @override
+  String get pluginManagerDetailType => 'Type';
+
+  @override
+  String get pluginManagerDetailPublisher => 'Publisher';
+
+  @override
+  String get pluginManagerDetailLastUpdated => 'Last Updated';
+
+  @override
+  String get pluginManagerDetailCreated => 'Created';
+
+  @override
+  String get pluginManagerDetailHomepage => 'Homepage';
+
+  @override
+  String get pluginManagerDowngradeTitle => 'Downgrade Plugin?';
+
+  @override
+  String pluginManagerDowngradeMessage(String name) {
+    return 'You are installing an older or equal version of \"$name\". Continue?';
+  }
+
+  @override
+  String get pluginManagerDowngradeAction => 'Install Anyway';
+
+  @override
+  String get pluginManagerDeleteStorageTitle => 'Delete Plugin Data?';
+
+  @override
+  String pluginManagerDeleteStorageMessage(String name) {
+    return 'Also remove saved API keys and settings for \"$name\"?';
+  }
+
+  @override
+  String get pluginManagerDeleteStorageKeep => 'Keep Data';
+
+  @override
+  String get pluginManagerDeleteStorageRemove => 'Remove Data';
+
+  @override
+  String get segmentsSheetTitle => 'Segments';
+
+  @override
+  String get segmentsSheetEmpty => 'No segments available';
+
+  @override
+  String get segmentsSheetUntitled => 'Untitled Segment';
 
   @override
   String get smartReplaceTitle => 'Smart Replace';

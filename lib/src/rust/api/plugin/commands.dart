@@ -9,7 +9,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'commands.freezed.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 @freezed
 sealed class ChartProviderCommand with _$ChartProviderCommand {
@@ -65,6 +65,9 @@ sealed class ContentResolverCommand with _$ContentResolverCommand {
     required String id,
     required String moreLink,
   }) = ContentResolverCommand_LoadMore;
+  const factory ContentResolverCommand.getSegmentsForTrack({
+    required String id,
+  }) = ContentResolverCommand_GetSegmentsForTrack;
 }
 
 enum ContentSearchFilter {
@@ -77,6 +80,21 @@ enum ContentSearchFilter {
 }
 
 @freezed
+sealed class LyricsProviderCommand with _$LyricsProviderCommand {
+  const LyricsProviderCommand._();
+
+  const factory LyricsProviderCommand.getLyrics({
+    required TrackMetadata metadata,
+  }) = LyricsProviderCommand_GetLyrics;
+  const factory LyricsProviderCommand.search({
+    required String query,
+  }) = LyricsProviderCommand_Search;
+  const factory LyricsProviderCommand.getLyricsById({
+    required String id,
+  }) = LyricsProviderCommand_GetLyricsById;
+}
+
+@freezed
 sealed class PluginRequest with _$PluginRequest {
   const PluginRequest._();
 
@@ -86,6 +104,12 @@ sealed class PluginRequest with _$PluginRequest {
   const factory PluginRequest.chartProvider(
     ChartProviderCommand field0,
   ) = PluginRequest_ChartProvider;
+  const factory PluginRequest.lyricsProvider(
+    LyricsProviderCommand field0,
+  ) = PluginRequest_LyricsProvider;
+  const factory PluginRequest.searchSuggestionProvider(
+    SearchSuggestionCommand field0,
+  ) = PluginRequest_SearchSuggestionProvider;
 }
 
 @freezed
@@ -125,5 +149,36 @@ sealed class PluginResponse with _$PluginResponse {
   const factory PluginResponse.chartDetails(
     List<ChartItem> field0,
   ) = PluginResponse_ChartDetails;
+  const factory PluginResponse.segments(
+    List<TrackSegment> field0,
+  ) = PluginResponse_Segments;
+  const factory PluginResponse.lyricsResult([
+    (PluginLyrics, LyricsMetadata)? field0,
+  ]) = PluginResponse_LyricsResult;
+  const factory PluginResponse.lyricsSearchResults(
+    List<LyricsMatch> field0,
+  ) = PluginResponse_LyricsSearchResults;
+  const factory PluginResponse.lyricsById(
+    PluginLyrics field0,
+    LyricsMetadata field1,
+  ) = PluginResponse_LyricsById;
+  const factory PluginResponse.suggestions(
+    List<Suggestion> field0,
+  ) = PluginResponse_Suggestions;
   const factory PluginResponse.ack() = PluginResponse_Ack;
+}
+
+@freezed
+sealed class SearchSuggestionCommand with _$SearchSuggestionCommand {
+  const SearchSuggestionCommand._();
+
+  const factory SearchSuggestionCommand.getSuggestions({
+    required String query,
+    int? limit,
+    required bool includeEntities,
+  }) = SearchSuggestionCommand_GetSuggestions;
+  const factory SearchSuggestionCommand.getDefaultSuggestions({
+    int? limit,
+    required bool includeEntities,
+  }) = SearchSuggestionCommand_GetDefaultSuggestions;
 }

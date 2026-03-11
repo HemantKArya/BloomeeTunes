@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/screen/player_views/fullscreen_lyrics_view.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,7 +18,12 @@ class LyricsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LyricsCubit, LyricsState>(
+    final l10n = AppLocalizations.of(context)!;
+    return BlocConsumer<LyricsCubit, LyricsState>(
+      listenWhen: (previous, current) => current is LyricsNoPlugin,
+      listener: (context, state) {
+        SnackbarService.showMessage(l10n.playerLyricsNoPlugin);
+      },
       builder: (context, state) {
         return Stack(
           children: [
@@ -26,12 +33,14 @@ class LyricsWidget extends StatelessWidget {
                 LyricsInitial() => const Center(
                     child: CircularProgressIndicator(),
                   ),
-
-                // return condtional widget
                 LyricsLoaded() => LoadedLyricsWidget(state: state),
-                LyricsError() => const SignBoardWidget(
+                LyricsNoPlugin() => SignBoardWidget(
+                    icon: MingCute.plugin_2_line,
+                    message: l10n.playerLyricsNoPlugin,
+                  ),
+                LyricsError() => SignBoardWidget(
                     icon: MingCute.music_2_line,
-                    message: "No Lyrics Found",
+                    message: l10n.playerNoLyricsFound,
                   ),
                 LyricsLoading() => const Center(
                     child: CircularProgressIndicator(),
@@ -52,7 +61,7 @@ class LyricsWidget extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Tooltip(
-                  message: 'Fullscreen Lyrics',
+                  message: l10n.playerFullscreenLyrics,
                   child: IconButton(
                     onPressed: () {
                       Navigator.of(context).push(
@@ -106,9 +115,10 @@ class LoadedLyricsWidget extends StatelessWidget {
         state: state,
       );
     }
-    return const Center(
+    return Center(
       child: SignBoardWidget(
-          message: "No Lyrics found!", icon: MingCute.music_2_line),
+          message: AppLocalizations.of(context)!.playerNoLyricsFound,
+          icon: MingCute.music_2_line),
     );
   }
 }

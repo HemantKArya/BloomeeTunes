@@ -171,6 +171,11 @@ class RelatedSongsManager {
         loadMoreItems: (_) {},
         charts: (_) {},
         chartDetails: (_) {},
+        segments: (_) {},
+        lyricsResult: (_) {},
+        lyricsSearchResults: (_) {},
+        lyricsById: (_, __) {},
+        suggestions: (_) {},
         ack: () {},
       );
     } catch (e) {

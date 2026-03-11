@@ -420,6 +420,25 @@ class LocalMusicService {
     );
   }
 
+  Future<bool> getAutoScan() async {
+    final val = await _settingsDao.getSettingBool(
+      SettingKeys.localMusicAutoScan,
+      defaultValue: true,
+    );
+    return val ?? true;
+  }
+
+  Future<void> setAutoScan(bool value) async {
+    await _settingsDao.putSettingBool(SettingKeys.localMusicAutoScan, value);
+  }
+
+  Future<String> getLastScan() async {
+    return await _settingsDao.getSettingStr(
+          SettingKeys.localMusicLastScan,
+          defaultValue: '',
+        ) ??
+        '';
+  }
   // ── Folder management (desktop only) ───────────────────────────────────────
 
   Future<List<String>> getFolders() async {

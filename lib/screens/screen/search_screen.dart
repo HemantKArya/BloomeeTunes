@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/search_suggestions/search_suggestion_bloc.dart';
@@ -26,6 +27,7 @@ import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
+import 'package:Bloomee/src/rust/api/plugin/models.dart' as plugin_models;
 
 class SearchScreen extends StatefulWidget {
   final String searchQuery;
@@ -48,9 +50,10 @@ class _SearchScreenState extends State<SearchScreen> {
       ValueNotifier(ContentSearchFilter.all);
   String? _activePluginId;
 
-  bool _isSearching = false;
+  bool _isSuggestionPanelOpen = false;
   int _highlightedSuggestionIndex = -1;
-  List<String> _currentCombinedSuggestions = [];
+  List<({String query, ContentSearchFilter filter})>
+      _currentCombinedSuggestions = [];
 
   @override
   void initState() {
@@ -60,8 +63,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
     _searchFocusNode.addListener(() {
       setState(() {
-        _isSearching = _searchFocusNode.hasFocus;
-        if (_isSearching) {
+        if (_searchFocusNode.hasFocus) {
+          _isSuggestionPanelOpen = true;
           context
               .read<SearchSuggestionBloc>()
               .add(SearchSuggestionFetch(_textEditingController.text));
@@ -98,7 +101,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _onSearchScroll() {
     if (!_scrollController.hasClients) return;
-    if (_searchFocusNode.hasFocus) _searchFocusNode.unfocus();
 
     final state = _contentBloc.state;
     final nextPageToken = state.searchResults?.nextPageToken;
@@ -115,16 +117,93 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _doSearch(String query) {
-    if (query.trim().isEmpty || _activePluginId == null) return;
+  String _normalizeSearchQuery(String query) =>
+      query.trim().replaceAll(RegExp(r'\s+'), ' ');
+
+  ContentSearchFilter _filterForEntity(plugin_models.EntityType type) {
+    return switch (type) {
+      plugin_models.EntityType.track => ContentSearchFilter.track,
+      plugin_models.EntityType.album => ContentSearchFilter.album,
+      plugin_models.EntityType.artist => ContentSearchFilter.artist,
+      plugin_models.EntityType.playlist => ContentSearchFilter.playlist,
+      _ => ContentSearchFilter.all,
+    };
+  }
+
+  String _buildEntitySearchQuery(plugin_models.EntitySuggestion entity) {
+    final parts = <String>[entity.title.trim()];
+    final subtitle = entity.subtitle?.trim();
+    if (subtitle != null &&
+        subtitle.isNotEmpty &&
+        !subtitle.toLowerCase().contains(entity.title.trim().toLowerCase())) {
+      parts.add(subtitle);
+    }
+    return _normalizeSearchQuery(
+        parts.where((part) => part.isNotEmpty).join(' '));
+  }
+
+  void _setSearchFieldText(String query) {
+    _textEditingController.value = TextEditingValue(
+      text: query,
+      selection: TextSelection.collapsed(offset: query.length),
+    );
+  }
+
+  void _closeSuggestionPanel() {
+    if (!mounted) return;
+    setState(() {
+      _isSuggestionPanelOpen = false;
+      _highlightedSuggestionIndex = -1;
+    });
+    _searchFocusNode.unfocus();
+  }
+
+  void _openSuggestionPanel() {
+    if (!mounted) return;
+    setState(() {
+      _isSuggestionPanelOpen = true;
+      _highlightedSuggestionIndex = -1;
+    });
+  }
+
+  void _performSearch({
+    required String query,
+    required ContentSearchFilter filter,
+  }) {
+    final normalizedQuery = _normalizeSearchQuery(query);
+    if (normalizedQuery.isEmpty || _activePluginId == null) return;
+
     context
         .read<SearchSuggestionBloc>()
-        .add(SearchSuggestionSave(query.trim()));
-    _searchFocusNode.unfocus();
+        .add(SearchSuggestionSave(normalizedQuery));
+    _setSearchFieldText(normalizedQuery);
+    _filter.value = filter;
+    _closeSuggestionPanel();
     _contentBloc.add(SearchContent(
-      query: query.trim(),
-      filter: _filter.value,
+      query: normalizedQuery,
+      filter: filter,
     ));
+  }
+
+  void _doSearch(String query) {
+    _performSearch(
+      query: query,
+      filter: _filter.value,
+    );
+  }
+
+  void _doSearchInAllCategories(String query) {
+    _performSearch(
+      query: query,
+      filter: ContentSearchFilter.all,
+    );
+  }
+
+  void _doSearchWithFilter(String query, ContentSearchFilter filter) {
+    _performSearch(
+      query: query,
+      filter: filter,
+    );
   }
 
   void _triggerSearch() {
@@ -134,7 +213,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (!_isSearching || _currentCombinedSuggestions.isEmpty) {
+    if (!_isSuggestionPanelOpen || _currentCombinedSuggestions.isEmpty) {
       return KeyEventResult.ignored;
     }
 
@@ -216,7 +295,10 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+        _closeSuggestionPanel();
+      },
       child: Scaffold(
         backgroundColor: Default_Theme.themeColor,
         resizeToAvoidBottomInset: false,
@@ -254,8 +336,8 @@ class _SearchScreenState extends State<SearchScreen> {
                 slivers: [
                   _buildFloatingSearchBar(),
                   _buildAestheticFilterChips(),
-                  if (!_isSearching) _buildPluginsGlassyBox(),
-                  if (_isSearching)
+                  if (!_isSuggestionPanelOpen) _buildPluginsGlassyBox(),
+                  if (_isSuggestionPanelOpen)
                     _buildSuggestionsArea()
                   else
                     _buildContentArea(),
@@ -301,11 +383,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(width: 16),
-                  Icon(
-                    MingCute.search_2_line,
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                    size: 20,
-                  ),
+                  _buildAnimatedSearchLeadingIcon(),
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
@@ -318,7 +396,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                       onChanged: (val) {
-                        setState(() => _highlightedSuggestionIndex = -1);
+                        _openSuggestionPanel();
                         context
                             .read<SearchSuggestionBloc>()
                             .add(SearchSuggestionFetch(val));
@@ -329,8 +407,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                 _currentCombinedSuggestions.length) {
                           final selected = _currentCombinedSuggestions[
                               _highlightedSuggestionIndex];
-                          _textEditingController.text = selected;
-                          _doSearch(selected);
+                          _performSearch(
+                            query: selected.query,
+                            filter: selected.filter,
+                          );
                         } else {
                           _doSearch(val);
                         }
@@ -364,6 +444,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               size: 18),
                           onPressed: () {
                             _textEditingController.clear();
+                            _openSuggestionPanel();
                             context
                                 .read<SearchSuggestionBloc>()
                                 .add(const SearchSuggestionFetch(''));
@@ -625,11 +706,15 @@ class _SearchScreenState extends State<SearchScreen> {
     return BlocBuilder<SearchSuggestionBloc, SearchSuggestionState>(
       builder: (context, state) {
         if (state is SearchSuggestionLoading) {
-          return const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 48),
+              child: Center(
                 child: CircularProgressIndicator(
-                    color: Default_Theme.accentColor2)),
+                  color: Default_Theme.accentColor2,
+                ),
+              ),
+            ),
           );
         }
 
@@ -637,7 +722,28 @@ class _SearchScreenState extends State<SearchScreen> {
           final dbList =
               state.dbSuggestionList.map((e) => e.values.first).toList();
           final apiList = state.suggestionList;
-          _currentCombinedSuggestions = [...dbList, ...apiList];
+          final entityList = state.entitySuggestionList;
+
+          _currentCombinedSuggestions = [
+            ...dbList.map(
+              (query) => (
+                query: _normalizeSearchQuery(query),
+                filter: ContentSearchFilter.all,
+              ),
+            ),
+            ...apiList.map(
+              (query) => (
+                query: _normalizeSearchQuery(query),
+                filter: ContentSearchFilter.all,
+              ),
+            ),
+            ...entityList.map(
+              (entity) => (
+                query: _buildEntitySearchQuery(entity),
+                filter: _filterForEntity(entity.kind),
+              ),
+            ),
+          ];
 
           if (_currentCombinedSuggestions.isEmpty &&
               _textEditingController.text.isEmpty) {
@@ -660,9 +766,13 @@ class _SearchScreenState extends State<SearchScreen> {
             );
           }
 
-          return SliverList(
-            delegate: SliverChildListDelegate([
-              const SizedBox(height: 8),
+          final suggestionChildren = <Widget>[
+            const SizedBox(height: 12),
+            if (dbList.isNotEmpty) ...[
+              _buildSuggestionSectionHeader(
+                title: 'Recent',
+                icon: MingCute.history_line,
+              ),
               ...dbList.asMap().entries.map((entry) {
                 return _buildSuggestionTile(
                   suggestion: entry.value,
@@ -671,6 +781,13 @@ class _SearchScreenState extends State<SearchScreen> {
                   isHighlighted: entry.key == _highlightedSuggestionIndex,
                 );
               }),
+              const SizedBox(height: 12),
+            ],
+            if (apiList.isNotEmpty) ...[
+              _buildSuggestionSectionHeader(
+                title: 'Suggestions',
+                icon: MingCute.search_2_line,
+              ),
               ...apiList.asMap().entries.map((entry) {
                 return _buildSuggestionTile(
                   suggestion: entry.value,
@@ -680,8 +797,29 @@ class _SearchScreenState extends State<SearchScreen> {
                       _highlightedSuggestionIndex,
                 );
               }),
-              const SizedBox(height: 100),
-            ]),
+              const SizedBox(height: 12),
+            ],
+            if (entityList.isNotEmpty) ...[
+              _buildSuggestionSectionHeader(
+                title: 'Top Results',
+                icon: MingCute.sparkles_2_line,
+              ),
+              ...entityList.asMap().entries.map((entry) {
+                return _buildEntitySuggestionTile(
+                  entity: entry.value,
+                  isHighlighted: (entry.key + dbList.length + apiList.length) ==
+                      _highlightedSuggestionIndex,
+                );
+              }),
+            ],
+            const SizedBox(height: 120),
+          ];
+
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate(suggestionChildren),
+            ),
           );
         }
 
@@ -696,37 +834,69 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  Widget _buildSuggestionSectionHeader({
+    required String title,
+    required IconData icon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: Default_Theme.secondoryTextStyleMedium.copyWith(
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.55),
+              fontSize: 11.5,
+              letterSpacing: 1.1,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSuggestionTile({
     required String suggestion,
     required IconData icon,
     required bool isHistory,
     required bool isHighlighted,
   }) {
-    return Listener(
-      onPointerDown: (event) {
-        _textEditingController.text = suggestion;
-        _doSearch(suggestion);
-      },
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _doSearchInAllCategories(suggestion),
+        splashColor: Colors.transparent,
+        highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
         child: Container(
-          color: isHighlighted
-              ? Default_Theme.primaryColor1.withValues(alpha: 0.08)
-              : Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+          decoration: BoxDecoration(
+            color: isHighlighted
+                ? Default_Theme.primaryColor1.withValues(alpha: 0.065)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
           child: Row(
             children: [
               Icon(icon,
-                  size: 20,
-                  color: Default_Theme.primaryColor1.withValues(alpha: 0.5)),
-              const SizedBox(width: 16),
+                  size: 18,
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.48)),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   suggestion,
                   style: TextStyle(
                           color: Default_Theme.primaryColor1
                               .withValues(alpha: 0.9),
-                          fontSize: 15.5)
+                          fontSize: 15)
                       .merge(Default_Theme.secondoryTextStyle),
                 ),
               ),
@@ -742,16 +912,155 @@ class _SearchScreenState extends State<SearchScreen> {
               else
                 GestureDetector(
                   onTap: () {
-                    _textEditingController.text = suggestion;
+                    final normalizedSuggestion =
+                        _normalizeSearchQuery(suggestion);
+                    _setSearchFieldText(normalizedSuggestion);
+                    _openSuggestionPanel();
                     _searchFocusNode.requestFocus();
-                    _textEditingController.selection =
-                        TextSelection.fromPosition(TextPosition(
-                            offset: _textEditingController.text.length));
+                    context
+                        .read<SearchSuggestionBloc>()
+                        .add(SearchSuggestionFetch(normalizedSuggestion));
                   },
                   child: Icon(MingCute.arrow_left_up_line,
                       color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
                       size: 18),
                 )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEntitySuggestionTile({
+    required plugin_models.EntitySuggestion entity,
+    required bool isHighlighted,
+  }) {
+    final thumbnailUrl = entity.thumbnail?.urlLow ?? entity.thumbnail?.url;
+    final isArtist = entity.kind == plugin_models.EntityType.artist;
+    final targetFilter = _filterForEntity(entity.kind);
+    final searchQuery = _buildEntitySearchQuery(entity);
+    final typeLabel = switch (entity.kind) {
+      plugin_models.EntityType.track =>
+        AppLocalizations.of(context)!.searchTracks,
+      plugin_models.EntityType.album =>
+        AppLocalizations.of(context)!.searchAlbums,
+      plugin_models.EntityType.artist =>
+        AppLocalizations.of(context)!.searchArtists,
+      plugin_models.EntityType.playlist =>
+        AppLocalizations.of(context)!.searchPlaylists,
+      plugin_models.EntityType.genre => 'Genre',
+      plugin_models.EntityType.unknown => 'Result',
+    };
+
+    Widget buildThumbnail(Widget child) => isArtist
+        ? ClipOval(child: child)
+        : ClipRRect(borderRadius: BorderRadius.circular(6), child: child);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _doSearchWithFilter(searchQuery, targetFilter),
+        splashColor: Colors.transparent,
+        highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isHighlighted
+                ? Default_Theme.primaryColor1.withValues(alpha: 0.07)
+                : Default_Theme.primaryColor2.withValues(alpha: 0.02),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isHighlighted
+                  ? Default_Theme.primaryColor1.withValues(alpha: 0.12)
+                  : Colors.white.withValues(alpha: 0.04),
+            ),
+          ),
+          child: Row(
+            children: [
+              buildThumbnail(
+                thumbnailUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: thumbnailUrl,
+                        width: 42,
+                        height: 42,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => Container(
+                          width: 42,
+                          height: 42,
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.15),
+                          child: Icon(MingCute.search_line,
+                              size: 18,
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.4)),
+                        ),
+                      )
+                    : Container(
+                        width: 42,
+                        height: 42,
+                        color:
+                            Default_Theme.primaryColor2.withValues(alpha: 0.15),
+                        child: Icon(MingCute.search_line,
+                            size: 18,
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.4)),
+                      ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      entity.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.9),
+                              fontSize: 14.5)
+                          .merge(Default_Theme.secondoryTextStyleMedium),
+                    ),
+                    if (entity.subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        entity.subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                                color: Default_Theme.primaryColor1
+                                    .withValues(alpha: 0.5),
+                                fontSize: 12)
+                            .merge(Default_Theme.secondoryTextStyle),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Text(
+                  typeLabel,
+                  style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.52),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -789,7 +1098,7 @@ class _SearchScreenState extends State<SearchScreen> {
             }
 
             // Loading with previous results → keep showing them
-            // (avoids flash of "Discover amazing music..." between searches)
+            // but surface a clear loading affordance to avoid stale-looking UI.
             if (state.searchStatus == SearchStatus.loading && hasResults) {
               return _buildSliverSearchResults(state);
             }
@@ -869,9 +1178,48 @@ class _SearchScreenState extends State<SearchScreen> {
 
     final pluginId = _activePluginId ?? '';
     final isLoadingMore = state.searchStatus == SearchStatus.loadingMore;
+    final isRefreshing = state.searchStatus == SearchStatus.loading;
 
     return SliverMainAxisGroup(
       slivers: [
+        if (isRefreshing)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: Default_Theme.accentColor2,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Searching...',
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.78),
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         if (tracks.isNotEmpty) ...[
           _sliverSectionHeader(AppLocalizations.of(context)!.searchTracks),
           SliverPadding(
@@ -966,6 +1314,52 @@ class _SearchScreenState extends State<SearchScreen> {
           children: children,
         ),
       ),
+    );
+  }
+
+  Widget _buildAnimatedSearchLeadingIcon() {
+    return BlocBuilder<ContentBloc, ContentState>(
+      bloc: _contentBloc,
+      buildWhen: (previous, current) =>
+          previous.searchStatus != current.searchStatus,
+      builder: (context, state) {
+        final isLoading = state.searchStatus == SearchStatus.loading ||
+            state.searchStatus == SearchStatus.loadingMore;
+
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 240),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final rotation = Tween<double>(begin: 0.82, end: 1).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+            );
+            return FadeTransition(
+              opacity: animation,
+              child: RotationTransition(
+                turns: rotation,
+                child: child,
+              ),
+            );
+          },
+          child: isLoading
+              ? SizedBox(
+                  key: const ValueKey('search-loading'),
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                  ),
+                )
+              : Icon(
+                  MingCute.search_2_line,
+                  key: const ValueKey('search-idle'),
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                  size: 20,
+                ),
+        );
+      },
     );
   }
 }

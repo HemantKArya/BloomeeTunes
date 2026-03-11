@@ -109,13 +109,10 @@ class LastFmAPI {
     required String? apiSecret,
     required String? sessionKey,
   }) {
-    apiKey = apiKey;
-    apiSecret = apiSecret;
-    sessionKey = sessionKey;
-
-    if (apiKey != null && apiSecret != null && sessionKey != null) {
-      initialized = true;
-    }
+    LastFmAPI.apiKey = apiKey;
+    LastFmAPI.apiSecret = apiSecret;
+    LastFmAPI.sessionKey = sessionKey;
+    initialized = (apiKey != null && apiSecret != null && sessionKey != null);
   }
 
   static void setAPIKey(String apikey) {
@@ -149,6 +146,30 @@ class LastFmAPI {
     String signature =
         md5.convert(utf8.encode('$sortedParamsString$apiSecret')).toString();
     return signature;
+  }
+
+  /// Updates the "Now Playing" status on the user's Last.fm profile.
+  static Future<void> updateNowPlaying(ScrobbleTrack track) async {
+    if (apiKey == null || apiSecret == null || sessionKey == null) return;
+
+    final params = <String, String>{
+      'method': 'track.updateNowPlaying',
+      'artist': track.artist,
+      'track': track.trackName,
+      'api_key': apiKey!,
+      'sk': sessionKey!,
+    };
+    if (track.album != null) params['album'] = track.album!;
+    if (track.duration != null) params['duration'] = track.duration.toString();
+
+    params['api_sig'] = generateApiSig(params, apiSecret!);
+    params['format'] = 'json';
+
+    try {
+      await http.post(Uri.parse(apiUrl), body: params);
+    } catch (e) {
+      log('updateNowPlaying failed: $e', name: 'LastFM API');
+    }
   }
 
   static Future<bool> scrobble(List<ScrobbleTrack> tracks) async {

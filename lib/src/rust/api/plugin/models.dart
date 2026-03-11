@@ -9,7 +9,7 @@ import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'models.freezed.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `HttpMethod`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 class AlbumDetails {
   final AlbumSummary summary;
@@ -251,6 +251,51 @@ class ChartSummary {
           thumbnail == other.thumbnail;
 }
 
+class EntitySuggestion {
+  final String id;
+  final String title;
+  final String? subtitle;
+  final EntityType kind;
+  final SuggestionArtwork? thumbnail;
+
+  const EntitySuggestion({
+    required this.id,
+    required this.title,
+    this.subtitle,
+    required this.kind,
+    this.thumbnail,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      subtitle.hashCode ^
+      kind.hashCode ^
+      thumbnail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EntitySuggestion &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          subtitle == other.subtitle &&
+          kind == other.kind &&
+          thumbnail == other.thumbnail;
+}
+
+enum EntityType {
+  track,
+  album,
+  artist,
+  playlist,
+  genre,
+  unknown,
+  ;
+}
+
 enum ImageLayout {
   portrait,
   landscape,
@@ -282,6 +327,139 @@ class Lyrics {
           plain == other.plain &&
           synced == other.synced &&
           copyright == other.copyright;
+}
+
+class LyricsLine {
+  final int startMs;
+  final int? durationMs;
+  final String content;
+  final List<LyricsToken>? tokens;
+
+  const LyricsLine({
+    required this.startMs,
+    this.durationMs,
+    required this.content,
+    this.tokens,
+  });
+
+  @override
+  int get hashCode =>
+      startMs.hashCode ^
+      durationMs.hashCode ^
+      content.hashCode ^
+      tokens.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LyricsLine &&
+          runtimeType == other.runtimeType &&
+          startMs == other.startMs &&
+          durationMs == other.durationMs &&
+          content == other.content &&
+          tokens == other.tokens;
+}
+
+class LyricsMatch {
+  final String id;
+  final String title;
+  final String artist;
+  final String? album;
+  final BigInt? durationMs;
+  final LyricsSyncType syncType;
+
+  const LyricsMatch({
+    required this.id,
+    required this.title,
+    required this.artist,
+    this.album,
+    this.durationMs,
+    required this.syncType,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      artist.hashCode ^
+      album.hashCode ^
+      durationMs.hashCode ^
+      syncType.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LyricsMatch &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          artist == other.artist &&
+          album == other.album &&
+          durationMs == other.durationMs &&
+          syncType == other.syncType;
+}
+
+class LyricsMetadata {
+  final String? source;
+  final String? author;
+  final String? language;
+  final String? copyright;
+  final bool isVerified;
+
+  const LyricsMetadata({
+    this.source,
+    this.author,
+    this.language,
+    this.copyright,
+    required this.isVerified,
+  });
+
+  @override
+  int get hashCode =>
+      source.hashCode ^
+      author.hashCode ^
+      language.hashCode ^
+      copyright.hashCode ^
+      isVerified.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LyricsMetadata &&
+          runtimeType == other.runtimeType &&
+          source == other.source &&
+          author == other.author &&
+          language == other.language &&
+          copyright == other.copyright &&
+          isVerified == other.isVerified;
+}
+
+enum LyricsSyncType {
+  none,
+  line,
+  syllable,
+  ;
+}
+
+class LyricsToken {
+  final int offsetMs;
+  final String text;
+
+  const LyricsToken({
+    required this.offsetMs,
+    required this.text,
+  });
+
+  @override
+  int get hashCode => offsetMs.hashCode ^ text.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LyricsToken &&
+          runtimeType == other.runtimeType &&
+          offsetMs == other.offsetMs &&
+          text == other.text;
 }
 
 @freezed
@@ -424,6 +602,41 @@ class PlaylistSummary {
           url == other.url;
 }
 
+class PluginLyrics {
+  final String? plain;
+  final String? lrc;
+  final List<LyricsLine>? lines;
+  final bool isInstrumental;
+  final LyricsSyncType syncType;
+
+  const PluginLyrics({
+    this.plain,
+    this.lrc,
+    this.lines,
+    required this.isInstrumental,
+    required this.syncType,
+  });
+
+  @override
+  int get hashCode =>
+      plain.hashCode ^
+      lrc.hashCode ^
+      lines.hashCode ^
+      isInstrumental.hashCode ^
+      syncType.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PluginLyrics &&
+          runtimeType == other.runtimeType &&
+          plain == other.plain &&
+          lrc == other.lrc &&
+          lines == other.lines &&
+          isInstrumental == other.isInstrumental &&
+          syncType == other.syncType;
+}
+
 enum Quality {
   low,
   medium,
@@ -471,6 +684,19 @@ class Section {
           moreLink == other.moreLink;
 }
 
+enum SegmentType {
+  intro,
+  outro,
+  sponsor,
+  selfPromo,
+  interaction,
+  musicOfftopic,
+  chapter,
+  filler,
+  unknown,
+  ;
+}
+
 class StreamSource {
   final String url;
   final Quality quality;
@@ -504,6 +730,39 @@ class StreamSource {
           format == other.format &&
           headers == other.headers &&
           expiresAt == other.expiresAt;
+}
+
+@freezed
+sealed class Suggestion with _$Suggestion {
+  const Suggestion._();
+
+  const factory Suggestion.query(
+    String field0,
+  ) = Suggestion_Query;
+  const factory Suggestion.entity(
+    EntitySuggestion field0,
+  ) = Suggestion_Entity;
+}
+
+class SuggestionArtwork {
+  final String url;
+  final String? urlLow;
+
+  const SuggestionArtwork({
+    required this.url,
+    this.urlLow,
+  });
+
+  @override
+  int get hashCode => url.hashCode ^ urlLow.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SuggestionArtwork &&
+          runtimeType == other.runtimeType &&
+          url == other.url &&
+          urlLow == other.urlLow;
 }
 
 class Track {
@@ -557,11 +816,75 @@ class Track {
           lyrics == other.lyrics;
 }
 
+class TrackMetadata {
+  final String title;
+  final String artist;
+  final String? album;
+  final BigInt? durationMs;
+
+  const TrackMetadata({
+    required this.title,
+    required this.artist,
+    this.album,
+    this.durationMs,
+  });
+
+  @override
+  int get hashCode =>
+      title.hashCode ^ artist.hashCode ^ album.hashCode ^ durationMs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TrackMetadata &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          artist == other.artist &&
+          album == other.album &&
+          durationMs == other.durationMs;
+}
+
+class TrackSegment {
+  final SegmentType segmentType;
+  final BigInt startMs;
+  final BigInt endMs;
+  final String? title;
+  final bool isSkippable;
+
+  const TrackSegment({
+    required this.segmentType,
+    required this.startMs,
+    required this.endMs,
+    this.title,
+    required this.isSkippable,
+  });
+
+  @override
+  int get hashCode =>
+      segmentType.hashCode ^
+      startMs.hashCode ^
+      endMs.hashCode ^
+      title.hashCode ^
+      isSkippable.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TrackSegment &&
+          runtimeType == other.runtimeType &&
+          segmentType == other.segmentType &&
+          startMs == other.startMs &&
+          endMs == other.endMs &&
+          title == other.title &&
+          isSkippable == other.isSkippable;
+}
+
 enum Trend {
   up,
   down,
   same,
   newEntry,
+  reEntry,
   unknown,
   ;
 }

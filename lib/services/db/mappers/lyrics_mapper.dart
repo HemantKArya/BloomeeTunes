@@ -13,7 +13,9 @@ Lyrics? lyricsDBToLyrics(LyricsDB? lyricsDB) {
     duration: lyricsDB.duration.toString(),
     lyricsPlain: lyricsDB.plainLyrics,
     lyricsSynced: lyricsDB.syncedLyrics,
-    provider: LyricsProvider.lrcnet,
+    provider: lyricsDB.source == 'lrcnet' || lyricsDB.source == 'plugin'
+        ? LyricsProvider.plugin
+        : LyricsProvider.none,
     url: lyricsDB.url,
     mediaID: lyricsDB.mediaID,
   );
@@ -26,7 +28,7 @@ LyricsDB lyricsToLyricsDB(Lyrics lyrics, {int? offset}) {
     plainLyrics: lyrics.lyricsPlain,
     syncedLyrics: lyrics.lyricsSynced,
     title: lyrics.title,
-    source: "lrcnet",
+    source: lyrics.provider == LyricsProvider.plugin ? 'plugin' : 'none',
     artist: lyrics.artist,
     album: lyrics.album,
     duration: double.parse(lyrics.duration ?? "0").toInt(),

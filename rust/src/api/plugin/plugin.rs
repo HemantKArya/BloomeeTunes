@@ -472,6 +472,10 @@ impl PluginManager {
             let expected_type = match &request {
                 PluginRequest::ContentResolver(_) => PluginType::ContentResolver,
                 PluginRequest::ChartProvider(_) => PluginType::ChartProvider,
+                PluginRequest::LyricsProvider(_) => PluginType::LyricsProvider,
+                PluginRequest::SearchSuggestionProvider(_) => {
+                    PluginType::SearchSuggestionProvider
+                }
             };
 
             if plugin.get_plugin_type() != expected_type {

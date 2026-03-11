@@ -224,6 +224,7 @@ class About extends StatelessWidget {
                       onTap: () {
                         launchUrl(
                           Uri.parse('https://x.com/iamhemantindia'),
+                          mode: LaunchMode.externalApplication,
                         );
                       }),
                   // Short label 'Linkedin' opens Linkedin profile

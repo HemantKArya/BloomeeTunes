@@ -175,6 +175,8 @@ class ChartListTile extends StatelessWidget {
     switch (trend) {
       case Trend.newEntry:
         return _buildRotatedBadge('NEW', Default_Theme.accentColor1light);
+      case Trend.reEntry:
+        return _buildRotatedBadge('RE', Default_Theme.accentColor1light);
       case Trend.same:
         return const Center(
           child: Text('—',

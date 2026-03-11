@@ -50,6 +50,9 @@ class PluginDefaultsSettings extends StatelessWidget {
           return BlocBuilder<PluginBloc, PluginState>(
             builder: (context, pluginState) {
               final resolvers = pluginState.loadedContentResolvers;
+              final lyricsProviders = pluginState.loadedLyricsProviders;
+              final suggestionProviders =
+                  pluginState.loadedSearchSuggestionProviders;
               return ListView(
                 physics: const BouncingScrollPhysics(),
                 padding:
@@ -60,6 +63,12 @@ class PluginDefaultsSettings extends StatelessWidget {
                   const SizedBox(height: 28),
                   _buildResolverPrioritySection(
                       context, l10n, settingsState, resolvers),
+                  const SizedBox(height: 28),
+                  _buildLyricsPrioritySection(
+                      context, l10n, settingsState, lyricsProviders),
+                  const SizedBox(height: 28),
+                  _buildSuggestionPluginSection(
+                      context, l10n, settingsState, suggestionProviders),
                   const SizedBox(height: 40),
                 ],
               );
@@ -223,6 +232,158 @@ class PluginDefaultsSettings extends StatelessWidget {
             context.read<SettingsCubit>().setResolverPriority(newOrder);
           },
         ),
+      ],
+    );
+  }
+
+  Widget _buildLyricsPrioritySection(
+    BuildContext context,
+    AppLocalizations l10n,
+    SettingsState state,
+    List<PluginInfo> lyricsProviders,
+  ) {
+    if (lyricsProviders.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SettingSectionHeader(label: l10n.pluginDefaultsLyricsHeader),
+          SettingCard(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Row(
+                  children: [
+                    const SettingIconBox(icon: MingCute.align_center_fill),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        l10n.pluginDefaultsLyricsNone,
+                        style: TextStyle(
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.5),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ).merge(Default_Theme.secondoryTextStyle),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    final storedPriority = state.lyricsPriority;
+    final loadedIds = lyricsProviders.map((p) => p.manifest.id).toSet();
+    final ordered = <String>[
+      ...storedPriority.where(loadedIds.contains),
+      ...loadedIds.where((id) => !storedPriority.contains(id)),
+    ];
+
+    final nameMap = {
+      for (final p in lyricsProviders) p.manifest.id: p.name,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SettingSectionHeader(label: l10n.pluginDefaultsLyricsHeader),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            l10n.pluginDefaultsLyricsDesc,
+            style: TextStyle(
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+            ).merge(Default_Theme.secondoryTextStyle),
+          ),
+        ),
+        _ResolverPriorityList(
+          ordered: ordered,
+          nameMap: nameMap,
+          onReorder: (newOrder) {
+            context.read<SettingsCubit>().setLyricsPriority(newOrder);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSuggestionPluginSection(
+    BuildContext context,
+    AppLocalizations l10n,
+    SettingsState state,
+    List<PluginInfo> suggestionProviders,
+  ) {
+    final selectedId = state.suggestionPluginId;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SettingSectionHeader(label: l10n.pluginDefaultsSuggestionsHeader),
+        if (suggestionProviders.isEmpty)
+          SettingCard(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Row(
+                  children: [
+                    const SettingIconBox(icon: MingCute.search_fill),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        l10n.pluginDefaultsSuggestionsNone,
+                        style: TextStyle(
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.5),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ).merge(Default_Theme.secondoryTextStyle),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          )
+        else
+          SettingCard(
+            children: [
+              SettingRadioTile<String>(
+                title: l10n.pluginDefaultsSuggestionsHistoryOnlyTitle,
+                subtitle: l10n.pluginDefaultsSuggestionsHistoryOnlySubtitle,
+                value: '',
+                groupValue: selectedId,
+                onChanged: (_) {
+                  context.read<SettingsCubit>().setSuggestionPluginId('');
+                },
+              ),
+              ...suggestionProviders.map((plugin) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SettingDivider(),
+                    SettingRadioTile<String>(
+                      title: plugin.name,
+                      subtitle: plugin.manifest.id,
+                      value: plugin.manifest.id,
+                      groupValue: selectedId,
+                      onChanged: (_) {
+                        context
+                            .read<SettingsCubit>()
+                            .setSuggestionPluginId(plugin.manifest.id);
+                      },
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
       ],
     );
   }

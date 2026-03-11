@@ -69,6 +69,20 @@ class PluginState extends Equatable {
           loadedPluginIds.contains(p.manifest.id))
       .toList();
 
+  /// Get loaded lyrics provider plugins.
+  List<PluginInfo> get loadedLyricsProviders => availablePlugins
+      .where((p) =>
+          p.pluginType == PluginType.lyricsProvider &&
+          loadedPluginIds.contains(p.manifest.id))
+      .toList();
+
+  /// Get loaded search suggestion provider plugins.
+  List<PluginInfo> get loadedSearchSuggestionProviders => availablePlugins
+      .where((p) =>
+          p.pluginType == PluginType.searchSuggestionProvider &&
+          loadedPluginIds.contains(p.manifest.id))
+      .toList();
+
   /// Check if a specific plugin is loaded.
   bool isPluginLoaded(String pluginId) => loadedPluginIds.contains(pluginId);
 

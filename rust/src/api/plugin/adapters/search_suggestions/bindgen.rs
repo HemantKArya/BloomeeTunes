@@ -234,11 +234,74 @@ impl UnaryComponentType for RequestOptions {}
 
 
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EntityType {
+    Track,
+    Album,
+    Artist,
+    Playlist,
+    Genre,
+    Unknown,
+}
+
+impl ComponentType for EntityType {
+    fn ty() -> ValueType {
+        ValueType::Enum(EnumType::new(None, [
+            "track",
+            "album",
+            "artist",
+            "playlist",
+            "genre",
+            "unknown",
+        ]).unwrap())
+    }
+
+    fn from_value(value: &Value) -> Result<Self> {
+        if let Value::Enum(enum_val) = value {
+            let discriminant = enum_val.discriminant();
+            match discriminant {
+                0 => Ok(EntityType::Track),
+                1 => Ok(EntityType::Album),
+                2 => Ok(EntityType::Artist),
+                3 => Ok(EntityType::Playlist),
+                4 => Ok(EntityType::Genre),
+                5 => Ok(EntityType::Unknown),
+                _ => bail!("Invalid enum discriminant: {}", discriminant),
+            }
+        } else {
+            bail!("Expected Enum value")
+        }
+    }
+
+    fn into_value(self) -> Result<Value> {
+        let enum_type = EnumType::new(None, [
+            "track",
+            "album",
+            "artist",
+            "playlist",
+            "genre",
+            "unknown",
+        ]).unwrap();
+
+        let discriminant = match self {
+            EntityType::Track => 0,
+            EntityType::Album => 1,
+            EntityType::Artist => 2,
+            EntityType::Playlist => 3,
+            EntityType::Genre => 4,
+            EntityType::Unknown => 5,
+        };
+
+        Ok(Value::Enum(Enum::new(enum_type, discriminant)?))
+    }
+}
+
+impl UnaryComponentType for EntityType {}
+
 #[derive(Debug, Clone)]
 pub struct Artwork {
     pub url: String,
     pub url_low: Option<String>,
-    pub url_high: Option<String>,
 }
 
 impl ComponentType for Artwork {
@@ -249,7 +312,6 @@ impl ComponentType for Artwork {
                 [
                     ("url", ValueType::String),
                     ("url-low", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("url-high", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
             ).unwrap(),
         )
@@ -263,18 +325,13 @@ impl ComponentType for Artwork {
             let url_low = record
                 .field("url-low")
                 .ok_or_else(|| anyhow!("Missing 'url-low' field"))?;
-            let url_high = record
-                .field("url-high")
-                .ok_or_else(|| anyhow!("Missing 'url-high' field"))?;
 
             let url = if let Value::String(s) = url { s.to_string() } else { bail!("Expected string") };
             let url_low = Option::<String>::from_value(&url_low)?;
-            let url_high = Option::<String>::from_value(&url_high)?;
 
             Ok(Artwork {
                 url,
                 url_low,
-                url_high,
             })
         } else {
             bail!("Expected Record value")
@@ -288,13 +345,11 @@ impl ComponentType for Artwork {
                 [
                     ("url", ValueType::String),
                     ("url-low", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("url-high", ValueType::Option(OptionType::new(ValueType::String))),
                 ],
             ).unwrap(),
             [
                 ("url", Value::String(self.url.into())),
                 ("url-low", self.url_low.into_value()?),
-                ("url-high", self.url_high.into_value()?),
             ],
         )?;
         Ok(Value::Record(record))
@@ -304,19 +359,16 @@ impl ComponentType for Artwork {
 impl UnaryComponentType for Artwork {}
 
 
-
 #[derive(Debug, Clone)]
-pub struct TrackItem {
+pub struct EntitySuggestion {
     pub id: String,
     pub title: String,
-    pub artists: String,
-    pub album: Option<String>,
+    pub subtitle: Option<String>,
+    pub kind: EntityType,
     pub thumbnail: Option<Artwork>,
-    pub duration_ms: Option<u64>,
-    pub is_explicit: bool,
 }
 
-impl ComponentType for TrackItem {
+impl ComponentType for EntitySuggestion {
     fn ty() -> ValueType {
         ValueType::Record(
             RecordType::new(
@@ -324,11 +376,9 @@ impl ComponentType for TrackItem {
                 [
                     ("id", ValueType::String),
                     ("title", ValueType::String),
-                    ("artists", ValueType::String),
-                    ("album", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("subtitle", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("kind", EntityType::ty()),
                     ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
-                    ("duration-ms", ValueType::Option(OptionType::new(ValueType::U64))),
-                    ("is-explicit", ValueType::Bool),
                 ],
             ).unwrap(),
         )
@@ -342,38 +392,28 @@ impl ComponentType for TrackItem {
             let title = record
                 .field("title")
                 .ok_or_else(|| anyhow!("Missing 'title' field"))?;
-            let artists = record
-                .field("artists")
-                .ok_or_else(|| anyhow!("Missing 'artists' field"))?;
-            let album = record
-                .field("album")
-                .ok_or_else(|| anyhow!("Missing 'album' field"))?;
+            let subtitle = record
+                .field("subtitle")
+                .ok_or_else(|| anyhow!("Missing 'subtitle' field"))?;
+            let kind = record
+                .field("kind")
+                .ok_or_else(|| anyhow!("Missing 'kind' field"))?;
             let thumbnail = record
                 .field("thumbnail")
                 .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
-            let duration_ms = record
-                .field("duration-ms")
-                .ok_or_else(|| anyhow!("Missing 'duration-ms' field"))?;
-            let is_explicit = record
-                .field("is-explicit")
-                .ok_or_else(|| anyhow!("Missing 'is-explicit' field"))?;
 
             let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
             let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
-            let artists = if let Value::String(s) = artists { s.to_string() } else { bail!("Expected string") };
-            let album = Option::<String>::from_value(&album)?;
+            let subtitle = Option::<String>::from_value(&subtitle)?;
+            let kind = EntityType::from_value(&kind)?;
             let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
-            let duration_ms = Option::<u64>::from_value(&duration_ms)?;
-            let is_explicit = if let Value::Bool(x) = is_explicit { x } else { bail!("Expected bool") };
 
-            Ok(TrackItem {
+            Ok(EntitySuggestion {
                 id,
                 title,
-                artists,
-                album,
+                subtitle,
+                kind,
                 thumbnail,
-                duration_ms,
-                is_explicit,
             })
         } else {
             bail!("Expected Record value")
@@ -387,177 +427,16 @@ impl ComponentType for TrackItem {
                 [
                     ("id", ValueType::String),
                     ("title", ValueType::String),
-                    ("artists", ValueType::String),
-                    ("album", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("subtitle", ValueType::Option(OptionType::new(ValueType::String))),
+                    ("kind", EntityType::ty()),
                     ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
-                    ("duration-ms", ValueType::Option(OptionType::new(ValueType::U64))),
-                    ("is-explicit", ValueType::Bool),
                 ],
             ).unwrap(),
             [
                 ("id", Value::String(self.id.into())),
                 ("title", Value::String(self.title.into())),
-                ("artists", Value::String(self.artists.into())),
-                ("album", self.album.into_value()?),
-                ("thumbnail", self.thumbnail.into_value()?),
-                ("duration-ms", self.duration_ms.into_value()?),
-                ("is-explicit", Value::Bool(self.is_explicit)),
-            ],
-        )?;
-        Ok(Value::Record(record))
-    }
-}
-
-impl UnaryComponentType for TrackItem {}
-
-
-#[derive(Debug, Clone)]
-pub struct AlbumItem {
-    pub id: String,
-    pub title: String,
-    pub artists: Vec<String>,
-    pub thumbnail: Option<Artwork>,
-    pub year: Option<u32>,
-}
-
-impl ComponentType for AlbumItem {
-    fn ty() -> ValueType {
-        ValueType::Record(
-            RecordType::new(
-                None,
-                [
-                    ("id", ValueType::String),
-                    ("title", ValueType::String),
-                    ("artists", ValueType::List(ListType::new(ValueType::String))),
-                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
-                    ("year", ValueType::Option(OptionType::new(ValueType::U32))),
-                ],
-            ).unwrap(),
-        )
-    }
-
-    fn from_value(value: &Value) -> Result<Self> {
-        if let Value::Record(record) = value {
-            let id = record
-                .field("id")
-                .ok_or_else(|| anyhow!("Missing 'id' field"))?;
-            let title = record
-                .field("title")
-                .ok_or_else(|| anyhow!("Missing 'title' field"))?;
-            let artists = record
-                .field("artists")
-                .ok_or_else(|| anyhow!("Missing 'artists' field"))?;
-            let thumbnail = record
-                .field("thumbnail")
-                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
-            let year = record
-                .field("year")
-                .ok_or_else(|| anyhow!("Missing 'year' field"))?;
-
-            let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
-            let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
-            let artists = Vec::<String>::from_value(&artists)?;
-            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
-            let year = Option::<u32>::from_value(&year)?;
-
-            Ok(AlbumItem {
-                id,
-                title,
-                artists,
-                thumbnail,
-                year,
-            })
-        } else {
-            bail!("Expected Record value")
-        }
-    }
-
-    fn into_value(self) -> Result<Value> {
-        let record = Record::new(
-            RecordType::new(
-                None,
-                [
-                    ("id", ValueType::String),
-                    ("title", ValueType::String),
-                    ("artists", ValueType::List(ListType::new(ValueType::String))),
-                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
-                    ("year", ValueType::Option(OptionType::new(ValueType::U32))),
-                ],
-            ).unwrap(),
-            [
-                ("id", Value::String(self.id.into())),
-                ("title", Value::String(self.title.into())),
-                ("artists", self.artists.into_value()?),
-                ("thumbnail", self.thumbnail.into_value()?),
-                ("year", self.year.into_value()?),
-            ],
-        )?;
-        Ok(Value::Record(record))
-    }
-}
-
-impl UnaryComponentType for AlbumItem {}
-
-#[derive(Debug, Clone)]
-pub struct ArtistItem {
-    pub id: String,
-    pub name: String,
-    pub thumbnail: Option<Artwork>,
-}
-
-impl ComponentType for ArtistItem {
-    fn ty() -> ValueType {
-        ValueType::Record(
-            RecordType::new(
-                None,
-                [
-                    ("id", ValueType::String),
-                    ("name", ValueType::String),
-                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
-                ],
-            ).unwrap(),
-        )
-    }
-
-    fn from_value(value: &Value) -> Result<Self> {
-        if let Value::Record(record) = value {
-            let id = record
-                .field("id")
-                .ok_or_else(|| anyhow!("Missing 'id' field"))?;
-            let name = record
-                .field("name")
-                .ok_or_else(|| anyhow!("Missing 'name' field"))?;
-            let thumbnail = record
-                .field("thumbnail")
-                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
-
-            let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
-            let name = if let Value::String(s) = name { s.to_string() } else { bail!("Expected string") };
-            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
-
-            Ok(ArtistItem {
-                id,
-                name,
-                thumbnail,
-            })
-        } else {
-            bail!("Expected Record value")
-        }
-    }
-
-    fn into_value(self) -> Result<Value> {
-        let record = Record::new(
-            RecordType::new(
-                None,
-                [
-                    ("id", ValueType::String),
-                    ("name", ValueType::String),
-                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
-                ],
-            ).unwrap(),
-            [
-                ("id", Value::String(self.id.into())),
-                ("name", Value::String(self.name.into())),
+                ("subtitle", self.subtitle.into_value()?),
+                ("kind", self.kind.into_value()?),
                 ("thumbnail", self.thumbnail.into_value()?),
             ],
         )?;
@@ -565,24 +444,22 @@ impl ComponentType for ArtistItem {
     }
 }
 
-impl UnaryComponentType for ArtistItem {}
+impl UnaryComponentType for EntitySuggestion {}
 
 #[derive(Debug, Clone)]
-pub enum MediaItem {
-    Track(TrackItem),
-    Album(AlbumItem),
-    Artist(ArtistItem),
+pub enum Suggestion {
+    Query(String),
+    Entity(EntitySuggestion),
 }
 
-impl ComponentType for MediaItem {
+impl ComponentType for Suggestion {
     fn ty() -> ValueType {
         ValueType::Variant(
             VariantType::new(
                 None,
                 [
-                    VariantCase::new("track", Some(TrackItem::ty())),
-                    VariantCase::new("album", Some(AlbumItem::ty())),
-                    VariantCase::new("artist", Some(ArtistItem::ty())),
+                    VariantCase::new("query", Some(ValueType::String)),
+                    VariantCase::new("entity", Some(EntitySuggestion::ty())),
                 ],
             ).unwrap(),
         )
@@ -597,28 +474,20 @@ impl ComponentType for MediaItem {
             let payload = variant.value();
 
             match case_name {
-                "track" => {
+                "query" => {
                     if let Some(payload_value) = payload {
-                        let converted = TrackItem::from_value(&payload_value)?;
-                        Ok(MediaItem::Track(converted))
+                        let converted = if let Value::String(s) = payload_value { s.to_string() } else { bail!("Expected string") };
+                        Ok(Suggestion::Query(converted))
                     } else {
-                        bail!("Expected payload for track case")
+                        bail!("Expected payload for query case")
                     }
                 }
-                "album" => {
+                "entity" => {
                     if let Some(payload_value) = payload {
-                        let converted = AlbumItem::from_value(&payload_value)?;
-                        Ok(MediaItem::Album(converted))
+                        let converted = EntitySuggestion::from_value(&payload_value)?;
+                        Ok(Suggestion::Entity(converted))
                     } else {
-                        bail!("Expected payload for album case")
-                    }
-                }
-                "artist" => {
-                    if let Some(payload_value) = payload {
-                        let converted = ArtistItem::from_value(&payload_value)?;
-                        Ok(MediaItem::Artist(converted))
-                    } else {
-                        bail!("Expected payload for artist case")
+                        bail!("Expected payload for entity case")
                     }
                 }
                 _ => bail!("Unknown variant case: {}", case_name),
@@ -632,16 +501,14 @@ impl ComponentType for MediaItem {
         let variant_type = VariantType::new(
             None,
             [
-                VariantCase::new("track", Some(TrackItem::ty())),
-                VariantCase::new("album", Some(AlbumItem::ty())),
-                VariantCase::new("artist", Some(ArtistItem::ty())),
+                VariantCase::new("query", Some(ValueType::String)),
+                VariantCase::new("entity", Some(EntitySuggestion::ty())),
             ],
         ).unwrap();
 
         let (discriminant, payload) = match self {
-            MediaItem::Track(val) => (0, Some(val.into_value()?)),
-            MediaItem::Album(val) => (1, Some(val.into_value()?)),
-            MediaItem::Artist(val) => (2, Some(val.into_value()?)),
+            Suggestion::Query(val) => (0, Some(Value::String(val.into()))),
+            Suggestion::Entity(val) => (1, Some(val.into_value()?)),
         };
 
         let variant = Variant::new(variant_type, discriminant, payload)?;
@@ -649,29 +516,27 @@ impl ComponentType for MediaItem {
     }
 }
 
-impl UnaryComponentType for MediaItem {}
+impl UnaryComponentType for Suggestion {}
 
 
 
 
 #[derive(Debug, Clone)]
-pub struct ChartSummary {
-    pub id: String,
-    pub title: String,
-    pub description: Option<String>,
-    pub thumbnail: Option<Artwork>,
+pub struct SuggestionOptions {
+    pub limit: Option<u8>,
+    pub include_entities: bool,
+    pub allowed_types: Option<Vec<EntityType>>,
 }
 
-impl ComponentType for ChartSummary {
+impl ComponentType for SuggestionOptions {
     fn ty() -> ValueType {
         ValueType::Record(
             RecordType::new(
                 None,
                 [
-                    ("id", ValueType::String),
-                    ("title", ValueType::String),
-                    ("description", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                    ("limit", ValueType::Option(OptionType::new(ValueType::U8))),
+                    ("include-entities", ValueType::Bool),
+                    ("allowed-types", ValueType::Option(OptionType::new(ValueType::List(ListType::new(EntityType::ty()))))),
                 ],
             ).unwrap(),
         )
@@ -679,29 +544,24 @@ impl ComponentType for ChartSummary {
 
     fn from_value(value: &Value) -> Result<Self> {
         if let Value::Record(record) = value {
-            let id = record
-                .field("id")
-                .ok_or_else(|| anyhow!("Missing 'id' field"))?;
-            let title = record
-                .field("title")
-                .ok_or_else(|| anyhow!("Missing 'title' field"))?;
-            let description = record
-                .field("description")
-                .ok_or_else(|| anyhow!("Missing 'description' field"))?;
-            let thumbnail = record
-                .field("thumbnail")
-                .ok_or_else(|| anyhow!("Missing 'thumbnail' field"))?;
+            let limit = record
+                .field("limit")
+                .ok_or_else(|| anyhow!("Missing 'limit' field"))?;
+            let include_entities = record
+                .field("include-entities")
+                .ok_or_else(|| anyhow!("Missing 'include-entities' field"))?;
+            let allowed_types = record
+                .field("allowed-types")
+                .ok_or_else(|| anyhow!("Missing 'allowed-types' field"))?;
 
-            let id = if let Value::String(s) = id { s.to_string() } else { bail!("Expected string") };
-            let title = if let Value::String(s) = title { s.to_string() } else { bail!("Expected string") };
-            let description = Option::<String>::from_value(&description)?;
-            let thumbnail = Option::<Artwork>::from_value(&thumbnail)?;
+            let limit = Option::<u8>::from_value(&limit)?;
+            let include_entities = if let Value::Bool(x) = include_entities { x } else { bail!("Expected bool") };
+            let allowed_types = Option::<Vec::<EntityType>>::from_value(&allowed_types)?;
 
-            Ok(ChartSummary {
-                id,
-                title,
-                description,
-                thumbnail,
+            Ok(SuggestionOptions {
+                limit,
+                include_entities,
+                allowed_types,
             })
         } else {
             bail!("Expected Record value")
@@ -713,184 +573,22 @@ impl ComponentType for ChartSummary {
             RecordType::new(
                 None,
                 [
-                    ("id", ValueType::String),
-                    ("title", ValueType::String),
-                    ("description", ValueType::Option(OptionType::new(ValueType::String))),
-                    ("thumbnail", ValueType::Option(OptionType::new(Artwork::ty()))),
+                    ("limit", ValueType::Option(OptionType::new(ValueType::U8))),
+                    ("include-entities", ValueType::Bool),
+                    ("allowed-types", ValueType::Option(OptionType::new(ValueType::List(ListType::new(EntityType::ty()))))),
                 ],
             ).unwrap(),
             [
-                ("id", Value::String(self.id.into())),
-                ("title", Value::String(self.title.into())),
-                ("description", self.description.into_value()?),
-                ("thumbnail", self.thumbnail.into_value()?),
+                ("limit", self.limit.into_value()?),
+                ("include-entities", Value::Bool(self.include_entities)),
+                ("allowed-types", self.allowed_types.into_value()?),
             ],
         )?;
         Ok(Value::Record(record))
     }
 }
 
-impl UnaryComponentType for ChartSummary {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Trend {
-    Up,
-    Down,
-    Same,
-    NewEntry,
-    ReEntry,
-    Unknown,
-}
-
-impl ComponentType for Trend {
-    fn ty() -> ValueType {
-        ValueType::Enum(EnumType::new(None, [
-            "up",
-            "down",
-            "same",
-            "new-entry",
-            "re-entry",
-            "unknown",
-        ]).unwrap())
-    }
-
-    fn from_value(value: &Value) -> Result<Self> {
-        if let Value::Enum(enum_val) = value {
-            let discriminant = enum_val.discriminant();
-            match discriminant {
-                0 => Ok(Trend::Up),
-                1 => Ok(Trend::Down),
-                2 => Ok(Trend::Same),
-                3 => Ok(Trend::NewEntry),
-                4 => Ok(Trend::ReEntry),
-                5 => Ok(Trend::Unknown),
-                _ => bail!("Invalid enum discriminant: {}", discriminant),
-            }
-        } else {
-            bail!("Expected Enum value")
-        }
-    }
-
-    fn into_value(self) -> Result<Value> {
-        let enum_type = EnumType::new(None, [
-            "up",
-            "down",
-            "same",
-            "new-entry",
-            "re-entry",
-            "unknown",
-        ]).unwrap();
-
-        let discriminant = match self {
-            Trend::Up => 0,
-            Trend::Down => 1,
-            Trend::Same => 2,
-            Trend::NewEntry => 3,
-            Trend::ReEntry => 4,
-            Trend::Unknown => 5,
-        };
-
-        Ok(Value::Enum(Enum::new(enum_type, discriminant)?))
-    }
-}
-
-impl UnaryComponentType for Trend {}
-
-#[derive(Debug, Clone)]
-pub struct ChartItem {
-    pub item: MediaItem,
-    pub rank: u32,
-    pub trend: Trend,
-    pub change: Option<u32>,
-    pub peak_rank: Option<u32>,
-    pub weeks_on_chart: Option<u32>,
-}
-
-impl ComponentType for ChartItem {
-    fn ty() -> ValueType {
-        ValueType::Record(
-            RecordType::new(
-                None,
-                [
-                    ("item", MediaItem::ty()),
-                    ("rank", ValueType::U32),
-                    ("trend", Trend::ty()),
-                    ("change", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("peak-rank", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("weeks-on-chart", ValueType::Option(OptionType::new(ValueType::U32))),
-                ],
-            ).unwrap(),
-        )
-    }
-
-    fn from_value(value: &Value) -> Result<Self> {
-        if let Value::Record(record) = value {
-            let item = record
-                .field("item")
-                .ok_or_else(|| anyhow!("Missing 'item' field"))?;
-            let rank = record
-                .field("rank")
-                .ok_or_else(|| anyhow!("Missing 'rank' field"))?;
-            let trend = record
-                .field("trend")
-                .ok_or_else(|| anyhow!("Missing 'trend' field"))?;
-            let change = record
-                .field("change")
-                .ok_or_else(|| anyhow!("Missing 'change' field"))?;
-            let peak_rank = record
-                .field("peak-rank")
-                .ok_or_else(|| anyhow!("Missing 'peak-rank' field"))?;
-            let weeks_on_chart = record
-                .field("weeks-on-chart")
-                .ok_or_else(|| anyhow!("Missing 'weeks-on-chart' field"))?;
-
-            let item = MediaItem::from_value(&item)?;
-            let rank = if let Value::U32(x) = rank { x } else { bail!("Expected u32") };
-            let trend = Trend::from_value(&trend)?;
-            let change = Option::<u32>::from_value(&change)?;
-            let peak_rank = Option::<u32>::from_value(&peak_rank)?;
-            let weeks_on_chart = Option::<u32>::from_value(&weeks_on_chart)?;
-
-            Ok(ChartItem {
-                item,
-                rank,
-                trend,
-                change,
-                peak_rank,
-                weeks_on_chart,
-            })
-        } else {
-            bail!("Expected Record value")
-        }
-    }
-
-    fn into_value(self) -> Result<Value> {
-        let record = Record::new(
-            RecordType::new(
-                None,
-                [
-                    ("item", MediaItem::ty()),
-                    ("rank", ValueType::U32),
-                    ("trend", Trend::ty()),
-                    ("change", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("peak-rank", ValueType::Option(OptionType::new(ValueType::U32))),
-                    ("weeks-on-chart", ValueType::Option(OptionType::new(ValueType::U32))),
-                ],
-            ).unwrap(),
-            [
-                ("item", self.item.into_value()?),
-                ("rank", Value::U32(self.rank)),
-                ("trend", self.trend.into_value()?),
-                ("change", self.change.into_value()?),
-                ("peak-rank", self.peak_rank.into_value()?),
-                ("weeks-on-chart", self.weeks_on_chart.into_value()?),
-            ],
-        )?;
-        Ok(Value::Record(record))
-    }
-}
-
-impl UnaryComponentType for ChartItem {}
+impl UnaryComponentType for SuggestionOptions {}
 
 
 
@@ -898,13 +596,15 @@ impl UnaryComponentType for ChartItem {}
 
 // ========== Host Imports ==========
 
-/// Host trait for interface: component:chart-provider/utils
+/// Host trait for interface: component:search-suggestion-provider/utils
 pub trait UtilsHost {
     fn http_request(&mut self, url: String, options: RequestOptions) -> Result<HttpResponse, String>;
     fn random_number(&mut self) -> u64;
     fn current_unix_timestamp(&mut self) -> u64;
     fn storage_set(&mut self, key: String, value: String) -> bool;
     fn storage_get(&mut self, key: String) -> Option<String>;
+    fn storage_delete(&mut self, key: String) -> bool;
+    fn log(&mut self, message: String) -> ();
 }
 
 pub mod imports {
@@ -915,7 +615,7 @@ pub mod imports {
         store: &mut Store<T, E>,
     ) -> Result<()> {
         let host_interface = linker
-            .define_instance("component:chart-provider/utils".try_into().unwrap())
+            .define_instance("component:search-suggestion-provider/utils".try_into().unwrap())
             .context("Failed to define host interface")?;
 
         host_interface
@@ -1013,6 +713,43 @@ pub mod imports {
             )
             .context("Failed to define storage-get function")?;
 
+        host_interface
+            .define_func(
+                "storage-delete",
+                Func::new(
+                    &mut *store,
+                    FuncType::new(
+                        [ValueType::String, ],
+                        [ValueType::Bool],
+                    ),
+                    |mut ctx, params, results| {
+                        let key = if let Value::String(s) = &params[0] { s.to_string() } else { bail!("Expected string") };
+                        let result = ctx.data_mut().storage_delete(key);
+                        results[0] = Value::Bool(result);
+                        Ok(())
+                    },
+                ),
+            )
+            .context("Failed to define storage-delete function")?;
+
+        host_interface
+            .define_func(
+                "log",
+                Func::new(
+                    &mut *store,
+                    FuncType::new(
+                        [ValueType::String, ],
+                        [],
+                    ),
+                    |mut ctx, params, _results| {
+                        let message = if let Value::String(s) = &params[0] { s.to_string() } else { bail!("Expected string") };
+                        ctx.data_mut().log(message);
+                        Ok(())
+                    },
+                ),
+            )
+            .context("Failed to define log function")?;
+
         Ok(())
     }
 
@@ -1023,45 +760,45 @@ pub mod imports {
 pub mod exports_types {
     use super::*;
 
-    pub const INTERFACE_NAME: &str = "component:chart-provider/types";
+    pub const INTERFACE_NAME: &str = "component:search-suggestion-provider/types";
 
 }
 
-pub mod exports_chart_api {
+pub mod exports_suggestion_api {
     use super::*;
 
-    pub const INTERFACE_NAME: &str = "component:chart-provider/chart-api";
+    pub const INTERFACE_NAME: &str = "component:search-suggestion-provider/suggestion-api";
 
     #[allow(clippy::type_complexity)]
-    pub fn get_get_charts<T, E: backend::WasmEngine>(
+    pub fn get_get_suggestions<T, E: backend::WasmEngine>(
         instance: &Instance,
         _store: &mut Store<T, E>,
-    ) -> Result<TypedFunc<(), Result<Vec<ChartSummary>, String>>> {
+    ) -> Result<TypedFunc<(String, SuggestionOptions), Result<Vec<Suggestion>, String>>> {
         let interface = instance
             .exports()
             .instance(&INTERFACE_NAME.try_into().unwrap())
             .ok_or_else(|| anyhow!("Interface not found"))?;
 
         interface
-            .func("get-charts")
-            .ok_or_else(|| anyhow!("Function 'get-charts' not found"))?
-            .typed::<(), Result<Vec<ChartSummary>, String>>()
+            .func("get-suggestions")
+            .ok_or_else(|| anyhow!("Function 'get-suggestions' not found"))?
+            .typed::<(String, SuggestionOptions), Result<Vec<Suggestion>, String>>()
     }
 
     #[allow(clippy::type_complexity)]
-    pub fn get_get_chart_details<T, E: backend::WasmEngine>(
+    pub fn get_get_default_suggestions<T, E: backend::WasmEngine>(
         instance: &Instance,
         _store: &mut Store<T, E>,
-    ) -> Result<TypedFunc<String, Result<Vec<ChartItem>, String>>> {
+    ) -> Result<TypedFunc<SuggestionOptions, Result<Vec<Suggestion>, String>>> {
         let interface = instance
             .exports()
             .instance(&INTERFACE_NAME.try_into().unwrap())
             .ok_or_else(|| anyhow!("Interface not found"))?;
 
         interface
-            .func("get-chart-details")
-            .ok_or_else(|| anyhow!("Function 'get-chart-details' not found"))?
-            .typed::<String, Result<Vec<ChartItem>, String>>()
+            .func("get-default-suggestions")
+            .ok_or_else(|| anyhow!("Function 'get-default-suggestions' not found"))?
+            .typed::<SuggestionOptions, Result<Vec<Suggestion>, String>>()
     }
 
 }

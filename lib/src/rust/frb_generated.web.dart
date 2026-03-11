@@ -86,6 +86,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
+  Map<String, KeyRequirement> dco_decode_Map_String_key_requirement_None(
+      dynamic raw);
+
+  @protected
   DownloadManager
       dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDownloadManager(
           dynamic raw);
@@ -172,7 +176,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
+  EntitySuggestion dco_decode_box_autoadd_entity_suggestion(dynamic raw);
+
+  @protected
   Lyrics dco_decode_box_autoadd_lyrics(dynamic raw);
+
+  @protected
+  LyricsMetadata dco_decode_box_autoadd_lyrics_metadata(dynamic raw);
+
+  @protected
+  LyricsProviderCommand dco_decode_box_autoadd_lyrics_provider_command(
+      dynamic raw);
 
   @protected
   PagedAlbums dco_decode_box_autoadd_paged_albums(dynamic raw);
@@ -190,19 +204,39 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlaylistSummary dco_decode_box_autoadd_playlist_summary(dynamic raw);
 
   @protected
+  PluginLyrics dco_decode_box_autoadd_plugin_lyrics(dynamic raw);
+
+  @protected
   PluginRequest dco_decode_box_autoadd_plugin_request(dynamic raw);
 
   @protected
   PluginType dco_decode_box_autoadd_plugin_type(dynamic raw);
 
   @protected
+  (PluginLyrics, LyricsMetadata)
+      dco_decode_box_autoadd_record_plugin_lyrics_lyrics_metadata(dynamic raw);
+
+  @protected
+  SearchSuggestionCommand dco_decode_box_autoadd_search_suggestion_command(
+      dynamic raw);
+
+  @protected
+  SuggestionArtwork dco_decode_box_autoadd_suggestion_artwork(dynamic raw);
+
+  @protected
   Track dco_decode_box_autoadd_track(dynamic raw);
+
+  @protected
+  TrackMetadata dco_decode_box_autoadd_track_metadata(dynamic raw);
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
 
   @protected
   BigInt dco_decode_box_autoadd_u_64(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
   CardType dco_decode_card_type(dynamic raw);
@@ -235,6 +269,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   EnqueueDownloadRequest dco_decode_enqueue_download_request(dynamic raw);
 
   @protected
+  EntitySuggestion dco_decode_entity_suggestion(dynamic raw);
+
+  @protected
+  EntityType dco_decode_entity_type(dynamic raw);
+
+  @protected
   double dco_decode_f_64(dynamic raw);
 
   @protected
@@ -242,6 +282,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ImageLayout dco_decode_image_layout(dynamic raw);
+
+  @protected
+  KeyRequirement dco_decode_key_requirement(dynamic raw);
 
   @protected
   List<PluginInfo>
@@ -271,10 +314,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<LocalTrackMeta> dco_decode_list_local_track_meta(dynamic raw);
 
   @protected
+  List<LyricsLine> dco_decode_list_lyrics_line(dynamic raw);
+
+  @protected
+  List<LyricsMatch> dco_decode_list_lyrics_match(dynamic raw);
+
+  @protected
+  List<LyricsToken> dco_decode_list_lyrics_token(dynamic raw);
+
+  @protected
   List<MediaItem> dco_decode_list_media_item(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<(String, KeyRequirement)> dco_decode_list_record_string_key_requirement(
+      dynamic raw);
 
   @protected
   List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
@@ -286,13 +342,37 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<StreamSource> dco_decode_list_stream_source(dynamic raw);
 
   @protected
+  List<Suggestion> dco_decode_list_suggestion(dynamic raw);
+
+  @protected
   List<Track> dco_decode_list_track(dynamic raw);
+
+  @protected
+  List<TrackSegment> dco_decode_list_track_segment(dynamic raw);
 
   @protected
   LocalTrackMeta dco_decode_local_track_meta(dynamic raw);
 
   @protected
   Lyrics dco_decode_lyrics(dynamic raw);
+
+  @protected
+  LyricsLine dco_decode_lyrics_line(dynamic raw);
+
+  @protected
+  LyricsMatch dco_decode_lyrics_match(dynamic raw);
+
+  @protected
+  LyricsMetadata dco_decode_lyrics_metadata(dynamic raw);
+
+  @protected
+  LyricsProviderCommand dco_decode_lyrics_provider_command(dynamic raw);
+
+  @protected
+  LyricsSyncType dco_decode_lyrics_sync_type(dynamic raw);
+
+  @protected
+  LyricsToken dco_decode_lyrics_token(dynamic raw);
 
   @protected
   Manifest dco_decode_manifest(dynamic raw);
@@ -324,10 +404,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PluginType? dco_decode_opt_box_autoadd_plugin_type(dynamic raw);
 
   @protected
+  (PluginLyrics, LyricsMetadata)?
+      dco_decode_opt_box_autoadd_record_plugin_lyrics_lyrics_metadata(
+          dynamic raw);
+
+  @protected
+  SuggestionArtwork? dco_decode_opt_box_autoadd_suggestion_artwork(dynamic raw);
+
+  @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
 
   @protected
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  List<LyricsLine>? dco_decode_opt_list_lyrics_line(dynamic raw);
+
+  @protected
+  List<LyricsToken>? dco_decode_opt_list_lyrics_token(dynamic raw);
 
   @protected
   List<(String, String)>? dco_decode_opt_list_record_string_string(dynamic raw);
@@ -354,6 +451,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PluginInstallStatus dco_decode_plugin_install_status(dynamic raw);
 
   @protected
+  PluginLyrics dco_decode_plugin_lyrics(dynamic raw);
+
+  @protected
   PluginManagerEvent dco_decode_plugin_manager_event(dynamic raw);
 
   @protected
@@ -372,16 +472,42 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Quality dco_decode_quality(dynamic raw);
 
   @protected
+  (PluginLyrics, LyricsMetadata)
+      dco_decode_record_plugin_lyrics_lyrics_metadata(dynamic raw);
+
+  @protected
+  (String, KeyRequirement) dco_decode_record_string_key_requirement(
+      dynamic raw);
+
+  @protected
   (String, String) dco_decode_record_string_string(dynamic raw);
+
+  @protected
+  SearchSuggestionCommand dco_decode_search_suggestion_command(dynamic raw);
 
   @protected
   Section dco_decode_section(dynamic raw);
 
   @protected
+  SegmentType dco_decode_segment_type(dynamic raw);
+
+  @protected
   StreamSource dco_decode_stream_source(dynamic raw);
 
   @protected
+  Suggestion dco_decode_suggestion(dynamic raw);
+
+  @protected
+  SuggestionArtwork dco_decode_suggestion_artwork(dynamic raw);
+
+  @protected
   Track dco_decode_track(dynamic raw);
+
+  @protected
+  TrackMetadata dco_decode_track_metadata(dynamic raw);
+
+  @protected
+  TrackSegment dco_decode_track_segment(dynamic raw);
 
   @protected
   Trend dco_decode_trend(dynamic raw);
@@ -443,6 +569,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PluginManager
       sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
           SseDeserializer deserializer);
+
+  @protected
+  Map<String, KeyRequirement> sse_decode_Map_String_key_requirement_None(
+      SseDeserializer deserializer);
 
   @protected
   DownloadManager
@@ -531,7 +661,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  EntitySuggestion sse_decode_box_autoadd_entity_suggestion(
+      SseDeserializer deserializer);
+
+  @protected
   Lyrics sse_decode_box_autoadd_lyrics(SseDeserializer deserializer);
+
+  @protected
+  LyricsMetadata sse_decode_box_autoadd_lyrics_metadata(
+      SseDeserializer deserializer);
+
+  @protected
+  LyricsProviderCommand sse_decode_box_autoadd_lyrics_provider_command(
+      SseDeserializer deserializer);
 
   @protected
   PagedAlbums sse_decode_box_autoadd_paged_albums(SseDeserializer deserializer);
@@ -552,6 +694,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  PluginLyrics sse_decode_box_autoadd_plugin_lyrics(
+      SseDeserializer deserializer);
+
+  @protected
   PluginRequest sse_decode_box_autoadd_plugin_request(
       SseDeserializer deserializer);
 
@@ -559,13 +705,33 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PluginType sse_decode_box_autoadd_plugin_type(SseDeserializer deserializer);
 
   @protected
+  (PluginLyrics, LyricsMetadata)
+      sse_decode_box_autoadd_record_plugin_lyrics_lyrics_metadata(
+          SseDeserializer deserializer);
+
+  @protected
+  SearchSuggestionCommand sse_decode_box_autoadd_search_suggestion_command(
+      SseDeserializer deserializer);
+
+  @protected
+  SuggestionArtwork sse_decode_box_autoadd_suggestion_artwork(
+      SseDeserializer deserializer);
+
+  @protected
   Track sse_decode_box_autoadd_track(SseDeserializer deserializer);
+
+  @protected
+  TrackMetadata sse_decode_box_autoadd_track_metadata(
+      SseDeserializer deserializer);
 
   @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
   BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
   CardType sse_decode_card_type(SseDeserializer deserializer);
@@ -605,6 +771,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  EntitySuggestion sse_decode_entity_suggestion(SseDeserializer deserializer);
+
+  @protected
+  EntityType sse_decode_entity_type(SseDeserializer deserializer);
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
@@ -612,6 +784,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ImageLayout sse_decode_image_layout(SseDeserializer deserializer);
+
+  @protected
+  KeyRequirement sse_decode_key_requirement(SseDeserializer deserializer);
 
   @protected
   List<PluginInfo>
@@ -645,10 +820,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  List<LyricsLine> sse_decode_list_lyrics_line(SseDeserializer deserializer);
+
+  @protected
+  List<LyricsMatch> sse_decode_list_lyrics_match(SseDeserializer deserializer);
+
+  @protected
+  List<LyricsToken> sse_decode_list_lyrics_token(SseDeserializer deserializer);
+
+  @protected
   List<MediaItem> sse_decode_list_media_item(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<(String, KeyRequirement)> sse_decode_list_record_string_key_requirement(
+      SseDeserializer deserializer);
 
   @protected
   List<(String, String)> sse_decode_list_record_string_string(
@@ -662,13 +850,39 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  List<Suggestion> sse_decode_list_suggestion(SseDeserializer deserializer);
+
+  @protected
   List<Track> sse_decode_list_track(SseDeserializer deserializer);
+
+  @protected
+  List<TrackSegment> sse_decode_list_track_segment(
+      SseDeserializer deserializer);
 
   @protected
   LocalTrackMeta sse_decode_local_track_meta(SseDeserializer deserializer);
 
   @protected
   Lyrics sse_decode_lyrics(SseDeserializer deserializer);
+
+  @protected
+  LyricsLine sse_decode_lyrics_line(SseDeserializer deserializer);
+
+  @protected
+  LyricsMatch sse_decode_lyrics_match(SseDeserializer deserializer);
+
+  @protected
+  LyricsMetadata sse_decode_lyrics_metadata(SseDeserializer deserializer);
+
+  @protected
+  LyricsProviderCommand sse_decode_lyrics_provider_command(
+      SseDeserializer deserializer);
+
+  @protected
+  LyricsSyncType sse_decode_lyrics_sync_type(SseDeserializer deserializer);
+
+  @protected
+  LyricsToken sse_decode_lyrics_token(SseDeserializer deserializer);
 
   @protected
   Manifest sse_decode_manifest(SseDeserializer deserializer);
@@ -702,10 +916,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  (PluginLyrics, LyricsMetadata)?
+      sse_decode_opt_box_autoadd_record_plugin_lyrics_lyrics_metadata(
+          SseDeserializer deserializer);
+
+  @protected
+  SuggestionArtwork? sse_decode_opt_box_autoadd_suggestion_artwork(
+      SseDeserializer deserializer);
+
+  @protected
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
   BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  List<LyricsLine>? sse_decode_opt_list_lyrics_line(
+      SseDeserializer deserializer);
+
+  @protected
+  List<LyricsToken>? sse_decode_opt_list_lyrics_token(
+      SseDeserializer deserializer);
 
   @protected
   List<(String, String)>? sse_decode_opt_list_record_string_string(
@@ -735,6 +969,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  PluginLyrics sse_decode_plugin_lyrics(SseDeserializer deserializer);
+
+  @protected
   PluginManagerEvent sse_decode_plugin_manager_event(
       SseDeserializer deserializer);
 
@@ -754,17 +991,45 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Quality sse_decode_quality(SseDeserializer deserializer);
 
   @protected
+  (PluginLyrics, LyricsMetadata)
+      sse_decode_record_plugin_lyrics_lyrics_metadata(
+          SseDeserializer deserializer);
+
+  @protected
+  (String, KeyRequirement) sse_decode_record_string_key_requirement(
+      SseDeserializer deserializer);
+
+  @protected
   (String, String) sse_decode_record_string_string(
+      SseDeserializer deserializer);
+
+  @protected
+  SearchSuggestionCommand sse_decode_search_suggestion_command(
       SseDeserializer deserializer);
 
   @protected
   Section sse_decode_section(SseDeserializer deserializer);
 
   @protected
+  SegmentType sse_decode_segment_type(SseDeserializer deserializer);
+
+  @protected
   StreamSource sse_decode_stream_source(SseDeserializer deserializer);
 
   @protected
+  Suggestion sse_decode_suggestion(SseDeserializer deserializer);
+
+  @protected
+  SuggestionArtwork sse_decode_suggestion_artwork(SseDeserializer deserializer);
+
+  @protected
   Track sse_decode_track(SseDeserializer deserializer);
+
+  @protected
+  TrackMetadata sse_decode_track_metadata(SseDeserializer deserializer);
+
+  @protected
+  TrackSegment sse_decode_track_segment(SseDeserializer deserializer);
 
   @protected
   Trend sse_decode_trend(SseDeserializer deserializer);
@@ -827,6 +1092,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
       sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
           PluginManager self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_Map_String_key_requirement_None(
+      Map<String, KeyRequirement> self, SseSerializer serializer);
 
   @protected
   void
@@ -913,7 +1182,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       EnqueueDownloadRequest self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_entity_suggestion(
+      EntitySuggestion self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_lyrics(Lyrics self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_lyrics_metadata(
+      LyricsMetadata self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_lyrics_provider_command(
+      LyricsProviderCommand self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_paged_albums(
@@ -936,6 +1217,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       PlaylistSummary self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_plugin_lyrics(
+      PluginLyrics self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_plugin_request(
       PluginRequest self, SseSerializer serializer);
 
@@ -944,13 +1229,32 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       PluginType self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_record_plugin_lyrics_lyrics_metadata(
+      (PluginLyrics, LyricsMetadata) self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_search_suggestion_command(
+      SearchSuggestionCommand self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_suggestion_artwork(
+      SuggestionArtwork self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_track(Track self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_track_metadata(
+      TrackMetadata self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_card_type(CardType self, SseSerializer serializer);
@@ -990,6 +1294,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       EnqueueDownloadRequest self, SseSerializer serializer);
 
   @protected
+  void sse_encode_entity_suggestion(
+      EntitySuggestion self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_entity_type(EntityType self, SseSerializer serializer);
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
@@ -997,6 +1308,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_image_layout(ImageLayout self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_key_requirement(
+      KeyRequirement self, SseSerializer serializer);
 
   @protected
   void
@@ -1031,12 +1346,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       List<LocalTrackMeta> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_lyrics_line(
+      List<LyricsLine> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_lyrics_match(
+      List<LyricsMatch> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_lyrics_token(
+      List<LyricsToken> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_media_item(
       List<MediaItem> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
       Uint8List self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_record_string_key_requirement(
+      List<(String, KeyRequirement)> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_record_string_string(
@@ -1050,7 +1381,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       List<StreamSource> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_suggestion(
+      List<Suggestion> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_track(List<Track> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_track_segment(
+      List<TrackSegment> self, SseSerializer serializer);
 
   @protected
   void sse_encode_local_track_meta(
@@ -1058,6 +1397,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_lyrics(Lyrics self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_lyrics_line(LyricsLine self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_lyrics_match(LyricsMatch self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_lyrics_metadata(
+      LyricsMetadata self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_lyrics_provider_command(
+      LyricsProviderCommand self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_lyrics_sync_type(
+      LyricsSyncType self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_lyrics_token(LyricsToken self, SseSerializer serializer);
 
   @protected
   void sse_encode_manifest(Manifest self, SseSerializer serializer);
@@ -1094,10 +1454,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       PluginType? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_record_plugin_lyrics_lyrics_metadata(
+      (PluginLyrics, LyricsMetadata)? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_suggestion_artwork(
+      SuggestionArtwork? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_list_lyrics_line(
+      List<LyricsLine>? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_list_lyrics_token(
+      List<LyricsToken>? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_list_record_string_string(
@@ -1130,6 +1509,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       PluginInstallStatus self, SseSerializer serializer);
 
   @protected
+  void sse_encode_plugin_lyrics(PluginLyrics self, SseSerializer serializer);
+
+  @protected
   void sse_encode_plugin_manager_event(
       PluginManagerEvent self, SseSerializer serializer);
 
@@ -1151,17 +1533,45 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_quality(Quality self, SseSerializer serializer);
 
   @protected
+  void sse_encode_record_plugin_lyrics_lyrics_metadata(
+      (PluginLyrics, LyricsMetadata) self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_string_key_requirement(
+      (String, KeyRequirement) self, SseSerializer serializer);
+
+  @protected
   void sse_encode_record_string_string(
       (String, String) self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_search_suggestion_command(
+      SearchSuggestionCommand self, SseSerializer serializer);
 
   @protected
   void sse_encode_section(Section self, SseSerializer serializer);
 
   @protected
+  void sse_encode_segment_type(SegmentType self, SseSerializer serializer);
+
+  @protected
   void sse_encode_stream_source(StreamSource self, SseSerializer serializer);
 
   @protected
+  void sse_encode_suggestion(Suggestion self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_suggestion_artwork(
+      SuggestionArtwork self, SseSerializer serializer);
+
+  @protected
   void sse_encode_track(Track self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_track_metadata(TrackMetadata self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_track_segment(TrackSegment self, SseSerializer serializer);
 
   @protected
   void sse_encode_trend(Trend self, SseSerializer serializer);

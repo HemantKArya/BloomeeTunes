@@ -124,6 +124,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'search'),
         charts: (_) => _unexpectedResponse(emit, 'search'),
         chartDetails: (_) => _unexpectedResponse(emit, 'search'),
+        segments: (_) => _unexpectedResponse(emit, 'search'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'search'),
+        lyricsSearchResults: (_) => _unexpectedResponse(emit, 'search'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'search'),
+        suggestions: (_) => _unexpectedResponse(emit, 'search'),
         ack: () => _unexpectedResponse(emit, 'search'),
       );
     } on PluginException catch (e) {
@@ -189,6 +194,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
         charts: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
         chartDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        segments: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        lyricsSearchResults: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'searchLoadMore'),
+        suggestions: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
         ack: () => _unexpectedResponse(emit, 'searchLoadMore'),
       );
     } on PluginException catch (e) {
@@ -253,6 +263,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'albumDetails'),
         charts: (_) => _unexpectedResponse(emit, 'albumDetails'),
         chartDetails: (_) => _unexpectedResponse(emit, 'albumDetails'),
+        segments: (_) => _unexpectedResponse(emit, 'albumDetails'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'albumDetails'),
+        lyricsSearchResults: (_) => _unexpectedResponse(emit, 'albumDetails'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'albumDetails'),
+        suggestions: (_) => _unexpectedResponse(emit, 'albumDetails'),
         ack: () => _unexpectedResponse(emit, 'albumDetails'),
       );
     } on PluginException catch (e) {
@@ -313,6 +328,12 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
         charts: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
         chartDetails: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
+        segments: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
+        lyricsSearchResults: (_) =>
+            _unexpectedResponse(emit, 'moreAlbumTracks'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'moreAlbumTracks'),
+        suggestions: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
         ack: () => _unexpectedResponse(emit, 'moreAlbumTracks'),
       );
     } catch (e) {
@@ -360,6 +381,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'artistDetails'),
         charts: (_) => _unexpectedResponse(emit, 'artistDetails'),
         chartDetails: (_) => _unexpectedResponse(emit, 'artistDetails'),
+        segments: (_) => _unexpectedResponse(emit, 'artistDetails'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'artistDetails'),
+        lyricsSearchResults: (_) => _unexpectedResponse(emit, 'artistDetails'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'artistDetails'),
+        suggestions: (_) => _unexpectedResponse(emit, 'artistDetails'),
         ack: () => _unexpectedResponse(emit, 'artistDetails'),
       );
     } on PluginException catch (e) {
@@ -422,6 +448,12 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
         charts: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
         chartDetails: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
+        segments: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
+        lyricsSearchResults: (_) =>
+            _unexpectedResponse(emit, 'moreArtistAlbums'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'moreArtistAlbums'),
+        suggestions: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
         ack: () => _unexpectedResponse(emit, 'moreArtistAlbums'),
       );
     } on PluginException catch (e) {
@@ -471,6 +503,12 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'playlistDetails'),
         charts: (_) => _unexpectedResponse(emit, 'playlistDetails'),
         chartDetails: (_) => _unexpectedResponse(emit, 'playlistDetails'),
+        segments: (_) => _unexpectedResponse(emit, 'playlistDetails'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'playlistDetails'),
+        lyricsSearchResults: (_) =>
+            _unexpectedResponse(emit, 'playlistDetails'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'playlistDetails'),
+        suggestions: (_) => _unexpectedResponse(emit, 'playlistDetails'),
         ack: () => _unexpectedResponse(emit, 'playlistDetails'),
       );
     } on PluginException catch (e) {
@@ -532,6 +570,12 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
         charts: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
         chartDetails: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
+        segments: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
+        lyricsSearchResults: (_) =>
+            _unexpectedResponse(emit, 'morePlaylistTracks'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'morePlaylistTracks'),
+        suggestions: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
         ack: () => _unexpectedResponse(emit, 'morePlaylistTracks'),
       );
     } on PluginException catch (e) {
@@ -583,6 +627,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'getStreams'),
         charts: (_) => _unexpectedResponse(emit, 'getStreams'),
         chartDetails: (_) => _unexpectedResponse(emit, 'getStreams'),
+        segments: (_) => _unexpectedResponse(emit, 'getStreams'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'getStreams'),
+        lyricsSearchResults: (_) => _unexpectedResponse(emit, 'getStreams'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'getStreams'),
+        suggestions: (_) => _unexpectedResponse(emit, 'getStreams'),
         ack: () => _unexpectedResponse(emit, 'getStreams'),
       );
     } on PluginException catch (e) {
@@ -675,6 +724,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => unexpectedFn(),
         charts: (_) => unexpectedFn(),
         chartDetails: (_) => unexpectedFn(),
+        segments: (_) => unexpectedFn(),
+        lyricsResult: (_) => unexpectedFn(),
+        lyricsSearchResults: (_) => unexpectedFn(),
+        lyricsById: (_, __) => unexpectedFn(),
+        suggestions: (_) => unexpectedFn(),
         ack: () => unexpectedFn(),
       );
     } on PluginException catch (e) {
@@ -759,6 +813,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         homeSections: (_) => _unexpectedResponse(emit, 'loadMore'),
         charts: (_) => _unexpectedResponse(emit, 'loadMore'),
         chartDetails: (_) => _unexpectedResponse(emit, 'loadMore'),
+        segments: (_) => _unexpectedResponse(emit, 'loadMore'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'loadMore'),
+        lyricsSearchResults: (_) => _unexpectedResponse(emit, 'loadMore'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'loadMore'),
+        suggestions: (_) => _unexpectedResponse(emit, 'loadMore'),
         ack: () => _unexpectedResponse(emit, 'loadMore'),
       );
     } on PluginException catch (e) {
@@ -813,6 +872,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
         loadMoreItems: (_) => _unexpectedResponse(emit, 'radioTracks'),
         charts: (_) => _unexpectedResponse(emit, 'radioTracks'),
         chartDetails: (_) => _unexpectedResponse(emit, 'radioTracks'),
+        segments: (_) => _unexpectedResponse(emit, 'radioTracks'),
+        lyricsResult: (_) => _unexpectedResponse(emit, 'radioTracks'),
+        lyricsSearchResults: (_) => _unexpectedResponse(emit, 'radioTracks'),
+        lyricsById: (_, __) => _unexpectedResponse(emit, 'radioTracks'),
+        suggestions: (_) => _unexpectedResponse(emit, 'radioTracks'),
         ack: () => _unexpectedResponse(emit, 'radioTracks'),
       );
     } on PluginException catch (e) {

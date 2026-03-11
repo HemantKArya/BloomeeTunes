@@ -77,6 +77,13 @@ class SettingKeys {
   /// for the cross-plugin metadata resolver.
   static const String resolverPriority = "resolverPriority";
 
+  /// JSON-encoded list of lyrics provider plugin IDs in priority order.
+  static const String lyricsPriority = "lyricsPriority";
+
+  /// ID of the search suggestion provider plugin.
+  /// Empty string = no plugin-based suggestions.
+  static const String suggestionPluginId = "suggestionPluginId";
+
   // ── Local music ─────────────────────────────────────────────────────────────
   /// JSON-encoded list of directory paths to scan for local audio files.
   static const String localMusicFolders = "localMusicFolders";

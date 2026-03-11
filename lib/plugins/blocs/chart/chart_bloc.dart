@@ -100,6 +100,11 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
         homeSections: (_) => unexpectedFn(),
         loadMoreItems: (_) => unexpectedFn(),
         chartDetails: (_) => unexpectedFn(),
+        segments: (_) => unexpectedFn(),
+        lyricsResult: (_) => unexpectedFn(),
+        lyricsSearchResults: (_) => unexpectedFn(),
+        lyricsById: (_, __) => unexpectedFn(),
+        suggestions: (_) => unexpectedFn(),
         ack: () => unexpectedFn(),
       );
     } on PluginException catch (e) {
@@ -185,6 +190,11 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
         homeSections: (_) => unexpectedFn(),
         loadMoreItems: (_) => unexpectedFn(),
         charts: (_) => unexpectedFn(),
+        segments: (_) => unexpectedFn(),
+        lyricsResult: (_) => unexpectedFn(),
+        lyricsSearchResults: (_) => unexpectedFn(),
+        lyricsById: (_, __) => unexpectedFn(),
+        suggestions: (_) => unexpectedFn(),
         ack: () => unexpectedFn(),
       );
     } on PluginException catch (e) {
@@ -255,6 +265,15 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
         loadMoreItems: (_) =>
             _unexpectedResponse(emit, 'forceRefreshChartDetails'),
         charts: (_) => _unexpectedResponse(emit, 'forceRefreshChartDetails'),
+        segments: (_) => _unexpectedResponse(emit, 'forceRefreshChartDetails'),
+        lyricsResult: (_) =>
+            _unexpectedResponse(emit, 'forceRefreshChartDetails'),
+        lyricsSearchResults: (_) =>
+            _unexpectedResponse(emit, 'forceRefreshChartDetails'),
+        lyricsById: (_, __) =>
+            _unexpectedResponse(emit, 'forceRefreshChartDetails'),
+        suggestions: (_) =>
+            _unexpectedResponse(emit, 'forceRefreshChartDetails'),
         ack: () => _unexpectedResponse(emit, 'forceRefreshChartDetails'),
       );
     } on PluginException catch (e) {
@@ -320,6 +339,11 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
           homeSections: (_) {},
           loadMoreItems: (_) {},
           charts: (_) {},
+          segments: (_) {},
+          lyricsResult: (_) {},
+          lyricsSearchResults: (_) {},
+          lyricsById: (_, __) {},
+          suggestions: (_) {},
           ack: () {},
         );
       } catch (e) {

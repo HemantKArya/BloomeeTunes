@@ -1,6 +1,7 @@
 use crate::api::plugin::errors::{PluginError, PluginResult};
 use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Plugin publisher information
 #[flutter_rust_bridge::frb]
@@ -10,6 +11,31 @@ pub struct PluginPublisher {
     pub url: Option<String>,
     pub contact: Option<String>,
     pub key_id: Option<String>,
+}
+
+/// Describes a required key/credential for a plugin.
+///
+/// JSON format:
+/// ```json
+/// {
+///   "api_key": {
+///     "description": "API key for authenticating",
+///     "default": null,
+///     "is_secret": true
+///   }
+/// }
+/// ```
+#[flutter_rust_bridge::frb]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct KeyRequirement {
+    /// Human-readable description of what this key is used for.
+    pub description: String,
+    /// Default value for this key. `None` means user must provide it.
+    #[serde(default, rename = "default")]
+    pub default_value: Option<String>,
+    /// Whether this key should be treated as a secret (masked in UI).
+    #[serde(default)]
+    pub is_secret: bool,
 }
 
 #[flutter_rust_bridge::frb]
@@ -37,6 +63,16 @@ pub struct Manifest {
     /// Used for impersonation detection - if two plugins have the same ID
     /// but different remote_url, it may indicate impersonation.
     pub remote_url: Option<String>,
+    /// Map of key name → requirement describing credentials the plugin needs.
+    #[serde(default)]
+    pub keys_required: HashMap<String, KeyRequirement>,
+    /// URL for the plugin's thumbnail/icon image.
+    pub thumbnail_url: Option<String>,
+    /// Whether this plugin acts as the primary content resolver (for search routing).
+    #[serde(default)]
+    pub resolver: bool,
+    /// ISO 8601 timestamp of the last plugin update.
+    pub last_updated: Option<String>,
 }
 
 fn deserialize_manifest_version<'de, D>(deserializer: D) -> Result<u32, D::Error>
@@ -134,6 +170,10 @@ impl Manifest {
             capabilities,
             created_at,
             remote_url,
+            keys_required: HashMap::new(),
+            thumbnail_url: None,
+            resolver: false,
+            last_updated: None,
         };
 
         // Validate the manifest

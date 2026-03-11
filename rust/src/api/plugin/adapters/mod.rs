@@ -2,11 +2,19 @@
 pub mod chart_provider;
 /// flutter_rust_bridge:ignore
 pub mod content_resolver;
+/// flutter_rust_bridge:ignore
+pub mod lyrics_provider;
+/// flutter_rust_bridge:ignore
+pub mod search_suggestions;
 
 /// flutter_rust_bridge:ignore
 pub use chart_provider::ChartProviderPluginAdapter;
 /// flutter_rust_bridge:ignore
 pub use content_resolver::ContentResolverPluginAdapter;
+/// flutter_rust_bridge:ignore
+pub use lyrics_provider::LyricsProviderPluginAdapter;
+/// flutter_rust_bridge:ignore
+pub use search_suggestions::SearchSuggestionPluginAdapter;
 
 /// flutter_rust_bridge:ignore
 pub fn register_builtin_adapters(registrar: &mut crate::api::plugin::registrar::PluginRegistrar) {
@@ -27,4 +35,6 @@ pub fn register_builtin_adapters(registrar: &mut crate::api::plugin::registrar::
 
 	register_adapter::<ContentResolverPluginAdapter>(registrar);
 	register_adapter::<ChartProviderPluginAdapter>(registrar);
+	register_adapter::<LyricsProviderPluginAdapter>(registrar);
+	register_adapter::<SearchSuggestionPluginAdapter>(registrar);
 }

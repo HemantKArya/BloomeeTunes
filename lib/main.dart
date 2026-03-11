@@ -269,6 +269,8 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(
           create: (context) => SearchSuggestionBloc(
             searchHistoryDao: SearchHistoryDAO(DBProvider.db),
+            pluginService: ServiceLocator.pluginService,
+            settingsDao: SettingsDAO(DBProvider.db),
           ),
         ),
         BlocProvider(
@@ -276,6 +278,7 @@ class _MyAppState extends State<MyApp> {
             bloomeePlayerCubit,
             lyricsDao: LyricsDAO(DBProvider.db),
             settingsDao: SettingsDAO(DBProvider.db),
+            pluginService: ServiceLocator.pluginService,
           ),
         ),
         BlocProvider(
@@ -283,6 +286,7 @@ class _MyAppState extends State<MyApp> {
             playerCubit: bloomeePlayerCubit,
             cacheDao: CacheDAO(DBProvider.db),
             settingsDao: SettingsDAO(DBProvider.db),
+            pluginService: ServiceLocator.pluginService,
           ),
           lazy: false,
         ),

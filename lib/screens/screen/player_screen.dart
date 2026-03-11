@@ -9,6 +9,7 @@ import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
 import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
+import 'package:Bloomee/screens/screen/player_views/segments_sheet.dart';
 import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:Bloomee/utils/pallete_generator.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:url_launcher/url_launcher_string.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../blocs/media_player/bloomee_player_cubit.dart';
 import '../../blocs/mini_player/mini_player_cubit.dart';
 import 'player_views/fullscreen_lyrics_view.dart';
@@ -87,6 +88,21 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
           },
         ),
         actions: [
+          IconButton(
+            onPressed: () {
+              final mi = musicPlayer.mediaItem.valueOrNull;
+              if (mi != null) {
+                showSegmentsSheet(
+                  context,
+                  trackId: mi.id,
+                  trackDuration: mi.duration ?? Duration.zero,
+                  onSeek: (pos) => musicPlayer.seek(pos),
+                );
+              }
+            },
+            icon: const Icon(MingCute.list_check_3_line,
+                size: 22, color: Default_Theme.primaryColor1),
+          ),
           IconButton(
             onPressed: () =>
                 showMoreBottomSheet(context, musicPlayer.currentMedia),
@@ -657,11 +673,10 @@ class _ExternalLinkControl extends StatelessWidget {
       ),
       onPressed: () async {
         final url = player.mediaItem.valueOrNull?.extras?['perma_url'];
-        if (url != null && await canLaunchUrlString(url)) {
-          await launchUrlString(url);
+        if (url != null) {
+          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Unable to open the link")));
+          SnackbarService.showMessage("Unable to open the link");
         }
       },
     );

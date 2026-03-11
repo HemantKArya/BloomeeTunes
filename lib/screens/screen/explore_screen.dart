@@ -101,7 +101,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
         final data = await lFMData;
         if (data.isNotEmpty) return data;
         if (ctx.mounted) {
-          lFMData = ctx.read<LastdotfmCubit>().getRecommendedTracks();
+          final pluginState = ctx.read<PluginBloc>().state;
+          final priority = ctx.read<SettingsCubit>().state.resolverPriority;
+          final allIds = pluginState.loadedContentResolvers
+              .map((p) => p.manifest.id)
+              .toList();
+          final resolverIds = [
+            ...priority.where(allIds.contains),
+            ...allIds.where((id) => !priority.contains(id)),
+          ];
+          lFMData = ctx.read<LastdotfmCubit>().getRecommendedTracks(
+                resolverPluginIds: resolverIds,
+              );
         }
         return (await lFMData);
       } catch (e) {

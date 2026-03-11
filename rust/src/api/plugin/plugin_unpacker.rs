@@ -7,6 +7,29 @@ use std::io::BufReader;
 use tar::Archive;
 use zstd::stream::read::Decoder;
 
+/// Compare two version strings using simple numeric segment comparison.
+/// Returns `Ordering::Greater` if `new_ver` is newer, `Equal` if same,
+/// `Less` if `new_ver` is older.
+fn compare_versions(new_ver: &str, old_ver: &str) -> std::cmp::Ordering {
+    let parse = |v: &str| -> Vec<u64> {
+        v.split('.')
+            .map(|s| s.trim().parse::<u64>().unwrap_or(0))
+            .collect()
+    };
+    let new_parts = parse(new_ver);
+    let old_parts = parse(old_ver);
+    let max_len = new_parts.len().max(old_parts.len());
+    for i in 0..max_len {
+        let n = new_parts.get(i).copied().unwrap_or(0);
+        let o = old_parts.get(i).copied().unwrap_or(0);
+        match n.cmp(&o) {
+            std::cmp::Ordering::Equal => continue,
+            other => return other,
+        }
+    }
+    std::cmp::Ordering::Equal
+}
+
 pub async fn unpack_and_read_manifest(
     archive_path: &str,
     temp_dir: &str,
@@ -43,15 +66,22 @@ pub async fn install_plugin(
     let mut status = PluginInstallStatus::Installed;
 
     if path.exists() {
-        // Check if existing plugin version
+        // Check existing plugin version for comparison
         let existing_manifest_path = path.join("manifest.json");
         if existing_manifest_path.exists() {
             let existing_manifest_path_string =
                 existing_manifest_path.to_string_lossy().to_string();
-            if let Ok(_existing_manifest) = Manifest::from_file(&existing_manifest_path_string).await
+            if let Ok(existing_manifest) = Manifest::from_file(&existing_manifest_path_string).await
             {
-                // Treat any existing installation as update (reinstall/fix).
-                status = PluginInstallStatus::Updated;
+                match compare_versions(&manifest.version, &existing_manifest.version) {
+                    std::cmp::Ordering::Greater => {
+                        status = PluginInstallStatus::Updated;
+                    }
+                    std::cmp::Ordering::Equal | std::cmp::Ordering::Less => {
+                        // Same or older version — still install but flag as downgraded.
+                        status = PluginInstallStatus::Downgraded;
+                    }
+                }
             }
         }
 

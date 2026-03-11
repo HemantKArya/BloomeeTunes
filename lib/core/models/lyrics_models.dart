@@ -1,8 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 
+import 'package:Bloomee/src/rust/api/plugin/models.dart' as plugin_models;
+
 enum LyricsProvider {
-  lrcnet,
+  plugin,
   none,
 }
 
@@ -143,4 +145,61 @@ class ParsedLyrics {
   String toString() {
     return 'ParsedLyrics{lyrics: $lyrics, duration: $duration}';
   }
+}
+
+/// Convert a plugin [PluginLyrics] + [LyricsMetadata] to the app's [Lyrics] model.
+///
+/// Builds both [lyricsPlain] and [lyricsSynced] (LRC format) from
+/// the structured [PluginLyrics.lines] so existing UI code (synced display,
+/// plain text fallback, DB caching) works unchanged.
+Lyrics pluginLyricsToLyrics(
+  plugin_models.PluginLyrics pluginLyrics, {
+  required String artist,
+  required String title,
+  String? album,
+  BigInt? durationMs,
+  String? mediaID,
+}) {
+  final plainBuf = StringBuffer();
+  final syncedBuf = StringBuffer();
+  bool hasTiming = false;
+
+  final lines = pluginLyrics.lines ?? const <plugin_models.LyricsLine>[];
+
+  for (final line in lines) {
+    final text = (line.tokens != null && line.tokens!.isNotEmpty)
+        ? line.tokens!.map((t) => t.text).join()
+        : line.content;
+    plainBuf.writeln(text);
+
+    hasTiming = true;
+    final ms = line.startMs;
+    final min = (ms ~/ 60000).toString().padLeft(2, '0');
+    final sec = ((ms % 60000) ~/ 1000).toString().padLeft(2, '0');
+    final centis = ((ms % 1000) ~/ 10).toString().padLeft(2, '0');
+    syncedBuf.writeln('[$min:$sec.$centis] $text');
+  }
+
+  final plainLyrics =
+      (pluginLyrics.plain != null && pluginLyrics.plain!.trim().isNotEmpty)
+          ? pluginLyrics.plain!.trim()
+          : plainBuf.toString().trimRight();
+  final syncedLyrics =
+      (pluginLyrics.lrc != null && pluginLyrics.lrc!.trim().isNotEmpty)
+          ? pluginLyrics.lrc!.trim()
+          : (hasTiming ? syncedBuf.toString().trimRight() : null);
+  final durationSec =
+      durationMs != null ? (durationMs ~/ BigInt.from(1000)).toString() : null;
+
+  return Lyrics(
+    id: mediaID ?? '',
+    artist: artist,
+    title: title,
+    album: album,
+    lyricsPlain: plainLyrics,
+    lyricsSynced: syncedLyrics,
+    duration: durationSec,
+    provider: LyricsProvider.plugin,
+    mediaID: mediaID,
+  );
 }

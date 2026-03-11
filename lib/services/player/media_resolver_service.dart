@@ -183,6 +183,15 @@ class MediaResolverService {
       charts: (_) => throw Exception('Unexpected response type: charts'),
       chartDetails: (_) =>
           throw Exception('Unexpected response type: chartDetails'),
+      segments: (_) => throw Exception('Unexpected response type: segments'),
+      lyricsResult: (_) =>
+          throw Exception('Unexpected response type: lyricsResult'),
+      lyricsSearchResults: (_) =>
+          throw Exception('Unexpected response type: lyricsSearchResults'),
+      lyricsById: (_, __) =>
+          throw Exception('Unexpected response type: lyricsById'),
+      suggestions: (_) =>
+          throw Exception('Unexpected response type: suggestions'),
       ack: () => throw Exception('Unexpected response type: ack'),
     );
   }

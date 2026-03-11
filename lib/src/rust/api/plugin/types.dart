@@ -40,6 +40,9 @@ class PluginInstallResult {
 enum PluginInstallStatus {
   installed,
   updated,
+
+  /// Same or older version was installed (user chose to replace).
+  downgraded,
   alreadyInstalled,
   pluginLoaded,
   failed,
@@ -50,6 +53,8 @@ enum PluginInstallStatus {
 enum PluginType {
   contentResolver,
   chartProvider,
+  lyricsProvider,
+  searchSuggestionProvider,
   ;
 
   Future<void> description() =>
