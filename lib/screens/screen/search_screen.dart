@@ -133,10 +133,15 @@ class _SearchScreenState extends State<SearchScreen> {
   String _buildEntitySearchQuery(plugin_models.EntitySuggestion entity) {
     final parts = <String>[entity.title.trim()];
     final subtitle = entity.subtitle?.trim();
-    if (subtitle != null &&
-        subtitle.isNotEmpty &&
-        !subtitle.toLowerCase().contains(entity.title.trim().toLowerCase())) {
-      parts.add(subtitle);
+    final multiSpace = RegExp(r'\s+');
+    final specialChars = RegExp(r'[^\w\s]+', unicode: true);
+
+    if (subtitle != null && subtitle.isNotEmpty) {
+      parts.add(subtitle
+          .toLowerCase()
+          .replaceAll(multiSpace, " ")
+          .replaceAll(specialChars, "")
+          .replaceAll(entity.title.toLowerCase().trim(), ""));
     }
     return _normalizeSearchQuery(
         parts.where((part) => part.isNotEmpty).join(' '));
