@@ -275,7 +275,7 @@
   "pluginDefaultsAutomaticSubtitle": "Use the first available content resolver.",
   "pluginDefaultsPriorityHeader": "Resolver Priority",
   "pluginDefaultsNoPriority": "No content resolvers loaded. Priority ordering will appear here once plugins are loaded.",
-  "pluginDefaultsPriorityDesc": "Drag to reorder. Higher priority resolvers are tried first when resolving chart items to playable tracks.",
+  "pluginDefaultsPriorityDesc": "Drag to reorder. Higher priority resolvers are tried first when resolving chart items or imported tracks to playable tracks.",
   "pluginDefaultsLyricsHeader": "Lyrics Priority",
   "pluginDefaultsLyricsNone": "No lyrics providers loaded.",
   "pluginDefaultsLyricsDesc": "Drag to reorder lyrics providers. The first provider is tried first.",
