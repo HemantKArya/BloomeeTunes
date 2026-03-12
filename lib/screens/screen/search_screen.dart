@@ -299,57 +299,74 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusManager.instance.primaryFocus?.unfocus();
-        _closeSuggestionPanel();
+    return BlocListener<PluginBloc, PluginState>(
+      listenWhen: (prev, curr) =>
+          prev.loadedContentResolvers.isEmpty &&
+          curr.loadedContentResolvers.isNotEmpty &&
+          _activePluginId == null,
+      listener: (context, pluginState) {
+        final resolvers = pluginState.loadedContentResolvers;
+        final persistedId = context.read<SettingsCubit>().state.searchPluginId;
+        final hasPersistedPlugin = persistedId.isNotEmpty &&
+            resolvers.any((p) => p.manifest.id == persistedId);
+        setState(() {
+          _activePluginId =
+              hasPersistedPlugin ? persistedId : resolvers.first.manifest.id;
+          _contentBloc.add(SetActiveContentPlugin(pluginId: _activePluginId!));
+        });
       },
-      child: Scaffold(
-        backgroundColor: Default_Theme.themeColor,
-        resizeToAvoidBottomInset: false,
-        body: Stack(
-          children: [
-            // --- 1. ATMOSPHERIC BACKGROUND LAYER ---
-            BlocBuilder<ContentBloc, ContentState>(
-              bloc: _contentBloc,
-              builder: (context, state) {
-                final colors = _getReactiveGradientColors(state);
+      child: GestureDetector(
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+          _closeSuggestionPanel();
+        },
+        child: Scaffold(
+          backgroundColor: Default_Theme.themeColor,
+          resizeToAvoidBottomInset: false,
+          body: Stack(
+            children: [
+              // --- 1. ATMOSPHERIC BACKGROUND LAYER ---
+              BlocBuilder<ContentBloc, ContentState>(
+                bloc: _contentBloc,
+                builder: (context, state) {
+                  final colors = _getReactiveGradientColors(state);
 
-                return AnimatedContainer(
-                  duration: const Duration(
-                      milliseconds: 1500), // Very slow, ambient transition
-                  curve: Curves.easeOutCubic,
-                  width: double.infinity,
-                  // Covers more screen height (75%) so the fade is softer/subtler
-                  height: MediaQuery.of(context).size.height * 0.75,
-                  child: CustomPaint(
-                    painter: NebulaPainter(
-                      // Drastically reduced Opacity (0.18) for "Atmosphere" rather than "Paint"
-                      color1: colors[0].withValues(alpha: 0.18),
-                      color2: colors[1].withValues(alpha: 0.18),
+                  return AnimatedContainer(
+                    duration: const Duration(
+                        milliseconds: 1500), // Very slow, ambient transition
+                    curve: Curves.easeOutCubic,
+                    width: double.infinity,
+                    // Covers more screen height (75%) so the fade is softer/subtler
+                    height: MediaQuery.of(context).size.height * 0.75,
+                    child: CustomPaint(
+                      painter: NebulaPainter(
+                        // Drastically reduced Opacity (0.18) for "Atmosphere" rather than "Paint"
+                        color1: colors[0].withValues(alpha: 0.18),
+                        color2: colors[1].withValues(alpha: 0.18),
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-
-            // --- 2. MAIN SCROLLABLE CONTENT ---
-            SafeArea(
-              child: CustomScrollView(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  _buildFloatingSearchBar(),
-                  _buildAestheticFilterChips(),
-                  if (!_isSuggestionPanelOpen) _buildPluginsGlassyBox(),
-                  if (_isSuggestionPanelOpen)
-                    _buildSuggestionsArea()
-                  else
-                    _buildContentArea(),
-                ],
+                  );
+                },
               ),
-            ),
-          ],
+
+              // --- 2. MAIN SCROLLABLE CONTENT ---
+              SafeArea(
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    _buildFloatingSearchBar(),
+                    _buildAestheticFilterChips(),
+                    if (!_isSuggestionPanelOpen) _buildPluginsGlassyBox(),
+                    if (_isSuggestionPanelOpen)
+                      _buildSuggestionsArea()
+                    else
+                      _buildContentArea(),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

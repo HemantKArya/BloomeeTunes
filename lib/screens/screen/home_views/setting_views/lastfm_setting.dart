@@ -96,6 +96,7 @@ class _LastDotFMState extends State<LastDotFM> {
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
+        buildWhen: (prev, curr) => prev.lastFMScrobble != curr.lastFMScrobble,
         builder: (context, settingsState) {
           return ListView(
             physics: const BouncingScrollPhysics(),

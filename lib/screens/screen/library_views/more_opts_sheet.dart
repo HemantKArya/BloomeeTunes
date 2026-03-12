@@ -6,6 +6,7 @@ import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/screens/screen/library_views/playlist_edit_view.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   PltOptBtn(
-                    title: "Edit Playlist",
+                    title: AppLocalizations.of(context)!.playlistEdit,
                     icon: MingCute.edit_2_line,
                     onPressed: () {
                       Navigator.pop(context);
@@ -63,11 +64,11 @@ void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
                   // ),
                   PltOptBtn(
                     icon: MingCute.share_2_line,
-                    title: "Share file",
+                    title: AppLocalizations.of(context)!.playlistShareFile,
                     onPressed: () async {
                       Navigator.pop(context);
-                      SnackbarService.showMessage(
-                          "Preparing ${playlist.title} for share");
+                      SnackbarService.showMessage(AppLocalizations.of(context)!
+                          .snackbarPreparingShare(playlist.title));
                       final _tmpPath = await ImportExportService.exportPlaylist(
                           playlist.title);
                       _tmpPath != null
@@ -78,7 +79,7 @@ void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
                   if (!Platform.isAndroid)
                     PltOptBtn(
                       icon: MingCute.file_export_line,
-                      title: "Export File",
+                      title: AppLocalizations.of(context)!.playlistExportFile,
                       onPressed: () async {
                         Navigator.pop(context);
                         String? path =
@@ -88,13 +89,16 @@ void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
                               (await getDownloadsDirectory())?.path.toString();
                         }
                         SnackbarService.showMessage(
-                            "Preparing ${playlist.title} for export.");
+                            AppLocalizations.of(context)!
+                                .snackbarPreparingExport(playlist.title));
                         final _tmpPath =
                             await ImportExportService.exportPlaylist(
                           playlist.title,
                           filePath: path,
                         );
-                        SnackbarService.showMessage("Exported to: $_tmpPath");
+                        SnackbarService.showMessage(
+                            AppLocalizations.of(context)!
+                                .snackbarExportedTo(_tmpPath ?? ''));
                       },
                     ),
                 ],
@@ -107,7 +111,12 @@ void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
   );
 }
 
-void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
+void showPlaylistOptsExtSheet(
+  BuildContext context,
+  String playlistName, {
+  int? playlistId,
+  bool isPinned = false,
+}) {
   showFloatingModalBottomSheet(
     context: context,
     builder: (context) {
@@ -135,7 +144,7 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                 children: [
                   PltOptBtn(
                     icon: MingCute.play_circle_fill,
-                    title: "Play",
+                    title: AppLocalizations.of(context)!.playlistPlay,
                     onPressed: () async {
                       Navigator.pop(context);
                       final _list = await context
@@ -148,12 +157,14 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                             .loadPlaylist(
                                 Playlist(tracks: _list, title: playlistName),
                                 doPlay: true);
-                        SnackbarService.showMessage("Playing $playlistName");
+                        SnackbarService.showMessage(
+                            AppLocalizations.of(context)!
+                                .snackbarNowPlaying(playlistName));
                       }
                     },
                   ),
                   PltOptBtn(
-                    title: 'Add Playlist to Queue',
+                    title: AppLocalizations.of(context)!.playlistAddToQueue,
                     icon: MingCute.playlist_2_line,
                     onPressed: () async {
                       Navigator.pop(context);
@@ -166,17 +177,18 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                             .bloomeePlayer
                             .addQueueTracks(_list);
                         SnackbarService.showMessage(
-                            "Added $playlistName to Queue");
+                            AppLocalizations.of(context)!
+                                .snackbarPlaylistAddedToQueue(playlistName));
                       }
                     },
                   ),
                   PltOptBtn(
                     icon: MingCute.share_2_fill,
-                    title: "Share Playlist",
+                    title: AppLocalizations.of(context)!.playlistShare,
                     onPressed: () async {
                       Navigator.pop(context);
-                      SnackbarService.showMessage(
-                          "Preparing $playlistName for share");
+                      SnackbarService.showMessage(AppLocalizations.of(context)!
+                          .snackbarPreparingShare(playlistName));
                       final _tmpPath = await ImportExportService.exportPlaylist(
                           playlistName);
                       _tmpPath != null
@@ -187,7 +199,7 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                   if (!Platform.isAndroid)
                     PltOptBtn(
                       icon: MingCute.file_export_line,
-                      title: "Export File",
+                      title: AppLocalizations.of(context)!.playlistExportFile,
                       onPressed: () async {
                         Navigator.pop(context);
                         String? path =
@@ -197,17 +209,32 @@ void showPlaylistOptsExtSheet(BuildContext context, String playlistName) {
                               (await getDownloadsDirectory())?.path.toString();
                         }
                         SnackbarService.showMessage(
-                            "Preparing $playlistName for export.");
+                            AppLocalizations.of(context)!
+                                .snackbarPreparingExport(playlistName));
                         final _tmpPath =
                             await ImportExportService.exportPlaylist(
                           playlistName,
                           filePath: path,
                         );
-                        SnackbarService.showMessage("Exported to: $_tmpPath");
+                        SnackbarService.showMessage(
+                            AppLocalizations.of(context)!
+                                .snackbarExportedTo(_tmpPath ?? ''));
                       },
                     ),
                   PltOptBtn(
-                    title: 'Delete Playlist',
+                    icon: isPinned ? MingCute.unlink_line : MingCute.pin_2_fill,
+                    title: isPinned
+                        ? AppLocalizations.of(context)!.playlistUnpin
+                        : AppLocalizations.of(context)!.playlistPinToTop,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      if (playlistId != null) {
+                        context.read<LibraryItemsCubit>().togglePin(playlistId);
+                      }
+                    },
+                  ),
+                  PltOptBtn(
+                    title: AppLocalizations.of(context)!.playlistDelete,
                     icon: MingCute.delete_2_fill,
                     onPressed: () {
                       Navigator.pop(context);

@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/services/db/dao/library_dao.dart';
 import 'package:Bloomee/services/db/global_db.dart';
@@ -50,10 +51,19 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
     });
   }
 
+  static const _systemPlaylists = {
+    SettingKeys.recentlyPlayedPlaylist,
+    SettingKeys.downloadPlaylist,
+    SettingKeys.localMusicPlaylist,
+  };
+
   /// Fetch all playlists (user + remote collections) and emit as domain items.
   Future<void> _fetchPlaylists() async {
     try {
       final allPlaylists = await _playlistDao.getAllPlaylists();
+      allPlaylists.removeWhere((p) => _systemPlaylists.contains(p.name));
+      // Guard against orphan rows with an empty name.
+      allPlaylists.removeWhere((p) => p.name.trim().isEmpty);
       final items = await _toItemProperties(allPlaylists);
       emit(state.copyWith(playlists: items));
     } catch (e) {
@@ -89,6 +99,9 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
           subTitle: subtitle,
           coverImgUrl: coverUrl,
           type: domainPlaylist.type,
+          isPinned: p.isPinned,
+          sortOrder: p.sortOrder,
+          playlistId: p.id,
         ),
       );
     }
@@ -280,5 +293,32 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   Future<List<Track>> searchTracks(String query) async {
     final results = await _playlistDao.searchLibrary(query);
     return results.map((r) => trackDBToTrack(r.$1)).toList();
+  }
+
+  // ── Library Arrangement ─────────────────────────────────────────────────
+
+  /// Toggle pin state for a playlist.
+  Future<void> togglePin(int playlistId) async {
+    final item =
+        state.playlists.where((p) => p.playlistId == playlistId).firstOrNull;
+    if (item == null) return;
+    await _playlistDao.setPinned(playlistId, !item.isPinned);
+  }
+
+  /// Reorder library playlists.
+  ///
+  /// Called after a drag-and-drop reorder. [oldIndex] and [newIndex] are
+  /// positions within the displayed (filtered) list.
+  Future<void> reorderLibrary(int oldIndex, int newIndex) async {
+    final current = List<PlaylistItemProperties>.from(state.playlists);
+    if (oldIndex < newIndex) newIndex -= 1;
+    final item = current.removeAt(oldIndex);
+    current.insert(newIndex, item);
+    // Optimistic UI update.
+    emit(state.copyWith(playlists: current));
+    // Persist new order.
+    await _playlistDao.reorderPlaylists(
+      current.map((p) => p.playlistId).toList(),
+    );
   }
 }

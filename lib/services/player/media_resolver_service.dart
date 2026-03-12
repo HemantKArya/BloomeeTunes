@@ -192,6 +192,11 @@ class MediaResolverService {
           throw Exception('Unexpected response type: lyricsById'),
       suggestions: (_) =>
           throw Exception('Unexpected response type: suggestions'),
+      canHandle: (_) => throw Exception('Unexpected response type: canHandle'),
+      collectionInfo: (_) =>
+          throw Exception('Unexpected response type: collectionInfo'),
+      importTracks: (_) =>
+          throw Exception('Unexpected response type: importTracks'),
       ack: () => throw Exception('Unexpected response type: ack'),
     );
   }

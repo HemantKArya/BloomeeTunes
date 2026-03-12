@@ -9,7 +9,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'commands.freezed.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 @freezed
 sealed class ChartProviderCommand with _$ChartProviderCommand {
@@ -20,6 +20,21 @@ sealed class ChartProviderCommand with _$ChartProviderCommand {
   const factory ChartProviderCommand.getChartDetails({
     required String id,
   }) = ChartProviderCommand_GetChartDetails;
+}
+
+@freezed
+sealed class ContentImporterCommand with _$ContentImporterCommand {
+  const ContentImporterCommand._();
+
+  const factory ContentImporterCommand.canHandleUrl({
+    required String url,
+  }) = ContentImporterCommand_CanHandleUrl;
+  const factory ContentImporterCommand.getCollectionInfo({
+    required String url,
+  }) = ContentImporterCommand_GetCollectionInfo;
+  const factory ContentImporterCommand.getTracks({
+    required String url,
+  }) = ContentImporterCommand_GetTracks;
 }
 
 @freezed
@@ -110,6 +125,9 @@ sealed class PluginRequest with _$PluginRequest {
   const factory PluginRequest.searchSuggestionProvider(
     SearchSuggestionCommand field0,
   ) = PluginRequest_SearchSuggestionProvider;
+  const factory PluginRequest.contentImporter(
+    ContentImporterCommand field0,
+  ) = PluginRequest_ContentImporter;
 }
 
 @freezed
@@ -165,6 +183,15 @@ sealed class PluginResponse with _$PluginResponse {
   const factory PluginResponse.suggestions(
     List<Suggestion> field0,
   ) = PluginResponse_Suggestions;
+  const factory PluginResponse.canHandle(
+    bool field0,
+  ) = PluginResponse_CanHandle;
+  const factory PluginResponse.collectionInfo(
+    ImportCollectionSummary field0,
+  ) = PluginResponse_CollectionInfo;
+  const factory PluginResponse.importTracks(
+    List<ImportTrackItem> field0,
+  ) = PluginResponse_ImportTracks;
   const factory PluginResponse.ack() = PluginResponse_Ack;
 }
 

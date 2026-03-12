@@ -55,6 +55,7 @@ enum PluginType {
   chartProvider,
   lyricsProvider,
   searchSuggestionProvider,
+  contentImporter,
   ;
 
   Future<void> description() =>

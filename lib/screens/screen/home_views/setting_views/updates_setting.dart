@@ -44,6 +44,8 @@ class UpdatesSettings extends StatelessWidget {
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
+        buildWhen: (prev, curr) =>
+            prev.autoUpdateNotify != curr.autoUpdateNotify,
         builder: (context, state) {
           return ListView(
             physics: const BouncingScrollPhysics(),

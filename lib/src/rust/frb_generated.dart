@@ -2819,6 +2819,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ContentImporterCommand dco_decode_box_autoadd_content_importer_command(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_content_importer_command(raw);
+  }
+
+  @protected
   ContentResolverCommand dco_decode_box_autoadd_content_resolver_command(
       dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -2843,6 +2850,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   EntitySuggestion dco_decode_box_autoadd_entity_suggestion(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_entity_suggestion(raw);
+  }
+
+  @protected
+  ImportCollectionSummary dco_decode_box_autoadd_import_collection_summary(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_import_collection_summary(raw);
   }
 
   @protected
@@ -3011,6 +3025,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       description: dco_decode_opt_String(arr[2]),
       thumbnail: dco_decode_opt_box_autoadd_artwork(arr[3]),
     );
+  }
+
+  @protected
+  ContentImporterCommand dco_decode_content_importer_command(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return ContentImporterCommand_CanHandleUrl(
+          url: dco_decode_String(raw[1]),
+        );
+      case 1:
+        return ContentImporterCommand_GetCollectionInfo(
+          url: dco_decode_String(raw[1]),
+        );
+      case 2:
+        return ContentImporterCommand_GetTracks(
+          url: dco_decode_String(raw[1]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   @protected
@@ -3187,6 +3222,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ImportCollectionSummary dco_decode_import_collection_summary(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return ImportCollectionSummary(
+      title: dco_decode_String(arr[0]),
+      kind: dco_decode_import_collection_type(arr[1]),
+      description: dco_decode_opt_String(arr[2]),
+      owner: dco_decode_opt_String(arr[3]),
+      thumbnailUrl: dco_decode_opt_String(arr[4]),
+      trackCount: dco_decode_opt_box_autoadd_u_32(arr[5]),
+    );
+  }
+
+  @protected
+  ImportCollectionType dco_decode_import_collection_type(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ImportCollectionType.values[raw as int];
+  }
+
+  @protected
+  ImportTrackItem dco_decode_import_track_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    return ImportTrackItem(
+      title: dco_decode_String(arr[0]),
+      artists: dco_decode_list_String(arr[1]),
+      thumbnailUrl: dco_decode_opt_String(arr[2]),
+      albumTitle: dco_decode_opt_String(arr[3]),
+      durationMs: dco_decode_opt_box_autoadd_u_64(arr[4]),
+      isExplicit: dco_decode_bool(arr[5]),
+      url: dco_decode_opt_String(arr[6]),
+      sourceId: dco_decode_opt_String(arr[7]),
+    );
+  }
+
+  @protected
   KeyRequirement dco_decode_key_requirement(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -3247,6 +3322,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return (raw as List<dynamic>)
         .map(dco_decode_download_task_snapshot)
         .toList();
+  }
+
+  @protected
+  List<ImportTrackItem> dco_decode_list_import_track_item(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_import_track_item).toList();
   }
 
   @protected
@@ -3828,6 +3909,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         return PluginRequest_SearchSuggestionProvider(
           dco_decode_box_autoadd_search_suggestion_command(raw[1]),
         );
+      case 4:
+        return PluginRequest_ContentImporter(
+          dco_decode_box_autoadd_content_importer_command(raw[1]),
+        );
       default:
         throw Exception("unreachable");
     }
@@ -3904,6 +3989,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           dco_decode_list_suggestion(raw[1]),
         );
       case 16:
+        return PluginResponse_CanHandle(
+          dco_decode_bool(raw[1]),
+        );
+      case 17:
+        return PluginResponse_CollectionInfo(
+          dco_decode_box_autoadd_import_collection_summary(raw[1]),
+        );
+      case 18:
+        return PluginResponse_ImportTracks(
+          dco_decode_list_import_track_item(raw[1]),
+        );
+      case 19:
         return const PluginResponse_Ack();
       default:
         throw Exception("unreachable");
@@ -4403,6 +4500,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ContentImporterCommand sse_decode_box_autoadd_content_importer_command(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_content_importer_command(deserializer));
+  }
+
+  @protected
   ContentResolverCommand sse_decode_box_autoadd_content_resolver_command(
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -4428,6 +4532,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_entity_suggestion(deserializer));
+  }
+
+  @protected
+  ImportCollectionSummary sse_decode_box_autoadd_import_collection_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_import_collection_summary(deserializer));
   }
 
   @protected
@@ -4612,6 +4723,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         title: var_title,
         description: var_description,
         thumbnail: var_thumbnail);
+  }
+
+  @protected
+  ContentImporterCommand sse_decode_content_importer_command(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_url = sse_decode_String(deserializer);
+        return ContentImporterCommand_CanHandleUrl(url: var_url);
+      case 1:
+        var var_url = sse_decode_String(deserializer);
+        return ContentImporterCommand_GetCollectionInfo(url: var_url);
+      case 2:
+        var var_url = sse_decode_String(deserializer);
+        return ContentImporterCommand_GetTracks(url: var_url);
+      default:
+        throw UnimplementedError('');
+    }
   }
 
   @protected
@@ -4804,6 +4936,55 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ImportCollectionSummary sse_decode_import_collection_summary(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_kind = sse_decode_import_collection_type(deserializer);
+    var var_description = sse_decode_opt_String(deserializer);
+    var var_owner = sse_decode_opt_String(deserializer);
+    var var_thumbnailUrl = sse_decode_opt_String(deserializer);
+    var var_trackCount = sse_decode_opt_box_autoadd_u_32(deserializer);
+    return ImportCollectionSummary(
+        title: var_title,
+        kind: var_kind,
+        description: var_description,
+        owner: var_owner,
+        thumbnailUrl: var_thumbnailUrl,
+        trackCount: var_trackCount);
+  }
+
+  @protected
+  ImportCollectionType sse_decode_import_collection_type(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return ImportCollectionType.values[inner];
+  }
+
+  @protected
+  ImportTrackItem sse_decode_import_track_item(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_artists = sse_decode_list_String(deserializer);
+    var var_thumbnailUrl = sse_decode_opt_String(deserializer);
+    var var_albumTitle = sse_decode_opt_String(deserializer);
+    var var_durationMs = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_isExplicit = sse_decode_bool(deserializer);
+    var var_url = sse_decode_opt_String(deserializer);
+    var var_sourceId = sse_decode_opt_String(deserializer);
+    return ImportTrackItem(
+        title: var_title,
+        artists: var_artists,
+        thumbnailUrl: var_thumbnailUrl,
+        albumTitle: var_albumTitle,
+        durationMs: var_durationMs,
+        isExplicit: var_isExplicit,
+        url: var_url,
+        sourceId: var_sourceId);
+  }
+
+  @protected
   KeyRequirement sse_decode_key_requirement(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_description = sse_decode_String(deserializer);
@@ -4903,6 +5084,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <DownloadTaskSnapshot>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_download_task_snapshot(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ImportTrackItem> sse_decode_list_import_track_item(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ImportTrackItem>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_import_track_item(deserializer));
     }
     return ans_;
   }
@@ -5623,6 +5817,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         var var_field0 =
             sse_decode_box_autoadd_search_suggestion_command(deserializer);
         return PluginRequest_SearchSuggestionProvider(var_field0);
+      case 4:
+        var var_field0 =
+            sse_decode_box_autoadd_content_importer_command(deserializer);
+        return PluginRequest_ContentImporter(var_field0);
       default:
         throw UnimplementedError('');
     }
@@ -5686,6 +5884,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         var var_field0 = sse_decode_list_suggestion(deserializer);
         return PluginResponse_Suggestions(var_field0);
       case 16:
+        var var_field0 = sse_decode_bool(deserializer);
+        return PluginResponse_CanHandle(var_field0);
+      case 17:
+        var var_field0 =
+            sse_decode_box_autoadd_import_collection_summary(deserializer);
+        return PluginResponse_CollectionInfo(var_field0);
+      case 18:
+        var var_field0 = sse_decode_list_import_track_item(deserializer);
+        return PluginResponse_ImportTracks(var_field0);
+      case 19:
         return const PluginResponse_Ack();
       default:
         throw UnimplementedError('');
@@ -6175,6 +6383,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_content_importer_command(
+      ContentImporterCommand self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_content_importer_command(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_content_resolver_command(
       ContentResolverCommand self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -6200,6 +6415,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       EntitySuggestion self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_entity_suggestion(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_import_collection_summary(
+      ImportCollectionSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_import_collection_summary(self, serializer);
   }
 
   @protected
@@ -6367,6 +6589,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.title, serializer);
     sse_encode_opt_String(self.description, serializer);
     sse_encode_opt_box_autoadd_artwork(self.thumbnail, serializer);
+  }
+
+  @protected
+  void sse_encode_content_importer_command(
+      ContentImporterCommand self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case ContentImporterCommand_CanHandleUrl(url: final url):
+        sse_encode_i_32(0, serializer);
+        sse_encode_String(url, serializer);
+      case ContentImporterCommand_GetCollectionInfo(url: final url):
+        sse_encode_i_32(1, serializer);
+        sse_encode_String(url, serializer);
+      case ContentImporterCommand_GetTracks(url: final url):
+        sse_encode_i_32(2, serializer);
+        sse_encode_String(url, serializer);
+    }
   }
 
   @protected
@@ -6538,6 +6777,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_import_collection_summary(
+      ImportCollectionSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_import_collection_type(self.kind, serializer);
+    sse_encode_opt_String(self.description, serializer);
+    sse_encode_opt_String(self.owner, serializer);
+    sse_encode_opt_String(self.thumbnailUrl, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.trackCount, serializer);
+  }
+
+  @protected
+  void sse_encode_import_collection_type(
+      ImportCollectionType self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_import_track_item(
+      ImportTrackItem self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_list_String(self.artists, serializer);
+    sse_encode_opt_String(self.thumbnailUrl, serializer);
+    sse_encode_opt_String(self.albumTitle, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.durationMs, serializer);
+    sse_encode_bool(self.isExplicit, serializer);
+    sse_encode_opt_String(self.url, serializer);
+    sse_encode_opt_String(self.sourceId, serializer);
+  }
+
+  @protected
   void sse_encode_key_requirement(
       KeyRequirement self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -6614,6 +6886,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_download_task_snapshot(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_import_track_item(
+      List<ImportTrackItem> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_import_track_item(item, serializer);
     }
   }
 
@@ -7218,6 +7500,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       case PluginRequest_SearchSuggestionProvider(field0: final field0):
         sse_encode_i_32(3, serializer);
         sse_encode_box_autoadd_search_suggestion_command(field0, serializer);
+      case PluginRequest_ContentImporter(field0: final field0):
+        sse_encode_i_32(4, serializer);
+        sse_encode_box_autoadd_content_importer_command(field0, serializer);
     }
   }
 
@@ -7279,8 +7564,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       case PluginResponse_Suggestions(field0: final field0):
         sse_encode_i_32(15, serializer);
         sse_encode_list_suggestion(field0, serializer);
-      case PluginResponse_Ack():
+      case PluginResponse_CanHandle(field0: final field0):
         sse_encode_i_32(16, serializer);
+        sse_encode_bool(field0, serializer);
+      case PluginResponse_CollectionInfo(field0: final field0):
+        sse_encode_i_32(17, serializer);
+        sse_encode_box_autoadd_import_collection_summary(field0, serializer);
+      case PluginResponse_ImportTracks(field0: final field0):
+        sse_encode_i_32(18, serializer);
+        sse_encode_list_import_track_item(field0, serializer);
+      case PluginResponse_Ack():
+        sse_encode_i_32(19, serializer);
     }
   }
 

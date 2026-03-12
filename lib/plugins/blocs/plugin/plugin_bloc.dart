@@ -262,6 +262,10 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
           successMessage:
               'Plugin "${result.pluginId}" installed (older/same version).',
         ));
+      } else {
+        emit(state.copyWith(
+          successMessage: 'Plugin "${result.pluginId}" installed successfully.',
+        ));
       }
 
       // Refresh available plugins after install.
@@ -479,9 +483,10 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
           loadedPluginIds: loaded.toSet(),
           isLoading: updatedOperations.isNotEmpty,
           pluginOperations: updatedOperations,
-          successMessage: deletedIds.isEmpty
-              ? state.successMessage
-              : 'Plugin "${deletedIds.first}" deleted successfully.',
+          successMessage: deletedIds.isNotEmpty
+              ? 'Plugin "${deletedIds.first}" deleted successfully.'
+              : null,
+          clearSuccessMessage: deletedIds.isEmpty,
         ));
         unawaited(_persistAutoLoadSafe(loaded.toSet()));
       },

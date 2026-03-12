@@ -9,7 +9,7 @@ import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'models.freezed.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `HttpMethod`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 class AlbumDetails {
   final AlbumSummary summary;
@@ -303,6 +303,98 @@ enum ImageLayout {
   banner,
   circular,
   ;
+}
+
+class ImportCollectionSummary {
+  final String title;
+  final ImportCollectionType kind;
+  final String? description;
+  final String? owner;
+  final String? thumbnailUrl;
+  final int? trackCount;
+
+  const ImportCollectionSummary({
+    required this.title,
+    required this.kind,
+    this.description,
+    this.owner,
+    this.thumbnailUrl,
+    this.trackCount,
+  });
+
+  @override
+  int get hashCode =>
+      title.hashCode ^
+      kind.hashCode ^
+      description.hashCode ^
+      owner.hashCode ^
+      thumbnailUrl.hashCode ^
+      trackCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImportCollectionSummary &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          kind == other.kind &&
+          description == other.description &&
+          owner == other.owner &&
+          thumbnailUrl == other.thumbnailUrl &&
+          trackCount == other.trackCount;
+}
+
+enum ImportCollectionType {
+  playlist,
+  album,
+  ;
+}
+
+class ImportTrackItem {
+  final String title;
+  final List<String> artists;
+  final String? thumbnailUrl;
+  final String? albumTitle;
+  final BigInt? durationMs;
+  final bool isExplicit;
+  final String? url;
+  final String? sourceId;
+
+  const ImportTrackItem({
+    required this.title,
+    required this.artists,
+    this.thumbnailUrl,
+    this.albumTitle,
+    this.durationMs,
+    required this.isExplicit,
+    this.url,
+    this.sourceId,
+  });
+
+  @override
+  int get hashCode =>
+      title.hashCode ^
+      artists.hashCode ^
+      thumbnailUrl.hashCode ^
+      albumTitle.hashCode ^
+      durationMs.hashCode ^
+      isExplicit.hashCode ^
+      url.hashCode ^
+      sourceId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImportTrackItem &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          artists == other.artists &&
+          thumbnailUrl == other.thumbnailUrl &&
+          albumTitle == other.albumTitle &&
+          durationMs == other.durationMs &&
+          isExplicit == other.isExplicit &&
+          url == other.url &&
+          sourceId == other.sourceId;
 }
 
 class Lyrics {

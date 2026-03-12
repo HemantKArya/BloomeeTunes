@@ -2078,6 +2078,12 @@ abstract class AppLocalizations {
   /// **'Suggestion Providers'**
   String get pluginManagerFilterSuggestions;
 
+  /// No description provided for @pluginManagerFilterImporters.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Importers'**
+  String get pluginManagerFilterImporters;
+
   /// No description provided for @pluginManagerTooltipRefresh.
   ///
   /// In en, this message translates to:
@@ -2131,6 +2137,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search Suggestions'**
   String get pluginManagerTypeSuggestionProvider;
+
+  /// No description provided for @pluginManagerTypeContentImporter.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Importer'**
+  String get pluginManagerTypeContentImporter;
 
   /// No description provided for @pluginManagerDeleteTitle.
   ///
@@ -2713,6 +2725,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No tracks found matching your search.'**
   String get localMusicNoSearchResults;
+
+  /// No description provided for @importSongsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Songs'**
+  String get importSongsTitle;
+
+  /// No description provided for @importNoPluginsLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'No content-importer plugins loaded.\nInstall an importer plugin to import playlists from external services.'**
+  String get importNoPluginsLoaded;
+
+  /// No description provided for @importBloomeeFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Bloomee Files'**
+  String get importBloomeeFiles;
+
+  /// No description provided for @importNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get importNoteTitle;
+
+  /// No description provided for @importNoteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only import files created by Bloomee.\nIf your file is from another source, it will not work. Continue anyway?'**
+  String get importNoteMessage;
+
+  /// No description provided for @importTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importTitle;
+
+  /// No description provided for @importCheckingUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking URL...'**
+  String get importCheckingUrl;
+
+  /// No description provided for @importFetchingTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching tracks...'**
+  String get importFetchingTracks;
+
+  /// No description provided for @importSavingToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving to library...'**
+  String get importSavingToLibrary;
+
+  /// No description provided for @importPasteUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a playlist or album URL to import'**
+  String get importPasteUrlHint;
+
+  /// No description provided for @importAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importAction;
+
+  /// No description provided for @importTrackCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tracks'**
+  String importTrackCount(int count);
+
+  /// No description provided for @importResolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolving...'**
+  String get importResolving;
+
+  /// No description provided for @importResolvingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolving tracks: {done} / {total}'**
+  String importResolvingProgress(int done, int total);
+
+  /// No description provided for @importReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Review'**
+  String get importReviewTitle;
+
+  /// No description provided for @importReviewSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{resolved} resolved, {failed} failed out of {total}'**
+  String importReviewSummary(int resolved, int failed, int total);
+
+  /// No description provided for @importSaveTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {count} Tracks'**
+  String importSaveTracks(int count);
+
+  /// No description provided for @importTracksSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tracks saved!'**
+  String importTracksSaved(int count);
+
+  /// No description provided for @importDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get importDone;
+
+  /// No description provided for @importMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Import More'**
+  String get importMore;
+
+  /// No description provided for @importUnknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown error'**
+  String get importUnknownError;
+
+  /// No description provided for @importTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get importTryAgain;
+
+  /// No description provided for @importSkipTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this track'**
+  String get importSkipTrack;
+
+  /// No description provided for @importMatchOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Match options'**
+  String get importMatchOptions;
+
+  /// No description provided for @importAutoMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-matched'**
+  String get importAutoMatched;
+
+  /// No description provided for @importUserSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get importUserSelected;
+
+  /// No description provided for @importSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get importSkipped;
+
+  /// No description provided for @importNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No match found'**
+  String get importNoMatch;
+
+  /// No description provided for @importReorderTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press a playlist to start reordering'**
+  String get importReorderTip;
+
+  /// No description provided for @importErrorCannotHandleUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'This plugin cannot handle the provided URL.'**
+  String get importErrorCannotHandleUrl;
+
+  /// No description provided for @importErrorUnexpectedResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected response from plugin.'**
+  String get importErrorUnexpectedResponse;
+
+  /// No description provided for @importErrorFailedToCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to check URL: {error}'**
+  String importErrorFailedToCheck(String error);
+
+  /// No description provided for @importErrorFailedToFetchInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch collection info: {error}'**
+  String importErrorFailedToFetchInfo(String error);
+
+  /// No description provided for @importErrorFailedToFetchTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch tracks: {error}'**
+  String importErrorFailedToFetchTracks(String error);
+
+  /// No description provided for @importErrorFailedToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save playlist: {error}'**
+  String importErrorFailedToSave(String error);
+
+  /// No description provided for @playlistPinToTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to Top'**
+  String get playlistPinToTop;
+
+  /// No description provided for @playlistUnpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get playlistUnpin;
+
+  /// No description provided for @snackbarImportingMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing MediaItems..'**
+  String get snackbarImportingMedia;
+
+  /// No description provided for @snackbarPlaylistSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist saved to library!'**
+  String get snackbarPlaylistSaved;
+
+  /// No description provided for @snackbarInvalidFileFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid File Format'**
+  String get snackbarInvalidFileFormat;
+
+  /// No description provided for @snackbarMediaItemImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Media Item Imported'**
+  String get snackbarMediaItemImported;
+
+  /// No description provided for @snackbarPlaylistImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist Imported'**
+  String get snackbarPlaylistImported;
+
+  /// No description provided for @snackbarOpenImportForUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the Import screen in Library to import from this URL.'**
+  String get snackbarOpenImportForUrl;
+
+  /// No description provided for @snackbarProcessingFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing File...'**
+  String get snackbarProcessingFile;
+
+  /// No description provided for @snackbarPreparingShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing {title} for share'**
+  String snackbarPreparingShare(String title);
+
+  /// No description provided for @snackbarPreparingExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing {title} for export.'**
+  String snackbarPreparingExport(String title);
 }
 
 class _AppLocalizationsDelegate

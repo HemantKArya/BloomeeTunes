@@ -12,6 +12,7 @@ import 'package:Bloomee/plugins/blocs/chart/chart_bloc.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_event.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_state.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
@@ -263,174 +264,185 @@ class _ChartScreenBodyState extends State<_ChartScreenBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Default_Theme.themeColor,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leadingWidth: 70,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Center(
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Default_Theme.themeColor.withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.15),
+    return BlocListener<PluginBloc, PluginState>(
+      listenWhen: (prev, curr) =>
+          prev.loadedPluginIds.contains(widget.pluginId) &&
+          !curr.loadedPluginIds.contains(widget.pluginId),
+      listener: (context, state) {
+        if (context.mounted) context.pop();
+      },
+      child: Scaffold(
+        backgroundColor: Default_Theme.themeColor,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leadingWidth: 70,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Center(
+              child: IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Default_Theme.themeColor.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color:
+                          Default_Theme.primaryColor1.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Default_Theme.primaryColor1,
+                    size: 20,
                   ),
                 ),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: Default_Theme.primaryColor1,
-                  size: 20,
-                ),
+                onPressed: () => context.pop(),
               ),
-              onPressed: () => context.pop(),
             ),
           ),
-        ),
-        actions: [
-          BlocBuilder<ChartBloc, ChartState>(
-            builder: (context, chartState) {
-              final isLoading =
-                  chartState.chartDetailStatus == ChartStatus.loading;
-              return Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: Center(
-                  child: IconButton(
-                    onPressed: isLoading
-                        ? null
-                        : () => context.read<ChartBloc>().add(
-                              ForceRefreshChartDetails(
-                                pluginId: widget.pluginId,
-                                chartId: widget.chartId,
+          actions: [
+            BlocBuilder<ChartBloc, ChartState>(
+              builder: (context, chartState) {
+                final isLoading =
+                    chartState.chartDetailStatus == ChartStatus.loading;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Center(
+                    child: IconButton(
+                      onPressed: isLoading
+                          ? null
+                          : () => context.read<ChartBloc>().add(
+                                ForceRefreshChartDetails(
+                                  pluginId: widget.pluginId,
+                                  chartId: widget.chartId,
+                                ),
                               ),
-                            ),
-                    icon: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Default_Theme.themeColor.withValues(alpha: 0.5),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.15),
+                      icon: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color:
+                              Default_Theme.themeColor.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.15),
+                          ),
                         ),
-                      ),
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Default_Theme.primaryColor1,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.refresh_rounded,
                                 color: Default_Theme.primaryColor1,
+                                size: 20,
                               ),
-                            )
-                          : const Icon(
-                              Icons.refresh_rounded,
-                              color: Default_Theme.primaryColor1,
-                              size: 20,
-                            ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: BlocBuilder<ChartBloc, ChartState>(
+          builder: (context, state) {
+            if (state.chartDetailStatus == ChartStatus.loading) {
+              return const Center(
+                child: CircularProgressIndicator(
+                    color: Default_Theme.accentColor2),
+              );
+            }
+
+            if (state.chartDetailStatus == ChartStatus.error) {
+              return Center(
+                child: SignBoardWidget(
+                  message: state.error ??
+                      AppLocalizations.of(context)!.chartLoadFailed,
+                  icon: MingCute.warning_line,
+                ),
+              );
+            }
+
+            if (state.chartItems.isEmpty) {
+              return Center(
+                child: SignBoardWidget(
+                  message: AppLocalizations.of(context)!.chartNoItems,
+                  icon: MingCute.playlist_line,
+                ),
+              );
+            }
+
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _EditorialHeroMasthead(
+                    topItem: state.chartItems.first,
+                    chartTitle: widget.chartTitle,
+                    playStatus:
+                        _statusFor(_playActionKey(state.chartItems.first)),
+                    addStatus:
+                        _statusFor(_addActionKey(state.chartItems.first)),
+                    onPlayTap: () => _resolveAndPlay(
+                      context,
+                      state.chartItems.first,
+                      _playActionKey(state.chartItems.first),
+                    ),
+                    onAddTap: () => _resolveAndAdd(
+                      context,
+                      state.chartItems.first,
+                      _addActionKey(state.chartItems.first),
                     ),
                   ),
                 ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: BlocBuilder<ChartBloc, ChartState>(
-        builder: (context, state) {
-          if (state.chartDetailStatus == ChartStatus.loading) {
-            return const Center(
-              child:
-                  CircularProgressIndicator(color: Default_Theme.accentColor2),
-            );
-          }
-
-          if (state.chartDetailStatus == ChartStatus.error) {
-            return Center(
-              child: SignBoardWidget(
-                message: state.error ??
-                    AppLocalizations.of(context)!.chartLoadFailed,
-                icon: MingCute.warning_line,
-              ),
-            );
-          }
-
-          if (state.chartItems.isEmpty) {
-            return Center(
-              child: SignBoardWidget(
-                message: AppLocalizations.of(context)!.chartNoItems,
-                icon: MingCute.playlist_line,
-              ),
-            );
-          }
-
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: _EditorialHeroMasthead(
-                  topItem: state.chartItems.first,
-                  chartTitle: widget.chartTitle,
-                  playStatus:
-                      _statusFor(_playActionKey(state.chartItems.first)),
-                  addStatus: _statusFor(_addActionKey(state.chartItems.first)),
-                  onPlayTap: () => _resolveAndPlay(
-                    context,
-                    state.chartItems.first,
-                    _playActionKey(state.chartItems.first),
-                  ),
-                  onAddTap: () => _resolveAndAdd(
-                    context,
-                    state.chartItems.first,
-                    _addActionKey(state.chartItems.first),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _ChartControlBarDelegate(
+                    chartTitle: widget.chartTitle,
                   ),
                 ),
-              ),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _ChartControlBarDelegate(
-                  chartTitle: widget.chartTitle,
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.only(bottom: 100.0),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      // Skip rank 1 item since it's in the hero
-                      final chartItem = state.chartItems[index + 1];
-                      final playActionKey = _playActionKey(chartItem);
-                      final addActionKey = _addActionKey(chartItem);
-                      return ChartListTile(
-                        chartItem: chartItem,
-                        playStatus: _statusFor(playActionKey),
-                        addStatus: _statusFor(addActionKey),
-                        onTap: _statusFor(playActionKey) ==
-                                ChartResolveActionStatus.resolving
-                            ? null
-                            : () => _resolveAndPlay(
-                                context, chartItem, playActionKey),
-                        onAddTap: _statusFor(addActionKey) ==
-                                ChartResolveActionStatus.resolving
-                            ? null
-                            : () => _resolveAndAdd(
-                                context, chartItem, addActionKey),
-                      );
-                    },
-                    childCount: state.chartItems.length - 1,
+                SliverPadding(
+                  padding: const EdgeInsets.only(bottom: 100.0),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        // Skip rank 1 item since it's in the hero
+                        final chartItem = state.chartItems[index + 1];
+                        final playActionKey = _playActionKey(chartItem);
+                        final addActionKey = _addActionKey(chartItem);
+                        return ChartListTile(
+                          chartItem: chartItem,
+                          playStatus: _statusFor(playActionKey),
+                          addStatus: _statusFor(addActionKey),
+                          onTap: _statusFor(playActionKey) ==
+                                  ChartResolveActionStatus.resolving
+                              ? null
+                              : () => _resolveAndPlay(
+                                  context, chartItem, playActionKey),
+                          onAddTap: _statusFor(addActionKey) ==
+                                  ChartResolveActionStatus.resolving
+                              ? null
+                              : () => _resolveAndAdd(
+                                  context, chartItem, addActionKey),
+                        );
+                      },
+                      childCount: state.chartItems.length - 1,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

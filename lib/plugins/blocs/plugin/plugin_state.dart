@@ -83,6 +83,13 @@ class PluginState extends Equatable {
           loadedPluginIds.contains(p.manifest.id))
       .toList();
 
+  /// Get loaded content importer plugins.
+  List<PluginInfo> get loadedContentImporters => availablePlugins
+      .where((p) =>
+          p.pluginType == PluginType.contentImporter &&
+          loadedPluginIds.contains(p.manifest.id))
+      .toList();
+
   /// Check if a specific plugin is loaded.
   bool isPluginLoaded(String pluginId) => loadedPluginIds.contains(pluginId);
 

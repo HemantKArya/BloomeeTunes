@@ -162,9 +162,8 @@ class _SettingToggleTileState extends State<SettingToggleTile> {
           BloomeeSwitch(
             value: _currentValue,
             onChanged: () {
-              // Optimistic state update for fluid animation
               final newValue = !_currentValue;
-              setState(() => _currentValue = newValue);
+              _currentValue = newValue;
               widget.onChanged(newValue);
             },
           ),

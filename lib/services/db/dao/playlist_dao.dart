@@ -76,10 +76,16 @@ class PlaylistDAO {
     return isar.playlistDBs.get(id);
   }
 
-  /// Return all playlists, newest first.
+  /// Return all playlists, pinned first, then by sort order.
   Future<List<PlaylistDB>> getAllPlaylists() async {
     final isar = await _db;
-    return isar.playlistDBs.where().sortByUpdatedAtDesc().findAll();
+    final all = await isar.playlistDBs.where().findAll();
+    // Pinned playlists first (by sortOrder), then unpinned (by sortOrder).
+    all.sort((a, b) {
+      if (a.isPinned != b.isPinned) return a.isPinned ? -1 : 1;
+      return a.sortOrder.compareTo(b.sortOrder);
+    });
+    return all;
   }
 
   /// Return playlists filtered by [type].
@@ -370,6 +376,7 @@ class PlaylistDAO {
   }
 
   /// Remove broken playlist-entry rows (missing track link or playlistId).
+  /// Also deletes user playlists with an empty name (no tracks, no identity).
   ///
   /// Returns number of deleted rows.
   Future<int> purgeBrokenPlaylistEntries() async {
@@ -382,13 +389,35 @@ class PlaylistDAO {
         .map((e) => e.id)
         .toList(growable: false);
 
-    if (brokenIds.isEmpty) return 0;
+    int deleted = 0;
+    if (brokenIds.isNotEmpty) {
+      deleted = await isar.writeTxn(() async {
+        return isar.playlistEntryDBs.deleteAll(brokenIds);
+      });
+      log('Purged $deleted broken playlist entries', name: 'PlaylistDAO');
+    }
 
-    final deleted = await isar.writeTxn(() async {
-      return isar.playlistEntryDBs.deleteAll(brokenIds);
-    });
+    // Also remove user playlists with an empty name (cleanliness guard).
+    final emptyNamedPlaylists = await isar.playlistDBs
+        .filter()
+        .nameEqualTo('')
+        .typeEqualTo(PlaylistTypeDB.userPlaylist)
+        .findAll();
+    if (emptyNamedPlaylists.isNotEmpty) {
+      final ids = emptyNamedPlaylists.map((p) => p.id).toList();
+      // Remove their entries first, then the playlist rows.
+      await isar.writeTxn(() async {
+        for (final id in ids) {
+          await isar.playlistEntryDBs
+              .filter()
+              .playlistIdEqualTo(id)
+              .deleteAll();
+          await isar.playlistDBs.delete(id);
+        }
+      });
+      log('Purged ${ids.length} empty-named playlists', name: 'PlaylistDAO');
+    }
 
-    log('Purged $deleted broken playlist entries', name: 'PlaylistDAO');
     return deleted;
   }
 
@@ -636,5 +665,44 @@ class PlaylistDAO {
     if (existing != null) return existing.id;
     final playlist = PlaylistDB(name: name, type: type);
     return isar.writeTxn(() => isar.playlistDBs.put(playlist));
+  }
+
+  /// Update (or set) the thumbnail URL for a playlist.
+  Future<void> updatePlaylistThumbnail(int playlistId, String thumbUrl) async {
+    final isar = await _db;
+    await isar.writeTxn(() async {
+      final playlist = await isar.playlistDBs.get(playlistId);
+      if (playlist == null) return;
+      playlist.thumbnail = ArtworkDB()..url = thumbUrl;
+      await isar.playlistDBs.put(playlist);
+    });
+  }
+  // ── Library Ordering ─────────────────────────────────────────────────────
+
+  /// Toggle the pinned state of a playlist.
+  Future<void> setPinned(int playlistId, bool pinned) async {
+    final isar = await _db;
+    await isar.writeTxn(() async {
+      final playlist = await isar.playlistDBs.get(playlistId);
+      if (playlist == null) return;
+      playlist.isPinned = pinned;
+      await isar.playlistDBs.put(playlist);
+    });
+  }
+
+  /// Reorder playlists in the library.
+  ///
+  /// [orderedIds] is the full list of playlist IDs in their new order.
+  /// Each playlist's `sortOrder` is set to its index in the list.
+  Future<void> reorderPlaylists(List<int> orderedIds) async {
+    final isar = await _db;
+    await isar.writeTxn(() async {
+      for (var i = 0; i < orderedIds.length; i++) {
+        final playlist = await isar.playlistDBs.get(orderedIds[i]);
+        if (playlist == null) continue;
+        playlist.sortOrder = i;
+        await isar.playlistDBs.put(playlist);
+      }
+    });
   }
 }

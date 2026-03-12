@@ -105,6 +105,9 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
         lyricsSearchResults: (_) => unexpectedFn(),
         lyricsById: (_, __) => unexpectedFn(),
         suggestions: (_) => unexpectedFn(),
+        canHandle: (_) => unexpectedFn(),
+        collectionInfo: (_) => unexpectedFn(),
+        importTracks: (_) => unexpectedFn(),
         ack: () => unexpectedFn(),
       );
     } on PluginException catch (e) {
@@ -195,6 +198,9 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
         lyricsSearchResults: (_) => unexpectedFn(),
         lyricsById: (_, __) => unexpectedFn(),
         suggestions: (_) => unexpectedFn(),
+        canHandle: (_) => unexpectedFn(),
+        collectionInfo: (_) => unexpectedFn(),
+        importTracks: (_) => unexpectedFn(),
         ack: () => unexpectedFn(),
       );
     } on PluginException catch (e) {
@@ -274,6 +280,11 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
             _unexpectedResponse(emit, 'forceRefreshChartDetails'),
         suggestions: (_) =>
             _unexpectedResponse(emit, 'forceRefreshChartDetails'),
+        canHandle: (_) => _unexpectedResponse(emit, 'forceRefreshChartDetails'),
+        collectionInfo: (_) =>
+            _unexpectedResponse(emit, 'forceRefreshChartDetails'),
+        importTracks: (_) =>
+            _unexpectedResponse(emit, 'forceRefreshChartDetails'),
         ack: () => _unexpectedResponse(emit, 'forceRefreshChartDetails'),
       );
     } on PluginException catch (e) {
@@ -344,6 +355,9 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
           lyricsSearchResults: (_) {},
           lyricsById: (_, __) {},
           suggestions: (_) {},
+          canHandle: (_) {},
+          collectionInfo: (_) {},
+          importTracks: (_) {},
           ack: () {},
         );
       } catch (e) {

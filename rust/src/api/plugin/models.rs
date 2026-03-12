@@ -305,3 +305,33 @@ pub enum Suggestion {
     Query(String),
     Entity(EntitySuggestion),
 }
+
+// ── Content Importer Types ────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ImportCollectionType {
+    Playlist,
+    Album,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportCollectionSummary {
+    pub title: String,
+    pub kind: ImportCollectionType,
+    pub description: Option<String>,
+    pub owner: Option<String>,
+    pub thumbnail_url: Option<String>,
+    pub track_count: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportTrackItem {
+    pub title: String,
+    pub artists: Vec<String>,
+    pub thumbnail_url: Option<String>,
+    pub album_title: Option<String>,
+    pub duration_ms: Option<u64>,
+    pub is_explicit: bool,
+    pub url: Option<String>,
+    pub source_id: Option<String>,
+}

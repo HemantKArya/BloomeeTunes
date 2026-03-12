@@ -81,6 +81,10 @@ class _AppUISettingsState extends State<AppUISettings> {
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
+        buildWhen: (prev, curr) =>
+            prev.autoSlideCharts != curr.autoSlideCharts ||
+            prev.lFMPicks != curr.lFMPicks ||
+            prev.chartMap != curr.chartMap,
         builder: (context, state) {
           return ListView(
             physics: const BouncingScrollPhysics(),

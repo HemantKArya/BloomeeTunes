@@ -3,9 +3,6 @@
 class CacheKeys {
   CacheKeys._();
 
-  // ── Spotify ─────────────────────────────────────────────────────────────────
-  static const String spotifyAccessToken = "spotify_access_token";
-
   // ── LastFM ──────────────────────────────────────────────────────────────────
   static const String lFMApiKey = "lastFMKey";
   static const String lFMSession = "lastFMSession";

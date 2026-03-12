@@ -1,4 +1,8 @@
+import 'dart:ui';
+
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/plugins/blocs/import/content_import_cubit.dart';
+import 'package:Bloomee/plugins/blocs/import/content_import_state.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
@@ -8,7 +12,6 @@ import 'package:Bloomee/screens/screen/common_views/playlist_view.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
-import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,6 +51,7 @@ class _LibraryScreenView extends StatefulWidget {
 class _LibraryScreenViewState extends State<_LibraryScreenView> {
   final ValueNotifier<String> _searchQuery = ValueNotifier('');
   bool _isSearching = false;
+  bool _isReordering = false;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
@@ -188,8 +192,52 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                     if (hasResults) ...[
                       if (filteredSongs.isNotEmpty)
                         _buildSongSearchResults(context, filteredSongs),
-                      if (filteredPlaylists.isNotEmpty)
-                        _ListOfPlaylists(playlists: filteredPlaylists),
+                      if (filteredPlaylists.isNotEmpty) ...[
+                        if (_isReordering && !isSearching)
+                          SliverToBoxAdapter(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              color: const Color(0xFF0F1B2E),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.drag_indicator_rounded,
+                                      color: Default_Theme.primaryColor2
+                                          .withOpacity(0.5),
+                                      size: 15),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      AppLocalizations.of(context)!
+                                          .importReorderTip,
+                                      style: Default_Theme.secondoryTextStyle
+                                          .merge(TextStyle(
+                                              color: Default_Theme.primaryColor2
+                                                  .withOpacity(0.6),
+                                              fontSize: 12)),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        setState(() => _isReordering = false),
+                                    child: Text(
+                                      AppLocalizations.of(context)!.importDone,
+                                      style: const TextStyle(
+                                          color: Default_Theme.accentColor1),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        _ListOfPlaylists(
+                          playlists: filteredPlaylists,
+                          isReorderable: _isReordering && !isSearching,
+                          onEnterReorder: isSearching
+                              ? null
+                              : () => setState(() => _isReordering = true),
+                        ),
+                      ],
                     ],
                   ],
                 );
@@ -350,8 +398,21 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
           ),
           IconButton(
             padding: const EdgeInsets.all(8),
-            onPressed: () =>
-                context.pushNamed(RoutePaths.importMediaFromPlatforms),
+            onPressed: () {
+              final importPhase =
+                  context.read<ContentImportCubit>().state.phase;
+              final isOngoing = importPhase != ImportPhase.idle &&
+                  importPhase != ImportPhase.done &&
+                  importPhase != ImportPhase.error;
+              if (isOngoing) {
+                final pluginId =
+                    context.read<ContentImportCubit>().state.pluginId ?? '';
+                context.pushNamed(RoutePaths.importProcess,
+                    queryParameters: {'pluginId': pluginId});
+              } else {
+                context.pushNamed(RoutePaths.importMediaFromPlatforms);
+              }
+            },
             icon: const Icon(FontAwesome.file_import_solid,
                 size: 22, color: Default_Theme.primaryColor1),
           ),
@@ -363,9 +424,15 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
 
 class _ListOfPlaylists extends StatelessWidget {
   final List<PlaylistItemProperties> playlists;
-  const _ListOfPlaylists({required this.playlists});
+  final bool isReorderable;
+  final VoidCallback? onEnterReorder;
+  const _ListOfPlaylists({
+    required this.playlists,
+    this.isReorderable = false,
+    this.onEnterReorder,
+  });
 
-  LibItemTypes _toCardType(PlaylistType type) {
+  static LibItemTypes _toCardType(PlaylistType type) {
     switch (type) {
       case PlaylistType.artist:
         return LibItemTypes.artist;
@@ -378,7 +445,7 @@ class _ListOfPlaylists extends StatelessWidget {
     }
   }
 
-  Future<void> _openLibraryItem(
+  static Future<void> _openLibraryItem(
       BuildContext context, PlaylistItemProperties item) async {
     if (item.type == PlaylistType.userPlaylist) {
       context.read<CurrentPlaylistCubit>().setupPlaylist(item.storageKey);
@@ -435,36 +502,79 @@ class _ListOfPlaylists extends StatelessWidget {
     }
   }
 
+  Widget _buildTile(BuildContext context, PlaylistItemProperties playlist) {
+    return LibItemCard(
+      onTap: () => _openLibraryItem(context, playlist),
+      onSecondaryTap: () => showPlaylistOptsExtSheet(
+        context,
+        playlist.playlistName,
+        playlistId: playlist.playlistId,
+        isPinned: playlist.isPinned,
+      ),
+      onLongPress: isReorderable
+          ? null
+          : () => onEnterReorder != null
+              ? onEnterReorder!()
+              : showPlaylistOptsExtSheet(
+                  context,
+                  playlist.playlistName,
+                  playlistId: playlist.playlistId,
+                  isPinned: playlist.isPinned,
+                ),
+      title: playlist.playlistName,
+      coverArt: playlist.coverImgUrl ?? '',
+      subtitle: playlist.subTitle ?? '',
+      type: _toCardType(playlist.type),
+      isPinned: playlist.isPinned,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SliverList.builder(
-      itemCount: playlists.length,
-      itemBuilder: (context, index) {
-        final playlist = playlists[index];
-        // Filter out specific playlists directly in the builder
-        if (playlist.playlistName == SettingKeys.recentlyPlayedPlaylist ||
-            playlist.playlistName == SettingKeys.downloadPlaylist ||
-            playlist.playlistName == SettingKeys.localMusicPlaylist) {
-          return const SizedBox.shrink();
-        }
+    if (!isReorderable) {
+      return SliverList.builder(
+        itemCount: playlists.length,
+        itemBuilder: (context, index) {
+          return AnimatedListItem(
+            index: index,
+            child: _buildTile(context, playlists[index]),
+          );
+        },
+      );
+    }
 
-        return AnimatedListItem(
+    return SliverReorderableList(
+      itemBuilder: (context, index) {
+        return ReorderableDelayedDragStartListener(
+          key: ValueKey(playlists[index].playlistId),
           index: index,
-          child: LibItemCard(
-            onTap: () => _openLibraryItem(context, playlist),
-            onSecondaryTap: playlist.type == PlaylistType.userPlaylist
-                ? () => showPlaylistOptsExtSheet(context, playlist.playlistName)
-                : null,
-            onLongPress: playlist.type == PlaylistType.userPlaylist
-                ? () => showPlaylistOptsExtSheet(context, playlist.playlistName)
-                : null,
-            title: playlist.playlistName,
-            coverArt: playlist.coverImgUrl ?? '',
-            subtitle: playlist.subTitle ?? '',
-            type: _toCardType(playlist.type),
-          ),
+          child: _buildTile(context, playlists[index]),
         );
+      },
+      itemExtent: 80,
+      itemCount: playlists.length,
+      proxyDecorator: _proxyDecorator,
+      onReorder: (oldIndex, newIndex) {
+        context.read<LibraryItemsCubit>().reorderLibrary(oldIndex, newIndex);
       },
     );
   }
+}
+
+Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
+  return AnimatedBuilder(
+    animation: animation,
+    builder: (BuildContext context, Widget? child) {
+      final double animValue = Curves.easeInOut.transform(animation.value);
+      final double elevation = lerpDouble(0, 6, animValue)!;
+      return Material(
+        elevation: elevation,
+        color: const Color.fromARGB(255, 0, 48, 66),
+        borderRadius: BorderRadius.circular(12),
+        shadowColor: Default_Theme.themeColor,
+        child: child,
+      );
+    },
+    child: child,
+  );
 }

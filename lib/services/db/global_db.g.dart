@@ -1749,41 +1749,51 @@ const PlaylistDBSchema = CollectionSchema(
       name: r'description',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(
+    r'isPinned': PropertySchema(
       id: 4,
+      name: r'isPinned',
+      type: IsarType.bool,
+    ),
+    r'name': PropertySchema(
+      id: 5,
       name: r'name',
       type: IsarType.string,
     ),
     r'remotePlaylist': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'remotePlaylist',
       type: IsarType.object,
       target: r'RemotePlaylistSummaryDB',
     ),
+    r'sortOrder': PropertySchema(
+      id: 7,
+      name: r'sortOrder',
+      type: IsarType.long,
+    ),
     r'subtitle': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'subtitle',
       type: IsarType.string,
     ),
     r'thumbnail': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'thumbnail',
       type: IsarType.object,
       target: r'ArtworkDB',
     ),
     r'type': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'type',
       type: IsarType.byte,
       enumMap: _PlaylistDBtypeEnumValueMap,
     ),
     r'typeIndex': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'typeIndex',
       type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -1802,6 +1812,19 @@ const PlaylistDBSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'name',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'sortOrder': IndexSchema(
+      id: -1119549396205841918,
+      name: r'sortOrder',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'sortOrder',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -1922,23 +1945,25 @@ void _playlistDBSerialize(
   );
   writer.writeDateTime(offsets[2], object.createdAt);
   writer.writeString(offsets[3], object.description);
-  writer.writeString(offsets[4], object.name);
+  writer.writeBool(offsets[4], object.isPinned);
+  writer.writeString(offsets[5], object.name);
   writer.writeObject<RemotePlaylistSummaryDB>(
-    offsets[5],
+    offsets[6],
     allOffsets,
     RemotePlaylistSummaryDBSchema.serialize,
     object.remotePlaylist,
   );
-  writer.writeString(offsets[6], object.subtitle);
+  writer.writeLong(offsets[7], object.sortOrder);
+  writer.writeString(offsets[8], object.subtitle);
   writer.writeObject<ArtworkDB>(
-    offsets[7],
+    offsets[9],
     allOffsets,
     ArtworkDBSchema.serialize,
     object.thumbnail,
   );
-  writer.writeByte(offsets[8], object.type.index);
-  writer.writeLong(offsets[9], object.typeIndex);
-  writer.writeDateTime(offsets[10], object.updatedAt);
+  writer.writeByte(offsets[10], object.type.index);
+  writer.writeLong(offsets[11], object.typeIndex);
+  writer.writeDateTime(offsets[12], object.updatedAt);
 }
 
 PlaylistDB _playlistDBDeserialize(
@@ -1960,24 +1985,26 @@ PlaylistDB _playlistDBDeserialize(
       ArtistSummaryDB(),
     ),
     description: reader.readStringOrNull(offsets[3]),
-    name: reader.readString(offsets[4]),
+    isPinned: reader.readBoolOrNull(offsets[4]) ?? false,
+    name: reader.readString(offsets[5]),
     remotePlaylist: reader.readObjectOrNull<RemotePlaylistSummaryDB>(
-      offsets[5],
+      offsets[6],
       RemotePlaylistSummaryDBSchema.deserialize,
       allOffsets,
     ),
-    subtitle: reader.readStringOrNull(offsets[6]),
+    sortOrder: reader.readLongOrNull(offsets[7]) ?? 0,
+    subtitle: reader.readStringOrNull(offsets[8]),
     thumbnail: reader.readObjectOrNull<ArtworkDB>(
-      offsets[7],
+      offsets[9],
       ArtworkDBSchema.deserialize,
       allOffsets,
     ),
-    type: _PlaylistDBtypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+    type: _PlaylistDBtypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
         PlaylistTypeDB.userPlaylist,
   );
   object.createdAt = reader.readDateTime(offsets[2]);
   object.id = id;
-  object.updatedAt = reader.readDateTime(offsets[10]);
+  object.updatedAt = reader.readDateTime(offsets[12]);
   return object;
 }
 
@@ -2006,27 +2033,31 @@ P _playlistDBDeserializeProp<P>(
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
       return (reader.readObjectOrNull<RemotePlaylistSummaryDB>(
         offset,
         RemotePlaylistSummaryDBSchema.deserialize,
         allOffsets,
       )) as P;
-    case 6:
-      return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readLongOrNull(offset) ?? 0) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
       return (reader.readObjectOrNull<ArtworkDB>(
         offset,
         ArtworkDBSchema.deserialize,
         allOffsets,
       )) as P;
-    case 8:
+    case 10:
       return (_PlaylistDBtypeValueEnumMap[reader.readByteOrNull(offset)] ??
           PlaylistTypeDB.userPlaylist) as P;
-    case 9:
+    case 11:
       return (reader.readLong(offset)) as P;
-    case 10:
+    case 12:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2126,6 +2157,14 @@ extension PlaylistDBQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'name'),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterWhere> anySortOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'sortOrder'),
       );
     });
   }
@@ -2339,6 +2378,96 @@ extension PlaylistDBQueryWhere
               upper: [''],
             ));
       }
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterWhereClause> sortOrderEqualTo(
+      int sortOrder) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'sortOrder',
+        value: [sortOrder],
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterWhereClause> sortOrderNotEqualTo(
+      int sortOrder) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'sortOrder',
+              lower: [],
+              upper: [sortOrder],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'sortOrder',
+              lower: [sortOrder],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'sortOrder',
+              lower: [sortOrder],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'sortOrder',
+              lower: [],
+              upper: [sortOrder],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterWhereClause> sortOrderGreaterThan(
+    int sortOrder, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'sortOrder',
+        lower: [sortOrder],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterWhereClause> sortOrderLessThan(
+    int sortOrder, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'sortOrder',
+        lower: [],
+        upper: [sortOrder],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterWhereClause> sortOrderBetween(
+    int lowerSortOrder,
+    int upperSortOrder, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'sortOrder',
+        lower: [lowerSortOrder],
+        includeLower: includeLower,
+        upper: [upperSortOrder],
+        includeUpper: includeUpper,
+      ));
     });
   }
 
@@ -2817,6 +2946,16 @@ extension PlaylistDBQueryFilter
     });
   }
 
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterFilterCondition> isPinnedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isPinned',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<PlaylistDB, PlaylistDB, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2961,6 +3100,60 @@ extension PlaylistDBQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'remotePlaylist',
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterFilterCondition> sortOrderEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sortOrder',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterFilterCondition>
+      sortOrderGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sortOrder',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterFilterCondition> sortOrderLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sortOrder',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterFilterCondition> sortOrderBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sortOrder',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -3416,6 +3609,18 @@ extension PlaylistDBQuerySortBy
     });
   }
 
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> sortByIsPinned() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isPinned', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> sortByIsPinnedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isPinned', Sort.desc);
+    });
+  }
+
   QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -3425,6 +3630,18 @@ extension PlaylistDBQuerySortBy
   QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> sortBySortOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sortOrder', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> sortBySortOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sortOrder', Sort.desc);
     });
   }
 
@@ -3515,6 +3732,18 @@ extension PlaylistDBQuerySortThenBy
     });
   }
 
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> thenByIsPinned() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isPinned', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> thenByIsPinnedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isPinned', Sort.desc);
+    });
+  }
+
   QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -3524,6 +3753,18 @@ extension PlaylistDBQuerySortThenBy
   QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> thenByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> thenBySortOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sortOrder', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QAfterSortBy> thenBySortOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sortOrder', Sort.desc);
     });
   }
 
@@ -3591,10 +3832,22 @@ extension PlaylistDBQueryWhereDistinct
     });
   }
 
+  QueryBuilder<PlaylistDB, PlaylistDB, QDistinct> distinctByIsPinned() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isPinned');
+    });
+  }
+
   QueryBuilder<PlaylistDB, PlaylistDB, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<PlaylistDB, PlaylistDB, QDistinct> distinctBySortOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'sortOrder');
     });
   }
 
@@ -3657,6 +3910,12 @@ extension PlaylistDBQueryProperty
     });
   }
 
+  QueryBuilder<PlaylistDB, bool, QQueryOperations> isPinnedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isPinned');
+    });
+  }
+
   QueryBuilder<PlaylistDB, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
@@ -3667,6 +3926,12 @@ extension PlaylistDBQueryProperty
       remotePlaylistProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'remotePlaylist');
+    });
+  }
+
+  QueryBuilder<PlaylistDB, int, QQueryOperations> sortOrderProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'sortOrder');
     });
   }
 

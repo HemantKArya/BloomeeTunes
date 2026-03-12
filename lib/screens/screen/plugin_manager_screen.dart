@@ -35,6 +35,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
         PluginType.lyricsProvider: l10n.pluginManagerFilterLyrics,
         PluginType.searchSuggestionProvider:
             l10n.pluginManagerFilterSuggestions,
+        PluginType.contentImporter: l10n.pluginManagerFilterImporters,
       };
 
   @override
@@ -459,6 +460,7 @@ class _PluginCard extends StatelessWidget {
       PluginType.chartProvider => MingCute.chart_bar_fill,
       PluginType.lyricsProvider => MingCute.align_center_fill,
       PluginType.searchSuggestionProvider => MingCute.search_fill,
+      PluginType.contentImporter => MingCute.file_import_fill,
     };
   }
 
@@ -469,6 +471,7 @@ class _PluginCard extends StatelessWidget {
       PluginType.lyricsProvider => l10n.pluginManagerTypeLyricsProvider,
       PluginType.searchSuggestionProvider =>
         l10n.pluginManagerTypeSuggestionProvider,
+      PluginType.contentImporter => l10n.pluginManagerTypeContentImporter,
     };
   }
 

@@ -298,6 +298,479 @@ class _$ChartProviderCommand_GetChartDetailsCopyWithImpl<$Res>
 }
 
 /// @nodoc
+mixin _$ContentImporterCommand {
+  String get url;
+
+  /// Create a copy of ContentImporterCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ContentImporterCommandCopyWith<ContentImporterCommand> get copyWith =>
+      _$ContentImporterCommandCopyWithImpl<ContentImporterCommand>(
+          this as ContentImporterCommand, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ContentImporterCommand &&
+            (identical(other.url, url) || other.url == url));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, url);
+
+  @override
+  String toString() {
+    return 'ContentImporterCommand(url: $url)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ContentImporterCommandCopyWith<$Res> {
+  factory $ContentImporterCommandCopyWith(ContentImporterCommand value,
+          $Res Function(ContentImporterCommand) _then) =
+      _$ContentImporterCommandCopyWithImpl;
+  @useResult
+  $Res call({String url});
+}
+
+/// @nodoc
+class _$ContentImporterCommandCopyWithImpl<$Res>
+    implements $ContentImporterCommandCopyWith<$Res> {
+  _$ContentImporterCommandCopyWithImpl(this._self, this._then);
+
+  final ContentImporterCommand _self;
+  final $Res Function(ContentImporterCommand) _then;
+
+  /// Create a copy of ContentImporterCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? url = null,
+  }) {
+    return _then(_self.copyWith(
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [ContentImporterCommand].
+extension ContentImporterCommandPatterns on ContentImporterCommand {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(ContentImporterCommand_CanHandleUrl value)? canHandleUrl,
+    TResult Function(ContentImporterCommand_GetCollectionInfo value)?
+        getCollectionInfo,
+    TResult Function(ContentImporterCommand_GetTracks value)? getTracks,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case ContentImporterCommand_CanHandleUrl() when canHandleUrl != null:
+        return canHandleUrl(_that);
+      case ContentImporterCommand_GetCollectionInfo()
+          when getCollectionInfo != null:
+        return getCollectionInfo(_that);
+      case ContentImporterCommand_GetTracks() when getTracks != null:
+        return getTracks(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(ContentImporterCommand_CanHandleUrl value)
+        canHandleUrl,
+    required TResult Function(ContentImporterCommand_GetCollectionInfo value)
+        getCollectionInfo,
+    required TResult Function(ContentImporterCommand_GetTracks value) getTracks,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case ContentImporterCommand_CanHandleUrl():
+        return canHandleUrl(_that);
+      case ContentImporterCommand_GetCollectionInfo():
+        return getCollectionInfo(_that);
+      case ContentImporterCommand_GetTracks():
+        return getTracks(_that);
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(ContentImporterCommand_CanHandleUrl value)? canHandleUrl,
+    TResult? Function(ContentImporterCommand_GetCollectionInfo value)?
+        getCollectionInfo,
+    TResult? Function(ContentImporterCommand_GetTracks value)? getTracks,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case ContentImporterCommand_CanHandleUrl() when canHandleUrl != null:
+        return canHandleUrl(_that);
+      case ContentImporterCommand_GetCollectionInfo()
+          when getCollectionInfo != null:
+        return getCollectionInfo(_that);
+      case ContentImporterCommand_GetTracks() when getTracks != null:
+        return getTracks(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String url)? canHandleUrl,
+    TResult Function(String url)? getCollectionInfo,
+    TResult Function(String url)? getTracks,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case ContentImporterCommand_CanHandleUrl() when canHandleUrl != null:
+        return canHandleUrl(_that.url);
+      case ContentImporterCommand_GetCollectionInfo()
+          when getCollectionInfo != null:
+        return getCollectionInfo(_that.url);
+      case ContentImporterCommand_GetTracks() when getTracks != null:
+        return getTracks(_that.url);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String url) canHandleUrl,
+    required TResult Function(String url) getCollectionInfo,
+    required TResult Function(String url) getTracks,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case ContentImporterCommand_CanHandleUrl():
+        return canHandleUrl(_that.url);
+      case ContentImporterCommand_GetCollectionInfo():
+        return getCollectionInfo(_that.url);
+      case ContentImporterCommand_GetTracks():
+        return getTracks(_that.url);
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String url)? canHandleUrl,
+    TResult? Function(String url)? getCollectionInfo,
+    TResult? Function(String url)? getTracks,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case ContentImporterCommand_CanHandleUrl() when canHandleUrl != null:
+        return canHandleUrl(_that.url);
+      case ContentImporterCommand_GetCollectionInfo()
+          when getCollectionInfo != null:
+        return getCollectionInfo(_that.url);
+      case ContentImporterCommand_GetTracks() when getTracks != null:
+        return getTracks(_that.url);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class ContentImporterCommand_CanHandleUrl extends ContentImporterCommand {
+  const ContentImporterCommand_CanHandleUrl({required this.url}) : super._();
+
+  @override
+  final String url;
+
+  /// Create a copy of ContentImporterCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ContentImporterCommand_CanHandleUrlCopyWith<
+          ContentImporterCommand_CanHandleUrl>
+      get copyWith => _$ContentImporterCommand_CanHandleUrlCopyWithImpl<
+          ContentImporterCommand_CanHandleUrl>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ContentImporterCommand_CanHandleUrl &&
+            (identical(other.url, url) || other.url == url));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, url);
+
+  @override
+  String toString() {
+    return 'ContentImporterCommand.canHandleUrl(url: $url)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ContentImporterCommand_CanHandleUrlCopyWith<$Res>
+    implements $ContentImporterCommandCopyWith<$Res> {
+  factory $ContentImporterCommand_CanHandleUrlCopyWith(
+          ContentImporterCommand_CanHandleUrl value,
+          $Res Function(ContentImporterCommand_CanHandleUrl) _then) =
+      _$ContentImporterCommand_CanHandleUrlCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String url});
+}
+
+/// @nodoc
+class _$ContentImporterCommand_CanHandleUrlCopyWithImpl<$Res>
+    implements $ContentImporterCommand_CanHandleUrlCopyWith<$Res> {
+  _$ContentImporterCommand_CanHandleUrlCopyWithImpl(this._self, this._then);
+
+  final ContentImporterCommand_CanHandleUrl _self;
+  final $Res Function(ContentImporterCommand_CanHandleUrl) _then;
+
+  /// Create a copy of ContentImporterCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? url = null,
+  }) {
+    return _then(ContentImporterCommand_CanHandleUrl(
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class ContentImporterCommand_GetCollectionInfo extends ContentImporterCommand {
+  const ContentImporterCommand_GetCollectionInfo({required this.url})
+      : super._();
+
+  @override
+  final String url;
+
+  /// Create a copy of ContentImporterCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ContentImporterCommand_GetCollectionInfoCopyWith<
+          ContentImporterCommand_GetCollectionInfo>
+      get copyWith => _$ContentImporterCommand_GetCollectionInfoCopyWithImpl<
+          ContentImporterCommand_GetCollectionInfo>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ContentImporterCommand_GetCollectionInfo &&
+            (identical(other.url, url) || other.url == url));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, url);
+
+  @override
+  String toString() {
+    return 'ContentImporterCommand.getCollectionInfo(url: $url)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ContentImporterCommand_GetCollectionInfoCopyWith<$Res>
+    implements $ContentImporterCommandCopyWith<$Res> {
+  factory $ContentImporterCommand_GetCollectionInfoCopyWith(
+          ContentImporterCommand_GetCollectionInfo value,
+          $Res Function(ContentImporterCommand_GetCollectionInfo) _then) =
+      _$ContentImporterCommand_GetCollectionInfoCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String url});
+}
+
+/// @nodoc
+class _$ContentImporterCommand_GetCollectionInfoCopyWithImpl<$Res>
+    implements $ContentImporterCommand_GetCollectionInfoCopyWith<$Res> {
+  _$ContentImporterCommand_GetCollectionInfoCopyWithImpl(
+      this._self, this._then);
+
+  final ContentImporterCommand_GetCollectionInfo _self;
+  final $Res Function(ContentImporterCommand_GetCollectionInfo) _then;
+
+  /// Create a copy of ContentImporterCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? url = null,
+  }) {
+    return _then(ContentImporterCommand_GetCollectionInfo(
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class ContentImporterCommand_GetTracks extends ContentImporterCommand {
+  const ContentImporterCommand_GetTracks({required this.url}) : super._();
+
+  @override
+  final String url;
+
+  /// Create a copy of ContentImporterCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ContentImporterCommand_GetTracksCopyWith<ContentImporterCommand_GetTracks>
+      get copyWith => _$ContentImporterCommand_GetTracksCopyWithImpl<
+          ContentImporterCommand_GetTracks>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ContentImporterCommand_GetTracks &&
+            (identical(other.url, url) || other.url == url));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, url);
+
+  @override
+  String toString() {
+    return 'ContentImporterCommand.getTracks(url: $url)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ContentImporterCommand_GetTracksCopyWith<$Res>
+    implements $ContentImporterCommandCopyWith<$Res> {
+  factory $ContentImporterCommand_GetTracksCopyWith(
+          ContentImporterCommand_GetTracks value,
+          $Res Function(ContentImporterCommand_GetTracks) _then) =
+      _$ContentImporterCommand_GetTracksCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String url});
+}
+
+/// @nodoc
+class _$ContentImporterCommand_GetTracksCopyWithImpl<$Res>
+    implements $ContentImporterCommand_GetTracksCopyWith<$Res> {
+  _$ContentImporterCommand_GetTracksCopyWithImpl(this._self, this._then);
+
+  final ContentImporterCommand_GetTracks _self;
+  final $Res Function(ContentImporterCommand_GetTracks) _then;
+
+  /// Create a copy of ContentImporterCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? url = null,
+  }) {
+    return _then(ContentImporterCommand_GetTracks(
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
 mixin _$ContentResolverCommand {
   @override
   bool operator ==(Object other) {
@@ -2026,6 +2499,7 @@ extension PluginRequestPatterns on PluginRequest {
     TResult Function(PluginRequest_LyricsProvider value)? lyricsProvider,
     TResult Function(PluginRequest_SearchSuggestionProvider value)?
         searchSuggestionProvider,
+    TResult Function(PluginRequest_ContentImporter value)? contentImporter,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -2039,6 +2513,8 @@ extension PluginRequestPatterns on PluginRequest {
       case PluginRequest_SearchSuggestionProvider()
           when searchSuggestionProvider != null:
         return searchSuggestionProvider(_that);
+      case PluginRequest_ContentImporter() when contentImporter != null:
+        return contentImporter(_that);
       case _:
         return orElse();
     }
@@ -2066,6 +2542,8 @@ extension PluginRequestPatterns on PluginRequest {
         lyricsProvider,
     required TResult Function(PluginRequest_SearchSuggestionProvider value)
         searchSuggestionProvider,
+    required TResult Function(PluginRequest_ContentImporter value)
+        contentImporter,
   }) {
     final _that = this;
     switch (_that) {
@@ -2077,6 +2555,8 @@ extension PluginRequestPatterns on PluginRequest {
         return lyricsProvider(_that);
       case PluginRequest_SearchSuggestionProvider():
         return searchSuggestionProvider(_that);
+      case PluginRequest_ContentImporter():
+        return contentImporter(_that);
     }
   }
 
@@ -2099,6 +2579,7 @@ extension PluginRequestPatterns on PluginRequest {
     TResult? Function(PluginRequest_LyricsProvider value)? lyricsProvider,
     TResult? Function(PluginRequest_SearchSuggestionProvider value)?
         searchSuggestionProvider,
+    TResult? Function(PluginRequest_ContentImporter value)? contentImporter,
   }) {
     final _that = this;
     switch (_that) {
@@ -2111,6 +2592,8 @@ extension PluginRequestPatterns on PluginRequest {
       case PluginRequest_SearchSuggestionProvider()
           when searchSuggestionProvider != null:
         return searchSuggestionProvider(_that);
+      case PluginRequest_ContentImporter() when contentImporter != null:
+        return contentImporter(_that);
       case _:
         return null;
     }
@@ -2134,6 +2617,7 @@ extension PluginRequestPatterns on PluginRequest {
     TResult Function(ChartProviderCommand field0)? chartProvider,
     TResult Function(LyricsProviderCommand field0)? lyricsProvider,
     TResult Function(SearchSuggestionCommand field0)? searchSuggestionProvider,
+    TResult Function(ContentImporterCommand field0)? contentImporter,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -2147,6 +2631,8 @@ extension PluginRequestPatterns on PluginRequest {
       case PluginRequest_SearchSuggestionProvider()
           when searchSuggestionProvider != null:
         return searchSuggestionProvider(_that.field0);
+      case PluginRequest_ContentImporter() when contentImporter != null:
+        return contentImporter(_that.field0);
       case _:
         return orElse();
     }
@@ -2172,6 +2658,7 @@ extension PluginRequestPatterns on PluginRequest {
     required TResult Function(LyricsProviderCommand field0) lyricsProvider,
     required TResult Function(SearchSuggestionCommand field0)
         searchSuggestionProvider,
+    required TResult Function(ContentImporterCommand field0) contentImporter,
   }) {
     final _that = this;
     switch (_that) {
@@ -2183,6 +2670,8 @@ extension PluginRequestPatterns on PluginRequest {
         return lyricsProvider(_that.field0);
       case PluginRequest_SearchSuggestionProvider():
         return searchSuggestionProvider(_that.field0);
+      case PluginRequest_ContentImporter():
+        return contentImporter(_that.field0);
     }
   }
 
@@ -2204,6 +2693,7 @@ extension PluginRequestPatterns on PluginRequest {
     TResult? Function(ChartProviderCommand field0)? chartProvider,
     TResult? Function(LyricsProviderCommand field0)? lyricsProvider,
     TResult? Function(SearchSuggestionCommand field0)? searchSuggestionProvider,
+    TResult? Function(ContentImporterCommand field0)? contentImporter,
   }) {
     final _that = this;
     switch (_that) {
@@ -2216,6 +2706,8 @@ extension PluginRequestPatterns on PluginRequest {
       case PluginRequest_SearchSuggestionProvider()
           when searchSuggestionProvider != null:
         return searchSuggestionProvider(_that.field0);
+      case PluginRequest_ContentImporter() when contentImporter != null:
+        return contentImporter(_that.field0);
       case _:
         return null;
     }
@@ -2540,6 +3032,85 @@ class _$PluginRequest_SearchSuggestionProviderCopyWithImpl<$Res>
 }
 
 /// @nodoc
+
+class PluginRequest_ContentImporter extends PluginRequest {
+  const PluginRequest_ContentImporter(this.field0) : super._();
+
+  @override
+  final ContentImporterCommand field0;
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginRequest_ContentImporterCopyWith<PluginRequest_ContentImporter>
+      get copyWith => _$PluginRequest_ContentImporterCopyWithImpl<
+          PluginRequest_ContentImporter>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginRequest_ContentImporter &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'PluginRequest.contentImporter(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginRequest_ContentImporterCopyWith<$Res>
+    implements $PluginRequestCopyWith<$Res> {
+  factory $PluginRequest_ContentImporterCopyWith(
+          PluginRequest_ContentImporter value,
+          $Res Function(PluginRequest_ContentImporter) _then) =
+      _$PluginRequest_ContentImporterCopyWithImpl;
+  @useResult
+  $Res call({ContentImporterCommand field0});
+
+  $ContentImporterCommandCopyWith<$Res> get field0;
+}
+
+/// @nodoc
+class _$PluginRequest_ContentImporterCopyWithImpl<$Res>
+    implements $PluginRequest_ContentImporterCopyWith<$Res> {
+  _$PluginRequest_ContentImporterCopyWithImpl(this._self, this._then);
+
+  final PluginRequest_ContentImporter _self;
+  final $Res Function(PluginRequest_ContentImporter) _then;
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginRequest_ContentImporter(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as ContentImporterCommand,
+    ));
+  }
+
+  /// Create a copy of PluginRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ContentImporterCommandCopyWith<$Res> get field0 {
+    return $ContentImporterCommandCopyWith<$Res>(_self.field0, (value) {
+      return _then(_self.copyWith(field0: value));
+    });
+  }
+}
+
+/// @nodoc
 mixin _$PluginResponse {
   @override
   bool operator ==(Object other) {
@@ -2594,6 +3165,9 @@ extension PluginResponsePatterns on PluginResponse {
         lyricsSearchResults,
     TResult Function(PluginResponse_LyricsById value)? lyricsById,
     TResult Function(PluginResponse_Suggestions value)? suggestions,
+    TResult Function(PluginResponse_CanHandle value)? canHandle,
+    TResult Function(PluginResponse_CollectionInfo value)? collectionInfo,
+    TResult Function(PluginResponse_ImportTracks value)? importTracks,
     TResult Function(PluginResponse_Ack value)? ack,
     required TResult orElse(),
   }) {
@@ -2632,6 +3206,12 @@ extension PluginResponsePatterns on PluginResponse {
         return lyricsById(_that);
       case PluginResponse_Suggestions() when suggestions != null:
         return suggestions(_that);
+      case PluginResponse_CanHandle() when canHandle != null:
+        return canHandle(_that);
+      case PluginResponse_CollectionInfo() when collectionInfo != null:
+        return collectionInfo(_that);
+      case PluginResponse_ImportTracks() when importTracks != null:
+        return importTracks(_that);
       case PluginResponse_Ack() when ack != null:
         return ack(_that);
       case _:
@@ -2672,6 +3252,10 @@ extension PluginResponsePatterns on PluginResponse {
         lyricsSearchResults,
     required TResult Function(PluginResponse_LyricsById value) lyricsById,
     required TResult Function(PluginResponse_Suggestions value) suggestions,
+    required TResult Function(PluginResponse_CanHandle value) canHandle,
+    required TResult Function(PluginResponse_CollectionInfo value)
+        collectionInfo,
+    required TResult Function(PluginResponse_ImportTracks value) importTracks,
     required TResult Function(PluginResponse_Ack value) ack,
   }) {
     final _that = this;
@@ -2708,6 +3292,12 @@ extension PluginResponsePatterns on PluginResponse {
         return lyricsById(_that);
       case PluginResponse_Suggestions():
         return suggestions(_that);
+      case PluginResponse_CanHandle():
+        return canHandle(_that);
+      case PluginResponse_CollectionInfo():
+        return collectionInfo(_that);
+      case PluginResponse_ImportTracks():
+        return importTracks(_that);
       case PluginResponse_Ack():
         return ack(_that);
     }
@@ -2744,6 +3334,9 @@ extension PluginResponsePatterns on PluginResponse {
         lyricsSearchResults,
     TResult? Function(PluginResponse_LyricsById value)? lyricsById,
     TResult? Function(PluginResponse_Suggestions value)? suggestions,
+    TResult? Function(PluginResponse_CanHandle value)? canHandle,
+    TResult? Function(PluginResponse_CollectionInfo value)? collectionInfo,
+    TResult? Function(PluginResponse_ImportTracks value)? importTracks,
     TResult? Function(PluginResponse_Ack value)? ack,
   }) {
     final _that = this;
@@ -2781,6 +3374,12 @@ extension PluginResponsePatterns on PluginResponse {
         return lyricsById(_that);
       case PluginResponse_Suggestions() when suggestions != null:
         return suggestions(_that);
+      case PluginResponse_CanHandle() when canHandle != null:
+        return canHandle(_that);
+      case PluginResponse_CollectionInfo() when collectionInfo != null:
+        return collectionInfo(_that);
+      case PluginResponse_ImportTracks() when importTracks != null:
+        return importTracks(_that);
       case PluginResponse_Ack() when ack != null:
         return ack(_that);
       case _:
@@ -2818,6 +3417,9 @@ extension PluginResponsePatterns on PluginResponse {
     TResult Function(List<LyricsMatch> field0)? lyricsSearchResults,
     TResult Function(PluginLyrics field0, LyricsMetadata field1)? lyricsById,
     TResult Function(List<Suggestion> field0)? suggestions,
+    TResult Function(bool field0)? canHandle,
+    TResult Function(ImportCollectionSummary field0)? collectionInfo,
+    TResult Function(List<ImportTrackItem> field0)? importTracks,
     TResult Function()? ack,
     required TResult orElse(),
   }) {
@@ -2856,6 +3458,12 @@ extension PluginResponsePatterns on PluginResponse {
         return lyricsById(_that.field0, _that.field1);
       case PluginResponse_Suggestions() when suggestions != null:
         return suggestions(_that.field0);
+      case PluginResponse_CanHandle() when canHandle != null:
+        return canHandle(_that.field0);
+      case PluginResponse_CollectionInfo() when collectionInfo != null:
+        return collectionInfo(_that.field0);
+      case PluginResponse_ImportTracks() when importTracks != null:
+        return importTracks(_that.field0);
       case PluginResponse_Ack() when ack != null:
         return ack();
       case _:
@@ -2896,6 +3504,9 @@ extension PluginResponsePatterns on PluginResponse {
     required TResult Function(PluginLyrics field0, LyricsMetadata field1)
         lyricsById,
     required TResult Function(List<Suggestion> field0) suggestions,
+    required TResult Function(bool field0) canHandle,
+    required TResult Function(ImportCollectionSummary field0) collectionInfo,
+    required TResult Function(List<ImportTrackItem> field0) importTracks,
     required TResult Function() ack,
   }) {
     final _that = this;
@@ -2932,6 +3543,12 @@ extension PluginResponsePatterns on PluginResponse {
         return lyricsById(_that.field0, _that.field1);
       case PluginResponse_Suggestions():
         return suggestions(_that.field0);
+      case PluginResponse_CanHandle():
+        return canHandle(_that.field0);
+      case PluginResponse_CollectionInfo():
+        return collectionInfo(_that.field0);
+      case PluginResponse_ImportTracks():
+        return importTracks(_that.field0);
       case PluginResponse_Ack():
         return ack();
     }
@@ -2967,6 +3584,9 @@ extension PluginResponsePatterns on PluginResponse {
     TResult? Function(List<LyricsMatch> field0)? lyricsSearchResults,
     TResult? Function(PluginLyrics field0, LyricsMetadata field1)? lyricsById,
     TResult? Function(List<Suggestion> field0)? suggestions,
+    TResult? Function(bool field0)? canHandle,
+    TResult? Function(ImportCollectionSummary field0)? collectionInfo,
+    TResult? Function(List<ImportTrackItem> field0)? importTracks,
     TResult? Function()? ack,
   }) {
     final _that = this;
@@ -3004,6 +3624,12 @@ extension PluginResponsePatterns on PluginResponse {
         return lyricsById(_that.field0, _that.field1);
       case PluginResponse_Suggestions() when suggestions != null:
         return suggestions(_that.field0);
+      case PluginResponse_CanHandle() when canHandle != null:
+        return canHandle(_that.field0);
+      case PluginResponse_CollectionInfo() when collectionInfo != null:
+        return collectionInfo(_that.field0);
+      case PluginResponse_ImportTracks() when importTracks != null:
+        return importTracks(_that.field0);
       case PluginResponse_Ack() when ack != null:
         return ack();
       case _:
@@ -4129,6 +4755,211 @@ class _$PluginResponse_SuggestionsCopyWithImpl<$Res>
           ? _self._field0
           : field0 // ignore: cast_nullable_to_non_nullable
               as List<Suggestion>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class PluginResponse_CanHandle extends PluginResponse {
+  const PluginResponse_CanHandle(this.field0) : super._();
+
+  final bool field0;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_CanHandleCopyWith<PluginResponse_CanHandle> get copyWith =>
+      _$PluginResponse_CanHandleCopyWithImpl<PluginResponse_CanHandle>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_CanHandle &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'PluginResponse.canHandle(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_CanHandleCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_CanHandleCopyWith(PluginResponse_CanHandle value,
+          $Res Function(PluginResponse_CanHandle) _then) =
+      _$PluginResponse_CanHandleCopyWithImpl;
+  @useResult
+  $Res call({bool field0});
+}
+
+/// @nodoc
+class _$PluginResponse_CanHandleCopyWithImpl<$Res>
+    implements $PluginResponse_CanHandleCopyWith<$Res> {
+  _$PluginResponse_CanHandleCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_CanHandle _self;
+  final $Res Function(PluginResponse_CanHandle) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginResponse_CanHandle(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class PluginResponse_CollectionInfo extends PluginResponse {
+  const PluginResponse_CollectionInfo(this.field0) : super._();
+
+  final ImportCollectionSummary field0;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_CollectionInfoCopyWith<PluginResponse_CollectionInfo>
+      get copyWith => _$PluginResponse_CollectionInfoCopyWithImpl<
+          PluginResponse_CollectionInfo>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_CollectionInfo &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'PluginResponse.collectionInfo(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_CollectionInfoCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_CollectionInfoCopyWith(
+          PluginResponse_CollectionInfo value,
+          $Res Function(PluginResponse_CollectionInfo) _then) =
+      _$PluginResponse_CollectionInfoCopyWithImpl;
+  @useResult
+  $Res call({ImportCollectionSummary field0});
+}
+
+/// @nodoc
+class _$PluginResponse_CollectionInfoCopyWithImpl<$Res>
+    implements $PluginResponse_CollectionInfoCopyWith<$Res> {
+  _$PluginResponse_CollectionInfoCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_CollectionInfo _self;
+  final $Res Function(PluginResponse_CollectionInfo) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginResponse_CollectionInfo(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as ImportCollectionSummary,
+    ));
+  }
+}
+
+/// @nodoc
+
+class PluginResponse_ImportTracks extends PluginResponse {
+  const PluginResponse_ImportTracks(final List<ImportTrackItem> field0)
+      : _field0 = field0,
+        super._();
+
+  final List<ImportTrackItem> _field0;
+  List<ImportTrackItem> get field0 {
+    if (_field0 is EqualUnmodifiableListView) return _field0;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_field0);
+  }
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_ImportTracksCopyWith<PluginResponse_ImportTracks>
+      get copyWith => _$PluginResponse_ImportTracksCopyWithImpl<
+          PluginResponse_ImportTracks>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_ImportTracks &&
+            const DeepCollectionEquality().equals(other._field0, _field0));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(_field0));
+
+  @override
+  String toString() {
+    return 'PluginResponse.importTracks(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_ImportTracksCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_ImportTracksCopyWith(
+          PluginResponse_ImportTracks value,
+          $Res Function(PluginResponse_ImportTracks) _then) =
+      _$PluginResponse_ImportTracksCopyWithImpl;
+  @useResult
+  $Res call({List<ImportTrackItem> field0});
+}
+
+/// @nodoc
+class _$PluginResponse_ImportTracksCopyWithImpl<$Res>
+    implements $PluginResponse_ImportTracksCopyWith<$Res> {
+  _$PluginResponse_ImportTracksCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_ImportTracks _self;
+  final $Res Function(PluginResponse_ImportTracks) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginResponse_ImportTracks(
+      null == field0
+          ? _self._field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as List<ImportTrackItem>,
     ));
   }
 }

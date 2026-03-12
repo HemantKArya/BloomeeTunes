@@ -164,6 +164,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
+  ContentImporterCommand dco_decode_box_autoadd_content_importer_command(
+      dynamic raw);
+
+  @protected
   ContentResolverCommand dco_decode_box_autoadd_content_resolver_command(
       dynamic raw);
 
@@ -177,6 +181,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   EntitySuggestion dco_decode_box_autoadd_entity_suggestion(dynamic raw);
+
+  @protected
+  ImportCollectionSummary dco_decode_box_autoadd_import_collection_summary(
+      dynamic raw);
 
   @protected
   Lyrics dco_decode_box_autoadd_lyrics(dynamic raw);
@@ -251,6 +259,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChartSummary dco_decode_chart_summary(dynamic raw);
 
   @protected
+  ContentImporterCommand dco_decode_content_importer_command(dynamic raw);
+
+  @protected
   ContentResolverCommand dco_decode_content_resolver_command(dynamic raw);
 
   @protected
@@ -284,6 +295,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ImageLayout dco_decode_image_layout(dynamic raw);
 
   @protected
+  ImportCollectionSummary dco_decode_import_collection_summary(dynamic raw);
+
+  @protected
+  ImportCollectionType dco_decode_import_collection_type(dynamic raw);
+
+  @protected
+  ImportTrackItem dco_decode_import_track_item(dynamic raw);
+
+  @protected
   KeyRequirement dco_decode_key_requirement(dynamic raw);
 
   @protected
@@ -309,6 +329,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   List<DownloadTaskSnapshot> dco_decode_list_download_task_snapshot(
       dynamic raw);
+
+  @protected
+  List<ImportTrackItem> dco_decode_list_import_track_item(dynamic raw);
 
   @protected
   List<LocalTrackMeta> dco_decode_list_local_track_meta(dynamic raw);
@@ -649,6 +672,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  ContentImporterCommand sse_decode_box_autoadd_content_importer_command(
+      SseDeserializer deserializer);
+
+  @protected
   ContentResolverCommand sse_decode_box_autoadd_content_resolver_command(
       SseDeserializer deserializer);
 
@@ -662,6 +689,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   EntitySuggestion sse_decode_box_autoadd_entity_suggestion(
+      SseDeserializer deserializer);
+
+  @protected
+  ImportCollectionSummary sse_decode_box_autoadd_import_collection_summary(
       SseDeserializer deserializer);
 
   @protected
@@ -747,6 +778,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChartSummary sse_decode_chart_summary(SseDeserializer deserializer);
 
   @protected
+  ContentImporterCommand sse_decode_content_importer_command(
+      SseDeserializer deserializer);
+
+  @protected
   ContentResolverCommand sse_decode_content_resolver_command(
       SseDeserializer deserializer);
 
@@ -786,6 +821,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ImageLayout sse_decode_image_layout(SseDeserializer deserializer);
 
   @protected
+  ImportCollectionSummary sse_decode_import_collection_summary(
+      SseDeserializer deserializer);
+
+  @protected
+  ImportCollectionType sse_decode_import_collection_type(
+      SseDeserializer deserializer);
+
+  @protected
+  ImportTrackItem sse_decode_import_track_item(SseDeserializer deserializer);
+
+  @protected
   KeyRequirement sse_decode_key_requirement(SseDeserializer deserializer);
 
   @protected
@@ -813,6 +859,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<DownloadTaskSnapshot> sse_decode_list_download_task_snapshot(
+      SseDeserializer deserializer);
+
+  @protected
+  List<ImportTrackItem> sse_decode_list_import_track_item(
       SseDeserializer deserializer);
 
   @protected
@@ -1170,6 +1220,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ChartProviderCommand self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_content_importer_command(
+      ContentImporterCommand self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_content_resolver_command(
       ContentResolverCommand self, SseSerializer serializer);
 
@@ -1184,6 +1238,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_entity_suggestion(
       EntitySuggestion self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_import_collection_summary(
+      ImportCollectionSummary self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_lyrics(Lyrics self, SseSerializer serializer);
@@ -1270,6 +1328,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_chart_summary(ChartSummary self, SseSerializer serializer);
 
   @protected
+  void sse_encode_content_importer_command(
+      ContentImporterCommand self, SseSerializer serializer);
+
+  @protected
   void sse_encode_content_resolver_command(
       ContentResolverCommand self, SseSerializer serializer);
 
@@ -1310,6 +1372,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_image_layout(ImageLayout self, SseSerializer serializer);
 
   @protected
+  void sse_encode_import_collection_summary(
+      ImportCollectionSummary self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_import_collection_type(
+      ImportCollectionType self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_import_track_item(
+      ImportTrackItem self, SseSerializer serializer);
+
+  @protected
   void sse_encode_key_requirement(
       KeyRequirement self, SseSerializer serializer);
 
@@ -1340,6 +1414,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_download_task_snapshot(
       List<DownloadTaskSnapshot> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_import_track_item(
+      List<ImportTrackItem> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_local_track_meta(

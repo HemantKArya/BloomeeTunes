@@ -4166,6 +4166,17 @@ const _: fn() = || {
             let _: String = id;
         }
     }
+    match None::<crate::api::plugin::commands::ContentImporterCommand>.unwrap() {
+        crate::api::plugin::commands::ContentImporterCommand::CanHandleUrl { url } => {
+            let _: String = url;
+        }
+        crate::api::plugin::commands::ContentImporterCommand::GetCollectionInfo { url } => {
+            let _: String = url;
+        }
+        crate::api::plugin::commands::ContentImporterCommand::GetTracks { url } => {
+            let _: String = url;
+        }
+    }
     match None::<crate::api::plugin::commands::ContentResolverCommand>.unwrap() {
         crate::api::plugin::commands::ContentResolverCommand::GetAlbumDetails { id } => {
             let _: String = id;
@@ -4286,6 +4297,9 @@ const _: fn() = || {
         crate::api::plugin::commands::PluginRequest::SearchSuggestionProvider(field0) => {
             let _: crate::api::plugin::commands::SearchSuggestionCommand = field0;
         }
+        crate::api::plugin::commands::PluginRequest::ContentImporter(field0) => {
+            let _: crate::api::plugin::commands::ContentImporterCommand = field0;
+        }
     }
     match None::<crate::api::plugin::commands::PluginResponse>.unwrap() {
         crate::api::plugin::commands::PluginResponse::AlbumDetails(field0) => {
@@ -4339,6 +4353,15 @@ const _: fn() = || {
         }
         crate::api::plugin::commands::PluginResponse::Suggestions(field0) => {
             let _: Vec<crate::api::plugin::models::Suggestion> = field0;
+        }
+        crate::api::plugin::commands::PluginResponse::CanHandle(field0) => {
+            let _: bool = field0;
+        }
+        crate::api::plugin::commands::PluginResponse::CollectionInfo(field0) => {
+            let _: crate::api::plugin::models::ImportCollectionSummary = field0;
+        }
+        crate::api::plugin::commands::PluginResponse::ImportTracks(field0) => {
+            let _: Vec<crate::api::plugin::models::ImportTrackItem> = field0;
         }
         crate::api::plugin::commands::PluginResponse::Ack => {}
     }
@@ -4658,6 +4681,36 @@ impl SseDecode for crate::api::plugin::models::ChartSummary {
     }
 }
 
+impl SseDecode for crate::api::plugin::commands::ContentImporterCommand {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_url = <String>::sse_decode(deserializer);
+                return crate::api::plugin::commands::ContentImporterCommand::CanHandleUrl {
+                    url: var_url,
+                };
+            }
+            1 => {
+                let mut var_url = <String>::sse_decode(deserializer);
+                return crate::api::plugin::commands::ContentImporterCommand::GetCollectionInfo {
+                    url: var_url,
+                };
+            }
+            2 => {
+                let mut var_url = <String>::sse_decode(deserializer);
+                return crate::api::plugin::commands::ContentImporterCommand::GetTracks {
+                    url: var_url,
+                };
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
 impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4935,6 +4988,63 @@ impl SseDecode for crate::api::plugin::models::ImageLayout {
     }
 }
 
+impl SseDecode for crate::api::plugin::models::ImportCollectionSummary {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_kind =
+            <crate::api::plugin::models::ImportCollectionType>::sse_decode(deserializer);
+        let mut var_description = <Option<String>>::sse_decode(deserializer);
+        let mut var_owner = <Option<String>>::sse_decode(deserializer);
+        let mut var_thumbnailUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_trackCount = <Option<u32>>::sse_decode(deserializer);
+        return crate::api::plugin::models::ImportCollectionSummary {
+            title: var_title,
+            kind: var_kind,
+            description: var_description,
+            owner: var_owner,
+            thumbnail_url: var_thumbnailUrl,
+            track_count: var_trackCount,
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::ImportCollectionType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::plugin::models::ImportCollectionType::Playlist,
+            1 => crate::api::plugin::models::ImportCollectionType::Album,
+            _ => unreachable!("Invalid variant for ImportCollectionType: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::plugin::models::ImportTrackItem {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_artists = <Vec<String>>::sse_decode(deserializer);
+        let mut var_thumbnailUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_albumTitle = <Option<String>>::sse_decode(deserializer);
+        let mut var_durationMs = <Option<u64>>::sse_decode(deserializer);
+        let mut var_isExplicit = <bool>::sse_decode(deserializer);
+        let mut var_url = <Option<String>>::sse_decode(deserializer);
+        let mut var_sourceId = <Option<String>>::sse_decode(deserializer);
+        return crate::api::plugin::models::ImportTrackItem {
+            title: var_title,
+            artists: var_artists,
+            thumbnail_url: var_thumbnailUrl,
+            album_title: var_albumTitle,
+            duration_ms: var_durationMs,
+            is_explicit: var_isExplicit,
+            url: var_url,
+            source_id: var_sourceId,
+        };
+    }
+}
+
 impl SseDecode for crate::api::plugin::manifest::KeyRequirement {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5038,6 +5148,20 @@ impl SseDecode for Vec<crate::api::downloader::types::DownloadTaskSnapshot> {
             ans_.push(
                 <crate::api::downloader::types::DownloadTaskSnapshot>::sse_decode(deserializer),
             );
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::plugin::models::ImportTrackItem> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::plugin::models::ImportTrackItem>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -5944,6 +6068,13 @@ impl SseDecode for crate::api::plugin::commands::PluginRequest {
                     var_field0,
                 );
             }
+            4 => {
+                let mut var_field0 =
+                    <crate::api::plugin::commands::ContentImporterCommand>::sse_decode(
+                        deserializer,
+                    );
+                return crate::api::plugin::commands::PluginRequest::ContentImporter(var_field0);
+            }
             _ => {
                 unimplemented!("");
             }
@@ -6045,6 +6176,20 @@ impl SseDecode for crate::api::plugin::commands::PluginResponse {
                 return crate::api::plugin::commands::PluginResponse::Suggestions(var_field0);
             }
             16 => {
+                let mut var_field0 = <bool>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::CanHandle(var_field0);
+            }
+            17 => {
+                let mut var_field0 =
+                    <crate::api::plugin::models::ImportCollectionSummary>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::CollectionInfo(var_field0);
+            }
+            18 => {
+                let mut var_field0 =
+                    <Vec<crate::api::plugin::models::ImportTrackItem>>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::ImportTracks(var_field0);
+            }
+            19 => {
                 return crate::api::plugin::commands::PluginResponse::Ack;
             }
             _ => {
@@ -6063,6 +6208,7 @@ impl SseDecode for crate::api::plugin::types::PluginType {
             1 => crate::api::plugin::types::PluginType::ChartProvider,
             2 => crate::api::plugin::types::PluginType::LyricsProvider,
             3 => crate::api::plugin::types::PluginType::SearchSuggestionProvider,
+            4 => crate::api::plugin::types::PluginType::ContentImporter,
             _ => unreachable!("Invalid variant for PluginType: {}", inner),
         };
     }
@@ -6966,6 +7112,40 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::ChartSummary>
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart
+    for FrbWrapper<crate::api::plugin::commands::ContentImporterCommand>
+{
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self.0 {
+            crate::api::plugin::commands::ContentImporterCommand::CanHandleUrl { url } => {
+                [0.into_dart(), url.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::ContentImporterCommand::GetCollectionInfo { url } => {
+                [1.into_dart(), url.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::ContentImporterCommand::GetTracks { url } => {
+                [2.into_dart(), url.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for FrbWrapper<crate::api::plugin::commands::ContentImporterCommand>
+{
+}
+impl
+    flutter_rust_bridge::IntoIntoDart<
+        FrbWrapper<crate::api::plugin::commands::ContentImporterCommand>,
+    > for crate::api::plugin::commands::ContentImporterCommand
+{
+    fn into_into_dart(self) -> FrbWrapper<crate::api::plugin::commands::ContentImporterCommand> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart
     for FrbWrapper<crate::api::plugin::commands::ContentResolverCommand>
 {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -7290,6 +7470,79 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::ImageLayout>
     for crate::api::plugin::models::ImageLayout
 {
     fn into_into_dart(self) -> crate::api::plugin::models::ImageLayout {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::ImportCollectionSummary {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.kind.into_into_dart().into_dart(),
+            self.description.into_into_dart().into_dart(),
+            self.owner.into_into_dart().into_dart(),
+            self.thumbnail_url.into_into_dart().into_dart(),
+            self.track_count.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::ImportCollectionSummary
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::ImportCollectionSummary>
+    for crate::api::plugin::models::ImportCollectionSummary
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::ImportCollectionSummary {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::ImportCollectionType {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Playlist => 0.into_dart(),
+            Self::Album => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::ImportCollectionType
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::ImportCollectionType>
+    for crate::api::plugin::models::ImportCollectionType
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::ImportCollectionType {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::plugin::models::ImportTrackItem {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.artists.into_into_dart().into_dart(),
+            self.thumbnail_url.into_into_dart().into_dart(),
+            self.album_title.into_into_dart().into_dart(),
+            self.duration_ms.into_into_dart().into_dart(),
+            self.is_explicit.into_into_dart().into_dart(),
+            self.url.into_into_dart().into_dart(),
+            self.source_id.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::plugin::models::ImportTrackItem
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::models::ImportTrackItem>
+    for crate::api::plugin::models::ImportTrackItem
+{
+    fn into_into_dart(self) -> crate::api::plugin::models::ImportTrackItem {
         self
     }
 }
@@ -7926,6 +8179,9 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::plugin::commands::
             crate::api::plugin::commands::PluginRequest::SearchSuggestionProvider(field0) => {
                 [3.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
+            crate::api::plugin::commands::PluginRequest::ContentImporter(field0) => {
+                [4.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
             _ => {
                 unimplemented!("");
             }
@@ -7998,7 +8254,16 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::plugin::commands::
             crate::api::plugin::commands::PluginResponse::Suggestions(field0) => {
                 [15.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::Ack => [16.into_dart()].into_dart(),
+            crate::api::plugin::commands::PluginResponse::CanHandle(field0) => {
+                [16.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginResponse::CollectionInfo(field0) => {
+                [17.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginResponse::ImportTracks(field0) => {
+                [18.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginResponse::Ack => [19.into_dart()].into_dart(),
             _ => {
                 unimplemented!("");
             }
@@ -8024,6 +8289,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::types::PluginType {
             Self::ChartProvider => 1.into_dart(),
             Self::LyricsProvider => 2.into_dart(),
             Self::SearchSuggestionProvider => 3.into_dart(),
+            Self::ContentImporter => 4.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -8557,6 +8823,29 @@ impl SseEncode for crate::api::plugin::models::ChartSummary {
     }
 }
 
+impl SseEncode for crate::api::plugin::commands::ContentImporterCommand {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::plugin::commands::ContentImporterCommand::CanHandleUrl { url } => {
+                <i32>::sse_encode(0, serializer);
+                <String>::sse_encode(url, serializer);
+            }
+            crate::api::plugin::commands::ContentImporterCommand::GetCollectionInfo { url } => {
+                <i32>::sse_encode(1, serializer);
+                <String>::sse_encode(url, serializer);
+            }
+            crate::api::plugin::commands::ContentImporterCommand::GetTracks { url } => {
+                <i32>::sse_encode(2, serializer);
+                <String>::sse_encode(url, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
 impl SseEncode for crate::api::plugin::commands::ContentResolverCommand {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8810,6 +9099,48 @@ impl SseEncode for crate::api::plugin::models::ImageLayout {
     }
 }
 
+impl SseEncode for crate::api::plugin::models::ImportCollectionSummary {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <crate::api::plugin::models::ImportCollectionType>::sse_encode(self.kind, serializer);
+        <Option<String>>::sse_encode(self.description, serializer);
+        <Option<String>>::sse_encode(self.owner, serializer);
+        <Option<String>>::sse_encode(self.thumbnail_url, serializer);
+        <Option<u32>>::sse_encode(self.track_count, serializer);
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::ImportCollectionType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::plugin::models::ImportCollectionType::Playlist => 0,
+                crate::api::plugin::models::ImportCollectionType::Album => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::plugin::models::ImportTrackItem {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <Vec<String>>::sse_encode(self.artists, serializer);
+        <Option<String>>::sse_encode(self.thumbnail_url, serializer);
+        <Option<String>>::sse_encode(self.album_title, serializer);
+        <Option<u64>>::sse_encode(self.duration_ms, serializer);
+        <bool>::sse_encode(self.is_explicit, serializer);
+        <Option<String>>::sse_encode(self.url, serializer);
+        <Option<String>>::sse_encode(self.source_id, serializer);
+    }
+}
+
 impl SseEncode for crate::api::plugin::manifest::KeyRequirement {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8885,6 +9216,16 @@ impl SseEncode for Vec<crate::api::downloader::types::DownloadTaskSnapshot> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::downloader::types::DownloadTaskSnapshot>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::plugin::models::ImportTrackItem> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::plugin::models::ImportTrackItem>::sse_encode(item, serializer);
         }
     }
 }
@@ -9548,6 +9889,12 @@ impl SseEncode for crate::api::plugin::commands::PluginRequest {
                     field0, serializer,
                 );
             }
+            crate::api::plugin::commands::PluginRequest::ContentImporter(field0) => {
+                <i32>::sse_encode(4, serializer);
+                <crate::api::plugin::commands::ContentImporterCommand>::sse_encode(
+                    field0, serializer,
+                );
+            }
             _ => {
                 unimplemented!("");
             }
@@ -9627,8 +9974,22 @@ impl SseEncode for crate::api::plugin::commands::PluginResponse {
                 <i32>::sse_encode(15, serializer);
                 <Vec<crate::api::plugin::models::Suggestion>>::sse_encode(field0, serializer);
             }
-            crate::api::plugin::commands::PluginResponse::Ack => {
+            crate::api::plugin::commands::PluginResponse::CanHandle(field0) => {
                 <i32>::sse_encode(16, serializer);
+                <bool>::sse_encode(field0, serializer);
+            }
+            crate::api::plugin::commands::PluginResponse::CollectionInfo(field0) => {
+                <i32>::sse_encode(17, serializer);
+                <crate::api::plugin::models::ImportCollectionSummary>::sse_encode(
+                    field0, serializer,
+                );
+            }
+            crate::api::plugin::commands::PluginResponse::ImportTracks(field0) => {
+                <i32>::sse_encode(18, serializer);
+                <Vec<crate::api::plugin::models::ImportTrackItem>>::sse_encode(field0, serializer);
+            }
+            crate::api::plugin::commands::PluginResponse::Ack => {
+                <i32>::sse_encode(19, serializer);
             }
             _ => {
                 unimplemented!("");
@@ -9646,6 +10007,7 @@ impl SseEncode for crate::api::plugin::types::PluginType {
                 crate::api::plugin::types::PluginType::ChartProvider => 1,
                 crate::api::plugin::types::PluginType::LyricsProvider => 2,
                 crate::api::plugin::types::PluginType::SearchSuggestionProvider => 3,
+                crate::api::plugin::types::PluginType::ContentImporter => 4,
                 _ => {
                     unimplemented!("");
                 }

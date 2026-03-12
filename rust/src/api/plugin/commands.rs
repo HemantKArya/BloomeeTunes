@@ -1,9 +1,9 @@
 use flutter_rust_bridge::frb;
 
 use crate::api::plugin::models::{
-    AlbumDetails, ArtistDetails, ChartItem, ChartSummary, LyricsMatch, LyricsMetadata, MediaItem,
-    PagedAlbums, PagedMediaItems, PagedTracks, PlaylistDetails, PluginLyrics, Section,
-    StreamSource, Suggestion, TrackMetadata, TrackSegment,
+    AlbumDetails, ArtistDetails, ChartItem, ChartSummary, ImportCollectionSummary, ImportTrackItem,
+    LyricsMatch, LyricsMetadata, MediaItem, PagedAlbums, PagedMediaItems, PagedTracks,
+    PlaylistDetails, PluginLyrics, Section, StreamSource, Suggestion, TrackMetadata, TrackSegment,
 };
 
 #[frb(mirror(PluginRequest))]
@@ -13,6 +13,7 @@ pub enum PluginRequest {
     ChartProvider(ChartProviderCommand),
     LyricsProvider(LyricsProviderCommand),
     SearchSuggestionProvider(SearchSuggestionCommand),
+    ContentImporter(ContentImporterCommand),
 }
 
 #[frb(mirror(ContentResolverCommand))]
@@ -106,6 +107,14 @@ pub enum SearchSuggestionCommand {
     },
 }
 
+#[frb(mirror(ContentImporterCommand))]
+#[derive(Debug)]
+pub enum ContentImporterCommand {
+    CanHandleUrl { url: String },
+    GetCollectionInfo { url: String },
+    GetTracks { url: String },
+}
+
 #[frb(mirror(PluginResponse))]
 pub enum PluginResponse {
     AlbumDetails(AlbumDetails),
@@ -124,5 +133,8 @@ pub enum PluginResponse {
     LyricsSearchResults(Vec<LyricsMatch>),
     LyricsById(PluginLyrics, LyricsMetadata),
     Suggestions(Vec<Suggestion>),
+    CanHandle(bool),
+    CollectionInfo(ImportCollectionSummary),
+    ImportTracks(Vec<ImportTrackItem>),
     Ack,
 }

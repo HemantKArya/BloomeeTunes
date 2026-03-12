@@ -1,29 +1,16 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
+import 'package:Bloomee/core/constants/route_paths.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
+import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/utils/external_list_importer.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:Bloomee/screens/widgets/import_playlist.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-
-enum ImportType {
-  spotifyPlaylist,
-  spotifySingle,
-  spotifyAlbum,
-  youtubeVidPlaylist,
-  youtubeVidSingle,
-  youtubeMusicPlaylist,
-  youtubeMusicAlbum,
-  youtubeMusicSingle,
-  storage,
-}
+import 'package:Bloomee/l10n/app_localizations.dart';
 
 class ImportMediaFromPlatformsView extends StatelessWidget {
   const ImportMediaFromPlatformsView({super.key});
@@ -34,7 +21,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          'Import Songs',
+          AppLocalizations.of(context)!.importSongsTitle,
           textAlign: TextAlign.start,
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
@@ -43,151 +30,156 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
               .merge(Default_Theme.secondoryTextStyle),
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          ImportFromBtn(
-            btnName: "Playlist from Spotify",
-            btnIcon: FontAwesome.spotify_brand,
-            onClickFunc: () {
-              getIdAndShowBottomSheet(context,
-                  hintText: "https://open.spotify.com/playlist/XXXXX",
-                  importType: ImportType.spotifyPlaylist);
-            },
-          ),
-          ImportFromBtn(
-              btnName: "Music from Spotify",
-              btnIcon: FontAwesome.spotify_brand,
-              onClickFunc: () {
-                getIdAndShowBottomSheet(context,
-                    hintText: "https://open.spotify.com/track/XXXXXX",
-                    importType: ImportType.spotifySingle);
-              }),
-          ImportFromBtn(
-              btnName: "Album from Spotify",
-              btnIcon: FontAwesome.spotify_brand,
-              onClickFunc: () {
-                getIdAndShowBottomSheet(context,
-                    hintText: "https://open.spotify.com/album/XXXXXX",
-                    importType: ImportType.spotifyAlbum);
-              }),
-          ImportFromBtn(
-              btnName: "Playlist from Youtube",
-              btnIcon: FontAwesome.youtube_brand,
-              onClickFunc: () {
-                getIdAndShowBottomSheet(context,
-                    hintText: "https://www.youtube.com/playlist?list=XXXXXX",
-                    importType: ImportType.youtubeVidPlaylist);
-              }),
-          ImportFromBtn(
-              btnName: "Music from Youtube",
-              btnIcon: FontAwesome.youtube_brand,
-              onClickFunc: () {
-                getIdAndShowBottomSheet(context,
-                    hintText: "https://www.youtube.com/watch?v=XXXXXX",
-                    importType: ImportType.youtubeVidSingle);
-              }),
-          ImportFromBtn(
-              btnName: "Music from Youtube-Music",
-              btnIcon: FontAwesome.circle_play,
-              onClickFunc: () {
-                getIdAndShowBottomSheet(context,
-                    hintText: "https://music.youtube.com/watch?v=XXXXXX",
-                    importType: ImportType.youtubeMusicSingle);
-              }),
-          ImportFromBtn(
-              btnName: "Playlist from Youtube-Music Playlist",
-              btnIcon: FontAwesome.circle_play,
-              onClickFunc: () {
-                getIdAndShowBottomSheet(context,
-                    hintText: "https://music.youtube.com/playlist?list=XXXXXX",
-                    importType: ImportType.youtubeMusicPlaylist);
-              }),
-          ImportFromBtn(
-              btnName: "Playlist from Youtube-Music Album",
-              btnIcon: FontAwesome.circle_play,
-              onClickFunc: () {
-                getIdAndShowBottomSheet(context,
-                    hintText: "https://music.youtube.com/playlist?list=XXXXXX",
-                    importType: ImportType.youtubeMusicPlaylist);
-              }),
-          ImportFromBtn(
-              btnName: "Import Bloomee Files",
-              btnIcon: MingCute.file_import_fill,
-              onClickFunc: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text(
-                      "Note",
+      body: BlocBuilder<PluginBloc, PluginState>(
+        builder: (context, pluginState) {
+          final importerPlugins = pluginState.loadedContentImporters;
+
+          return ListView(
+            children: [
+              if (importerPlugins.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Text(
+                      AppLocalizations.of(context)!.importNoPluginsLoaded,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Default_Theme.primaryColor2,
+                        fontSize: 14,
                       ),
                     ),
-                    content: const Text(
-                      "You can only import files created by Bloomee. \nIf your file is from another source, it will not work. Continue anyway?",
-                      style: TextStyle(
-                        color: Default_Theme.primaryColor2,
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                        },
-                        child: const Text("Cancel"),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                          FilePicker.platform.pickFiles().then((value) {
-                            if (value != null) {
-                              log(value.files[0].path.toString(),
-                                  name: "Import File");
-                              if (value.files[0].path != null) {
-                                if (value.files[0].path!.endsWith('.blm') ||
-                                    value.files[0].path!.endsWith('.json')) {
-                                  SnackbarService.showMessage(
-                                      "Importing MediaItems..");
-                                  ImportExportService.importJSON(
-                                          value.files[0].path!)
-                                      .then((v) {
-                                    SnackbarService.showMessage(
-                                        "Process: Importing completed.");
-                                  });
-                                } else {
-                                  log("Invalid File Format",
-                                      name: "Import File");
-                                  SnackbarService.showMessage(
-                                      "Invalid File Format");
-                                }
-                              }
-                            }
-                          });
-                        },
-                        child: const Text("OK"),
-                      ),
-                    ],
                   ),
-                );
-              }),
+                ),
+              ...importerPlugins.map((plugin) => _ImporterPluginTile(
+                    pluginName: plugin.manifest.name,
+                    pluginId: plugin.manifest.id,
+                    description: plugin.manifest.description,
+                  )),
+              const Divider(
+                color: Default_Theme.primaryColor2,
+                indent: 16,
+                endIndent: 16,
+                height: 32,
+              ),
+              _ImportFromBtn(
+                btnName: AppLocalizations.of(context)!.importBloomeeFiles,
+                btnIcon: MingCute.file_import_fill,
+                onClickFunc: () => _importBloomeeFile(context),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _importBloomeeFile(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          AppLocalizations.of(context)!.importNoteTitle,
+          style: TextStyle(color: Default_Theme.primaryColor2),
+        ),
+        content: Text(
+          AppLocalizations.of(context)!.importNoteMessage,
+          style: TextStyle(color: Default_Theme.primaryColor2),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.buttonCancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              FilePicker.platform.pickFiles().then((value) {
+                if (value != null && value.files[0].path != null) {
+                  final path = value.files[0].path!;
+                  if (path.endsWith('.blm') || path.endsWith('.json')) {
+                    SnackbarService.showMessage(
+                        AppLocalizations.of(context)!.snackbarImportingMedia);
+                    ImportExportService.importJSON(path).then((_) {
+                      SnackbarService.showMessage(AppLocalizations.of(context)!
+                          .snackbarImportCompleted);
+                    });
+                  } else {
+                    log('Invalid File Format', name: 'Import File');
+                    SnackbarService.showMessage(AppLocalizations.of(context)!
+                        .snackbarInvalidFileFormat);
+                  }
+                }
+              });
+            },
+            child: Text(AppLocalizations.of(context)!.buttonOk),
+          ),
         ],
       ),
     );
   }
 }
 
-class ImportFromBtn extends StatelessWidget {
+class _ImporterPluginTile extends StatelessWidget {
+  final String pluginName;
+  final String pluginId;
+  final String? description;
+
+  const _ImporterPluginTile({
+    required this.pluginName,
+    required this.pluginId,
+    this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: () {
+        context.goNamed(
+          RoutePaths.importProcess,
+          queryParameters: {'pluginId': pluginId},
+        );
+      },
+      leading: const Icon(
+        MingCute.download_2_fill,
+        color: Default_Theme.primaryColor1,
+        size: 25,
+      ),
+      title: Text(
+        pluginName,
+        style: const TextStyle(
+                color: Default_Theme.primaryColor1,
+                fontSize: 18,
+                fontWeight: FontWeight.w500)
+            .merge(Default_Theme.secondoryTextStyle),
+      ),
+      subtitle: description != null
+          ? Text(
+              description!,
+              style: TextStyle(
+                color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
+                fontSize: 13,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
+          : null,
+      trailing: const Icon(
+        Icons.chevron_right,
+        color: Default_Theme.primaryColor2,
+      ),
+    );
+  }
+}
+
+class _ImportFromBtn extends StatelessWidget {
   final String btnName;
   final IconData btnIcon;
   final VoidCallback onClickFunc;
-  const ImportFromBtn({
-    Key? key,
+  const _ImportFromBtn({
     required this.btnName,
     required this.btnIcon,
     required this.onClickFunc,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -208,189 +200,4 @@ class ImportFromBtn extends StatelessWidget {
       ),
     );
   }
-}
-
-Future getIdAndShowBottomSheet(BuildContext context,
-    {String hintText = "Playlist ID", required ImportType importType}) {
-  return showMaterialModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    builder: (context) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          height: 190,
-          color: Default_Theme.accentColor2,
-          child: Column(
-            children: [
-              const Spacer(),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  color: Default_Theme.themeColor,
-                  height: 180,
-                  child: Center(
-                    child: Wrap(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            TextField(
-                              textInputAction: TextInputAction.done,
-                              maxLines: 3,
-                              textAlignVertical: TextAlignVertical.center,
-                              textAlign: TextAlign.center,
-                              // focusNode: _focusNode,
-                              cursorHeight: 45,
-                              showCursor: true,
-                              cursorWidth: 5,
-                              cursorRadius: const Radius.circular(5),
-                              cursorColor: Default_Theme.accentColor2,
-                              autofocus: true,
-
-                              style: const TextStyle(
-                                      fontSize: 30,
-                                      color: Default_Theme.accentColor2)
-                                  .merge(
-                                      Default_Theme.secondoryTextStyleMedium),
-                              decoration: InputDecoration(
-                                  hintText: hintText,
-                                  hintStyle: TextStyle(
-                                      color: Default_Theme.primaryColor2
-                                          .withValues(alpha: 0.3)),
-                                  enabledBorder: const OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(style: BorderStyle.none),
-                                  ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                  )),
-                              onSubmitted: (value) {
-                                final libraryItemsCubit =
-                                    context.read<LibraryItemsCubit>();
-                                switch (importType) {
-                                  case ImportType.spotifyPlaylist:
-                                    context.pop(context);
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) =>
-                                          ImporterDialogWidget(
-                                              strm: ExternalMediaImporter
-                                                  .sfyPlaylistImporter(
-                                                      url: value)),
-                                    );
-                                    break;
-                                  case ImportType.spotifySingle:
-                                    context.pop(context);
-                                    ExternalMediaImporter.sfyMediaImporter(
-                                            value)
-                                        .then((value) {
-                                      if (value != null) {
-                                        libraryItemsCubit.addToPlaylist(
-                                            value, "Spotify Imports");
-                                        SnackbarService.showMessage(
-                                            "Imported Media: ${value.title}");
-                                      } else {
-                                        log("Failed to import media",
-                                            name: "Import Media");
-                                      }
-                                    });
-                                  case ImportType.spotifyAlbum:
-                                    context.pop(context);
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) =>
-                                          ImporterDialogWidget(
-                                              strm: ExternalMediaImporter
-                                                  .sfyAlbumImporter(
-                                                      url: value)),
-                                    );
-                                    break;
-                                  case ImportType.youtubeVidPlaylist:
-                                    context.pop(context);
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) =>
-                                          ImporterDialogWidget(
-                                              strm: ExternalMediaImporter
-                                                  .ytPlaylistImporter(value)),
-                                    );
-                                    break;
-                                  case ImportType.youtubeVidSingle:
-                                    context.pop();
-                                    ExternalMediaImporter.ytMediaImporter(value)
-                                        .then((value) {
-                                      if (value != null) {
-                                        libraryItemsCubit.addToPlaylist(
-                                            value, "Youtube Imports");
-                                        SnackbarService.showMessage(
-                                            "Imported Media: ${value.title}");
-                                      } else {
-                                        log("Failed to import media from YT",
-                                            name: "Import Media");
-                                      }
-                                    });
-                                    break;
-                                  case ImportType.youtubeMusicPlaylist:
-                                    context.pop();
-
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) {
-                                        return ImporterDialogWidget(
-                                            strm: ExternalMediaImporter
-                                                .ytmPlaylistImporter(value));
-                                      },
-                                    );
-                                    break;
-                                  case ImportType.youtubeMusicAlbum:
-                                    context.pop();
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) {
-                                        return ImporterDialogWidget(
-                                            strm: ExternalMediaImporter
-                                                .ytmPlaylistImporter(value));
-                                      },
-                                    );
-                                    break;
-                                  case ImportType.youtubeMusicSingle:
-                                    context.pop();
-                                    ExternalMediaImporter.ytmMediaImporter(
-                                            value)
-                                        .then((value) {
-                                      if (value != null) {
-                                        libraryItemsCubit.addToPlaylist(
-                                            value, "Youtube Imports");
-                                        SnackbarService.showMessage(
-                                            "Imported Media: ${value.title}");
-                                      } else {
-                                        log("Failed to import media from YT",
-                                            name: "Import Media");
-                                      }
-                                    });
-                                    break;
-                                  case ImportType.storage:
-                                  // TODO: Handle this case.
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
 }

@@ -38,7 +38,6 @@ import 'package:Bloomee/services/keyboard_shortcuts_service.dart';
 import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/services/import_export_service.dart';
-import 'package:Bloomee/utils/external_list_importer.dart';
 import 'package:Bloomee/utils/ticker.dart';
 import 'package:Bloomee/utils/url_checker.dart';
 import 'package:flutter/gestures.dart';
@@ -47,9 +46,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
+import 'package:Bloomee/plugins/blocs/import/content_import_cubit.dart';
 import 'package:Bloomee/routes/app_router.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
-import 'package:Bloomee/screens/screen/library_views/cubit/import_playlist_cubit.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -60,48 +59,15 @@ import 'package:Bloomee/services/discord_service.dart';
 void processIncomingIntent(SharedMedia sharedMedia) {
   // Check if there's text content that might be a URL
   if (sharedMedia.content != null && isUrl(sharedMedia.content!)) {
-    final urlType = getUrlType(sharedMedia.content!);
-    switch (urlType) {
-      case UrlType.spotifyTrack:
-        ExternalMediaImporter.sfyMediaImporter(sharedMedia.content!)
-            .then((value) async {
-          if (value != null) {
-            await bloomeePlayerCubit.bloomeePlayer.addQueueTracks(
-              [value],
-            );
-          }
-        });
-        break;
-      case UrlType.spotifyPlaylist:
-        SnackbarService.showMessage("Import Spotify Playlist from library!");
-        break;
-      case UrlType.youtubePlaylist:
-        SnackbarService.showMessage("Import Youtube Playlist from library!");
-        break;
-      case UrlType.spotifyAlbum:
-        SnackbarService.showMessage("Import Spotify Album from library!");
-        break;
-      case UrlType.youtubeVideo:
-        ExternalMediaImporter.ytMediaImporter(sharedMedia.content!)
-            .then((value) async {
-          if (value != null) {
-            await bloomeePlayerCubit.bloomeePlayer.addQueueTracks([value]);
-          }
-        });
-        break;
-      case UrlType.other:
-        // Handle as file if it's a file URL
-        if (sharedMedia.attachments != null &&
-            sharedMedia.attachments!.isNotEmpty) {
-          final attachment = sharedMedia.attachments!.first;
-          SnackbarService.showMessage("Processing File...");
-          importItems(attachment!.path);
-        }
-    }
+    SnackbarService.showMessage(
+        'Open the Import screen in Library to import from this URL.');
   } else if (sharedMedia.attachments != null &&
       sharedMedia.attachments!.isNotEmpty) {
-    // Handle attachments
-    // todo: handle multiple attachments
+    final attachment = sharedMedia.attachments!.first;
+    if (attachment != null) {
+      SnackbarService.showMessage('Processing File...');
+      importItems(attachment.path);
+    }
   }
 }
 
@@ -260,11 +226,12 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         BlocProvider(
-          create: (context) => AddToPlaylistCubit(),
-          lazy: false,
+          create: (context) => ContentImportCubit(),
+          lazy: true,
         ),
         BlocProvider(
-          create: (context) => ImportPlaylistCubit(),
+          create: (context) => AddToPlaylistCubit(),
+          lazy: false,
         ),
         BlocProvider(
           create: (context) => SearchSuggestionBloc(

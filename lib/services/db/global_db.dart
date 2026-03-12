@@ -129,6 +129,10 @@ class PlaylistDB {
   DateTime createdAt;
   DateTime updatedAt;
 
+  @Index()
+  int sortOrder;
+  bool isPinned;
+
   @Backlink(to: 'playlist')
   final entries = IsarLinks<PlaylistEntryDB>();
 
@@ -141,6 +145,8 @@ class PlaylistDB {
     this.album,
     this.remotePlaylist,
     this.type = PlaylistTypeDB.userPlaylist,
+    this.sortOrder = 0,
+    this.isPinned = false,
     DateTime? createdat,
     DateTime? updatedat,
   })  : createdAt = createdat ?? DateTime.now(),

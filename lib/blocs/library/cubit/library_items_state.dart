@@ -41,6 +41,9 @@ class PlaylistItemProperties extends Equatable {
   final String? coverImgUrl;
   final String? subTitle;
   final PlaylistType type;
+  final bool isPinned;
+  final int sortOrder;
+  final int playlistId;
 
   const PlaylistItemProperties({
     required this.playlistName,
@@ -48,9 +51,20 @@ class PlaylistItemProperties extends Equatable {
     this.coverImgUrl,
     this.subTitle,
     this.type = PlaylistType.userPlaylist,
+    this.isPinned = false,
+    this.sortOrder = 0,
+    this.playlistId = 0,
   });
 
   @override
-  List<Object?> get props =>
-      [playlistName, storageKey, coverImgUrl, subTitle, type];
+  List<Object?> get props => [
+        playlistName,
+        storageKey,
+        coverImgUrl,
+        subTitle,
+        type,
+        isPinned,
+        sortOrder,
+        playlistId
+      ];
 }

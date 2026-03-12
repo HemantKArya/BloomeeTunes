@@ -652,6 +652,9 @@ fn stamp_response(plugin_id: &str, response: PluginResponse) -> PluginResponse {
         PluginResponse::LyricsSearchResults(r) => PluginResponse::LyricsSearchResults(r),
         PluginResponse::LyricsById(l, m) => PluginResponse::LyricsById(l, m),
         PluginResponse::Suggestions(s) => PluginResponse::Suggestions(s),
+        PluginResponse::CanHandle(b) => PluginResponse::CanHandle(b),
+        PluginResponse::CollectionInfo(c) => PluginResponse::CollectionInfo(c),
+        PluginResponse::ImportTracks(t) => PluginResponse::ImportTracks(t),
         PluginResponse::Ack => PluginResponse::Ack,
     }
 }

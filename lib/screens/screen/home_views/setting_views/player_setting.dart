@@ -46,6 +46,14 @@ class PlayerSettings extends StatelessWidget {
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
+        buildWhen: (prev, curr) =>
+            prev.strmQuality != curr.strmQuality ||
+            prev.autoPlay != curr.autoPlay ||
+            prev.autoResolveUnavailableTracks !=
+                curr.autoResolveUnavailableTracks ||
+            prev.crossfadeDuration != curr.crossfadeDuration ||
+            prev.eqEnabled != curr.eqEnabled ||
+            prev.eqPreset != curr.eqPreset,
         builder: (context, state) {
           return ListView(
             physics: const BouncingScrollPhysics(),

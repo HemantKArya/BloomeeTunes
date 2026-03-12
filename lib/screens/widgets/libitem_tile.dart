@@ -21,6 +21,7 @@ class LibItemCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onSecondaryTap;
   final VoidCallback? onLongPress;
+  final bool isPinned;
   const LibItemCard({
     Key? key,
     required this.title,
@@ -30,6 +31,7 @@ class LibItemCard extends StatelessWidget {
     this.onTap,
     this.onSecondaryTap,
     this.onLongPress,
+    this.isPinned = false,
   }) : super(key: key);
 
   @override
@@ -110,15 +112,30 @@ class LibItemCard extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: Default_Theme.primaryColor1)),
                     ),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      style: Default_Theme.secondoryTextStyle.merge(
-                          const TextStyle(
-                              fontSize: 14,
-                              overflow: TextOverflow.fade,
-                              fontWeight: FontWeight.w500,
-                              color: Default_Theme.primaryColor1)),
+                    Row(
+                      children: [
+                        if (isPinned) ...[
+                          Icon(
+                            MingCute.pin_2_fill,
+                            size: 12,
+                            color: Default_Theme.accentColor1
+                                .withValues(alpha: 0.7),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        Expanded(
+                          child: Text(
+                            subtitle,
+                            maxLines: 1,
+                            style: Default_Theme.secondoryTextStyle.merge(
+                                const TextStyle(
+                                    fontSize: 14,
+                                    overflow: TextOverflow.fade,
+                                    fontWeight: FontWeight.w500,
+                                    color: Default_Theme.primaryColor1)),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

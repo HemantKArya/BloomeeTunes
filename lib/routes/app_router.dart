@@ -7,6 +7,7 @@ import 'package:Bloomee/screens/screen/player_screen.dart';
 import 'package:Bloomee/screens/screen/explore_screen.dart';
 import 'package:Bloomee/screens/screen/library_screen.dart';
 import 'package:Bloomee/screens/screen/library_views/import_media_view.dart';
+import 'package:Bloomee/screens/screen/library_views/import_process_screen.dart';
 import 'package:Bloomee/screens/screen/library_views/playlist_screen.dart';
 import 'package:Bloomee/screens/screen/offline_screen.dart';
 import 'package:Bloomee/screens/screen/local_music_screen.dart';
@@ -92,6 +93,15 @@ class AppRouter {
                       name: RoutePaths.importMediaFromPlatforms,
                       builder: (context, state) =>
                           const ImportMediaFromPlatformsView(),
+                    ),
+                    GoRoute(
+                      path: RoutePaths.importProcess,
+                      name: RoutePaths.importProcess,
+                      builder: (context, state) {
+                        final pluginId =
+                            state.uri.queryParameters['pluginId'] ?? '';
+                        return ImportProcessScreen(pluginId: pluginId);
+                      },
                     ),
                     GoRoute(
                       name: RoutePaths.playlistView,

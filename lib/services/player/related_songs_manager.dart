@@ -176,6 +176,9 @@ class RelatedSongsManager {
         lyricsSearchResults: (_) {},
         lyricsById: (_, __) {},
         suggestions: (_) {},
+        canHandle: (_) {},
+        collectionInfo: (_) {},
+        importTracks: (_) {},
         ack: () {},
       );
     } catch (e) {

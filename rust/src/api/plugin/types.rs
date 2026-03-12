@@ -11,6 +11,7 @@ pub enum PluginType {
     ChartProvider,
     LyricsProvider,
     SearchSuggestionProvider,
+    ContentImporter,
 }
 
 impl PluginType {
@@ -20,6 +21,7 @@ impl PluginType {
             PluginType::ChartProvider => "chart-provider",
             PluginType::LyricsProvider => "lyrics-provider",
             PluginType::SearchSuggestionProvider => "search-suggestion-provider",
+            PluginType::ContentImporter => "content-importer",
         }
     }
 
@@ -29,6 +31,7 @@ impl PluginType {
             "chart-provider" => Some(PluginType::ChartProvider),
             "lyrics-provider" => Some(PluginType::LyricsProvider),
             "search-suggestion-provider" => Some(PluginType::SearchSuggestionProvider),
+            "content-importer" => Some(PluginType::ContentImporter),
             _ => None,
         }
     }
@@ -39,6 +42,7 @@ impl PluginType {
             PluginType::ChartProvider => "Chart provider (Billboard, etc.)",
             PluginType::LyricsProvider => "Lyrics provider (synced/plain lyrics)",
             PluginType::SearchSuggestionProvider => "Search suggestions (autocomplete)",
+            PluginType::ContentImporter => "Content importer (Spotify, YouTube, etc.)",
         }
     }
 }

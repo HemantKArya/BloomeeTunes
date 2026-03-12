@@ -1130,6 +1130,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pluginManagerFilterSuggestions => 'सुझाव प्रदाता';
 
   @override
+  String get pluginManagerFilterImporters => 'Content Importers';
+
+  @override
   String get pluginManagerTooltipRefresh => 'रिफ़्रेश';
 
   @override
@@ -1157,6 +1160,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get pluginManagerTypeSuggestionProvider => 'खोज सुझाव';
+
+  @override
+  String get pluginManagerTypeContentImporter => 'Content Importer';
 
   @override
   String get pluginManagerDeleteTitle => 'प्लगइन हटाएँ?';
@@ -1484,4 +1490,169 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get localMusicNoSearchResults =>
       'आपकी खोज से मेल खाने वाले कोई ट्रैक नहीं मिले।';
+
+  @override
+  String get importSongsTitle => 'Import Songs';
+
+  @override
+  String get importNoPluginsLoaded =>
+      'No content-importer plugins loaded.\nInstall an importer plugin to import playlists from external services.';
+
+  @override
+  String get importBloomeeFiles => 'Import Bloomee Files';
+
+  @override
+  String get importNoteTitle => 'Note';
+
+  @override
+  String get importNoteMessage =>
+      'You can only import files created by Bloomee.\nIf your file is from another source, it will not work. Continue anyway?';
+
+  @override
+  String get importTitle => 'Import';
+
+  @override
+  String get importCheckingUrl => 'Checking URL...';
+
+  @override
+  String get importFetchingTracks => 'Fetching tracks...';
+
+  @override
+  String get importSavingToLibrary => 'Saving to library...';
+
+  @override
+  String get importPasteUrlHint => 'Paste a playlist or album URL to import';
+
+  @override
+  String get importAction => 'Import';
+
+  @override
+  String importTrackCount(int count) {
+    return '$count tracks';
+  }
+
+  @override
+  String get importResolving => 'Resolving...';
+
+  @override
+  String importResolvingProgress(int done, int total) {
+    return 'Resolving tracks: $done / $total';
+  }
+
+  @override
+  String get importReviewTitle => 'Import Review';
+
+  @override
+  String importReviewSummary(int resolved, int failed, int total) {
+    return '$resolved resolved, $failed failed out of $total';
+  }
+
+  @override
+  String importSaveTracks(int count) {
+    return 'Save $count Tracks';
+  }
+
+  @override
+  String importTracksSaved(int count) {
+    return '$count tracks saved!';
+  }
+
+  @override
+  String get importDone => 'Done';
+
+  @override
+  String get importMore => 'Import More';
+
+  @override
+  String get importUnknownError => 'Unknown error';
+
+  @override
+  String get importTryAgain => 'Try Again';
+
+  @override
+  String get importSkipTrack => 'Skip this track';
+
+  @override
+  String get importMatchOptions => 'Match options';
+
+  @override
+  String get importAutoMatched => 'Auto-matched';
+
+  @override
+  String get importUserSelected => 'Selected';
+
+  @override
+  String get importSkipped => 'Skipped';
+
+  @override
+  String get importNoMatch => 'No match found';
+
+  @override
+  String get importReorderTip => 'Long press a playlist to start reordering';
+
+  @override
+  String get importErrorCannotHandleUrl =>
+      'This plugin cannot handle the provided URL.';
+
+  @override
+  String get importErrorUnexpectedResponse =>
+      'Unexpected response from plugin.';
+
+  @override
+  String importErrorFailedToCheck(String error) {
+    return 'Failed to check URL: $error';
+  }
+
+  @override
+  String importErrorFailedToFetchInfo(String error) {
+    return 'Failed to fetch collection info: $error';
+  }
+
+  @override
+  String importErrorFailedToFetchTracks(String error) {
+    return 'Failed to fetch tracks: $error';
+  }
+
+  @override
+  String importErrorFailedToSave(String error) {
+    return 'Failed to save playlist: $error';
+  }
+
+  @override
+  String get playlistPinToTop => 'Pin to Top';
+
+  @override
+  String get playlistUnpin => 'Unpin';
+
+  @override
+  String get snackbarImportingMedia => 'Importing MediaItems..';
+
+  @override
+  String get snackbarPlaylistSaved => 'Playlist saved to library!';
+
+  @override
+  String get snackbarInvalidFileFormat => 'Invalid File Format';
+
+  @override
+  String get snackbarMediaItemImported => 'Media Item Imported';
+
+  @override
+  String get snackbarPlaylistImported => 'Playlist Imported';
+
+  @override
+  String get snackbarOpenImportForUrl =>
+      'Open the Import screen in Library to import from this URL.';
+
+  @override
+  String get snackbarProcessingFile => 'Processing File...';
+
+  @override
+  String snackbarPreparingShare(String title) {
+    return 'Preparing $title for share';
+  }
+
+  @override
+  String snackbarPreparingExport(String title) {
+    return 'Preparing $title for export.';
+  }
 }

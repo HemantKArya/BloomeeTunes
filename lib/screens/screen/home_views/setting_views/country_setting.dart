@@ -39,6 +39,10 @@ class CountrySettings extends StatelessWidget {
         ),
       ),
       body: BlocBuilder<SettingsCubit, SettingsState>(
+        buildWhen: (prev, curr) =>
+            prev.countryCode != curr.countryCode ||
+            prev.autoGetCountry != curr.autoGetCountry ||
+            prev.languageCode != curr.languageCode,
         builder: (context, state) {
           final currentLanguageLabel = languageItems
               .firstWhere(

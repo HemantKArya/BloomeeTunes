@@ -476,6 +476,7 @@ impl PluginManager {
                 PluginRequest::SearchSuggestionProvider(_) => {
                     PluginType::SearchSuggestionProvider
                 }
+                PluginRequest::ContentImporter(_) => PluginType::ContentImporter,
             };
 
             if plugin.get_plugin_type() != expected_type {
