@@ -12,12 +12,12 @@ class SettingSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4, bottom: 12),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
+        style: Default_Theme.secondoryTextStyleMedium.copyWith(
           color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.5,
-        ).merge(Default_Theme.secondoryTextStyleMedium),
+        ),
       ),
     );
   }
@@ -40,6 +40,7 @@ class SettingCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // Performance Fix
         children: children,
       ),
     );
@@ -85,7 +86,8 @@ class SettingIconBox extends StatelessWidget {
   }
 }
 
-class SettingToggleTile extends StatelessWidget {
+// CONVERTED TO STATEFUL WIDGET FOR INSTANT SWITCH ANIMATION
+class SettingToggleTile extends StatefulWidget {
   final IconData icon;
   final String title;
   final String subtitle;
@@ -102,42 +104,69 @@ class SettingToggleTile extends StatelessWidget {
   });
 
   @override
+  State<SettingToggleTile> createState() => _SettingToggleTileState();
+}
+
+class _SettingToggleTileState extends State<SettingToggleTile> {
+  late bool _currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentValue = widget.value;
+  }
+
+  @override
+  void didUpdateWidget(SettingToggleTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _currentValue = widget.value;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         children: [
-          SettingIconBox(icon: icon),
+          SettingIconBox(icon: widget.icon),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min, // Layout Performance Fix
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: const TextStyle(
+                  widget.title,
+                  style: Default_Theme.secondoryTextStyleMedium.copyWith(
                     color: Default_Theme.primaryColor2,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.2,
-                  ).merge(Default_Theme.secondoryTextStyleMedium),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  subtitle,
-                  style: TextStyle(
+                  widget.subtitle,
+                  style: Default_Theme.secondoryTextStyle.copyWith(
                     color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
-                  ).merge(Default_Theme.secondoryTextStyle),
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 12),
           BloomeeSwitch(
-            value: value,
-            onChanged: () => onChanged(!value),
+            value: _currentValue,
+            onChanged: () {
+              // Optimistic state update for fluid animation
+              final newValue = !_currentValue;
+              setState(() => _currentValue = newValue);
+              widget.onChanged(newValue);
+            },
           ),
         ],
       ),
@@ -182,26 +211,27 @@ class SettingNavTile extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min, // Layout Performance Fix
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
                         color: Default_Theme.primaryColor2,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
+                      style: Default_Theme.secondoryTextStyle.copyWith(
                         color:
                             Default_Theme.primaryColor2.withValues(alpha: 0.5),
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
-                      ).merge(Default_Theme.secondoryTextStyle),
+                      ),
                     ),
                   ],
                 ),
@@ -220,11 +250,11 @@ class SettingNavTile extends StatelessWidget {
                   ),
                   child: Text(
                     badge!,
-                    style: const TextStyle(
+                    style: Default_Theme.secondoryTextStyle.copyWith(
                       color: Default_Theme.accentColor2,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                    ).merge(Default_Theme.secondoryTextStyle),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -299,11 +329,12 @@ class SettingRadioTile<T> extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min, // Layout Performance Fix
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
                         color: isSelected
                             ? Default_Theme.primaryColor2
                             : Default_Theme.primaryColor2
@@ -311,17 +342,17 @@ class SettingRadioTile<T> extends StatelessWidget {
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(
+                      style: Default_Theme.secondoryTextStyle.copyWith(
                         color:
                             Default_Theme.primaryColor2.withValues(alpha: 0.45),
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
-                      ).merge(Default_Theme.secondoryTextStyle),
+                      ),
                     ),
                   ],
                 ),
@@ -373,13 +404,13 @@ class SettingQualityChip extends StatelessWidget {
           ),
           child: Text(
             label,
-            style: TextStyle(
+            style: Default_Theme.secondoryTextStyleMedium.copyWith(
               color: isSelected
                   ? Default_Theme.accentColor2
                   : Default_Theme.primaryColor2.withValues(alpha: 0.7),
               fontSize: 13,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            ).merge(Default_Theme.secondoryTextStyleMedium),
+            ),
           ),
         ),
       ),
@@ -410,6 +441,7 @@ class SettingQualityChipRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
+        mainAxisSize: MainAxisSize.min, // Layout Performance Fix
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -418,26 +450,27 @@ class SettingQualityChipRow extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
                         color: Default_Theme.primaryColor2,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
+                      style: Default_Theme.secondoryTextStyle.copyWith(
                         color:
                             Default_Theme.primaryColor2.withValues(alpha: 0.5),
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
-                      ).merge(Default_Theme.secondoryTextStyle),
+                      ),
                     ),
                   ],
                 ),
@@ -507,25 +540,26 @@ class SettingDestructiveTile extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min, // Layout Performance Fix
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
                         color: Colors.red.withValues(alpha: 0.85),
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
+                      style: Default_Theme.secondoryTextStyle.copyWith(
                         color: Colors.red.withValues(alpha: 0.45),
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
-                      ).merge(Default_Theme.secondoryTextStyle),
+                      ),
                     ),
                   ],
                 ),
@@ -551,11 +585,11 @@ class SettingInfoText extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Text(
         text,
-        style: TextStyle(
+        style: Default_Theme.secondoryTextStyle.copyWith(
           color: color ?? Default_Theme.primaryColor2.withValues(alpha: 0.5),
           fontSize: 13,
           height: 1.5,
-        ).merge(Default_Theme.secondoryTextStyle),
+        ),
       ),
     );
   }
@@ -676,26 +710,27 @@ class SettingDropdownTile<T> extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min, // Layout Performance Fix
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
                         color: Default_Theme.primaryColor2,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
+                      style: Default_Theme.secondoryTextStyle.copyWith(
                         color:
                             Default_Theme.primaryColor2.withValues(alpha: 0.5),
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
-                      ).merge(Default_Theme.secondoryTextStyle),
+                      ),
                     ),
                   ],
                 ),
@@ -717,12 +752,12 @@ class SettingDropdownTile<T> extends StatelessWidget {
                   children: [
                     Text(
                       _selectedLabel(),
-                      style: const TextStyle(
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
                         color: Default_Theme.accentColor2,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.1,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                      ),
                     ),
                     const SizedBox(width: 4),
                     Icon(
@@ -775,7 +810,7 @@ class _DropdownBottomSheet<T> extends StatelessWidget {
         ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.min, // Layout Performance Fix
         children: [
           const SizedBox(height: 12),
           Container(
@@ -792,12 +827,12 @@ class _DropdownBottomSheet<T> extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 title.toUpperCase(),
-                style: TextStyle(
+                style: Default_Theme.secondoryTextStyleMedium.copyWith(
                   color: Default_Theme.primaryColor2.withValues(alpha: 0.45),
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.5,
-                ).merge(Default_Theme.secondoryTextStyleMedium),
+                ),
               ),
             ),
           ),
@@ -888,11 +923,12 @@ class _DropdownOption<T> extends StatelessWidget {
               ],
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min, // Layout Performance Fix
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item.label,
-                      style: TextStyle(
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
                         color: isSelected
                             ? Default_Theme.primaryColor2
                             : Default_Theme.primaryColor2
@@ -901,18 +937,18 @@ class _DropdownOption<T> extends StatelessWidget {
                         fontWeight:
                             isSelected ? FontWeight.w700 : FontWeight.w500,
                         letterSpacing: -0.2,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
+                      ),
                     ),
                     if (item.description != null) ...[
                       const SizedBox(height: 3),
                       Text(
                         item.description!,
-                        style: TextStyle(
+                        style: Default_Theme.secondoryTextStyle.copyWith(
                           color: Default_Theme.primaryColor2
                               .withValues(alpha: 0.40),
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
-                        ).merge(Default_Theme.secondoryTextStyle),
+                        ),
                       ),
                     ],
                   ],
