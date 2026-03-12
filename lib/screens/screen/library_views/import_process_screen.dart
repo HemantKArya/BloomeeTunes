@@ -15,15 +15,6 @@ import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/src/rust/api/plugin/models.dart';
 
-// ── Theme shorthand helpers ─────────────────────────────────────────────────
-
-const _kBg = Default_Theme.themeColor;
-const _kSurface = Color(0xFF0F1B2E);
-const _kSurfaceHigh = Color(0xFF1A2840);
-const _kPrimary = Default_Theme.primaryColor1;
-const _kSecondary = Default_Theme.primaryColor2;
-const _kAccent = Default_Theme.accentColor1;
-
 // ── Screen ──────────────────────────────────────────────────────────────────
 
 /// Full-screen import process.
@@ -61,26 +52,38 @@ class _ImportProcessScreenState extends State<ImportProcessScreen> {
         if (context.mounted) context.pop();
       },
       child: Scaffold(
-        backgroundColor: _kBg,
+        backgroundColor: Default_Theme.themeColor,
         appBar: _buildAppBar(context),
-        body: BlocConsumer<ContentImportCubit, ContentImportState>(
-          listener: (context, state) {
-            if (state.phase == ImportPhase.done) {
-              SnackbarService.showMessage(
-                  AppLocalizations.of(context)!.snackbarPlaylistSaved);
-            }
-            if (state.phase == ImportPhase.error && state.error != null) {
-              SnackbarService.showMessage(state.error!);
-            }
-          },
-          builder: (context, state) {
-            return AnimatedSwitcher(
-              duration: const Duration(milliseconds: 280),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              child: _buildPhaseContent(context, state),
-            );
-          },
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: BlocConsumer<ContentImportCubit, ContentImportState>(
+              listener: (context, state) {
+                if (state.phase == ImportPhase.done) {
+                  SnackbarService.showMessage(
+                      AppLocalizations.of(context)!.snackbarPlaylistSaved);
+                }
+                if (state.phase == ImportPhase.error && state.error != null) {
+                  SnackbarService.showMessage(state.error!);
+                }
+              },
+              builder: (context, state) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  layoutBuilder: (currentChild, previousChildren) => Stack(
+                    alignment: Alignment.topCenter,
+                    children: <Widget>[
+                      ...previousChildren,
+                      if (currentChild != null) currentChild,
+                    ],
+                  ),
+                  child: _buildPhaseContent(context, state),
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -88,21 +91,23 @@ class _ImportProcessScreenState extends State<ImportProcessScreen> {
 
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: _kBg,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
+      iconTheme: const IconThemeData(color: Default_Theme.primaryColor1),
       title: BlocBuilder<ContentImportCubit, ContentImportState>(
         builder: (context, state) {
           final title = state.collectionInfo?.title;
+          // Only using the highlight/heavy font for the main App Bar title
           return Text(
             title?.isNotEmpty == true
                 ? title!
                 : AppLocalizations.of(context)!.importTitle,
-            style: Default_Theme.secondoryTextStyle.merge(
+            style: Default_Theme.primaryTextStyle.merge(
               const TextStyle(
-                color: _kPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+                color: Default_Theme.primaryColor1,
+                fontSize: 20,
               ),
             ),
             maxLines: 1,
@@ -186,82 +191,101 @@ class _UrlInputView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: _kAccent.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(MingCute.link_fill, color: _kAccent, size: 32),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Default_Theme.accentColor2.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
+            child: const Icon(MingCute.link_fill,
+                color: Default_Theme.accentColor2, size: 48),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Text(
             AppLocalizations.of(context)!.importPasteUrlHint,
             textAlign: TextAlign.center,
-            style: Default_Theme.secondoryTextStyle.merge(
-              TextStyle(
-                  color: _kSecondary.withValues(alpha: 0.8), fontSize: 15),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              height: 1.4,
+              color:
+                  Colors.white70, // Standard clean text, no custom heavy fonts
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
           Container(
             decoration: BoxDecoration(
-              color: _kSurface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _kAccent.withValues(alpha: 0.18)),
+              color: Default_Theme.primaryColor1.withOpacity(0.04),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: Default_Theme.primaryColor1.withOpacity(0.1)),
             ),
             child: TextField(
               controller: controller,
               textInputAction: TextInputAction.go,
               autofocus: true,
-              cursorColor: _kAccent,
-              style: Default_Theme.secondoryTextStyle
-                  .merge(const TextStyle(color: _kPrimary, fontSize: 15)),
+              cursorColor: Default_Theme.accentColor2,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ), // Clean standard typography for URL entry
               decoration: InputDecoration(
-                hintText: 'https://',
+                hintText: 'https://...',
                 hintStyle: TextStyle(
-                    color: _kSecondary.withValues(alpha: 0.4), fontSize: 15),
-                prefixIcon: Icon(MingCute.link_fill,
-                    color: _kSecondary.withValues(alpha: 0.5), size: 18),
+                  color: Default_Theme.primaryColor2.withOpacity(0.4),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Icon(MingCute.search_2_line,
+                      color: Default_Theme.primaryColor2.withOpacity(0.6),
+                      size: 20),
+                ),
+                prefixIconConstraints:
+                    const BoxConstraints(minWidth: 40, minHeight: 40),
                 suffixIcon: ValueListenableBuilder<TextEditingValue>(
                   valueListenable: controller,
                   builder: (_, v, __) => v.text.isEmpty
                       ? const SizedBox.shrink()
                       : IconButton(
-                          icon: Icon(MingCute.close_fill,
-                              size: 16,
-                              color: _kSecondary.withValues(alpha: 0.5)),
+                          icon: Icon(Icons.cancel,
+                              size: 20,
+                              color:
+                                  Default_Theme.primaryColor2.withOpacity(0.8)),
                           onPressed: controller.clear,
                         ),
                 ),
                 border: InputBorder.none,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(vertical: 18),
               ),
               onSubmitted: (_) => onSubmit(),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           FilledButton(
             onPressed: onSubmit,
             style: FilledButton.styleFrom(
-              backgroundColor: _kAccent,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              backgroundColor: Default_Theme.accentColor2,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
             ),
-            child: Text(AppLocalizations.of(context)!.importAction,
-                style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3)),
+            child: Text(
+              AppLocalizations.of(context)!.importAction,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
           ),
         ],
       ),
@@ -279,24 +303,29 @@ class _LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final info = collectionInfo;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (info != null) ...[
-              _CollectionHeader(info: info),
-              const SizedBox(height: 32),
+            if (collectionInfo != null) ...[
+              _CollectionHeader(info: collectionInfo!),
+              const SizedBox(height: 40),
             ],
-            const CircularProgressIndicator(color: _kAccent, strokeWidth: 3),
-            const SizedBox(height: 16),
+            CircularProgressIndicator(
+              color: Default_Theme.accentColor2,
+              backgroundColor: Default_Theme.primaryColor1.withOpacity(0.1),
+              strokeWidth: 4,
+            ),
+            const SizedBox(height: 24),
             Text(
               message,
-              style: Default_Theme.secondoryTextStyle.merge(
-                TextStyle(
-                    color: _kSecondary.withValues(alpha: 0.7), fontSize: 14),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Default_Theme.primaryColor2,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -314,71 +343,84 @@ class _CollectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: SizedBox(
-            width: 64,
-            height: 64,
-            child: info.thumbnailUrl?.isNotEmpty == true
-                ? CachedNetworkImage(
-                    imageUrl: info.thumbnailUrl!,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => _thumb(),
-                    errorWidget: (_, __, ___) => _thumb(),
-                  )
-                : _thumb(),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Default_Theme.primaryColor1.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: Default_Theme.primaryColor1.withOpacity(0.05)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: 72,
+              height: 72,
+              child: info.thumbnailUrl?.isNotEmpty == true
+                  ? CachedNetworkImage(
+                      imageUrl: info.thumbnailUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => _thumbPlaceholder(),
+                      errorWidget: (_, __, ___) => _thumbPlaceholder(),
+                    )
+                  : _thumbPlaceholder(),
+            ),
           ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                info.title,
-                style: Default_Theme.primaryTextStyle.merge(
-                  const TextStyle(
-                      color: _kPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (info.owner != null)
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Allowed to use heavy font here as it acts as a page/section header
                 Text(
-                  info.owner!,
-                  style: Default_Theme.secondoryTextStyle.merge(
-                    TextStyle(
-                        color: _kSecondary.withValues(alpha: 0.7),
-                        fontSize: 13),
+                  info.title,
+                  style: Default_Theme.primaryTextStyle.merge(
+                    const TextStyle(
+                      color: Default_Theme.primaryColor1,
+                      fontSize: 18,
+                    ),
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-              if (info.trackCount != null)
-                Text(
-                  AppLocalizations.of(context)!
-                      .importTrackCount(info.trackCount!),
-                  style: Default_Theme.secondoryTextStyle.merge(
-                    TextStyle(
-                        color: _kAccent.withValues(alpha: 0.8), fontSize: 12),
+                const SizedBox(height: 6),
+                if (info.owner != null)
+                  Text(
+                    info.owner!,
+                    style: TextStyle(
+                      color: Default_Theme.primaryColor2.withOpacity(0.8),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-            ],
+                const SizedBox(height: 4),
+                if (info.trackCount != null)
+                  Text(
+                    AppLocalizations.of(context)!
+                        .importTrackCount(info.trackCount!),
+                    style: TextStyle(
+                      color: Default_Theme.accentColor2.withOpacity(0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _thumb() => Container(
-        color: _kSurfaceHigh,
+  Widget _thumbPlaceholder() => Container(
+        color: Default_Theme.primaryColor1.withOpacity(0.08),
         child: Icon(MingCute.playlist_fill,
-            color: _kSecondary.withValues(alpha: 0.4), size: 28),
+            color: Default_Theme.primaryColor2.withOpacity(0.5), size: 32),
       );
 }
 
@@ -398,55 +440,57 @@ class _ResolvingView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (state.collectionInfo != null)
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-            color: _kSurface,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: _CollectionHeader(info: state.collectionInfo!),
           ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: _kBg,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      AppLocalizations.of(context)!
-                          .importResolvingProgress(done, total),
-                      style: Default_Theme.secondoryTextStyle.merge(
-                        TextStyle(
-                            color: _kSecondary.withValues(alpha: 0.8),
-                            fontSize: 13),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${(progress * 100).toStringAsFixed(0)}%',
-                    style: Default_Theme.secondoryTextStyle.merge(
-                      const TextStyle(color: _kAccent, fontSize: 12),
-                    ),
-                  ),
-                ],
+              Text(
+                AppLocalizations.of(context)!
+                    .importResolvingProgress(done, total),
+                style: const TextStyle(
+                  color: Default_Theme.primaryColor2,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 4,
-                  backgroundColor: _kSecondary.withValues(alpha: 0.12),
-                  valueColor: const AlwaysStoppedAnimation(_kAccent),
+              Text(
+                '${(progress * 100).toStringAsFixed(0)}%',
+                style: const TextStyle(
+                  color: Default_Theme.accentColor2,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: Default_Theme.primaryColor1.withOpacity(0.1),
+              valueColor:
+                  const AlwaysStoppedAnimation(Default_Theme.accentColor2),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.only(top: 4, bottom: 16),
+          child: ListView.separated(
+            padding: const EdgeInsets.only(bottom: 24),
             itemCount: state.tracks.length,
+            separatorBuilder: (_, __) => Divider(
+                height: 1,
+                color: Default_Theme.primaryColor1.withOpacity(0.05),
+                indent: 72),
             itemBuilder: (context, index) =>
                 _ResolvingTrackTile(entry: state.tracks[index]),
           ),
@@ -486,36 +530,29 @@ class _ReviewViewState extends State<_ReviewView> {
     final toSave = s.tracks.where((t) => t.effectiveTrack != null).length;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-          color: _kSurface,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (s.collectionInfo != null)
                 _CollectionHeader(info: s.collectionInfo!),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _StatChip(
-                    icon: Icons.check_circle_rounded,
-                    label: '${s.resolvedCount}',
-                    color: const Color(0xFF4ADE80),
-                  ),
-                  const SizedBox(width: 8),
+                      icon: Icons.check_circle,
+                      label: '${s.resolvedCount}',
+                      color: Colors.green),
                   _StatChip(
-                    icon: Icons.cancel_rounded,
-                    label: '${s.failedCount}',
-                    color: Default_Theme.accentColor2,
-                  ),
-                  const SizedBox(width: 8),
+                      icon: Icons.cancel,
+                      label: '${s.failedCount}',
+                      color: Colors.redAccent),
                   _StatChip(
-                    icon: Icons.format_list_numbered_rounded,
-                    label: '${s.totalTracks}',
-                    color: _kSecondary.withValues(alpha: 0.6),
-                  ),
+                      icon: Icons.list_alt,
+                      label: '${s.totalTracks}',
+                      color: Default_Theme.primaryColor2),
                 ],
               ),
             ],
@@ -523,7 +560,7 @@ class _ReviewViewState extends State<_ReviewView> {
         ),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.only(top: 4, bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: s.tracks.length,
             itemBuilder: (context, i) => _ReviewTrackTile(
               key: ValueKey(i),
@@ -535,13 +572,16 @@ class _ReviewViewState extends State<_ReviewView> {
           ),
         ),
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           decoration: BoxDecoration(
-            color: _kSurface,
-            border: Border(
-              top: BorderSide(
-                  color: _kSecondary.withValues(alpha: 0.1), width: 1),
-            ),
+            color: Default_Theme.themeColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 10,
+                offset: const Offset(0, -4),
+              )
+            ],
           ),
           child: Row(
             children: [
@@ -549,14 +589,19 @@ class _ReviewViewState extends State<_ReviewView> {
                 child: OutlinedButton(
                   onPressed: widget.onReset,
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: _kSecondary.withValues(alpha: 0.3)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(
+                        color: Default_Theme.primaryColor2.withOpacity(0.3)),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text(AppLocalizations.of(context)!.buttonCancel,
-                      style:
-                          TextStyle(color: _kSecondary.withValues(alpha: 0.8))),
+                  child: Text(
+                    AppLocalizations.of(context)!.buttonCancel,
+                    style: const TextStyle(
+                      color: Default_Theme.primaryColor2,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -565,16 +610,21 @@ class _ReviewViewState extends State<_ReviewView> {
                 child: FilledButton(
                   onPressed: toSave > 0 ? widget.onSave : null,
                   style: FilledButton.styleFrom(
-                    backgroundColor: _kAccent,
-                    disabledBackgroundColor: _kAccent.withValues(alpha: 0.25),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: Default_Theme.accentColor2,
+                    disabledBackgroundColor:
+                        Default_Theme.accentColor2.withOpacity(0.3),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
                   ),
                   child: Text(
                     AppLocalizations.of(context)!.importSaveTracks(toSave),
                     style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -598,19 +648,21 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 13),
-          const SizedBox(width: 4),
-          Text(label,
-              style: TextStyle(
-                  color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+                color: color, fontSize: 13, fontWeight: FontWeight.w700),
+          ),
         ],
       ),
     );
@@ -626,78 +678,80 @@ class _ResolvingTrackTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final src = entry.sourceTrack;
+
     final statusWidget = switch (entry.status) {
-      TrackResolutionStatus.pending => const SizedBox(
-          width: 18,
-          height: 18,
-          child:
-              Icon(Icons.hourglass_empty_rounded, size: 14, color: Colors.grey),
-        ),
+      TrackResolutionStatus.pending => Icon(Icons.hourglass_empty,
+          size: 20, color: Default_Theme.primaryColor2.withOpacity(0.5)),
       TrackResolutionStatus.resolving => const SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(strokeWidth: 2, color: _kAccent),
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+              strokeWidth: 2, color: Default_Theme.accentColor2),
         ),
-      TrackResolutionStatus.resolved => const Icon(
-          Icons.check_circle_rounded,
-          size: 18,
-          color: Color(0xFF4ADE80),
-        ),
-      TrackResolutionStatus.failed => const Icon(
-          Icons.cancel_rounded,
-          size: 18,
-          color: Default_Theme.accentColor2,
-        ),
+      TrackResolutionStatus.resolved =>
+        const Icon(Icons.check_circle, size: 22, color: Colors.green),
+      TrackResolutionStatus.failed =>
+        const Icon(Icons.cancel, size: 22, color: Colors.redAccent),
     };
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               child: src.thumbnailUrl?.isNotEmpty == true
                   ? CachedNetworkImage(
                       imageUrl: src.thumbnailUrl!,
                       fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => _mini(),
+                      errorWidget: (_, __, ___) => _miniPlaceholder(),
                     )
-                  : _mini(),
+                  : _miniPlaceholder(),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(src.title,
-                    style: Default_Theme.secondoryTextStyle
-                        .merge(const TextStyle(color: _kPrimary, fontSize: 13)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-                Text(src.artists.join(', '),
-                    style: Default_Theme.secondoryTextStyle.merge(TextStyle(
-                        color: _kSecondary.withValues(alpha: 0.6),
-                        fontSize: 11)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  src.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  src.artists.join(', '),
+                  style: TextStyle(
+                    color: Default_Theme.primaryColor2.withOpacity(0.8),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           statusWidget,
         ],
       ),
     );
   }
 
-  Widget _mini() => Container(
-      color: _kSurfaceHigh,
+  Widget _miniPlaceholder() => Container(
+      color: Default_Theme.primaryColor1.withOpacity(0.08),
       child: Icon(MingCute.music_2_fill,
-          color: _kSecondary.withValues(alpha: 0.3), size: 16));
+          color: Default_Theme.primaryColor2.withOpacity(0.4), size: 20));
 }
 
 // ── Review Track Tile (expandable) ───────────────────────────────────────────
@@ -723,25 +777,28 @@ class _ReviewTrackTile extends StatelessWidget {
     final cubit = context.read<ContentImportCubit>();
 
     final Color statusColor = entry.isSkipped
-        ? _kSecondary.withValues(alpha: 0.5)
+        ? Default_Theme.primaryColor2
         : effective != null
-            ? const Color(0xFF4ADE80)
-            : Default_Theme.accentColor2;
+            ? Colors.green
+            : Colors.redAccent;
 
     final IconData statusIcon = entry.isSkipped
-        ? Icons.remove_circle_outline
+        ? Icons.remove_circle
         : effective != null
-            ? Icons.check_circle_rounded
-            : Icons.cancel_rounded;
+            ? Icons.check_circle
+            : Icons.cancel;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        color: _kSurface,
+        color: isExpanded
+            ? Default_Theme.primaryColor1.withOpacity(0.03)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isExpanded
-              ? _kAccent.withValues(alpha: 0.25)
+              ? Default_Theme.accentColor2.withOpacity(0.2)
               : Colors.transparent,
         ),
       ),
@@ -752,61 +809,67 @@ class _ReviewTrackTile extends StatelessWidget {
             onTap: entry.candidates.isNotEmpty ? onToggle : null,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  // Source thumbnail
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(7),
+                    borderRadius: BorderRadius.circular(8),
                     child: SizedBox(
-                      width: 44,
-                      height: 44,
+                      width: 52,
+                      height: 52,
                       child: src.thumbnailUrl?.isNotEmpty == true
                           ? CachedNetworkImage(
                               imageUrl: src.thumbnailUrl!,
                               fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => _mini(),
+                              errorWidget: (_, __, ___) => _miniPlaceholder(),
                             )
-                          : _mini(),
+                          : _miniPlaceholder(),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(src.title,
-                            style: Default_Theme.secondoryTextStyle.merge(
-                                const TextStyle(
-                                    color: _kPrimary,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
-                        Text(src.artists.join(', '),
-                            style: Default_Theme.secondoryTextStyle.merge(
-                                TextStyle(
-                                    color: _kSecondary.withValues(alpha: 0.55),
-                                    fontSize: 11)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
+                        Text(
+                          src.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          src.artists.join(', '),
+                          style: TextStyle(
+                            color: Default_Theme.primaryColor2.withOpacity(0.8),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         if (effective != null)
                           Padding(
-                            padding: const EdgeInsets.only(top: 3),
+                            padding: const EdgeInsets.only(top: 6),
                             child: Row(
                               children: [
-                                Icon(MingCute.arrow_right_fill,
-                                    size: 10,
-                                    color: _kAccent.withValues(alpha: 0.7)),
-                                const SizedBox(width: 3),
+                                const Icon(MingCute.arrows_right_line,
+                                    size: 14,
+                                    color: Default_Theme.accentColor2),
+                                const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
-                                    '${effective.title} — ${effective.artists.map((a) => a.name).join(', ')}',
-                                    style: Default_Theme.secondoryTextStyle
-                                        .merge(TextStyle(
-                                            color:
-                                                _kAccent.withValues(alpha: 0.8),
-                                            fontSize: 11)),
+                                    '${effective.title} • ${effective.artists.map((a) => a.name).join(', ')}',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(
+                                          0.95), // Bright white text for visibility
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -816,32 +879,34 @@ class _ReviewTrackTile extends StatelessWidget {
                           )
                         else if (entry.isSkipped)
                           Padding(
-                            padding: const EdgeInsets.only(top: 3),
+                            padding: const EdgeInsets.only(top: 6),
                             child: Text(
                               AppLocalizations.of(context)!.importSkipped,
-                              style: Default_Theme.secondoryTextStyle.merge(
-                                TextStyle(
-                                    color: _kSecondary.withValues(alpha: 0.45),
-                                    fontSize: 11,
-                                    fontStyle: FontStyle.italic),
+                              style: TextStyle(
+                                color: Colors.white
+                                    .withOpacity(0.7), // Good contrast
+                                fontSize: 13,
+                                fontStyle: FontStyle.italic,
                               ),
                             ),
                           ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(statusIcon, color: statusColor, size: 18),
+                      Icon(statusIcon, color: statusColor, size: 22),
                       if (entry.candidates.isNotEmpty) ...[
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 6),
                         AnimatedRotation(
                           turns: isExpanded ? 0.5 : 0,
                           duration: const Duration(milliseconds: 200),
-                          child: Icon(Icons.expand_more_rounded,
-                              color: _kSecondary.withValues(alpha: 0.5),
-                              size: 16),
+                          child: Icon(Icons.expand_more,
+                              color:
+                                  Default_Theme.primaryColor2.withOpacity(0.8),
+                              size: 20),
                         ),
                       ],
                     ],
@@ -850,17 +915,22 @@ class _ReviewTrackTile extends StatelessWidget {
               ),
             ),
           ),
-          if (isExpanded && entry.candidates.isNotEmpty)
-            _CandidateList(entry: entry, index: index, cubit: cubit),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: isExpanded && entry.candidates.isNotEmpty
+                ? _CandidateList(entry: entry, index: index, cubit: cubit)
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
   }
 
-  Widget _mini() => Container(
-      color: _kSurfaceHigh,
+  Widget _miniPlaceholder() => Container(
+      color: Default_Theme.primaryColor1.withOpacity(0.08),
       child: Icon(MingCute.music_2_fill,
-          color: _kSecondary.withValues(alpha: 0.3), size: 16));
+          color: Default_Theme.primaryColor2.withOpacity(0.4), size: 22));
 }
 
 // ── Candidate Picker ─────────────────────────────────────────────────────────
@@ -878,40 +948,39 @@ class _CandidateList extends StatelessWidget {
     final autoIdx = entry.resolvedTrack != null ? 0 : null;
     final effectiveSelected = selected ?? autoIdx;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Divider(
-            height: 1,
-            color: _kSecondary.withValues(alpha: 0.1),
-            indent: 10,
-            endIndent: 10),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
-          child: Text(
-            AppLocalizations.of(context)!.importMatchOptions,
-            style: Default_Theme.secondoryTextStyle.merge(
-              TextStyle(
-                  color: _kAccent.withValues(alpha: 0.7),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.6),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Divider(
+              height: 1, color: Default_Theme.primaryColor1.withOpacity(0.06)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+            child: Text(
+              AppLocalizations.of(context)!.importMatchOptions,
+              style: const TextStyle(
+                color: Default_Theme.accentColor2,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
-        ),
-        ...List.generate(entry.candidates.length, (ci) {
-          return _CandidateTile(
-            track: entry.candidates[ci],
-            isSelected: effectiveSelected == ci,
-            onTap: () => cubit.pickCandidate(index, ci),
-          );
-        }),
-        _SkipTile(
-          isSelected: selected == -1,
-          onTap: () => cubit.pickCandidate(index, -1),
-        ),
-        const SizedBox(height: 6),
-      ],
+          ...List.generate(entry.candidates.length, (ci) {
+            return _CandidateTile(
+              track: entry.candidates[ci],
+              isSelected: effectiveSelected == ci,
+              onTap: () => cubit.pickCandidate(index, ci),
+            );
+          }),
+          _SkipTile(
+            isSelected: selected == -1,
+            onTap: () => cubit.pickCandidate(index, -1),
+          ),
+          const SizedBox(height: 4),
+        ],
+      ),
     );
   }
 }
@@ -928,47 +997,54 @@ class _CandidateTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            _RadioDot(isSelected: isSelected, color: _kAccent),
-            const SizedBox(width: 8),
+            _CustomRadio(
+                isSelected: isSelected, color: Default_Theme.accentColor2),
+            const SizedBox(width: 14),
             ClipRRect(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(6),
               child: SizedBox(
-                width: 34,
-                height: 34,
+                width: 40,
+                height: 40,
                 child: track.thumbnail.url.isNotEmpty
                     ? CachedNetworkImage(
                         imageUrl: track.thumbnail.url,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => _mini(),
+                        errorWidget: (_, __, ___) => _miniPlaceholder(),
                       )
-                    : _mini(),
+                    : _miniPlaceholder(),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(track.title,
-                      style: Default_Theme.secondoryTextStyle.merge(TextStyle(
-                          color: isSelected
-                              ? _kPrimary
-                              : _kPrimary.withValues(alpha: 0.8),
-                          fontSize: 12,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                  Text(track.artists.map((a) => a.name).join(', '),
-                      style: Default_Theme.secondoryTextStyle.merge(TextStyle(
-                          color: _kSecondary.withValues(alpha: 0.55),
-                          fontSize: 11)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
+                  Text(
+                    track.title,
+                    style: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    track.artists.map((a) => a.name).join(', '),
+                    style: TextStyle(
+                      color: Default_Theme.primaryColor2.withOpacity(0.7),
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -978,10 +1054,10 @@ class _CandidateTile extends StatelessWidget {
     );
   }
 
-  Widget _mini() => Container(
-      color: _kSurfaceHigh,
+  Widget _miniPlaceholder() => Container(
+      color: Default_Theme.primaryColor1.withOpacity(0.08),
       child: Icon(MingCute.music_2_fill,
-          color: _kSecondary.withValues(alpha: 0.25), size: 14));
+          color: Default_Theme.primaryColor2.withOpacity(0.3), size: 18));
 }
 
 class _SkipTile extends StatelessWidget {
@@ -994,27 +1070,30 @@ class _SkipTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            _RadioDot(
-                isSelected: isSelected, color: Default_Theme.accentColor2),
-            const SizedBox(width: 8),
+            _CustomRadio(
+                isSelected: isSelected, color: Default_Theme.primaryColor2),
+            const SizedBox(width: 14),
             SizedBox(
-              width: 34,
-              height: 34,
+              width: 40,
+              height: 40,
               child: Center(
-                child: Icon(Icons.block_rounded,
-                    size: 20,
-                    color: Default_Theme.accentColor2.withValues(alpha: 0.6)),
+                child: Icon(Icons.block,
+                    size: 24,
+                    color: Default_Theme.primaryColor2.withOpacity(0.6)),
               ),
             ),
-            const SizedBox(width: 8),
-            Text(AppLocalizations.of(context)!.importSkipTrack,
-                style: Default_Theme.secondoryTextStyle.merge(TextStyle(
-                    color: Default_Theme.accentColor2.withValues(alpha: 0.8),
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic))),
+            const SizedBox(width: 12),
+            Text(
+              AppLocalizations.of(context)!.importSkipTrack,
+              style: TextStyle(
+                color: Default_Theme.primaryColor2.withOpacity(0.9),
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ],
         ),
       ),
@@ -1022,32 +1101,33 @@ class _SkipTile extends StatelessWidget {
   }
 }
 
-/// Radio dot indicator (canvas-based, no external image).
-class _RadioDot extends StatelessWidget {
+// Custom Radio Button matching the provided design exactly
+class _CustomRadio extends StatelessWidget {
   final bool isSelected;
   final Color color;
-  const _RadioDot({required this.isSelected, required this.color});
+  const _CustomRadio({required this.isSelected, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      width: 18,
-      height: 18,
+      duration: const Duration(milliseconds: 200),
+      width: 22,
+      height: 22,
+      padding: const EdgeInsets.all(
+          3.5), // The blank gap between outer ring and inner dot
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: isSelected ? color : _kSecondary.withValues(alpha: 0.3),
-          width: 2,
+          color:
+              isSelected ? color : Default_Theme.primaryColor2.withOpacity(0.4),
+          width: 2.5, // Thick outer ring
         ),
-        color: isSelected ? color.withValues(alpha: 0.2) : Colors.transparent,
       ),
       child: isSelected
-          ? Center(
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ? Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color, // Solid inner dot
               ),
             )
           : null,
@@ -1082,65 +1162,79 @@ class _DoneView extends StatelessWidget {
               children: [
                 if (thumb?.isNotEmpty == true)
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(24),
                     child: ImageFiltered(
-                      imageFilter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                      imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                       child: SizedBox(
-                        width: 90,
-                        height: 90,
+                        width: 110,
+                        height: 110,
                         child: CachedNetworkImage(
                             imageUrl: thumb!, fit: BoxFit.cover),
                       ),
                     ),
                   ),
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 76,
+                  height: 76,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4ADE80).withValues(alpha: 0.15),
+                    color: Colors.green.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check_circle_rounded,
-                      color: Color(0xFF4ADE80), size: 38),
+                  child: const Icon(Icons.check_circle,
+                      color: Colors.green, size: 52),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 28),
             Text(
               AppLocalizations.of(context)!
                   .importTracksSaved(state.resolvedCount),
-              style: Default_Theme.primaryTextStyle.merge(
-                const TextStyle(
-                    color: _kPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
               ),
             ),
             if (state.collectionInfo?.title.isNotEmpty == true) ...[
-              const SizedBox(height: 6),
-              Text(state.collectionInfo!.title,
-                  style: Default_Theme.secondoryTextStyle.merge(TextStyle(
-                      color: _kSecondary.withValues(alpha: 0.6),
-                      fontSize: 14))),
+              const SizedBox(height: 10),
+              Text(
+                state.collectionInfo!.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Default_Theme.primaryColor2.withOpacity(0.8),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
-            const SizedBox(height: 32),
+            const SizedBox(height: 48),
             FilledButton(
               onPressed: onDone,
               style: FilledButton.styleFrom(
-                backgroundColor: _kAccent,
-                minimumSize: const Size(double.infinity, 48),
+                backgroundColor: Default_Theme.accentColor2,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 56),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
               ),
-              child: Text(AppLocalizations.of(context)!.importDone,
-                  style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w600)),
+              child: Text(
+                AppLocalizations.of(context)!.importDone,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             TextButton(
               onPressed: onImportMore,
-              child: Text(AppLocalizations.of(context)!.importMore,
-                  style: const TextStyle(color: _kAccent)),
+              style: TextButton.styleFrom(
+                  foregroundColor: Default_Theme.primaryColor1),
+              child: Text(
+                AppLocalizations.of(context)!.importMore,
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
@@ -1165,31 +1259,39 @@ class _ErrorView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: Default_Theme.accentColor2.withValues(alpha: 0.12),
+                color: Colors.redAccent.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.error_outline_rounded,
-                  color: Default_Theme.accentColor2, size: 36),
+              child: const Icon(Icons.error_outline,
+                  color: Colors.redAccent, size: 40),
             ),
-            const SizedBox(height: 20),
-            Text(error,
-                textAlign: TextAlign.center,
-                style: Default_Theme.secondoryTextStyle.merge(TextStyle(
-                    color: _kSecondary.withValues(alpha: 0.8), fontSize: 14))),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.9),
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 36),
             FilledButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
+              icon: const Icon(Icons.refresh, size: 20),
               label: Text(AppLocalizations.of(context)!.importTryAgain),
               style: FilledButton.styleFrom(
                 backgroundColor: Default_Theme.accentColor2,
+                foregroundColor: Colors.white,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
               ),
             ),
           ],

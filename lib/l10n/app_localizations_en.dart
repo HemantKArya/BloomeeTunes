@@ -796,7 +796,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pluginDefaultsPriorityDesc =>
-      'Drag to reorder. Higher priority resolvers are tried first when resolving chart items to playable tracks.';
+      'Drag to reorder. Higher priority resolvers are tried first when resolving chart items or imported tracks to playable tracks.';
 
   @override
   String get pluginDefaultsLyricsHeader => 'Lyrics Priority';

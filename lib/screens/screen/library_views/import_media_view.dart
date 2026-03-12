@@ -18,57 +18,95 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Default_Theme.primaryColor1),
         title: Text(
           AppLocalizations.of(context)!.importSongsTitle,
-          textAlign: TextAlign.start,
-          style: const TextStyle(
-                  color: Default_Theme.primaryColor1,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)
-              .merge(Default_Theme.secondoryTextStyle),
+          style: Default_Theme.secondoryTextStyle.merge(
+            const TextStyle(
+              color: Default_Theme.primaryColor1,
+              fontSize: 20,
+            ),
+          ),
         ),
       ),
-      body: BlocBuilder<PluginBloc, PluginState>(
-        builder: (context, pluginState) {
-          final importerPlugins = pluginState.loadedContentImporters;
+      body: Center(
+        child: ConstrainedBox(
+          constraints:
+              const BoxConstraints(maxWidth: 640), // Desktop responsiveness
+          child: BlocBuilder<PluginBloc, PluginState>(
+            builder: (context, pluginState) {
+              final importerPlugins = pluginState.loadedContentImporters;
 
-          return ListView(
-            children: [
-              if (importerPlugins.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Text(
-                      AppLocalizations.of(context)!.importNoPluginsLoaded,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Default_Theme.primaryColor2,
-                        fontSize: 14,
-                      ),
-                    ),
+              return ListView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                children: [
+                  if (importerPlugins.isEmpty)
+                    _buildEmptyState(context)
+                  else
+                    ...importerPlugins.map((plugin) => _ImporterPluginTile(
+                          pluginName: plugin.manifest.name,
+                          pluginId: plugin.manifest.id,
+                          description: plugin.manifest.description,
+                        )),
+                  const SizedBox(height: 16),
+                  Divider(
+                    color: Default_Theme.primaryColor1.withOpacity(0.1),
+                    indent: 16,
+                    endIndent: 16,
+                    height: 32,
                   ),
-                ),
-              ...importerPlugins.map((plugin) => _ImporterPluginTile(
-                    pluginName: plugin.manifest.name,
-                    pluginId: plugin.manifest.id,
-                    description: plugin.manifest.description,
-                  )),
-              const Divider(
-                color: Default_Theme.primaryColor2,
-                indent: 16,
-                endIndent: 16,
-                height: 32,
-              ),
-              _ImportFromBtn(
-                btnName: AppLocalizations.of(context)!.importBloomeeFiles,
-                btnIcon: MingCute.file_import_fill,
-                onClickFunc: () => _importBloomeeFile(context),
-              ),
-            ],
-          );
-        },
+                  const SizedBox(height: 8),
+                  _ImportFromBtn(
+                    btnName: AppLocalizations.of(context)!.importBloomeeFiles,
+                    btnIcon: MingCute.file_import_fill,
+                    onClickFunc: () => _importBloomeeFile(context),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Default_Theme.primaryColor1.withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              MingCute.plugin_2_line,
+              size: 48,
+              color: Default_Theme.primaryColor2.withOpacity(0.5),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            AppLocalizations.of(context)!.importNoPluginsLoaded,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Default_Theme.primaryColor2.withOpacity(0.8),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -77,20 +115,43 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Default_Theme.themeColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         title: Text(
           AppLocalizations.of(context)!.importNoteTitle,
-          style: TextStyle(color: Default_Theme.primaryColor2),
+          style: Default_Theme.primaryTextStyle.merge(
+            const TextStyle(
+              color: Default_Theme.primaryColor1,
+              fontSize: 18,
+            ),
+          ),
         ),
         content: Text(
           AppLocalizations.of(context)!.importNoteMessage,
-          style: TextStyle(color: Default_Theme.primaryColor2),
+          style: TextStyle(
+            color: Default_Theme.primaryColor2.withOpacity(0.9),
+            fontSize: 15,
+            height: 1.5,
+          ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.buttonCancel),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: Text(
+              AppLocalizations.of(context)!.buttonCancel,
+              style: TextStyle(
+                color: Default_Theme.primaryColor2,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
               FilePicker.platform.pickFiles().then((value) {
@@ -111,7 +172,18 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
                 }
               });
             },
-            child: Text(AppLocalizations.of(context)!.buttonOk),
+            style: FilledButton.styleFrom(
+              backgroundColor: Default_Theme.accentColor2,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: Text(
+              AppLocalizations.of(context)!.buttonOk,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -132,40 +204,83 @@ class _ImporterPluginTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: () {
-        context.goNamed(
-          RoutePaths.importProcess,
-          queryParameters: {'pluginId': pluginId},
-        );
-      },
-      leading: const Icon(
-        MingCute.download_2_fill,
-        color: Default_Theme.primaryColor1,
-        size: 25,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Default_Theme.primaryColor1.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: Default_Theme.primaryColor1.withOpacity(0.05)),
       ),
-      title: Text(
-        pluginName,
-        style: const TextStyle(
-                color: Default_Theme.primaryColor1,
-                fontSize: 18,
-                fontWeight: FontWeight.w500)
-            .merge(Default_Theme.secondoryTextStyle),
-      ),
-      subtitle: description != null
-          ? Text(
-              description!,
-              style: TextStyle(
-                color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
-                fontSize: 13,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
-      trailing: const Icon(
-        Icons.chevron_right,
-        color: Default_Theme.primaryColor2,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            context.goNamed(
+              RoutePaths.importProcess,
+              queryParameters: {'pluginId': pluginId},
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Default_Theme.accentColor2.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    MingCute.download_2_fill,
+                    color: Default_Theme.accentColor2,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        pluginName,
+                        style: const TextStyle(
+                          color:
+                              Colors.white, // Standard bold font, high contrast
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (description != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          description!,
+                          style: TextStyle(
+                            color: Default_Theme.primaryColor2.withOpacity(0.8),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Default_Theme.primaryColor2.withOpacity(0.5),
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -175,6 +290,7 @@ class _ImportFromBtn extends StatelessWidget {
   final String btnName;
   final IconData btnIcon;
   final VoidCallback onClickFunc;
+
   const _ImportFromBtn({
     required this.btnName,
     required this.btnIcon,
@@ -183,20 +299,54 @@ class _ImportFromBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onClickFunc,
-      title: Text(
-        btnName,
-        style: const TextStyle(
-                color: Default_Theme.primaryColor1,
-                fontSize: 18,
-                fontWeight: FontWeight.w500)
-            .merge(Default_Theme.secondoryTextStyle),
+    return Container(
+      decoration: BoxDecoration(
+        color: Default_Theme.primaryColor1.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: Default_Theme.primaryColor1.withOpacity(0.05)),
       ),
-      leading: Icon(
-        btnIcon,
-        color: Default_Theme.primaryColor1,
-        size: 25,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onClickFunc,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Default_Theme.primaryColor2.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    btnIcon,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    btnName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Default_Theme.primaryColor2.withOpacity(0.5),
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

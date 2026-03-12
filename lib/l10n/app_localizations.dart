@@ -1505,7 +1505,7 @@ abstract class AppLocalizations {
   /// No description provided for @pluginDefaultsPriorityDesc.
   ///
   /// In en, this message translates to:
-  /// **'Drag to reorder. Higher priority resolvers are tried first when resolving chart items to playable tracks.'**
+  /// **'Drag to reorder. Higher priority resolvers are tried first when resolving chart items or imported tracks to playable tracks.'**
   String get pluginDefaultsPriorityDesc;
 
   /// No description provided for @pluginDefaultsLyricsHeader.
