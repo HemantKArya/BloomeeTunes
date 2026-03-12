@@ -266,6 +266,8 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
             itemCount: plugins.length,
             itemBuilder: (context, index) {
               return AnimatedListItem(
+                // ValueKey ensures widget structure doesn't rebuild improperly, fixing jank
+                key: ValueKey(plugins[index].manifest.id),
                 index: index,
                 child: _PluginCard(
                   plugin: plugins[index],
@@ -284,6 +286,8 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             return AnimatedListItem(
+              // ValueKey ensures widget structure doesn't rebuild improperly, fixing jank
+              key: ValueKey(plugins[index].manifest.id),
               index: index,
               child: _PluginCard(
                 plugin: plugins[index],
@@ -364,7 +368,6 @@ class _PluginCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Themed Icon Avatar exactly matching your reference aesthetic
               Container(
                 width: 44,
                 height: 44,
@@ -391,8 +394,6 @@ class _PluginCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-
-              // Info column
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +426,6 @@ class _PluginCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-
               if (isDeleting)
                 const _InlineOperationIndicator(label: 'Deleting')
               else
@@ -498,6 +498,16 @@ class _PluginCard extends StatelessWidget {
               size: iconSize,
             ),
           ),
+          // Fluid transition for asynchronous imagery, removing jank drops
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded) return child;
+            return AnimatedOpacity(
+              opacity: frame == null ? 0 : 1,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              child: child,
+            );
+          },
         ),
       );
     }
@@ -554,9 +564,6 @@ class _CustomSwitchState extends State<_CustomSwitch> {
   @override
   void didUpdateWidget(covariant _CustomSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Sync logic: If loading finishes, OR if the bloc force-updates the state externally,
-    // sync our local optimistic value with the true bloc state.
     if (oldWidget.isLoading && !widget.isLoading) {
       _localValue = widget.value;
     } else if (!widget.isLoading && oldWidget.value != widget.value) {
@@ -565,14 +572,10 @@ class _CustomSwitchState extends State<_CustomSwitch> {
   }
 
   void _handleTap() {
-    if (widget.isLoading) return; // Prevent double-taps while loading
-
-    // 1. Optimistically update local state for INSTANT fluid animation
+    if (widget.isLoading) return;
     setState(() {
       _localValue = !_localValue;
     });
-
-    // 2. Trigger actual backend event
     widget.onChanged();
   }
 
@@ -582,17 +585,16 @@ class _CustomSwitchState extends State<_CustomSwitch> {
       onTap: _handleTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedOpacity(
-        // Dim slightly if a network/load request is actively happening
         duration: const Duration(milliseconds: 200),
         opacity: widget.isLoading ? 0.6 : 1.0,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic, // Snappy, clean curve
+          curve: Curves.easeOutCubic,
           width: 50,
           height: 28,
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14), // Squircle-like design
+            borderRadius: BorderRadius.circular(14),
             color: _localValue
                 ? Default_Theme.accentColor2.withValues(alpha: 0.15)
                 : Default_Theme.primaryColor1.withValues(alpha: 0.05),
@@ -614,12 +616,11 @@ class _CustomSwitchState extends State<_CustomSwitch> {
               width: 20,
               height: 20,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10), // Inner squircle thumb
+                borderRadius: BorderRadius.circular(10),
                 color: _localValue
                     ? Default_Theme.accentColor2
                     : Default_Theme.primaryColor1.withValues(alpha: 0.4),
               ),
-              // Optional: Show a tiny spinner inside the thumb while loading
               child: widget.isLoading
                   ? Center(
                       child: SizedBox(
@@ -678,7 +679,6 @@ class _PluginDetailSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Subtle Drag handle
               Center(
                 child: Container(
                   width: 40,
@@ -690,8 +690,6 @@ class _PluginDetailSheet extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Header Section
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -755,10 +753,7 @@ class _PluginDetailSheet extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 24),
-
-              // Description
               if (manifest.description.isNotEmpty) ...[
                 Text(
                   manifest.description,
@@ -770,8 +765,6 @@ class _PluginDetailSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
               ],
-
-              // Clean Meta-data Container
               Container(
                 decoration: BoxDecoration(
                   color: Default_Theme.primaryColor1.withValues(alpha: 0.03),
@@ -821,15 +814,12 @@ class _PluginDetailSheet extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 36),
-
-              // Actions Layer (Strict Heights for exact Alignment)
               Row(
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 54, // Fixed height for exact alignment
+                      height: 54,
                       child: ElevatedButton(
                         onPressed: operating
                             ? null
@@ -896,7 +886,6 @@ class _PluginDetailSheet extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Settings Button (for plugins with keys_required)
                   if (manifest.keysRequired.isNotEmpty) ...[
                     SizedBox(
                       height: 54,
@@ -924,10 +913,9 @@ class _PluginDetailSheet extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                   ],
-                  // Delete Button
                   SizedBox(
-                    height: 54, // Perfectly matching height
-                    width: 54, // Creates a perfect square
+                    height: 54,
+                    width: 54,
                     child: IconButton(
                       onPressed: operating
                           ? null
@@ -971,21 +959,22 @@ class _PluginDetailSheet extends StatelessWidget {
       icon: Icons.delete_outline_rounded,
       actions: [
         BloomeeDialogAction.text(l10n.pluginManagerCancel),
-        BloomeeDialogAction.filled(l10n.pluginManagerDeleteAction,
-            isDestructive: true, onPressed: () {
-          // NOTE: BloomeeDialogSurface._buildAction already calls
-          // Navigator.of(context).pop() using the dialog's own context before
-          // invoking this callback. Do NOT pop again here — doing so would use
-          // the outer (sheet) context and either pop the sheet or crash.
-          if (plugin.manifest.keysRequired.isNotEmpty) {
-            _confirmStorageCleanup(context, bloc, pluginId, pluginName);
-          } else {
-            bloc.add(DeletePlugin(
-              pluginId: pluginId,
-              pluginType: plugin.pluginType,
-            ));
-          }
-        }),
+        BloomeeDialogAction.filled(
+          l10n.pluginManagerDeleteAction,
+          isDestructive: true,
+          onPressed: () {
+            if (plugin.manifest.keysRequired.isNotEmpty) {
+              _confirmStorageCleanup(context, bloc, pluginId, pluginName);
+            } else {
+              // Ensure we cleanly pop the bottom sheet to avoid dangling UI instances
+              if (context.mounted) Navigator.of(context).pop();
+              bloc.add(DeletePlugin(
+                pluginId: pluginId,
+                pluginType: plugin.pluginType,
+              ));
+            }
+          },
+        ),
       ],
     );
   }
@@ -999,31 +988,34 @@ class _PluginDetailSheet extends StatelessWidget {
       subtitle: l10n.pluginManagerDeleteStorageMessage(pluginName),
       icon: Icons.storage_outlined,
       actions: [
-        BloomeeDialogAction.text(l10n.pluginManagerDeleteStorageKeep,
-            onPressed: () {
-          bloc.add(DeletePlugin(
-            pluginId: pluginId,
-            pluginType: plugin.pluginType,
-            cleanStorage: false,
-          ));
-        }),
-        BloomeeDialogAction.filled(l10n.pluginManagerDeleteStorageRemove,
-            isDestructive: true, onPressed: () {
-          bloc.add(DeletePlugin(
-            pluginId: pluginId,
-            pluginType: plugin.pluginType,
-            cleanStorage: true,
-          ));
-        }),
+        BloomeeDialogAction.text(
+          l10n.pluginManagerDeleteStorageKeep,
+          onPressed: () {
+            if (context.mounted) Navigator.of(context).pop();
+            bloc.add(DeletePlugin(
+              pluginId: pluginId,
+              pluginType: plugin.pluginType,
+              cleanStorage: false,
+            ));
+          },
+        ),
+        BloomeeDialogAction.filled(
+          l10n.pluginManagerDeleteStorageRemove,
+          isDestructive: true,
+          onPressed: () {
+            if (context.mounted) Navigator.of(context).pop();
+            bloc.add(DeletePlugin(
+              pluginId: pluginId,
+              pluginType: plugin.pluginType,
+              cleanStorage: true,
+            ));
+          },
+        ),
       ],
     );
   }
 
   void _showKeysDialog(BuildContext context, Manifest manifest) {
-    final controllers = <String, TextEditingController>{};
-    final dao = ServiceLocator.pluginStorageDao;
-    final l10n = AppLocalizations.of(context)!;
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Default_Theme.themeColor,
@@ -1031,177 +1023,242 @@ class _PluginDetailSheet extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) {
-        return FutureBuilder<Map<String, String>>(
-          future: () async {
-            final existing = <String, String>{};
-            for (final key in manifest.keysRequired.keys) {
-              final entity =
-                  await dao.getEntry(pluginId: manifest.id, key: key);
-              if (entity != null) existing[key] = entity.value;
-            }
-            return existing;
-          }(),
-          builder: (ctx, snapshot) {
-            if (!snapshot.hasData) {
-              return const SizedBox(
-                height: 200,
-                child: Center(
-                    child: CircularProgressIndicator(
-                        color: Default_Theme.accentColor2)),
-              );
-            }
-            final existing = snapshot.data!;
-            for (final entry in manifest.keysRequired.entries) {
-              controllers.putIfAbsent(entry.key,
-                  () => TextEditingController(text: existing[entry.key] ?? ''));
-            }
+      builder: (ctx) => _ApiKeysDialogContent(manifest: manifest),
+    );
+  }
+}
 
-            return Padding(
-              padding: EdgeInsets.fromLTRB(
-                  24, 16, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+// ─── Self-Contained API Keys Form State ─────────────────────────────────────
+// Migrated this into a StatefulWidget to prevent FutureBuilder from restarting
+// upon UI repaints, resizing, or keyboard summons, stabilizing state handling.
+
+class _ApiKeysDialogContent extends StatefulWidget {
+  final Manifest manifest;
+  const _ApiKeysDialogContent({required this.manifest});
+
+  @override
+  State<_ApiKeysDialogContent> createState() => _ApiKeysDialogContentState();
+}
+
+class _ApiKeysDialogContentState extends State<_ApiKeysDialogContent> {
+  late Future<Map<String, String>> _future;
+  final Map<String, TextEditingController> _controllers = {};
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _loadKeys();
+  }
+
+  Future<Map<String, String>> _loadKeys() async {
+    final dao = ServiceLocator.pluginStorageDao;
+    final existing = <String, String>{};
+    for (final key in widget.manifest.keysRequired.keys) {
+      final entity = await dao.getEntry(pluginId: widget.manifest.id, key: key);
+      if (entity != null) existing[key] = entity.value;
+    }
+    return existing;
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return FutureBuilder<Map<String, String>>(
+      future: _future,
+      builder: (ctx, snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox(
+            height: 200,
+            child: Center(
+              child: CircularProgressIndicator(
+                color: Default_Theme.accentColor2,
+              ),
+            ),
+          );
+        }
+
+        final existing = snapshot.data!;
+        for (final entry in widget.manifest.keysRequired.entries) {
+          _controllers.putIfAbsent(
+            entry.key,
+            () => TextEditingController(text: existing[entry.key] ?? ''),
+          );
+        }
+
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            24,
+            16,
+            24,
+            MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.pluginManagerApiKeysTitle,
-                    style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ).merge(Default_Theme.secondoryTextStyleMedium),
-                  ),
-                  const SizedBox(height: 16),
-                  ...manifest.keysRequired.entries.map((entry) {
-                    final req = entry.value;
-                    // Use key name as label (e.g. "api_key" → "Api Key")
-                    final keyLabel = entry.key
-                        .replaceAll('_', ' ')
-                        .split(' ')
-                        .map((w) => w.isNotEmpty
-                            ? '${w[0].toUpperCase()}${w.substring(1)}'
-                            : '')
-                        .join(' ');
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextField(
-                            controller: controllers[entry.key],
-                            obscureText: req.isSecret,
-                            style: const TextStyle(
-                                color: Default_Theme.primaryColor1),
-                            decoration: InputDecoration(
-                              labelText: keyLabel,
-                              hintText: req.defaultValue ?? entry.key,
-                              labelStyle: TextStyle(
-                                color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.6),
-                              ),
-                              hintStyle: TextStyle(
-                                color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.3),
-                              ),
-                              suffixIcon: req.isSecret
-                                  ? Icon(MingCute.eye_close_line,
-                                      color: Default_Theme.primaryColor1
-                                          .withValues(alpha: 0.3),
-                                      size: 18)
-                                  : null,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.pluginManagerApiKeysTitle,
+                style: const TextStyle(
+                  color: Default_Theme.primaryColor1,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ).merge(Default_Theme.secondoryTextStyleMedium),
+              ),
+              const SizedBox(height: 16),
+              ...widget.manifest.keysRequired.entries.map((entry) {
+                final req = entry.value;
+                final keyLabel = entry.key
+                    .replaceAll('_', ' ')
+                    .split(' ')
+                    .map((w) => w.isNotEmpty
+                        ? '${w[0].toUpperCase()}${w.substring(1)}'
+                        : '')
+                    .join(' ');
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _controllers[entry.key],
+                        obscureText: req.isSecret,
+                        style:
+                            const TextStyle(color: Default_Theme.primaryColor1),
+                        decoration: InputDecoration(
+                          labelText: keyLabel,
+                          hintText: req.defaultValue ?? entry.key,
+                          labelStyle: TextStyle(
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.6),
+                          ),
+                          hintStyle: TextStyle(
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.3),
+                          ),
+                          suffixIcon: req.isSecret
+                              ? Icon(
+                                  MingCute.eye_close_line,
                                   color: Default_Theme.primaryColor1
-                                      .withValues(alpha: 0.15),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Default_Theme.accentColor2,
-                                ),
-                              ),
+                                      .withValues(alpha: 0.3),
+                                  size: 18,
+                                )
+                              : null,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.15),
                             ),
                           ),
-                          if (req.description.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6, left: 4),
-                              child: Text(
-                                req.description,
-                                style: TextStyle(
-                                  color: Default_Theme.primaryColor1
-                                      .withValues(alpha: 0.4),
-                                  fontSize: 12,
-                                ).merge(Default_Theme.secondoryTextStyle),
-                              ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Default_Theme.accentColor2,
                             ),
-                        ],
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        for (final entry in controllers.entries) {
-                          final val = entry.value.text.trim();
-                          if (val.isNotEmpty) {
-                            await dao.putEntry(
-                                pluginId: manifest.id,
-                                key: entry.key,
-                                value: val);
-                          } else {
-                            await dao.deleteEntry(
-                                pluginId: manifest.id, key: entry.key);
-                          }
-                        }
-                        if (ctx.mounted) Navigator.of(ctx).pop();
-                        SnackbarService.showMessage(
-                            l10n.pluginManagerApiKeysSaved);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Default_Theme.accentColor2.withValues(alpha: 0.15),
-                        foregroundColor: Default_Theme.accentColor2,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          side: BorderSide(
-                            color: Default_Theme.accentColor2
-                                .withValues(alpha: 0.5),
-                            width: 1.5,
                           ),
                         ),
                       ),
-                      child: Text(
-                        l10n.pluginManagerSave,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ).merge(Default_Theme.secondoryTextStyle),
+                      if (req.description.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6, left: 4),
+                          child: Text(
+                            req.description,
+                            style: TextStyle(
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.4),
+                              fontSize: 12,
+                            ).merge(Default_Theme.secondoryTextStyle),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _isSaving
+                      ? null
+                      : () async {
+                          setState(() => _isSaving = true);
+                          final dao = ServiceLocator.pluginStorageDao;
+                          for (final entry in _controllers.entries) {
+                            final val = entry.value.text.trim();
+                            if (val.isNotEmpty) {
+                              await dao.putEntry(
+                                pluginId: widget.manifest.id,
+                                key: entry.key,
+                                value: val,
+                              );
+                            } else {
+                              await dao.deleteEntry(
+                                pluginId: widget.manifest.id,
+                                key: entry.key,
+                              );
+                            }
+                          }
+                          if (ctx.mounted) Navigator.of(ctx).pop();
+                          SnackbarService.showMessage(
+                              l10n.pluginManagerApiKeysSaved);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Default_Theme.accentColor2.withValues(alpha: 0.15),
+                    foregroundColor: Default_Theme.accentColor2,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: BorderSide(
+                        color:
+                            Default_Theme.accentColor2.withValues(alpha: 0.5),
+                        width: 1.5,
                       ),
                     ),
                   ),
-                ],
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Default_Theme.accentColor2,
+                          ),
+                        )
+                      : Text(
+                          l10n.pluginManagerSave,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ).merge(Default_Theme.secondoryTextStyle),
+                        ),
+                ),
               ),
-            );
-          },
+            ],
+          ),
         );
       },
     );
