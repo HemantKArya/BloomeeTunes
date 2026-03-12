@@ -46,12 +46,15 @@ class _SearchScreenState extends State<SearchScreen> {
   final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
-  final ValueNotifier<ContentSearchFilter> _filter =
+  // Highly optimized State Management using Notifiers (Eliminates Root setState)
+  final ValueNotifier<ContentSearchFilter> _filterNotifier =
       ValueNotifier(ContentSearchFilter.all);
-  String? _activePluginId;
+  final ValueNotifier<String?> _activePluginIdNotifier = ValueNotifier(null);
+  final ValueNotifier<bool> _isSuggestionPanelOpenNotifier =
+      ValueNotifier(false);
+  final ValueNotifier<int> _highlightedSuggestionIndexNotifier =
+      ValueNotifier(-1);
 
-  bool _isSuggestionPanelOpen = false;
-  int _highlightedSuggestionIndex = -1;
   List<({String query, ContentSearchFilter filter})>
       _currentCombinedSuggestions = [];
 
@@ -62,14 +65,12 @@ class _SearchScreenState extends State<SearchScreen> {
     _scrollController.addListener(_onSearchScroll);
 
     _searchFocusNode.addListener(() {
-      setState(() {
-        if (_searchFocusNode.hasFocus) {
-          _isSuggestionPanelOpen = true;
-          context
-              .read<SearchSuggestionBloc>()
-              .add(SearchSuggestionFetch(_textEditingController.text));
-        }
-      });
+      if (_searchFocusNode.hasFocus) {
+        _isSuggestionPanelOpenNotifier.value = true;
+        context
+            .read<SearchSuggestionBloc>()
+            .add(SearchSuggestionFetch(_textEditingController.text));
+      }
     });
 
     final pluginState = context.read<PluginBloc>().state;
@@ -78,9 +79,11 @@ class _SearchScreenState extends State<SearchScreen> {
       final persistedId = context.read<SettingsCubit>().state.searchPluginId;
       final hasPersistedPlugin = persistedId.isNotEmpty &&
           resolvers.any((p) => p.manifest.id == persistedId);
-      _activePluginId =
+      final activeId =
           hasPersistedPlugin ? persistedId : resolvers.first.manifest.id;
-      _contentBloc.add(SetActiveContentPlugin(pluginId: _activePluginId!));
+
+      _activePluginIdNotifier.value = activeId;
+      _contentBloc.add(SetActiveContentPlugin(pluginId: activeId));
     }
 
     if (widget.searchQuery.isNotEmpty) {
@@ -94,14 +97,16 @@ class _SearchScreenState extends State<SearchScreen> {
     _scrollController.dispose();
     _textEditingController.dispose();
     _searchFocusNode.dispose();
-    _filter.dispose();
+    _filterNotifier.dispose();
+    _activePluginIdNotifier.dispose();
+    _isSuggestionPanelOpenNotifier.dispose();
+    _highlightedSuggestionIndexNotifier.dispose();
     _contentBloc.close();
     super.dispose();
   }
 
   void _onSearchScroll() {
     if (!_scrollController.hasClients) return;
-
     final state = _contentBloc.state;
     final nextPageToken = state.searchResults?.nextPageToken;
     if (nextPageToken == null ||
@@ -120,33 +125,6 @@ class _SearchScreenState extends State<SearchScreen> {
   String _normalizeSearchQuery(String query) =>
       query.trim().replaceAll(RegExp(r'\s+'), ' ');
 
-  ContentSearchFilter _filterForEntity(plugin_models.EntityType type) {
-    return switch (type) {
-      plugin_models.EntityType.track => ContentSearchFilter.track,
-      plugin_models.EntityType.album => ContentSearchFilter.album,
-      plugin_models.EntityType.artist => ContentSearchFilter.artist,
-      plugin_models.EntityType.playlist => ContentSearchFilter.playlist,
-      _ => ContentSearchFilter.all,
-    };
-  }
-
-  String _buildEntitySearchQuery(plugin_models.EntitySuggestion entity) {
-    final parts = <String>[entity.title.trim()];
-    final subtitle = entity.subtitle?.trim();
-    final multiSpace = RegExp(r'\s+');
-    final specialChars = RegExp(r'[^\w\s]+', unicode: true);
-
-    if (subtitle != null && subtitle.isNotEmpty) {
-      parts.add(subtitle
-          .toLowerCase()
-          .replaceAll(multiSpace, " ")
-          .replaceAll(specialChars, "")
-          .replaceAll(entity.title.toLowerCase().trim(), ""));
-    }
-    return _normalizeSearchQuery(
-        parts.where((part) => part.isNotEmpty).join(' '));
-  }
-
   void _setSearchFieldText(String query) {
     _textEditingController.value = TextEditingValue(
       text: query,
@@ -155,61 +133,37 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _closeSuggestionPanel() {
-    if (!mounted) return;
-    setState(() {
-      _isSuggestionPanelOpen = false;
-      _highlightedSuggestionIndex = -1;
-    });
+    _isSuggestionPanelOpenNotifier.value = false;
+    _highlightedSuggestionIndexNotifier.value = -1;
     _searchFocusNode.unfocus();
   }
 
   void _openSuggestionPanel() {
-    if (!mounted) return;
-    setState(() {
-      _isSuggestionPanelOpen = true;
-      _highlightedSuggestionIndex = -1;
-    });
+    _isSuggestionPanelOpenNotifier.value = true;
+    _highlightedSuggestionIndexNotifier.value = -1;
   }
 
-  void _performSearch({
-    required String query,
-    required ContentSearchFilter filter,
-  }) {
+  void _performSearch(
+      {required String query, required ContentSearchFilter filter}) {
     final normalizedQuery = _normalizeSearchQuery(query);
-    if (normalizedQuery.isEmpty || _activePluginId == null) return;
+    if (normalizedQuery.isEmpty || _activePluginIdNotifier.value == null)
+      return;
 
     context
         .read<SearchSuggestionBloc>()
         .add(SearchSuggestionSave(normalizedQuery));
     _setSearchFieldText(normalizedQuery);
-    _filter.value = filter;
+    _filterNotifier.value = filter;
     _closeSuggestionPanel();
-    _contentBloc.add(SearchContent(
-      query: normalizedQuery,
-      filter: filter,
-    ));
+    _contentBloc.add(SearchContent(query: normalizedQuery, filter: filter));
   }
 
-  void _doSearch(String query) {
-    _performSearch(
-      query: query,
-      filter: _filter.value,
-    );
-  }
-
-  void _doSearchInAllCategories(String query) {
-    _performSearch(
-      query: query,
-      filter: ContentSearchFilter.all,
-    );
-  }
-
-  void _doSearchWithFilter(String query, ContentSearchFilter filter) {
-    _performSearch(
-      query: query,
-      filter: filter,
-    );
-  }
+  void _doSearch(String query) =>
+      _performSearch(query: query, filter: _filterNotifier.value);
+  void _doSearchInAllCategories(String query) =>
+      _performSearch(query: query, filter: ContentSearchFilter.all);
+  void _doSearchWithFilter(String query, ContentSearchFilter filter) =>
+      _performSearch(query: query, filter: filter);
 
   void _triggerSearch() {
     if (_textEditingController.text.trim().isNotEmpty) {
@@ -218,83 +172,25 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (!_isSuggestionPanelOpen || _currentCombinedSuggestions.isEmpty) {
+    if (!_isSuggestionPanelOpenNotifier.value ||
+        _currentCombinedSuggestions.isEmpty) {
       return KeyEventResult.ignored;
     }
 
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        setState(() {
-          _highlightedSuggestionIndex = (_highlightedSuggestionIndex + 1)
-              .clamp(-1, _currentCombinedSuggestions.length - 1);
-        });
+        _highlightedSuggestionIndexNotifier.value =
+            (_highlightedSuggestionIndexNotifier.value + 1)
+                .clamp(-1, _currentCombinedSuggestions.length - 1);
         return KeyEventResult.handled;
       } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-        setState(() {
-          _highlightedSuggestionIndex = (_highlightedSuggestionIndex - 1)
-              .clamp(-1, _currentCombinedSuggestions.length - 1);
-        });
+        _highlightedSuggestionIndexNotifier.value =
+            (_highlightedSuggestionIndexNotifier.value - 1)
+                .clamp(-1, _currentCombinedSuggestions.length - 1);
         return KeyEventResult.handled;
       }
     }
     return KeyEventResult.ignored;
-  }
-
-  /// --------------------------------------------------------------------------
-  ///  REACTIVE GRADIENT LOGIC
-  /// --------------------------------------------------------------------------
-
-  // Returns a List of 2 colors to create a complex nebula effect
-  List<Color> _getReactiveGradientColors(ContentState state) {
-    // 1. Zero State: Return transparent if nothing is loaded
-    if (state.searchStatus != SearchStatus.loaded &&
-        state.searchStatus != SearchStatus.loadingMore) {
-      return [Colors.transparent, Colors.transparent];
-    }
-
-    final items = state.searchResults?.items;
-    if (items == null || items.isEmpty) {
-      return [Colors.transparent, Colors.transparent];
-    }
-
-    // 2. Seed Generation: Use the Image URL or Title
-    String seedString = "";
-    final firstItem = items.first;
-    switch (firstItem) {
-      case MediaItem_Track(:final field0):
-        seedString = field0.thumbnail.urlLow ?? field0.thumbnail.url;
-      case MediaItem_Album(:final field0):
-        seedString =
-            field0.thumbnail?.urlLow ?? field0.thumbnail?.url ?? field0.title;
-      case MediaItem_Artist(:final field0):
-        seedString =
-            field0.thumbnail?.urlLow ?? field0.thumbnail?.url ?? field0.name;
-      case MediaItem_Playlist(:final field0):
-        seedString = field0.thumbnail.urlLow ?? field0.thumbnail.url;
-    }
-
-    final int hash = seedString.hashCode;
-
-    // 3. Smart Hue Calculation
-    double hue = (hash % 360).abs().toDouble();
-
-    // --- COLOR SANITIZATION ---
-    // In Dark Mode, hues between 60 (Yellow) and 170 (Green) often look "sickly" or "muddy".
-    // We shift them to "Safe Premium Colors" like Teal or Warm Amber.
-    if (hue > 60 && hue < 170) {
-      // If even/odd, pick either Teal (180) or Warm Amber (40)
-      hue = (hash % 2 == 0) ? 180 : 40;
-    }
-
-    // 4. Generate Two Complimentary Colors
-    // We use LOWER Lightness (0.35) and MEDIUM Saturation (0.65) for that "Deep" look.
-    final color1 = HSLColor.fromAHSL(1.0, hue, 0.65, 0.35).toColor();
-
-    // Shift the second color slightly to create depth (Analogous color scheme)
-    final hue2 = (hue + 40) % 360;
-    final color2 = HSLColor.fromAHSL(1.0, hue2, 0.65, 0.30).toColor();
-
-    return [color1, color2];
   }
 
   @override
@@ -303,17 +199,17 @@ class _SearchScreenState extends State<SearchScreen> {
       listenWhen: (prev, curr) =>
           prev.loadedContentResolvers.isEmpty &&
           curr.loadedContentResolvers.isNotEmpty &&
-          _activePluginId == null,
+          _activePluginIdNotifier.value == null,
       listener: (context, pluginState) {
         final resolvers = pluginState.loadedContentResolvers;
         final persistedId = context.read<SettingsCubit>().state.searchPluginId;
         final hasPersistedPlugin = persistedId.isNotEmpty &&
             resolvers.any((p) => p.manifest.id == persistedId);
-        setState(() {
-          _activePluginId =
-              hasPersistedPlugin ? persistedId : resolvers.first.manifest.id;
-          _contentBloc.add(SetActiveContentPlugin(pluginId: _activePluginId!));
-        });
+        final activeId =
+            hasPersistedPlugin ? persistedId : resolvers.first.manifest.id;
+
+        _activePluginIdNotifier.value = activeId;
+        _contentBloc.add(SetActiveContentPlugin(pluginId: activeId));
       },
       child: GestureDetector(
         onTap: () {
@@ -325,44 +221,82 @@ class _SearchScreenState extends State<SearchScreen> {
           resizeToAvoidBottomInset: false,
           body: Stack(
             children: [
-              // --- 1. ATMOSPHERIC BACKGROUND LAYER ---
-              BlocBuilder<ContentBloc, ContentState>(
-                bloc: _contentBloc,
-                builder: (context, state) {
-                  final colors = _getReactiveGradientColors(state);
+              // Extracted Background Painter
+              _NebulaBackground(contentBloc: _contentBloc),
 
-                  return AnimatedContainer(
-                    duration: const Duration(
-                        milliseconds: 1500), // Very slow, ambient transition
-                    curve: Curves.easeOutCubic,
-                    width: double.infinity,
-                    // Covers more screen height (75%) so the fade is softer/subtler
-                    height: MediaQuery.of(context).size.height * 0.75,
-                    child: CustomPaint(
-                      painter: NebulaPainter(
-                        // Drastically reduced Opacity (0.18) for "Atmosphere" rather than "Paint"
-                        color1: colors[0].withValues(alpha: 0.18),
-                        color2: colors[1].withValues(alpha: 0.18),
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              // --- 2. MAIN SCROLLABLE CONTENT ---
               SafeArea(
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    _buildFloatingSearchBar(),
-                    _buildAestheticFilterChips(),
-                    if (!_isSuggestionPanelOpen) _buildPluginsGlassyBox(),
-                    if (_isSuggestionPanelOpen)
-                      _buildSuggestionsArea()
-                    else
-                      _buildContentArea(),
-                  ],
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: _isSuggestionPanelOpenNotifier,
+                  builder: (context, isSuggestionPanelOpen, _) {
+                    return CustomScrollView(
+                      controller: _scrollController,
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        _FloatingSearchBarSliver(
+                          textEditingController: _textEditingController,
+                          searchFocusNode: _searchFocusNode,
+                          handleKeyEvent: _handleKeyEvent,
+                          contentBloc: _contentBloc,
+                          currentCombinedSuggestions:
+                              _currentCombinedSuggestions,
+                          highlightedIndexNotifier:
+                              _highlightedSuggestionIndexNotifier,
+                          onSearchRequested: _performSearch,
+                          onClearRequested: () {
+                            _textEditingController.clear();
+                            _openSuggestionPanel();
+                            context
+                                .read<SearchSuggestionBloc>()
+                                .add(const SearchSuggestionFetch(''));
+                            _searchFocusNode.requestFocus();
+                          },
+                          onQueryChanged: (val) {
+                            _openSuggestionPanel();
+                            context
+                                .read<SearchSuggestionBloc>()
+                                .add(SearchSuggestionFetch(val));
+                          },
+                        ),
+                        _AestheticFilterChipsSliver(
+                          filterNotifier: _filterNotifier,
+                          textEditingController: _textEditingController,
+                          onFilterTapped: _triggerSearch,
+                        ),
+                        if (!isSuggestionPanelOpen)
+                          _PluginsGlassyBoxSliver(
+                            activePluginNotifier: _activePluginIdNotifier,
+                            contentBloc: _contentBloc,
+                            onPluginChanged: _triggerSearch,
+                            textEditingController: _textEditingController,
+                          ),
+                        if (isSuggestionPanelOpen)
+                          _SuggestionsSliver(
+                            textEditingController: _textEditingController,
+                            highlightedIndexNotifier:
+                                _highlightedSuggestionIndexNotifier,
+                            onSearchInAllCategories: _doSearchInAllCategories,
+                            onSearchWithFilter: _doSearchWithFilter,
+                            onSetSearchFieldText: (query) {
+                              _setSearchFieldText(query);
+                              _openSuggestionPanel();
+                              _searchFocusNode.requestFocus();
+                              context
+                                  .read<SearchSuggestionBloc>()
+                                  .add(SearchSuggestionFetch(query));
+                            },
+                            onSuggestionsGenerated: (suggestions) {
+                              // We update this silently without triggering rebuilds for the KeyHandler
+                              _currentCombinedSuggestions = suggestions;
+                            },
+                          )
+                        else
+                          _ContentSliver(
+                            contentBloc: _contentBloc,
+                            activePluginNotifier: _activePluginIdNotifier,
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -371,76 +305,89 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
+}
 
-  // --- FLOATING GLASS SEARCH PILL (No Abrupt Lines) ---
-  SliverAppBar _buildFloatingSearchBar() {
+// ── OPTIMIZED MODULAR SLIVERS ──────────────────────────────────────────────────
+
+class _FloatingSearchBarSliver extends StatelessWidget {
+  final TextEditingController textEditingController;
+  final FocusNode searchFocusNode;
+  final ContentBloc contentBloc;
+  final FocusOnKeyEventCallback handleKeyEvent;
+  final List<({String query, ContentSearchFilter filter})>
+      currentCombinedSuggestions;
+  final ValueNotifier<int> highlightedIndexNotifier;
+  final Function({required String query, required ContentSearchFilter filter})
+      onSearchRequested;
+  final VoidCallback onClearRequested;
+  final ValueChanged<String> onQueryChanged;
+
+  const _FloatingSearchBarSliver({
+    required this.textEditingController,
+    required this.searchFocusNode,
+    required this.contentBloc,
+    required this.handleKeyEvent,
+    required this.currentCombinedSuggestions,
+    required this.highlightedIndexNotifier,
+    required this.onSearchRequested,
+    required this.onClearRequested,
+    required this.onQueryChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SliverAppBar(
       floating: true,
       snap: true,
-      // IMPORTANT: Transparent background removes the "Abrupt Line"
-      // caused by previous backdrop filters on the app bar itself.
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       titleSpacing: 16,
       toolbarHeight: 70,
       title: Focus(
-        onKeyEvent: _handleKeyEvent,
+        onKeyEvent: handleKeyEvent,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
           child: BackdropFilter(
-            // The blur is now contained ONLY within the search pill
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05), // Glassy fill
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: Colors.white
-                      .withValues(alpha: 0.08), // Subtle frost border
-                  width: 1,
-                ),
+                    color: Colors.white.withValues(alpha: 0.08), width: 1),
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(width: 16),
                   _buildAnimatedSearchLeadingIcon(),
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
-                      controller: _textEditingController,
-                      focusNode: _searchFocusNode,
+                      controller: textEditingController,
+                      focusNode: searchFocusNode,
                       style: TextStyle(
                         color:
                             Default_Theme.primaryColor1.withValues(alpha: 0.95),
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
-                      onChanged: (val) {
-                        _openSuggestionPanel();
-                        context
-                            .read<SearchSuggestionBloc>()
-                            .add(SearchSuggestionFetch(val));
-                      },
+                      onChanged: onQueryChanged,
                       onSubmitted: (val) {
-                        if (_highlightedSuggestionIndex >= 0 &&
-                            _highlightedSuggestionIndex <
-                                _currentCombinedSuggestions.length) {
-                          final selected = _currentCombinedSuggestions[
-                              _highlightedSuggestionIndex];
-                          _performSearch(
-                            query: selected.query,
-                            filter: selected.filter,
-                          );
+                        final hIndex = highlightedIndexNotifier.value;
+                        if (hIndex >= 0 &&
+                            hIndex < currentCombinedSuggestions.length) {
+                          final selected = currentCombinedSuggestions[hIndex];
+                          onSearchRequested(
+                              query: selected.query, filter: selected.filter);
                         } else {
-                          _doSearch(val);
+                          onSearchRequested(
+                              query: val, filter: ContentSearchFilter.all);
                         }
                       },
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         isDense: true,
-                        // Symmetric padding ensures perfect vertical centering
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 14),
                         hintText:
@@ -454,7 +401,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
                   ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _textEditingController,
+                    valueListenable: textEditingController,
                     builder: (context, value, child) {
                       if (value.text.isNotEmpty) {
                         return IconButton(
@@ -464,14 +411,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               color: Default_Theme.primaryColor1
                                   .withValues(alpha: 0.5),
                               size: 18),
-                          onPressed: () {
-                            _textEditingController.clear();
-                            _openSuggestionPanel();
-                            context
-                                .read<SearchSuggestionBloc>()
-                                .add(const SearchSuggestionFetch(''));
-                            _searchFocusNode.requestFocus();
-                          },
+                          onPressed: onClearRequested,
                         );
                       }
                       return const SizedBox(width: 16);
@@ -486,10 +426,60 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildAestheticFilterChips() {
+  Widget _buildAnimatedSearchLeadingIcon() {
+    return BlocBuilder<ContentBloc, ContentState>(
+      bloc: contentBloc,
+      buildWhen: (previous, current) =>
+          previous.searchStatus != current.searchStatus,
+      builder: (context, state) {
+        final isLoading = state.searchStatus == SearchStatus.loading ||
+            state.searchStatus == SearchStatus.loadingMore;
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 240),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final rotation = Tween<double>(begin: 0.82, end: 1).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutBack));
+            return FadeTransition(
+                opacity: animation,
+                child: RotationTransition(turns: rotation, child: child));
+          },
+          child: isLoading
+              ? SizedBox(
+                  key: const ValueKey('search-loading'),
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color:
+                          Default_Theme.primaryColor1.withValues(alpha: 0.5)),
+                )
+              : Icon(MingCute.search_2_line,
+                  key: const ValueKey('search-idle'),
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                  size: 20),
+        );
+      },
+    );
+  }
+}
+
+class _AestheticFilterChipsSliver extends StatelessWidget {
+  final ValueNotifier<ContentSearchFilter> filterNotifier;
+  final TextEditingController textEditingController;
+  final VoidCallback onFilterTapped;
+
+  const _AestheticFilterChipsSliver(
+      {required this.filterNotifier,
+      required this.textEditingController,
+      required this.onFilterTapped});
+
+  @override
+  Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: ValueListenableBuilder<ContentSearchFilter>(
-        valueListenable: _filter,
+        valueListenable: filterNotifier,
         builder: (context, filterValue, child) {
           return SizedBox(
             height: 38,
@@ -510,10 +500,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   splashColor: Colors.transparent,
                   highlightColor: Colors.transparent,
                   onTap: () {
-                    _filter.value = e;
-                    if (_textEditingController.text.isNotEmpty) {
-                      _triggerSearch();
-                    }
+                    filterNotifier.value = e;
+                    if (textEditingController.text.isNotEmpty) onFilterTapped();
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -526,10 +514,9 @@ class _SearchScreenState extends State<SearchScreen> {
                           : Default_Theme.primaryColor2.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isSelected
-                            ? Default_Theme.accentColor2
-                            : Colors.white.withValues(alpha: 0.05),
-                      ),
+                          color: isSelected
+                              ? Default_Theme.accentColor2
+                              : Colors.white.withValues(alpha: 0.05)),
                     ),
                     child: Text(
                       displayName,
@@ -552,10 +539,27 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
+}
 
-  Widget _buildPluginsGlassyBox() {
+class _PluginsGlassyBoxSliver extends StatelessWidget {
+  final ValueNotifier<String?> activePluginNotifier;
+  final ContentBloc contentBloc;
+  final TextEditingController textEditingController;
+  final VoidCallback onPluginChanged;
+
+  const _PluginsGlassyBoxSliver({
+    required this.activePluginNotifier,
+    required this.contentBloc,
+    required this.textEditingController,
+    required this.onPluginChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: BlocBuilder<PluginBloc, PluginState>(
+        buildWhen: (prev, curr) =>
+            prev.loadedContentResolvers != curr.loadedContentResolvers,
         builder: (context, pluginState) {
           final resolvers = pluginState.loadedContentResolvers;
 
@@ -572,9 +576,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     color: Default_Theme.primaryColor2.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      width: 1,
-                    ),
+                        color: Colors.white.withValues(alpha: 0.05), width: 1),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -598,22 +600,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                     .withValues(alpha: 0.7),
                               ),
                             ),
-                            const Spacer(),
-                            InkWell(
-                              borderRadius: BorderRadius.circular(50),
-                              onTap: () {
-                                // Plugin Manager Route
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(4.0),
-                                child: Icon(
-                                  MingCute.add_line,
-                                  size: 20,
-                                  color: Default_Theme.primaryColor1
-                                      .withValues(alpha: 0.6),
-                                ),
-                              ),
-                            )
                           ],
                         ),
                       ),
@@ -625,10 +611,9 @@ class _SearchScreenState extends State<SearchScreen> {
                           child: Text(
                             AppLocalizations.of(context)!.searchNoPlugins,
                             style: TextStyle(
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.4),
-                              fontStyle: FontStyle.italic,
-                            ),
+                                color: Default_Theme.primaryColor1
+                                    .withValues(alpha: 0.4),
+                                fontStyle: FontStyle.italic),
                           ),
                         )
                       else
@@ -637,12 +622,30 @@ class _SearchScreenState extends State<SearchScreen> {
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
-                            children: resolvers.map((plugin) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: _pluginChip(plugin),
-                              );
-                            }).toList(),
+                            children: resolvers
+                                .map((plugin) => Padding(
+                                      padding: const EdgeInsets.only(right: 10),
+                                      child: _PluginChip(
+                                        plugin: plugin,
+                                        activePluginNotifier:
+                                            activePluginNotifier,
+                                        onTap: () {
+                                          final id = plugin.manifest.id;
+                                          if (activePluginNotifier.value == id)
+                                            return;
+                                          activePluginNotifier.value = id;
+                                          contentBloc.add(
+                                              SetActiveContentPlugin(
+                                                  pluginId: id));
+                                          context
+                                              .read<SettingsCubit>()
+                                              .setSearchPluginId(id);
+                                          if (textEditingController.text
+                                              .isNotEmpty) onPluginChanged();
+                                        },
+                                      ),
+                                    ))
+                                .toList(),
                           ),
                         ),
                     ],
@@ -655,88 +658,133 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
+}
 
-  Widget _pluginChip(PluginInfo plugin) {
-    final id = plugin.manifest.id;
-    final isSelected = _activePluginId == id;
+class _PluginChip extends StatelessWidget {
+  final PluginInfo plugin;
+  final ValueNotifier<String?> activePluginNotifier;
+  final VoidCallback onTap;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(50),
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-      hoverColor: Colors.transparent,
-      onTap: () {
-        if (_activePluginId == id) return;
-        setState(() {
-          _activePluginId = id;
-          _contentBloc.add(SetActiveContentPlugin(pluginId: id));
-        });
-        context.read<SettingsCubit>().setSearchPluginId(id);
-        if (_textEditingController.text.isNotEmpty) _triggerSearch();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5.5),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Default_Theme.accentColor2.withValues(alpha: 0.15)
-              : Colors.transparent,
+  const _PluginChip(
+      {required this.plugin,
+      required this.activePluginNotifier,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String?>(
+      valueListenable: activePluginNotifier,
+      builder: (context, activeId, child) {
+        final isSelected = activeId == plugin.manifest.id;
+
+        return InkWell(
           borderRadius: BorderRadius.circular(50),
-          border: Border.all(
-            color: isSelected
-                ? Default_Theme.accentColor2
-                : Default_Theme.primaryColor1.withValues(alpha: 0.15),
-            width: 1.5,
-          ),
-        ),
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOutCubic,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isSelected) ...[
-                const Icon(
-                  MingCute.check_line,
-                  size: 13,
-                  color: Default_Theme.accentColor2,
-                ),
-                const SizedBox(width: 4),
-              ],
-              Text(
-                plugin.name,
-                style: Default_Theme.secondoryTextStyleMedium.merge(
-                  TextStyle(
-                    color: isSelected
-                        ? Default_Theme.accentColor2
-                        : Default_Theme.primaryColor1.withValues(alpha: 0.8),
-                    fontSize: 12.5,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    letterSpacing: 0.3,
-                  ),
-                ),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5.5),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Default_Theme.accentColor2.withValues(alpha: 0.15)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(
+                color: isSelected
+                    ? Default_Theme.accentColor2
+                    : Default_Theme.primaryColor1.withValues(alpha: 0.15),
+                width: 1.5,
               ),
-            ],
+            ),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOutCubic,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isSelected) ...[
+                    const Icon(MingCute.check_line,
+                        size: 13, color: Default_Theme.accentColor2),
+                    const SizedBox(width: 4),
+                  ],
+                  Text(
+                    plugin.name,
+                    style: Default_Theme.secondoryTextStyleMedium.merge(
+                      TextStyle(
+                        color: isSelected
+                            ? Default_Theme.accentColor2
+                            : Default_Theme.primaryColor1
+                                .withValues(alpha: 0.8),
+                        fontSize: 12.5,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
+}
 
-  Widget _buildSuggestionsArea() {
+class _SuggestionsSliver extends StatelessWidget {
+  final TextEditingController textEditingController;
+  final ValueNotifier<int> highlightedIndexNotifier;
+  final void Function(String) onSearchInAllCategories;
+  final void Function(String, ContentSearchFilter) onSearchWithFilter;
+  final void Function(String) onSetSearchFieldText;
+  final void Function(List<({String query, ContentSearchFilter filter})>)
+      onSuggestionsGenerated;
+
+  const _SuggestionsSliver({
+    required this.textEditingController,
+    required this.highlightedIndexNotifier,
+    required this.onSearchInAllCategories,
+    required this.onSearchWithFilter,
+    required this.onSetSearchFieldText,
+    required this.onSuggestionsGenerated,
+  });
+
+  String _normalize(String q) => q.trim().replaceAll(RegExp(r'\s+'), ' ');
+  ContentSearchFilter _filterForEntity(plugin_models.EntityType type) =>
+      switch (type) {
+        plugin_models.EntityType.track => ContentSearchFilter.track,
+        plugin_models.EntityType.album => ContentSearchFilter.album,
+        plugin_models.EntityType.artist => ContentSearchFilter.artist,
+        plugin_models.EntityType.playlist => ContentSearchFilter.playlist,
+        _ => ContentSearchFilter.all,
+      };
+
+  String _buildEntitySearchQuery(plugin_models.EntitySuggestion entity) {
+    final parts = <String>[entity.title.trim()];
+    if (entity.subtitle != null && entity.subtitle!.isNotEmpty) {
+      parts.add(entity.subtitle!
+          .toLowerCase()
+          .replaceAll(RegExp(r'\s+'), " ")
+          .replaceAll(RegExp(r'[^\w\s]+', unicode: true), "")
+          .replaceAll(entity.title.toLowerCase().trim(), ""));
+    }
+    return _normalize(parts.where((p) => p.isNotEmpty).join(' '));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return BlocBuilder<SearchSuggestionBloc, SearchSuggestionState>(
       builder: (context, state) {
         if (state is SearchSuggestionLoading) {
           return const SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 48),
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: Default_Theme.accentColor2,
-                ),
-              ),
-            ),
+                padding: EdgeInsets.symmetric(vertical: 48),
+                child: Center(
+                    child: CircularProgressIndicator(
+                        color: Default_Theme.accentColor2))),
           );
         }
 
@@ -746,166 +794,156 @@ class _SearchScreenState extends State<SearchScreen> {
           final apiList = state.suggestionList;
           final entityList = state.entitySuggestionList;
 
-          _currentCombinedSuggestions = [
+          final combined = <({String query, ContentSearchFilter filter})>[
             ...dbList.map(
-              (query) => (
-                query: _normalizeSearchQuery(query),
-                filter: ContentSearchFilter.all,
-              ),
-            ),
+                (q) => (query: _normalize(q), filter: ContentSearchFilter.all)),
             ...apiList.map(
-              (query) => (
-                query: _normalizeSearchQuery(query),
-                filter: ContentSearchFilter.all,
-              ),
-            ),
-            ...entityList.map(
-              (entity) => (
-                query: _buildEntitySearchQuery(entity),
-                filter: _filterForEntity(entity.kind),
-              ),
-            ),
+                (q) => (query: _normalize(q), filter: ContentSearchFilter.all)),
+            ...entityList.map((e) => (
+                  query: _buildEntitySearchQuery(e),
+                  filter: _filterForEntity(e.kind)
+                )),
           ];
 
-          if (_currentCombinedSuggestions.isEmpty &&
-              _textEditingController.text.isEmpty) {
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => onSuggestionsGenerated(combined));
+
+          if (combined.isEmpty && textEditingController.text.isEmpty) {
             return SliverFillRemaining(
-              hasScrollBody: false,
-              child: SignBoardWidget(
-                message: AppLocalizations.of(context)!.searchStartTyping,
-                icon: MingCute.keyboard_line,
-              ),
-            );
+                hasScrollBody: false,
+                child: SignBoardWidget(
+                    message: AppLocalizations.of(context)!.searchStartTyping,
+                    icon: MingCute.keyboard_line));
+          }
+          if (combined.isEmpty) {
+            return SliverFillRemaining(
+                hasScrollBody: false,
+                child: SignBoardWidget(
+                    message: AppLocalizations.of(context)!.searchNoSuggestions,
+                    icon: MingCute.ghost_line));
           }
 
-          if (_currentCombinedSuggestions.isEmpty) {
-            return SliverFillRemaining(
-              hasScrollBody: false,
-              child: SignBoardWidget(
-                message: AppLocalizations.of(context)!.searchNoSuggestions,
-                icon: MingCute.ghost_line,
-              ),
-            );
-          }
-
-          final suggestionChildren = <Widget>[
+          final children = <Widget>[
             const SizedBox(height: 12),
             if (dbList.isNotEmpty) ...[
-              _buildSuggestionSectionHeader(
-                title: 'Recent',
-                icon: MingCute.history_line,
-              ),
-              ...dbList.asMap().entries.map((entry) {
-                return _buildSuggestionTile(
-                  suggestion: entry.value,
-                  icon: MingCute.history_line,
-                  isHistory: true,
-                  isHighlighted: entry.key == _highlightedSuggestionIndex,
-                );
-              }),
+              _buildSuggestionSectionHeader('Recent', MingCute.history_line),
+              ...dbList.asMap().entries.map((e) => _SuggestionTile(
+                    suggestion: e.value,
+                    icon: MingCute.history_line,
+                    isHistory: true,
+                    globalIndex: e.key,
+                    highlightedIndexNotifier: highlightedIndexNotifier,
+                    onSearch: onSearchInAllCategories,
+                    onPopulate: onSetSearchFieldText,
+                  )),
               const SizedBox(height: 12),
             ],
             if (apiList.isNotEmpty) ...[
               _buildSuggestionSectionHeader(
-                title: 'Suggestions',
-                icon: MingCute.search_2_line,
-              ),
-              ...apiList.asMap().entries.map((entry) {
-                return _buildSuggestionTile(
-                  suggestion: entry.value,
-                  icon: MingCute.search_line,
-                  isHistory: false,
-                  isHighlighted: (entry.key + dbList.length) ==
-                      _highlightedSuggestionIndex,
-                );
-              }),
+                  'Suggestions', MingCute.search_2_line),
+              ...apiList.asMap().entries.map((e) => _SuggestionTile(
+                    suggestion: e.value,
+                    icon: MingCute.search_line,
+                    isHistory: false,
+                    globalIndex: e.key + dbList.length,
+                    highlightedIndexNotifier: highlightedIndexNotifier,
+                    onSearch: onSearchInAllCategories,
+                    onPopulate: onSetSearchFieldText,
+                  )),
               const SizedBox(height: 12),
             ],
             if (entityList.isNotEmpty) ...[
               _buildSuggestionSectionHeader(
-                title: 'Top Results',
-                icon: MingCute.sparkles_2_line,
-              ),
-              ...entityList.asMap().entries.map((entry) {
-                return _buildEntitySuggestionTile(
-                  entity: entry.value,
-                  isHighlighted: (entry.key + dbList.length + apiList.length) ==
-                      _highlightedSuggestionIndex,
-                );
-              }),
+                  'Top Results', MingCute.sparkles_2_line),
+              ...entityList.asMap().entries.map((e) => _EntitySuggestionTile(
+                    entity: e.value,
+                    globalIndex: e.key + dbList.length + apiList.length,
+                    filter: _filterForEntity(e.value.kind),
+                    query: _buildEntitySearchQuery(e.value),
+                    highlightedIndexNotifier: highlightedIndexNotifier,
+                    onSearch: onSearchWithFilter,
+                  )),
             ],
             const SizedBox(height: 120),
           ];
 
           return SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate(suggestionChildren),
-            ),
-          );
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              sliver: SliverList(delegate: SliverChildListDelegate(children)));
         }
-
         return SliverFillRemaining(
-          hasScrollBody: false,
-          child: SignBoardWidget(
-            message: AppLocalizations.of(context)!.searchNoSuggestions,
-            icon: MingCute.ghost_line,
-          ),
-        );
+            hasScrollBody: false,
+            child: SignBoardWidget(
+                message: AppLocalizations.of(context)!.searchNoSuggestions,
+                icon: MingCute.ghost_line));
       },
     );
   }
 
-  Widget _buildSuggestionSectionHeader({
-    required String title,
-    required IconData icon,
-  }) {
+  Widget _buildSuggestionSectionHeader(String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-          ),
+          Icon(icon,
+              size: 14,
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.5)),
           const SizedBox(width: 8),
-          Text(
-            title,
-            style: Default_Theme.secondoryTextStyleMedium.copyWith(
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.55),
-              fontSize: 11.5,
-              letterSpacing: 1.1,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          Text(title,
+              style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.55),
+                  fontSize: 11.5,
+                  letterSpacing: 1.1,
+                  fontWeight: FontWeight.w700)),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSuggestionTile({
-    required String suggestion,
-    required IconData icon,
-    required bool isHistory,
-    required bool isHighlighted,
-  }) {
+class _SuggestionTile extends StatelessWidget {
+  final String suggestion;
+  final IconData icon;
+  final bool isHistory;
+  final int globalIndex;
+  final ValueNotifier<int> highlightedIndexNotifier;
+  final void Function(String) onSearch;
+  final void Function(String) onPopulate;
+
+  const _SuggestionTile(
+      {required this.suggestion,
+      required this.icon,
+      required this.isHistory,
+      required this.globalIndex,
+      required this.highlightedIndexNotifier,
+      required this.onSearch,
+      required this.onPopulate});
+
+  @override
+  Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => _doSearchInAllCategories(suggestion),
+        onTap: () => onSearch(suggestion),
         splashColor: Colors.transparent,
         highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-          decoration: BoxDecoration(
-            color: isHighlighted
-                ? Default_Theme.primaryColor1.withValues(alpha: 0.065)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-          ),
+        child: ValueListenableBuilder<int>(
+          valueListenable: highlightedIndexNotifier,
+          builder: (context, highlightedIndex, child) {
+            final isHighlighted = highlightedIndex == globalIndex;
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+              decoration: BoxDecoration(
+                color: isHighlighted
+                    ? Default_Theme.primaryColor1.withValues(alpha: 0.065)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: child,
+            );
+          },
           child: Row(
             children: [
               Icon(icon,
@@ -913,55 +951,57 @@ class _SearchScreenState extends State<SearchScreen> {
                   color: Default_Theme.primaryColor1.withValues(alpha: 0.48)),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(
-                  suggestion,
-                  style: TextStyle(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.9),
-                          fontSize: 15)
-                      .merge(Default_Theme.secondoryTextStyle),
-                ),
-              ),
+                  child: Text(suggestion,
+                      style: TextStyle(
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.9),
+                              fontSize: 15)
+                          .merge(Default_Theme.secondoryTextStyle))),
               if (isHistory)
                 GestureDetector(
-                  onTap: () => context
-                      .read<SearchSuggestionBloc>()
-                      .add(SearchSuggestionClear(suggestion)),
-                  child: Icon(MingCute.close_fill,
-                      color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
-                      size: 18),
-                )
+                    onTap: () => context
+                        .read<SearchSuggestionBloc>()
+                        .add(SearchSuggestionClear(suggestion)),
+                    child: Icon(MingCute.close_fill,
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.4),
+                        size: 18))
               else
                 GestureDetector(
-                  onTap: () {
-                    final normalizedSuggestion =
-                        _normalizeSearchQuery(suggestion);
-                    _setSearchFieldText(normalizedSuggestion);
-                    _openSuggestionPanel();
-                    _searchFocusNode.requestFocus();
-                    context
-                        .read<SearchSuggestionBloc>()
-                        .add(SearchSuggestionFetch(normalizedSuggestion));
-                  },
-                  child: Icon(MingCute.arrow_left_up_line,
-                      color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
-                      size: 18),
-                )
+                    onTap: () => onPopulate(
+                        suggestion.trim().replaceAll(RegExp(r'\s+'), ' ')),
+                    child: Icon(MingCute.arrow_left_up_line,
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.4),
+                        size: 18))
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildEntitySuggestionTile({
-    required plugin_models.EntitySuggestion entity,
-    required bool isHighlighted,
-  }) {
+class _EntitySuggestionTile extends StatelessWidget {
+  final plugin_models.EntitySuggestion entity;
+  final int globalIndex;
+  final ContentSearchFilter filter;
+  final String query;
+  final ValueNotifier<int> highlightedIndexNotifier;
+  final void Function(String, ContentSearchFilter) onSearch;
+
+  const _EntitySuggestionTile(
+      {required this.entity,
+      required this.globalIndex,
+      required this.filter,
+      required this.query,
+      required this.highlightedIndexNotifier,
+      required this.onSearch});
+
+  @override
+  Widget build(BuildContext context) {
     final thumbnailUrl = entity.thumbnail?.urlLow ?? entity.thumbnail?.url;
     final isArtist = entity.kind == plugin_models.EntityType.artist;
-    final targetFilter = _filterForEntity(entity.kind);
-    final searchQuery = _buildEntitySearchQuery(entity);
     final typeLabel = switch (entity.kind) {
       plugin_models.EntityType.track =>
         AppLocalizations.of(context)!.searchTracks,
@@ -975,90 +1015,64 @@ class _SearchScreenState extends State<SearchScreen> {
       plugin_models.EntityType.unknown => 'Result',
     };
 
-    Widget buildThumbnail(Widget child) => isArtist
-        ? ClipOval(child: child)
-        : ClipRRect(borderRadius: BorderRadius.circular(6), child: child);
-
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => _doSearchWithFilter(searchQuery, targetFilter),
+        onTap: () => onSearch(query, filter),
         splashColor: Colors.transparent,
         highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isHighlighted
-                ? Default_Theme.primaryColor1.withValues(alpha: 0.07)
-                : Default_Theme.primaryColor2.withValues(alpha: 0.02),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isHighlighted
-                  ? Default_Theme.primaryColor1.withValues(alpha: 0.12)
-                  : Colors.white.withValues(alpha: 0.04),
-            ),
-          ),
+        child: ValueListenableBuilder<int>(
+          valueListenable: highlightedIndexNotifier,
+          builder: (context, highlightedIndex, child) {
+            final isHighlighted = highlightedIndex == globalIndex;
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isHighlighted
+                    ? Default_Theme.primaryColor1.withValues(alpha: 0.07)
+                    : Default_Theme.primaryColor2.withValues(alpha: 0.02),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                    color: isHighlighted
+                        ? Default_Theme.primaryColor1.withValues(alpha: 0.12)
+                        : Colors.white.withValues(alpha: 0.04)),
+              ),
+              child: child,
+            );
+          },
           child: Row(
             children: [
-              buildThumbnail(
-                thumbnailUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: thumbnailUrl,
-                        width: 42,
-                        height: 42,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => Container(
-                          width: 42,
-                          height: 42,
-                          color: Default_Theme.primaryColor2
-                              .withValues(alpha: 0.15),
-                          child: Icon(MingCute.search_line,
-                              size: 18,
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.4)),
-                        ),
-                      )
-                    : Container(
-                        width: 42,
-                        height: 42,
-                        color:
-                            Default_Theme.primaryColor2.withValues(alpha: 0.15),
-                        child: Icon(MingCute.search_line,
-                            size: 18,
-                            color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.4)),
-                      ),
-              ),
+              isArtist
+                  ? ClipOval(child: _buildThumb(thumbnailUrl))
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: _buildThumb(thumbnailUrl)),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      entity.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.9),
-                              fontSize: 14.5)
-                          .merge(Default_Theme.secondoryTextStyleMedium),
-                    ),
-                    if (entity.subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        entity.subtitle!,
+                    Text(entity.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                                 color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.5),
-                                fontSize: 12)
-                            .merge(Default_Theme.secondoryTextStyle),
-                      ),
+                                    .withValues(alpha: 0.9),
+                                fontSize: 14.5)
+                            .merge(Default_Theme.secondoryTextStyleMedium)),
+                    if (entity.subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(entity.subtitle!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                                  color: Default_Theme.primaryColor1
+                                      .withValues(alpha: 0.5),
+                                  fontSize: 12)
+                              .merge(Default_Theme.secondoryTextStyle)),
                     ],
                   ],
                 ),
@@ -1068,20 +1082,17 @@ class _SearchScreenState extends State<SearchScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Default_Theme.primaryColor1.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
-                  ),
-                ),
-                child: Text(
-                  typeLabel,
-                  style: Default_Theme.secondoryTextStyleMedium.copyWith(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.52),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                        color: Default_Theme.primaryColor1
+                            .withValues(alpha: 0.08))),
+                child: Text(typeLabel,
+                    style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.52),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -1090,96 +1101,104 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildContentArea() {
+  Widget _buildThumb(String? url) {
+    if (url != null) {
+      return CachedNetworkImage(
+          imageUrl: url,
+          width: 42,
+          height: 42,
+          fit: BoxFit.cover,
+          errorWidget: (_, __, ___) => _placeholder());
+    }
+    return _placeholder();
+  }
+
+  Widget _placeholder() => Container(
+      width: 42,
+      height: 42,
+      color: Default_Theme.primaryColor2.withValues(alpha: 0.15),
+      child: Icon(MingCute.search_line,
+          size: 18, color: Default_Theme.primaryColor1.withValues(alpha: 0.4)));
+}
+
+class _ContentSliver extends StatelessWidget {
+  final ContentBloc contentBloc;
+  final ValueNotifier<String?> activePluginNotifier;
+
+  const _ContentSliver(
+      {required this.contentBloc, required this.activePluginNotifier});
+
+  @override
+  Widget build(BuildContext context) {
     return BlocBuilder<ConnectivityCubit, ConnectivityState>(
       builder: (context, connState) {
         if (connState == ConnectivityState.disconnected) {
           return SliverFillRemaining(
-            hasScrollBody: false,
-            child: SignBoardWidget(
-              icon: MingCute.wifi_off_line,
-              message: AppLocalizations.of(context)!.emptyNoInternet,
-            ),
-          );
+              hasScrollBody: false,
+              child: SignBoardWidget(
+                  icon: MingCute.wifi_off_line,
+                  message: AppLocalizations.of(context)!.emptyNoInternet));
         }
 
         return BlocBuilder<ContentBloc, ContentState>(
-          bloc: _contentBloc,
+          bloc: contentBloc,
           builder: (context, state) {
             final hasResults = state.searchResults != null &&
                 state.searchResults!.items.isNotEmpty;
 
-            // Loading with no previous results → spinner
             if (state.searchStatus == SearchStatus.loading && !hasResults) {
               return const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                    child: CircularProgressIndicator(
-                        color: Default_Theme.accentColor2)),
-              );
+                  hasScrollBody: false,
+                  child: Center(
+                      child: CircularProgressIndicator(
+                          color: Default_Theme.accentColor2)));
             }
-
-            // Loading with previous results → keep showing them
-            // but surface a clear loading affordance to avoid stale-looking UI.
-            if (state.searchStatus == SearchStatus.loading && hasResults) {
-              return _buildSliverSearchResults(state);
-            }
-
-            if ((state.searchStatus == SearchStatus.loaded ||
+            if ((state.searchStatus == SearchStatus.loading ||
+                    state.searchStatus == SearchStatus.loaded ||
                     state.searchStatus == SearchStatus.loadingMore) &&
                 hasResults) {
-              return _buildSliverSearchResults(state);
+              return _SliverSearchResults(
+                  state: state, activePluginNotifier: activePluginNotifier);
             }
-
-            // Loaded but empty results
             if (state.searchStatus == SearchStatus.loaded &&
                 state.searchResults != null &&
                 state.searchResults!.items.isEmpty) {
               return SliverFillRemaining(
-                hasScrollBody: false,
-                child: SignBoardWidget(
-                  message: AppLocalizations.of(context)!.searchNoResults,
-                  icon: MingCute.ghost_line,
-                ),
-              );
+                  hasScrollBody: false,
+                  child: SignBoardWidget(
+                      message: AppLocalizations.of(context)!.searchNoResults,
+                      icon: MingCute.ghost_line));
             }
-
             if (state.searchStatus == SearchStatus.error) {
               return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: SignBoardWidget(
+                      message: state.error ??
+                          AppLocalizations.of(context)!.searchFailed,
+                      icon: MingCute.sweats_line));
+            }
+            return SliverFillRemaining(
                 hasScrollBody: false,
                 child: SignBoardWidget(
-                  message:
-                      state.error ?? AppLocalizations.of(context)!.searchFailed,
-                  icon: MingCute.sweats_line,
-                ),
-              );
-            }
-
-            return SliverFillRemaining(
-              hasScrollBody: false,
-              child: SignBoardWidget(
-                message: AppLocalizations.of(context)!.searchDiscover,
-                icon: MingCute.planet_line,
-              ),
-            );
+                    message: AppLocalizations.of(context)!.searchDiscover,
+                    icon: MingCute.planet_line));
           },
         );
       },
     );
   }
+}
 
-  Widget _buildSliverSearchResults(ContentState state) {
+class _SliverSearchResults extends StatelessWidget {
+  final ContentState state;
+  final ValueNotifier<String?> activePluginNotifier;
+
+  const _SliverSearchResults(
+      {required this.state, required this.activePluginNotifier});
+
+  @override
+  Widget build(BuildContext context) {
     final items = state.searchResults!.items;
-    if (items.isEmpty) {
-      return SliverFillRemaining(
-        hasScrollBody: false,
-        child: SignBoardWidget(
-          message: AppLocalizations.of(context)!.searchNoResults,
-          icon: MingCute.ghost_line,
-        ),
-      );
-    }
-
     final tracks = <Track>[];
     final albums = <AlbumSummary>[];
     final artists = <ArtistSummary>[];
@@ -1198,7 +1217,7 @@ class _SearchScreenState extends State<SearchScreen> {
       }
     }
 
-    final pluginId = _activePluginId ?? '';
+    final pluginId = activePluginNotifier.value ?? '';
     final isLoadingMore = state.searchStatus == SearchStatus.loadingMore;
     final isRefreshing = state.searchStatus == SearchStatus.loading;
 
@@ -1212,31 +1231,24 @@ class _SearchScreenState extends State<SearchScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Default_Theme.primaryColor2.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.05),
-                  ),
-                ),
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.05))),
                 child: Row(
                   children: [
                     const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: Default_Theme.accentColor2,
-                      ),
-                    ),
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Default_Theme.accentColor2)),
                     const SizedBox(width: 10),
-                    Text(
-                      'Searching...',
-                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.78),
-                        fontSize: 12.5,
-                      ),
-                    ),
+                    Text('Searching...',
+                        style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.78),
+                            fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -1255,15 +1267,10 @@ class _SearchScreenState extends State<SearchScreen> {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                     child: SongCardWidget(
                       song: track,
-                      onTap: () {
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .updateQueueTracks(
-                          [track],
-                          doPlay: true,
-                        );
-                      },
+                      onTap: () => context
+                          .read<BloomeePlayerCubit>()
+                          .bloomeePlayer
+                          .updateQueueTracks([track], doPlay: true),
                       onOptionsTap: () => showMoreBottomSheet(context, track,
                           showSinglePlay: true),
                     ),
@@ -1294,13 +1301,11 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
         if (isLoadingMore)
           const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
-              child: Center(
-                  child: CircularProgressIndicator(
-                      color: Default_Theme.accentColor2)),
-            ),
-          )
+              child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: Center(
+                      child: CircularProgressIndicator(
+                          color: Default_Theme.accentColor2))))
         else
           const SliverPadding(padding: EdgeInsets.only(bottom: 30)),
       ],
@@ -1313,13 +1318,10 @@ class _SearchScreenState extends State<SearchScreen> {
         padding: const EdgeInsets.only(left: 20, top: 20, bottom: 12),
         child: Text(
           title,
-          style: Default_Theme.secondoryTextStyleMedium.merge(
-            TextStyle(
+          style: Default_Theme.secondoryTextStyleMedium.merge(TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.9),
-            ),
-          ),
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.9))),
         ),
       ),
     );
@@ -1330,56 +1332,67 @@ class _SearchScreenState extends State<SearchScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverToBoxAdapter(
         child: Wrap(
-          spacing: 20,
-          runSpacing: 28,
-          alignment: WrapAlignment.start,
-          children: children,
-        ),
+            spacing: 20,
+            runSpacing: 28,
+            alignment: WrapAlignment.start,
+            children: children),
       ),
     );
   }
+}
 
-  Widget _buildAnimatedSearchLeadingIcon() {
+class _NebulaBackground extends StatelessWidget {
+  final ContentBloc contentBloc;
+  const _NebulaBackground({required this.contentBloc});
+
+  List<Color> _getReactiveGradientColors(ContentState state) {
+    if (state.searchStatus != SearchStatus.loaded &&
+        state.searchStatus != SearchStatus.loadingMore)
+      return [Colors.transparent, Colors.transparent];
+    final items = state.searchResults?.items;
+    if (items == null || items.isEmpty)
+      return [Colors.transparent, Colors.transparent];
+
+    String seedString = "";
+    final firstItem = items.first;
+    switch (firstItem) {
+      case MediaItem_Track(:final field0):
+        seedString = field0.thumbnail.urlLow ?? field0.thumbnail.url;
+      case MediaItem_Album(:final field0):
+        seedString =
+            field0.thumbnail?.urlLow ?? field0.thumbnail?.url ?? field0.title;
+      case MediaItem_Artist(:final field0):
+        seedString =
+            field0.thumbnail?.urlLow ?? field0.thumbnail?.url ?? field0.name;
+      case MediaItem_Playlist(:final field0):
+        seedString = field0.thumbnail.urlLow ?? field0.thumbnail.url;
+    }
+
+    final int hash = seedString.hashCode;
+    double hue = (hash % 360).abs().toDouble();
+    if (hue > 60 && hue < 170) hue = (hash % 2 == 0) ? 180 : 40;
+
+    final color1 = HSLColor.fromAHSL(1.0, hue, 0.65, 0.35).toColor();
+    final color2 =
+        HSLColor.fromAHSL(1.0, (hue + 40) % 360, 0.65, 0.30).toColor();
+    return [color1, color2];
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return BlocBuilder<ContentBloc, ContentState>(
-      bloc: _contentBloc,
-      buildWhen: (previous, current) =>
-          previous.searchStatus != current.searchStatus,
+      bloc: contentBloc,
       builder: (context, state) {
-        final isLoading = state.searchStatus == SearchStatus.loading ||
-            state.searchStatus == SearchStatus.loadingMore;
-
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 240),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          transitionBuilder: (child, animation) {
-            final rotation = Tween<double>(begin: 0.82, end: 1).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-            );
-            return FadeTransition(
-              opacity: animation,
-              child: RotationTransition(
-                turns: rotation,
-                child: child,
-              ),
-            );
-          },
-          child: isLoading
-              ? SizedBox(
-                  key: const ValueKey('search-loading'),
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                  ),
-                )
-              : Icon(
-                  MingCute.search_2_line,
-                  key: const ValueKey('search-idle'),
-                  color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                  size: 20,
-                ),
+        final colors = _getReactiveGradientColors(state);
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 1500),
+          curve: Curves.easeOutCubic,
+          width: double.infinity,
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: CustomPaint(
+              painter: NebulaPainter(
+                  color1: colors[0].withValues(alpha: 0.18),
+                  color2: colors[1].withValues(alpha: 0.18))),
         );
       },
     );
@@ -1394,31 +1407,26 @@ class NebulaPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Primary Glow (Top Left) - Increased Radius for softness
     final paint1 = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(-0.5, -0.6),
-        radius: 1.6, // Was 1.2, made it bigger to diffuse color more
-        colors: [color1, Colors.transparent],
-        stops: const [0.0, 1.0],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    // Secondary Glow (Top Right)
+              center: const Alignment(-0.5, -0.6),
+              radius: 1.6,
+              colors: [color1, Colors.transparent],
+              stops: const [0.0, 1.0])
+          .createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     final paint2 = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(0.5, -0.6),
-        radius: 1.6, // Bigger radius
-        colors: [color2, Colors.transparent],
-        stops: const [0.0, 1.0],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+              center: const Alignment(0.5, -0.6),
+              radius: 1.6,
+              colors: [color2, Colors.transparent],
+              stops: const [0.0, 1.0])
+          .createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
-    // Blend Mode ensures colors mix smoothly rather than just stacking
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint1);
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint2);
   }
 
   @override
-  bool shouldRepaint(covariant NebulaPainter oldDelegate) {
-    return oldDelegate.color1 != color1 || oldDelegate.color2 != color2;
-  }
+  bool shouldRepaint(covariant NebulaPainter oldDelegate) =>
+      oldDelegate.color1 != color1 || oldDelegate.color2 != color2;
 }
