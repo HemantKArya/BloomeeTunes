@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// No description provided for @playerPlayWithMix.
   ///
   /// In en, this message translates to:
-  /// **'Play with Mix'**
+  /// **'Auto-Mix Play'**
   String get playerPlayWithMix;
 
   /// No description provided for @playerPlayNext.

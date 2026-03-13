@@ -30,7 +30,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get playerQueue => 'कतार';
 
   @override
-  String get playerPlayWithMix => 'मिक्स के साथ चलाएँ';
+  String get playerPlayWithMix => 'स्वचालित-मिक्स संगीत';
 
   @override
   String get playerPlayNext => 'अगला चलाएँ';

@@ -30,7 +30,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerQueue => 'Queue';
 
   @override
-  String get playerPlayWithMix => 'Play with Mix';
+  String get playerPlayWithMix => 'Auto-Mix Play';
 
   @override
   String get playerPlayNext => 'Play Next';
