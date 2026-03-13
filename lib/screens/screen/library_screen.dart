@@ -172,8 +172,8 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                               height: 16,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color:
-                                    Default_Theme.accentColor1.withOpacity(0.6),
+                                color: Default_Theme.accentColor1
+                                    .withValues(alpha: 0.6),
                               ),
                             ),
                           ),
@@ -195,38 +195,72 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                       if (filteredPlaylists.isNotEmpty) ...[
                         if (_isReordering && !isSearching)
                           SliverToBoxAdapter(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              color: const Color(0xFF0F1B2E),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.drag_indicator_rounded,
-                                      color: Default_Theme.primaryColor2
-                                          .withOpacity(0.5),
-                                      size: 15),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!
-                                          .importReorderTip,
-                                      style: Default_Theme.secondoryTextStyle
-                                          .merge(TextStyle(
-                                              color: Default_Theme.primaryColor2
-                                                  .withOpacity(0.6),
-                                              fontSize: 12)),
-                                    ),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.035),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: Default_Theme.accentColor2
+                                        .withValues(alpha: 0.22),
                                   ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        setState(() => _isReordering = false),
-                                    child: Text(
-                                      AppLocalizations.of(context)!.importDone,
-                                      style: const TextStyle(
-                                          color: Default_Theme.accentColor1),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 28,
+                                      height: 28,
+                                      decoration: BoxDecoration(
+                                        color: Default_Theme.accentColor2
+                                            .withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.drag_indicator_rounded,
+                                        color: Default_Theme.accentColor2
+                                            .withValues(alpha: 0.95),
+                                        size: 16,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        AppLocalizations.of(context)!
+                                            .importReorderTip,
+                                        style: Default_Theme.secondoryTextStyle
+                                            .merge(TextStyle(
+                                          color: Default_Theme.primaryColor2
+                                              .withValues(alpha: 0.72),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        )),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          setState(() => _isReordering = false),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor:
+                                            Default_Theme.accentColor2,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 6),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: Text(
+                                        AppLocalizations.of(context)!
+                                            .importDone,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -256,7 +290,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Container(
         decoration: BoxDecoration(
-          color: Default_Theme.primaryColor1.withOpacity(0.08),
+          color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
         ),
         child: TextField(
@@ -274,13 +308,13 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
             hintText: AppLocalizations.of(context)!.searchHintLibrary,
             hintStyle: Default_Theme.secondoryTextStyle.merge(
               TextStyle(
-                color: Default_Theme.primaryColor1.withOpacity(0.4),
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
                 fontSize: 15,
               ),
             ),
             prefixIcon: Icon(
               MingCute.search_line,
-              color: Default_Theme.primaryColor1.withOpacity(0.5),
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
               size: 20,
             ),
             suffixIcon: ValueListenableBuilder<String>(
@@ -294,7 +328,8 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                           key: const ValueKey('clear'),
                           icon: Icon(
                             MingCute.close_fill,
-                            color: Default_Theme.primaryColor1.withOpacity(0.5),
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.5),
                             size: 18,
                           ),
                           onPressed: () {
@@ -504,13 +539,15 @@ class _ListOfPlaylists extends StatelessWidget {
 
   Widget _buildTile(BuildContext context, PlaylistItemProperties playlist) {
     return LibItemCard(
-      onTap: () => _openLibraryItem(context, playlist),
-      onSecondaryTap: () => showPlaylistOptsExtSheet(
-        context,
-        playlist.playlistName,
-        playlistId: playlist.playlistId,
-        isPinned: playlist.isPinned,
-      ),
+      onTap: isReorderable ? null : () => _openLibraryItem(context, playlist),
+      onSecondaryTap: isReorderable
+          ? null
+          : () => showPlaylistOptsExtSheet(
+                context,
+                playlist.playlistName,
+                playlistId: playlist.playlistId,
+                isPinned: playlist.isPinned,
+              ),
       onLongPress: isReorderable
           ? null
           : () => onEnterReorder != null
@@ -545,10 +582,45 @@ class _ListOfPlaylists extends StatelessWidget {
 
     return SliverReorderableList(
       itemBuilder: (context, index) {
-        return ReorderableDelayedDragStartListener(
+        return KeyedSubtree(
           key: ValueKey(playlists[index].playlistId),
-          index: index,
-          child: _buildTile(context, playlists[index]),
+          child: Stack(
+            children: [
+              IgnorePointer(
+                ignoring: true,
+                child: _buildTile(context, playlists[index]),
+              ),
+              Positioned(
+                right: 14,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: ReorderableDragStartListener(
+                    index: index,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color:
+                            Default_Theme.accentColor2.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Default_Theme.accentColor2
+                              .withValues(alpha: 0.20),
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.drag_handle_rounded,
+                        color:
+                            Default_Theme.accentColor2.withValues(alpha: 0.90),
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
       itemExtent: 80,
@@ -569,10 +641,18 @@ Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
       final double elevation = lerpDouble(0, 6, animValue)!;
       return Material(
         elevation: elevation,
-        color: const Color.fromARGB(255, 0, 48, 66),
+        color: Default_Theme.themeColor,
         borderRadius: BorderRadius.circular(12),
-        shadowColor: Default_Theme.themeColor,
-        child: child,
+        shadowColor: Default_Theme.accentColor2.withValues(alpha: 0.25),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Default_Theme.accentColor2.withValues(alpha: 0.20),
+            ),
+          ),
+          child: child,
+        ),
       );
     },
     child: child,

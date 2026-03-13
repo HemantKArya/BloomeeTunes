@@ -84,21 +84,20 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
 
   PaletteGenerator? getCurrentPlaylistPallete() => _paletteGenerator;
 
-  /// Returns sequential position indices for current tracks (for edit view).
-  Future<List<int>> getItemOrder() async {
-    return List<int>.generate(state.playlist.tracks.length, (i) => i);
-  }
-
-  /// Applies a reordered track list to the DB.
+  /// Persists a fully reordered track list, replacing the old DB order.
   ///
-  /// [newOrder] is a list where `newOrder[i]` is the original position
-  /// of the track that should now be at position `i`.
-  Future<void> updatePlaylist(List<int> newOrder) async {
+  /// This is the canonical save from the edit view: it does a clean
+  /// delete-then-re-insert so gaps from prior deletions never cause
+  /// the position-index mismatch that silently broke the old approach.
+  Future<void> updatePlaylist(List<Track> reorderedTracks) async {
     if (_playlist == null) return;
     final playlistDB = await _playlistDao.getPlaylistByName(_playlist!.title);
     if (playlistDB == null) return;
-    await _playlistDao.setTrackOrder(playlistDB.id, newOrder);
-    await setupPlaylist(_playlist!.title);
+    // Optimistic in-memory update so callers see the new order immediately.
+    _playlist = _playlist!.copyWith(tracks: List<Track>.from(reorderedTracks));
+    emit(state.copyWith(playlist: _playlist));
+    // Persist: full replace keeps positions contiguous and correct.
+    await _playlistDao.setPlaylistTracks(playlistDB.id, reorderedTracks);
   }
 
   /// Reorder tracks. [oldIndex] and [newIndex] are 0-based UI positions.

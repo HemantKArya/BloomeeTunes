@@ -436,6 +436,7 @@ class _ResolverPriorityListState extends State<_ResolverPriorityList> {
         child: ReorderableListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
           proxyDecorator: (child, index, animation) {
             return AnimatedBuilder(
               animation: animation,
@@ -462,11 +463,14 @@ class _ResolverPriorityListState extends State<_ResolverPriorityList> {
           itemBuilder: (context, index) {
             final pluginId = _items[index];
             final name = widget.nameMap[pluginId] ?? pluginId;
-            return _PriorityTile(
+            return ReorderableDragStartListener(
               key: ValueKey(pluginId),
-              rank: index + 1,
-              name: name,
-              pluginId: pluginId,
+              index: index,
+              child: _PriorityTile(
+                rank: index + 1,
+                name: name,
+                pluginId: pluginId,
+              ),
             );
           },
         ),
@@ -481,7 +485,6 @@ class _PriorityTile extends StatelessWidget {
   final String pluginId;
 
   const _PriorityTile({
-    super.key,
     required this.rank,
     required this.name,
     required this.pluginId,
@@ -538,7 +541,7 @@ class _PriorityTile extends StatelessWidget {
           Icon(
             MingCute.menu_line,
             size: 20,
-            color: Default_Theme.primaryColor2.withValues(alpha: 0.35),
+            color: Default_Theme.primaryColor2.withValues(alpha: 0.22),
           ),
         ],
       ),
