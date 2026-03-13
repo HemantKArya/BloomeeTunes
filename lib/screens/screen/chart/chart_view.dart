@@ -18,6 +18,7 @@ import 'package:Bloomee/screens/widgets/chart_list_tile.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/meta_resolver/chart_item_resolver.dart';
+import 'package:Bloomee/services/meta_resolver/cross_plugin_resolver.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -83,8 +84,9 @@ class _ChartScreenBody extends StatefulWidget {
 }
 
 class _ChartScreenBodyState extends State<_ChartScreenBody> {
-  final ChartItemResolver _resolver =
-      ChartItemResolver(pluginService: ServiceLocator.pluginService);
+  final ChartItemResolver _resolver = ChartItemResolver(
+      resolver:
+          CrossPluginResolver(pluginService: ServiceLocator.pluginService));
   static const double _kResolverConfidenceThreshold = 65.0;
   final Map<String, ChartResolveActionStatus> _actionStatuses = {};
   final Map<String, int> _actionTokens = {};

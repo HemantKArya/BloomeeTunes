@@ -6,9 +6,10 @@ import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/constants/sentinel_values.dart';
 import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
-import 'package:Bloomee/services/chart_item_resolver.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
+import 'package:Bloomee/services/meta_resolver/chart_item_resolver.dart';
+import 'package:Bloomee/services/meta_resolver/cross_plugin_resolver.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -353,7 +354,9 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     final playlist = response['playlist'] as List? ?? [];
     if (playlist.isEmpty) return [];
 
-    final resolver = ChartItemResolver(pluginService: _pluginService);
+    final resolver = ChartItemResolver(
+      resolver: CrossPluginResolver(pluginService: _pluginService),
+    );
     final tracks = <Track>[];
 
     // Resolve up to 10 tracks (API can return many; avoid over-fetching).

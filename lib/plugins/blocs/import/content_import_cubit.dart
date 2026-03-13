@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:Bloomee/services/meta_resolver/cross_plugin_resolver.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:Bloomee/core/di/service_locator.dart';
@@ -9,27 +11,41 @@ import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
-import 'package:Bloomee/src/rust/api/plugin/models.dart';
+import 'package:Bloomee/src/rust/api/plugin/types.dart';
 
-/// Cubit managing the full content-import workflow:
-///
-/// 1. **URL check** — ask the importer plugin if it can handle the URL.
-/// 2. **Collection info** — fetch summary (title, thumbnail, track count).
-/// 3. **Track list** — fetch all tracks from the source.
-/// 4. **Resolution** — for each track, search loaded content-resolver
-///    plugins to find a playable match.
-/// 5. **Review** — user inspects results before saving.
-/// 6. **Save** — persist resolved tracks into a new library playlist.
+const int _kResolutionConcurrency = 5;
+const Duration _kPluginTimeout = Duration(seconds: 10);
+const double _kMinConfidence = 0.45;
+const int _kMaxCandidatesPerTrack = 5;
+
 class ContentImportCubit extends Cubit<ContentImportState> {
   final PluginService _pluginService;
+  final CrossPluginResolver _resolver;
+  final PlaylistDAO _playlistDao;
 
-  ContentImportCubit({PluginService? pluginService})
-      : _pluginService = pluginService ?? ServiceLocator.pluginService,
+  bool _cancelRequested = false;
+
+  ContentImportCubit({
+    PluginService? pluginService,
+    CrossPluginResolver? resolver,
+    PlaylistDAO? playlistDao,
+  })  : _pluginService = pluginService ?? ServiceLocator.pluginService,
+        _resolver = resolver ??
+            CrossPluginResolver(
+              pluginService: pluginService ?? ServiceLocator.pluginService,
+            ),
+        _playlistDao = playlistDao ?? _defaultPlaylistDao(),
         super(const ContentImportState());
+
+  static PlaylistDAO _defaultPlaylistDao() {
+    final trackDao = TrackDAO(DBProvider.db);
+    return PlaylistDAO(DBProvider.db, trackDao);
+  }
 
   // ── Step 1: Check URL ────────────────────────────────────────────────────
 
   Future<void> checkUrl(String pluginId, String url) async {
+    _cancelRequested = false;
     emit(state.copyWith(
       phase: ImportPhase.checkingUrl,
       pluginId: pluginId,
@@ -38,12 +54,14 @@ class ContentImportCubit extends Cubit<ContentImportState> {
     ));
 
     try {
-      final response = await _pluginService.execute(
-        pluginId: pluginId,
-        request: PluginRequest.contentImporter(
-          ContentImporterCommand.canHandleUrl(url: url),
-        ),
-      );
+      final response = await _pluginService
+          .execute(
+            pluginId: pluginId,
+            request: PluginRequest.contentImporter(
+              ContentImporterCommand.canHandleUrl(url: url),
+            ),
+          )
+          .timeout(_kPluginTimeout);
 
       if (response is PluginResponse_CanHandle && response.field0) {
         await _fetchCollectionInfo(pluginId, url);
@@ -53,6 +71,11 @@ class ContentImportCubit extends Cubit<ContentImportState> {
           error: 'This plugin cannot handle the provided URL.',
         ));
       }
+    } on TimeoutException {
+      emit(state.copyWith(
+        phase: ImportPhase.error,
+        error: 'Plugin timed out while checking URL.',
+      ));
     } catch (e) {
       log('checkUrl failed: $e', name: 'ContentImportCubit');
       emit(state.copyWith(
@@ -68,12 +91,14 @@ class ContentImportCubit extends Cubit<ContentImportState> {
     emit(state.copyWith(phase: ImportPhase.fetchingInfo));
 
     try {
-      final response = await _pluginService.execute(
-        pluginId: pluginId,
-        request: PluginRequest.contentImporter(
-          ContentImporterCommand.getCollectionInfo(url: url),
-        ),
-      );
+      final response = await _pluginService
+          .execute(
+            pluginId: pluginId,
+            request: PluginRequest.contentImporter(
+              ContentImporterCommand.getCollectionInfo(url: url),
+            ),
+          )
+          .timeout(_kPluginTimeout);
 
       if (response is PluginResponse_CollectionInfo) {
         emit(state.copyWith(
@@ -87,6 +112,11 @@ class ContentImportCubit extends Cubit<ContentImportState> {
           error: 'Unexpected response when fetching collection info.',
         ));
       }
+    } on TimeoutException {
+      emit(state.copyWith(
+        phase: ImportPhase.error,
+        error: 'Timed out fetching collection info.',
+      ));
     } catch (e) {
       log('_fetchCollectionInfo failed: $e', name: 'ContentImportCubit');
       emit(state.copyWith(
@@ -100,19 +130,21 @@ class ContentImportCubit extends Cubit<ContentImportState> {
 
   Future<void> _fetchTracks(String pluginId, String url) async {
     try {
-      final response = await _pluginService.execute(
-        pluginId: pluginId,
-        request: PluginRequest.contentImporter(
-          ContentImporterCommand.getTracks(url: url),
-        ),
-      );
+      final response = await _pluginService
+          .execute(
+            pluginId: pluginId,
+            request: PluginRequest.contentImporter(
+              ContentImporterCommand.getTracks(url: url),
+            ),
+          )
+          .timeout(_kPluginTimeout);
 
       if (response is PluginResponse_ImportTracks) {
         final entries = response.field0
             .map((t) => ImportTrackEntry(sourceTrack: t))
             .toList();
         emit(state.copyWith(
-          tracks: entries,
+          tracks: List.unmodifiable(entries),
           phase: ImportPhase.resolving,
         ));
         await _resolveTracks();
@@ -122,6 +154,11 @@ class ContentImportCubit extends Cubit<ContentImportState> {
           error: 'Unexpected response when fetching tracks.',
         ));
       }
+    } on TimeoutException {
+      emit(state.copyWith(
+        phase: ImportPhase.error,
+        error: 'Timed out fetching tracks.',
+      ));
     } catch (e) {
       log('_fetchTracks failed: $e', name: 'ContentImportCubit');
       emit(state.copyWith(
@@ -134,110 +171,148 @@ class ContentImportCubit extends Cubit<ContentImportState> {
   // ── Step 4: Resolve Tracks ───────────────────────────────────────────────
 
   Future<void> _resolveTracks() async {
-    final loadedPlugins = _pluginService.getLoadedPlugins();
+    final resolverPluginIds = await _getContentResolverPluginIds();
+    if (resolverPluginIds.isEmpty) {
+      log('No content-resolver plugins loaded; skipping resolution.',
+          name: 'ContentImportCubit');
+      emit(state.copyWith(phase: ImportPhase.review));
+      return;
+    }
+
     final tracks = List<ImportTrackEntry>.from(state.tracks);
-    var resolved = 0;
-    var failed = 0;
+    final semaphore = Semaphore(_kResolutionConcurrency);
+    final futures = <Future<void>>[];
 
     for (var i = 0; i < tracks.length; i++) {
-      if (isClosed) return;
+      final index = i;
+      futures.add(
+        semaphore.run(() => _resolveOneEntry(
+              tracks: tracks,
+              index: index,
+              pluginIds: resolverPluginIds,
+            )),
+      );
+    }
 
-      final entry = tracks[i];
-      tracks[i] = entry.copyWith(status: TrackResolutionStatus.resolving);
+    await Future.wait(futures);
+
+    if (!isClosed && !_cancelRequested) {
+      final counts = _recount(tracks);
+      log(
+        'Resolution complete: ${counts.resolved} resolved, '
+        '${counts.failed} failed out of ${tracks.length}',
+        name: 'ContentImportCubit',
+      );
+      emit(state.copyWith(
+        tracks: List.unmodifiable(tracks),
+        resolvedCount: counts.resolved,
+        failedCount: counts.failed,
+        phase: ImportPhase.review,
+      ));
+    }
+  }
+
+  Future<void> _resolveOneEntry({
+    required List<ImportTrackEntry> tracks,
+    required int index,
+    required List<String> pluginIds,
+  }) async {
+    if (isClosed || _cancelRequested) return;
+
+    final entry = tracks[index];
+
+    // Mark as resolving.
+    tracks[index] = entry.copyWith(status: TrackResolutionStatus.resolving);
+    if (!isClosed) {
       emit(state.copyWith(tracks: List.unmodifiable(tracks)));
+    }
 
-      final query =
-          '${entry.sourceTrack.title} ${entry.sourceTrack.artists.join(' ')}';
-      final candidates = await _searchCandidates(query, loadedPlugins);
+    try {
+      final target = TrackMatchTarget.fromImport(
+        title: entry.sourceTrack.title,
+        artists: entry.sourceTrack.artists,
+        durationMs: entry.sourceTrack.durationMs?.toInt(),
+      );
+
+      // Use the shared resolver — parallel across plugins, scored, with
+      // early-exit on high confidence.
+      final candidates = await _resolver.resolveTrack(
+        target: target,
+        pluginIds: pluginIds,
+        sequential: false,
+        minConfidence: _kMinConfidence,
+        earlyAcceptThreshold: 0.93,
+        limit: _kMaxCandidatesPerTrack,
+      );
+
+      if (isClosed || _cancelRequested) return;
 
       if (candidates.isNotEmpty) {
-        tracks[i] = entry.copyWith(
+        tracks[index] = entry.copyWith(
           status: TrackResolutionStatus.resolved,
-          resolvedTrack: candidates.first,
-          candidates: candidates,
+          resolvedTrack: candidates.first.track,
+          candidates: candidates.map((c) => c.track).toList(growable: false),
         );
-        resolved++;
       } else {
-        tracks[i] = entry.copyWith(
+        tracks[index] = entry.copyWith(
           status: TrackResolutionStatus.failed,
           candidates: const [],
         );
-        failed++;
       }
+    } catch (e) {
+      log(
+        'Failed to resolve "${entry.sourceTrack.title}": $e',
+        name: 'ContentImportCubit',
+      );
+      if (!isClosed && !_cancelRequested) {
+        tracks[index] = entry.copyWith(
+          status: TrackResolutionStatus.failed,
+          candidates: const [],
+        );
+      }
+    }
 
+    // Emit progress.
+    if (!isClosed && !_cancelRequested) {
+      final counts = _recount(tracks);
       emit(state.copyWith(
         tracks: List.unmodifiable(tracks),
-        resolvedCount: resolved,
-        failedCount: failed,
+        resolvedCount: counts.resolved,
+        failedCount: counts.failed,
       ));
     }
-
-    emit(state.copyWith(phase: ImportPhase.review));
   }
 
-  /// Search for up to [maxResults] candidate tracks across all loaded
-  /// content-resolver plugins.
-  Future<List<Track>> _searchCandidates(
-    String query,
-    List<String> pluginIds, {
-    int maxResults = 5,
-  }) async {
-    final results = <Track>[];
-    for (final pluginId in pluginIds) {
-      if (results.length >= maxResults) break;
-      try {
-        final response = await _pluginService.execute(
-          pluginId: pluginId,
-          request: PluginRequest.contentResolver(
-            ContentResolverCommand.search(
-              query: query,
-              filter: ContentSearchFilter.track,
-            ),
-          ),
-        );
+  // ── Cancellation ─────────────────────────────────────────────────────────
 
-        if (response is PluginResponse_Search) {
-          for (final item in response.field0.items) {
-            if (item is MediaItem_Track && results.length < maxResults) {
-              results.add(item.field0);
-            }
-          }
-        }
-      } catch (_) {
-        continue;
-      }
-    }
-    return results;
+  void cancelResolution() {
+    if (state.phase != ImportPhase.resolving) return;
+    _cancelRequested = true;
+    log('Resolution cancelled by user.', name: 'ContentImportCubit');
+
+    final counts = _recount(state.tracks);
+    emit(state.copyWith(
+      phase: ImportPhase.review,
+      resolvedCount: counts.resolved,
+      failedCount: counts.failed,
+    ));
   }
 
-  // ── User candidate selection ────────────────────────────────────────────
+  // ── User candidate selection ─────────────────────────────────────────────
 
-  /// Let the user explicitly pick a candidate (or skip) for a resolved track.
-  ///
-  /// [candidateIdx] is the index into [ImportTrackEntry.candidates];
-  /// pass -1 to skip the track (exclude from save).
   void pickCandidate(int trackIndex, int? candidateIdx) {
     final tracks = List<ImportTrackEntry>.from(state.tracks);
     if (trackIndex < 0 || trackIndex >= tracks.length) return;
 
-    tracks[trackIndex] =
-        tracks[trackIndex].copyWith(selectedCandidateIndex: candidateIdx);
+    tracks[trackIndex] = tracks[trackIndex].copyWith(
+      selectedCandidateIndex: candidateIdx,
+    );
 
-    // Recount from scratch so counts stay accurate.
-    final resolved =
-        tracks.where((t) => !t.isSkipped && t.effectiveTrack != null).length;
-    final failed = tracks
-        .where((t) =>
-            t.isSkipped ||
-            (t.effectiveTrack == null &&
-                t.status != TrackResolutionStatus.pending &&
-                t.status != TrackResolutionStatus.resolving))
-        .length;
-
+    final counts = _recount(tracks);
     emit(state.copyWith(
       tracks: List.unmodifiable(tracks),
-      resolvedCount: resolved,
-      failedCount: failed,
+      resolvedCount: counts.resolved,
+      failedCount: counts.failed,
     ));
   }
 
@@ -250,30 +325,29 @@ class ContentImportCubit extends Cubit<ContentImportState> {
     emit(state.copyWith(phase: ImportPhase.saving));
 
     try {
-      // Use provided name → collection title → fallback.
       final rawName = customName?.trim().isNotEmpty == true
           ? customName!.trim()
           : info.title.trim();
       final playlistName = rawName.isNotEmpty ? rawName : 'Imported Playlist';
 
-      final trackDao = TrackDAO(DBProvider.db);
-      final playlistDao = PlaylistDAO(DBProvider.db, trackDao);
-      final playlistId = await playlistDao.ensurePlaylist(playlistName);
+      final playlistId = await _playlistDao.ensurePlaylist(playlistName);
 
-      // Set thumbnail from collection summary if available.
       final thumbUrl = info.thumbnailUrl;
       if (thumbUrl != null && thumbUrl.isNotEmpty) {
-        await playlistDao.updatePlaylistThumbnail(playlistId, thumbUrl);
+        await _playlistDao.updatePlaylistThumbnail(playlistId, thumbUrl);
       }
 
       var savedCount = 0;
       for (final entry in state.tracks) {
         final track = entry.effectiveTrack;
         if (track != null) {
-          await playlistDao.addTrackToPlaylist(playlistId, track);
+          await _playlistDao.addTrackToPlaylist(playlistId, track);
           savedCount++;
         }
       }
+
+      log('Saved $savedCount tracks to "$playlistName".',
+          name: 'ContentImportCubit');
 
       emit(state.copyWith(
         phase: ImportPhase.done,
@@ -288,8 +362,41 @@ class ContentImportCubit extends Cubit<ContentImportState> {
     }
   }
 
-  /// Reset the cubit state for a new import.
+  // ── Reset ────────────────────────────────────────────────────────────────
+
   void reset() {
+    _cancelRequested = false;
     emit(const ContentImportState());
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  /// Returns only loaded content-resolver plugin IDs.
+  Future<List<String>> _getContentResolverPluginIds() async {
+    final available = await _pluginService.getAvailablePlugins();
+    final loadedIds = _pluginService.getLoadedPlugins().toSet();
+    return available
+        .where((p) =>
+            p.pluginType == PluginType.contentResolver &&
+            loadedIds.contains(p.manifest.id))
+        .map((p) => p.manifest.id)
+        .toList(growable: false);
+  }
+
+  /// Single source of truth for resolved/failed counts.
+  ({int resolved, int failed}) _recount(List<ImportTrackEntry> tracks) {
+    var resolved = 0;
+    var failed = 0;
+    for (final t in tracks) {
+      if (t.isSkipped) {
+        failed++;
+      } else if (t.effectiveTrack != null) {
+        resolved++;
+      } else if (t.status != TrackResolutionStatus.pending &&
+          t.status != TrackResolutionStatus.resolving) {
+        failed++;
+      }
+    }
+    return (resolved: resolved, failed: failed);
   }
 }
