@@ -377,6 +377,21 @@ class QueueManager {
     }
   }
 
+  /// Clear all tracks from the queue, keeping only the currently playing
+  /// track so playback does not stop abruptly.
+  void clearQueue() {
+    final current = currentTrack;
+    if (current == null) {
+      _queue.add([]);
+      _currentIndex = 0;
+    } else {
+      _queue.add([current]);
+      _currentIndex = 0;
+    }
+    _shuffleList = [];
+    _shuffleIndex = 0;
+  }
+
   /// Replace the entire queue with new tracks.
   void updateQueue(List<Track> tracks, {int startIndex = 0}) {
     final seenIds = <String>{};

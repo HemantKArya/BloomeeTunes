@@ -1,10 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/core/adapters/track_adapter.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
-import 'package:Bloomee/screens/widgets/toogle_btn.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -353,21 +351,52 @@ class _QueueInfoRow extends StatelessWidget {
                   style: _UpNextStyles.queueCountStyle);
             },
           ),
-          BlocBuilder<SettingsCubit, SettingsState>(
-            builder: (context, state) {
-              return ToggleButton(
-                label: l10n.upNextAutoPlay,
-                initialState: state.autoPlay,
-                onChanged: (val) async {
-                  await context.read<SettingsCubit>().setAutoPlay(val);
-                  if (val) {
-                    playerCubit.bloomeePlayer.check4RelatedSongs();
-                  }
-                },
-              );
-            },
-          ),
+          _ClearQueueButton(playerCubit: playerCubit),
         ],
+      ),
+    );
+  }
+}
+
+/// Pill-styled "Clear Queue" button that keeps only the currently
+/// playing track and removes everything else from the queue.
+class _ClearQueueButton extends StatelessWidget {
+  final BloomeePlayerCubit playerCubit;
+  const _ClearQueueButton({required this.playerCubit});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => playerCubit.bloomeePlayer.clearQueue(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.18),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.playlist_remove_rounded,
+              size: 15,
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.75),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Clear',
+              style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Default_Theme.primaryColor2.withValues(alpha: 0.75),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

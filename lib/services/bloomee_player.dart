@@ -1002,6 +1002,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager.moveTrack(oldIndex, newIndex);
   }
 
+  /// Clear the queue, keeping only the currently playing track.
+  void clearQueue() {
+    _clearPreloadedMarker();
+    _queueManager.clearQueue();
+  }
+
   @override
   Future<void> updateQueue(List<MediaItem> newQueue,
       {bool doPlay = false}) async {
