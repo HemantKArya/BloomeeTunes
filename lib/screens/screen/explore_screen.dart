@@ -272,7 +272,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 );
                                           },
                                           onOptionsTap: () =>
-                                              showMoreBottomSheet(context, e),
+                                              showMoreBottomSheet(
+                                                  context,
+                                                  showSinglePlay: true,
+                                                  e),
                                         );
                                       }).toList(),
                                       category: AppLocalizations.of(context)!
