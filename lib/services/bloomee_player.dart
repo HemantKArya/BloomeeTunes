@@ -20,7 +20,7 @@ import 'package:Bloomee/services/player/queue_manager.dart';
 import 'package:Bloomee/services/player/related_songs_manager.dart';
 import 'package:Bloomee/services/player/recently_played_tracker.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
-import 'package:Bloomee/services/smart_track_replacement_service.dart';
+import 'package:Bloomee/services/meta_resolver/smart_track_replacement_service.dart';
 import 'package:Bloomee/services/discord_service.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';

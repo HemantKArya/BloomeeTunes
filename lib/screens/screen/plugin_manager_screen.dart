@@ -11,11 +11,15 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/src/rust/api/plugin/manifest.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/screens/screen/home_views/plugin_repository_view.dart';
+import 'package:Bloomee/plugins/blocs/repository/plugin_repository_cubit.dart';
+import 'package:Bloomee/plugins/utils/plugin_constants.dart';
 
 class PluginManagerScreen extends StatefulWidget {
   const PluginManagerScreen({super.key});
@@ -25,8 +29,8 @@ class PluginManagerScreen extends StatefulWidget {
 }
 
 class _PluginManagerScreenState extends State<PluginManagerScreen> {
-  // null means "All"
-  PluginType? _selectedFilter;
+  final ValueNotifier<PluginType?> _selectedFilterNotifier =
+      ValueNotifier(null);
 
   Map<PluginType?, String> _filterOptions(AppLocalizations l10n) => {
         null: l10n.pluginManagerFilterAll,
@@ -39,63 +43,90 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
       };
 
   @override
+  void dispose() {
+    _selectedFilterNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      backgroundColor: Default_Theme.themeColor,
-      appBar: _buildAppBar(context, l10n),
-      body: BlocConsumer<PluginBloc, PluginState>(
-        listenWhen: (prev, curr) =>
-            (prev.error != curr.error && curr.error != null) ||
-            (prev.successMessage != curr.successMessage &&
-                curr.successMessage != null),
-        listener: (context, state) {
-          if (state.error != null) {
-            SnackbarService.showMessage(state.error!);
-          }
-          if (state.successMessage != null) {
-            SnackbarService.showMessage(state.successMessage!);
-          }
-        },
-        builder: (context, state) {
-          if (!state.isInitialized) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Default_Theme.accentColor2,
-                strokeWidth: 3,
-              ),
-            );
-          }
-
-          if (state.availablePlugins.isEmpty) {
-            return SignBoardWidget(
-              message: l10n.pluginManagerEmpty,
-              icon: MingCute.plugin_2_line,
-            );
-          }
-
-          final filteredPlugins = _selectedFilter == null
-              ? state.availablePlugins
-              : state.availablePlugins
-                  .where((p) => p.pluginType == _selectedFilter)
-                  .toList();
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocProvider(
+      create: (context) =>
+          PluginRepositoryCubit(ServiceLocator.pluginRepositoryService),
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          backgroundColor: Default_Theme.themeColor,
+          appBar: _buildAppBar(context, l10n),
+          body: TabBarView(
+            physics: const BouncingScrollPhysics(),
             children: [
-              _buildChipsHeader(l10n),
-              Expanded(
-                child: _buildPluginGridOrList(
-                    context, l10n, state, filteredPlugins),
-              ),
+              _buildInstalledPluginsTab(context, l10n),
+              const PluginRepositoryView(),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 
-  // ── App Bar ──────────────────────────────────────────────────────────────
+  Widget _buildInstalledPluginsTab(
+      BuildContext context, AppLocalizations l10n) {
+    return BlocConsumer<PluginBloc, PluginState>(
+      listenWhen: (prev, curr) =>
+          (prev.error != curr.error && curr.error != null) ||
+          (prev.successMessage != curr.successMessage &&
+              curr.successMessage != null),
+      listener: (context, state) {
+        if (state.error != null) SnackbarService.showMessage(state.error!);
+        if (state.successMessage != null)
+          SnackbarService.showMessage(state.successMessage!);
+      },
+      builder: (context, state) {
+        if (!state.isInitialized) {
+          return const Center(
+              child: CircularProgressIndicator(
+                  color: Default_Theme.accentColor2, strokeWidth: 3));
+        }
+
+        if (state.availablePlugins.isEmpty) {
+          return SignBoardWidget(
+              message: l10n.pluginManagerEmpty, icon: MingCute.plugin_2_line);
+        }
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+                maxWidth: 900), // Standardized Desktop Alignment
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildChipsHeader(l10n),
+                Expanded(
+                  child: ValueListenableBuilder<PluginType?>(
+                    valueListenable: _selectedFilterNotifier,
+                    builder: (context, selectedFilter, _) {
+                      final filteredPlugins = selectedFilter == null
+                          ? state.availablePlugins
+                          : state.availablePlugins
+                              .where((p) => p.pluginType == selectedFilter)
+                              .toList();
+
+                      return _buildPluginGridOrList(
+                          context, l10n, state, filteredPlugins);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ── App Bar with Redesigned Constrained TabBar ─────────────────────────────
 
   PreferredSizeWidget _buildAppBar(
       BuildContext context, AppLocalizations l10n) {
@@ -108,11 +139,8 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
         padding: const EdgeInsets.only(left: 12.0),
         child: Center(
           child: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: Default_Theme.primaryColor1,
-              size: 24,
-            ),
+            icon: const Icon(Icons.arrow_back_rounded,
+                color: Default_Theme.primaryColor1, size: 24),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -120,11 +148,67 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
       title: Text(
         l10n.pluginManagerTitle,
         style: const TextStyle(
-          color: Default_Theme.primaryColor1,
-          fontSize: 22,
+          color: Colors.white,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.5,
-        ).merge(Default_Theme.secondoryTextStyleMedium),
+        ),
+      ),
+      // Sleek, centered, constrained Segmented Control
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(66),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+                maxWidth: 380), // Strict max-width for Desktop perfection
+            child: Container(
+              height: 46,
+              margin: const EdgeInsets.only(bottom: 12, left: 20, right: 20),
+              decoration: BoxDecoration(
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                borderRadius:
+                    BorderRadius.circular(14), // Perfect concentric math
+                border: Border.all(
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.04),
+                    width: 1),
+              ),
+              child: TabBar(
+                dividerColor: Colors.transparent,
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicatorPadding: const EdgeInsets.all(4),
+                indicator: BoxDecoration(
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(
+                      10), // 14 (outer) - 4 (padding) = 10 (inner)
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.05), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2), // Subtle lift effect
+                    ),
+                  ],
+                ),
+                splashFactory: NoSplash.splashFactory,
+                overlayColor: WidgetStateProperty.all(Colors.transparent),
+                labelColor: Colors.white,
+                unselectedLabelColor:
+                    Default_Theme.primaryColor2.withValues(alpha: 0.65),
+                labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    letterSpacing: -0.2),
+                unselectedLabelStyle:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                tabs: const [
+                  Tab(text: "Installed"),
+                  Tab(text: "Plugin Store"),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       actions: [
         BlocBuilder<PluginBloc, PluginState>(
@@ -133,22 +217,18 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
               return const Padding(
                 padding: EdgeInsets.only(right: 16),
                 child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Default_Theme.accentColor2,
-                  ),
-                ),
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2.5, color: Default_Theme.accentColor2)),
               );
             }
             return IconButton(
               tooltip: l10n.pluginManagerTooltipRefresh,
               icon: const Icon(MingCute.refresh_2_line,
                   color: Default_Theme.primaryColor1, size: 22),
-              onPressed: () {
-                context.read<PluginBloc>().add(const RefreshPlugins());
-              },
+              onPressed: () =>
+                  context.read<PluginBloc>().add(const RefreshPlugins()),
             );
           },
         ),
@@ -169,55 +249,57 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
     final filterOptions = _filterOptions(l10n);
     return SizedBox(
       height: 52,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: filterOptions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          final entry = filterOptions.entries.elementAt(index);
-          final filterType = entry.key;
-          final label = entry.value;
-          final isSelected = _selectedFilter == filterType;
+      child: ValueListenableBuilder<PluginType?>(
+        valueListenable: _selectedFilterNotifier,
+        builder: (context, selectedFilter, _) {
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: filterOptions.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final entry = filterOptions.entries.elementAt(index);
+              final filterType = entry.key;
+              final label = entry.value;
+              final isSelected = selectedFilter == filterType;
 
-          return Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _selectedFilter = filterType;
-                });
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Default_Theme.accentColor2.withValues(alpha: 0.15)
-                      : Default_Theme.primaryColor1.withValues(alpha: 0.04),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
+              return InkWell(
+                onTap: () => _selectedFilterNotifier.value = filterType,
+                borderRadius: BorderRadius.circular(16),
+                splashColor: Colors.transparent,
+                highlightColor:
+                    Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
                     color: isSelected
-                        ? Default_Theme.accentColor2.withValues(alpha: 0.5)
-                        : Default_Theme.primaryColor1.withValues(alpha: 0.05),
-                    width: 1.5,
+                        ? Default_Theme.accentColor2.withValues(alpha: 0.15)
+                        : Default_Theme.primaryColor1.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected
+                          ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+                          : Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? Default_Theme.accentColor2
+                          : Default_Theme.primaryColor1.withValues(alpha: 0.7),
+                      fontSize: 13,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
                   ),
                 ),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected
-                        ? Default_Theme.accentColor2
-                        : Default_Theme.primaryColor1.withValues(alpha: 0.7),
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  ).merge(Default_Theme.secondoryTextStyleMedium),
-                ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),
@@ -233,18 +315,16 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              MingCute.ghost_line,
-              size: 48,
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.2),
-            ),
+            Icon(MingCute.ghost_line,
+                size: 48,
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.2)),
             const SizedBox(height: 16),
             Text(
               l10n.pluginManagerNoMatch,
               style: TextStyle(
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                fontSize: 15,
-              ).merge(Default_Theme.secondoryTextStyle),
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -255,7 +335,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
       builder: (context, constraints) {
         if (constraints.maxWidth > 750) {
           return GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 400,
@@ -266,7 +346,6 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
             itemCount: plugins.length,
             itemBuilder: (context, index) {
               return AnimatedListItem(
-                // ValueKey ensures widget structure doesn't rebuild improperly, fixing jank
                 key: ValueKey(plugins[index].manifest.id),
                 index: index,
                 child: _PluginCard(
@@ -286,7 +365,6 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             return AnimatedListItem(
-              // ValueKey ensures widget structure doesn't rebuild improperly, fixing jank
               key: ValueKey(plugins[index].manifest.id),
               index: index,
               child: _PluginCard(
@@ -315,10 +393,9 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
       if (filePath == null) return;
 
       if (context.mounted) {
-        context.read<PluginBloc>().add(InstallPlugin(
-              packedFilePath: filePath,
-              shouldLoad: true,
-            ));
+        context
+            .read<PluginBloc>()
+            .add(InstallPlugin(packedFilePath: filePath, shouldLoad: true));
         SnackbarService.showMessage(l10n.pluginManagerInstalling,
             loading: true);
       }
@@ -353,7 +430,7 @@ class _PluginCard extends StatelessWidget {
         onTap: isDeleting ? null : () => _showPluginDetails(context),
         borderRadius: BorderRadius.circular(16),
         highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-        splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+        splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.04),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
@@ -378,7 +455,7 @@ class _PluginCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isLoaded
-                        ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+                        ? Default_Theme.accentColor2.withValues(alpha: 0.4)
                         : Colors.transparent,
                     width: 1.5,
                   ),
@@ -399,26 +476,42 @@ class _PluginCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      manifest.name,
-                      style: const TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.2,
-                      ).merge(Default_Theme.secondoryTextStyleMedium),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            manifest.name,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.95),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (manifest.manifestVersion !=
+                            CURRENT_MANIFEST_VERSION) ...[
+                          const SizedBox(width: 6),
+                          const Tooltip(
+                            message:
+                                "Plugin uses an outdated manifest version. Some features might break. Consider updating.",
+                            child: Icon(Icons.warning_amber_rounded,
+                                color: Colors.orange, size: 18),
+                          ),
+                        ]
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${manifest.publisher.name} • v${manifest.version}',
                       style: TextStyle(
                         color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.5),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                      ).merge(Default_Theme.secondoryTextStyle),
+                            Default_Theme.primaryColor2.withValues(alpha: 0.7),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -436,14 +529,12 @@ class _PluginCard extends StatelessWidget {
                     final bloc = context.read<PluginBloc>();
                     if (isLoaded) {
                       bloc.add(UnloadPlugin(
-                        pluginId: manifest.id,
-                        pluginType: plugin.pluginType,
-                      ));
+                          pluginId: manifest.id,
+                          pluginType: plugin.pluginType));
                     } else {
                       bloc.add(LoadPlugin(
-                        pluginId: manifest.id,
-                        pluginType: plugin.pluginType,
-                      ));
+                          pluginId: manifest.id,
+                          pluginType: plugin.pluginType));
                     }
                   },
                 ),
@@ -484,34 +575,24 @@ class _PluginCard extends StatelessWidget {
   }) {
     final imageUrl = manifest.thumbnailUrl ?? manifest.icon;
     if (imageUrl != null && imageUrl.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.circular(12),
-        child: Image.network(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Center(
-            child: Icon(
-              _pluginTypeIcon(type),
-              color: isLoaded
-                  ? Default_Theme.accentColor2
-                  : Default_Theme.primaryColor1.withValues(alpha: 0.5),
-              size: iconSize,
-            ),
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.cover,
+        imageBuilder: (context, imageProvider) => Container(
+          decoration: BoxDecoration(
+            borderRadius: borderRadius ?? BorderRadius.circular(12),
+            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
           ),
-          // Fluid transition for asynchronous imagery, removing jank drops
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (wasSynchronouslyLoaded) return child;
-            return AnimatedOpacity(
-              opacity: frame == null ? 0 : 1,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              child: child,
-            );
-          },
         ),
+        placeholder: (context, url) => _fallbackIcon(type, isLoaded, iconSize),
+        errorWidget: (context, url, error) =>
+            _fallbackIcon(type, isLoaded, iconSize),
       );
     }
+    return _fallbackIcon(type, isLoaded, iconSize);
+  }
 
+  static Widget _fallbackIcon(PluginType type, bool isLoaded, double iconSize) {
     return Center(
       child: Icon(
         _pluginTypeIcon(type),
@@ -573,9 +654,7 @@ class _CustomSwitchState extends State<_CustomSwitch> {
 
   void _handleTap() {
     if (widget.isLoading) return;
-    setState(() {
-      _localValue = !_localValue;
-    });
+    setState(() => _localValue = !_localValue);
     widget.onChanged();
   }
 
@@ -624,16 +703,13 @@ class _CustomSwitchState extends State<_CustomSwitch> {
               child: widget.isLoading
                   ? Center(
                       child: SizedBox(
-                        width: 10,
-                        height: 10,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: _localValue
-                              ? Default_Theme.themeColor
-                              : Default_Theme.primaryColor1,
-                        ),
-                      ),
-                    )
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: _localValue
+                                  ? Default_Theme.themeColor
+                                  : Default_Theme.primaryColor1)))
                   : const SizedBox.shrink(),
             ),
           ),
@@ -648,9 +724,7 @@ class _CustomSwitchState extends State<_CustomSwitch> {
 class _PluginDetailSheet extends StatelessWidget {
   final PluginInfo plugin;
 
-  const _PluginDetailSheet({
-    required this.plugin,
-  });
+  const _PluginDetailSheet({required this.plugin});
 
   @override
   Widget build(BuildContext context) {
@@ -669,10 +743,9 @@ class _PluginDetailSheet extends StatelessWidget {
             color: Default_Theme.themeColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border(
-              top: BorderSide(
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-              ),
-            ),
+                top: BorderSide(
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
+                    width: 1)),
           ),
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
           child: Column(
@@ -681,11 +754,11 @@ class _PluginDetailSheet extends StatelessWidget {
             children: [
               Center(
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 48,
+                  height: 5,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.15),
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -694,13 +767,13 @@ class _PluginDetailSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
                       color: isLoaded
                           ? Default_Theme.accentColor2.withValues(alpha: 0.15)
                           : Default_Theme.primaryColor1.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                       border: Border.all(
                         color: isLoaded
                             ? Default_Theme.accentColor2.withValues(alpha: 0.5)
@@ -726,11 +799,11 @@ class _PluginDetailSheet extends StatelessWidget {
                         Text(
                           manifest.name,
                           style: const TextStyle(
-                            color: Default_Theme.primaryColor1,
+                            color: Colors.white,
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.5,
-                          ).merge(Default_Theme.secondoryTextStyleMedium),
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -738,11 +811,10 @@ class _PluginDetailSheet extends StatelessWidget {
                             Text(
                               manifest.publisher.name,
                               style: TextStyle(
-                                color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.6),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ).merge(Default_Theme.secondoryTextStyle),
+                                  color: Default_Theme.primaryColor2
+                                      .withValues(alpha: 0.8),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500),
                             ),
                             const SizedBox(width: 10),
                             _StatusBadge(isLoaded: isLoaded),
@@ -758,20 +830,20 @@ class _PluginDetailSheet extends StatelessWidget {
                 Text(
                   manifest.description,
                   style: TextStyle(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
-                    fontSize: 15,
-                    height: 1.5,
-                  ).merge(Default_Theme.secondoryTextStyle),
+                      color: Default_Theme.primaryColor1.withValues(alpha: 0.8),
+                      fontSize: 14,
+                      height: 1.5,
+                      fontWeight: FontWeight.w400),
                 ),
                 const SizedBox(height: 24),
               ],
               Container(
                 decoration: BoxDecoration(
-                  color: Default_Theme.primaryColor1.withValues(alpha: 0.03),
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-                  ),
+                      color:
+                          Default_Theme.primaryColor1.withValues(alpha: 0.05)),
                 ),
                 child: Column(
                   children: [
@@ -782,9 +854,7 @@ class _PluginDetailSheet extends StatelessWidget {
                     _DetailRow(
                         label: l10n.pluginManagerDetailType,
                         value: _PluginCard._pluginTypeLabel(
-                          plugin.pluginType,
-                          l10n,
-                        )),
+                            plugin.pluginType, l10n)),
                     if (manifest.publisher.name.isNotEmpty) ...[
                       const _DetailDivider(),
                       _DetailRow(
@@ -819,7 +889,7 @@ class _PluginDetailSheet extends StatelessWidget {
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 54,
+                      height: 52,
                       child: ElevatedButton(
                         onPressed: operating
                             ? null
@@ -827,14 +897,12 @@ class _PluginDetailSheet extends StatelessWidget {
                                 final bloc = context.read<PluginBloc>();
                                 if (isLoaded) {
                                   bloc.add(UnloadPlugin(
-                                    pluginId: manifest.id,
-                                    pluginType: plugin.pluginType,
-                                  ));
+                                      pluginId: manifest.id,
+                                      pluginType: plugin.pluginType));
                                 } else {
                                   bloc.add(LoadPlugin(
-                                    pluginId: manifest.id,
-                                    pluginType: plugin.pluginType,
-                                  ));
+                                      pluginId: manifest.id,
+                                      pluginType: plugin.pluginType));
                                 }
                               },
                         style: ElevatedButton.styleFrom(
@@ -851,7 +919,7 @@ class _PluginDetailSheet extends StatelessWidget {
                             side: BorderSide(
                               color: isLoaded
                                   ? Default_Theme.primaryColor1
-                                      .withValues(alpha: 0.15)
+                                      .withValues(alpha: 0.2)
                                   : Default_Theme.accentColor2
                                       .withValues(alpha: 0.5),
                               width: 1.5,
@@ -860,17 +928,15 @@ class _PluginDetailSheet extends StatelessWidget {
                         ),
                         child: operating
                             ? SizedBox(
-                                height: 20,
                                 width: 20,
+                                height: 20,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: isLoaded
-                                      ? Colors.red
-                                      : isLoaded
-                                          ? Default_Theme.primaryColor1
-                                          : Default_Theme.accentColor2,
-                                ),
-                              )
+                                    strokeWidth: 2.5,
+                                    color: isLoaded
+                                        ? Colors.red
+                                        : isLoaded
+                                            ? Default_Theme.primaryColor1
+                                            : Default_Theme.accentColor2))
                             : Text(
                                 deleting
                                     ? l10n.pluginManagerDeleting
@@ -878,9 +944,7 @@ class _PluginDetailSheet extends StatelessWidget {
                                         ? l10n.pluginManagerUnloadPlugin
                                         : l10n.pluginManagerEnablePlugin,
                                 style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                ).merge(Default_Theme.secondoryTextStyle),
+                                    fontSize: 15, fontWeight: FontWeight.w700),
                               ),
                       ),
                     ),
@@ -888,8 +952,8 @@ class _PluginDetailSheet extends StatelessWidget {
                   const SizedBox(width: 12),
                   if (manifest.keysRequired.isNotEmpty) ...[
                     SizedBox(
-                      height: 54,
-                      width: 54,
+                      height: 52,
+                      width: 52,
                       child: IconButton(
                         onPressed: () => _showKeysDialog(context, manifest),
                         style: IconButton.styleFrom(
@@ -898,24 +962,20 @@ class _PluginDetailSheet extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                             side: BorderSide(
-                              color: Default_Theme.accentColor2
-                                  .withValues(alpha: 0.5),
-                              width: 1.5,
-                            ),
+                                color: Default_Theme.accentColor2
+                                    .withValues(alpha: 0.5),
+                                width: 1.5),
                           ),
                         ),
-                        icon: const Icon(
-                          Icons.key_rounded,
-                          color: Default_Theme.accentColor2,
-                          size: 22,
-                        ),
+                        icon: const Icon(Icons.key_rounded,
+                            color: Default_Theme.accentColor2, size: 22),
                       ),
                     ),
                     const SizedBox(width: 12),
                   ],
                   SizedBox(
-                    height: 54,
-                    width: 54,
+                    height: 52,
+                    width: 52,
                     child: IconButton(
                       onPressed: operating
                           ? null
@@ -926,16 +986,12 @@ class _PluginDetailSheet extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                           side: BorderSide(
-                            color: Colors.red.withValues(alpha: 0.5),
-                            width: 1.5,
-                          ),
+                              color: Colors.red.withValues(alpha: 0.5),
+                              width: 1.5),
                         ),
                       ),
-                      icon: const Icon(
-                        MingCute.delete_2_line,
-                        color: Colors.red,
-                        size: 22,
-                      ),
+                      icon: const Icon(MingCute.delete_2_line,
+                          color: Colors.red, size: 22),
                     ),
                   ),
                 ],
@@ -966,12 +1022,9 @@ class _PluginDetailSheet extends StatelessWidget {
             if (plugin.manifest.keysRequired.isNotEmpty) {
               _confirmStorageCleanup(context, bloc, pluginId, pluginName);
             } else {
-              // Ensure we cleanly pop the bottom sheet to avoid dangling UI instances
               if (context.mounted) Navigator.of(context).pop();
               bloc.add(DeletePlugin(
-                pluginId: pluginId,
-                pluginType: plugin.pluginType,
-              ));
+                  pluginId: pluginId, pluginType: plugin.pluginType));
             }
           },
         ),
@@ -993,10 +1046,9 @@ class _PluginDetailSheet extends StatelessWidget {
           onPressed: () {
             if (context.mounted) Navigator.of(context).pop();
             bloc.add(DeletePlugin(
-              pluginId: pluginId,
-              pluginType: plugin.pluginType,
-              cleanStorage: false,
-            ));
+                pluginId: pluginId,
+                pluginType: plugin.pluginType,
+                cleanStorage: false));
           },
         ),
         BloomeeDialogAction.filled(
@@ -1005,10 +1057,9 @@ class _PluginDetailSheet extends StatelessWidget {
           onPressed: () {
             if (context.mounted) Navigator.of(context).pop();
             bloc.add(DeletePlugin(
-              pluginId: pluginId,
-              pluginType: plugin.pluginType,
-              cleanStorage: true,
-            ));
+                pluginId: pluginId,
+                pluginType: plugin.pluginType,
+                cleanStorage: true));
           },
         ),
       ],
@@ -1021,16 +1072,13 @@ class _PluginDetailSheet extends StatelessWidget {
       backgroundColor: Default_Theme.themeColor,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => _ApiKeysDialogContent(manifest: manifest),
     );
   }
 }
 
 // ─── Self-Contained API Keys Form State ─────────────────────────────────────
-// Migrated this into a StatefulWidget to prevent FutureBuilder from restarting
-// upon UI repaints, resizing, or keyboard summons, stabilizing state handling.
 
 class _ApiKeysDialogContent extends StatefulWidget {
   final Manifest manifest;
@@ -1063,9 +1111,7 @@ class _ApiKeysDialogContentState extends State<_ApiKeysDialogContent> {
 
   @override
   void dispose() {
-    for (final c in _controllers.values) {
-      c.dispose();
-    }
+    for (final c in _controllers.values) c.dispose();
     super.dispose();
   }
 
@@ -1078,54 +1124,43 @@ class _ApiKeysDialogContentState extends State<_ApiKeysDialogContent> {
       builder: (ctx, snapshot) {
         if (!snapshot.hasData) {
           return const SizedBox(
-            height: 200,
-            child: Center(
-              child: CircularProgressIndicator(
-                color: Default_Theme.accentColor2,
-              ),
-            ),
-          );
+              height: 200,
+              child: Center(
+                  child: CircularProgressIndicator(
+                      color: Default_Theme.accentColor2)));
         }
 
         final existing = snapshot.data!;
         for (final entry in widget.manifest.keysRequired.entries) {
-          _controllers.putIfAbsent(
-            entry.key,
-            () => TextEditingController(text: existing[entry.key] ?? ''),
-          );
+          _controllers.putIfAbsent(entry.key,
+              () => TextEditingController(text: existing[entry.key] ?? ''));
         }
 
         return Padding(
           padding: EdgeInsets.fromLTRB(
-            24,
-            16,
-            24,
-            MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
+              24, 16, 24, MediaQuery.of(ctx).viewInsets.bottom + 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 48,
+                  height: 5,
                   decoration: BoxDecoration(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                      color: Default_Theme.primaryColor1.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10)),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Text(
                 l10n.pluginManagerApiKeysTitle,
                 style: const TextStyle(
-                  color: Default_Theme.primaryColor1,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ).merge(Default_Theme.secondoryTextStyleMedium),
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               ...widget.manifest.keysRequired.entries.map((entry) {
                 final req = entry.value;
                 final keyLabel = entry.key
@@ -1137,69 +1172,67 @@ class _ApiKeysDialogContentState extends State<_ApiKeysDialogContent> {
                     .join(' ');
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(bottom: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       TextField(
                         controller: _controllers[entry.key],
                         obscureText: req.isSecret,
-                        style:
-                            const TextStyle(color: Default_Theme.primaryColor1),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500),
                         decoration: InputDecoration(
                           labelText: keyLabel,
                           hintText: req.defaultValue ?? entry.key,
+                          filled: true,
+                          fillColor: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.04),
                           labelStyle: TextStyle(
-                            color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.6),
-                          ),
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.6)),
                           hintStyle: TextStyle(
-                            color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.3),
-                          ),
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.3)),
                           suffixIcon: req.isSecret
-                              ? Icon(
-                                  MingCute.eye_close_line,
+                              ? Icon(MingCute.eye_close_line,
                                   color: Default_Theme.primaryColor1
-                                      .withValues(alpha: 0.3),
-                                  size: 18,
-                                )
+                                      .withValues(alpha: 0.4),
+                                  size: 20)
                               : null,
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.15),
-                            ),
-                          ),
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                  color: Default_Theme.primaryColor1
+                                      .withValues(alpha: 0.08))),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Default_Theme.accentColor2,
-                            ),
-                          ),
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                  color: Default_Theme.accentColor2,
+                                  width: 1.5)),
                         ),
                       ),
                       if (req.description.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.only(top: 6, left: 4),
+                          padding: const EdgeInsets.only(top: 8, left: 4),
                           child: Text(
                             req.description,
                             style: TextStyle(
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.4),
-                              fontSize: 12,
-                            ).merge(Default_Theme.secondoryTextStyle),
+                                color: Default_Theme.primaryColor1
+                                    .withValues(alpha: 0.5),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400),
                           ),
                         ),
                     ],
                   ),
                 );
               }),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                height: 48,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: _isSaving
                       ? null
@@ -1210,15 +1243,12 @@ class _ApiKeysDialogContentState extends State<_ApiKeysDialogContent> {
                             final val = entry.value.text.trim();
                             if (val.isNotEmpty) {
                               await dao.putEntry(
-                                pluginId: widget.manifest.id,
-                                key: entry.key,
-                                value: val,
-                              );
+                                  pluginId: widget.manifest.id,
+                                  key: entry.key,
+                                  value: val);
                             } else {
                               await dao.deleteEntry(
-                                pluginId: widget.manifest.id,
-                                key: entry.key,
-                              );
+                                  pluginId: widget.manifest.id, key: entry.key);
                             }
                           }
                           if (ctx.mounted) Navigator.of(ctx).pop();
@@ -1226,35 +1256,21 @@ class _ApiKeysDialogContentState extends State<_ApiKeysDialogContent> {
                               l10n.pluginManagerApiKeysSaved);
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Default_Theme.accentColor2.withValues(alpha: 0.15),
-                    foregroundColor: Default_Theme.accentColor2,
+                    backgroundColor: Default_Theme.accentColor2,
+                    foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      side: BorderSide(
-                        color:
-                            Default_Theme.accentColor2.withValues(alpha: 0.5),
-                        width: 1.5,
-                      ),
-                    ),
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   child: _isSaving
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 22,
+                          height: 22,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Default_Theme.accentColor2,
-                          ),
-                        )
-                      : Text(
-                          l10n.pluginManagerSave,
+                              strokeWidth: 2.5, color: Colors.white))
+                      : Text(l10n.pluginManagerSave,
                           style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ).merge(Default_Theme.secondoryTextStyle),
-                        ),
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -1275,32 +1291,24 @@ class _InlineOperationIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
-        ),
-      ),
+          color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.08))),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(
-            width: 14,
-            height: 14,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Default_Theme.accentColor2,
-            ),
-          ),
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Default_Theme.accentColor2)),
           const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ).merge(Default_Theme.secondoryTextStyleMedium),
-          ),
+          Text(label,
+              style: TextStyle(
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -1323,27 +1331,24 @@ class _StatusBadge extends StatelessWidget {
             : Default_Theme.primaryColor1.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: isLoaded
-              ? Default_Theme.accentColor2.withValues(alpha: 0.5)
-              : Colors.transparent,
-          width: 1,
-        ),
+            color: isLoaded
+                ? Default_Theme.accentColor2.withValues(alpha: 0.5)
+                : Colors.transparent,
+            width: 1),
       ),
       child: Text(
         isLoaded ? 'Active' : 'Inactive',
         style: TextStyle(
-          color: isLoaded
-              ? Default_Theme.accentColor2
-              : Default_Theme.primaryColor1.withValues(alpha: 0.6),
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ).merge(Default_Theme.secondoryTextStyle),
+            color: isLoaded
+                ? Default_Theme.accentColor2
+                : Default_Theme.primaryColor1.withValues(alpha: 0.6),
+            fontSize: 11,
+            fontWeight: FontWeight.w700),
       ),
     );
   }
 }
 
-/// Formats an ISO 8601 date string to a human-readable format.
 String _formatDate(String isoDate) {
   try {
     final dt = DateTime.parse(isoDate);
@@ -1365,22 +1370,16 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-            ).merge(Default_Theme.secondoryTextStyle),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Default_Theme.primaryColor1,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ).merge(Default_Theme.secondoryTextStyle),
-          ),
+          Text(label,
+              style: TextStyle(
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500)),
+          Text(value,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -1392,9 +1391,8 @@ class _DetailDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Divider(
-      height: 1,
-      thickness: 1,
-      color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-    );
+        height: 1,
+        thickness: 1,
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.05));
   }
 }
