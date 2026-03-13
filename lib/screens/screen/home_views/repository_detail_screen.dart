@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/plugins/models/plugin_repository.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
@@ -59,6 +60,7 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
 
   Future<void> _downloadAndInstallPlugin(
       BuildContext context, RemotePluginModel plugin) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_phaseByPlugin[plugin.id] == _RemoteInstallPhase.downloading ||
         _phaseByPlugin[plugin.id] == _RemoteInstallPhase.installing) {
       return;
@@ -98,7 +100,9 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
         _pendingInstallIds.remove(plugin.id);
         _errorByPlugin[plugin.id] = e.toString();
       });
-      SnackbarService.showMessage('Failed to download ${plugin.name}.');
+      SnackbarService.showMessage(
+        l10n.pluginRepositoryDownloadFailed(plugin.name),
+      );
     }
   }
 
@@ -129,6 +133,7 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final repo = widget.repository;
 
     return Scaffold(
@@ -169,7 +174,8 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${repo.plugins.length} plugins available',
+                        l10n.pluginRepositoryAvailableCount(
+                            repo.plugins.length),
                         style: TextStyle(
                             color: Default_Theme.primaryColor2
                                 .withValues(alpha: 0.7),
@@ -187,7 +193,12 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Updated ${repo.generatedAt!.toIso8601String().split('T').first}',
+                          l10n.pluginRepositoryUpdatedOn(
+                            repo.generatedAt!
+                                .toIso8601String()
+                                .split('T')
+                                .first,
+                          ),
                           style: TextStyle(
                               color: Default_Theme.primaryColor2
                                   .withValues(alpha: 0.8),
@@ -248,6 +259,7 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
 
   Widget _buildPluginTile(
       BuildContext context, RemotePluginModel remotePlugin, PluginState state) {
+    final l10n = AppLocalizations.of(context)!;
     final installedPlugin = state.availablePlugins
         .where((p) => p.manifest.id == remotePlugin.id)
         .firstOrNull;
@@ -306,8 +318,8 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
                       ),
                       if (installedManifestMismatch) ...[
                         const SizedBox(width: 6),
-                        const Tooltip(
-                            message: 'Outdated manifest. Features may break.',
+                        Tooltip(
+                            message: l10n.pluginRepositoryOutdatedManifest,
                             child: Icon(Icons.warning_amber_rounded,
                                 color: Colors.orange, size: 16)),
                       ]
@@ -316,7 +328,7 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
                   const SizedBox(height: 4),
                   Text(
                     remotePlugin.description.isEmpty
-                        ? 'No description provided.'
+                        ? l10n.pluginRepositoryNoDescription
                         : remotePlugin.description,
                     style: TextStyle(
                         color:
@@ -334,7 +346,7 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
                       _MetaChip(label: 'v${remotePlugin.version}'),
                       _MetaChip(
                           label: remotePlugin.publisherName ??
-                              'Unknown publisher'),
+                              l10n.pluginRepositoryUnknownPublisher),
                     ],
                   ),
                 ],
@@ -399,6 +411,7 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
     required bool hasInstalled,
     required bool remoteManifestCompatible,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     if (phase == _RemoteInstallPhase.downloading ||
         phase == _RemoteInstallPhase.installing) {
       return const _AestheticButton(
@@ -407,9 +420,10 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
 
     if (phase == _RemoteInstallPhase.failed) {
       return Tooltip(
-        message: _errorByPlugin[plugin.id] ?? 'Installation failed.',
+        message:
+            _errorByPlugin[plugin.id] ?? l10n.pluginRepositoryInstallFailed,
         child: _AestheticButton(
-          text: 'Retry',
+          text: l10n.pluginRepositoryActionRetry,
           color: Colors.orange,
           onTap: () => _downloadAndInstallPlugin(context, plugin),
         ),
@@ -417,35 +431,37 @@ class _RepositoryDetailScreenState extends State<RepositoryDetailScreen> {
     }
 
     if (!remoteManifestCompatible && !hasInstalled) {
-      return const _AestheticButton(
-          text: 'Outdated', color: Colors.orange, isSubdued: true);
+      return _AestheticButton(
+          text: l10n.pluginRepositoryActionOutdated,
+          color: Colors.orange,
+          isSubdued: true);
     }
 
     if (canUpdate) {
       return _AestheticButton(
-        text: 'Update',
+        text: l10n.buttonUpdate,
         color: Default_Theme.accentColor2,
         onTap: () => _downloadAndInstallPlugin(context, plugin),
       );
     }
 
     if (hasInstalled || phase == _RemoteInstallPhase.installed) {
-      return const _AestheticButton(
-          text: 'Installed',
+      return _AestheticButton(
+          text: l10n.pluginRepositoryActionInstalled,
           color: Default_Theme.primaryColor2,
           isSubdued: true);
     }
 
     if (canInstall) {
       return _AestheticButton(
-        text: 'Install',
+        text: l10n.pluginRepositoryActionInstall,
         color: Default_Theme.accentColor2,
         onTap: () => _downloadAndInstallPlugin(context, plugin),
       );
     }
 
-    return const _AestheticButton(
-        text: 'Unavailable',
+    return _AestheticButton(
+        text: l10n.pluginRepositoryActionUnavailable,
         color: Default_Theme.primaryColor2,
         isSubdued: true);
   }

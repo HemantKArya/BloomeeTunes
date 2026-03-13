@@ -3001,6 +3001,324 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preparing {title} for export.'**
   String snackbarPreparingExport(String title);
+
+  /// No description provided for @pluginManagerTabInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get pluginManagerTabInstalled;
+
+  /// No description provided for @pluginManagerTabStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Store'**
+  String get pluginManagerTabStore;
+
+  /// No description provided for @pluginManagerSelectPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Plugin Package (.bex)'**
+  String get pluginManagerSelectPackage;
+
+  /// No description provided for @pluginManagerOutdatedManifest.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin uses an outdated manifest version. Some features might break. Consider updating.'**
+  String get pluginManagerOutdatedManifest;
+
+  /// No description provided for @pluginManagerStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get pluginManagerStatusActive;
+
+  /// No description provided for @pluginManagerStatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get pluginManagerStatusInactive;
+
+  /// No description provided for @pluginRepositoryAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Repository'**
+  String get pluginRepositoryAddTitle;
+
+  /// No description provided for @pluginRepositoryAddSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the URL of a valid plugin repository JSON file.'**
+  String get pluginRepositoryAddSubtitle;
+
+  /// No description provided for @pluginRepositoryAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Repository'**
+  String get pluginRepositoryAddAction;
+
+  /// No description provided for @pluginRepositoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Repositories'**
+  String get pluginRepositoryTitle;
+
+  /// No description provided for @pluginRepositorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a JSON source to browse remote plugins.'**
+  String get pluginRepositorySubtitle;
+
+  /// No description provided for @pluginRepositoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No repositories added yet.'**
+  String get pluginRepositoryEmpty;
+
+  /// No description provided for @pluginRepositoryUnknownUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown update'**
+  String get pluginRepositoryUnknownUpdate;
+
+  /// No description provided for @pluginRepositoryNoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No description provided.'**
+  String get pluginRepositoryNoDescription;
+
+  /// No description provided for @pluginRepositoryUrlCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Repository URL copied to clipboard'**
+  String get pluginRepositoryUrlCopied;
+
+  /// No description provided for @pluginRepositoryPluginsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 plugin} other{{count} plugins}}'**
+  String pluginRepositoryPluginsCount(int count);
+
+  /// No description provided for @pluginRepositoryUpdatedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {date}'**
+  String pluginRepositoryUpdatedOn(String date);
+
+  /// No description provided for @pluginRepositoryAvailableCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 plugin available} other{{count} plugins available}}'**
+  String pluginRepositoryAvailableCount(int count);
+
+  /// No description provided for @pluginRepositoryOutdatedManifest.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdated manifest. Features may break.'**
+  String get pluginRepositoryOutdatedManifest;
+
+  /// No description provided for @pluginRepositoryUnknownPublisher.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown publisher'**
+  String get pluginRepositoryUnknownPublisher;
+
+  /// No description provided for @pluginRepositoryActionRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get pluginRepositoryActionRetry;
+
+  /// No description provided for @pluginRepositoryActionOutdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdated'**
+  String get pluginRepositoryActionOutdated;
+
+  /// No description provided for @pluginRepositoryActionInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get pluginRepositoryActionInstalled;
+
+  /// No description provided for @pluginRepositoryActionInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Install'**
+  String get pluginRepositoryActionInstall;
+
+  /// No description provided for @pluginRepositoryActionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get pluginRepositoryActionUnavailable;
+
+  /// No description provided for @pluginRepositoryInstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed.'**
+  String get pluginRepositoryInstallFailed;
+
+  /// No description provided for @pluginRepositoryDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download {name}.'**
+  String pluginRepositoryDownloadFailed(String name);
+
+  /// No description provided for @pluginRepositoryErrorLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load repositories.'**
+  String get pluginRepositoryErrorLoad;
+
+  /// No description provided for @pluginRepositoryErrorInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid repository URL or repository file.'**
+  String get pluginRepositoryErrorInvalid;
+
+  /// No description provided for @pluginRepositoryErrorRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove repository.'**
+  String get pluginRepositoryErrorRemove;
+
+  /// No description provided for @smartReplaceAppliedPlaylistsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Replaced in 1 playlist{queue}.} other{Replaced in {count} playlists{queue}.}}'**
+  String smartReplaceAppliedPlaylistsSummary(int count, String queue);
+
+  /// No description provided for @lyricsSearchFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for lyrics...'**
+  String get lyricsSearchFieldLabel;
+
+  /// No description provided for @lyricsSearchEmptyPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a song or artist to find lyrics.'**
+  String get lyricsSearchEmptyPrompt;
+
+  /// No description provided for @lyricsSearchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No lyrics found for \"{query}\"'**
+  String lyricsSearchNoResults(String query);
+
+  /// No description provided for @lyricsSearchApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics successfully applied'**
+  String get lyricsSearchApplied;
+
+  /// No description provided for @lyricsSearchFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch lyrics'**
+  String get lyricsSearchFetchFailed;
+
+  /// No description provided for @lyricsSearchPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get lyricsSearchPreview;
+
+  /// No description provided for @lyricsSearchPreviewTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview lyrics'**
+  String get lyricsSearchPreviewTooltip;
+
+  /// No description provided for @lyricsSearchSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNCED'**
+  String get lyricsSearchSynced;
+
+  /// No description provided for @lyricsSearchPreviewLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load lyrics.'**
+  String get lyricsSearchPreviewLoadFailed;
+
+  /// No description provided for @lyricsSearchApplyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Lyrics'**
+  String get lyricsSearchApplyAction;
+
+  /// No description provided for @lyricsSettingsSearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Custom Lyrics'**
+  String get lyricsSettingsSearchTitle;
+
+  /// No description provided for @lyricsSettingsSearchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find alternative versions online'**
+  String get lyricsSettingsSearchSubtitle;
+
+  /// No description provided for @lyricsSettingsSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust Sync (Delay/Offset)'**
+  String get lyricsSettingsSyncTitle;
+
+  /// No description provided for @lyricsSettingsSyncSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix lyrics that are too fast or slow'**
+  String get lyricsSettingsSyncSubtitle;
+
+  /// No description provided for @lyricsSettingsSaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Offline'**
+  String get lyricsSettingsSaveTitle;
+
+  /// No description provided for @lyricsSettingsSaveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store these lyrics on your device'**
+  String get lyricsSettingsSaveSubtitle;
+
+  /// No description provided for @lyricsSettingsDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Saved Lyrics'**
+  String get lyricsSettingsDeleteTitle;
+
+  /// No description provided for @lyricsSettingsDeleteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove offline lyrics data'**
+  String get lyricsSettingsDeleteSubtitle;
+
+  /// No description provided for @lyricsSyncTapToReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to reset'**
+  String get lyricsSyncTapToReset;
+
+  /// No description provided for @upNextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Up Next'**
+  String get upNextTitle;
+
+  /// No description provided for @upNextItemsInQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item in queue} other{{count} items in queue}}'**
+  String upNextItemsInQueue(int count);
+
+  /// No description provided for @upNextAutoPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Play'**
+  String get upNextAutoPlay;
 }
 
 class _AppLocalizationsDelegate

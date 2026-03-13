@@ -201,9 +201,9 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
                     letterSpacing: -0.2),
                 unselectedLabelStyle:
                     const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                tabs: const [
-                  Tab(text: "Installed"),
-                  Tab(text: "Plugin Store"),
+                tabs: [
+                  Tab(text: l10n.pluginManagerTabInstalled),
+                  Tab(text: l10n.pluginManagerTabStore),
                 ],
               ),
             ),
@@ -385,7 +385,7 @@ class _PluginManagerScreenState extends State<PluginManagerScreen> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['bex'],
-        dialogTitle: 'Select Plugin Package (.bex)',
+        dialogTitle: l10n.pluginManagerSelectPackage,
       );
 
       if (result == null || result.files.isEmpty) return;
@@ -421,6 +421,7 @@ class _PluginCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final manifest = plugin.manifest;
+    final l10n = AppLocalizations.of(context)!;
     final isDeleting = operation == PluginOperation.deleting;
     final isOperating = operation != null;
 
@@ -494,10 +495,9 @@ class _PluginCard extends StatelessWidget {
                         if (manifest.manifestVersion !=
                             CURRENT_MANIFEST_VERSION) ...[
                           const SizedBox(width: 6),
-                          const Tooltip(
-                            message:
-                                "Plugin uses an outdated manifest version. Some features might break. Consider updating.",
-                            child: Icon(Icons.warning_amber_rounded,
+                          Tooltip(
+                            message: l10n.pluginManagerOutdatedManifest,
+                            child: const Icon(Icons.warning_amber_rounded,
                                 color: Colors.orange, size: 18),
                           ),
                         ]
@@ -520,7 +520,7 @@ class _PluginCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               if (isDeleting)
-                const _InlineOperationIndicator(label: 'Deleting')
+                _InlineOperationIndicator(label: l10n.pluginManagerDeleting)
               else
                 _CustomSwitch(
                   value: isLoaded,
@@ -1323,6 +1323,7 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -1337,7 +1338,9 @@ class _StatusBadge extends StatelessWidget {
             width: 1),
       ),
       child: Text(
-        isLoaded ? 'Active' : 'Inactive',
+        isLoaded
+            ? l10n.pluginManagerStatusActive
+            : l10n.pluginManagerStatusInactive,
         style: TextStyle(
             color: isLoaded
                 ? Default_Theme.accentColor2

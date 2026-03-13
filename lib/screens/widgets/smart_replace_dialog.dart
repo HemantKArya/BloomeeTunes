@@ -190,8 +190,8 @@ class _SmartReplaceDialogState extends State<_SmartReplaceDialog> {
           queueContainsOriginal ? l10n.smartReplaceQueueUpdated : '';
       final playlistMessage = playlistCount == 0
           ? l10n.smartReplaceApplied(queueSuffix)
-          : l10n.smartReplaceAppliedPlaylists(
-              playlistCount, playlistCount == 1 ? '' : 's', queueSuffix);
+          : l10n.smartReplaceAppliedPlaylistsSummary(
+              playlistCount, queueSuffix);
       SnackbarService.showMessage(playlistMessage);
       Navigator.pop(context);
     } catch (e) {

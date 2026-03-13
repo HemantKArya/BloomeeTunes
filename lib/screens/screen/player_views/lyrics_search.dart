@@ -5,6 +5,7 @@ import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/core/models/lyrics_models.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
@@ -20,13 +21,17 @@ import 'package:icons_plus/icons_plus.dart';
 
 class LyricsSearchDelegate extends SearchDelegate {
   final String mediaID;
+  final String searchFieldLabelText;
   @override
-  String? get searchFieldLabel => "Search for lyrics...";
+  String? get searchFieldLabel => searchFieldLabelText;
 
   final PluginService _pluginService = ServiceLocator.pluginService;
   final SettingsDAO _settingsDao = SettingsDAO(DBProvider.db);
 
-  LyricsSearchDelegate({required this.mediaID});
+  LyricsSearchDelegate({
+    required this.mediaID,
+    required this.searchFieldLabelText,
+  });
 
   Future<List<String>> _getLyricsPluginIds() async {
     final raw = await _settingsDao.getSettingStr(SettingKeys.lyricsPriority);
@@ -141,10 +146,11 @@ class LyricsSearchDelegate extends SearchDelegate {
   Widget buildSuggestions(BuildContext context) => _buildBody(context);
 
   Widget _buildBody(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (query.trim().isEmpty) {
-      return const Center(
+      return Center(
         child: SignBoardWidget(
-          message: "Type a song or artist to find lyrics.",
+          message: l10n.lyricsSearchEmptyPrompt,
           icon: MingCute.search_2_line,
         ),
       );
@@ -165,7 +171,7 @@ class LyricsSearchDelegate extends SearchDelegate {
         if (results.isEmpty) {
           return Center(
             child: SignBoardWidget(
-              message: "No lyrics found for '${query.trim()}'",
+              message: l10n.lyricsSearchNoResults(query.trim()),
               icon: MingCute.ghost_line,
             ),
           );
@@ -220,6 +226,7 @@ class _LyricsResultCardState extends State<_LyricsResultCard> {
   bool _isApplying = false;
 
   Future<void> _applyDirectly() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_isApplying) return;
     setState(() => _isApplying = true);
 
@@ -244,13 +251,13 @@ class _LyricsResultCardState extends State<_LyricsResultCard> {
         context
             .read<LyricsCubit>()
             .setLyricsToDB(fetchedLyrics, widget.mediaID);
-        SnackbarService.showMessage('Lyrics successfully applied');
+        SnackbarService.showMessage(l10n.lyricsSearchApplied);
         widget.searchDelegate.close(context, null);
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isApplying = false);
-        SnackbarService.showMessage('Failed to fetch lyrics');
+        SnackbarService.showMessage(l10n.lyricsSearchFetchFailed);
       }
     }
   }
@@ -272,6 +279,7 @@ class _LyricsResultCardState extends State<_LyricsResultCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasSynced =
         widget.match.syncType != plugin_models.LyricsSyncType.none;
 
@@ -368,8 +376,8 @@ class _LyricsResultCardState extends State<_LyricsResultCard> {
                                       color: Default_Theme.accentColor2
                                           .withValues(alpha: 0.2)),
                                 ),
-                                child: const Text(
-                                  'SYNCED',
+                                child: Text(
+                                  l10n.lyricsSearchSynced,
                                   style: TextStyle(
                                       color: Default_Theme.accentColor2,
                                       fontSize: 9,
@@ -401,7 +409,7 @@ class _LyricsResultCardState extends State<_LyricsResultCard> {
                   Material(
                     color: Colors.transparent,
                     child: Tooltip(
-                      message: 'Preview Lyrics',
+                      message: l10n.lyricsSearchPreviewTooltip,
                       child: InkWell(
                         onTap: _isApplying ? null : _openPreview,
                         borderRadius: BorderRadius.circular(10),
@@ -499,6 +507,7 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
@@ -541,7 +550,7 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "PREVIEW",
+                                l10n.lyricsSearchPreview,
                                 style: TextStyle(
                                   color: Default_Theme.accentColor2
                                       .withValues(alpha: 0.8),
@@ -587,9 +596,9 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
                     child: CircularProgressIndicator(
                         color: Default_Theme.accentColor2))
                 : _fetchedLyrics == null || _fetchedLyrics!.lyricsPlain.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: SignBoardWidget(
-                          message: "Failed to load lyrics.",
+                          message: l10n.lyricsSearchPreviewLoadFailed,
                           icon: MingCute.ghost_line,
                         ),
                       )
@@ -636,7 +645,7 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
                     widget.parentContext
                         .read<LyricsCubit>()
                         .setLyricsToDB(_fetchedLyrics!, widget.mediaID);
-                    SnackbarService.showMessage('Lyrics successfully applied');
+                    SnackbarService.showMessage(l10n.lyricsSearchApplied);
                     Navigator.pop(context);
                     widget.searchDelegate.close(widget.parentContext, null);
                   },
@@ -657,8 +666,8 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
                               Default_Theme.accentColor2.withValues(alpha: 0.4),
                           width: 1.5),
                     ),
-                    child: const Text(
-                      "Apply Lyrics",
+                    child: Text(
+                      l10n.lyricsSearchApplyAction,
                       style: TextStyle(
                         color: Default_Theme.accentColor2,
                         fontSize: 16,

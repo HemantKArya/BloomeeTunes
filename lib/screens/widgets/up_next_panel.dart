@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/core/adapters/track_adapter.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/widgets/toogle_btn.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:audio_service/audio_service.dart';
@@ -309,6 +310,7 @@ class _CompactHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -317,7 +319,7 @@ class _CompactHeader extends StatelessWidget {
               color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
               size: 18),
           const SizedBox(width: 8),
-          Text("Up Next", style: _UpNextStyles.headerTextStyle),
+          Text(l10n.upNextTitle, style: _UpNextStyles.headerTextStyle),
           const SizedBox(width: 6),
           AnimatedRotation(
             turns: isExpanded ? 0.5 : 0,
@@ -338,6 +340,7 @@ class _QueueInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -346,14 +349,14 @@ class _QueueInfoRow extends StatelessWidget {
           StreamBuilder<List<MediaItem>>(
             stream: playerCubit.bloomeePlayer.queue,
             builder: (context, snapshot) {
-              return Text("${snapshot.data?.length ?? 0} Items in Queue",
+              return Text(l10n.upNextItemsInQueue(snapshot.data?.length ?? 0),
                   style: _UpNextStyles.queueCountStyle);
             },
           ),
           BlocBuilder<SettingsCubit, SettingsState>(
             builder: (context, state) {
               return ToggleButton(
-                label: "Auto Play",
+                label: l10n.upNextAutoPlay,
                 initialState: state.autoPlay,
                 onChanged: (val) async {
                   await context.read<SettingsCubit>().setAutoPlay(val);

@@ -1655,4 +1655,208 @@ class AppLocalizationsHi extends AppLocalizations {
   String snackbarPreparingExport(String title) {
     return 'Preparing $title for export.';
   }
+
+  @override
+  String get pluginManagerTabInstalled => 'इंस्टॉल किए गए';
+
+  @override
+  String get pluginManagerTabStore => 'प्लगइन स्टोर';
+
+  @override
+  String get pluginManagerSelectPackage => 'प्लगइन पैकेज चुनें (.bex)';
+
+  @override
+  String get pluginManagerOutdatedManifest =>
+      'यह प्लगइन पुराने मैनिफेस्ट संस्करण का उपयोग करता है। कुछ फीचर सही से काम नहीं कर सकते। अपडेट करने पर विचार करें।';
+
+  @override
+  String get pluginManagerStatusActive => 'सक्रिय';
+
+  @override
+  String get pluginManagerStatusInactive => 'निष्क्रिय';
+
+  @override
+  String get pluginRepositoryAddTitle => 'रिपॉज़िटरी जोड़ें';
+
+  @override
+  String get pluginRepositoryAddSubtitle =>
+      'मान्य प्लगइन रिपॉज़िटरी JSON फ़ाइल का URL दर्ज करें।';
+
+  @override
+  String get pluginRepositoryAddAction => 'रिपॉज़िटरी जोड़ें';
+
+  @override
+  String get pluginRepositoryTitle => 'प्लगइन रिपॉज़िटरी';
+
+  @override
+  String get pluginRepositorySubtitle =>
+      'रिमोट प्लगइन देखने के लिए JSON स्रोत जोड़ें।';
+
+  @override
+  String get pluginRepositoryEmpty => 'अभी तक कोई रिपॉज़िटरी नहीं जोड़ी गई है।';
+
+  @override
+  String get pluginRepositoryUnknownUpdate => 'अपडेट जानकारी उपलब्ध नहीं';
+
+  @override
+  String get pluginRepositoryNoDescription => 'कोई विवरण उपलब्ध नहीं है।';
+
+  @override
+  String get pluginRepositoryUrlCopied =>
+      'रिपॉज़िटरी URL क्लिपबोर्ड पर कॉपी कर दिया गया';
+
+  @override
+  String pluginRepositoryPluginsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count प्लगइन',
+      one: '1 प्लगइन',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pluginRepositoryUpdatedOn(String date) {
+    return 'अपडेट: $date';
+  }
+
+  @override
+  String pluginRepositoryAvailableCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count प्लगइन उपलब्ध',
+      one: '1 प्लगइन उपलब्ध',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pluginRepositoryOutdatedManifest =>
+      'पुराना मैनिफेस्ट। कुछ फीचर ठीक से काम नहीं कर सकते।';
+
+  @override
+  String get pluginRepositoryUnknownPublisher => 'अज्ञात प्रकाशक';
+
+  @override
+  String get pluginRepositoryActionRetry => 'फिर से प्रयास करें';
+
+  @override
+  String get pluginRepositoryActionOutdated => 'पुराना';
+
+  @override
+  String get pluginRepositoryActionInstalled => 'इंस्टॉल किया गया';
+
+  @override
+  String get pluginRepositoryActionInstall => 'इंस्टॉल करें';
+
+  @override
+  String get pluginRepositoryActionUnavailable => 'उपलब्ध नहीं';
+
+  @override
+  String get pluginRepositoryInstallFailed => 'इंस्टॉलेशन विफल हुआ।';
+
+  @override
+  String pluginRepositoryDownloadFailed(String name) {
+    return '$name डाउनलोड नहीं हो सका।';
+  }
+
+  @override
+  String get pluginRepositoryErrorLoad => 'रिपॉज़िटरी लोड नहीं हो सकीं।';
+
+  @override
+  String get pluginRepositoryErrorInvalid =>
+      'रिपॉज़िटरी URL या रिपॉज़िटरी फ़ाइल अमान्य है।';
+
+  @override
+  String get pluginRepositoryErrorRemove => 'रिपॉज़िटरी हटाई नहीं जा सकी।';
+
+  @override
+  String smartReplaceAppliedPlaylistsSummary(int count, String queue) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count प्लेलिस्ट में बदल दिया गया$queue.',
+      one: '1 प्लेलिस्ट में बदल दिया गया$queue.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lyricsSearchFieldLabel => 'गीत के बोल खोजें...';
+
+  @override
+  String get lyricsSearchEmptyPrompt =>
+      'बोल खोजने के लिए गीत या कलाकार का नाम लिखें।';
+
+  @override
+  String lyricsSearchNoResults(String query) {
+    return '\"$query\" के लिए कोई बोल नहीं मिले';
+  }
+
+  @override
+  String get lyricsSearchApplied => 'बोल सफलतापूर्वक लागू किए गए';
+
+  @override
+  String get lyricsSearchFetchFailed => 'बोल प्राप्त नहीं किए जा सके';
+
+  @override
+  String get lyricsSearchPreview => 'पूर्वावलोकन';
+
+  @override
+  String get lyricsSearchPreviewTooltip => 'बोल का पूर्वावलोकन देखें';
+
+  @override
+  String get lyricsSearchSynced => 'सिंक';
+
+  @override
+  String get lyricsSearchPreviewLoadFailed => 'बोल लोड नहीं हो सके।';
+
+  @override
+  String get lyricsSearchApplyAction => 'बोल लागू करें';
+
+  @override
+  String get lyricsSettingsSearchTitle => 'कस्टम बोल खोजें';
+
+  @override
+  String get lyricsSettingsSearchSubtitle => 'ऑनलाइन वैकल्पिक संस्करण खोजें';
+
+  @override
+  String get lyricsSettingsSyncTitle => 'सिंक समायोजित करें (डिले/ऑफसेट)';
+
+  @override
+  String get lyricsSettingsSyncSubtitle => 'बहुत तेज़ या धीमे बोल ठीक करें';
+
+  @override
+  String get lyricsSettingsSaveTitle => 'ऑफ़लाइन सहेजें';
+
+  @override
+  String get lyricsSettingsSaveSubtitle => 'इन बोलों को अपने डिवाइस पर सहेजें';
+
+  @override
+  String get lyricsSettingsDeleteTitle => 'सहेजे गए बोल हटाएँ';
+
+  @override
+  String get lyricsSettingsDeleteSubtitle => 'ऑफ़लाइन बोल डेटा हटाएँ';
+
+  @override
+  String get lyricsSyncTapToReset => 'रीसेट करने के लिए टैप करें';
+
+  @override
+  String get upNextTitle => 'अगला';
+
+  @override
+  String upNextItemsInQueue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'कतार में $count आइटम',
+      one: 'कतार में 1 आइटम',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get upNextAutoPlay => 'ऑटो प्ले';
 }

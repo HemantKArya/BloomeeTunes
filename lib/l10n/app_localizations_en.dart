@@ -1651,4 +1651,207 @@ class AppLocalizationsEn extends AppLocalizations {
   String snackbarPreparingExport(String title) {
     return 'Preparing $title for export.';
   }
+
+  @override
+  String get pluginManagerTabInstalled => 'Installed';
+
+  @override
+  String get pluginManagerTabStore => 'Plugin Store';
+
+  @override
+  String get pluginManagerSelectPackage => 'Select Plugin Package (.bex)';
+
+  @override
+  String get pluginManagerOutdatedManifest =>
+      'Plugin uses an outdated manifest version. Some features might break. Consider updating.';
+
+  @override
+  String get pluginManagerStatusActive => 'Active';
+
+  @override
+  String get pluginManagerStatusInactive => 'Inactive';
+
+  @override
+  String get pluginRepositoryAddTitle => 'Add Repository';
+
+  @override
+  String get pluginRepositoryAddSubtitle =>
+      'Enter the URL of a valid plugin repository JSON file.';
+
+  @override
+  String get pluginRepositoryAddAction => 'Add Repository';
+
+  @override
+  String get pluginRepositoryTitle => 'Plugin Repositories';
+
+  @override
+  String get pluginRepositorySubtitle =>
+      'Add a JSON source to browse remote plugins.';
+
+  @override
+  String get pluginRepositoryEmpty => 'No repositories added yet.';
+
+  @override
+  String get pluginRepositoryUnknownUpdate => 'Unknown update';
+
+  @override
+  String get pluginRepositoryNoDescription => 'No description provided.';
+
+  @override
+  String get pluginRepositoryUrlCopied => 'Repository URL copied to clipboard';
+
+  @override
+  String pluginRepositoryPluginsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plugins',
+      one: '1 plugin',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pluginRepositoryUpdatedOn(String date) {
+    return 'Updated $date';
+  }
+
+  @override
+  String pluginRepositoryAvailableCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plugins available',
+      one: '1 plugin available',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pluginRepositoryOutdatedManifest =>
+      'Outdated manifest. Features may break.';
+
+  @override
+  String get pluginRepositoryUnknownPublisher => 'Unknown publisher';
+
+  @override
+  String get pluginRepositoryActionRetry => 'Retry';
+
+  @override
+  String get pluginRepositoryActionOutdated => 'Outdated';
+
+  @override
+  String get pluginRepositoryActionInstalled => 'Installed';
+
+  @override
+  String get pluginRepositoryActionInstall => 'Install';
+
+  @override
+  String get pluginRepositoryActionUnavailable => 'Unavailable';
+
+  @override
+  String get pluginRepositoryInstallFailed => 'Installation failed.';
+
+  @override
+  String pluginRepositoryDownloadFailed(String name) {
+    return 'Failed to download $name.';
+  }
+
+  @override
+  String get pluginRepositoryErrorLoad => 'Failed to load repositories.';
+
+  @override
+  String get pluginRepositoryErrorInvalid =>
+      'Invalid repository URL or repository file.';
+
+  @override
+  String get pluginRepositoryErrorRemove => 'Failed to remove repository.';
+
+  @override
+  String smartReplaceAppliedPlaylistsSummary(int count, String queue) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Replaced in $count playlists$queue.',
+      one: 'Replaced in 1 playlist$queue.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lyricsSearchFieldLabel => 'Search for lyrics...';
+
+  @override
+  String get lyricsSearchEmptyPrompt => 'Type a song or artist to find lyrics.';
+
+  @override
+  String lyricsSearchNoResults(String query) {
+    return 'No lyrics found for \"$query\"';
+  }
+
+  @override
+  String get lyricsSearchApplied => 'Lyrics successfully applied';
+
+  @override
+  String get lyricsSearchFetchFailed => 'Failed to fetch lyrics';
+
+  @override
+  String get lyricsSearchPreview => 'Preview';
+
+  @override
+  String get lyricsSearchPreviewTooltip => 'Preview lyrics';
+
+  @override
+  String get lyricsSearchSynced => 'SYNCED';
+
+  @override
+  String get lyricsSearchPreviewLoadFailed => 'Failed to load lyrics.';
+
+  @override
+  String get lyricsSearchApplyAction => 'Apply Lyrics';
+
+  @override
+  String get lyricsSettingsSearchTitle => 'Search Custom Lyrics';
+
+  @override
+  String get lyricsSettingsSearchSubtitle => 'Find alternative versions online';
+
+  @override
+  String get lyricsSettingsSyncTitle => 'Adjust Sync (Delay/Offset)';
+
+  @override
+  String get lyricsSettingsSyncSubtitle =>
+      'Fix lyrics that are too fast or slow';
+
+  @override
+  String get lyricsSettingsSaveTitle => 'Save Offline';
+
+  @override
+  String get lyricsSettingsSaveSubtitle => 'Store these lyrics on your device';
+
+  @override
+  String get lyricsSettingsDeleteTitle => 'Delete Saved Lyrics';
+
+  @override
+  String get lyricsSettingsDeleteSubtitle => 'Remove offline lyrics data';
+
+  @override
+  String get lyricsSyncTapToReset => 'Tap to reset';
+
+  @override
+  String get upNextTitle => 'Up Next';
+
+  @override
+  String upNextItemsInQueue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items in queue',
+      one: '1 item in queue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get upNextAutoPlay => 'Auto Play';
 }

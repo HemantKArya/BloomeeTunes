@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Required for Clipboard
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/plugins/blocs/repository/plugin_repository_cubit.dart';
 import 'package:Bloomee/plugins/models/plugin_repository.dart';
@@ -32,6 +33,7 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
   }
 
   void _showAddRepositoryDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -44,8 +46,8 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
         ),
         titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
         contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-        title: const Text(
-          'Add Repository',
+        title: Text(
+          l10n.pluginRepositoryAddTitle,
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -58,7 +60,7 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Enter the URL of a valid plugin repository JSON file.',
+              l10n.pluginRepositoryAddSubtitle,
               style: TextStyle(
                 color: Default_Theme.primaryColor2.withValues(alpha: 0.65),
                 fontSize: 13,
@@ -109,7 +111,7 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
             ),
             const SizedBox(height: 16),
             _AestheticButton(
-              text: 'Add Repository',
+              text: l10n.pluginRepositoryAddAction,
               icon: MingCute.add_line,
               color: Default_Theme.accentColor2,
               fullWidth: true,
@@ -130,6 +132,7 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 900),
@@ -145,7 +148,7 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Plugin Repositories',
+                          l10n.pluginRepositoryTitle,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 16,
@@ -155,7 +158,7 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Add a JSON source to browse remote plugins.',
+                          l10n.pluginRepositorySubtitle,
                           style: TextStyle(
                             color: Default_Theme.primaryColor2
                                 .withValues(alpha: 0.6),
@@ -167,7 +170,7 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
                   ),
                   const SizedBox(width: 16),
                   _AestheticButton(
-                    text: 'Add',
+                    text: l10n.pluginRepositoryAddAction,
                     icon: MingCute.add_line,
                     color: Default_Theme.accentColor2,
                     onTap: () => _showAddRepositoryDialog(context),
@@ -179,7 +182,9 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
               child: BlocConsumer<PluginRepositoryCubit, PluginRepositoryState>(
                 listener: (context, state) {
                   if (state is PluginRepositoryError) {
-                    SnackbarService.showMessage(state.message);
+                    SnackbarService.showMessage(
+                      _localizedRepositoryError(context, state.message),
+                    );
                   }
                 },
                 builder: (context, state) {
@@ -190,8 +195,8 @@ class _PluginRepositoryViewState extends State<PluginRepositoryView> {
                     );
                   } else if (state is PluginRepositoryLoaded) {
                     if (state.repositories.isEmpty) {
-                      return const SignBoardWidget(
-                        message: 'No repositories added yet.',
+                      return SignBoardWidget(
+                        message: l10n.pluginRepositoryEmpty,
                         icon: MingCute.cloud_snow_line,
                       );
                     }
@@ -256,8 +261,9 @@ class _RepoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final generatedDate = repo.generatedAt == null
-        ? 'Unknown update'
+        ? l10n.pluginRepositoryUnknownUpdate
         : repo.generatedAt!.toIso8601String().split('T').first;
 
     return Container(
@@ -320,7 +326,7 @@ class _RepoCard extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               repo.description.isEmpty
-                                  ? 'No description provided.'
+                                  ? l10n.pluginRepositoryNoDescription
                                   : repo.description,
                               style: TextStyle(
                                   color: Default_Theme.primaryColor2
@@ -351,7 +357,8 @@ class _RepoCard extends StatelessWidget {
                       onTap: () async {
                         await Clipboard.setData(ClipboardData(text: repo.url));
                         SnackbarService.showMessage(
-                            'Repository URL copied to clipboard');
+                          l10n.pluginRepositoryUrlCopied,
+                        );
                       },
                       borderRadius: BorderRadius.circular(10),
                       splashColor:
@@ -398,7 +405,8 @@ class _RepoCard extends StatelessWidget {
                     children: [
                       _Badge(
                           icon: MingCute.plugin_2_line,
-                          label: '${repo.plugins.length} plugins'),
+                          label: l10n.pluginRepositoryPluginsCount(
+                              repo.plugins.length)),
                       const SizedBox(width: 8),
                       _Badge(icon: MingCute.clock_2_line, label: generatedDate),
                       const Spacer(),
@@ -430,6 +438,20 @@ class _RepoCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _localizedRepositoryError(BuildContext context, String rawMessage) {
+  final l10n = AppLocalizations.of(context)!;
+  if (rawMessage.startsWith('Failed to load repositories')) {
+    return l10n.pluginRepositoryErrorLoad;
+  }
+  if (rawMessage.startsWith('Invalid repository')) {
+    return l10n.pluginRepositoryErrorInvalid;
+  }
+  if (rawMessage.startsWith('Failed to remove repository')) {
+    return l10n.pluginRepositoryErrorRemove;
+  }
+  return rawMessage;
 }
 
 // ── Shared UI Helpers ────────────────────────────────────────────────────────

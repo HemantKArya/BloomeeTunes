@@ -61,10 +61,14 @@ class _ImportProcessScreenState extends State<ImportProcessScreen> {
               listener: (context, state) {
                 if (state.phase == ImportPhase.done) {
                   SnackbarService.showMessage(
-                      AppLocalizations.of(context)!.snackbarPlaylistSaved);
+                    AppLocalizations.of(context)!
+                        .importTracksSaved(state.resolvedCount),
+                  );
                 }
                 if (state.phase == ImportPhase.error && state.error != null) {
-                  SnackbarService.showMessage(state.error!);
+                  SnackbarService.showMessage(
+                    _localizedImportError(context, state.error!),
+                  );
                 }
               },
               builder: (context, state) {
@@ -168,12 +172,46 @@ class _ImportProcessScreenState extends State<ImportProcessScreen> {
       case ImportPhase.error:
         return _ErrorView(
           key: const ValueKey('error'),
-          error:
-              state.error ?? AppLocalizations.of(context)!.importUnknownError,
+          error: state.error == null
+              ? AppLocalizations.of(context)!.importUnknownError
+              : _localizedImportError(context, state.error!),
           onRetry: () => cubit.reset(),
         );
     }
   }
+}
+
+String _localizedImportError(BuildContext context, String rawError) {
+  final l10n = AppLocalizations.of(context)!;
+  if (rawError == 'This plugin cannot handle the provided URL.') {
+    return l10n.importErrorCannotHandleUrl;
+  }
+  if (rawError
+          .startsWith('Unexpected response when fetching collection info') ||
+      rawError.startsWith('Unexpected response when fetching tracks')) {
+    return l10n.importErrorUnexpectedResponse;
+  }
+  if (rawError.startsWith('Failed to check URL: ')) {
+    return l10n.importErrorFailedToCheck(
+      rawError.substring('Failed to check URL: '.length),
+    );
+  }
+  if (rawError.startsWith('Failed to fetch collection info: ')) {
+    return l10n.importErrorFailedToFetchInfo(
+      rawError.substring('Failed to fetch collection info: '.length),
+    );
+  }
+  if (rawError.startsWith('Failed to fetch tracks: ')) {
+    return l10n.importErrorFailedToFetchTracks(
+      rawError.substring('Failed to fetch tracks: '.length),
+    );
+  }
+  if (rawError.startsWith('Failed to save playlist: ')) {
+    return l10n.importErrorFailedToSave(
+      rawError.substring('Failed to save playlist: '.length),
+    );
+  }
+  return rawError;
 }
 
 // ── URL Input ────────────────────────────────────────────────────────────────
@@ -198,7 +236,7 @@ class _UrlInputView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Default_Theme.accentColor2.withOpacity(0.1),
+              color: Default_Theme.accentColor2.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(MingCute.link_fill,
@@ -219,10 +257,10 @@ class _UrlInputView extends StatelessWidget {
           const SizedBox(height: 40),
           Container(
             decoration: BoxDecoration(
-              color: Default_Theme.primaryColor1.withOpacity(0.04),
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                  color: Default_Theme.primaryColor1.withOpacity(0.1)),
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.1)),
             ),
             child: TextField(
               controller: controller,
@@ -237,14 +275,14 @@ class _UrlInputView extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'https://...',
                 hintStyle: TextStyle(
-                  color: Default_Theme.primaryColor2.withOpacity(0.4),
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.4),
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                 ),
                 prefixIcon: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Icon(MingCute.search_2_line,
-                      color: Default_Theme.primaryColor2.withOpacity(0.6),
+                      color: Default_Theme.primaryColor2.withValues(alpha: 0.6),
                       size: 20),
                 ),
                 prefixIconConstraints:
@@ -256,8 +294,8 @@ class _UrlInputView extends StatelessWidget {
                       : IconButton(
                           icon: Icon(Icons.cancel,
                               size: 20,
-                              color:
-                                  Default_Theme.primaryColor2.withOpacity(0.8)),
+                              color: Default_Theme.primaryColor2
+                                  .withValues(alpha: 0.8)),
                           onPressed: controller.clear,
                         ),
                 ),
@@ -315,7 +353,8 @@ class _LoadingView extends StatelessWidget {
             ],
             CircularProgressIndicator(
               color: Default_Theme.accentColor2,
-              backgroundColor: Default_Theme.primaryColor1.withOpacity(0.1),
+              backgroundColor:
+                  Default_Theme.primaryColor1.withValues(alpha: 0.1),
               strokeWidth: 4,
             ),
             const SizedBox(height: 24),
@@ -346,10 +385,10 @@ class _CollectionHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Default_Theme.primaryColor1.withOpacity(0.04),
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: Default_Theme.primaryColor1.withOpacity(0.05)),
+        border: Border.all(
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.05)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -391,7 +430,7 @@ class _CollectionHeader extends StatelessWidget {
                   Text(
                     info.owner!,
                     style: TextStyle(
-                      color: Default_Theme.primaryColor2.withOpacity(0.8),
+                      color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -404,7 +443,7 @@ class _CollectionHeader extends StatelessWidget {
                     AppLocalizations.of(context)!
                         .importTrackCount(info.trackCount!),
                     style: TextStyle(
-                      color: Default_Theme.accentColor2.withOpacity(0.9),
+                      color: Default_Theme.accentColor2.withValues(alpha: 0.9),
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -418,9 +457,10 @@ class _CollectionHeader extends StatelessWidget {
   }
 
   Widget _thumbPlaceholder() => Container(
-        color: Default_Theme.primaryColor1.withOpacity(0.08),
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
         child: Icon(MingCute.playlist_fill,
-            color: Default_Theme.primaryColor2.withOpacity(0.5), size: 32),
+            color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
+            size: 32),
       );
 }
 
@@ -476,7 +516,8 @@ class _ResolvingView extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
-              backgroundColor: Default_Theme.primaryColor1.withOpacity(0.1),
+              backgroundColor:
+                  Default_Theme.primaryColor1.withValues(alpha: 0.1),
               valueColor:
                   const AlwaysStoppedAnimation(Default_Theme.accentColor2),
             ),
@@ -489,7 +530,7 @@ class _ResolvingView extends StatelessWidget {
             itemCount: state.tracks.length,
             separatorBuilder: (_, __) => Divider(
                 height: 1,
-                color: Default_Theme.primaryColor1.withOpacity(0.05),
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
                 indent: 72),
             itemBuilder: (context, index) =>
                 _ResolvingTrackTile(entry: state.tracks[index]),
@@ -577,7 +618,7 @@ class _ReviewViewState extends State<_ReviewView> {
             color: Default_Theme.themeColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
+                color: Colors.black.withValues(alpha: 0.15),
                 blurRadius: 10,
                 offset: const Offset(0, -4),
               )
@@ -590,7 +631,8 @@ class _ReviewViewState extends State<_ReviewView> {
                   onPressed: widget.onReset,
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(
-                        color: Default_Theme.primaryColor2.withOpacity(0.3)),
+                        color:
+                            Default_Theme.primaryColor2.withValues(alpha: 0.3)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -612,7 +654,7 @@ class _ReviewViewState extends State<_ReviewView> {
                   style: FilledButton.styleFrom(
                     backgroundColor: Default_Theme.accentColor2,
                     disabledBackgroundColor:
-                        Default_Theme.accentColor2.withOpacity(0.3),
+                        Default_Theme.accentColor2.withValues(alpha: 0.3),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -650,7 +692,7 @@ class _StatChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -681,7 +723,7 @@ class _ResolvingTrackTile extends StatelessWidget {
 
     final statusWidget = switch (entry.status) {
       TrackResolutionStatus.pending => Icon(Icons.hourglass_empty,
-          size: 20, color: Default_Theme.primaryColor2.withOpacity(0.5)),
+          size: 20, color: Default_Theme.primaryColor2.withValues(alpha: 0.5)),
       TrackResolutionStatus.resolving => const SizedBox(
           width: 20,
           height: 20,
@@ -731,7 +773,7 @@ class _ResolvingTrackTile extends StatelessWidget {
                 Text(
                   src.artists.join(', '),
                   style: TextStyle(
-                    color: Default_Theme.primaryColor2.withOpacity(0.8),
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                   ),
@@ -749,9 +791,9 @@ class _ResolvingTrackTile extends StatelessWidget {
   }
 
   Widget _miniPlaceholder() => Container(
-      color: Default_Theme.primaryColor1.withOpacity(0.08),
+      color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
       child: Icon(MingCute.music_2_fill,
-          color: Default_Theme.primaryColor2.withOpacity(0.4), size: 20));
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.4), size: 20));
 }
 
 // ── Review Track Tile (expandable) ───────────────────────────────────────────
@@ -793,12 +835,12 @@ class _ReviewTrackTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         color: isExpanded
-            ? Default_Theme.primaryColor1.withOpacity(0.03)
+            ? Default_Theme.primaryColor1.withValues(alpha: 0.03)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isExpanded
-              ? Default_Theme.accentColor2.withOpacity(0.2)
+              ? Default_Theme.accentColor2.withValues(alpha: 0.2)
               : Colors.transparent,
         ),
       ),
@@ -845,7 +887,8 @@ class _ReviewTrackTile extends StatelessWidget {
                         Text(
                           src.artists.join(', '),
                           style: TextStyle(
-                            color: Default_Theme.primaryColor2.withOpacity(0.8),
+                            color: Default_Theme.primaryColor2
+                                .withValues(alpha: 0.8),
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),
@@ -865,8 +908,9 @@ class _ReviewTrackTile extends StatelessWidget {
                                   child: Text(
                                     '${effective.title} • ${effective.artists.map((a) => a.name).join(', ')}',
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(
-                                          0.95), // Bright white text for visibility
+                                      color: Colors.white.withValues(
+                                          alpha:
+                                              0.95), // Bright white text for visibility
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -884,7 +928,7 @@ class _ReviewTrackTile extends StatelessWidget {
                               AppLocalizations.of(context)!.importSkipped,
                               style: TextStyle(
                                 color: Colors.white
-                                    .withOpacity(0.7), // Good contrast
+                                    .withValues(alpha: 0.7), // Good contrast
                                 fontSize: 13,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -904,8 +948,8 @@ class _ReviewTrackTile extends StatelessWidget {
                           turns: isExpanded ? 0.5 : 0,
                           duration: const Duration(milliseconds: 200),
                           child: Icon(Icons.expand_more,
-                              color:
-                                  Default_Theme.primaryColor2.withOpacity(0.8),
+                              color: Default_Theme.primaryColor2
+                                  .withValues(alpha: 0.8),
                               size: 20),
                         ),
                       ],
@@ -928,9 +972,9 @@ class _ReviewTrackTile extends StatelessWidget {
   }
 
   Widget _miniPlaceholder() => Container(
-      color: Default_Theme.primaryColor1.withOpacity(0.08),
+      color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
       child: Icon(MingCute.music_2_fill,
-          color: Default_Theme.primaryColor2.withOpacity(0.4), size: 22));
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.4), size: 22));
 }
 
 // ── Candidate Picker ─────────────────────────────────────────────────────────
@@ -954,7 +998,8 @@ class _CandidateList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Divider(
-              height: 1, color: Default_Theme.primaryColor1.withOpacity(0.06)),
+              height: 1,
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.06)),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
             child: Text(
@@ -1027,7 +1072,7 @@ class _CandidateTile extends StatelessWidget {
                     style: TextStyle(
                       color: isSelected
                           ? Colors.white
-                          : Colors.white.withOpacity(0.8),
+                          : Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -1039,7 +1084,7 @@ class _CandidateTile extends StatelessWidget {
                   Text(
                     track.artists.map((a) => a.name).join(', '),
                     style: TextStyle(
-                      color: Default_Theme.primaryColor2.withOpacity(0.7),
+                      color: Default_Theme.primaryColor2.withValues(alpha: 0.7),
                       fontSize: 12,
                     ),
                     maxLines: 1,
@@ -1055,9 +1100,9 @@ class _CandidateTile extends StatelessWidget {
   }
 
   Widget _miniPlaceholder() => Container(
-      color: Default_Theme.primaryColor1.withOpacity(0.08),
+      color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
       child: Icon(MingCute.music_2_fill,
-          color: Default_Theme.primaryColor2.withOpacity(0.3), size: 18));
+          color: Default_Theme.primaryColor2.withValues(alpha: 0.3), size: 18));
 }
 
 class _SkipTile extends StatelessWidget {
@@ -1082,14 +1127,14 @@ class _SkipTile extends StatelessWidget {
               child: Center(
                 child: Icon(Icons.block,
                     size: 24,
-                    color: Default_Theme.primaryColor2.withOpacity(0.6)),
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.6)),
               ),
             ),
             const SizedBox(width: 12),
             Text(
               AppLocalizations.of(context)!.importSkipTrack,
               style: TextStyle(
-                color: Default_Theme.primaryColor2.withOpacity(0.9),
+                color: Default_Theme.primaryColor2.withValues(alpha: 0.9),
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
               ),
@@ -1118,8 +1163,9 @@ class _CustomRadio extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color:
-              isSelected ? color : Default_Theme.primaryColor2.withOpacity(0.4),
+          color: isSelected
+              ? color
+              : Default_Theme.primaryColor2.withValues(alpha: 0.4),
           width: 2.5, // Thick outer ring
         ),
       ),
@@ -1177,7 +1223,7 @@ class _DoneView extends StatelessWidget {
                   width: 76,
                   height: 76,
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.2),
+                    color: Colors.green.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.check_circle,
@@ -1202,7 +1248,7 @@ class _DoneView extends StatelessWidget {
                 state.collectionInfo!.title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Default_Theme.primaryColor2.withOpacity(0.8),
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
@@ -1262,7 +1308,7 @@ class _ErrorView extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.redAccent.withOpacity(0.15),
+                color: Colors.redAccent.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.error_outline,
@@ -1273,7 +1319,7 @@ class _ErrorView extends StatelessWidget {
               error,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 height: 1.4,

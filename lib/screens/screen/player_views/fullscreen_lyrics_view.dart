@@ -8,6 +8,7 @@ import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:audio_service/audio_service.dart';
@@ -124,6 +125,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     final isDesktop = MediaQuery.of(context).size.width > 600;
 
@@ -159,12 +161,12 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
                             )
                           : state.lyrics.lyricsPlain.isNotEmpty
                               ? _buildPlainLyrics(state, isDesktop)
-                              : const SignBoardWidget(
+                              : SignBoardWidget(
                                   icon: MingCute.music_2_line,
-                                  message: "No Lyrics Found"),
-                      LyricsError() => const SignBoardWidget(
+                                  message: l10n.playerNoLyricsFound),
+                      LyricsError() => SignBoardWidget(
                           icon: MingCute.music_2_line,
-                          message: "No Lyrics Found"),
+                          message: l10n.playerNoLyricsFound),
                       LyricsState() => const SizedBox.shrink(),
                     },
                   );
@@ -330,6 +332,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
   }
 
   Widget _buildSyncControls() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Container(
         decoration: BoxDecoration(
@@ -381,7 +384,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16),
                           ),
-                          Text("TAP TO RESET",
+                          Text(l10n.lyricsSyncTapToReset.toUpperCase(),
                               style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.6),
                                   fontSize: 9,
@@ -424,6 +427,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
 
   Widget _buildBottomControls(
       BloomeePlayerCubit bloomeePlayerCubit, bool isDesktop) {
+    final l10n = AppLocalizations.of(context)!;
     final musicPlayer = bloomeePlayerCubit.bloomeePlayer;
     final paddingBottom = MediaQuery.of(context).padding.bottom;
 
@@ -487,7 +491,7 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
                       const Icon(MingCute.playlist_fill,
                           color: Colors.white, size: 20),
                       const SizedBox(width: 10),
-                      Text("Up Next",
+                      Text(l10n.upNextTitle,
                           style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.95),
                               fontSize: 14,
@@ -806,6 +810,7 @@ class _LyricsSettingsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
       child: Container(
@@ -829,13 +834,16 @@ class _LyricsSettingsBottomSheet extends StatelessWidget {
             const SizedBox(height: 32),
             _buildMenuItem(
               icon: MingCute.search_2_line,
-              title: "Search Custom Lyrics",
-              subtitle: "Find alternative versions online",
+              title: l10n.lyricsSettingsSearchTitle,
+              subtitle: l10n.lyricsSettingsSearchSubtitle,
               onTap: () {
                 Navigator.pop(context);
                 showSearch(
                   context: context,
-                  delegate: LyricsSearchDelegate(mediaID: state.track.id),
+                  delegate: LyricsSearchDelegate(
+                    mediaID: state.track.id,
+                    searchFieldLabelText: l10n.lyricsSearchFieldLabel,
+                  ),
                   query:
                       "${state.track.title} ${state.track.artists.map((a) => a.name).join(', ')}",
                 );
@@ -843,8 +851,8 @@ class _LyricsSettingsBottomSheet extends StatelessWidget {
             ),
             _buildMenuItem(
               icon: MingCute.time_line,
-              title: "Adjust Sync (Delay/Offset)",
-              subtitle: "Fix lyrics that are too fast or slow",
+              title: l10n.lyricsSettingsSyncTitle,
+              subtitle: l10n.lyricsSettingsSyncSubtitle,
               color: Default_Theme.accentColor2,
               onTap: onSyncTap,
             ),
@@ -853,8 +861,8 @@ class _LyricsSettingsBottomSheet extends StatelessWidget {
                 child: Divider(color: Colors.white12)),
             _buildMenuItem(
               icon: MingCute.save_2_line,
-              title: "Save Offline",
-              subtitle: "Store these lyrics to your device",
+              title: l10n.lyricsSettingsSaveTitle,
+              subtitle: l10n.lyricsSettingsSaveSubtitle,
               onTap: () {
                 context
                     .read<LyricsCubit>()
@@ -864,8 +872,8 @@ class _LyricsSettingsBottomSheet extends StatelessWidget {
             ),
             _buildMenuItem(
               icon: MingCute.delete_3_line,
-              title: "Delete Saved Lyrics",
-              subtitle: "Remove offline lyrics data",
+              title: l10n.lyricsSettingsDeleteTitle,
+              subtitle: l10n.lyricsSettingsDeleteSubtitle,
               color: const Color(0xFFFF5252),
               onTap: () {
                 context.read<LyricsCubit>().deleteLyricsFromDB(state.track);
