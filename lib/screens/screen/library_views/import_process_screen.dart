@@ -104,7 +104,7 @@ class _ImportProcessScreenState extends State<ImportProcessScreen> {
             title?.isNotEmpty == true
                 ? title!
                 : AppLocalizations.of(context)!.importTitle,
-            style: Default_Theme.primaryTextStyle.merge(
+            style: Default_Theme.secondoryTextStyleMedium.merge(
               const TextStyle(
                 color: Default_Theme.primaryColor1,
                 fontSize: 20,
@@ -377,10 +377,10 @@ class _CollectionHeader extends StatelessWidget {
                 // Allowed to use heavy font here as it acts as a page/section header
                 Text(
                   info.title,
-                  style: Default_Theme.primaryTextStyle.merge(
+                  style: Default_Theme.secondoryTextStyle.merge(
                     const TextStyle(
                       color: Default_Theme.primaryColor1,
-                      fontSize: 18,
+                      fontSize: 16,
                     ),
                   ),
                   maxLines: 2,

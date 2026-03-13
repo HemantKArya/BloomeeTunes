@@ -1,33 +1,19 @@
-use crate::api::plugin::manifest::Manifest;
+use crate::api::plugin::manifest::{Manifest, CURRENT_MANIFEST_VERSION};
 use crate::api::plugin::registrar::get_plugin_type_from_string;
 use crate::api::plugin::types::{PluginInstallResult, PluginInstallStatus};
 use anyhow::{Context, Result};
+use std::cmp::Ordering;
 use std::fs::File;
 use std::io::BufReader;
 use tar::Archive;
 use zstd::stream::read::Decoder;
 
-/// Compare two version strings using simple numeric segment comparison.
-/// Returns `Ordering::Greater` if `new_ver` is newer, `Equal` if same,
-/// `Less` if `new_ver` is older.
-fn compare_versions(new_ver: &str, old_ver: &str) -> std::cmp::Ordering {
-    let parse = |v: &str| -> Vec<u64> {
-        v.split('.')
-            .map(|s| s.trim().parse::<u64>().unwrap_or(0))
-            .collect()
-    };
-    let new_parts = parse(new_ver);
-    let old_parts = parse(old_ver);
-    let max_len = new_parts.len().max(old_parts.len());
-    for i in 0..max_len {
-        let n = new_parts.get(i).copied().unwrap_or(0);
-        let o = old_parts.get(i).copied().unwrap_or(0);
-        match n.cmp(&o) {
-            std::cmp::Ordering::Equal => continue,
-            other => return other,
-        }
+fn parse_version_int(version: &str) -> Option<u64> {
+    let trimmed = version.trim();
+    if trimmed.is_empty() || !trimmed.chars().all(|c| c.is_ascii_digit()) {
+        return None;
     }
-    std::cmp::Ordering::Equal
+    trimmed.parse::<u64>().ok()
 }
 
 pub async fn unpack_and_read_manifest(
@@ -73,13 +59,20 @@ pub async fn install_plugin(
                 existing_manifest_path.to_string_lossy().to_string();
             if let Ok(existing_manifest) = Manifest::from_file(&existing_manifest_path_string).await
             {
-                match compare_versions(&manifest.version, &existing_manifest.version) {
-                    std::cmp::Ordering::Greater => {
-                        status = PluginInstallStatus::Updated;
-                    }
-                    std::cmp::Ordering::Equal | std::cmp::Ordering::Less => {
-                        // Same or older version — still install but flag as downgraded.
-                        status = PluginInstallStatus::Downgraded;
+                if let (Some(new_ver), Some(old_ver)) = (
+                    parse_version_int(&manifest.version),
+                    parse_version_int(&existing_manifest.version),
+                ) {
+                    match new_ver.cmp(&old_ver) {
+                        Ordering::Greater => {
+                            status = PluginInstallStatus::Updated;
+                        }
+                        Ordering::Equal => {
+                            status = PluginInstallStatus::AlreadyInstalled;
+                        }
+                        Ordering::Less => {
+                            status = PluginInstallStatus::Downgraded;
+                        }
                     }
                 }
             }
@@ -126,6 +119,18 @@ pub async fn install_packed_plugin(
         let _ = tokio::fs::remove_dir_all(&temp_plugin_dir).await;
     };
 
+    if manifest.manifest_version != CURRENT_MANIFEST_VERSION {
+        cleanup().await;
+        return Ok(PluginInstallResult {
+            status: PluginInstallStatus::Failed,
+            plugin_id: manifest.id,
+            error: Some(format!(
+                "Manifest version mismatch: Expected {}, got {}",
+                CURRENT_MANIFEST_VERSION, manifest.manifest_version
+            )),
+        });
+    }
+
     if let Some(plugin_mgr) = manager {
         if let Some(plugin_type) = get_plugin_type_from_string(manifest.plugin_type()) {
             if plugin_mgr.is_plugin_loaded(&manifest.id, plugin_type).await {
@@ -143,14 +148,6 @@ pub async fn install_packed_plugin(
     cleanup().await;
 
     let (plugin_id, status) = install_res?;
-
-    if status == PluginInstallStatus::AlreadyInstalled {
-        return Ok(PluginInstallResult {
-            status,
-            plugin_id,
-            error: None,
-        });
-    }
 
     if should_load {
         if let Some(plugin_mgr) = manager {

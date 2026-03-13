@@ -257,16 +257,22 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
       log('Install result: ${result.pluginId} — ${result.status}',
           name: 'PluginBloc');
 
-      if (result.status == PluginInstallStatus.downgraded) {
-        emit(state.copyWith(
-          successMessage:
-              'Plugin "${result.pluginId}" installed (older/same version).',
-        ));
-      } else {
-        emit(state.copyWith(
-          successMessage: 'Plugin "${result.pluginId}" installed successfully.',
-        ));
-      }
+      final message = switch (result.status) {
+        PluginInstallStatus.updated =>
+          'Plugin "${result.pluginId}" upgraded to a newer version.',
+        PluginInstallStatus.alreadyInstalled =>
+          'Plugin "${result.pluginId}" is already on the latest version.',
+        PluginInstallStatus.downgraded =>
+          'Plugin "${result.pluginId}" installed with an older version.',
+        PluginInstallStatus.pluginLoaded =>
+          'Plugin "${result.pluginId}" is currently loaded. Unload it before reinstalling.',
+        PluginInstallStatus.failed =>
+          'Failed to install plugin "${result.pluginId}".',
+        PluginInstallStatus.installed =>
+          'Plugin "${result.pluginId}" installed successfully.',
+      };
+
+      emit(state.copyWith(successMessage: message));
 
       // Refresh available plugins after install.
       add(const RefreshPlugins());

@@ -3,6 +3,9 @@ use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+#[flutter_rust_bridge::frb]
+pub const CURRENT_MANIFEST_VERSION: u32 = 1;
+
 /// Plugin publisher information
 #[flutter_rust_bridge::frb]
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -73,6 +76,14 @@ pub struct Manifest {
     pub resolver: bool,
     /// ISO 8601 timestamp of the last plugin update.
     pub last_updated: Option<String>,
+}
+
+fn parse_plugin_version(version: &str) -> Option<u64> {
+    let trimmed = version.trim();
+    if trimmed.is_empty() || !trimmed.chars().all(|c| c.is_ascii_digit()) {
+        return None;
+    }
+    trimmed.parse::<u64>().ok()
 }
 
 fn deserialize_manifest_version<'de, D>(deserializer: D) -> Result<u32, D::Error>
@@ -185,13 +196,8 @@ impl Manifest {
     /// Validate manifest structure
     #[flutter_rust_bridge::frb(ignore)]
     fn validate(&self) -> PluginResult<()> {
-        // Validate manifest_version
-        if self.manifest_version != 1 {
-            return Err(PluginError::ManifestParseError(format!(
-                "Invalid manifest_version: expected 1, got {}",
-                self.manifest_version
-            )));
-        }
+        // Removed strict manifest_version check here to allow parsing legacy/future manifests.
+        // It should be validated at install time instead.
 
         // Validate required string fields are not empty
         let required_strings = vec![
@@ -209,6 +215,13 @@ impl Manifest {
                     field_name
                 )));
             }
+        }
+
+        if parse_plugin_version(&self.version).is_none() {
+            return Err(PluginError::ManifestParseError(
+                "Invalid plugin version: expected an integer string (e.g. '1', '2', '42')"
+                    .to_string(),
+            ));
         }
 
         // Validate publisher name is not empty
@@ -337,7 +350,7 @@ mod tests {
             "manifest_version": "1.0",
             "id": "com.example.legacy-plugin",
             "name": "Legacy Plugin",
-            "version": "1.0.0",
+            "version": "1",
             "type": "content-resolver",
             "publisher": {
                 "name": "Example Publisher",
@@ -361,6 +374,22 @@ mod tests {
     fn rejects_manifest_with_invalid_version() {
         let json = r#"{
             "manifest_version": "2.0",
+            "id": "com.example.plugin",
+            "name": "Example",
+            "version": "1",
+            "type": "content-resolver",
+            "publisher": { "name": "Example Inc" },
+            "description": "Example plugin"
+        }"#;
+
+        let manifest: Manifest = serde_json::from_str(json).expect("manifest should parse");
+        assert!(manifest.validate().is_err());
+    }
+
+    #[test]
+    fn rejects_manifest_with_non_integer_plugin_version() {
+        let json = r#"{
+            "manifest_version": "1",
             "id": "com.example.plugin",
             "name": "Example",
             "version": "1.0.0",

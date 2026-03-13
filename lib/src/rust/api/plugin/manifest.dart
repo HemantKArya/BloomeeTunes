@@ -6,7 +6,7 @@
 import '../../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `deserialize_manifest_version`, `validate`
+// These functions are ignored because they are not marked as `pub`: `deserialize_manifest_version`, `parse_plugin_version`, `validate`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `capabilities`, `check`, `created_at`, `from_file`, `has_capability`, `host_sites`, `icon`, `id`, `name`, `new`, `plugin_type`, `publisher`
 

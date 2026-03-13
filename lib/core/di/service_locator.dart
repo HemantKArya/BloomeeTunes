@@ -16,6 +16,8 @@ import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/plugin/plugin_event_bus.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/services/plugin/plugin_storage_service.dart';
+import 'package:Bloomee/plugins/services/plugin_repository_service.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
 
 /// Service locator — static singleton registry.
 ///
@@ -37,6 +39,7 @@ class ServiceLocator {
   static late final PluginStorageDao pluginStorageDao;
   static late final CacheDAO cacheDAO;
   static late final PluginCacheRepository pluginCache;
+  static late final PluginRepositoryService pluginRepositoryService;
 
   /// Wire up all application dependencies.
   ///
@@ -59,6 +62,9 @@ class ServiceLocator {
       cacheDao: cacheDAO,
       writer: PluginCacheWriter(cacheDAO),
     );
+
+    pluginRepositoryService =
+        PluginRepositoryService(settingsDao: SettingsDAO(DBProvider.db));
 
     // 2. Event bus (singleton — connect later during plugin init).
     pluginEventBus = PluginEventBus.instance;
