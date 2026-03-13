@@ -1,4 +1,5 @@
 import 'dart:io' as io;
+import 'dart:async';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
@@ -12,9 +13,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
+import 'package:Bloomee/routes/app_router.dart';
 
 /// A widget that handles global keyboard shortcuts for the application.
-/// This wraps the entire app and captures keyboard events regardless of focus.
+/// This wraps the entire app and listens to [HardwareKeyboard] directly,
+/// so shortcuts keep working even when focus moves across widgets.
 class KeyboardShortcutsHandler extends StatefulWidget {
   final Widget child;
 
@@ -29,22 +32,37 @@ class KeyboardShortcutsHandler extends StatefulWidget {
 }
 
 class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
-  final FocusNode _focusNode =
-      FocusNode(debugLabel: 'KeyboardShortcutsHandler');
-
+  Timer? _volumeAdjustTimer;
+  LogicalKeyboardKey? _volumeAdjustKey;
+  static const Duration _volumeRepeatInterval = Duration(milliseconds: 80);
   @override
   void initState() {
     super.initState();
-    // Request focus after the first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
+    HardwareKeyboard.instance.addHandler(_onGlobalKeyEvent);
   }
 
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
+  bool _onGlobalKeyEvent(KeyEvent event) {
+    if (!mounted) return false;
+
+    // Only apply shortcuts on desktop platforms.
+    if (!io.Platform.isWindows &&
+        !io.Platform.isLinux &&
+        !io.Platform.isMacOS) {
+      return false;
+    }
+
+    // Handle key-up events for stopping continuous adjustments
+    if (event is KeyUpEvent) {
+      _stopVolumeAdjustForKey(event.logicalKey);
+      // Let other systems handle key-up as needed (don't claim handled)
+      return false;
+    }
+
+    // Only handle key-down to perform actions.
+    if (event is! KeyDownEvent) return false;
+
+    // Reuse the existing command routing and map the result to bool.
+    return _handleKeyEvent(event) == KeyEventResult.handled;
   }
 
   /// Check if the current focus is on a text input field
@@ -56,24 +74,16 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
     final context = primaryFocus.context;
     if (context == null) return false;
 
+    if (context.widget is EditableText) {
+      return true;
+    }
+
     // Check for EditableText ancestor which indicates text input
     final editableText = context.findAncestorWidgetOfExactType<EditableText>();
     return editableText != null;
   }
 
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    // Only handle key down events to prevent double-triggering
-    if (event is! KeyDownEvent) {
-      return KeyEventResult.ignored;
-    }
-
-    // Only apply shortcuts on desktop platforms
-    if (!io.Platform.isWindows &&
-        !io.Platform.isLinux &&
-        !io.Platform.isMacOS) {
-      return KeyEventResult.ignored;
-    }
-
+  KeyEventResult _handleKeyEvent(KeyEvent event) {
     // Don't handle shortcuts when typing in text fields (except for media keys)
     final isTextInput = _isTextInputFocused();
     final key = event.logicalKey;
@@ -85,6 +95,13 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
 
     // Skip other shortcuts if text input is focused
     if (isTextInput) {
+      return KeyEventResult.ignored;
+    }
+
+    // Scope app shortcuts to player context to avoid interfering with
+    // keyboard navigation in non-player screens.
+    final isPlayerVisible = context.read<PlayerOverlayCubit>().state;
+    if (!isPlayerVisible) {
       return KeyEventResult.ignored;
     }
 
@@ -172,12 +189,12 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
 
     // Volume control with Up/Down arrows
     if (key == LogicalKeyboardKey.arrowUp) {
-      final newVolume = _changeVolume(player, 0.05);
-      context.read<ShortcutIndicatorCubit>().showVolume(newVolume);
+      // Start continuous increase while key is held
+      _startVolumeAdjust(key, 0.05, player);
       return true;
     } else if (key == LogicalKeyboardKey.arrowDown) {
-      final newVolume = _changeVolume(player, -0.05);
-      context.read<ShortcutIndicatorCubit>().showVolume(newVolume);
+      // Start continuous decrease while key is held
+      _startVolumeAdjust(key, -0.05, player);
       return true;
     }
 
@@ -213,7 +230,9 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
     if (key == LogicalKeyboardKey.keyT) {
       final playerOverlayCubit = context.read<PlayerOverlayCubit>();
       if (playerOverlayCubit.state) {
-        Navigator.of(context).push(
+        // Use the global navigator key because this handler lives above
+        // the MaterialApp and its BuildContext may not contain a Navigator.
+        GlobalRoutes.globalRouterKey.currentState?.push(
           MaterialPageRoute(builder: (_) => const TimerView()),
         );
         return true;
@@ -236,6 +255,34 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
     }
 
     return false;
+  }
+
+  void _startVolumeAdjust(
+      LogicalKeyboardKey key, double delta, dynamic player) {
+    // If already adjusting for this key, noop
+    if (_volumeAdjustKey == key && _volumeAdjustTimer != null) return;
+
+    // Stop any previous adjuster
+    _stopVolumeAdjustForKey(_volumeAdjustKey);
+
+    // Apply immediate change
+    final newVolume = _changeVolume(player, delta);
+    if (mounted) context.read<ShortcutIndicatorCubit>().showVolume(newVolume);
+
+    // Start repeating timer
+    _volumeAdjustKey = key;
+    _volumeAdjustTimer = Timer.periodic(_volumeRepeatInterval, (_) {
+      final nv = _changeVolume(player, delta);
+      if (mounted) context.read<ShortcutIndicatorCubit>().showVolume(nv);
+    });
+  }
+
+  void _stopVolumeAdjustForKey(LogicalKeyboardKey? key) {
+    if (_volumeAdjustKey == key) {
+      _volumeAdjustTimer?.cancel();
+      _volumeAdjustTimer = null;
+      _volumeAdjustKey = null;
+    }
   }
 
   void _togglePlayPause(dynamic player) {
@@ -306,23 +353,14 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      focusNode: _focusNode,
-      autofocus: true,
-      onKeyEvent: _handleKeyEvent,
-      // Allow focus to pass through to children
-      canRequestFocus: true,
-      skipTraversal: true,
-      child: GestureDetector(
-        // Capture taps to regain focus when clicking outside text fields
-        onTap: () {
-          if (!_isTextInputFocused()) {
-            _focusNode.requestFocus();
-          }
-        },
-        behavior: HitTestBehavior.translucent,
-        child: widget.child,
-      ),
-    );
+    return widget.child;
+  }
+
+  @override
+  void dispose() {
+    // Remove global key handler and cancel any running timers
+    HardwareKeyboard.instance.removeHandler(_onGlobalKeyEvent);
+    _volumeAdjustTimer?.cancel();
+    super.dispose();
   }
 }

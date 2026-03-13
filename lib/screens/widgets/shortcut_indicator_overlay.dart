@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -5,8 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 
-/// Global overlay widget that shows animated shortcut indicators.
-/// Place this high in the widget tree to show indicators anywhere in the app.
 class ShortcutIndicatorOverlay extends StatelessWidget {
   final Widget child;
 
@@ -53,23 +52,23 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 250),
-      reverseDuration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 300),
+      reverseDuration: const Duration(milliseconds: 250),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeInCubic,
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOutBack,
-        reverseCurve: Curves.easeOutQuart,
+        reverseCurve: Curves.easeInCubic,
       ),
     );
 
@@ -87,9 +86,6 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
       } else {
         _animationController.reverse();
       }
-    } else if (widget.state.isVisible) {
-      // State changed but still visible - show update animation
-      _animationController.forward(from: 0.7);
     }
   }
 
@@ -130,67 +126,59 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
     final type = widget.state.type;
     if (type == null) return const SizedBox.shrink();
 
-    return SizedBox(
-      width: 160,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-        decoration: BoxDecoration(
-          color: Default_Theme.themeColor.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: Default_Theme.primaryColor1.withValues(alpha: 0.08),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 32,
-              spreadRadius: 0,
-              offset: const Offset(0, 8),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        child: Container(
+          width: 170,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          decoration: BoxDecoration(
+            color: const Color(0xFF151515).withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
             ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 16,
-              spreadRadius: 0,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildIcon(type),
-            const SizedBox(height: 12),
-            _buildLabel(type),
-            if (_shouldShowProgressBar(type)) ...[
-              const SizedBox(height: 12),
-              _buildProgressBar(),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 40,
+                spreadRadius: 0,
+                offset: const Offset(0, 10),
+              ),
             ],
-          ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildIcon(type),
+              const SizedBox(height: 16),
+              _buildLabel(type),
+              if (_shouldShowProgressBar(type)) ...[
+                const SizedBox(height: 16),
+                _buildProgressBar(),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildIcon(ShortcutIndicatorType type) {
-    final IconData icon;
-    final Color color;
+    IconData icon = MingCute.check_circle_fill;
+    Color color = Colors.white;
 
     switch (type) {
       case ShortcutIndicatorType.volume:
         final level = widget.state.volumeLevel ?? 0;
         if (level == 0) {
           icon = MingCute.volume_off_fill;
-          color = Default_Theme.primaryColor1.withValues(alpha: 0.6);
-        } else if (level < 0.3) {
-          icon = MingCute.volume_fill;
-          color = Default_Theme.primaryColor1;
-        } else if (level < 0.7) {
-          icon = MingCute.volume_fill;
-          color = Default_Theme.primaryColor1;
+          color = Colors.white.withValues(alpha: 0.5);
         } else {
           icon = MingCute.volume_fill;
-          color = Default_Theme.primaryColor1;
+          color = Colors.white.withValues(alpha: 0.9);
         }
         break;
 
@@ -198,15 +186,15 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
         final isMuted = widget.state.isMuted ?? false;
         icon = isMuted ? MingCute.volume_off_fill : MingCute.volume_fill;
         color = isMuted
-            ? Default_Theme.primaryColor1.withValues(alpha: 0.6)
-            : Default_Theme.accentColor1;
+            ? Colors.white.withValues(alpha: 0.5)
+            : Default_Theme.accentColor2;
         break;
 
       case ShortcutIndicatorType.shuffle:
         icon = MingCute.shuffle_2_line;
         color = (widget.state.isShuffleOn ?? false)
-            ? Default_Theme.accentColor1
-            : Default_Theme.primaryColor1.withValues(alpha: 0.6);
+            ? Default_Theme.accentColor2
+            : Colors.white.withValues(alpha: 0.5);
         break;
 
       case ShortcutIndicatorType.loop:
@@ -214,15 +202,15 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
         switch (mode) {
           case LoopMode.off:
             icon = MingCute.repeat_line;
-            color = Default_Theme.primaryColor1.withValues(alpha: 0.6);
+            color = Colors.white.withValues(alpha: 0.5);
             break;
           case LoopMode.one:
             icon = MingCute.repeat_one_line;
-            color = Default_Theme.accentColor1;
+            color = Default_Theme.accentColor2;
             break;
           case LoopMode.all:
             icon = MingCute.repeat_line;
-            color = Default_Theme.accentColor1;
+            color = Default_Theme.accentColor2;
             break;
         }
         break;
@@ -230,39 +218,46 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
       case ShortcutIndicatorType.like:
         final isLiked = widget.state.isLiked ?? false;
         icon = isLiked ? AntDesign.heart_fill : AntDesign.heart_outline;
-        color =
-            isLiked ? Default_Theme.accentColor2 : Default_Theme.primaryColor1;
+        color = isLiked
+            ? Default_Theme.accentColor2
+            : Colors.white.withValues(alpha: 0.9);
         break;
     }
 
-    return Icon(
-      icon,
-      size: 48,
-      color: color,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      transitionBuilder: (child, animation) {
+        return ScaleTransition(scale: animation, child: child);
+      },
+      child: Icon(
+        icon,
+        key: ValueKey<IconData>(icon),
+        size: 52,
+        color: color,
+      ),
     );
   }
 
   Widget _buildLabel(ShortcutIndicatorType type) {
-    final String label;
-    final Color? labelColor;
+    String label = '';
+    Color labelColor = Colors.white.withValues(alpha: 0.9);
 
     switch (type) {
       case ShortcutIndicatorType.volume:
         final level = widget.state.volumeLevel ?? 0;
         label = '${(level * 100).round()}%';
-        labelColor = null;
         break;
 
       case ShortcutIndicatorType.mute:
         final isMuted = widget.state.isMuted ?? false;
         label = isMuted ? 'Muted' : 'Unmuted';
-        labelColor = null;
+        if (!isMuted) labelColor = Default_Theme.accentColor2;
         break;
 
       case ShortcutIndicatorType.shuffle:
         final isOn = widget.state.isShuffleOn ?? false;
         label = isOn ? 'Shuffle On' : 'Shuffle Off';
-        labelColor = isOn ? Default_Theme.accentColor1 : null;
+        if (isOn) labelColor = Default_Theme.accentColor2;
         break;
 
       case ShortcutIndicatorType.loop:
@@ -270,15 +265,14 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
         switch (mode) {
           case LoopMode.off:
             label = 'Repeat Off';
-            labelColor = null;
             break;
           case LoopMode.one:
             label = 'Repeat One';
-            labelColor = Default_Theme.accentColor1;
+            labelColor = Default_Theme.accentColor2;
             break;
           case LoopMode.all:
             label = 'Repeat All';
-            labelColor = Default_Theme.accentColor1;
+            labelColor = Default_Theme.accentColor2;
             break;
         }
         break;
@@ -286,15 +280,21 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
       case ShortcutIndicatorType.like:
         final isLiked = widget.state.isLiked ?? false;
         label = isLiked ? 'Liked' : 'Unliked';
-        labelColor = isLiked ? Default_Theme.accentColor2 : null;
+        if (isLiked) labelColor = Default_Theme.accentColor2;
         break;
     }
 
-    return Text(
-      label,
-      style: Default_Theme.secondoryTextStyleMedium.copyWith(
-        fontSize: 16,
-        color: labelColor ?? Default_Theme.primaryColor1,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 150),
+      child: Text(
+        label,
+        key: ValueKey<String>(label),
+        style: Default_Theme.secondoryTextStyleMedium.copyWith(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
+          color: labelColor,
+        ),
       ),
     );
   }
@@ -306,27 +306,36 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
 
   Widget _buildProgressBar() {
     final level = widget.state.volumeLevel ?? 0;
+    const double barWidth = 120.0;
 
-    return SizedBox(
-      width: 140,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: level, end: level),
-          duration: const Duration(milliseconds: 100),
-          builder: (context, value, child) {
-            return LinearProgressIndicator(
-              value: value,
-              minHeight: 6,
-              backgroundColor:
-                  Default_Theme.primaryColor1.withValues(alpha: 0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                value > 0
-                    ? Default_Theme.accentColor1
-                    : Default_Theme.primaryColor1.withValues(alpha: 0.4),
-              ),
-            );
-          },
+    return Container(
+      width: barWidth,
+      height: 6,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      alignment: Alignment.centerLeft,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutQuart,
+        width: barWidth * level,
+        height: 6,
+        decoration: BoxDecoration(
+          color: level > 0
+              ? Default_Theme.accentColor2
+              : Colors.white.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(3),
+          boxShadow: level > 0
+              ? [
+                  BoxShadow(
+                    color: Default_Theme.accentColor2.withValues(alpha: 0.4),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 0),
+                  )
+                ]
+              : null,
         ),
       ),
     );
