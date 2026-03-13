@@ -544,7 +544,7 @@ class _PlayerControlsRow extends StatelessWidget {
             onPressed: musicPlayer.skipToPrevious,
           ),
           bottom: IconButton(
-            icon: const Icon(MingCute.music_2_line,
+            icon: const Icon(MingCute.align_center_line,
                 color: Default_Theme.primaryColor1, size: 24),
             onPressed: () {
               Navigator.of(context).push(PageRouteBuilder(
@@ -568,7 +568,7 @@ class _PlayerControlsRow extends StatelessWidget {
             onPressed: musicPlayer.skipToNext,
           ),
           bottom: IconButton(
-            icon: const Icon(Icons.settings_rounded,
+            icon: const Icon(MingCute.settings_6_line,
                 color: Default_Theme.primaryColor1, size: 24),
             onPressed: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const PlayerSettings())),
@@ -653,26 +653,10 @@ class _ExternalLinkControl extends StatelessWidget {
   Widget build(BuildContext context) {
     final player = context.read<BloomeePlayerCubit>().bloomeePlayer;
     return IconButton(
-      icon: StreamBuilder<MediaItem?>(
-        stream: player.mediaItem,
-        builder: (context, snapshot) {
-          final extras = snapshot.data?.extras;
-          if (extras != null && extras['perma_url'] != null) {
-            return extras['source'] == 'youtube'
-                ? const Icon(MingCute.youtube_fill,
-                    color: Default_Theme.primaryColor1, size: 24)
-                : const Text("JS",
-                    style: TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold));
-          }
-          return const Icon(MingCute.external_link_line,
-              color: Default_Theme.primaryColor1, size: 24);
-        },
-      ),
+      icon: const Icon(MingCute.external_link_line,
+          color: Default_Theme.primaryColor1, size: 24),
       onPressed: () async {
-        final url = player.mediaItem.valueOrNull?.extras?['perma_url'];
+        final url = player.currentTrackInfo.url;
         if (url != null) {
           await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
         } else {
