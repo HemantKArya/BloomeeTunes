@@ -615,8 +615,13 @@ class _QueueItem extends StatelessWidget {
                 child: SongCardWidget(
                   showOptions: true,
                   onTap: () => playerCubit.bloomeePlayer.skipToQueueItem(index),
-                  onOptionsTap: () => showMoreBottomSheet(context, songModel,
-                      showAddToQueue: false, showPlayNext: false),
+                  onOptionsTap: () => showMoreBottomSheet(
+                    context,
+                    songModel,
+                    showAddToQueue: false,
+                    showPlayNext: false,
+                    showSinglePlay: true,
+                  ),
                   song: songModel,
                 ),
               ),

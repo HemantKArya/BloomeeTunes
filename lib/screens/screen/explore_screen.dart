@@ -225,8 +225,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 doPlay: true,
                                               );
                                         },
-                                        onOptionsTap: () =>
-                                            showMoreBottomSheet(context, e),
+                                        onOptionsTap: () => showMoreBottomSheet(
+                                          context,
+                                          e,
+                                          showSinglePlay: true,
+                                        ),
                                       );
                                     }).toList(),
                                     category: AppLocalizations.of(context)!
