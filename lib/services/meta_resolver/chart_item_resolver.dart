@@ -7,6 +7,84 @@ import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart' as fw;
 
+// ── Pre-compiled RegExp constants (created once, reused everywhere) ──────────
+
+final RegExp _kParenthetical = RegExp(r'\(.*?\)');
+final RegExp _kFeatSuffix = RegExp(r'\b(?:feat|ft|featuring)\b.*$');
+final RegExp _kVersionWords =
+    RegExp(r'\b(?:remaster(?:ed)?|version|edit|mix|remix)\b');
+final RegExp _kEditionWords =
+    RegExp(r'\b(?:single|album|deluxe|edition|bonus)\b');
+final RegExp _kBracketsEtc = RegExp(r'[$$$$\(\){}]');
+final RegExp _kAsciiPunctuation =
+    RegExp(r'[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]');
+final RegExp _kMultiSpace = RegExp(r'\s+');
+
+/// Pre-compiled word-boundary patterns for version-tag detection.
+final Map<String, List<RegExp>> _kVersionTagPatterns = {
+  'live': [
+    RegExp(r'\blive\b'),
+    RegExp(r'\blive at\b'),
+    RegExp(r'\blive from\b'),
+    RegExp(r'\blive in\b')
+  ],
+  'acoustic': [RegExp(r'\bacoustic\b')],
+  'karaoke': [RegExp(r'\bkaraoke\b')],
+  'instrumental': [RegExp(r'\binstrumental\b')],
+  'remix': [RegExp(r'\bremix\b'), RegExp(r'\bmixed\b'), RegExp(r'\brmx\b')],
+  'remaster': [RegExp(r'\bremaster\b'), RegExp(r'\bremastered\b')],
+  'clean': [RegExp(r'\bclean\b')],
+  'explicit': [RegExp(r'\bexplicit\b')],
+  'demo': [RegExp(r'\bdemo\b')],
+  'cover': [RegExp(r'\bcover\b')],
+  'radio': [RegExp(r'\bradio edit\b'), RegExp(r'\bradio version\b')],
+  'extended': [RegExp(r'\bextended\b')],
+  'unplugged': [RegExp(r'\bunplugged\b')],
+  'stripped': [RegExp(r'\bstripped\b')],
+};
+
+// ── Scoring weight constants ─────────────────────────────────────────────────
+
+/// Track scoring weights when the target has album information.
+class _TrackWeights {
+  final double title;
+  final double simplified;
+  final double artist;
+  final double album;
+  final double duration;
+
+  const _TrackWeights({
+    required this.title,
+    required this.simplified,
+    required this.artist,
+    required this.album,
+    required this.duration,
+  });
+
+  double get sum => title + simplified + artist + album + duration;
+
+  /// With album info: weights sum to 0.90 (remaining 0.10 is exact-match
+  /// bonuses and rank/repeat bonuses capped so theoretical max ≈ 1.22).
+  static const withAlbum = _TrackWeights(
+    title: 0.34,
+    simplified: 0.16,
+    artist: 0.24,
+    album: 0.08,
+    duration: 0.08,
+  );
+
+  /// Without album info: album weight is redistributed to title+artist+simplified.
+  static const withoutAlbum = _TrackWeights(
+    title: 0.38,
+    simplified: 0.18,
+    artist: 0.28,
+    album: 0.0,
+    duration: 0.08,
+  );
+}
+
+// ── Public result type ───────────────────────────────────────────────────────
+
 /// Result of resolving a [ChartItem] to a playable [Track] via cross-plugin
 /// content resolution.
 class ChartResolveResult {
@@ -19,20 +97,31 @@ class ChartResolveResult {
     required this.resolverPluginId,
     required this.confidence,
   });
+
+  @override
+  String toString() => 'ChartResolveResult(plugin=$resolverPluginId, '
+      'confidence=${confidence.toStringAsFixed(1)}%, '
+      'track="${resolvedTrack.title}")';
 }
+
+// ── Main resolver ────────────────────────────────────────────────────────────
 
 /// Cross-plugin metadata resolver that bridges chart-provider items to
 /// playable tracks via content-resolver plugins.
 ///
 /// Resolution strategy (cascading fallback):
 ///   Phase 1 — Exact-match pass with typed filter per plugin (high bar).
+///             Sequential execution allows early exit on high-confidence hit.
 ///   Phase 2 — Broadened search with `ContentSearchFilter.all` if Phase 1
 ///             produced no viable candidate (confidence ≥ [_kMinViable]).
+///             Only runs the *additional* broadened query, not Phase 1 queries
+///             again. Plugins are queried in parallel for lower latency.
 ///   Phase 3 — Cross-plugin corroboration: candidates that appear from
 ///             multiple independent plugins get a confidence boost.
 ///
 /// Each plugin is wrapped in try-catch so a single failing plugin never
-/// prevents the remaining plugins from being tried.
+/// prevents the remaining plugins from being tried. All plugin calls are
+/// guarded by a per-call timeout.
 class ChartItemResolver {
   final PluginService _pluginService;
 
@@ -42,6 +131,12 @@ class ChartItemResolver {
   /// Bonus added when multiple plugins independently return the same
   /// normalized title+artist combination.
   static const double _kCorroborationBonus = 6.0;
+
+  /// Timeout for each individual plugin search call.
+  static const Duration _kPluginTimeout = Duration(seconds: 12);
+
+  /// Maximum number of results to consider per search query.
+  static const int _kMaxResultsPerQuery = 15;
 
   const ChartItemResolver({required PluginService pluginService})
       : _pluginService = pluginService;
@@ -62,7 +157,7 @@ class ChartItemResolver {
       return null;
     }
 
-    // ── Phase 1: Typed search per plugin with per-plugin error isolation ──
+    // ── Phase 1: Typed search, sequential for early-exit ──────────────────
     final allCandidates = <_ScoredCandidate>[];
     int pluginsSucceeded = 0;
     int pluginsFailed = 0;
@@ -72,17 +167,17 @@ class ChartItemResolver {
         final candidates = await _collectCandidates(
           pluginId: pluginId,
           profile: profile,
-          includeAllFilter: false,
+          plans: profile.searchPlans,
         );
         pluginsSucceeded++;
         allCandidates.addAll(candidates);
 
-        // Early exit: accept immediately if confidence exceeds the threshold
-        // AND we've tried at least the top-priority plugin.
+        // Early exit: accept immediately if confidence exceeds the threshold.
         final best = candidates.isEmpty ? null : candidates.first;
         if (best != null && best.confidence >= profile.earlyAcceptThreshold) {
           log(
-            'Early accept from $pluginId: ${best.confidence.toStringAsFixed(1)}%',
+            'Early accept from $pluginId: '
+            '${best.confidence.toStringAsFixed(1)}%',
             name: 'ChartItemResolver',
           );
           return _toResolveResult(best);
@@ -90,7 +185,7 @@ class ChartItemResolver {
       } catch (e) {
         pluginsFailed++;
         log(
-          'Plugin $pluginId failed during resolution: $e',
+          'Plugin $pluginId failed during Phase 1: $e',
           name: 'ChartItemResolver',
         );
       }
@@ -107,37 +202,61 @@ class ChartItemResolver {
         name: 'ChartItemResolver',
       );
 
-      for (final pluginId in pluginIds) {
-        try {
-          final candidates = await _collectCandidates(
-            pluginId: pluginId,
-            profile: profile,
-            includeAllFilter: true,
+      // Only run the broadened "all" query — do NOT re-run Phase 1 plans.
+      final broadenedPlans = <_SearchPlan>[];
+      if (profile.fallbackQuery.isNotEmpty) {
+        broadenedPlans.add(
+          _SearchPlan(
+            query: profile.fallbackQuery,
+            filter: ContentSearchFilter.all,
+          ),
+        );
+      }
+
+      if (broadenedPlans.isNotEmpty) {
+        // Phase 2 queries can run in parallel since there's no early-exit.
+        final futures = <Future<List<_ScoredCandidate>>>[];
+        for (final pluginId in pluginIds) {
+          futures.add(
+            _collectCandidates(
+              pluginId: pluginId,
+              profile: profile,
+              plans: broadenedPlans,
+            ).catchError((Object e) {
+              log(
+                'Plugin $pluginId failed during Phase 2: $e',
+                name: 'ChartItemResolver',
+              );
+              return <_ScoredCandidate>[];
+            }),
           );
-          allCandidates.addAll(candidates);
-        } catch (e) {
-          log(
-            'Plugin $pluginId failed during broadened search: $e',
-            name: 'ChartItemResolver',
-          );
+        }
+
+        final phase2Results = await Future.wait(futures);
+        for (final batch in phase2Results) {
+          allCandidates.addAll(batch);
         }
       }
     }
 
     // ── Phase 3: Cross-plugin corroboration ───────────────────────────────
-    _applyCrossPluginCorroboration(allCandidates, profile);
+    _applyCrossPluginCorroboration(allCandidates);
 
-    // Pick the global best.
-    allCandidates.sort(
+    // ── Deduplicate before final sort ─────────────────────────────────────
+    final deduplicated = _deduplicateCandidates(allCandidates);
+
+    // Pick the global best that meets viability.
+    deduplicated.sort(
       (a, b) => b.confidence.compareTo(a.confidence),
     );
 
-    final winner = allCandidates.isEmpty ? null : allCandidates.first;
+    final winner = deduplicated.isEmpty ? null : deduplicated.first;
 
-    if (winner == null) {
+    if (winner == null || winner.confidence < _kMinViable) {
       log(
-        'No candidate found '
-        '(plugins ok: $pluginsSucceeded, failed: $pluginsFailed)',
+        'No viable candidate found '
+        '(best: ${winner?.confidence.toStringAsFixed(1) ?? "none"}, '
+        'plugins ok: $pluginsSucceeded, failed: $pluginsFailed)',
         name: 'ChartItemResolver',
       );
       return null;
@@ -153,6 +272,43 @@ class ChartItemResolver {
 
   String fallbackQuery(ChartItem chartItem) {
     return _ResolverProfile.fromMediaItem(chartItem.item).fallbackQuery;
+  }
+
+  /// Returns true when [resolvedTrack] is a strong exact/near-exact match
+  /// for the track contained in [chartItem].
+  bool isStrongTrackMatch({
+    required ChartItem chartItem,
+    required Track resolvedTrack,
+  }) {
+    final targetTrack = switch (chartItem.item) {
+      MediaItem_Track(:final field0) => field0,
+      _ => null,
+    };
+    if (targetTrack == null) return false;
+
+    final targetNorm = _normalized(targetTrack.title);
+    final resolvedNorm = _normalized(resolvedTrack.title);
+    final targetSimple = _simplifyTitle(targetTrack.title);
+    final resolvedSimple = _simplifyTitle(resolvedTrack.title);
+
+    final titleExact = targetNorm.isNotEmpty &&
+        resolvedNorm.isNotEmpty &&
+        targetNorm == resolvedNorm;
+    final titleNearExact = targetSimple.isNotEmpty &&
+        resolvedSimple.isNotEmpty &&
+        targetSimple == resolvedSimple;
+
+    if (!titleExact && !titleNearExact) return false;
+
+    final targetArtistNames = _artistNames(targetTrack.artists);
+    final resolvedArtistNames = _artistNames(resolvedTrack.artists);
+    if (targetArtistNames.trim().isEmpty ||
+        resolvedArtistNames.trim().isEmpty) {
+      // If either side has no artist info, title match alone is sufficient.
+      return true;
+    }
+
+    return _artistSimilarity(targetTrack.artists, resolvedTrack.artists) >= 0.7;
   }
 
   // ── Internal helpers ───────────────────────────────────────────────────────
@@ -178,13 +334,23 @@ class ChartItemResolver {
     );
   }
 
-  /// Boost candidates that are corroborated by multiple independent plugins.
-  /// If the same normalized (title, artist) pair appears from ≥ 2 different
-  /// plugins, each matching candidate gets [_kCorroborationBonus].
-  void _applyCrossPluginCorroboration(
+  /// Deduplicate candidates by media ID, keeping the highest-scoring entry.
+  List<_ScoredCandidate> _deduplicateCandidates(
     List<_ScoredCandidate> candidates,
-    _ResolverProfile profile,
   ) {
+    final bestByKey = <String, _ScoredCandidate>{};
+    for (final candidate in candidates) {
+      final key = '${candidate.pluginId}::${_mediaIdOf(candidate.mediaItem)}';
+      final existing = bestByKey[key];
+      if (existing == null || candidate.confidence > existing.confidence) {
+        bestByKey[key] = candidate;
+      }
+    }
+    return bestByKey.values.toList();
+  }
+
+  /// Boost candidates that are corroborated by multiple independent plugins.
+  void _applyCrossPluginCorroboration(List<_ScoredCandidate> candidates) {
     if (candidates.length < 2) return;
 
     // Group by (normalizedTitle, normalizedArtist) → set of source plugins.
@@ -206,7 +372,6 @@ class ChartItemResolver {
       final sources = fingerprints[fp];
       if (sources == null || sources.length < 2) continue;
 
-      // Multiple independent plugins agree → boost confidence.
       final boosted = math.min(
         candidates[i].confidence + _kCorroborationBonus,
         100.0,
@@ -230,46 +395,35 @@ class ChartItemResolver {
     };
   }
 
-  /// Collect candidates from a single plugin.
-  ///
-  /// When [includeAllFilter] is true, an additional `ContentSearchFilter.all`
-  /// query is appended to broaden discovery for Phase 2.
+  /// Collect candidates from a single plugin using the given [plans].
   Future<List<_ScoredCandidate>> _collectCandidates({
     required String pluginId,
     required _ResolverProfile profile,
-    required bool includeAllFilter,
+    required List<_SearchPlan> plans,
   }) async {
     final candidatesById = <String, _CandidateEvidence>{};
     int successQueries = 0;
     int failedQueries = 0;
 
-    final plans = includeAllFilter
-        ? [
-            ...profile.searchPlans,
-            if (profile.fallbackQuery.isNotEmpty)
-              _SearchPlan(
-                query: profile.fallbackQuery,
-                filter: ContentSearchFilter.all,
-              ),
-          ]
-        : profile.searchPlans;
-
     for (final plan in plans) {
       try {
-        final response = await _pluginService.execute(
-          pluginId: pluginId,
-          request: PluginRequest.contentResolver(
-            ContentResolverCommand.search(
-              query: plan.query,
-              filter: plan.filter,
-            ),
-          ),
-        );
+        final response = await _pluginService
+            .execute(
+              pluginId: pluginId,
+              request: PluginRequest.contentResolver(
+                ContentResolverCommand.search(
+                  query: plan.query,
+                  filter: plan.filter,
+                ),
+              ),
+            )
+            .timeout(_kPluginTimeout);
 
         switch (response) {
           case PluginResponse_Search(:final field0):
             successQueries++;
-            final items = field0.items.take(15).toList(growable: false);
+            final items =
+                field0.items.take(_kMaxResultsPerQuery).toList(growable: false);
             for (var index = 0; index < items.length; index++) {
               final mediaItem = items[index];
               if (!_isCompatibleType(profile.target, mediaItem)) continue;
@@ -296,8 +450,12 @@ class ChartItemResolver {
           default:
             failedQueries++;
         }
-      } catch (_) {
+      } catch (e) {
         failedQueries++;
+        log(
+          'Query "${plan.query}" failed for plugin $pluginId: $e',
+          name: 'ChartItemResolver',
+        );
       }
     }
 
@@ -386,17 +544,18 @@ class _ResolverProfile {
     final simplifiedTitle = _simplifyTitle(title);
     final artistNames = _artistNames(track.artists);
     final primaryArtist =
-        track.artists.isNotEmpty ? track.artists.first.name : '';
-    final albumTitle = track.album?.title ?? '';
+        track.artists.isNotEmpty ? track.artists.first.name.trim() : '';
+    final albumTitle = track.album?.title.trim() ?? '';
 
     final queries = _uniqueQueries([
       _joinNonEmpty([title, artistNames]),
       _joinNonEmpty([simplifiedTitle, artistNames]),
       _joinNonEmpty([title, primaryArtist]),
       _joinNonEmpty([simplifiedTitle, primaryArtist]),
-      _joinNonEmpty([title, albumTitle, primaryArtist]),
+      if (albumTitle.isNotEmpty)
+        _joinNonEmpty([title, albumTitle, primaryArtist]),
       title,
-      simplifiedTitle,
+      if (simplifiedTitle != _normalized(title)) simplifiedTitle,
     ]);
 
     return _ResolverProfile(
@@ -429,7 +588,10 @@ class _ResolverProfile {
     );
   }
 
-  static _ResolverProfile _artistProfile(MediaItem item, ArtistSummary artist) {
+  static _ResolverProfile _artistProfile(
+    MediaItem item,
+    ArtistSummary artist,
+  ) {
     final query = artist.name.trim();
     return _ResolverProfile(
       target: item,
@@ -473,22 +635,22 @@ _ScoredCandidate? _scoreCandidate(
   final score = switch ((profile.target, evidence.mediaItem)) {
     (
       MediaItem_Track(:final field0),
-      MediaItem_Track(field0: final candidate)
+      MediaItem_Track(field0: final candidate),
     ) =>
       _scoreTrackCandidate(field0, candidate, evidence),
     (
       MediaItem_Album(:final field0),
-      MediaItem_Album(field0: final candidate)
+      MediaItem_Album(field0: final candidate),
     ) =>
       _scoreAlbumCandidate(field0, candidate, evidence),
     (
       MediaItem_Artist(:final field0),
-      MediaItem_Artist(field0: final candidate)
+      MediaItem_Artist(field0: final candidate),
     ) =>
       _scoreArtistCandidate(field0, candidate, evidence),
     (
       MediaItem_Playlist(:final field0),
-      MediaItem_Playlist(field0: final candidate)
+      MediaItem_Playlist(field0: final candidate),
     ) =>
       _scorePlaylistCandidate(field0, candidate, evidence),
     _ => null,
@@ -518,41 +680,52 @@ double _scoreTrackCandidate(
     target.album?.title,
     candidate.album?.title,
   );
-  final durationScore = _durationProbability(
+  final durationScore = _durationSimilarity(
     _durationAsDouble(target.durationMs),
     _durationAsDouble(candidate.durationMs),
   );
-  final versionPenalty = _versionPenalty(target.title, target.album?.title,
-      candidate.title, candidate.album?.title);
+  final versionPenalty = _versionPenalty(
+    target.title,
+    target.album?.title,
+    candidate.title,
+    candidate.album?.title,
+  );
   final rankBonus = _rankBonus(evidence.bestRank);
   final repeatBonus = math.min((evidence.hitCount - 1) * 0.025, 0.1);
 
-  // Weighted feature vector with adaptive album weight: when chart item
-  // has no album info, redistribute its weight to title + artist.
+  // Adaptive weights: when target has no album info, redistribute album
+  // weight to title + artist + simplified.
   final hasAlbum = (target.album?.title ?? '').trim().isNotEmpty;
-  final wTitle = hasAlbum ? 0.34 : 0.38;
-  final wSimplified = hasAlbum ? 0.16 : 0.18;
-  final wArtist = hasAlbum ? 0.24 : 0.28;
-  final wAlbum = hasAlbum ? 0.08 : 0.0;
-  const wDuration = 0.08;
+  final w = hasAlbum ? _TrackWeights.withAlbum : _TrackWeights.withoutAlbum;
 
-  var score = titleScore * wTitle +
-      simplifiedTitleScore * wSimplified +
-      artistScore * wArtist +
-      albumScore * wAlbum +
-      durationScore * wDuration +
+  var score = titleScore * w.title +
+      simplifiedTitleScore * w.simplified +
+      artistScore * w.artist +
+      albumScore * w.album +
+      durationScore * w.duration +
       rankBonus +
       repeatBonus;
 
-  // Exact-match bonuses (cumulative).
-  if (_normalized(target.title) == _normalized(candidate.title)) {
+  // Exact-match bonuses (cumulative, guarded against empty strings).
+  final targetNorm = _normalized(target.title);
+  final candidateNorm = _normalized(candidate.title);
+  if (targetNorm.isNotEmpty &&
+      candidateNorm.isNotEmpty &&
+      targetNorm == candidateNorm) {
     score += 0.10;
   }
-  if (_simplifyTitle(target.title) == _simplifyTitle(candidate.title)) {
+
+  final targetSimple = _simplifyTitle(target.title);
+  final candidateSimple = _simplifyTitle(candidate.title);
+  if (targetSimple.isNotEmpty &&
+      candidateSimple.isNotEmpty &&
+      targetSimple == candidateSimple) {
     score += 0.06;
   }
+
   final tKey = _artistKey(target.artists);
-  if (tKey.isNotEmpty && tKey == _artistKey(candidate.artists)) {
+  final cKey = _artistKey(candidate.artists);
+  if (tKey.isNotEmpty && cKey.isNotEmpty && tKey == cKey) {
     score += 0.08;
   }
 
@@ -570,12 +743,21 @@ double _scoreAlbumCandidate(
       _rankBonus(evidence.bestRank) +
       math.min((evidence.hitCount - 1) * 0.03, 0.09);
 
-  if (target.year != null &&
-      candidate.year != null &&
-      target.year == candidate.year) {
-    score += 0.08;
+  // Year proximity bonus: exact match gets full bonus, ±1 year gets partial.
+  if (target.year != null && candidate.year != null) {
+    final yearDiff = (target.year! - candidate.year!).abs();
+    if (yearDiff == 0) {
+      score += 0.08;
+    } else if (yearDiff == 1) {
+      score += 0.04;
+    }
   }
-  if (_normalized(target.title) == _normalized(candidate.title)) {
+
+  final targetNorm = _normalized(target.title);
+  final candidateNorm = _normalized(candidate.title);
+  if (targetNorm.isNotEmpty &&
+      candidateNorm.isNotEmpty &&
+      targetNorm == candidateNorm) {
     score += 0.08;
   }
 
@@ -592,7 +774,11 @@ double _scoreArtistCandidate(
       _rankBonus(evidence.bestRank) +
       math.min((evidence.hitCount - 1) * 0.02, 0.06);
 
-  if (_normalized(target.name) == _normalized(candidate.name)) {
+  final targetNorm = _normalized(target.name);
+  final candidateNorm = _normalized(candidate.name);
+  if (targetNorm.isNotEmpty &&
+      candidateNorm.isNotEmpty &&
+      targetNorm == candidateNorm) {
     score += 0.12;
   }
 
@@ -609,10 +795,19 @@ double _scorePlaylistCandidate(
       _rankBonus(evidence.bestRank) +
       math.min((evidence.hitCount - 1) * 0.03, 0.09);
 
-  if (_normalized(target.title) == _normalized(candidate.title)) {
+  final targetTitleNorm = _normalized(target.title);
+  final candidateTitleNorm = _normalized(candidate.title);
+  if (targetTitleNorm.isNotEmpty &&
+      candidateTitleNorm.isNotEmpty &&
+      targetTitleNorm == candidateTitleNorm) {
     score += 0.10;
   }
-  if (_normalized(target.owner) == _normalized(candidate.owner)) {
+
+  final targetOwnerNorm = _normalized(target.owner);
+  final candidateOwnerNorm = _normalized(candidate.owner);
+  if (targetOwnerNorm.isNotEmpty &&
+      candidateOwnerNorm.isNotEmpty &&
+      targetOwnerNorm == candidateOwnerNorm) {
     score += 0.06;
   }
 
@@ -640,18 +835,59 @@ double _rankBonus(int? rank) {
   return (0.08 - (rank * 0.006)).clamp(0.0, 0.08).toDouble();
 }
 
-double _durationProbability(num? targetDuration, num? candidateDuration) {
-  if (targetDuration == null || candidateDuration == null) return 0.03;
-  final delta =
-      (targetDuration.toDouble() - candidateDuration.toDouble()).abs();
-  if (delta <= 1500) return 1.0;
-  if (delta <= 3000) return 0.80;
-  if (delta <= 5000) return 0.50;
-  if (delta <= 8000) return 0.20;
-  if (delta <= 15000) return 0.08;
-  return 0.0;
+/// Duration similarity using both absolute and relative thresholds.
+///
+/// For short tracks a 5-second difference matters more than for long tracks,
+/// so we combine an absolute threshold check with a relative ratio.
+double _durationSimilarity(double? targetMs, double? candidateMs) {
+  if (targetMs == null || candidateMs == null) return 0.03;
+  if (targetMs <= 0 || candidateMs <= 0) return 0.03;
+
+  final delta = (targetMs - candidateMs).abs();
+  final maxDuration = math.max(targetMs, candidateMs);
+  final relativeError = delta / maxDuration;
+
+  // Absolute component (unchanged thresholds for backward compat).
+  final double absScore;
+  if (delta <= 1500) {
+    absScore = 1.0;
+  } else if (delta <= 3000) {
+    absScore = 0.80;
+  } else if (delta <= 5000) {
+    absScore = 0.50;
+  } else if (delta <= 8000) {
+    absScore = 0.20;
+  } else if (delta <= 15000) {
+    absScore = 0.08;
+  } else {
+    absScore = 0.0;
+  }
+
+  // Relative component: penalizes proportional deviation.
+  final double relScore;
+  if (relativeError <= 0.01) {
+    relScore = 1.0;
+  } else if (relativeError <= 0.03) {
+    relScore = 0.85;
+  } else if (relativeError <= 0.07) {
+    relScore = 0.60;
+  } else if (relativeError <= 0.15) {
+    relScore = 0.30;
+  } else if (relativeError <= 0.30) {
+    relScore = 0.10;
+  } else {
+    relScore = 0.0;
+  }
+
+  // Blend absolute and relative (relative matters more for long tracks).
+  return (absScore * 0.55 + relScore * 0.45).clamp(0.0, 1.0);
 }
 
+/// Asymmetric version penalty: missing target tags in the candidate is penalized
+/// more heavily than the candidate having extra tags.
+///
+/// Rationale: a chart item "Song (Remastered)" matched to "Song" is a
+/// worse mismatch than "Song" matched to "Song (Remastered 2023)".
 double _versionPenalty(
   String? targetTitle,
   String? targetAlbum,
@@ -664,37 +900,29 @@ double _versionPenalty(
 
   if (targetTags.isEmpty && candidateTags.isEmpty) return 0;
 
-  final mismatches = targetTags.difference(candidateTags).length +
-      candidateTags.difference(targetTags).length;
-  return (mismatches * 0.07).clamp(0, 0.28).toDouble();
+  // Tags present in target but missing from candidate → heavier penalty.
+  final missingFromCandidate = targetTags.difference(candidateTags).length;
+  // Tags present in candidate but missing from target → lighter penalty.
+  final extraInCandidate = candidateTags.difference(targetTags).length;
+
+  final penalty = missingFromCandidate * 0.09 + extraInCandidate * 0.05;
+  return penalty.clamp(0.0, 0.28);
 }
 
 double? _durationAsDouble(BigInt? duration) {
   return duration?.toDouble();
 }
 
+/// Extract version/edition tags from a combined title+album string using
+/// pre-compiled word-boundary regexes to avoid false positives
+/// (e.g. "olive" no longer matches "live").
 Set<String> _versionTags(String value) {
   final normalized = _normalized(value);
-  final tags = <String>{};
-  const tagMap = {
-    'live': [' live ', 'live at', 'live from', 'live in'],
-    'acoustic': [' acoustic '],
-    'karaoke': [' karaoke '],
-    'instrumental': [' instrumental '],
-    'remix': [' remix ', ' mixed ', ' rmx '],
-    'remaster': [' remaster ', ' remastered '],
-    'clean': [' clean '],
-    'explicit': [' explicit '],
-    'demo': [' demo '],
-    'cover': [' cover '],
-    'radio': [' radio edit', ' radio version'],
-    'extended': [' extended '],
-    'unplugged': [' unplugged '],
-    'stripped': [' stripped '],
-  };
+  if (normalized.isEmpty) return const {};
 
-  for (final entry in tagMap.entries) {
-    if (entry.value.any((needle) => ' $normalized '.contains(needle))) {
+  final tags = <String>{};
+  for (final entry in _kVersionTagPatterns.entries) {
+    if (entry.value.any((pattern) => pattern.hasMatch(normalized))) {
       tags.add(entry.key);
     }
   }
@@ -721,8 +949,8 @@ double _artistSimilarity(
     );
   }
 
-  // Best-match artist pairing (asymmetric: each target artist finds its
-  // closest candidate, then we average).
+  // Best-match artist pairing: each target artist finds its closest
+  // candidate, then we average.
   double total = 0;
   for (final targetName in targetNames) {
     var best = 0.0;
@@ -737,7 +965,7 @@ double _artistSimilarity(
   final combined =
       _blendedTextSimilarity(targetNames.join(' '), candidateNames.join(' '));
 
-  // Primary artist match bonus: if the first artists match well, boost.
+  // Primary artist match bonus.
   final primaryBonus =
       _blendedTextSimilarity(targetNames.first, candidateNames.first) > 0.85
           ? 0.05
@@ -764,15 +992,16 @@ double _blendedTextSimilarity(String? left, String? right) {
       .toDouble();
 }
 
+/// Token overlap using F1 score (harmonic mean of precision and recall).
 double _tokenOverlap(String left, String right) {
   final leftTokens = left.split(' ').where((t) => t.isNotEmpty).toSet();
   final rightTokens = right.split(' ').where((t) => t.isNotEmpty).toSet();
   if (leftTokens.isEmpty || rightTokens.isEmpty) return 0;
 
   final intersection = leftTokens.intersection(rightTokens).length;
+  if (intersection == 0) return 0;
   final precision = intersection / rightTokens.length;
   final recall = intersection / leftTokens.length;
-  if (precision + recall == 0) return 0;
   return (2 * precision * recall) / (precision + recall);
 }
 
@@ -792,25 +1021,37 @@ String _artistKey(List<ArtistSummary> artists) {
   return names.join('|');
 }
 
+/// Simplify a title by removing parenthetical content, featuring suffixes,
+/// and version/edition markers.
+///
+/// NOTE: Parenthetical removal happens *before* normalization so that
+/// `(feat. X)` and `(Remastered 2023)` are actually stripped.
 String _simplifyTitle(String? value) {
-  final normalized = _normalized(value)
-      .replaceAll(RegExp(r'\(.*?\)'), ' ')
-      .replaceAll(RegExp(r'\b(feat|ft|featuring)\b.*$'), '')
-      .replaceAll(RegExp(r'\b(remaster(ed)?|version|edit|mix|remix)\b'), ' ')
-      .replaceAll(RegExp(r'\b(single|album|deluxe|edition|bonus)\b'), ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
+  if (value == null || value.trim().isEmpty) return '';
+  return value
+      .trim()
+      .replaceAll(_kParenthetical, ' ')
+      .toLowerCase()
+      .replaceAll(_kFeatSuffix, '')
+      .replaceAll(_kVersionWords, ' ')
+      .replaceAll(_kEditionWords, ' ')
+      .replaceAll(_kAsciiPunctuation, ' ')
+      .replaceAll('&', ' and ')
+      .replaceAll(_kMultiSpace, ' ')
       .trim();
-  return normalized;
 }
 
+/// Normalize a string for comparison: lowercase, strip brackets/punctuation,
+/// collapse whitespace. Preserves non-ASCII letters and digits so
+/// international titles are not erased.
 String _normalized(String? value) {
-  if (value == null) return '';
+  if (value == null || value.trim().isEmpty) return '';
   return value
       .toLowerCase()
-      .replaceAll(RegExp(r'[\[\]\(\){}]'), ' ')
+      .replaceAll(_kBracketsEtc, ' ')
       .replaceAll('&', ' and ')
-      .replaceAll(RegExp(r'[^a-z0-9\s]+'), ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
+      .replaceAll(_kAsciiPunctuation, ' ')
+      .replaceAll(_kMultiSpace, ' ')
       .trim();
 }
 
