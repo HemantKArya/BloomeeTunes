@@ -19,6 +19,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
 
+String sanitizeLyricsQueryText(String raw) {
+  var value = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (value.isEmpty) return value;
+
+  final parts = value
+      .split(',')
+      .map((part) => part.trim())
+      .where((part) => part.isNotEmpty)
+      .toList(growable: true);
+
+  if (parts.length >= 2 && RegExp(r'^(?:19|20)\d{2}$').hasMatch(parts.last)) {
+    parts.removeLast();
+  }
+
+  value = parts.join(' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+  return value;
+}
+
+String buildLyricsSearchSeedQuery({
+  required String title,
+  required List<String> artists,
+  String? album,
+}) {
+  final artistChunk = artists
+      .map((artist) => artist.trim())
+      .where((artist) => artist.isNotEmpty)
+      .join(' ');
+
+  final seed = [
+    title,
+    artistChunk,
+    album ?? '',
+  ].where((part) => part.trim().isNotEmpty).join(' ');
+
+  return sanitizeLyricsQueryText(seed);
+}
+
 class LyricsSearchDelegate extends SearchDelegate {
   final String mediaID;
   final String searchFieldLabelText;
@@ -62,7 +99,8 @@ class LyricsSearchDelegate extends SearchDelegate {
 
   Future<List<({String pluginId, plugin_models.LyricsMatch match})>>
       _searchPlugins(String q) async {
-    if (q.trim().isEmpty) return [];
+    final sanitizedQuery = sanitizeLyricsQueryText(q);
+    if (sanitizedQuery.trim().isEmpty) return [];
     final pluginIds = await _getLyricsPluginIds();
     if (pluginIds.isEmpty) return [];
 
@@ -72,7 +110,7 @@ class LyricsSearchDelegate extends SearchDelegate {
         final response = await _pluginService.execute(
           pluginId: pluginId,
           request: PluginRequest.lyricsProvider(
-              LyricsProviderCommand.search(query: q)),
+              LyricsProviderCommand.search(query: sanitizedQuery)),
         );
         if (response is PluginResponse_LyricsSearchResults) {
           results.addAll(
@@ -378,7 +416,7 @@ class _LyricsResultCardState extends State<_LyricsResultCard> {
                                 ),
                                 child: Text(
                                   l10n.lyricsSearchSynced,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       color: Default_Theme.accentColor2,
                                       fontSize: 9,
                                       fontWeight: FontWeight.w800,
@@ -668,7 +706,7 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
                     ),
                     child: Text(
                       l10n.lyricsSearchApplyAction,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Default_Theme.accentColor2,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,

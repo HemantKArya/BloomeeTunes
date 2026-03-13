@@ -14,7 +14,8 @@ class LyricsDAO {
   Future<void> putLyrics(Lyrics lyrics, {int? offset}) async {
     if (lyrics.mediaID == null || lyrics.mediaID!.isEmpty) return;
     final isar = await _db;
-    await isar.writeTxn(() => isar.lyricsDBs.put(lyricsToLyricsDB(lyrics, offset: offset)));
+    await isar.writeTxn(
+        () => isar.lyricsDBs.put(lyricsToLyricsDB(lyrics, offset: offset)));
   }
 
   /// Retrieve cached lyrics for [mediaID], or null if not cached.
@@ -36,5 +37,18 @@ class LyricsDAO {
   Future<void> clearAll() async {
     final isar = await _db;
     await isar.writeTxn(() => isar.lyricsDBs.clear());
+  }
+
+  /// Update the mediaID for an existing lyrics entry.
+  Future<void> updateMediaId(String oldMediaId, String newMediaId) async {
+    final isar = await _db;
+    await isar.writeTxn(() async {
+      final existing =
+          await isar.lyricsDBs.filter().mediaIDEqualTo(oldMediaId).findFirst();
+      if (existing != null) {
+        existing.mediaID = newMediaId;
+        await isar.lyricsDBs.put(existing);
+      }
+    });
   }
 }

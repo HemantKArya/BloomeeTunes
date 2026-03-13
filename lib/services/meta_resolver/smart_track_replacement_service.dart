@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/plugins/utils/media_id.dart';
+import 'package:Bloomee/services/db/dao/lyrics_dao.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/dao/track_dao.dart';
@@ -42,6 +43,7 @@ class SmartTrackReplacementService {
   final PluginService _pluginService;
   final PlaylistDAO _playlistDao;
   final SettingsDAO _settingsDao;
+  final LyricsDAO _lyricsDao;
 
   List<PluginInfo>? _cachedResolvers;
 
@@ -56,10 +58,12 @@ class SmartTrackReplacementService {
     required PluginService pluginService,
     required PlaylistDAO playlistDao,
     required SettingsDAO settingsDao,
+    required LyricsDAO lyricsDao,
   })  : _resolver = resolver,
         _pluginService = pluginService,
         _playlistDao = playlistDao,
-        _settingsDao = settingsDao;
+        _settingsDao = settingsDao,
+        _lyricsDao = lyricsDao;
 
   factory SmartTrackReplacementService.create(PluginService pluginService) {
     final trackDao = TrackDAO(DBProvider.db);
@@ -68,6 +72,7 @@ class SmartTrackReplacementService {
       pluginService: pluginService,
       playlistDao: PlaylistDAO(DBProvider.db, trackDao),
       settingsDao: SettingsDAO(DBProvider.db),
+      lyricsDao: LyricsDAO(DBProvider.db),
     );
   }
 
@@ -162,6 +167,16 @@ class SmartTrackReplacementService {
       await _playlistDao.setPlaylistTracks(playlist.id, replaced);
       updated.add(name);
       log('Playlist "$name": replaced in-place',
+          name: 'SmartTrackReplacementService');
+    }
+
+    // Replace ID in lyrics DB so existing lyrics (and offsets) map to the new track.
+    try {
+      await _lyricsDao.updateMediaId(originalTrack.id, replacement.id);
+      log('Lyrics mediaID updated from ${originalTrack.id} to ${replacement.id}',
+          name: 'SmartTrackReplacementService');
+    } catch (e) {
+      log('Failed to update lyrics mediaID during smart replace: $e',
           name: 'SmartTrackReplacementService');
     }
 

@@ -18,6 +18,7 @@ Lyrics? lyricsDBToLyrics(LyricsDB? lyricsDB) {
         : LyricsProvider.none,
     url: lyricsDB.url,
     mediaID: lyricsDB.mediaID,
+    offset: lyricsDB.offset,
   );
 }
 
@@ -32,7 +33,7 @@ LyricsDB lyricsToLyricsDB(Lyrics lyrics, {int? offset}) {
     artist: lyrics.artist,
     album: lyrics.album,
     duration: double.parse(lyrics.duration ?? "0").toInt(),
-    offset: offset,
+    offset: offset ?? lyrics.offset,
     url: lyrics.url,
   );
 }

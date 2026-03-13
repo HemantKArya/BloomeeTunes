@@ -57,9 +57,25 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
             _lyricOffset = Duration.zero;
             _isSyncMode = false;
           });
+          _loadPersistedOffset();
         }
       }
     });
+
+    _loadPersistedOffset();
+  }
+
+  void _loadPersistedOffset() {
+    final lyricsState = context.read<LyricsCubit>().state;
+    if (lyricsState is LyricsLoaded &&
+        lyricsState.lyrics.mediaID == _currentTrackId) {
+      final offsetMs = lyricsState.lyrics.offset ?? 0;
+      if (mounted) {
+        setState(() {
+          _lyricOffset = Duration(milliseconds: offsetMs);
+        });
+      }
+    }
   }
 
   @override
@@ -172,6 +188,18 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
                   );
                 },
               ),
+            ),
+            BlocListener<LyricsCubit, LyricsState>(
+              listener: (context, state) {
+                if (state is LyricsLoaded &&
+                    state.track.id == _currentTrackId) {
+                  final offsetMs = state.lyrics.offset ?? 0;
+                  setState(() {
+                    _lyricOffset = Duration(milliseconds: offsetMs);
+                  });
+                }
+              },
+              child: const SizedBox.shrink(),
             ),
             AnimatedPositioned(
               duration: const Duration(milliseconds: 400),
@@ -412,6 +440,18 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
                     icon: const Icon(MingCute.close_fill,
                         color: Colors.white, size: 24),
                     onPressed: () {
+                      if (_currentTrackId != null) {
+                        final lyricsCubit = context.read<LyricsCubit>();
+                        final state = lyricsCubit.state;
+                        if (state is LyricsLoaded &&
+                            state.lyrics.mediaID == _currentTrackId) {
+                          lyricsCubit.setLyricsToDB(
+                            state.lyrics,
+                            _currentTrackId!,
+                            offset: _lyricOffset.inMilliseconds,
+                          );
+                        }
+                      }
                       setState(() => _isSyncMode = false);
                       _startHideControlsTimer();
                     },
@@ -844,8 +884,13 @@ class _LyricsSettingsBottomSheet extends StatelessWidget {
                     mediaID: state.track.id,
                     searchFieldLabelText: l10n.lyricsSearchFieldLabel,
                   ),
-                  query:
-                      "${state.track.title} ${state.track.artists.map((a) => a.name).join(', ')}",
+                  query: buildLyricsSearchSeedQuery(
+                    title: state.track.title,
+                    artists: state.track.artists
+                        .map((artist) => artist.name)
+                        .toList(),
+                    album: state.track.album?.title,
+                  ),
                 );
               },
             ),
