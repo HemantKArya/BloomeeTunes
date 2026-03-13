@@ -53,9 +53,7 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     super.close();
   }
 
-  // ---------------------------------------------------------------------------
   // Track-time tracking
-  // ---------------------------------------------------------------------------
 
   /// Last.fm scrobble rules:
   /// 1. Track must be longer than 30 seconds.
@@ -74,7 +72,6 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
   void _onProgressTick() {
     final player = playerCubit.bloomeePlayer;
     final current = player.currentMedia;
-    // Count listen time whenever the user intends to play (including buffering).
     final isPlaying = player.engine.playing;
 
     // Track changed -> scrobble previous if eligible, then reset timing.
@@ -92,7 +89,6 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
       return;
     }
 
-    // Same track.
     if (isPlaying) {
       if (!_playWatch.isRunning) _playWatch.start();
       if (!_scrobbled && _isScrobbleEligible(current)) {
@@ -149,10 +145,6 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     return elapsed >= 30;
   }
 
-  // ---------------------------------------------------------------------------
-  // Scrobble execution
-  // ---------------------------------------------------------------------------
-
   Future<void> _scrobbleTrack(Track track) async {
     final shouldScrobble = await _settingsDao.getSettingBool(
       CacheKeys.lFMScrobbleSetting,
@@ -189,15 +181,13 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
         final ok = await LastFmAPI.scrobble(batch);
         if (!ok) {
           log('Scrobble batch failed (offset $i)', name: 'Last.FM');
-          return; // Keep cache intact for next attempt.
+          return;
         }
       }
-      // All batches succeeded - clear the cache.
       await _clearCache();
       log('Scrobble cache flushed (${cached.length} tracks)', name: 'Last.FM');
     } catch (e) {
       log('Scrobble failed: $e', name: 'Last.FM');
-      // Cache stays intact for retry on next scrobble or startup.
     }
   }
 
@@ -321,10 +311,6 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
     _cacheDao.putApiToken(CacheKeys.lFMSession, '');
     _cacheDao.putApiToken(CacheKeys.lFMUsername, '');
   }
-
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
 
   int _trackDurationSec(Track t) {
     final ms = t.durationMs?.toInt();
