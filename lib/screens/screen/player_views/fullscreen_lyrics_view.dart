@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
-import 'package:Bloomee/screens/screen/player_views/lyrics_menu.dart';
+import 'package:Bloomee/screens/screen/player_views/lyrics_search.dart';
 import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
@@ -24,31 +24,49 @@ class FullscreenLyricsView extends StatefulWidget {
   State<FullscreenLyricsView> createState() => _FullscreenLyricsViewState();
 }
 
-class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _fadeController;
+class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
   bool _showControls = true;
   Timer? _hideControlsTimer;
   final UpNextPanelController _upNextPanelController = UpNextPanelController();
 
+  Duration _lyricOffset = Duration.zero;
+  bool _isSyncMode = false;
+  Timer? _holdTimer;
+
+  final ValueNotifier<Duration> _positionNotifier =
+      ValueNotifier(Duration.zero);
+  StreamSubscription<MediaItem?>? _mediaItemSubscription;
+  String? _currentTrackId;
+
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-      value: 1.0,
-    );
     _startHideControlsTimer();
-    // Set immersive mode
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+    final playerCubit = context.read<BloomeePlayerCubit>();
+    _currentTrackId = playerCubit.bloomeePlayer.currentTrackInfo.id;
+
+    _mediaItemSubscription =
+        playerCubit.bloomeePlayer.mediaItem.listen((mediaItem) {
+      if (mediaItem != null && mediaItem.id != _currentTrackId) {
+        if (mounted) {
+          setState(() {
+            _currentTrackId = mediaItem.id;
+            _lyricOffset = Duration.zero;
+            _isSyncMode = false;
+          });
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
-    _fadeController.dispose();
+    _holdTimer?.cancel();
     _hideControlsTimer?.cancel();
-    // Restore system UI
+    _mediaItemSubscription?.cancel();
+    _positionNotifier.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
@@ -56,9 +74,8 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
   void _startHideControlsTimer() {
     _hideControlsTimer?.cancel();
     _hideControlsTimer = Timer(const Duration(seconds: 4), () {
-      if (mounted && _showControls) {
+      if (mounted && _showControls && !_isSyncMode) {
         setState(() => _showControls = false);
-        _fadeController.reverse();
       }
     });
   }
@@ -66,97 +83,129 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
   void _toggleControls() {
     setState(() => _showControls = !_showControls);
     if (_showControls) {
-      _fadeController.forward();
       _startHideControlsTimer();
     } else {
-      _fadeController.reverse();
       _hideControlsTimer?.cancel();
     }
   }
 
   void _onInteraction() {
-    if (!_showControls) {
-      setState(() => _showControls = true);
-      _fadeController.forward();
-    }
+    if (!_showControls) setState(() => _showControls = true);
     _startHideControlsTimer();
+  }
+
+  void _startOffsetChange(int ms) {
+    setState(() => _lyricOffset += Duration(milliseconds: ms));
+    _holdTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+      setState(() => _lyricOffset += Duration(milliseconds: ms));
+    });
+  }
+
+  void _stopOffsetChange() => _holdTimer?.cancel();
+
+  void _openSettingsMenu(LyricsState state, BloomeePlayerCubit playerCubit) {
+    _hideControlsTimer?.cancel();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _LyricsSettingsBottomSheet(
+        state: state,
+        onSyncTap: () {
+          Navigator.pop(context);
+          setState(() {
+            _isSyncMode = true;
+            _showControls = true;
+          });
+        },
+      ),
+    ).then((_) => _startHideControlsTimer());
   }
 
   @override
   Widget build(BuildContext context) {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
+    final isDesktop = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
       backgroundColor: Colors.black,
       resizeToAvoidBottomInset: false,
       body: GestureDetector(
         onTap: _toggleControls,
-        behavior: HitTestBehavior.opaque,
+        behavior: HitTestBehavior.translucent,
         child: Stack(
           children: [
-            // Background with album art blur
             _buildBackground(bloomeePlayerCubit),
-
-            // Gradient overlay
-            _buildGradientOverlay(),
-
-            // Main content with lyrics
-            SafeArea(
-              child: Column(
-                children: [
-                  // Top controls (back button, song info)
-                  FadeTransition(
-                    opacity: _fadeController,
-                    child: _buildTopBar(bloomeePlayerCubit),
-                  ),
-
-                  // Lyrics area
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: BlocBuilder<LyricsCubit, LyricsState>(
-                        builder: (context, state) {
-                          return AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            child: switch (state) {
-                              LyricsInitial() => const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              LyricsLoaded() =>
-                                state.lyrics.parsedLyrics != null
-                                    ? FullscreenSyncedLyrics(
-                                        state: state,
-                                        onInteraction: _onInteraction,
-                                      )
-                                    : state.lyrics.lyricsPlain.isNotEmpty
-                                        ? _buildPlainLyrics(state)
-                                        : const SignBoardWidget(
-                                            icon: MingCute.music_2_line,
-                                            message: "No Lyrics Found",
-                                          ),
-                              LyricsError() => const SignBoardWidget(
+            Container(color: Colors.black.withValues(alpha: 0.4)),
+            Positioned.fill(
+              child: BlocBuilder<LyricsCubit, LyricsState>(
+                builder: (context, state) {
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    child: switch (state) {
+                      LyricsInitial() => const Center(
+                          child: CircularProgressIndicator(
+                              color: Default_Theme.accentColor2)),
+                      LyricsLoading() => const Center(
+                          child: CircularProgressIndicator(
+                              color: Default_Theme.accentColor2)),
+                      LyricsLoaded() => state.lyrics.parsedLyrics != null
+                          ? FullscreenSyncedLyrics(
+                              state: state,
+                              positionNotifier: _positionNotifier,
+                              lyricOffset: _lyricOffset,
+                              onInteraction: _onInteraction,
+                              isDesktop: isDesktop,
+                            )
+                          : state.lyrics.lyricsPlain.isNotEmpty
+                              ? _buildPlainLyrics(state, isDesktop)
+                              : const SignBoardWidget(
                                   icon: MingCute.music_2_line,
-                                  message: "No Lyrics Found",
-                                ),
-                              LyricsLoading() => const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              LyricsState() => const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // Bottom controls (play/pause, next, up next)
-                  FadeTransition(
-                    opacity: _fadeController,
-                    child: _buildBottomControls(bloomeePlayerCubit),
-                  ),
-                ],
+                                  message: "No Lyrics Found"),
+                      LyricsError() => const SignBoardWidget(
+                          icon: MingCute.music_2_line,
+                          message: "No Lyrics Found"),
+                      LyricsState() => const SizedBox.shrink(),
+                    },
+                  );
+                },
+              ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+              top: _showControls ? 0 : -150,
+              left: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () {},
+                child: _buildTopBar(bloomeePlayerCubit, isDesktop),
+              ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+              bottom: _showControls ? 0 : -200,
+              left: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () {},
+                child: _buildBottomControls(bloomeePlayerCubit, isDesktop),
+              ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutBack,
+              bottom: _isSyncMode
+                  ? (_showControls
+                      ? (isDesktop ? 220 : 250)
+                      : (isDesktop ? 80 : 100))
+                  : -100,
+              left: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () {},
+                child: _buildSyncControls(),
               ),
             ),
             UpNextPanel(
@@ -175,30 +224,25 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
     return StreamBuilder<MediaItem?>(
       stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
       builder: (context, snapshot) {
-        final artworkUrl = bloomeePlayerCubit
-                .bloomeePlayer.currentTrackInfo.thumbnail.urlLow ??
-            bloomeePlayerCubit.bloomeePlayer.currentTrackInfo.thumbnail.url;
+        final currentTrack = bloomeePlayerCubit.bloomeePlayer.currentTrackInfo;
+        final artworkUrl =
+            currentTrack.thumbnail.urlLow ?? currentTrack.thumbnail.url;
         return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 800),
+          duration: const Duration(milliseconds: 1000),
           child: Container(
-            key: ValueKey(snapshot.data?.artUri),
+            key: ValueKey(snapshot.data?.id),
             decoration: BoxDecoration(
               image: artworkUrl.isNotEmpty
                   ? DecorationImage(
-                      image: getImageProviderSync(
-                        artworkUrl,
-                        fallbackUrl: bloomeePlayerCubit
-                            .bloomeePlayer.currentTrackInfo.thumbnail.url,
-                      ),
+                      image: getImageProviderSync(artworkUrl,
+                          fallbackUrl: currentTrack.thumbnail.url),
                       fit: BoxFit.cover,
                     )
                   : null,
             ),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.6),
-              ),
+              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+              child: Container(color: Colors.black.withValues(alpha: 0.6)),
             ),
           ),
         );
@@ -206,92 +250,260 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
     );
   }
 
-  Widget _buildGradientOverlay() {
+  Widget _buildTopBar(BloomeePlayerCubit bloomeePlayerCubit, bool isDesktop) {
     return Container(
+      padding: EdgeInsets.fromLTRB(
+          16, MediaQuery.of(context).padding.top + 16, 16, 40),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Colors.black.withValues(alpha: 0.7),
-            Colors.transparent,
-            Colors.transparent,
-            Colors.black.withValues(alpha: 0.8),
-          ],
-          stops: const [0.0, 0.15, 0.85, 1.0],
+          colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+        ),
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                    color: Colors.white, size: 32),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: StreamBuilder<MediaItem?>(
+                  stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
+                  builder: (context, snapshot) {
+                    final currentTrack =
+                        bloomeePlayerCubit.bloomeePlayer.currentTrackInfo;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          currentTrack.title,
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: isDesktop ? 22 : 18,
+                              fontWeight: FontWeight.w800,
+                              fontFamily: 'NotoSans'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        TrackMetadataLinks(
+                          track: currentTrack,
+                          showAlbum: currentTrack.album != null,
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: isDesktop ? 15 : 13,
+                              fontFamily: 'NotoSans',
+                              fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              BlocBuilder<LyricsCubit, LyricsState>(
+                builder: (context, state) {
+                  return IconButton(
+                    onPressed: () =>
+                        _openSettingsMenu(state, bloomeePlayerCubit),
+                    icon: const Icon(MingCute.more_2_fill,
+                        color: Colors.white, size: 28),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTopBar(BloomeePlayerCubit bloomeePlayerCubit) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: Row(
-        children: [
-          // Close button
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Colors.white,
-              size: 32,
+  Widget _buildSyncControls() {
+    return Center(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                spreadRadius: 5,
+                offset: const Offset(0, 10))
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(40),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(40),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTapDown: (_) => _startOffsetChange(-50),
+                    onTapUp: (_) => _stopOffsetChange(),
+                    onTapCancel: () => _stopOffsetChange(),
+                    child: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(MingCute.minus_circle_fill,
+                            color: Colors.white, size: 28)),
+                  ),
+                  InkWell(
+                    onTap: () => setState(() => _lyricOffset = Duration.zero),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "${_lyricOffset.inMilliseconds > 0 ? '+' : ''}${_lyricOffset.inMilliseconds}ms",
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16),
+                          ),
+                          Text("TAP TO RESET",
+                              style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTapDown: (_) => _startOffsetChange(50),
+                    onTapUp: (_) => _stopOffsetChange(),
+                    onTapCancel: () => _stopOffsetChange(),
+                    child: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(MingCute.add_circle_fill,
+                            color: Colors.white, size: 28)),
+                  ),
+                  Container(
+                      width: 1,
+                      height: 28,
+                      color: Colors.white.withValues(alpha: 0.2),
+                      margin: const EdgeInsets.symmetric(horizontal: 12)),
+                  IconButton(
+                    icon: const Icon(MingCute.close_fill,
+                        color: Colors.white, size: 24),
+                    onPressed: () {
+                      setState(() => _isSyncMode = false);
+                      _startHideControlsTimer();
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
-
-          // Song info
-          Expanded(
-            child: StreamBuilder<MediaItem?>(
-              stream: bloomeePlayerCubit.bloomeePlayer.mediaItem,
-              builder: (context, snapshot) {
-                final currentTrack =
-                    bloomeePlayerCubit.bloomeePlayer.currentTrackInfo;
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      currentTrack.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'NotoSans',
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 2),
-                    TrackMetadataLinks(
-                      track: currentTrack,
-                      showAlbum: currentTrack.album != null,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 13,
-                        fontFamily: 'NotoSans',
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-
-          // Lyrics settings menu
-          BlocBuilder<LyricsCubit, LyricsState>(
-            builder: (context, state) {
-              return LyricsMenu(state: state);
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildPlainLyrics(LyricsState state) {
+  Widget _buildBottomControls(
+      BloomeePlayerCubit bloomeePlayerCubit, bool isDesktop) {
+    final musicPlayer = bloomeePlayerCubit.bloomeePlayer;
+    final paddingBottom = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+          24, 40, 24, paddingBottom > 0 ? paddingBottom : 24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Colors.black.withValues(alpha: 0.85), Colors.transparent],
+        ),
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () => musicPlayer.skipToPrevious(),
+                    icon: const Icon(MingCute.skip_previous_fill,
+                        color: Colors.white),
+                    iconSize: isDesktop ? 40 : 36,
+                  ),
+                  const SizedBox(width: 32),
+                  BlocBuilder<MiniPlayerCubit, MiniPlayerState>(
+                    builder: (context, state) {
+                      return PlayPauseButton(
+                        size: isDesktop ? 80 : 70,
+                        onPause: () => musicPlayer.pause(),
+                        onPlay: () => musicPlayer.play(),
+                        isPlaying: state.isPlaying,
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 32),
+                  IconButton(
+                    onPressed: () => musicPlayer.skipToNext(),
+                    icon: const Icon(MingCute.skip_forward_fill,
+                        color: Colors.white),
+                    iconSize: isDesktop ? 40 : 36,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              GestureDetector(
+                onTap: () => _upNextPanelController.toggle(),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(30)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(MingCute.playlist_fill,
+                          color: Colors.white, size: 20),
+                      const SizedBox(width: 10),
+                      Text("Up Next",
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.95),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlainLyrics(LyricsState state, bool isDesktop) {
     return ShaderMask(
       shaderCallback: (Rect bounds) {
         return const LinearGradient(
@@ -303,152 +515,48 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView>
             Colors.white,
             Colors.transparent
           ],
-          stops: [0.0, 0.08, 0.92, 1.0],
+          stops: [0.0, 0.2, 0.8, 1.0],
         ).createShader(bounds);
       },
       blendMode: BlendMode.dstIn,
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
-          child: Text(
-            state.lyrics.lyricsPlain,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 22,
-              fontFamily: 'NotoSans',
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-              height: 2.0,
+        padding: EdgeInsets.symmetric(
+            vertical: MediaQuery.of(context).size.height * 0.35,
+            horizontal: 32),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Text(
+              state.lyrics.lyricsPlain,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: isDesktop ? 26 : 22,
+                  fontFamily: 'NotoSans',
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.8),
+                  height: 1.8),
             ),
           ),
         ),
       ),
     );
   }
-
-  Widget _buildBottomControls(BloomeePlayerCubit bloomeePlayerCubit) {
-    final musicPlayer = bloomeePlayerCubit.bloomeePlayer;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Control buttons row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Previous button
-              IconButton(
-                onPressed: () => musicPlayer.skipToPrevious(),
-                icon: const Icon(
-                  MingCute.skip_previous_fill,
-                  color: Colors.white,
-                  size: 32,
-                ),
-              ),
-
-              // Play/Pause button
-              BlocBuilder<MiniPlayerCubit, MiniPlayerState>(
-                builder: (context, state) {
-                  if (state.isLoading) {
-                    return Container(
-                      decoration: const BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Default_Theme.accentColor2,
-                            spreadRadius: 1,
-                            blurRadius: 20,
-                          )
-                        ],
-                        shape: BoxShape.circle,
-                        color: Default_Theme.accentColor2,
-                      ),
-                      width: 70,
-                      height: 70,
-                      child: const Center(
-                        child: SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: CircularProgressIndicator(
-                            color: Default_Theme.primaryColor1,
-                            strokeWidth: 3,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return PlayPauseButton(
-                    size: 70,
-                    onPause: () => musicPlayer.pause(),
-                    onPlay: () => musicPlayer.play(),
-                    isPlaying: state.isPlaying,
-                  );
-                },
-              ),
-
-              // Next button
-              IconButton(
-                onPressed: () => musicPlayer.skipToNext(),
-                icon: const Icon(
-                  MingCute.skip_forward_fill,
-                  color: Colors.white,
-                  size: 32,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Up Next button
-          GestureDetector(
-            onTap: () {
-              _upNextPanelController.toggle();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    MingCute.playlist_fill,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Up Next",
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-/// Optimized synced lyrics widget with smooth auto-scroll
 class FullscreenSyncedLyrics extends StatefulWidget {
   final LyricsState state;
+  final ValueNotifier<Duration> positionNotifier;
+  final Duration lyricOffset;
   final VoidCallback? onInteraction;
+  final bool isDesktop;
 
   const FullscreenSyncedLyrics({
     required this.state,
+    required this.positionNotifier,
+    required this.lyricOffset,
     this.onInteraction,
+    this.isDesktop = false,
     super.key,
   });
 
@@ -461,9 +569,8 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
-  Duration _currentPosition = Duration.zero;
+
   int _currentIndex = -1;
-  int _lastScrolledIndex = -1;
   bool _userScrolling = false;
   Timer? _userScrollTimer;
 
@@ -473,20 +580,36 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
     _setupPositionListener();
   }
 
+  @override
+  void didUpdateWidget(FullscreenSyncedLyrics oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.lyricOffset != widget.lyricOffset) _forceSyncRecalculation();
+  }
+
+  void _forceSyncRecalculation() {
+    final player = context.read<BloomeePlayerCubit>().bloomeePlayer.engine;
+    final adjustedPosition = player.position + widget.lyricOffset;
+    widget.positionNotifier.value = adjustedPosition;
+
+    final newIndex = _findCurrentLyricIndex(adjustedPosition);
+    if (newIndex != _currentIndex && newIndex != -1) {
+      setState(() => _currentIndex = newIndex);
+      _scrollToCurrentLyric();
+    }
+  }
+
   void _setupPositionListener() {
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     _positionSubscription = bloomeePlayerCubit
         .bloomeePlayer.engine.positionStream
-        .listen((position) {
+        .listen((rawPosition) {
       if (!mounted) return;
+      final adjustedPosition = rawPosition + widget.lyricOffset;
+      widget.positionNotifier.value = adjustedPosition;
 
-      _currentPosition = position;
-      final newIndex = _findCurrentLyricIndex();
-
-      if (newIndex != _currentIndex) {
-        setState(() {
-          _currentIndex = newIndex;
-        });
+      final newIndex = _findCurrentLyricIndex(adjustedPosition);
+      if (newIndex != _currentIndex && newIndex != -1) {
+        setState(() => _currentIndex = newIndex);
         _scrollToCurrentLyric();
       }
     });
@@ -499,52 +622,28 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
     super.dispose();
   }
 
-  int _findCurrentLyricIndex() {
+  int _findCurrentLyricIndex(Duration currentPosition) {
     final lyrics = widget.state.lyrics.parsedLyrics?.lyrics;
     if (lyrics == null || lyrics.isEmpty) return 0;
-
-    // If position is before first lyric, return 0
-    if (_currentPosition.inMilliseconds < lyrics[0].start.inMilliseconds) {
-      return 0;
-    }
-
-    // If position is past the last lyric, return last index
-    if (_currentPosition.inMilliseconds >= lyrics.last.start.inMilliseconds) {
-      return lyrics.length - 1;
-    }
-
+    if (currentPosition < lyrics[0].start) return 0;
+    if (currentPosition >= lyrics.last.start) return lyrics.length - 1;
     for (int i = 0; i < lyrics.length; i++) {
-      final currentStart = lyrics[i].start.inMilliseconds;
-      final nextStart = i + 1 < lyrics.length
-          ? lyrics[i + 1].start.inMilliseconds
-          : double.infinity;
-
-      if (_currentPosition.inMilliseconds >= currentStart &&
-          _currentPosition.inMilliseconds < nextStart) {
+      final nextStart =
+          i + 1 < lyrics.length ? lyrics[i + 1].start : const Duration(days: 1);
+      if (currentPosition >= lyrics[i].start && currentPosition < nextStart)
         return i;
-      }
     }
     return lyrics.length - 1;
   }
 
   void _scrollToCurrentLyric() {
     if (_userScrolling) return;
-
-    final lyrics = widget.state.lyrics.parsedLyrics?.lyrics;
-    if (lyrics == null || lyrics.isEmpty) return;
-
-    // Don't scroll again if we already scrolled to this index
-    if (_currentIndex == _lastScrolledIndex) return;
-
-    // Center the current lyric on screen
     if (_itemScrollController.isAttached && _currentIndex >= 0) {
-      _lastScrolledIndex = _currentIndex;
       _itemScrollController.scrollTo(
-        index: _currentIndex,
-        alignment: 0.4, // Center vertically
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeOutCubic,
-      );
+          index: _currentIndex,
+          alignment: 0.4,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutQuart);
     }
   }
 
@@ -552,19 +651,10 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
     widget.onInteraction?.call();
     _userScrolling = true;
     _userScrollTimer?.cancel();
-    _userScrollTimer = Timer(const Duration(seconds: 3), () {
+    _userScrollTimer = Timer(const Duration(seconds: 4), () {
       _userScrolling = false;
       _scrollToCurrentLyric();
     });
-  }
-
-  void _onLyricTap(int index) {
-    widget.onInteraction?.call();
-    // Seek to this lyric
-    final lyric = widget.state.lyrics.parsedLyrics?.lyrics[index];
-    if (lyric != null) {
-      context.read<BloomeePlayerCubit>().bloomeePlayer.seek(lyric.start);
-    }
   }
 
   @override
@@ -574,9 +664,7 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification is ScrollStartNotification &&
-            notification.dragDetails != null) {
-          _onUserScroll();
-        }
+            notification.dragDetails != null) _onUserScroll();
         return false;
       },
       child: ShaderMask(
@@ -590,7 +678,7 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
               Colors.white,
               Colors.transparent
             ],
-            stops: [0.0, 0.15, 0.85, 1.0],
+            stops: [0.0, 0.25, 0.75, 1.0],
           ).createShader(bounds);
         },
         blendMode: BlendMode.dstIn,
@@ -599,36 +687,237 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
           itemPositionsListener: _itemPositionsListener,
           itemCount: lyrics.length,
           padding: EdgeInsets.symmetric(
-            vertical: MediaQuery.of(context).size.height * 0.3,
-          ),
-          physics: const BouncingScrollPhysics(),
+              vertical: MediaQuery.of(context).size.height * 0.4,
+              horizontal: widget.isDesktop ? 64 : 24),
+          physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics()),
           itemBuilder: (context, index) {
             final isCurrentLine = index == _currentIndex;
             final isPastLine = index < _currentIndex;
+            final lyric = lyrics[index];
+            final nextStart = index + 1 < lyrics.length
+                ? lyrics[index + 1].start
+                : lyric.start + const Duration(seconds: 5);
 
             return GestureDetector(
-              onTap: () => _onLyricTap(index),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Text(
-                  lyrics[index].text,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontFamily: 'NotoSans',
-                    fontWeight:
-                        isCurrentLine ? FontWeight.w700 : FontWeight.w500,
-                    color: isCurrentLine
-                        ? Colors.white
-                        : isPastLine
-                            ? Colors.white.withValues(alpha: 0.35)
-                            : Colors.white.withValues(alpha: 0.55),
-                    height: 1.5,
-                  ),
-                ),
+              onTap: () {
+                widget.onInteraction?.call();
+                context
+                    .read<BloomeePlayerCubit>()
+                    .bloomeePlayer
+                    .seek(lyric.start - widget.lyricOffset);
+              },
+              child: _KaraokeLyricLine(
+                text: lyric.text,
+                startTime: lyric.start,
+                endTime: nextStart,
+                isActive: isCurrentLine,
+                isPast: isPastLine,
+                positionNotifier: widget.positionNotifier,
+                isDesktop: widget.isDesktop,
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _KaraokeLyricLine extends StatelessWidget {
+  final String text;
+  final Duration startTime;
+  final Duration endTime;
+  final bool isActive;
+  final bool isPast;
+  final ValueNotifier<Duration> positionNotifier;
+  final bool isDesktop;
+
+  const _KaraokeLyricLine(
+      {required this.text,
+      required this.startTime,
+      required this.endTime,
+      required this.isActive,
+      required this.isPast,
+      required this.positionNotifier,
+      required this.isDesktop});
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = TextStyle(
+        fontSize: isDesktop ? 32 : 28,
+        fontFamily: 'NotoSans',
+        fontWeight: FontWeight.w800,
+        height: 1.4);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: isActive ? 1.0 : (isPast ? 0.25 : 0.4),
+            child: isActive
+                ? ValueListenableBuilder<Duration>(
+                    valueListenable: positionNotifier,
+                    builder: (context, currentPosition, child) {
+                      final elapsed = currentPosition.inMilliseconds -
+                          startTime.inMilliseconds;
+                      final total =
+                          endTime.inMilliseconds - startTime.inMilliseconds;
+                      final double progress =
+                          total > 0 ? (elapsed / total).clamp(0.0, 1.0) : 1.0;
+
+                      return ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return LinearGradient(
+                            colors: [
+                              Colors.white,
+                              Colors.white.withValues(alpha: 0.35)
+                            ],
+                            stops: [progress, progress],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ).createShader(bounds);
+                        },
+                        blendMode: BlendMode.srcIn,
+                        child: Text(text,
+                            textAlign: TextAlign.center, style: textStyle),
+                      );
+                    },
+                  )
+                : Text(text,
+                    textAlign: TextAlign.center,
+                    style: textStyle.copyWith(color: Colors.white)),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LyricsSettingsBottomSheet extends StatelessWidget {
+  final LyricsState state;
+  final VoidCallback onSyncTap;
+
+  const _LyricsSettingsBottomSheet(
+      {required this.state, required this.onSyncTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF151515).withValues(alpha: 0.8),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+        ),
+        padding: EdgeInsets.fromLTRB(
+            24, 16, 24, MediaQuery.of(context).padding.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+                width: 48,
+                height: 5,
+                decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(3))),
+            const SizedBox(height: 32),
+            _buildMenuItem(
+              icon: MingCute.search_2_line,
+              title: "Search Custom Lyrics",
+              subtitle: "Find alternative versions online",
+              onTap: () {
+                Navigator.pop(context);
+                showSearch(
+                  context: context,
+                  delegate: LyricsSearchDelegate(mediaID: state.track.id),
+                  query:
+                      "${state.track.title} ${state.track.artists.map((a) => a.name).join(', ')}",
+                );
+              },
+            ),
+            _buildMenuItem(
+              icon: MingCute.time_line,
+              title: "Adjust Sync (Delay/Offset)",
+              subtitle: "Fix lyrics that are too fast or slow",
+              color: Default_Theme.accentColor2,
+              onTap: onSyncTap,
+            ),
+            const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(color: Colors.white12)),
+            _buildMenuItem(
+              icon: MingCute.save_2_line,
+              title: "Save Offline",
+              subtitle: "Store these lyrics to your device",
+              onTap: () {
+                context
+                    .read<LyricsCubit>()
+                    .setLyricsToDB(state.lyrics, state.track.id);
+                Navigator.pop(context);
+              },
+            ),
+            _buildMenuItem(
+              icon: MingCute.delete_3_line,
+              title: "Delete Saved Lyrics",
+              subtitle: "Remove offline lyrics data",
+              color: const Color(0xFFFF5252),
+              onTap: () {
+                context.read<LyricsCubit>().deleteLyricsFromDB(state.track);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(
+      {required IconData icon,
+      required String title,
+      required String subtitle,
+      required VoidCallback onTap,
+      Color color = Colors.white}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          color: color,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 13)),
+                ],
+              ),
+            ),
+            Icon(MingCute.right_line,
+                color: Colors.white.withValues(alpha: 0.3), size: 20),
+          ],
         ),
       ),
     );

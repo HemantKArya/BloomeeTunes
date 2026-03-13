@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-
+import 'dart:ui';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
@@ -10,6 +10,7 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
+import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:Bloomee/src/rust/api/plugin/models.dart' as plugin_models;
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
@@ -20,7 +21,7 @@ import 'package:icons_plus/icons_plus.dart';
 class LyricsSearchDelegate extends SearchDelegate {
   final String mediaID;
   @override
-  String? get searchFieldLabel => "Search lyrics...";
+  String? get searchFieldLabel => "Search for lyrics...";
 
   final PluginService _pluginService = ServiceLocator.pluginService;
   final SettingsDAO _settingsDao = SettingsDAO(DBProvider.db);
@@ -36,13 +37,10 @@ class LyricsSearchDelegate extends SearchDelegate {
       } catch (_) {}
     }
 
-    // Keep only IDs that are actually loaded right now.
     final loadedIds = _pluginService.getLoadedPlugins().toSet();
     final active = stored.where(loadedIds.contains).toList();
     if (active.isNotEmpty) return active;
 
-    // Fallback: enumerate every loaded LyricsProvider plugin so search works
-    // even when the user hasn't explicitly configured a priority list.
     try {
       final available = await _pluginService.getAvailablePlugins();
       return available
@@ -57,8 +55,6 @@ class LyricsSearchDelegate extends SearchDelegate {
     }
   }
 
-  /// Returns results tagged with their source plugin ID so we can call the
-  /// correct plugin in [_fetchById] without wasting roundtrips.
   Future<List<({String pluginId, plugin_models.LyricsMatch match})>>
       _searchPlugins(String q) async {
     if (q.trim().isEmpty) return [];
@@ -71,13 +67,11 @@ class LyricsSearchDelegate extends SearchDelegate {
         final response = await _pluginService.execute(
           pluginId: pluginId,
           request: PluginRequest.lyricsProvider(
-            LyricsProviderCommand.search(query: q),
-          ),
+              LyricsProviderCommand.search(query: q)),
         );
         if (response is PluginResponse_LyricsSearchResults) {
           results.addAll(
-            response.field0.map((m) => (pluginId: pluginId, match: m)),
-          );
+              response.field0.map((m) => (pluginId: pluginId, match: m)));
         }
       } catch (e) {
         log('Lyrics search failed for $pluginId: $e', name: 'LyricsSearch');
@@ -86,61 +80,47 @@ class LyricsSearchDelegate extends SearchDelegate {
     return results;
   }
 
-  Future<Lyrics?> _fetchById(
-    String pluginId,
-    String id,
-    plugin_models.LyricsMatch match,
-  ) async {
-    try {
-      final response = await _pluginService.execute(
-        pluginId: pluginId,
-        request: PluginRequest.lyricsProvider(
-          LyricsProviderCommand.getLyricsById(id: id),
-        ),
-      );
-      if (response is PluginResponse_LyricsById) {
-        return pluginLyricsToLyrics(
-          response.field0,
-          artist: match.artist,
-          title: match.title,
-          album: match.album,
-          durationMs: match.durationMs,
-          mediaID: mediaID,
-        );
-      }
-    } catch (e) {
-      log('GetLyricsById failed for $pluginId: $e', name: 'LyricsSearch');
-    }
-    return null;
-  }
-
   @override
   ThemeData appBarTheme(BuildContext context) {
     return Theme.of(context).copyWith(
       appBarTheme: const AppBarTheme(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(20))),
-        backgroundColor: Color.fromARGB(255, 19, 19, 19),
-        iconTheme: IconThemeData(color: Default_Theme.primaryColor1),
-      ),
-      textTheme: TextTheme(
-        titleLarge: const TextStyle(
-          color: Default_Theme.primaryColor1,
-        ).merge(Default_Theme.secondoryTextStyleMedium),
+        backgroundColor: Default_Theme.themeColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(
-          color: Default_Theme.primaryColor2.withValues(alpha: 0.3),
-        ).merge(Default_Theme.secondoryTextStyle),
+          color: Default_Theme.primaryColor1.withValues(alpha: 0.4),
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+        ),
+        border: InputBorder.none,
       ),
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(
+          color: Colors.white,
+          fontSize: 17,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      scaffoldBackgroundColor: Default_Theme.themeColor,
     );
   }
 
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
-      IconButton(
-          onPressed: () => query = '', icon: const Icon(MingCute.close_fill))
+      if (query.isNotEmpty)
+        IconButton(
+          onPressed: () => query = '',
+          icon: Icon(MingCute.close_fill,
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.6),
+              size: 20),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+      const SizedBox(width: 8),
     ];
   }
 
@@ -148,17 +128,28 @@ class LyricsSearchDelegate extends SearchDelegate {
   Widget? buildLeading(BuildContext context) {
     return IconButton(
       onPressed: () => close(context, null),
-      icon: const Icon(MingCute.arrow_left_fill),
+      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
     );
   }
 
   @override
-  Widget buildResults(BuildContext context) => _buildSearchResults(context);
+  Widget buildResults(BuildContext context) => _buildBody(context);
 
   @override
-  Widget buildSuggestions(BuildContext context) => _buildSearchResults(context);
+  Widget buildSuggestions(BuildContext context) => _buildBody(context);
 
-  Widget _buildSearchResults(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
+    if (query.trim().isEmpty) {
+      return const Center(
+        child: SignBoardWidget(
+          message: "Type a song or artist to find lyrics.",
+          icon: MingCute.search_2_line,
+        ),
+      );
+    }
+
     return FutureBuilder<
         List<({String pluginId, plugin_models.LyricsMatch match})>>(
       future: _searchPlugins(query),
@@ -166,8 +157,7 @@ class LyricsSearchDelegate extends SearchDelegate {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Default_Theme.accentColor2,
-            ),
+                color: Default_Theme.accentColor2, strokeWidth: 3),
           );
         }
 
@@ -175,75 +165,513 @@ class LyricsSearchDelegate extends SearchDelegate {
         if (results.isEmpty) {
           return Center(
             child: SignBoardWidget(
-              message: query.trim().isEmpty
-                  ? "Type to search lyrics"
-                  : "No results found",
-              icon: MingCute.look_up_line,
+              message: "No lyrics found for '${query.trim()}'",
+              icon: MingCute.ghost_line,
             ),
           );
         }
 
-        return ListView.builder(
-          itemCount: results.length,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemBuilder: (context, index) {
-            final (:pluginId, :match) = results[index];
-            final hasSynced =
-                match.syncType != plugin_models.LyricsSyncType.none;
-            return ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              title: Text(
-                match.title,
-                style:
-                    const TextStyle(color: Default_Theme.primaryColor1).merge(
-                  Default_Theme.secondoryTextStyleMedium,
-                ),
-              ),
-              subtitle: Row(
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+                maxWidth: 800), // Desktop elegant containment
+            child: ListView.separated(
+              itemCount: results.length,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final result = results[index];
+                return _LyricsResultCard(
+                  pluginId: result.pluginId,
+                  match: result.match,
+                  mediaID: mediaID,
+                  searchDelegate: this,
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── Smart Interactive Card (Redesigned Layout) ───────────────────────────────
+
+class _LyricsResultCard extends StatefulWidget {
+  final String pluginId;
+  final plugin_models.LyricsMatch match;
+  final String mediaID;
+  final LyricsSearchDelegate searchDelegate;
+
+  const _LyricsResultCard({
+    required this.pluginId,
+    required this.match,
+    required this.mediaID,
+    required this.searchDelegate,
+  });
+
+  @override
+  State<_LyricsResultCard> createState() => _LyricsResultCardState();
+}
+
+class _LyricsResultCardState extends State<_LyricsResultCard> {
+  bool _isApplying = false;
+
+  Future<void> _applyDirectly() async {
+    if (_isApplying) return;
+    setState(() => _isApplying = true);
+
+    try {
+      final response = await ServiceLocator.pluginService.execute(
+        pluginId: widget.pluginId,
+        request: PluginRequest.lyricsProvider(
+          LyricsProviderCommand.getLyricsById(id: widget.match.id),
+        ),
+      );
+
+      if (response is PluginResponse_LyricsById && mounted) {
+        final fetchedLyrics = pluginLyricsToLyrics(
+          response.field0,
+          artist: widget.match.artist,
+          title: widget.match.title,
+          album: widget.match.album,
+          durationMs: widget.match.durationMs,
+          mediaID: widget.mediaID,
+        );
+
+        context
+            .read<LyricsCubit>()
+            .setLyricsToDB(fetchedLyrics, widget.mediaID);
+        SnackbarService.showMessage('Lyrics successfully applied');
+        widget.searchDelegate.close(context, null);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isApplying = false);
+        SnackbarService.showMessage('Failed to fetch lyrics');
+      }
+    }
+  }
+
+  void _openPreview() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _LyricsPreviewModal(
+        pluginId: widget.pluginId,
+        match: widget.match,
+        mediaID: widget.mediaID,
+        parentContext: context,
+        searchDelegate: widget.searchDelegate,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSynced =
+        widget.match.syncType != plugin_models.LyricsSyncType.none;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.06)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _isApplying ? null : _applyDirectly,
+            splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.06),
+            highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.04),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              child: Row(
+                crossAxisAlignment:
+                    CrossAxisAlignment.center, // Perfect vertical alignment
                 children: [
-                  Flexible(
-                    child: Text(
-                      match.artist,
-                      style: TextStyle(
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.7),
-                      ).merge(Default_Theme.secondoryTextStyle),
-                      overflow: TextOverflow.ellipsis,
+                  // Icon Indicator
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: hasSynced
+                          ? Default_Theme.accentColor2.withValues(alpha: 0.12)
+                          : Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: hasSynced
+                            ? Default_Theme.accentColor2.withValues(alpha: 0.2)
+                            : Colors.transparent,
+                      ),
+                    ),
+                    child: Center(
+                      child: _isApplying
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Default_Theme.accentColor2))
+                          : Icon(
+                              hasSynced
+                                  ? MingCute.align_center_fill
+                                  : MingCute.document_line,
+                              color: hasSynced
+                                  ? Default_Theme.accentColor2
+                                  : Default_Theme.primaryColor1
+                                      .withValues(alpha: 0.6),
+                              size: 22,
+                            ),
                     ),
                   ),
-                  if (hasSynced) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2ECC71).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'Synced',
-                        style: TextStyle(
-                          color: Color(0xFF2ECC71),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                  const SizedBox(width: 14),
+
+                  // Text Info + Inline Badge
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                widget.match.title,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // INLINE BADGE: Looks natural and flows with the text
+                            if (hasSynced) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Default_Theme.accentColor2
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                      color: Default_Theme.accentColor2
+                                          .withValues(alpha: 0.2)),
+                                ),
+                                child: const Text(
+                                  'SYNCED',
+                                  style: TextStyle(
+                                      color: Default_Theme.accentColor2,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          widget.match.artist,
+                          style: TextStyle(
+                            color: Default_Theme.primaryColor2
+                                .withValues(alpha: 0.7),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Compact Icon-Only Preview Button
+                  Material(
+                    color: Colors.transparent,
+                    child: Tooltip(
+                      message: 'Preview Lyrics',
+                      child: InkWell(
+                        onTap: _isApplying ? null : _openPreview,
+                        borderRadius: BorderRadius.circular(10),
+                        splashColor:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.1),
+                        highlightColor:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: Default_Theme.primaryColor1
+                                    .withValues(alpha: 0.05)),
+                          ),
+                          child: Icon(
+                            MingCute.eye_2_line,
+                            size: 18,
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.8),
+                          ),
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ],
               ),
-              onTap: () async {
-                final lyrics = await _fetchById(pluginId, match.id, match);
-                if (lyrics != null && context.mounted) {
-                  context.read<LyricsCubit>().setLyricsToDB(lyrics, mediaID);
-                  if (context.mounted) Navigator.of(context).pop();
-                }
-              },
-            );
-          },
-        );
-      },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Premium Blur Modal ───────────────────────────────────────────────────────
+
+class _LyricsPreviewModal extends StatefulWidget {
+  final String pluginId;
+  final plugin_models.LyricsMatch match;
+  final String mediaID;
+  final BuildContext parentContext;
+  final LyricsSearchDelegate searchDelegate;
+
+  const _LyricsPreviewModal({
+    required this.pluginId,
+    required this.match,
+    required this.mediaID,
+    required this.parentContext,
+    required this.searchDelegate,
+  });
+
+  @override
+  State<_LyricsPreviewModal> createState() => _LyricsPreviewModalState();
+}
+
+class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
+  final PluginService _pluginService = ServiceLocator.pluginService;
+  Lyrics? _fetchedLyrics;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLyrics();
+  }
+
+  Future<void> _fetchLyrics() async {
+    try {
+      final response = await _pluginService.execute(
+        pluginId: widget.pluginId,
+        request: PluginRequest.lyricsProvider(
+            LyricsProviderCommand.getLyricsById(id: widget.match.id)),
+      );
+      if (response is PluginResponse_LyricsById && mounted) {
+        setState(() {
+          _fetchedLyrics = pluginLyricsToLyrics(
+            response.field0,
+            artist: widget.match.artist,
+            title: widget.match.title,
+            album: widget.match.album,
+            durationMs: widget.match.durationMs,
+            mediaID: widget.mediaID,
+          );
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Default_Theme.themeColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          // Glassy Header
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
+                decoration: BoxDecoration(
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.02),
+                  border: Border(
+                      bottom: BorderSide(
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.08))),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "PREVIEW",
+                                style: TextStyle(
+                                  color: Default_Theme.accentColor2
+                                      .withValues(alpha: 0.8),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                widget.match.title,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(MingCute.close_fill,
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.6),
+                              size: 24),
+                          onPressed: () => Navigator.pop(context),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Body (Lyrics)
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                        color: Default_Theme.accentColor2))
+                : _fetchedLyrics == null || _fetchedLyrics!.lyricsPlain.isEmpty
+                    ? const Center(
+                        child: SignBoardWidget(
+                          message: "Failed to load lyrics.",
+                          icon: MingCute.ghost_line,
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 32),
+                        physics: const BouncingScrollPhysics(),
+                        child: Text(
+                          _fetchedLyrics!.lyricsPlain,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 17,
+                            height: 1.8,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+          ),
+
+          // Footer Action
+          if (!_isLoading &&
+              _fetchedLyrics != null &&
+              _fetchedLyrics!.lyricsPlain.isNotEmpty)
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                  24, 16, 24, MediaQuery.of(context).padding.bottom + 24),
+              decoration: BoxDecoration(
+                  color: Default_Theme.themeColor,
+                  border: Border(
+                      top: BorderSide(
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.05))),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, -10)),
+                  ]),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    widget.parentContext
+                        .read<LyricsCubit>()
+                        .setLyricsToDB(_fetchedLyrics!, widget.mediaID);
+                    SnackbarService.showMessage('Lyrics successfully applied');
+                    Navigator.pop(context);
+                    widget.searchDelegate.close(widget.parentContext, null);
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  splashColor:
+                      Default_Theme.accentColor2.withValues(alpha: 0.2),
+                  highlightColor:
+                      Default_Theme.accentColor2.withValues(alpha: 0.1),
+                  child: Container(
+                    height: 54,
+                    width: double.infinity,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Default_Theme.accentColor2.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color:
+                              Default_Theme.accentColor2.withValues(alpha: 0.4),
+                          width: 1.5),
+                    ),
+                    child: const Text(
+                      "Apply Lyrics",
+                      style: TextStyle(
+                        color: Default_Theme.accentColor2,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

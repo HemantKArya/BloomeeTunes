@@ -28,7 +28,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../blocs/media_player/bloomee_player_cubit.dart';
 import '../../blocs/mini_player/mini_player_cubit.dart';
 import 'player_views/fullscreen_lyrics_view.dart';
-import 'player_views/lyrics_widget.dart';
 
 class AudioPlayerView extends StatefulWidget {
   const AudioPlayerView({super.key});
@@ -232,18 +231,10 @@ class _PlayerUI extends StatelessWidget {
               const SizedBox(height: 60), // Space for AppBar
 
               // EXPANDED allows artwork to claim 100% of available space securely
-              Expanded(
+              const Expanded(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  child: TabBarView(
-                    controller: tabController,
-                    physics: const BouncingScrollPhysics(),
-                    children: const [
-                      CoverImageVolSlider(),
-                      LyricsWidget(),
-                    ],
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: CoverImageVolSlider(),
                 ),
               ),
 
