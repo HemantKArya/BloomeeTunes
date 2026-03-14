@@ -208,13 +208,13 @@ class SongInfoScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(isMobileView ? 24 : 32),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 40,
               offset: const Offset(0, 20),
             ),
             // Subtle top highlight for 3D feel
             BoxShadow(
-              color: Default_Theme.primaryColor2.withValues(alpha: 0.1),
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.02),
               blurRadius: 1,
               offset: const Offset(0, -1),
             ),

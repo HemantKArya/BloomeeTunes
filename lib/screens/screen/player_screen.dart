@@ -273,16 +273,18 @@ class CoverImageVolSlider extends StatelessWidget {
           final lowResUrl =
               currentTrack.thumbnail.urlLow ?? currentTrack.thumbnail.url;
 
-          // SizedBox.expand forces image to grow perfectly to maximum available bounds
+          // the source image resolution.
           return SizedBox.expand(
             child: Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: LoadImageCached(
-                  imageUrl: highResUrl,
-                  fallbackUrl: lowResUrl,
-                  // Contain natively formats YouTube Wide (16:9) AND Album Square (1:1) perfectly
-                  fit: BoxFit.contain,
+              child: AspectRatio(
+                aspectRatio: 1.0, // Square album art
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: LoadImageCached(
+                    imageUrl: highResUrl,
+                    fallbackUrl: lowResUrl,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
