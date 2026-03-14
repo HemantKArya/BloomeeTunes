@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:ui';
 
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
@@ -41,72 +40,26 @@ class OnlPlaylistView extends StatefulWidget {
 
 class _OnlPlaylistViewState extends State<OnlPlaylistView> {
   late final ContentBloc _contentBloc;
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   bool _isSaved = false;
-
-  String _sourceName(BuildContext context) {
-    final plugins = context.read<PluginBloc>().state.availablePlugins;
-    for (final plugin in plugins) {
-      if (plugin.manifest.id == widget.pluginId) {
-        return plugin.manifest.name;
-      }
-    }
-    return widget.pluginId;
-  }
 
   @override
   void initState() {
     super.initState();
     _contentBloc = ContentBloc(pluginService: ServiceLocator.pluginService);
-    _scrollController.addListener(_onScroll);
+    _scrollController = ScrollController()..addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final isLoaded =
-          context.read<PluginBloc>().state.isPluginLoaded(widget.pluginId);
-      if (!isLoaded) {
-        GlobalEventBus.instance.emitError(
-          AppError.pluginNotLoaded(pluginId: widget.pluginId),
-        );
+      if (!context.read<PluginBloc>().state.isPluginLoaded(widget.pluginId)) {
+        GlobalEventBus.instance
+            .emitError(AppError.pluginNotLoaded(pluginId: widget.pluginId));
         return;
       }
       _contentBloc.add(LoadPlaylistDetails(
-        pluginId: widget.pluginId,
-        playlistId: widget.playlist.id,
-      ));
+          pluginId: widget.pluginId, playlistId: widget.playlist.id));
+      _checkSavedState();
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkSavedState());
-  }
-
-  Future<void> _checkSavedState() async {
-    final saved = await context
-        .read<LibraryItemsCubit>()
-        .isRemoteSaved(widget.playlist.id, PlaylistType.remotePlaylist);
-    if (mounted) setState(() => _isSaved = saved);
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-
-    final details = _contentBloc.state.playlistDetails;
-    final nextPageToken = details?.tracks.nextPageToken;
-    final status = _contentBloc.state.playlistDetailStatus;
-
-    if (nextPageToken == null ||
-        status == DetailStatus.loading ||
-        status == DetailStatus.loadingMore) {
-      return;
-    }
-
-    final remaining =
-        _scrollController.position.maxScrollExtent - _scrollController.offset;
-    if (remaining <= 320) {
-      _contentBloc.add(LoadMorePlaylistTracks(
-        pluginId: widget.pluginId,
-        playlistId: widget.playlist.id,
-        pageToken: nextPageToken,
-      ));
-    }
   }
 
   @override
@@ -116,246 +69,279 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
     super.dispose();
   }
 
-  String? _cleanDescription(String? rawDesc) {
-    if (rawDesc == null) return null;
-    final clean = rawDesc.trim();
-    if (clean.isEmpty || clean == '[]') return null;
-    return clean;
+  String _sourceName(BuildContext context) {
+    for (final plugin in context.read<PluginBloc>().state.availablePlugins) {
+      if (plugin.manifest.id == widget.pluginId) return plugin.manifest.name;
+    }
+    return widget.pluginId;
+  }
+
+  Future<void> _checkSavedState() async {
+    final saved = await context
+        .read<LibraryItemsCubit>()
+        .isRemoteSaved(widget.playlist.id, PlaylistType.remotePlaylist);
+    if (mounted) setState(() => _isSaved = saved);
+  }
+
+  Future<void> _toggleSaveState() async {
+    final cubit = context.read<LibraryItemsCubit>();
+    if (_isSaved) {
+      await cubit.removeRemoteSaved(
+          widget.playlist.id, PlaylistType.remotePlaylist);
+    } else {
+      await cubit.saveRemotePlaylist(
+          playlist: widget.playlist, sourceName: _sourceName(context));
+    }
+    await _checkSavedState();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final details = _contentBloc.state.playlistDetails;
+    final nextPageToken = details?.tracks.nextPageToken;
+    final status = _contentBloc.state.playlistDetailStatus;
+
+    if (nextPageToken == null ||
+        status == DetailStatus.loading ||
+        status == DetailStatus.loadingMore) return;
+
+    if (_scrollController.position.maxScrollExtent - _scrollController.offset <=
+        320) {
+      _contentBloc.add(LoadMorePlaylistTracks(
+          pluginId: widget.pluginId,
+          playlistId: widget.playlist.id,
+          pageToken: nextPageToken));
+    }
+  }
+
+  String? _cleanText(String? raw) {
+    final clean = raw?.trim();
+    return (clean == null || clean.isEmpty || clean == '[]') ? null : clean;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
-      // This ensures the App Bar completely overlays the stack without affecting scroll physics
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent, // True transparent forever
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leadingWidth: 70,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Center(
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Default_Theme.themeColor.withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Default_Theme.primaryColor1.withValues(alpha: 0.15),
-                  ),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: Default_Theme.primaryColor1,
-                  size: 20,
-                ),
+      appBar: _buildAppBar(),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          _buildOptimizedBackground(),
+          _buildScrollableContent(),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      leadingWidth: 70,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16.0),
+        child: Center(
+          child: IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Default_Theme.themeColor.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.15)),
               ),
-              onPressed: () => Navigator.pop(context),
+              child: const Icon(Icons.arrow_back_rounded,
+                  color: Default_Theme.primaryColor1, size: 20),
             ),
+            onPressed: () => Navigator.pop(context),
           ),
         ),
       ),
-      body: BlocBuilder<ContentBloc, ContentState>(
+    );
+  }
+
+  Widget _buildOptimizedBackground() {
+    return Positioned.fill(
+      child: RepaintBoundary(
+        child: BlocSelector<ContentBloc, ContentState, String>(
+          bloc: _contentBloc,
+          selector: (state) {
+            final summary = state.playlistDetails?.summary;
+            return summary?.thumbnail.urlHigh ??
+                summary?.thumbnail.url ??
+                widget.playlist.thumbnail.urlHigh ??
+                widget.playlist.thumbnail.url;
+          },
+          builder: (context, imageUrl) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                  child: LoadImageCached(
+                    imageUrl: imageUrl,
+                    fallbackUrl: widget.playlist.thumbnail.url,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Default_Theme.themeColor.withValues(alpha: 0.4),
+                        Default_Theme.themeColor.withValues(alpha: 0.9),
+                        Default_Theme.themeColor,
+                      ],
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScrollableContent() {
+    return SafeArea(
+      bottom: false,
+      top: false,
+      child: BlocBuilder<ContentBloc, ContentState>(
         bloc: _contentBloc,
         builder: (context, state) {
           final details = state.playlistDetails;
           final playlistSummary = details?.summary ?? widget.playlist;
           final tracks = details?.tracks.items ?? [];
-          final highResImage = playlistSummary.thumbnail.urlHigh ??
+          final status = state.playlistDetailStatus;
+
+          final imageUrl = playlistSummary.thumbnail.urlHigh ??
               playlistSummary.thumbnail.url;
 
-          final playlistMeta = <String>[
-            if (playlistSummary.owner != null &&
-                playlistSummary.owner!.trim().isNotEmpty)
-              playlistSummary.owner!.trim(),
-            if (tracks.isNotEmpty)
-              '${tracks.length} Track${tracks.length == 1 ? '' : 's'}',
-          ];
+          final metaParts = <String>[];
+          if (playlistSummary.owner != null &&
+              playlistSummary.owner!.trim().isNotEmpty) {
+            metaParts.add(playlistSummary.owner!.trim());
+          }
+          if (tracks.isNotEmpty) {
+            metaParts
+                .add('${tracks.length} Track${tracks.length == 1 ? '' : 's'}');
+          }
 
-          final cleanDesc = _cleanDescription(details?.description);
-
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              // ─── GLOBAL AMBIENT BACKGROUND ───
-              // Completely decoupled from scrolling components
-              Positioned.fill(
-                child: LoadImageCached(
-                  imageUrl: highResImage,
-                  fallbackUrl: playlistSummary.thumbnail.url,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Default_Theme.themeColor.withValues(alpha: 0.4),
-                          Default_Theme.themeColor.withValues(alpha: 0.9),
-                          Default_Theme
-                              .themeColor, // Solid bottom for tracklist
-                        ],
-                        stops: const [0.0, 0.45, 1.0],
-                      ),
-                    ),
+          return CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 100),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return _PlaylistHeaderContent(
+                        isMobile: constraints.maxWidth < 750,
+                        constraints: constraints,
+                        imageUrl: imageUrl,
+                        fallbackUrl: playlistSummary.thumbnail.url,
+                        title: playlistSummary.title,
+                        meta: metaParts,
+                        description: _cleanText(details?.description),
+                        pluginId: widget.pluginId,
+                        playlistId: playlistSummary.id,
+                        heroTag: widget.heroTag,
+                        tracks: tracks,
+                        isSaved: _isSaved,
+                        onToggleSave: _toggleSaveState,
+                        url: playlistSummary.url,
+                      );
+                    },
                   ),
                 ),
               ),
-
-              // ─── SCROLLABLE CONTENT ───
-              SafeArea(
-                bottom: false,
-                top:
-                    false, // Managed manually so it slides under appbar perfectly
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    // ─── 1. AUTO-EXPANDING HEADER ───
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 100),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isMobile = constraints.maxWidth < 750;
-                            return _PlaylistHeaderContent(
-                              isMobile: isMobile,
-                              constraints: constraints,
-                              imageUrl: highResImage,
-                              fallbackUrl: playlistSummary.thumbnail.url,
-                              title: playlistSummary.title,
-                              meta: playlistMeta,
-                              description: cleanDesc,
-                              pluginId: widget.pluginId,
-                              playlistId: playlistSummary.id,
-                              heroTag: widget.heroTag,
-                              tracks: tracks,
-                              isSaved: _isSaved,
-                              onToggleSave: () async {
-                                final cubit = context.read<LibraryItemsCubit>();
-                                if (_isSaved) {
-                                  await cubit.removeRemoteSaved(
-                                      widget.playlist.id,
-                                      PlaylistType.remotePlaylist);
-                                } else {
-                                  await cubit.saveRemotePlaylist(
-                                    playlist: widget.playlist,
-                                    sourceName: _sourceName(context),
-                                  );
-                                }
-                                await _checkSavedState();
-                              },
-                              url: playlistSummary.url,
-                            );
-                          },
-                        ),
+              if ((status == DetailStatus.loaded ||
+                      status == DetailStatus.loadingMore) &&
+                  tracks.isNotEmpty)
+                SliverPadding(
+                  padding: EdgeInsets.only(
+                      top: 24,
+                      bottom: status == DetailStatus.loadingMore ? 0 : 120),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final song = tracks[index];
+                        return AnimatedListItem(
+                          index: index,
+                          child: SongCardWidget(
+                            song: song,
+                            onOptionsTap: () => showMoreBottomSheet(
+                                context, song,
+                                showDelete: false, showSinglePlay: true),
+                            onTap: () => context
+                                .read<BloomeePlayerCubit>()
+                                .bloomeePlayer
+                                .loadPlaylist(
+                                  Playlist(
+                                      tracks: tracks,
+                                      title: playlistSummary.title),
+                                  doPlay: true,
+                                  idx: index,
+                                ),
+                          ),
+                        );
+                      },
+                      childCount: tracks.length,
+                      addRepaintBoundaries: true,
+                    ),
+                  ),
+                )
+              else if (status == DetailStatus.loaded)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 80, bottom: 120),
+                    child: Center(
+                        child: SignBoardWidget(
+                            message: 'No tracks available',
+                            icon: MingCute.music_2_line)),
+                  ),
+                )
+              else if (status == DetailStatus.error)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 80, bottom: 120),
+                    child: Center(
+                      child: Text(
+                        state.error ?? 'Failed to load playlist',
+                        style: TextStyle(
+                                color: Default_Theme.primaryColor1
+                                    .withValues(alpha: 0.5))
+                            .merge(Default_Theme.secondoryTextStyle),
                       ),
                     ),
-
-                    // ─── 2. TRACKLIST ───
-                    if ((state.playlistDetailStatus == DetailStatus.loaded ||
-                            state.playlistDetailStatus ==
-                                DetailStatus.loadingMore) &&
-                        tracks.isNotEmpty)
-                      SliverPadding(
-                        padding: EdgeInsets.only(
-                          top: 24,
-                          bottom: state.playlistDetailStatus ==
-                                  DetailStatus.loadingMore
-                              ? 0
-                              : 120,
-                        ),
-                        sliver: SliverList.builder(
-                          itemCount: tracks.length,
-                          itemBuilder: (context, index) {
-                            return AnimatedListItem(
-                              index: index,
-                              child: SongCardWidget(
-                                song: tracks[index],
-                                onOptionsTap: () => showMoreBottomSheet(
-                                  context,
-                                  tracks[index],
-                                  showDelete: false,
-                                  showSinglePlay: true,
-                                ),
-                                onTap: () {
-                                  context
-                                      .read<BloomeePlayerCubit>()
-                                      .bloomeePlayer
-                                      .loadPlaylist(
-                                        Playlist(
-                                            tracks: tracks,
-                                            title: playlistSummary.title),
-                                        doPlay: true,
-                                        idx: index,
-                                      );
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    else if (state.playlistDetailStatus == DetailStatus.loaded)
-                      const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 80, bottom: 120),
-                          child: Center(
-                            child: SignBoardWidget(
-                              message: 'No tracks available',
-                              icon: MingCute.music_2_line,
-                            ),
-                          ),
-                        ),
-                      )
-                    else if (state.playlistDetailStatus == DetailStatus.error)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 80, bottom: 120),
-                          child: Center(
-                            child: Text(
-                              state.error ?? 'Failed to load playlist',
-                              style: TextStyle(
-                                color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.5),
-                              ).merge(Default_Theme.secondoryTextStyle),
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 100, bottom: 120),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Default_Theme.accentColor2,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    if (state.playlistDetailStatus == DetailStatus.loadingMore)
-                      const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 20, bottom: 120),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Default_Theme.accentColor2,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
+                )
+              else
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 100, bottom: 120),
+                    child: Center(
+                        child: CircularProgressIndicator(
+                            color: Default_Theme.accentColor2)),
+                  ),
                 ),
-              ),
+              if (status == DetailStatus.loadingMore)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 20, bottom: 120),
+                    child: Center(
+                        child: CircularProgressIndicator(
+                            color: Default_Theme.accentColor2)),
+                  ),
+                ),
             ],
           );
         },
@@ -363,10 +349,6 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
     );
   }
 }
-
-// ============================================================================
-// HEADER CONTENT (BULLETPROOF & AUTO-SIZING)
-// ============================================================================
 
 class _PlaylistHeaderContent extends StatelessWidget {
   final bool isMobile;
@@ -409,84 +391,75 @@ class _PlaylistHeaderContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildIntelligentCover(),
+            _buildCover(),
             const SizedBox(height: 24),
-            _buildPlaylistInfo(isCentered: true),
+            _buildInfo(isCentered: true),
             const SizedBox(height: 24),
             _buildActions(context, isCentered: true),
           ],
         ),
       );
-    } else {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 48),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            _buildIntelligentCover(),
-            const SizedBox(width: 40),
-            // Expanded forces the text/buttons to stay within bounds, preventing overflow
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildPlaylistInfo(isCentered: false),
-                  const SizedBox(height: 24),
-                  _buildActions(context, isCentered: false),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
     }
-  }
-
-  /// Bounds the cover gracefully without stretching.
-  Widget _buildIntelligentCover() {
-    final cover = Container(
-      height: 260,
-      constraints: BoxConstraints(
-        maxWidth: isMobile
-            ? constraints.maxWidth * 0.85
-            : constraints.maxWidth * 0.40,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.1),
-            blurRadius: 1,
-            offset: const Offset(0, -1),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 48),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _buildCover(),
+          const SizedBox(width: 40),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfo(isCentered: false),
+                const SizedBox(height: 24),
+                _buildActions(context, isCentered: false),
+              ],
+            ),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox.square(
-          child: LoadImageCached(
-            imageUrl: imageUrl,
-            fallbackUrl: fallbackUrl,
-            fit: BoxFit.cover,
+    );
+  }
+
+  Widget _buildCover() {
+    final cover = RepaintBoundary(
+      child: Container(
+        height: 260,
+        constraints: BoxConstraints(
+            maxWidth: isMobile
+                ? constraints.maxWidth * 0.85
+                : constraints.maxWidth * 0.40),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 40,
+                offset: const Offset(0, 20)),
+            BoxShadow(
+                color: Colors.white.withValues(alpha: 0.1),
+                blurRadius: 1,
+                offset: const Offset(0, -1)),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox.square(
+            child: LoadImageCached(
+                imageUrl: imageUrl,
+                fallbackUrl: fallbackUrl,
+                fit: BoxFit.cover),
           ),
         ),
       ),
     );
 
-    if (heroTag == null) {
-      return cover;
-    }
-
-    return Hero(tag: heroTag!, child: cover);
+    return heroTag == null ? cover : Hero(tag: heroTag!, child: cover);
   }
 
-  Widget _buildPlaylistInfo({required bool isCentered}) {
+  Widget _buildInfo({required bool isCentered}) {
     return Column(
       crossAxisAlignment:
           isCentered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
@@ -494,7 +467,6 @@ class _PlaylistHeaderContent extends StatelessWidget {
         Text(
           title,
           textAlign: isCentered ? TextAlign.center : TextAlign.left,
-          // No maxLines! Allows long titles to wrap naturally without breaking
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 28,
@@ -509,10 +481,10 @@ class _PlaylistHeaderContent extends StatelessWidget {
             meta.join(' • '),
             textAlign: isCentered ? TextAlign.center : TextAlign.left,
             style: TextStyle(
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ).merge(Default_Theme.secondoryTextStyle),
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600)
+                .merge(Default_Theme.secondoryTextStyle),
           ),
         if (description != null) ...[
           const SizedBox(height: 14),
@@ -522,10 +494,10 @@ class _PlaylistHeaderContent extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             textAlign: isCentered ? TextAlign.center : TextAlign.left,
             style: TextStyle(
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
-              fontSize: 14,
-              height: 1.4,
-            ).merge(Default_Theme.secondoryTextStyle),
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.5),
+                    fontSize: 14,
+                    height: 1.4)
+                .merge(Default_Theme.secondoryTextStyle),
           ),
         ],
       ],
@@ -533,90 +505,35 @@ class _PlaylistHeaderContent extends StatelessWidget {
   }
 
   Widget _buildActions(BuildContext context, {required bool isCentered}) {
-    // WRAP prevents overflow if the window is resized aggressively
     return Wrap(
       alignment: isCentered ? WrapAlignment.center : WrapAlignment.start,
       spacing: 12,
       runSpacing: 12,
       children: [
-        // ─── STYLIZED OUTLINED PLAY BUTTON (Consistent 44px Height) ───
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: tracks.isEmpty
-                ? null
-                : () {
-                    context
-                        .read<BloomeePlayerCubit>()
-                        .bloomeePlayer
-                        .loadPlaylist(
-                          Playlist(
-                            tracks: tracks,
-                            title: title,
-                          ),
-                          doPlay: true,
-                          idx: 0,
-                        );
-                  },
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Default_Theme.accentColor2.withValues(alpha: 0.2),
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                color: Default_Theme.accentColor2.withValues(alpha: 0.1),
-                border: Border.all(
-                  color: Default_Theme.accentColor2,
-                  width: 1.5,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(MingCute.play_fill,
-                      size: 20, color: Default_Theme.accentColor2),
-                  SizedBox(width: 8),
-                  Text(
-                    'Play',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Default_Theme.accentColor2,
-                    ),
+        _PremiumPlayButton(
+          isEmpty: tracks.isEmpty,
+          onTap: () =>
+              context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
+                    Playlist(tracks: tracks, title: title),
+                    doPlay: true,
+                    idx: 0,
                   ),
-                ],
-              ),
-            ),
-          ),
         ),
-
-        // ─── CIRCULAR LIKE BUTTON ───
-        _PlaylistCircularButton(
+        _PremiumCircularButton(
           icon:
               isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-          color: isSaved
-              ? Default_Theme.accentColor2
-              : Default_Theme.primaryColor1,
           isActive: isSaved,
           tooltip: isSaved ? 'Remove from Library' : 'Save to Library',
           onTap: onToggleSave,
         ),
-
-        // ─── CIRCULAR LINK BUTTON ───
         if (url != null)
-          _PlaylistCircularButton(
+          _PremiumCircularButton(
             icon: MingCute.external_link_line,
-            color: Default_Theme.primaryColor1,
             isActive: false,
             tooltip: 'Open Original Link',
             onTap: () {
               SnackbarService.showMessage('Opening original playlist page.');
-              launchUrl(
-                Uri.parse(url!),
-                mode: LaunchMode.externalApplication,
-              );
+              launchUrl(Uri.parse(url!), mode: LaunchMode.externalApplication);
             },
           ),
       ],
@@ -624,21 +541,59 @@ class _PlaylistHeaderContent extends StatelessWidget {
   }
 }
 
-// ─── PERFECT CIRCLE ACTION BUTTON ──────────────────────────────────────────
+class _PremiumPlayButton extends StatelessWidget {
+  final bool isEmpty;
+  final VoidCallback onTap;
 
-class _PlaylistCircularButton extends StatelessWidget {
+  const _PremiumPlayButton({required this.isEmpty, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isEmpty ? null : onTap,
+        borderRadius: BorderRadius.circular(30),
+        splashColor: Default_Theme.accentColor2.withValues(alpha: 0.2),
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30),
+            color: Default_Theme.accentColor2.withValues(alpha: 0.1),
+            border: Border.all(color: Default_Theme.accentColor2, width: 1.5),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(MingCute.play_fill,
+                  size: 20, color: Default_Theme.accentColor2),
+              SizedBox(width: 8),
+              Text('Play',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Default_Theme.accentColor2)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumCircularButton extends StatelessWidget {
   final IconData icon;
-  final Color color;
+  final bool isActive;
   final String tooltip;
   final VoidCallback onTap;
-  final bool isActive;
 
-  const _PlaylistCircularButton({
+  const _PremiumCircularButton({
     required this.icon,
-    required this.color,
+    required this.isActive,
     required this.tooltip,
     required this.onTap,
-    required this.isActive,
   });
 
   @override
@@ -666,11 +621,11 @@ class _PlaylistCircularButton extends StatelessWidget {
               ),
             ),
             child: Center(
-              child: Icon(
-                icon,
-                color: color,
-                size: 20,
-              ),
+              child: Icon(icon,
+                  color: isActive
+                      ? Default_Theme.accentColor2
+                      : Default_Theme.primaryColor1,
+                  size: 20),
             ),
           ),
         ),
