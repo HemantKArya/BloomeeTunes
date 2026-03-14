@@ -375,6 +375,49 @@ class PlaylistDAO {
     return entries.map((e) => e.track.value).whereType<TrackDB>().toList();
   }
 
+  /// Return total number of tracks in [playlistId].
+  Future<int> getPlaylistTrackCount(int playlistId) async {
+    final isar = await _db;
+    return isar.playlistEntryDBs.filter().playlistIdEqualTo(playlistId).count();
+  }
+
+  /// Return an ordered page of tracks for [playlistId].
+  ///
+  /// [offset] and [limit] are zero-based and bounded by Isar query paging.
+  Future<List<TrackDB>> getPlaylistTracksPage(
+    int playlistId, {
+    required int offset,
+    required int limit,
+  }) async {
+    if (limit <= 0) return [];
+    final isar = await _db;
+    final entries = await isar.playlistEntryDBs
+        .where()
+        .playlistIdEqualToAnyPosition(playlistId)
+        .offset(offset)
+        .limit(limit)
+        .findAll();
+
+    await Future.wait(entries.map((e) => e.track.load()));
+
+    final brokenEntryIds = entries
+        .where((e) => e.track.value == null)
+        .map((e) => e.id)
+        .toList(growable: false);
+
+    if (brokenEntryIds.isNotEmpty) {
+      await isar.writeTxn(() async {
+        await isar.playlistEntryDBs.deleteAll(brokenEntryIds);
+      });
+      log(
+        'Removed ${brokenEntryIds.length} broken playlist entries from playlist $playlistId',
+        name: 'PlaylistDAO',
+      );
+    }
+
+    return entries.map((e) => e.track.value).whereType<TrackDB>().toList();
+  }
+
   /// Remove broken playlist-entry rows (missing track link or playlistId).
   /// Also deletes user playlists with an empty name (no tracks, no identity).
   ///

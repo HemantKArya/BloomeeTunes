@@ -107,7 +107,10 @@ class AppRouter {
                       name: RoutePaths.playlistView,
                       path: RoutePaths.playlistView,
                       builder: (context, state) {
-                        return const PlaylistView();
+                        final initialPlaylistName = state.extra as String?;
+                        return PlaylistView(
+                          initialPlaylistName: initialPlaylistName,
+                        );
                       },
                     ),
                   ]),

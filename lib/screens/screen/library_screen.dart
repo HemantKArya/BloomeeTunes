@@ -4,7 +4,6 @@ import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/plugins/blocs/import/content_import_cubit.dart';
 import 'package:Bloomee/plugins/blocs/import/content_import_state.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
-import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/more_opts_sheet.dart';
 import 'package:Bloomee/screens/screen/common_views/album_view.dart';
 import 'package:Bloomee/screens/screen/common_views/artist_view.dart';
@@ -483,8 +482,10 @@ class _ListOfPlaylists extends StatelessWidget {
   static Future<void> _openLibraryItem(
       BuildContext context, PlaylistItemProperties item) async {
     if (item.type == PlaylistType.userPlaylist) {
-      context.read<CurrentPlaylistCubit>().setupPlaylist(item.storageKey);
-      context.pushNamed(RoutePaths.playlistView);
+      context.pushNamed(
+        RoutePaths.playlistView,
+        extra: item.storageKey,
+      );
       return;
     }
 
