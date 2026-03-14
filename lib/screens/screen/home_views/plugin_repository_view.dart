@@ -332,7 +332,7 @@ class _RepoCard extends StatelessWidget {
                                   color: Default_Theme.primaryColor2
                                       .withValues(alpha: 0.65),
                                   fontSize: 12),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -347,7 +347,7 @@ class _RepoCard extends StatelessWidget {
                     ],
                   ),
 
-                  const Spacer(), // Pushes the URL box and footer to the bottom
+                  const SizedBox(height: 14),
 
                   // Row 2: Copiable URL Box
                   Material(
@@ -402,14 +402,24 @@ class _RepoCard extends StatelessWidget {
 
                   // Row 3: Footer (Badges + Delete)
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Badge(
-                          icon: MingCute.plugin_2_line,
-                          label: l10n.pluginRepositoryPluginsCount(
-                              repo.plugins.length)),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _Badge(
+                                icon: MingCute.plugin_2_line,
+                                label: l10n.pluginRepositoryPluginsCount(
+                                    repo.plugins.length)),
+                            _Badge(
+                                icon: MingCute.clock_2_line,
+                                label: generatedDate),
+                          ],
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      _Badge(icon: MingCute.clock_2_line, label: generatedDate),
-                      const Spacer(),
                       // Muted Premium Delete Button
                       Material(
                         color: Colors.redAccent.withValues(alpha: 0.08),

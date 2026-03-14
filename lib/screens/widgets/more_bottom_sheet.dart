@@ -25,311 +25,256 @@ void showMoreBottomSheet(
   bool showPlayNext = true,
   VoidCallback? onDelete,
 }) {
-  bool? isDownloaded =
-      context.read<DownloaderCubit>().isDownloaded(song.id) ? true : false;
   showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      enableDrag: true,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 7, 17, 50),
-                  Color.fromARGB(255, 5, 0, 24),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.0, 0.5]),
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                    top: 12, bottom: 8, left: 5, right: 4),
-                child: SongCardWidget(
-                  song: song,
-                  showOptions: false,
-                  showCopyBtn: true,
-                  showInfoBtn: true,
-                ),
+    context: context,
+    isScrollControlled: true,
+    useSafeArea:
+        true, // Prevents overlapping with top notch if it gets too tall
+    backgroundColor:
+        Colors.transparent, // Let the container handle the gradient
+    builder: (sheetContext) {
+      return _TrackOptionsBottomSheet(
+        song: song,
+        showDelete: showDelete,
+        showSinglePlay: showSinglePlay,
+        showAddToQueue: showAddToQueue,
+        showPlayNext: showPlayNext,
+        onDelete: onDelete,
+        // Pass parent context to ensure we can safely access cubits/routers after pop
+        parentContext: context,
+      );
+    },
+  );
+}
+
+class _TrackOptionsBottomSheet extends StatelessWidget {
+  final Track song;
+  final bool showDelete;
+  final bool showSinglePlay;
+  final bool showAddToQueue;
+  final bool showPlayNext;
+  final VoidCallback? onDelete;
+  final BuildContext parentContext;
+
+  const _TrackOptionsBottomSheet({
+    required this.song,
+    required this.showDelete,
+    required this.showSinglePlay,
+    required this.showAddToQueue,
+    required this.showPlayNext,
+    required this.parentContext,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final player = parentContext.read<BloomeePlayerCubit>().bloomeePlayer;
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color.fromARGB(255, 7, 17, 50),
+            Color.fromARGB(255, 5, 0, 24),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: [0.0, 0.5],
+        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(5, 12, 4, 8),
+              child: SongCardWidget(
+                song: song,
+                showOptions: false,
+                showCopyBtn: true,
+                showInfoBtn: true,
               ),
-              const Padding(
-                padding: EdgeInsets.only(right: 10, left: 10),
-                child: Opacity(
-                  opacity: 0.5,
-                  child: Divider(
-                    thickness: 2,
-                    color: Default_Theme.primaryColor1,
-                  ),
-                ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Opacity(
+                opacity: 0.5,
+                child:
+                    Divider(thickness: 2, color: Default_Theme.primaryColor1),
               ),
-              (showSinglePlay)
-                  ? ListTile(
-                      leading: const Icon(
-                        MingCute.play_circle_fill,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
+            ),
+            // SingleChildScrollView allows the list to scroll if the screen is small
+            Flexible(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showSinglePlay)
+                      _BottomSheetTile(
+                        icon: MingCute.play_circle_fill,
+                        title: l10n.playerPlayWithMix,
+                        onTap: () {
+                          player.updateQueueTracks([song], doPlay: true);
+                          SnackbarService.showMessage(
+                            l10n.snackbarNowPlaying(song.title),
+                            duration: const Duration(seconds: 2),
+                          );
+                        },
                       ),
-                      title: Text(
-                        AppLocalizations.of(context)!.playerPlayWithMix,
-                        style: const TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
+                    if (showPlayNext)
+                      _BottomSheetTile(
+                        icon: MingCute.square_arrow_right_line,
+                        title: l10n.playerPlayNext,
+                        onTap: () {
+                          player.addPlayNextTrack(song);
+                          SnackbarService.showMessage(
+                            l10n.snackbarAddedToNextQueue,
+                            duration: const Duration(seconds: 2),
+                          );
+                        },
                       ),
+                    if (showAddToQueue)
+                      _BottomSheetTile(
+                        icon: MingCute.playlist_2_line,
+                        title: l10n.playerAddToQueue,
+                        onTap: () {
+                          player.addQueueTracks([song]);
+                          SnackbarService.showMessage(
+                            l10n.snackbarAddedToQueue,
+                            duration: const Duration(seconds: 2),
+                          );
+                        },
+                      ),
+                    _BottomSheetTile(
+                      icon: MingCute.heart_fill,
+                      title: l10n.playerAddToFavorites,
                       onTap: () {
-                        Navigator.pop(context);
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .updateQueueTracks([song], doPlay: true);
+                        parentContext
+                            .read<LibraryItemsCubit>()
+                            .setTrackLiked(song, true);
                         SnackbarService.showMessage(
-                            AppLocalizations.of(context)!
-                                .snackbarNowPlaying(song.title),
-                            duration: const Duration(seconds: 2));
-                      },
-                    )
-                  : const SizedBox.shrink(),
-              (showPlayNext)
-                  ? ListTile(
-                      leading: const Icon(
-                        MingCute.square_arrow_right_line,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.playerPlayNext,
-                        style: const TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .addPlayNextTrack(song);
-                        SnackbarService.showMessage(
-                            AppLocalizations.of(context)!
-                                .snackbarAddedToNextQueue,
-                            duration: const Duration(seconds: 2));
-                      },
-                    )
-                  : const SizedBox.shrink(),
-              (showAddToQueue)
-                  ? ListTile(
-                      leading: const Icon(
-                        MingCute.playlist_2_line,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.playerAddToQueue,
-                        style: const TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        context
-                            .read<BloomeePlayerCubit>()
-                            .bloomeePlayer
-                            .addQueueTracks([song]);
-                        SnackbarService.showMessage(
-                            AppLocalizations.of(context)!.snackbarAddedToQueue,
-                            duration: const Duration(seconds: 2));
-                      },
-                    )
-                  : const SizedBox.shrink(),
-              ListTile(
-                leading: const Icon(
-                  MingCute.heart_fill,
-                  color: Default_Theme.primaryColor1,
-                  size: 28,
-                ),
-                title: Text(
-                  AppLocalizations.of(context)!.playerAddToFavorites,
-                  style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: "Unageo",
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.read<LibraryItemsCubit>().setTrackLiked(song, true);
-                  SnackbarService.showMessage(AppLocalizations.of(context)!
-                      .snackbarAddedToLiked(song.title));
-                  // SnackbarService.showMessage("Added to Favorites",
-                  //     duration: const Duration(seconds: 2));
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  MingCute.add_circle_fill,
-                  color: Default_Theme.primaryColor1,
-                  size: 28,
-                ),
-                title: Text(
-                  AppLocalizations.of(context)!.menuAddToPlaylist,
-                  style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: "Unageo",
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.read<AddToPlaylistCubit>().setTrack(song);
-                  context.pushNamed(RoutePaths.addToPlaylistScreen);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  MingCute.search_2_line,
-                  color: Default_Theme.primaryColor1,
-                  size: 28,
-                ),
-                title: Text(
-                  AppLocalizations.of(context)!.menuSmartReplace,
-                  style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: "Unageo",
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  showSmartReplaceDialog(context, song);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.share,
-                  color: Default_Theme.primaryColor1,
-                  size: 28,
-                ),
-                title: Text(
-                  AppLocalizations.of(context)!.menuShare,
-                  style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: "Unageo",
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
-                ),
-                onTap: () async {
-                  Navigator.pop(context);
-                  SnackbarService.showMessage(AppLocalizations.of(context)!
-                      .menuSharePreparing(song.title));
-                  // TODO: Implement Track-based export
-                  // final tmpPath = await ImportExportService.exportMediaItem(...);
-                  // tmpPath != null ? Share.shareXFiles([XFile(tmpPath)]) : null;
-                  if (song.url != null && song.url!.isNotEmpty) {
-                    Share.share(song.url!);
-                  }
-                },
-              ),
-              (isDownloaded == true)
-                  ? ListTile(
-                      leading: const Icon(
-                        Icons.offline_pin_rounded,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.menuAvailableOffline,
-                        style: const TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        // context.read<DownloaderCubit>().downloadSong(song);
-                      },
-                    )
-                  : ListTile(
-                      leading: const Icon(
-                        MingCute.download_2_fill,
-                        color: Default_Theme.primaryColor1,
-                        size: 28,
-                      ),
-                      title: Text(
-                        AppLocalizations.of(context)!.menuDownload,
-                        style: const TextStyle(
-                            color: Default_Theme.primaryColor1,
-                            fontFamily: "Unageo",
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        context.read<DownloaderCubit>().downloadSong(song);
+                            l10n.snackbarAddedToLiked(song.title));
                       },
                     ),
-              // : const SizedBox.shrink(),
-              ListTile(
-                leading: const Icon(
-                  MingCute.external_link_line,
-                  color: Default_Theme.primaryColor1,
-                  size: 28,
+                    _BottomSheetTile(
+                      icon: MingCute.add_circle_fill,
+                      title: l10n.menuAddToPlaylist,
+                      onTap: () {
+                        parentContext.read<AddToPlaylistCubit>().setTrack(song);
+                        parentContext.pushNamed(RoutePaths.addToPlaylistScreen);
+                      },
+                    ),
+                    _BottomSheetTile(
+                      icon: MingCute.search_2_line,
+                      title: l10n.menuSmartReplace,
+                      onTap: () => showSmartReplaceDialog(parentContext, song),
+                    ),
+                    _BottomSheetTile(
+                      icon: Icons.share,
+                      title: l10n.menuShare,
+                      onTap: () {
+                        SnackbarService.showMessage(
+                            l10n.menuSharePreparing(song.title));
+                        if (song.url?.isNotEmpty ?? false) {
+                          Share.share(song.url!);
+                        }
+                      },
+                    ),
+
+                    // Reactive Download Button
+                    BlocBuilder<DownloaderCubit, DownloaderState>(
+                      builder: (context, state) {
+                        final isDownloaded = context
+                            .read<DownloaderCubit>()
+                            .isDownloaded(song.id);
+                        return _BottomSheetTile(
+                          icon: isDownloaded
+                              ? Icons.offline_pin_rounded
+                              : MingCute.download_2_fill,
+                          title: isDownloaded
+                              ? l10n.menuAvailableOffline
+                              : l10n.menuDownload,
+                          onTap: () {
+                            if (!isDownloaded) {
+                              parentContext
+                                  .read<DownloaderCubit>()
+                                  .downloadSong(song);
+                            }
+                          },
+                        );
+                      },
+                    ),
+
+                    _BottomSheetTile(
+                      icon: MingCute.external_link_line,
+                      title: l10n.menuOpenOriginalLink,
+                      onTap: () async {
+                        if (song.url?.isEmpty ?? true) return;
+                        try {
+                          await launchUrl(Uri.parse(song.url!),
+                              mode: LaunchMode.externalApplication);
+                        } catch (_) {
+                          SnackbarService.showMessage(l10n.menuOpenLinkFailed);
+                        }
+                      },
+                    ),
+                    if (showDelete)
+                      _BottomSheetTile(
+                        icon: MingCute.delete_2_fill,
+                        title: l10n.menuDeleteTrack,
+                        onTap: onDelete ?? () {},
+                      ),
+                  ],
                 ),
-                title: Text(
-                  AppLocalizations.of(context)!.menuOpenOriginalLink,
-                  style: const TextStyle(
-                      color: Default_Theme.primaryColor1,
-                      fontFamily: "Unageo",
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
-                ),
-                onTap: () async {
-                  final l10n = AppLocalizations.of(context)!;
-                  Navigator.pop(context);
-                  final url = song.url;
-                  if (url == null || url.isEmpty) return;
-                  try {
-                    await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.externalApplication);
-                  } catch (_) {
-                    SnackbarService.showMessage(l10n.menuOpenLinkFailed);
-                  }
-                },
               ),
-              Visibility(
-                visible: showDelete,
-                child: ListTile(
-                  leading: const Icon(
-                    MingCute.delete_2_fill,
-                    color: Default_Theme.primaryColor1,
-                    size: 28,
-                  ),
-                  title: Text(
-                    AppLocalizations.of(context)!.menuDeleteTrack,
-                    style: const TextStyle(
-                        color: Default_Theme.primaryColor1,
-                        fontFamily: "Unageo",
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    if (onDelete != null) onDelete();
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      });
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A highly reusable widget to enforce Design System consistency
+/// and eliminate code duplication.
+class _BottomSheetTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _BottomSheetTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+      leading: Icon(
+        icon,
+        color: Default_Theme.primaryColor1,
+        size: 28,
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Default_Theme.primaryColor1,
+          fontFamily: "Unageo",
+          fontSize: 17,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+      onTap: () {
+        // Automatically pop the bottom sheet first, THEN execute the action.
+        // This ensures snappy UX and no blocked UI threads.
+        Navigator.pop(context);
+        onTap();
+      },
+    );
+  }
 }

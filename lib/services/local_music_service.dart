@@ -38,6 +38,10 @@ class LocalMusicService {
     PlaylistDAO.likedPlaylist,
   };
 
+  static bool supportsPhotoManagerThumbnail(AssetType type) {
+    return type == AssetType.image || type == AssetType.video;
+  }
+
   LocalMusicService({
     required DownloadDAO downloadDao,
     required PlaylistDAO playlistDao,
@@ -261,7 +265,7 @@ class LocalMusicService {
       record: record,
     );
     if (!deletedFromDevice) {
-      throw FileSystemException(
+      throw const FileSystemException(
         'Failed to delete the selected track from device storage.',
       );
     }
@@ -509,17 +513,30 @@ class LocalMusicService {
     required AssetEntity asset,
     required String coverCacheDir,
   }) async {
+    if (!supportsPhotoManagerThumbnail(asset.type)) {
+      return null;
+    }
+
     final cacheFile = File(p.join(coverCacheDir, '${asset.id}.jpg'));
     if (cacheFile.existsSync()) return cacheFile.path;
 
-    final data = await asset.thumbnailDataWithSize(
-      const ThumbnailSize.square(512),
-    );
-    if (data == null || data.isEmpty) return null;
+    try {
+      final data = await asset.thumbnailDataWithSize(
+        const ThumbnailSize.square(512),
+      );
+      if (data == null || data.isEmpty) return null;
 
-    await cacheFile.parent.create(recursive: true);
-    await cacheFile.writeAsBytes(data, flush: true);
-    return cacheFile.path;
+      await cacheFile.parent.create(recursive: true);
+      await cacheFile.writeAsBytes(data, flush: true);
+      return cacheFile.path;
+    } catch (error, stackTrace) {
+      log(
+        'Failed to cache MediaStore thumbnail for ${asset.id}: $error',
+        name: 'LocalMusicService',
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 
   Future<void> _pruneDeletedTracks(
