@@ -105,7 +105,6 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                     Divider(thickness: 2, color: Default_Theme.primaryColor1),
               ),
             ),
-            // SingleChildScrollView allows the list to scroll if the screen is small
             Flexible(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -179,7 +178,10 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                         SnackbarService.showMessage(
                             l10n.menuSharePreparing(song.title));
                         if (song.url?.isNotEmpty ?? false) {
-                          Share.share(song.url!);
+                          SharePlus.instance.share(ShareParams(
+                            text: song.url!,
+                            subject: song.title,
+                          ));
                         }
                       },
                     ),
@@ -238,8 +240,6 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
   }
 }
 
-/// A highly reusable widget to enforce Design System consistency
-/// and eliminate code duplication.
 class _BottomSheetTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -270,8 +270,6 @@ class _BottomSheetTile extends StatelessWidget {
         ),
       ),
       onTap: () {
-        // Automatically pop the bottom sheet first, THEN execute the action.
-        // This ensures snappy UX and no blocked UI threads.
         Navigator.pop(context);
         onTap();
       },
