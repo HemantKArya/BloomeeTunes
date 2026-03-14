@@ -135,6 +135,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buttonLater => 'Later';
 
   @override
+  String get buttonInfo => 'Info';
+
+  @override
+  String get buttonMore => 'More';
+
+  @override
   String get dialogDeleteTrack => 'Delete Track';
 
   @override
@@ -227,6 +233,14 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String playlistRemovedTrack(String title, String playlist) {
+    return '$title removed from $playlist';
+  }
+
+  @override
+  String get playlistFailedToLoad => 'Failed to load playlist';
 
   @override
   String get settingsTitle => 'Settings';
@@ -340,6 +354,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLocation => 'Location';
 
   @override
+  String get pluginRepositoryTitle => 'Plugin Repositories';
+
+  @override
+  String get pluginRepositorySubtitle =>
+      'Add a JSON source to browse remote plugins.';
+
+  @override
+  String get pluginRepositoryAddAction => 'Add Repository';
+
+  @override
+  String get pluginRepositoryAddTitle => 'Add Repository';
+
+  @override
+  String get pluginRepositoryAddSubtitle =>
+      'Enter the URL of a valid plugin repository JSON file.';
+
+  @override
+  String get pluginRepositoryEmpty => 'No repositories added yet.';
+
+  @override
+  String get pluginRepositoryUrlCopied => 'Repository URL copied to clipboard';
+
+  @override
+  String get pluginRepositoryNoDescription => 'No description provided.';
+
+  @override
+  String get pluginRepositoryUnknownUpdate => 'Unknown update';
+
+  @override
+  String pluginRepositoryPluginsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plugins',
+      one: '1 plugin',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pluginRepositoryErrorLoad => 'Failed to load repositories.';
+
+  @override
+  String get pluginRepositoryErrorInvalid =>
+      'Invalid repository URL or repository file.';
+
+  @override
+  String get pluginRepositoryErrorRemove => 'Failed to remove repository.';
+
+  @override
+  String pluginRepositoryError(String message) {
+    return 'Error: $message';
+  }
+
+  @override
+  String get dialogAddingToDownloadQueue => 'Adding to download queue';
+
+  @override
   String get emptyNoInternet => 'No Internet Connection!';
 
   @override
@@ -445,6 +517,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get snackbarDownloadServiceUnavailable =>
       'Error: Download service is unavailable.';
+
+  @override
+  String snackbarSongsAddedToQueue(int count) {
+    return 'Added $count songs to download queue';
+  }
+
+  @override
+  String get snackbarDeleteTrackFailDevice =>
+      'Failed to delete track from device storage.';
 
   @override
   String get searchHintExplore => 'What do you want to listen to?';
@@ -566,6 +647,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tooltipOpenOriginalLink => 'Open Original Link';
+
+  @override
+  String get tooltipShuffle => 'Shuffle';
+
+  @override
+  String get tooltipAvailableOffline => 'Available Offline';
+
+  @override
+  String get tooltipDownloadPlaylist => 'Download playlist';
+
+  @override
+  String get tooltipMoreOptions => 'More Options';
+
+  @override
+  String get tooltipInfo => 'Info';
 
   @override
   String get appuiTitle => 'UI & Services';
@@ -1672,46 +1768,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pluginManagerStatusInactive => 'Inactive';
 
   @override
-  String get pluginRepositoryAddTitle => 'Add Repository';
-
-  @override
-  String get pluginRepositoryAddSubtitle =>
-      'Enter the URL of a valid plugin repository JSON file.';
-
-  @override
-  String get pluginRepositoryAddAction => 'Add Repository';
-
-  @override
-  String get pluginRepositoryTitle => 'Plugin Repositories';
-
-  @override
-  String get pluginRepositorySubtitle =>
-      'Add a JSON source to browse remote plugins.';
-
-  @override
-  String get pluginRepositoryEmpty => 'No repositories added yet.';
-
-  @override
-  String get pluginRepositoryUnknownUpdate => 'Unknown update';
-
-  @override
-  String get pluginRepositoryNoDescription => 'No description provided.';
-
-  @override
-  String get pluginRepositoryUrlCopied => 'Repository URL copied to clipboard';
-
-  @override
-  String pluginRepositoryPluginsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count plugins',
-      one: '1 plugin',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String pluginRepositoryUpdatedOn(String date) {
     return 'Updated $date';
   }
@@ -1756,16 +1812,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String pluginRepositoryDownloadFailed(String name) {
     return 'Failed to download $name.';
   }
-
-  @override
-  String get pluginRepositoryErrorLoad => 'Failed to load repositories.';
-
-  @override
-  String get pluginRepositoryErrorInvalid =>
-      'Invalid repository URL or repository file.';
-
-  @override
-  String get pluginRepositoryErrorRemove => 'Failed to remove repository.';
 
   @override
   String smartReplaceAppliedPlaylistsSummary(int count, String queue) {

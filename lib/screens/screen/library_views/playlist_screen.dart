@@ -330,11 +330,11 @@ class _PlaylistViewState extends State<PlaylistView> {
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   if (state.playlist.tracks.isEmpty && !state.isLoadingMore)
-                    const SliverFillRemaining(
+                    SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
                           child: SignBoardWidget(
-                              message: "No Songs Yet!",
+                              message: l10n.playlistEmptyState,
                               icon: MingCute.playlist_line)),
                     )
                   else
@@ -389,11 +389,12 @@ class _PlaylistViewState extends State<PlaylistView> {
           ),
         ),
         if (state.playlist.tracks.isEmpty && !state.isLoadingMore)
-          const SliverFillRemaining(
+          SliverFillRemaining(
             hasScrollBody: false,
             child: Center(
                 child: SignBoardWidget(
-                    message: "No Songs Yet!", icon: MingCute.playlist_line)),
+                    message: l10n.playlistEmptyState,
+                    icon: MingCute.playlist_line)),
           )
         else
           SliverPadding(
@@ -476,9 +477,6 @@ class _PlaylistViewState extends State<PlaylistView> {
 
   Widget _buildInfo(CurrentPlaylistState state, AppLocalizations l10n,
       {required bool isCentered}) {
-    final typeText = (state.playlist.type == PlaylistType.album)
-        ? l10n.playlistTypeAlbum
-        : l10n.playlistTypePlaylist;
     final creatorText = l10n.playlistByCreator(
         state.playlist.artists?.map((a) => a.name).join(', ') ??
             l10n.playlistYou);
@@ -500,7 +498,7 @@ class _PlaylistViewState extends State<PlaylistView> {
         ),
         const SizedBox(height: 12),
         Text(
-          "$typeText • ${state.totalTracks} Songs",
+          l10n.playlistSongCount(state.totalTracks),
           textAlign: isCentered ? TextAlign.center : TextAlign.left,
           style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.75),
@@ -524,6 +522,7 @@ class _PlaylistViewState extends State<PlaylistView> {
   Widget _buildActions(CurrentPlaylistState state, Color fgColor, Color bgColor,
       {required bool isCentered}) {
     final isEmpty = state.playlist.tracks.isEmpty;
+    final l10n = AppLocalizations.of(context)!;
 
     return RepaintBoundary(
       child: Wrap(
@@ -535,7 +534,7 @@ class _PlaylistViewState extends State<PlaylistView> {
           // Left actions
           _buildActionIcon(
               MingCute.shuffle_line,
-              'Shuffle',
+              l10n.playlistShuffle,
               isEmpty
                   ? null
                   : () => _playFromPlaylist(context, state, shuffle: true)),
@@ -547,7 +546,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                     .every((s) => downloaded.any((d) => d.id == s.id));
             if (allDownloaded) {
               return Tooltip(
-                message: 'Available Offline',
+                message: l10n.playlistAvailableOffline,
                 child: Container(
                   width: 44,
                   height: 44,
@@ -560,8 +559,10 @@ class _PlaylistViewState extends State<PlaylistView> {
                 ),
               );
             }
-            return _buildActionIcon(MingCute.download_2_fill, 'Download',
-                isEmpty ? null : () => _handleDownload(context, state));
+            return _buildActionIcon(
+                MingCute.download_2_fill,
+                l10n.buttonDownload,
+                isEmpty ? null : () => _handleDownload(context, state, l10n));
           }),
 
           // Center Big Play Button
@@ -619,10 +620,10 @@ class _PlaylistViewState extends State<PlaylistView> {
           // Right actions
           _buildActionIcon(
               MingCute.information_line,
-              'Info',
+              l10n.buttonInfo,
               () => showPlaylistInfo(context, state,
                   fgColor: fgColor, bgColor: bgColor)),
-          _buildActionIcon(MingCute.more_2_line, 'More',
+          _buildActionIcon(MingCute.more_2_line, l10n.buttonMore,
               () => showPlaylistOptsInrSheet(context, state.playlist)),
         ],
       ),
@@ -683,13 +684,14 @@ class _PlaylistViewState extends State<PlaylistView> {
 
   void _removeTrack(BuildContext context, Track track) {
     final cubit = context.read<CurrentPlaylistCubit>();
+    final l10n = AppLocalizations.of(context)!;
     cubit.removeTrack(track);
     SnackbarService.showMessage(
-        '${track.title} removed from ${cubit.state.playlist.title}');
+        l10n.playlistRemovedTrack(track.title, cubit.state.playlist.title));
   }
 
-  Future<void> _handleDownload(
-      BuildContext context, CurrentPlaylistState state) async {
+  Future<void> _handleDownload(BuildContext context, CurrentPlaylistState state,
+      AppLocalizations l10n) async {
     final items =
         (await context.read<CurrentPlaylistCubit>().ensureAllTracksLoaded())
             .tracks;
@@ -699,15 +701,16 @@ class _PlaylistViewState extends State<PlaylistView> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Default_Theme.themeColor,
-        title: const Text('Download playlist',
-            style: TextStyle(color: Colors.white)),
+        title: Text(l10n.dialogDownloadPlaylist,
+            style: const TextStyle(color: Colors.white)),
         content: Text(
-            'Do you want to download ${items.length} songs from "${state.playlist.title}"? This will add them to the queue.',
+            l10n.dialogDownloadPlaylistMessage(
+                items.length, state.playlist.title),
             style: TextStyle(color: Colors.white.withValues(alpha: 0.7))),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel',
+              child: Text(l10n.buttonCancel,
                   style:
                       TextStyle(color: Colors.white.withValues(alpha: 0.7)))),
           ElevatedButton(
@@ -718,21 +721,20 @@ class _PlaylistViewState extends State<PlaylistView> {
                   borderRadius: BorderRadius.circular(18)),
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Download All'),
+            child: Text(l10n.dialogDownloadAll),
           ),
         ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      await _showAddToDownloadProgress(context, items);
-      SnackbarService.showMessage(
-          'Added ${items.length} songs to download queue');
+      await _showAddToDownloadProgress(context, items, l10n);
+      SnackbarService.showMessage(l10n.snackbarSongsAddedToQueue(items.length));
     }
   }
 
   Future<void> _showAddToDownloadProgress(
-      BuildContext context, List<Track> items) async {
+      BuildContext context, List<Track> items, AppLocalizations l10n) async {
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -767,8 +769,8 @@ class _PlaylistViewState extends State<PlaylistView> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Adding to download queue',
-                        style: TextStyle(
+                    Text(l10n.dialogAddingToDownloadQueue,
+                        style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold)),

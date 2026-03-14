@@ -137,6 +137,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get buttonLater => 'बाद में';
 
   @override
+  String get buttonInfo => 'Info';
+
+  @override
+  String get buttonMore => 'More';
+
+  @override
   String get dialogDeleteTrack => 'ट्रैक हटाएँ';
 
   @override
@@ -229,6 +235,14 @@ class AppLocalizationsHi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String playlistRemovedTrack(String title, String playlist) {
+    return '$title removed from $playlist';
+  }
+
+  @override
+  String get playlistFailedToLoad => 'Failed to load playlist';
 
   @override
   String get settingsTitle => 'सेटिंग्स';
@@ -341,6 +355,65 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsLocation => 'स्थान';
 
   @override
+  String get pluginRepositoryTitle => 'प्लगइन रिपॉज़िटरी';
+
+  @override
+  String get pluginRepositorySubtitle =>
+      'रिमोट प्लगइन देखने के लिए JSON स्रोत जोड़ें।';
+
+  @override
+  String get pluginRepositoryAddAction => 'रिपॉज़िटरी जोड़ें';
+
+  @override
+  String get pluginRepositoryAddTitle => 'रिपॉज़िटरी जोड़ें';
+
+  @override
+  String get pluginRepositoryAddSubtitle =>
+      'मान्य प्लगइन रिपॉज़िटरी JSON फ़ाइल का URL दर्ज करें।';
+
+  @override
+  String get pluginRepositoryEmpty => 'अभी तक कोई रिपॉज़िटरी नहीं जोड़ी गई है।';
+
+  @override
+  String get pluginRepositoryUrlCopied =>
+      'रिपॉज़िटरी URL क्लिपबोर्ड पर कॉपी कर दिया गया';
+
+  @override
+  String get pluginRepositoryNoDescription => 'कोई विवरण उपलब्ध नहीं है।';
+
+  @override
+  String get pluginRepositoryUnknownUpdate => 'अपडेट जानकारी उपलब्ध नहीं';
+
+  @override
+  String pluginRepositoryPluginsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count प्लगइन',
+      one: '1 प्लगइन',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pluginRepositoryErrorLoad => 'रिपॉज़िटरी लोड नहीं हो सकीं।';
+
+  @override
+  String get pluginRepositoryErrorInvalid =>
+      'रिपॉज़िटरी URL या रिपॉज़िटरी फ़ाइल अमान्य है।';
+
+  @override
+  String get pluginRepositoryErrorRemove => 'रिपॉज़िटरी हटाई नहीं जा सकी।';
+
+  @override
+  String pluginRepositoryError(String message) {
+    return 'Error: $message';
+  }
+
+  @override
+  String get dialogAddingToDownloadQueue => 'Adding to download queue';
+
+  @override
   String get emptyNoInternet => 'इंटरनेट कनेक्शन नहीं!';
 
   @override
@@ -446,6 +519,15 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get snackbarDownloadServiceUnavailable =>
       'त्रुटि: डाउनलोड सेवा उपलब्ध नहीं है।';
+
+  @override
+  String snackbarSongsAddedToQueue(int count) {
+    return 'Added $count songs to download queue';
+  }
+
+  @override
+  String get snackbarDeleteTrackFailDevice =>
+      'Failed to delete track from device storage.';
 
   @override
   String get searchHintExplore => 'आप क्या सुनना चाहते हैं?';
@@ -566,6 +648,21 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get tooltipOpenOriginalLink => 'मूल लिंक खोलें';
+
+  @override
+  String get tooltipShuffle => 'Shuffle';
+
+  @override
+  String get tooltipAvailableOffline => 'Available Offline';
+
+  @override
+  String get tooltipDownloadPlaylist => 'Download playlist';
+
+  @override
+  String get tooltipMoreOptions => 'More Options';
+
+  @override
+  String get tooltipInfo => 'Info';
 
   @override
   String get appuiTitle => 'UI और सेवाएँ';
@@ -1676,47 +1773,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pluginManagerStatusInactive => 'निष्क्रिय';
 
   @override
-  String get pluginRepositoryAddTitle => 'रिपॉज़िटरी जोड़ें';
-
-  @override
-  String get pluginRepositoryAddSubtitle =>
-      'मान्य प्लगइन रिपॉज़िटरी JSON फ़ाइल का URL दर्ज करें।';
-
-  @override
-  String get pluginRepositoryAddAction => 'रिपॉज़िटरी जोड़ें';
-
-  @override
-  String get pluginRepositoryTitle => 'प्लगइन रिपॉज़िटरी';
-
-  @override
-  String get pluginRepositorySubtitle =>
-      'रिमोट प्लगइन देखने के लिए JSON स्रोत जोड़ें।';
-
-  @override
-  String get pluginRepositoryEmpty => 'अभी तक कोई रिपॉज़िटरी नहीं जोड़ी गई है।';
-
-  @override
-  String get pluginRepositoryUnknownUpdate => 'अपडेट जानकारी उपलब्ध नहीं';
-
-  @override
-  String get pluginRepositoryNoDescription => 'कोई विवरण उपलब्ध नहीं है।';
-
-  @override
-  String get pluginRepositoryUrlCopied =>
-      'रिपॉज़िटरी URL क्लिपबोर्ड पर कॉपी कर दिया गया';
-
-  @override
-  String pluginRepositoryPluginsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count प्लगइन',
-      one: '1 प्लगइन',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String pluginRepositoryUpdatedOn(String date) {
     return 'अपडेट: $date';
   }
@@ -1761,16 +1817,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String pluginRepositoryDownloadFailed(String name) {
     return '$name डाउनलोड नहीं हो सका।';
   }
-
-  @override
-  String get pluginRepositoryErrorLoad => 'रिपॉज़िटरी लोड नहीं हो सकीं।';
-
-  @override
-  String get pluginRepositoryErrorInvalid =>
-      'रिपॉज़िटरी URL या रिपॉज़िटरी फ़ाइल अमान्य है।';
-
-  @override
-  String get pluginRepositoryErrorRemove => 'रिपॉज़िटरी हटाई नहीं जा सकी।';
 
   @override
   String smartReplaceAppliedPlaylistsSummary(int count, String queue) {

@@ -326,6 +326,18 @@ abstract class AppLocalizations {
   /// **'Later'**
   String get buttonLater;
 
+  /// No description provided for @buttonInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get buttonInfo;
+
+  /// No description provided for @buttonMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get buttonMore;
+
   /// No description provided for @dialogDeleteTrack.
   ///
   /// In en, this message translates to:
@@ -481,6 +493,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 Song} other{{count} Songs}}'**
   String playlistSongCount(int count);
+
+  /// No description provided for @playlistRemovedTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} removed from {playlist}'**
+  String playlistRemovedTrack(String title, String playlist);
+
+  /// No description provided for @playlistFailedToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load playlist'**
+  String get playlistFailedToLoad;
 
   /// No description provided for @settingsTitle.
   ///
@@ -692,6 +716,96 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get settingsLocation;
 
+  /// No description provided for @pluginRepositoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Repositories'**
+  String get pluginRepositoryTitle;
+
+  /// No description provided for @pluginRepositorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a JSON source to browse remote plugins.'**
+  String get pluginRepositorySubtitle;
+
+  /// No description provided for @pluginRepositoryAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Repository'**
+  String get pluginRepositoryAddAction;
+
+  /// No description provided for @pluginRepositoryAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Repository'**
+  String get pluginRepositoryAddTitle;
+
+  /// No description provided for @pluginRepositoryAddSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the URL of a valid plugin repository JSON file.'**
+  String get pluginRepositoryAddSubtitle;
+
+  /// No description provided for @pluginRepositoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No repositories added yet.'**
+  String get pluginRepositoryEmpty;
+
+  /// No description provided for @pluginRepositoryUrlCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Repository URL copied to clipboard'**
+  String get pluginRepositoryUrlCopied;
+
+  /// No description provided for @pluginRepositoryNoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No description provided.'**
+  String get pluginRepositoryNoDescription;
+
+  /// No description provided for @pluginRepositoryUnknownUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown update'**
+  String get pluginRepositoryUnknownUpdate;
+
+  /// No description provided for @pluginRepositoryPluginsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 plugin} other{{count} plugins}}'**
+  String pluginRepositoryPluginsCount(int count);
+
+  /// No description provided for @pluginRepositoryErrorLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load repositories.'**
+  String get pluginRepositoryErrorLoad;
+
+  /// No description provided for @pluginRepositoryErrorInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid repository URL or repository file.'**
+  String get pluginRepositoryErrorInvalid;
+
+  /// No description provided for @pluginRepositoryErrorRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove repository.'**
+  String get pluginRepositoryErrorRemove;
+
+  /// No description provided for @pluginRepositoryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {message}'**
+  String pluginRepositoryError(String message);
+
+  /// No description provided for @dialogAddingToDownloadQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding to download queue'**
+  String get dialogAddingToDownloadQueue;
+
   /// No description provided for @emptyNoInternet.
   ///
   /// In en, this message translates to:
@@ -859,6 +973,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error: Download service is unavailable.'**
   String get snackbarDownloadServiceUnavailable;
+
+  /// No description provided for @snackbarSongsAddedToQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {count} songs to download queue'**
+  String snackbarSongsAddedToQueue(int count);
+
+  /// No description provided for @snackbarDeleteTrackFailDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete track from device storage.'**
+  String get snackbarDeleteTrackFailDevice;
 
   /// No description provided for @searchHintExplore.
   ///
@@ -1093,6 +1219,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Original Link'**
   String get tooltipOpenOriginalLink;
+
+  /// No description provided for @tooltipShuffle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get tooltipShuffle;
+
+  /// No description provided for @tooltipAvailableOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Offline'**
+  String get tooltipAvailableOffline;
+
+  /// No description provided for @tooltipDownloadPlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Download playlist'**
+  String get tooltipDownloadPlaylist;
+
+  /// No description provided for @tooltipMoreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More Options'**
+  String get tooltipMoreOptions;
+
+  /// No description provided for @tooltipInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get tooltipInfo;
 
   /// No description provided for @appuiTitle.
   ///
@@ -3038,66 +3194,6 @@ abstract class AppLocalizations {
   /// **'Inactive'**
   String get pluginManagerStatusInactive;
 
-  /// No description provided for @pluginRepositoryAddTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Repository'**
-  String get pluginRepositoryAddTitle;
-
-  /// No description provided for @pluginRepositoryAddSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the URL of a valid plugin repository JSON file.'**
-  String get pluginRepositoryAddSubtitle;
-
-  /// No description provided for @pluginRepositoryAddAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Repository'**
-  String get pluginRepositoryAddAction;
-
-  /// No description provided for @pluginRepositoryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Plugin Repositories'**
-  String get pluginRepositoryTitle;
-
-  /// No description provided for @pluginRepositorySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a JSON source to browse remote plugins.'**
-  String get pluginRepositorySubtitle;
-
-  /// No description provided for @pluginRepositoryEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No repositories added yet.'**
-  String get pluginRepositoryEmpty;
-
-  /// No description provided for @pluginRepositoryUnknownUpdate.
-  ///
-  /// In en, this message translates to:
-  /// **'Unknown update'**
-  String get pluginRepositoryUnknownUpdate;
-
-  /// No description provided for @pluginRepositoryNoDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'No description provided.'**
-  String get pluginRepositoryNoDescription;
-
-  /// No description provided for @pluginRepositoryUrlCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Repository URL copied to clipboard'**
-  String get pluginRepositoryUrlCopied;
-
-  /// No description provided for @pluginRepositoryPluginsCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 plugin} other{{count} plugins}}'**
-  String pluginRepositoryPluginsCount(int count);
-
   /// No description provided for @pluginRepositoryUpdatedOn.
   ///
   /// In en, this message translates to:
@@ -3163,24 +3259,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to download {name}.'**
   String pluginRepositoryDownloadFailed(String name);
-
-  /// No description provided for @pluginRepositoryErrorLoad.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load repositories.'**
-  String get pluginRepositoryErrorLoad;
-
-  /// No description provided for @pluginRepositoryErrorInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid repository URL or repository file.'**
-  String get pluginRepositoryErrorInvalid;
-
-  /// No description provided for @pluginRepositoryErrorRemove.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to remove repository.'**
-  String get pluginRepositoryErrorRemove;
 
   /// No description provided for @smartReplaceAppliedPlaylistsSummary.
   ///
