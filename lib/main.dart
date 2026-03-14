@@ -55,6 +55,9 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/media_player/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:Bloomee/services/discord_service.dart';
+import 'package:Bloomee/services/db/legacy/legacy_migration_service.dart'
+    as legacy_migration;
+import 'package:Bloomee/screens/widgets/legacy_migration_overlay.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
   // Check if there's text content that might be a URL
@@ -119,9 +122,25 @@ class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   StreamSubscription<SharedMedia>? _intentSub;
   SharedMedia? sharedMedia;
+
+  // TODO: remove this after one or two releases.
+  // Legacy migration — set to true when a default.isar file is found.
+  // Remove this field (and the overlay block in build) once no users
+  // need legacy migration.
+  bool _migrationPending = false;
+  // ------------------
+
   @override
   void initState() {
     super.initState();
+
+    // Check once at startup; DBProvider.appSuppDir is set by bootstrapApp().
+    _migrationPending = legacy_migration.needsMigration(
+      DBProvider.appSuppDir,
+      DBProvider.appDocDir,
+    );
+    //--------------------------------------------------------------------
+
     if (io.Platform.isAndroid) {
       initPlatformState();
     }
@@ -167,6 +186,28 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // ── Legacy migration guard ────────────────────────────────────────────
+    // If a default.isar (legacy DB) exists, show the non-dismissible
+    // migration overlay before starting the normal app. Once migration
+    // finishes successfully the overlay removes itself.
+    //
+    // To remove this feature in future: delete the `if` block below AND the
+    // import at the top of this file AND lib/services/db/legacy/.
+    if (_migrationPending) {
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: LegacyMigrationOverlay(
+          appSuppDir: DBProvider.appSuppDir,
+          appDocDir: DBProvider.appDocDir,
+          onComplete: (result) {
+            if (!result.success) return;
+            setState(() => _migrationPending = false);
+          },
+        ),
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     final trackDao = TrackDAO(DBProvider.db);
     final playlistDao = PlaylistDAO(DBProvider.db, trackDao);
     final historyDao = HistoryDAO(DBProvider.db, trackDao);
