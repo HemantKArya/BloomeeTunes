@@ -1,7 +1,7 @@
 // AUTO-GENERATED WIT BINDINGS for wasm-component-layer
 // DO NOT EDIT - Regenerate using wit-bindgen-wcl
 
-#![allow(dead_code, unused_imports, unused_variables, ambiguous_glob_reexports)]
+#![allow(dead_code, unused_imports, ambiguous_glob_reexports)]
 
 use anyhow::*;
 use waclay::*;
@@ -1571,6 +1571,7 @@ impl UnaryComponentType for SearchFilter {}
 
 
 
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SectionType {
     Carousel,
@@ -1855,6 +1856,22 @@ pub mod exports_data_source {
     use super::*;
 
     pub const INTERFACE_NAME: &str = "component:content-resolver/data-source";
+
+    #[allow(clippy::type_complexity)]
+    pub fn get_get_track_details<T, E: backend::WasmEngine>(
+        instance: &Instance,
+        _store: &mut Store<T, E>,
+    ) -> Result<TypedFunc<String, Result<Track, String>>> {
+        let interface = instance
+            .exports()
+            .instance(&INTERFACE_NAME.try_into().unwrap())
+            .ok_or_else(|| anyhow!("Interface not found"))?;
+
+        interface
+            .func("get-track-details")
+            .ok_or_else(|| anyhow!("Function 'get-track-details' not found"))?
+            .typed::<String, Result<Track, String>>()
+    }
 
     #[allow(clippy::type_complexity)]
     pub fn get_get_album_details<T, E: backend::WasmEngine>(
