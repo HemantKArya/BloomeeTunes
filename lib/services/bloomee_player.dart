@@ -83,6 +83,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   StreamSubscription<void>? _audioNoisySub;
 
   AudioSession? _audioSession;
+  bool _audioSessionConfigured = false;
+  DateTime? _lastAudioSessionConfiguredAt;
   double? _volumeBeforeDuck;
   bool _resumeAfterInterruption = false;
 
@@ -107,6 +109,27 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   int get currentQueueIndex => _queueManager.currentIndex;
   PluginService get pluginService => ServiceLocator.pluginService;
 
+  /// Re-broadcast current queue/media/playback values for newly attached UI
+  /// listeners after activity/app surface recreation.
+  void syncPublicState() {
+    if (_isDisposed) return;
+
+    final tracks = _queueManager.tracks;
+    queue.add(List<MediaItem>.from(tracks.map(trackToMediaItem)));
+
+    if (_currentTrack.id != trackNull.id) {
+      mediaItem.add(trackToMediaItem(_currentTrack));
+    }
+
+    _broadcastPlaybackState(
+      engine.state,
+      engine.playing,
+      engine.position,
+      engine.buffered,
+      engine.speed,
+    );
+  }
+
   BloomeeMusicPlayer() {
     _initEngine();
     _initModules();
@@ -125,7 +148,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> _initAudioSession() async {
     try {
       final session = await AudioSession.instance;
-      await session.configure(const AudioSessionConfiguration.music());
+      await _configureAudioSession(session, force: true);
       _audioSession = session;
 
       await _audioInterruptionSub?.cancel();
@@ -141,8 +164,46 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
       log('Audio session configured', name: 'BloomeeMusicPlayer');
     } catch (e) {
+      _audioSessionConfigured = false;
       log('Failed to initialize audio session: $e', name: 'BloomeeMusicPlayer');
     }
+  }
+
+  Future<void> _configureAudioSession(AudioSession session,
+      {bool force = false}) async {
+    final lastConfiguredAt = _lastAudioSessionConfiguredAt;
+    if (!force &&
+        _audioSessionConfigured &&
+        lastConfiguredAt != null &&
+        DateTime.now().difference(lastConfiguredAt) <
+            const Duration(seconds: 10)) {
+      return;
+    }
+
+    await session.configure(const AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playback,
+      avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.none,
+      avAudioSessionMode: AVAudioSessionMode.defaultMode,
+      avAudioSessionRouteSharingPolicy:
+          AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+      androidAudioAttributes: AndroidAudioAttributes(
+        contentType: AndroidAudioContentType.music,
+        usage: AndroidAudioUsage.media,
+        flags: AndroidAudioFlags.none,
+      ),
+      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      androidWillPauseWhenDucked: false,
+    ));
+
+    _audioSessionConfigured = true;
+    _lastAudioSessionConfiguredAt = DateTime.now();
+  }
+
+  Future<void> ensureAudioSessionConfigured({bool force = false}) async {
+    final session = _audioSession ?? await AudioSession.instance;
+    _audioSession = session;
+    await _configureAudioSession(session, force: force);
   }
 
   Future<void> _handleInterruption(AudioInterruptionEvent event) async {
@@ -188,6 +249,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     try {
       final session = _audioSession ?? await AudioSession.instance;
       _audioSession = session;
+      await _configureAudioSession(session);
       return await session.setActive(true);
     } catch (e) {
       log('Failed to activate audio session: $e', name: 'BloomeeMusicPlayer');
@@ -327,6 +389,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   void _broadcastPlaybackState(EngineState state, bool playing,
       Duration position, Duration buffered, double speed) {
+    _syncCurrentMediaItemDuration(state, position);
+
     final processingState = switch (state) {
       EngineState.idle => AudioProcessingState.idle,
       EngineState.loading => AudioProcessingState.loading,
@@ -355,6 +419,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       playing: playing,
       bufferedPosition: buffered,
       speed: speed,
+      queueIndex: _queueManager.currentIndex,
     ));
 
     EasyThrottle.throttle(
@@ -381,6 +446,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> play() async {
     if (_isDisposed) return;
     _errorHandler.resetCircuitBreaker(); // Reset on manual action
+    await ensureAudioSessionConfigured();
     final granted = await _activateAudioSession();
     if (!granted) {
       SnackbarService.showMessage('Audio focus denied. Cannot start playback.');
@@ -516,6 +582,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     try {
       if (doPlay) {
+        await ensureAudioSessionConfigured();
         final granted = await _activateAudioSession();
         if (!alive()) return;
         if (!granted) {
@@ -687,6 +754,44 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   void _updateCurrentTrack(Track track) {
     _currentTrack = track;
     mediaItem.add(trackToMediaItem(_currentTrack));
+    _syncCurrentMediaItemDuration(engine.state, engine.position);
+  }
+
+  void _syncCurrentMediaItemDuration(EngineState state, Duration position) {
+    if (_currentTrack.id == trackNull.id) return;
+
+    final media = mediaItem.valueOrNull;
+    if (media == null || media.id != _currentTrack.id) return;
+
+    final engineDuration = engine.duration;
+    Duration? effectiveDuration;
+    if (engineDuration > Duration.zero) {
+      effectiveDuration = engineDuration;
+    } else if (_currentTrack.durationMs != null) {
+      effectiveDuration =
+          Duration(milliseconds: _currentTrack.durationMs!.toInt());
+    }
+
+    final targetPosition =
+        state == EngineState.completed && effectiveDuration != null
+            ? effectiveDuration
+            : position;
+
+    if (media.duration != effectiveDuration) {
+      mediaItem.add(media.copyWith(duration: effectiveDuration));
+    }
+
+    if (playbackState.hasValue) {
+      final current = playbackState.value;
+      final shouldRefreshPosition = current.updatePosition != targetPosition ||
+          current.queueIndex != _queueManager.currentIndex;
+      if (shouldRefreshPosition) {
+        playbackState.add(current.copyWith(
+          updatePosition: targetPosition,
+          queueIndex: _queueManager.currentIndex,
+        ));
+      }
+    }
   }
 
   // ─── Preload ───────────────────────────────────────────────────────────────
@@ -814,6 +919,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _initAudioSession();
     _restoreEngineSettings();
     _isDisposed = false;
+    _audioSessionConfigured = false;
+    _lastAudioSessionConfiguredAt = null;
+    _volumeBeforeDuck = null;
+    _resumeAfterInterruption = false;
+    isResolving.add(false);
 
     playbackState.add(playbackState.value.copyWith(
       processingState: AudioProcessingState.idle,
@@ -824,10 +934,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   // ─── Queue Operations (BaseAudioHandler interface) ────────────────────────
 
   @override
-  Future<void> playMediaItem(MediaItem mi,
+  Future<void> playMediaItem(MediaItem mediaItem,
       {bool doPlay = true, Duration? initialPosition}) async {
     _errorHandler.resetCircuitBreaker(); // User intent: reset errors
-    final track = mediaItemToTrack(mi);
+    final track = mediaItemToTrack(mediaItem);
     await _enqueuePlayTrack(track,
         doPlay: doPlay, initialPosition: initialPosition);
   }
@@ -949,8 +1059,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> addQueueItem(MediaItem mi) async {
-    _queueManager.addTrack(mediaItemToTrack(mi));
+  Future<void> addQueueItem(MediaItem mediaItem) async {
+    _queueManager.addTrack(mediaItemToTrack(mediaItem));
   }
 
   Future<void> addQueueTrack(Track track) async {
@@ -986,11 +1096,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> insertQueueItem(int index, MediaItem mi) async {
+  Future<void> insertQueueItem(int index, MediaItem mediaItem) async {
     // _queueSyncSub already propagates the change to the audio_service
     // queue via _queueManager.tracksStream. Calling super.insertQueueItem
     // would double-write to the queue subject and risk ordering issues.
-    _queueManager.insertTrack(index, mediaItemToTrack(mi));
+    _queueManager.insertTrack(index, mediaItemToTrack(mediaItem));
   }
 
   @override
@@ -1009,9 +1119,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> updateQueue(List<MediaItem> newQueue,
-      {bool doPlay = false}) async {
-    final tracks = newQueue.map(mediaItemToTrack).toList();
+  Future<void> updateQueue(List<MediaItem> queue, {bool doPlay = false}) async {
+    final tracks = queue.map(mediaItemToTrack).toList();
     _queueManager.updateQueue(tracks);
     if (doPlay) {
       final track = _queueManager.currentTrack;
@@ -1023,6 +1132,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> onTaskRemoved() async {
+    await stop();
+    try {
+      await engine.dispose();
+    } catch (_) {}
+
     await _cleanup();
     return super.onTaskRemoved();
   }
@@ -1056,7 +1170,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager.dispose();
     _relatedSongsManager.dispose();
     await _recentlyPlayedTracker.dispose();
-    isResolving.close();
+    isResolving.add(false);
 
     DiscordService.clearPresence();
 

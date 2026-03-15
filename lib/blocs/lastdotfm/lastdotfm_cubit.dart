@@ -59,11 +59,9 @@ class LastdotfmCubit extends Cubit<LastdotfmState> {
   /// 1. Track must be longer than 30 seconds.
   /// 2. Track is scrobbled when played for >= max(duration * 0.3, 30s),
   ///    capped at 240 seconds.
-  Future<void> _startTrackingLoop() async {
-    while (playerCubit.playerInitState != PlayerInitState.initialized) {
-      await Future.delayed(const Duration(seconds: 2));
-    }
-
+  void _startTrackingLoop() {
+    // Player is fully initialised before any cubit is constructed (AudioService.init
+    // is called in main() before runApp). No polling loop needed.
     _progressSub = playerCubit.progressStreams.listen((_) {
       _onProgressTick();
     });

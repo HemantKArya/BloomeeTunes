@@ -1,30 +1,21 @@
-import 'package:Bloomee/services/audio_service_initializer.dart';
+import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:bloc/bloc.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:Bloomee/services/bloomee_player.dart';
 part 'bloomee_player_state.dart';
 
-enum PlayerInitState { initializing, initialized, intial }
-
 class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
-  late BloomeeMusicPlayer bloomeePlayer;
-  PlayerInitState playerInitState = PlayerInitState.intial;
+  final BloomeeMusicPlayer bloomeePlayer;
   late ValueStream<ProgressBarStreams> progressStreams;
 
-  BloomeePlayerCubit() : super(BloomeePlayerInitial()) {
-    setupPlayer().then((value) => emit(BloomeePlayerState(isReady: true)));
+  BloomeePlayerCubit(this.bloomeePlayer)
+      : super(BloomeePlayerState(isReady: true)) {
+    bloomeePlayer.syncPublicState();
+    _setupProgressStreams();
   }
 
   void switchShowLyrics({bool? value}) {
     emit(BloomeePlayerState(
         isReady: true, showLyrics: value ?? !state.showLyrics));
-  }
-
-  Future<void> setupPlayer() async {
-    playerInitState = PlayerInitState.initializing;
-    bloomeePlayer = await PlayerInitializer().getBloomeeMusicPlayer();
-    playerInitState = PlayerInitState.initialized;
-    _setupProgressStreams();
   }
 
   void _setupProgressStreams() {
@@ -52,9 +43,9 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
 
   @override
   Future<void> close() {
-    if (playerInitState == PlayerInitState.initialized) {
-      bloomeePlayer.stop();
-    }
+    // Intentionally does NOT stop the player.
+    // The AudioService foreground service manages its own lifecycle via
+    // onTaskRemoved() / onNotificationDeleted().
     return super.close();
   }
 }

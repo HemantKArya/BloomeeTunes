@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:media_kit/media_kit.dart';
 import 'package:rxdart/rxdart.dart';
 
-// ─── Public Types ────────────────────────────────────────────────────────────
 enum EngineState { idle, loading, buffering, ready, completed, error }
 
 enum LoopMode { off, one, all }
@@ -22,11 +21,10 @@ class EngineCanceled extends EngineResult {}
 
 class EqualizerBand {
   final double centerFrequency;
-  double gain; // dB, range -12..+12
+  double gain;
   EqualizerBand(this.centerFrequency, {this.gain = 0.0});
 }
 
-// ─── VolumeFader ─────────────────────────────────────────────────────────────
 class VolumeFader {
   Timer? _timer;
 
@@ -36,11 +34,8 @@ class VolumeFader {
       player.setVolume(endVol.clamp(0.0, 100.0)).ignore();
       return;
     }
-
     final sw = Stopwatch()..start();
     final totalMs = duration.inMilliseconds;
-
-    // 50ms is standard — prevents flooding the native IPC pipe
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       final elapsed = sw.elapsedMilliseconds;
       if (elapsed >= totalMs) {
@@ -48,8 +43,7 @@ class VolumeFader {
         timer.cancel();
         return;
       }
-      final progress = elapsed / totalMs;
-      final vol = startVol + ((endVol - startVol) * progress);
+      final vol = startVol + ((endVol - startVol) * (elapsed / totalMs));
       player.setVolume(vol.clamp(0.0, 100.0)).ignore();
     });
   }
@@ -62,7 +56,6 @@ class VolumeFader {
   void dispose() => cancel();
 }
 
-// ─── PlayerEngine ────────────────────────────────────────────────────────────
 class PlayerEngine {
   late final Player _playerA;
   late final Player _playerB;
@@ -81,12 +74,17 @@ class PlayerEngine {
   Timer? _fadeCleanupTimer;
   Timer? _fadeOutCleanupTimer;
 
-  // ── Concurrency & Locks ──
   int _generation = 0;
   bool _isTransitioning = false;
   bool _crossfadeTriggered = false;
 
-  // ── Safe Deferred Preload ──
+  // Prevents spurious EngineState.idle emissions during track transitions.
+  // When true, _deriveState() will not emit idle even if _hasMedia is false.
+  // Set by setLoadingState() at the start of every track load.
+  // Cleared when _hasMedia becomes true (media successfully opened) or when
+  // stop() is called without keepLoadingState (genuine user-initiated stop).
+  bool _suppressIdleUntilMediaLoads = false;
+
   Uri? _pendingPreloadUri;
   Map<String, String>? _pendingPreloadHeaders;
   Uri? _preloadedNextUri;
@@ -154,7 +152,7 @@ class PlayerEngine {
       }),
       _activePlayerSubject.switchMap((p) => p.stream.position).listen((pos) {
         _positionSubject.add(pos);
-        _checkCrossfadeTrigger(pos); // TRUE OVERLAP TRIGGER
+        _checkCrossfadeTrigger(pos);
       }),
       _activePlayerSubject.switchMap((p) => p.stream.duration).listen((d) {
         _durationSubject.add(d);
@@ -169,7 +167,6 @@ class PlayerEngine {
       _activePlayerSubject
           .switchMap((p) => p.stream.completed)
           .listen((completed) {
-        // Only trigger hard completion if we didn't already trigger an overlap crossfade
         if (completed && _hasMedia && !_disposed && !_crossfadeTriggered) {
           _handleCompletion();
         }
@@ -186,17 +183,14 @@ class PlayerEngine {
     ];
   }
 
-  // Evaluates position ticks to start crossfade BEFORE the song ends.
   void _checkCrossfadeTrigger(Duration pos) {
     if (_disposed || !_hasMedia || crossfadeDuration <= Duration.zero) return;
-    if (_crossfadeTriggered || _isTransitioning || _loopMode == LoopMode.one)
+    if (_crossfadeTriggered || _isTransitioning || _loopMode == LoopMode.one) {
       return;
-
+    }
     final dur = _durationSubject.value;
     if (dur <= Duration.zero) return;
-
     final remaining = dur - pos;
-    // Start crossfade exactly when remaining time equals crossfade duration
     if (remaining <= crossfadeDuration && remaining.inMilliseconds > 50) {
       _crossfadeTriggered = true;
       _handleCompletion();
@@ -205,6 +199,7 @@ class PlayerEngine {
 
   void _triggerEngineFailure(String error) {
     _hasMedia = false;
+    _suppressIdleUntilMediaLoads = false;
     _playingSubject.add(false);
     _stateSubject.add(EngineState.error);
     _errorController.add(error);
@@ -227,7 +222,53 @@ class PlayerEngine {
     _completionController.add(null);
   }
 
+  // ─── State machine ─────────────────────────────────────────────────────────
+  //
+  // The idle state is what audio_service maps to AudioProcessingState.idle,
+  // which signals Android to call stopForeground(). On Android 12+, once the
+  // foreground service is stopped, it cannot be restarted from the background
+  // (ForegroundServiceStartNotAllowedException). libmpv's native C threads are
+  // unaware of the Android service lifecycle and keep outputting audio,
+  // creating a zombie audio instance with no notification.
+  //
+  // During a track transition, _doPlay() in BloomeeMusicPlayer calls:
+  //   setLoadingState()           → sets _suppressIdleUntilMediaLoads = true
+  //   engine.stop(keepLoading)    → sets _hasMedia = false, does NOT clear suppression
+  //   [player streams fire]       → _deriveState() called, suppression blocks idle
+  //   engine.openDirect(...)      → sets _hasMedia = true, clearance in _deriveState()
+  //
+  // On genuine user stop or swipe-from-recents:
+  //   stop() with keepLoadingState = false → clears suppression, idle propagates correctly
+  //
+  void _deriveState() {
+    if (_disposed) return;
+
+    if (!_hasMedia) {
+      if (!_suppressIdleUntilMediaLoads) {
+        _stateSubject.add(EngineState.idle);
+      }
+      return;
+    }
+
+    // Media is loaded — suppression no longer needed.
+    _suppressIdleUntilMediaLoads = false;
+
+    final player = _active;
+    if (player.state.buffering) {
+      _stateSubject.add(EngineState.buffering);
+    } else if (_isTransitioning) {
+      _stateSubject.add(EngineState.ready);
+    } else if (player.state.duration > Duration.zero ||
+        player.state.position > Duration.zero ||
+        player.state.playing) {
+      _stateSubject.add(EngineState.ready);
+    } else {
+      _stateSubject.add(EngineState.loading);
+    }
+  }
+
   // ─── Getters ───────────────────────────────────────────────────────────────
+
   EngineState get state => _stateSubject.value;
   bool get playing => _playingSubject.value;
   Duration get position => _positionSubject.value;
@@ -246,12 +287,16 @@ class PlayerEngine {
   Stream<void> get completionStream => _completionController.stream;
   Stream<String> get errorStream => _errorController.stream;
 
+  // Called at the start of every track load. Activates idle suppression so
+  // the stream events fired by the subsequent stop() call do not propagate
+  // idle to audio_service.
   void setLoadingState() {
     if (_disposed) return;
+    _suppressIdleUntilMediaLoads = true;
     _stateSubject.add(EngineState.loading);
   }
 
-  // ─── Transition Primitives ─────────────────────────────────────────────────
+  // ─── Transition primitives ─────────────────────────────────────────────────
 
   Future<EngineResult> openDirect(
     Uri uri, {
@@ -261,7 +306,6 @@ class PlayerEngine {
     if (_disposed) return EngineFailure('Engine disposed');
     final gen = ++_generation;
 
-    // 1. Cancel any active fades
     _oldPlayerFader.cancel();
     _newPlayerFader.cancel();
     _fadeCleanupTimer?.cancel();
@@ -274,11 +318,7 @@ class PlayerEngine {
     setLoadingState();
 
     try {
-      // 🚨 FIX: GUARANTEE VOLUME RESTORATION!
-      // If a fader was cancelled mid-way, the hardware volume is stuck low.
-      // We must explicitly snap it back to the user's volume before opening.
       await _active.setVolume(_userVolume * 100.0);
-
       await _active.open(
         Media(uri.toString(), httpHeaders: httpHeaders),
         play: autoPlay,
@@ -297,8 +337,9 @@ class PlayerEngine {
   }
 
   Future<EngineResult> activatePreloaded({bool autoPlay = true}) async {
-    if (_disposed || !_standbyPreloaded || _preloadedNextUri == null)
+    if (_disposed || !_standbyPreloaded || _preloadedNextUri == null) {
       return EngineFailure('Not preloaded');
+    }
 
     final gen = ++_generation;
     _oldPlayerFader.cancel();
@@ -316,7 +357,6 @@ class PlayerEngine {
       oldPlayer.stop().catchError((_) {});
       if (_generation != gen || _disposed) return EngineCanceled();
 
-      // Ensure the preloaded player is set to max volume (it was muted during preload)
       await newPlayer.setVolume(_userVolume * 100.0);
       if (_generation != gen || _disposed) return EngineCanceled();
 
@@ -392,15 +432,9 @@ class PlayerEngine {
         if (!_disposed) {
           _oldPlayerFader.cancel();
           _newPlayerFader.cancel();
-
           await oldPlayer.stop().catchError((_) {});
           await oldPlayer.setVolume(_userVolume * 100.0).catchError((_) {});
-
-          // 🚨 FIX: GUARANTEE CROSSFADE COMPLETION VOLUME!
-          // If the UI adjusted the volume *during* the crossfade, the fader
-          // might have missed the target. Snap it definitively here.
           await newPlayer.setVolume(_userVolume * 100.0).catchError((_) {});
-
           _isTransitioning = false;
 
           if (_pendingPreloadUri != null) {
@@ -420,10 +454,7 @@ class PlayerEngine {
       _newPlayerFader.cancel();
       _fadeCleanupTimer?.cancel();
       _isTransitioning = false;
-
-      // 🚨 FIX: RESTORE ON ERROR!
       _active.setVolume(_userVolume * 100.0).catchError((_) {});
-
       _triggerEngineFailure(e.toString());
       return EngineFailure(e);
     }
@@ -436,14 +467,11 @@ class PlayerEngine {
       player.stop().catchError((_) {});
       return;
     }
-
     _isTransitioning = true;
     final startVol = (_aIsActive ? _playerAVolume : _playerBVolume)
         .clamp(0.0, _userVolume * 100.0);
-
     _oldPlayerFader.cancel();
     _oldPlayerFader.fade(player, startVol, 0.0, duration);
-
     _fadeOutCleanupTimer?.cancel();
     _fadeOutCleanupTimer = Timer(duration, () {
       if (!_disposed) {
@@ -473,6 +501,14 @@ class PlayerEngine {
     _preloadedNextHeaders = null;
     _pendingPreloadUri = null;
     _pendingPreloadHeaders = null;
+
+    // keepLoadingState = true means a track transition is in progress —
+    // setLoadingState() already activated suppression before this call.
+    // keepLoadingState = false means a genuine stop — clear suppression so
+    // idle state propagates to audio_service and the Android service stops.
+    if (!keepLoadingState) {
+      _suppressIdleUntilMediaLoads = false;
+    }
 
     _positionSubject.add(Duration.zero);
     _durationSubject.add(Duration.zero);
@@ -537,13 +573,9 @@ class PlayerEngine {
         [_playerA.setPlaylistMode(mpvMode), _playerB.setPlaylistMode(mpvMode)]);
   }
 
-  // ─── Gapless Pre-loading ───────────────────────────────────────────────────
+  // ─── Gapless preloading ────────────────────────────────────────────────────
 
-  /// Returns true if the preload was accepted (either executed or queued safely)
-  Future<bool> preloadNext(
-    Uri uri, {
-    Map<String, String>? httpHeaders,
-  }) async {
+  Future<bool> preloadNext(Uri uri, {Map<String, String>? httpHeaders}) async {
     if (_disposed) return false;
     if (_standbyPreloaded &&
         _preloadedNextUri == uri &&
@@ -551,8 +583,6 @@ class PlayerEngine {
       return true;
     }
 
-    // Never commandeer the standby player if it's currently crossfading.
-    // Queue it instead.
     if (_isTransitioning) {
       _pendingPreloadUri = uri;
       _pendingPreloadHeaders = httpHeaders;
@@ -678,33 +708,7 @@ class PlayerEngine {
     return 'lavfi=[${parts.join(',')}]';
   }
 
-  // ─── Deterministic State Machine ───────────────────────────────────────────
-
-  void _deriveState() {
-    if (_disposed) return;
-    if (!_hasMedia) {
-      _stateSubject.add(EngineState.idle);
-      return;
-    }
-
-    final player = _active;
-
-    if (player.state.buffering) {
-      _stateSubject.add(EngineState.buffering);
-    } else if (_isTransitioning) {
-      // Mask loading jumps during crossfades to keep UI smooth
-      _stateSubject.add(EngineState.ready);
-    } else {
-      // Actual robust fallback check to confirm media has parsed
-      if (player.state.duration > Duration.zero ||
-          player.state.position > Duration.zero ||
-          player.state.playing) {
-        _stateSubject.add(EngineState.ready);
-      } else {
-        _stateSubject.add(EngineState.loading);
-      }
-    }
-  }
+  // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
   Future<void> dispose() async {
     if (_disposed) return;

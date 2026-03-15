@@ -3,7 +3,6 @@ import 'package:Bloomee/screens/widgets/global_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/screens/screen/common_views/add_to_playlist_screen.dart';
-import 'package:Bloomee/screens/screen/player_screen.dart';
 import 'package:Bloomee/screens/screen/explore_screen.dart';
 import 'package:Bloomee/screens/screen/library_screen.dart';
 import 'package:Bloomee/screens/screen/library_views/import_media_view.dart';
@@ -25,34 +24,6 @@ class AppRouter {
     initialLocation: '/Explore',
     navigatorKey: globalRouterKey,
     routes: [
-      GoRoute(
-        name: RoutePaths.playerScreen,
-        path: "/MusicPlayer",
-        parentNavigatorKey: globalRouterKey,
-        pageBuilder: (context, state) {
-          return CustomTransitionPage(
-            child: const AudioPlayerView(),
-            transitionDuration: const Duration(milliseconds: 100),
-            reverseTransitionDuration: const Duration(milliseconds: 100),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              const begin = Offset(0.0, 1.0);
-              const end = Offset.zero;
-              final tween = Tween(begin: begin, end: end);
-              final curvedAnimation = CurvedAnimation(
-                parent: animation,
-                reverseCurve: Curves.easeIn,
-                curve: Curves.easeInOut,
-              );
-              final offsetAnimation = curvedAnimation.drive(tween);
-              return SlideTransition(
-                position: offsetAnimation,
-                child: child,
-              );
-            },
-          );
-        },
-      ),
       GoRoute(
         path: '/AddToPlaylist',
         parentNavigatorKey: globalRouterKey,

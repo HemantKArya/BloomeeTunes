@@ -1,14 +1,15 @@
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/screens/widgets/player_overlay_wrapper.dart';
+import 'package:Bloomee/screens/widgets/mini_player_widget.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:Bloomee/screens/widgets/mini_player_widget.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/l10n/app_localizations.dart';
 
 class GlobalFooter extends StatelessWidget {
   const GlobalFooter({super.key, required this.navigationShell});
@@ -16,27 +17,22 @@ class GlobalFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Only watch states that dictate the UI layout/rebuilds here.
+    final isPlayerVisible = context.watch<PlayerOverlayCubit>().state;
+    final hasNestedRoute = GoRouter.of(context).canPop();
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+
     return PlayerOverlayWrapper(
       child: PopScope(
-        canPop: !context.watch<PlayerOverlayCubit>().state &&
-            navigationShell.currentIndex == 0,
-        onPopInvokedWithResult: (didPop, result) {
-          if (!didPop) {
-            final playerOverlayCubit = context.read<PlayerOverlayCubit>();
-            // First check if player overlay is open
-            if (playerOverlayCubit.state) {
-              // First try to collapse UpNext panel if expanded
-              if (!playerOverlayCubit.collapseUpNextPanel()) {
-                // If panel was not expanded, hide the player
-                playerOverlayCubit.hidePlayer();
-              }
-            } else {
-              navigationShell.goBranch(0);
-            }
-          }
+        canPop: !isPlayerVisible && hasNestedRoute,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) return;
+          await _handleHardwareBackPress(context);
         },
         child: Scaffold(
-          body: ResponsiveBreakpoints.of(context).isMobile
+          backgroundColor: Default_Theme.themeColor,
+          drawerScrimColor: Default_Theme.themeColor,
+          body: isMobile
               ? _AnimatedPageView(navigationShell: navigationShell)
               : Row(
                   children: [
@@ -50,26 +46,46 @@ class GlobalFooter extends StatelessWidget {
                     ),
                   ],
                 ),
-          backgroundColor: Default_Theme.themeColor,
-          drawerScrimColor: Default_Theme.themeColor,
           bottomNavigationBar: SafeArea(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const MiniPlayerWidget(),
-              Container(
-                color: Colors.transparent,
-                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                child: ResponsiveBreakpoints.of(context).isMobile
-                    ? HorizontalNavBar(navigationShell: navigationShell)
-                    : const Wrap(),
-              ),
-            ],
-          )),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min, // Essential for bottom navigation
+              children: [
+                const MiniPlayerWidget(),
+                if (isMobile)
+                  Container(
+                    color: Colors.transparent,
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    child: HorizontalNavBar(navigationShell: navigationShell),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  /// Handles complex back navigation deterministically
+  Future<void> _handleHardwareBackPress(BuildContext context) async {
+    final overlayC = context.read<PlayerOverlayCubit>();
+
+    if (overlayC.state) {
+      if (!overlayC.collapseUpNextPanel()) {
+        overlayC.hidePlayer();
+      }
+      return;
+    }
+
+    if (navigationShell.currentIndex != 0) {
+      navigationShell.goBranch(0);
+      return;
+    }
+
+    if (context.mounted) {
+      await SystemNavigator.pop();
+    }
   }
 }
 
@@ -82,56 +98,47 @@ class _AnimatedPageView extends StatefulWidget {
 }
 
 class _AnimatedPageViewState extends State<_AnimatedPageView>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+    with SingleTickerProviderStateMixin {
+  // Optimization: Use SingleTickerProvider
+  late final AnimationController _animationController;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<double> _scaleAnimation;
   int _previousIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _previousIndex = widget.navigationShell.currentIndex;
+
     _animationController = AnimationController(
-      // A shorter duration for a faster animation
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 250), // slightly smoother duration
       vsync: this,
     );
 
-    // Fade animation
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        // A curve that starts fast and slows down for a smooth feel
-        curve: Curves.easeOutCubic,
-      ),
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
     );
 
-    // Scale (zoom) animation
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.96, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOutCubic,
       ),
     );
 
-    _previousIndex = widget.navigationShell.currentIndex;
-
-    // Trigger the animation on the first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _animationController.forward();
-      }
-    });
+    _animationController.forward();
   }
 
   @override
   void didUpdateWidget(_AnimatedPageView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Deterministic check: Only animate if the tab ACTUALLY changed.
+    // Prevents random UI jumps if parent widget rebuilds.
     if (widget.navigationShell.currentIndex != _previousIndex) {
       _previousIndex = widget.navigationShell.currentIndex;
-      // Reset and restart the animation for subsequent page changes
-      _animationController.reset();
-      _animationController.forward();
+      _animationController.forward(
+          from: 0.0); // cleaner than reset() + forward()
     }
   }
 
@@ -154,38 +161,34 @@ class _AnimatedPageViewState extends State<_AnimatedPageView>
 }
 
 class VerticalNavBar extends StatelessWidget {
-  const VerticalNavBar({
-    super.key,
-    required this.navigationShell,
-  });
+  const VerticalNavBar({super.key, required this.navigationShell});
   final StatefulNavigationShell navigationShell;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return NavigationRail(
       backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
       destinations: [
         NavigationRailDestination(
-            icon: const Icon(MingCute.home_4_fill),
-            label: Text(AppLocalizations.of(context)!.navHome)),
+            icon: const Icon(MingCute.home_4_fill), label: Text(l10n.navHome)),
         NavigationRailDestination(
             icon: const Icon(MingCute.book_5_fill),
-            label: Text(AppLocalizations.of(context)!.navLibrary)),
+            label: Text(l10n.navLibrary)),
         NavigationRailDestination(
             icon: const Icon(MingCute.search_2_fill),
-            label: Text(AppLocalizations.of(context)!.navSearch)),
+            label: Text(l10n.navSearch)),
         NavigationRailDestination(
             icon: const Icon(MingCute.music_2_fill),
-            label: Text(AppLocalizations.of(context)!.navLocal)),
+            label: Text(l10n.navLocal)),
         NavigationRailDestination(
             icon: const Icon(MingCute.folder_download_fill),
-            label: Text(AppLocalizations.of(context)!.navOffline)),
+            label: Text(l10n.navOffline)),
       ],
       selectedIndex: navigationShell.currentIndex,
-      minWidth: 65,
-      onDestinationSelected: (value) {
-        navigationShell.goBranch(value);
-      },
+      minWidth: 70, // Slightly improved touch target for desktop
+      onDestinationSelected: navigationShell.goBranch, // Clean tear-off
       groupAlignment: 0.0,
       unselectedIconTheme:
           const IconThemeData(color: Default_Theme.primaryColor2),
@@ -198,15 +201,13 @@ class VerticalNavBar extends StatelessWidget {
 }
 
 class HorizontalNavBar extends StatelessWidget {
-  const HorizontalNavBar({
-    super.key,
-    required this.navigationShell,
-  });
-
+  const HorizontalNavBar({super.key, required this.navigationShell});
   final StatefulNavigationShell navigationShell;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return GNav(
       gap: 7.0,
       tabBackgroundColor: Default_Theme.accentColor2.withValues(alpha: 0.22),
@@ -218,31 +219,14 @@ class HorizontalNavBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
       tabs: [
-        GButton(
-          icon: MingCute.home_4_fill,
-          text: AppLocalizations.of(context)!.navHome,
-        ),
-        GButton(
-          icon: MingCute.book_5_fill,
-          text: AppLocalizations.of(context)!.navLibrary,
-        ),
-        GButton(
-          icon: MingCute.search_2_fill,
-          text: AppLocalizations.of(context)!.navSearch,
-        ),
-        GButton(
-          icon: MingCute.music_2_fill,
-          text: AppLocalizations.of(context)!.navLocal,
-        ),
-        GButton(
-          icon: MingCute.folder_download_fill,
-          text: AppLocalizations.of(context)!.navOffline,
-        ),
+        GButton(icon: MingCute.home_4_fill, text: l10n.navHome),
+        GButton(icon: MingCute.book_5_fill, text: l10n.navLibrary),
+        GButton(icon: MingCute.search_2_fill, text: l10n.navSearch),
+        GButton(icon: MingCute.music_2_fill, text: l10n.navLocal),
+        GButton(icon: MingCute.folder_download_fill, text: l10n.navOffline),
       ],
       selectedIndex: navigationShell.currentIndex,
-      onTabChange: (value) {
-        navigationShell.goBranch(value);
-      },
+      onTabChange: navigationShell.goBranch, // Clean tear-off
     );
   }
 }

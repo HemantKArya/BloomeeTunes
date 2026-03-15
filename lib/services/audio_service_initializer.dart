@@ -1,48 +1,56 @@
-import 'dart:io';
 import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:audio_service/audio_service.dart';
 
 class PlayerInitializer {
   static final PlayerInitializer _instance = PlayerInitializer._internal();
-  factory PlayerInitializer() {
-    return _instance;
-  }
-
+  factory PlayerInitializer() => _instance;
   PlayerInitializer._internal();
 
-  static bool _isInitialized = false;
-  static BloomeeMusicPlayer? bloomeeMusicPlayer;
-
-  Future<void> _initialize() async {
-    bloomeeMusicPlayer = await AudioService.init(
-      builder: () => BloomeeMusicPlayer(),
-      config: const AudioServiceConfig(
-        androidStopForegroundOnPause: false,
-        androidNotificationChannelId: 'com.BloomeePlayer.notification.status',
-        androidNotificationChannelName: 'BloomeTunes',
-        androidResumeOnClick: true,
-        androidShowNotificationBadge: true,
-        notificationColor: Default_Theme.accentColor2,
-      ),
-    );
-
-    // Brief delay on Android for native side to stabilize
-    if (Platform.isAndroid && bloomeeMusicPlayer != null) {
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-
-    // Check for zombie state and revive if necessary
-    if (bloomeeMusicPlayer != null && !bloomeeMusicPlayer!.isPlayerHealthy) {
-      await bloomeeMusicPlayer!.revive();
-    }
-  }
+  BloomeeMusicPlayer? _bloomeeMusicPlayer;
+  bool _isInitializing = false;
 
   Future<BloomeeMusicPlayer> getBloomeeMusicPlayer() async {
-    if (!_isInitialized || bloomeeMusicPlayer == null) {
-      await _initialize();
-      _isInitialized = true;
+    // Return immediately if already healthy
+    if (_bloomeeMusicPlayer != null) {
+      if (!_bloomeeMusicPlayer!.isPlayerHealthy) {
+        await _bloomeeMusicPlayer!.revive();
+      }
+      return _bloomeeMusicPlayer!;
     }
-    return bloomeeMusicPlayer!;
+
+    // Prevent race conditions if multiple UI components request the player simultaneously
+    while (_isInitializing) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    if (_bloomeeMusicPlayer == null) {
+      _isInitializing = true;
+      try {
+        _bloomeeMusicPlayer = await AudioService.init(
+          builder: () => BloomeeMusicPlayer(),
+          config: const AudioServiceConfig(
+            androidNotificationChannelId:
+                'com.BloomeePlayer.notification.status',
+            androidNotificationChannelName: 'BloomeTunes',
+            androidNotificationIcon: 'mipmap/ic_launcher',
+            androidResumeOnClick: true,
+            androidShowNotificationBadge: true,
+            // Allows user to swipe away the notification when paused
+            androidStopForegroundOnPause: true,
+            notificationColor: Default_Theme.accentColor2,
+          ),
+        );
+
+        // // Brief delay on Android for native side to stabilize
+        // if (Platform.isAndroid) {
+        //   await Future.delayed(const Duration(milliseconds: 200));
+        // }
+      } finally {
+        _isInitializing = false;
+      }
+    }
+
+    return _bloomeeMusicPlayer!;
   }
 }

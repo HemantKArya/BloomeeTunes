@@ -40,6 +40,7 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 import 'package:Bloomee/utils/ticker.dart';
 import 'package:Bloomee/utils/url_checker.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,17 +51,18 @@ import 'package:Bloomee/plugins/blocs/import/content_import_cubit.dart';
 import 'package:Bloomee/routes/app_router.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/media_player/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:Bloomee/services/discord_service.dart';
+import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:Bloomee/services/db/legacy/legacy_migration_service.dart'
     as legacy_migration;
 import 'package:Bloomee/screens/widgets/legacy_migration_overlay.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
-  // Check if there's text content that might be a URL
   if (sharedMedia.content != null && isUrl(sharedMedia.content!)) {
     SnackbarService.showMessage(
         'Open the Import screen in Library to import from this URL.');
@@ -94,59 +96,65 @@ Future<void> setHighRefreshRate() async {
   }
 }
 
-late BloomeePlayerCubit bloomeePlayerCubit;
-void setupPlayerCubit() {
-  bloomeePlayerCubit = BloomeePlayerCubit();
-}
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
   MediaKit.ensureInitialized();
   await bootstrapApp();
   setHighRefreshRate();
-  setupPlayerCubit();
   DiscordService.initialize();
-  runApp(const MyApp());
+
+  // AudioService.init() is called exactly once here, before runApp.
+  // This registers the Android foreground service at process start and
+  // guarantees a single BloomeeMusicPlayer instance for the lifetime of
+  // the process. Calling it inside a Cubit/Widget causes it to run again
+  // on every UI recreation, creating duplicate libmpv instances that play
+  // audio simultaneously with no notification.
+  final player = await AudioService.init(
+    builder: () => BloomeeMusicPlayer(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.BloomeePlayer.notification.status',
+      androidNotificationChannelName: 'BloomeTunes',
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidResumeOnClick: true,
+      androidShowNotificationBadge: true,
+      androidStopForegroundOnPause: false,
+      notificationColor: Default_Theme.accentColor2,
+    ),
+  );
+
+  runApp(MyApp(player: player));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.player});
+  final BloomeeMusicPlayer player;
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  // Initialize the player
-  // This widget is the root of your application.
   StreamSubscription<SharedMedia>? _intentSub;
   SharedMedia? sharedMedia;
 
-  // TODO: remove this after one or two releases.
-  // Legacy migration — set to true when a default.isar file is found.
-  // Remove this field (and the overlay block in build) once no users
-  // need legacy migration.
   bool _migrationPending = false;
-  // ------------------
 
   @override
   void initState() {
     super.initState();
 
-    // Check once at startup; DBProvider.appSuppDir is set by bootstrapApp().
     _migrationPending = legacy_migration.needsMigration(
       DBProvider.appSuppDir,
       DBProvider.appDocDir,
     );
-    //--------------------------------------------------------------------
 
     if (io.Platform.isAndroid) {
       initPlatformState();
+      _requestNotificationPermission();
     }
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     try {
       final handler = ShareHandlerPlatform.instance;
@@ -154,30 +162,32 @@ class _MyAppState extends State<MyApp> {
 
       _intentSub = handler.sharedMediaStream.listen((SharedMedia media) {
         if (!mounted) return;
-        setState(() {
-          sharedMedia = media;
-        });
-        if (sharedMedia != null) {
-          processIncomingIntent(sharedMedia!);
-        }
+        setState(() => sharedMedia = media);
+        processIncomingIntent(media);
       });
-      if (!mounted) return;
 
-      setState(() {
-        // If there's initial shared media, process it
-        if (sharedMedia != null) {
-          processIncomingIntent(sharedMedia!);
-        }
-      });
+      if (!mounted) return;
+      if (sharedMedia != null) {
+        setState(() {});
+        processIncomingIntent(sharedMedia!);
+      }
     } catch (error, stackTrace) {
       debugPrint('Failed to initialize share handler: $error\n$stackTrace');
+    }
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    if (io.Platform.isAndroid) {
+      final status = await Permission.notification.status;
+      if (status.isDenied) {
+        await Permission.notification.request();
+      }
     }
   }
 
   @override
   void dispose() {
     _intentSub?.cancel();
-    bloomeePlayerCubit.close();
     if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
       DiscordService.clearPresence();
     }
@@ -186,13 +196,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // ── Legacy migration guard ────────────────────────────────────────────
-    // If a default.isar (legacy DB) exists, show the non-dismissible
-    // migration overlay before starting the normal app. Once migration
-    // finishes successfully the overlay removes itself.
-    //
-    // To remove this feature in future: delete the `if` block below AND the
-    // import at the top of this file AND lib/services/db/legacy/.
     if (_migrationPending) {
       return Directionality(
         textDirection: TextDirection.ltr,
@@ -206,7 +209,6 @@ class _MyAppState extends State<MyApp> {
         ),
       );
     }
-    // ─────────────────────────────────────────────────────────────────────
 
     final trackDao = TrackDAO(DBProvider.db);
     final playlistDao = PlaylistDAO(DBProvider.db, trackDao);
@@ -215,67 +217,70 @@ class _MyAppState extends State<MyApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => PluginBloc(
+          create: (_) => PluginBloc(
             pluginService: ServiceLocator.pluginService,
             eventBus: ServiceLocator.pluginEventBus,
           )..add(const InitializePluginSystem()),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => bloomeePlayerCubit,
+          create: (_) => BloomeePlayerCubit(widget.player),
           lazy: false,
         ),
         BlocProvider(
-            create: (context) =>
-                MiniPlayerCubit(playerCubit: bloomeePlayerCubit),
-            lazy: true),
+          create: (context) =>
+              MiniPlayerCubit(playerCubit: context.read<BloomeePlayerCubit>()),
+          lazy: true,
+        ),
         BlocProvider(
-          create: (context) => SettingsCubit(
+          create: (_) => SettingsCubit(
             SettingsRepository(SettingsDAO(DBProvider.db)),
           ),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => NotificationCubit(
+          create: (_) => NotificationCubit(
             notificationDao: NotificationDAO(DBProvider.db),
           ),
           lazy: false,
         ),
         BlocProvider(
-            create: (context) => TimerBloc(
-                ticker: const Ticker(), bloomeePlayer: bloomeePlayerCubit)),
+          create: (context) => TimerBloc(
+              ticker: const Ticker(),
+              bloomeePlayer: context.read<BloomeePlayerCubit>()),
+        ),
         BlocProvider(
-          create: (context) => ConnectivityCubit(),
+          create: (_) => ConnectivityCubit(),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => CurrentPlaylistCubit(playlistDao: playlistDao),
+          create: (_) => CurrentPlaylistCubit(playlistDao: playlistDao),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => RecentlyCubit(historyDao),
+          create: (_) => RecentlyCubit(historyDao),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => HistoryCubit(historyDao: historyDao),
+          create: (_) => HistoryCubit(historyDao: historyDao),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => LibraryItemsCubit(
+          create: (_) => LibraryItemsCubit(
             playlistDao: playlistDao,
             libraryDao: LibraryDAO(DBProvider.db),
           ),
         ),
         BlocProvider(
-          create: (context) => ContentImportCubit(),
+          create: (_) => ContentImportCubit(),
           lazy: true,
         ),
         BlocProvider(
-          create: (context) => AddToPlaylistCubit(),
+          create: (_) => AddToPlaylistCubit(),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => SearchSuggestionBloc(
+          create: (_) => SearchSuggestionBloc(
             searchHistoryDao: SearchHistoryDAO(DBProvider.db),
             pluginService: ServiceLocator.pluginService,
             settingsDao: SettingsDAO(DBProvider.db),
@@ -283,7 +288,7 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => LyricsCubit(
-            bloomeePlayerCubit,
+            context.read<BloomeePlayerCubit>(),
             lyricsDao: LyricsDAO(DBProvider.db),
             settingsDao: SettingsDAO(DBProvider.db),
             pluginService: ServiceLocator.pluginService,
@@ -291,7 +296,7 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => LastdotfmCubit(
-            playerCubit: bloomeePlayerCubit,
+            playerCubit: context.read<BloomeePlayerCubit>(),
             cacheDao: CacheDAO(DBProvider.db),
             settingsDao: SettingsDAO(DBProvider.db),
             pluginService: ServiceLocator.pluginService,
@@ -311,76 +316,57 @@ class _MyAppState extends State<MyApp> {
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => GlobalEventsCubit(
+          create: (_) => GlobalEventsCubit(
             settingsDao: SettingsDAO(DBProvider.db),
           ),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => PlayerOverlayCubit(),
+          create: (_) => PlayerOverlayCubit(),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => ShortcutIndicatorCubit(),
+          create: (_) => ShortcutIndicatorCubit(),
           lazy: false,
         ),
         BlocProvider(
-          create: (context) => LocalMusicCubit(),
+          create: (_) => LocalMusicCubit(),
           lazy: true,
         ),
       ],
-      child: BlocBuilder<BloomeePlayerCubit, BloomeePlayerState>(
-        builder: (context, state) {
-          if (state is BloomeePlayerInitial) {
-            return const Center(
-              child: SizedBox(
-                width: 50,
-                height: 50,
-                child: CircularProgressIndicator(
-                  color: Default_Theme.accentColor2,
-                ),
-              ),
-            );
-          } else {
-            return BlocBuilder<SettingsCubit, SettingsState>(
-              builder: (context, settingsState) {
-                final locale = settingsState.languageCode.isEmpty
-                    ? null
-                    : Locale(settingsState.languageCode);
+      child: BlocBuilder<SettingsCubit, SettingsState>(
+        builder: (context, settingsState) {
+          final locale = settingsState.languageCode.isEmpty
+              ? null
+              : Locale(settingsState.languageCode);
 
-                return KeyboardShortcutsHandler(
-                  child: ShortcutIndicatorOverlay(
-                    child: MaterialApp.router(
-                      localizationsDelegates:
-                          AppLocalizations.localizationsDelegates,
-                      supportedLocales: AppLocalizations.supportedLocales,
-                      locale: locale,
-                      builder: (context, child) =>
-                          ResponsiveBreakpoints.builder(
-                        breakpoints: [
-                          const Breakpoint(start: 0, end: 450, name: MOBILE),
-                          const Breakpoint(start: 451, end: 800, name: TABLET),
-                          const Breakpoint(
-                              start: 801, end: 1920, name: DESKTOP),
-                          const Breakpoint(
-                              start: 1921, end: double.infinity, name: '4K'),
-                        ],
-                        child: GlobalEventListener(
-                          navigatorKey: GlobalRoutes.globalRouterKey,
-                          child: child!,
-                        ),
-                      ),
-                      scaffoldMessengerKey: SnackbarService.messengerKey,
-                      routerConfig: GlobalRoutes.globalRouter,
-                      theme: Default_Theme().defaultThemeData,
-                      scrollBehavior: CustomScrollBehavior(),
-                      debugShowCheckedModeBanner: false,
-                    ),
+          return KeyboardShortcutsHandler(
+            child: ShortcutIndicatorOverlay(
+              child: MaterialApp.router(
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: locale,
+                builder: (context, child) => ResponsiveBreakpoints.builder(
+                  breakpoints: [
+                    const Breakpoint(start: 0, end: 450, name: MOBILE),
+                    const Breakpoint(start: 451, end: 800, name: TABLET),
+                    const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                    const Breakpoint(
+                        start: 1921, end: double.infinity, name: '4K'),
+                  ],
+                  child: GlobalEventListener(
+                    navigatorKey: GlobalRoutes.globalRouterKey,
+                    child: child!,
                   ),
-                );
-              },
-            );
-          }
+                ),
+                scaffoldMessengerKey: SnackbarService.messengerKey,
+                routerConfig: GlobalRoutes.globalRouter,
+                theme: Default_Theme().defaultThemeData,
+                scrollBehavior: CustomScrollBehavior(),
+                debugShowCheckedModeBanner: false,
+              ),
+            ),
+          );
         },
       ),
     );
@@ -388,7 +374,6 @@ class _MyAppState extends State<MyApp> {
 }
 
 class CustomScrollBehavior extends MaterialScrollBehavior {
-  // Override behavior methods and getters like dragDevices
   @override
   Set<PointerDeviceKind> get dragDevices => {
         PointerDeviceKind.touch,
@@ -396,6 +381,5 @@ class CustomScrollBehavior extends MaterialScrollBehavior {
         PointerDeviceKind.trackpad,
         PointerDeviceKind.stylus,
         PointerDeviceKind.invertedStylus,
-        // etc.
       };
 }

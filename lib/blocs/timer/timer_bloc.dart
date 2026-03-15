@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/main.dart';
 import 'package:Bloomee/utils/ticker.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -13,10 +12,10 @@ part 'timer_state.dart';
 class TimerBloc extends Bloc<TimerEvent, TimerState> {
   final Ticker _ticker;
   static const int _duration = 0;
-
+  final BloomeePlayerCubit bloomeePlayer;
   StreamSubscription<int>? _tickerSubscription;
 
-  TimerBloc({required Ticker ticker, required BloomeePlayerCubit bloomeePlayer})
+  TimerBloc({required Ticker ticker, required this.bloomeePlayer})
       : _ticker = ticker,
         super(const TimerInitial(_duration)) {
     on<TimerStarted>(_onTimerStarted);
@@ -69,7 +68,7 @@ class TimerBloc extends Bloc<TimerEvent, TimerState> {
     } else {
       emit(const TimerRunComplete());
       try {
-        bloomeePlayerCubit.bloomeePlayer.pause();
+        bloomeePlayer.bloomeePlayer.pause();
       } catch (e) {
         log(e.toString(), name: "TimerBloc");
       }
