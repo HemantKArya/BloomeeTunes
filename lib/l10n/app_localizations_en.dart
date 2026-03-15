@@ -802,7 +802,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get localSettingAddFolder => 'Add Folder';
 
   @override
-  String get playerSettingTitle => 'Audio Player';
+  String get playerSettingTitle => 'Player Settings';
 
   @override
   String get playerSettingStreamingHeader => 'Streaming';

@@ -1505,7 +1505,7 @@ abstract class AppLocalizations {
   /// No description provided for @playerSettingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Audio Player'**
+  /// **'Player Settings'**
   String get playerSettingTitle;
 
   /// No description provided for @playerSettingStreamingHeader.

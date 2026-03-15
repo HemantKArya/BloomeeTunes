@@ -277,7 +277,7 @@
   "localSettingNoFolders": "No folders added. Add a folder to start scanning.",
   "localSettingAddFolder": "Add Folder",
 
-  "playerSettingTitle": "Audio Player",
+  "playerSettingTitle": "Player Settings",
   "playerSettingStreamingHeader": "Streaming",
   "playerSettingStreamQuality": "Streaming Quality",
   "playerSettingStreamQualitySubtitle": "Global audio bitrate for online playback.",

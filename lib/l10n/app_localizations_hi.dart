@@ -803,7 +803,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get localSettingAddFolder => 'फ़ोल्डर जोड़ें';
 
   @override
-  String get playerSettingTitle => 'ऑडियो प्लेयर';
+  String get playerSettingTitle => 'प्लेयर सेटिंग्स';
 
   @override
   String get playerSettingStreamingHeader => 'स्ट्रीमिंग';

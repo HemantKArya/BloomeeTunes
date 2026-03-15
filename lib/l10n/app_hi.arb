@@ -287,7 +287,7 @@
   "upNextItemsInQueue": "{count, plural, =1{कतार में 1 आइटम} other{कतार में {count} आइटम}}",
   "upNextAutoPlay": "ऑटो प्ले",
 
-  "playerSettingTitle": "ऑडियो प्लेयर",
+  "playerSettingTitle": "प्लेयर सेटिंग्स",
   "playerSettingStreamingHeader": "स्ट्रीमिंग",
   "playerSettingStreamQuality": "स्ट्रीमिंग क्वालिटी",
   "playerSettingStreamQualitySubtitle": "ऑनलाइन प्लेबैक के लिए वैश्विक ऑडियो बिटरेट।",
