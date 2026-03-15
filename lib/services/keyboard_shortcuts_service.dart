@@ -83,6 +83,26 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
     return editableText != null;
   }
 
+  /// Returns true when a non-text UI element currently owns keyboard focus.
+  /// In this case, arrow/space should be left to that focused control.
+  bool _hasActionableUiFocus() {
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    if (primaryFocus == null) return false;
+
+    // Root scope means there is effectively no focused widget.
+    if (primaryFocus == WidgetsBinding.instance.focusManager.rootScope) {
+      return false;
+    }
+
+    // Editable text is handled separately by _isTextInputFocused.
+    final context = primaryFocus.context;
+    if (context != null && context.widget is EditableText) {
+      return false;
+    }
+
+    return true;
+  }
+
   KeyEventResult _handleKeyEvent(KeyEvent event) {
     // Don't handle shortcuts when typing in text fields (except for media keys)
     final isTextInput = _isTextInputFocused();
@@ -98,8 +118,19 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
       return KeyEventResult.ignored;
     }
 
-    // Scope app shortcuts to player context to avoid interfering with
-    // keyboard navigation in non-player screens.
+    // If any actionable UI element currently holds focus (list item, button,
+    // menu, etc.), preserve standard keyboard semantics for that UI first.
+    if (_hasActionableUiFocus()) {
+      return KeyEventResult.ignored;
+    }
+
+    // Global media shortcuts (without player overlay open) to match desktop UX.
+    if (_handleGlobalMediaShortcut(key)) {
+      return KeyEventResult.handled;
+    }
+
+    // Remaining app shortcuts are scoped to player context to avoid interfering
+    // with keyboard navigation in non-player screens.
     final isPlayerVisible = context.read<PlayerOverlayCubit>().state;
     if (!isPlayerVisible) {
       return KeyEventResult.ignored;
@@ -125,6 +156,41 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
     }
 
     return KeyEventResult.ignored;
+  }
+
+  /// Handle global media shortcuts (non-media-key variants).
+  /// These are active app-wide, except when typing in text fields.
+  bool _handleGlobalMediaShortcut(LogicalKeyboardKey key) {
+    final playerCubit = context.read<BloomeePlayerCubit>();
+    final player = playerCubit.bloomeePlayer;
+
+    // Space: Play/Pause
+    if (key == LogicalKeyboardKey.space) {
+      _togglePlayPause(player);
+      return true;
+    }
+
+    // Track navigation
+    if (key == LogicalKeyboardKey.arrowRight) {
+      player.skipToNext();
+      return true;
+    }
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      player.skipToPrevious();
+      return true;
+    }
+
+    // Volume control with held-key repeat
+    if (key == LogicalKeyboardKey.arrowUp) {
+      _startVolumeAdjust(key, 0.05, player);
+      return true;
+    }
+    if (key == LogicalKeyboardKey.arrowDown) {
+      _startVolumeAdjust(key, -0.05, player);
+      return true;
+    }
+
+    return false;
   }
 
   /// Handle media keys (always work, even in text input)
@@ -171,32 +237,6 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
   bool _handleSimpleShortcut(LogicalKeyboardKey key) {
     final playerCubit = context.read<BloomeePlayerCubit>();
     final player = playerCubit.bloomeePlayer;
-
-    // Space: Play/Pause
-    if (key == LogicalKeyboardKey.space) {
-      _togglePlayPause(player);
-      return true;
-    }
-
-    // Arrow keys for navigation
-    if (key == LogicalKeyboardKey.arrowRight) {
-      player.skipToNext();
-      return true;
-    } else if (key == LogicalKeyboardKey.arrowLeft) {
-      player.skipToPrevious();
-      return true;
-    }
-
-    // Volume control with Up/Down arrows
-    if (key == LogicalKeyboardKey.arrowUp) {
-      // Start continuous increase while key is held
-      _startVolumeAdjust(key, 0.05, player);
-      return true;
-    } else if (key == LogicalKeyboardKey.arrowDown) {
-      // Start continuous decrease while key is held
-      _startVolumeAdjust(key, -0.05, player);
-      return true;
-    }
 
     // R: Cycle repeat/loop modes
     if (key == LogicalKeyboardKey.keyR) {
