@@ -114,6 +114,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
           ));
         },
         // Handle unexpected response types gracefully.
+        trackDetails: (_) => _unexpectedResponse(emit, 'search'),
         albumDetails: (_) => _unexpectedResponse(emit, 'search'),
         artistDetails: (_) => _unexpectedResponse(emit, 'search'),
         playlistDetails: (_) => _unexpectedResponse(emit, 'search'),
@@ -187,6 +188,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             ),
           ));
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
         albumDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
         artistDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
         playlistDetails: (_) => _unexpectedResponse(emit, 'searchLoadMore'),
@@ -259,6 +261,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             albumDetails: details,
           ));
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'albumDetails'),
         search: (_) => _unexpectedResponse(emit, 'albumDetails'),
         artistDetails: (_) => _unexpectedResponse(emit, 'albumDetails'),
         playlistDetails: (_) => _unexpectedResponse(emit, 'albumDetails'),
@@ -327,6 +330,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             ));
           }
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
         search: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
         albumDetails: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
         artistDetails: (_) => _unexpectedResponse(emit, 'moreAlbumTracks'),
@@ -383,6 +387,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             artistDetails: details,
           ));
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'artistDetails'),
         search: (_) => _unexpectedResponse(emit, 'artistDetails'),
         albumDetails: (_) => _unexpectedResponse(emit, 'artistDetails'),
         playlistDetails: (_) => _unexpectedResponse(emit, 'artistDetails'),
@@ -453,6 +458,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             ));
           }
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
         search: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
         albumDetails: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
         artistDetails: (_) => _unexpectedResponse(emit, 'moreArtistAlbums'),
@@ -511,6 +517,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             playlistDetails: details,
           ));
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'playlistDetails'),
         search: (_) => _unexpectedResponse(emit, 'playlistDetails'),
         albumDetails: (_) => _unexpectedResponse(emit, 'playlistDetails'),
         artistDetails: (_) => _unexpectedResponse(emit, 'playlistDetails'),
@@ -581,6 +588,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             ));
           }
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
         search: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
         albumDetails: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
         artistDetails: (_) => _unexpectedResponse(emit, 'morePlaylistTracks'),
@@ -641,6 +649,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             streamSources: tracks,
           ));
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'getStreams'),
         search: (_) => _unexpectedResponse(emit, 'getStreams'),
         albumDetails: (_) => _unexpectedResponse(emit, 'getStreams'),
         artistDetails: (_) => _unexpectedResponse(emit, 'getStreams'),
@@ -741,6 +750,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             blob: encodeSectionsCache(sections),
           );
         },
+        trackDetails: (_) => unexpectedFn(),
         search: (_) => unexpectedFn(),
         albumDetails: (_) => unexpectedFn(),
         artistDetails: (_) => unexpectedFn(),
@@ -833,6 +843,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             ));
           }
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'loadMore'),
         search: (_) => _unexpectedResponse(emit, 'loadMore'),
         albumDetails: (_) => _unexpectedResponse(emit, 'loadMore'),
         artistDetails: (_) => _unexpectedResponse(emit, 'loadMore'),
@@ -895,6 +906,7 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
             radioTracks: paged.items,
           ));
         },
+        trackDetails: (_) => _unexpectedResponse(emit, 'radioTracks'),
         search: (_) => _unexpectedResponse(emit, 'radioTracks'),
         albumDetails: (_) => _unexpectedResponse(emit, 'radioTracks'),
         artistDetails: (_) => _unexpectedResponse(emit, 'radioTracks'),

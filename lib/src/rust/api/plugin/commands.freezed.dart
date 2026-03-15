@@ -809,6 +809,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
 
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(ContentResolverCommand_GetTrackDetails value)?
+        getTrackDetails,
     TResult Function(ContentResolverCommand_GetAlbumDetails value)?
         getAlbumDetails,
     TResult Function(ContentResolverCommand_GetArtistDetails value)?
@@ -834,6 +836,9 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
   }) {
     final _that = this;
     switch (_that) {
+      case ContentResolverCommand_GetTrackDetails()
+          when getTrackDetails != null:
+        return getTrackDetails(_that);
       case ContentResolverCommand_GetAlbumDetails()
           when getAlbumDetails != null:
         return getAlbumDetails(_that);
@@ -886,6 +891,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
 
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(ContentResolverCommand_GetTrackDetails value)
+        getTrackDetails,
     required TResult Function(ContentResolverCommand_GetAlbumDetails value)
         getAlbumDetails,
     required TResult Function(ContentResolverCommand_GetArtistDetails value)
@@ -911,6 +918,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
   }) {
     final _that = this;
     switch (_that) {
+      case ContentResolverCommand_GetTrackDetails():
+        return getTrackDetails(_that);
       case ContentResolverCommand_GetAlbumDetails():
         return getAlbumDetails(_that);
       case ContentResolverCommand_GetArtistDetails():
@@ -952,6 +961,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
 
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(ContentResolverCommand_GetTrackDetails value)?
+        getTrackDetails,
     TResult? Function(ContentResolverCommand_GetAlbumDetails value)?
         getAlbumDetails,
     TResult? Function(ContentResolverCommand_GetArtistDetails value)?
@@ -976,6 +987,9 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
   }) {
     final _that = this;
     switch (_that) {
+      case ContentResolverCommand_GetTrackDetails()
+          when getTrackDetails != null:
+        return getTrackDetails(_that);
       case ContentResolverCommand_GetAlbumDetails()
           when getAlbumDetails != null:
         return getAlbumDetails(_that);
@@ -1027,6 +1041,7 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String id)? getTrackDetails,
     TResult Function(String id)? getAlbumDetails,
     TResult Function(String id)? getArtistDetails,
     TResult Function(String id)? getPlaylistDetails,
@@ -1045,6 +1060,9 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
   }) {
     final _that = this;
     switch (_that) {
+      case ContentResolverCommand_GetTrackDetails()
+          when getTrackDetails != null:
+        return getTrackDetails(_that.id);
       case ContentResolverCommand_GetAlbumDetails()
           when getAlbumDetails != null:
         return getAlbumDetails(_that.id);
@@ -1097,6 +1115,7 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(String id) getTrackDetails,
     required TResult Function(String id) getAlbumDetails,
     required TResult Function(String id) getArtistDetails,
     required TResult Function(String id) getPlaylistDetails,
@@ -1114,6 +1133,8 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
   }) {
     final _that = this;
     switch (_that) {
+      case ContentResolverCommand_GetTrackDetails():
+        return getTrackDetails(_that.id);
       case ContentResolverCommand_GetAlbumDetails():
         return getAlbumDetails(_that.id);
       case ContentResolverCommand_GetArtistDetails():
@@ -1155,6 +1176,7 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String id)? getTrackDetails,
     TResult? Function(String id)? getAlbumDetails,
     TResult? Function(String id)? getArtistDetails,
     TResult? Function(String id)? getPlaylistDetails,
@@ -1172,6 +1194,9 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
   }) {
     final _that = this;
     switch (_that) {
+      case ContentResolverCommand_GetTrackDetails()
+          when getTrackDetails != null:
+        return getTrackDetails(_that.id);
       case ContentResolverCommand_GetAlbumDetails()
           when getAlbumDetails != null:
         return getAlbumDetails(_that.id);
@@ -1207,6 +1232,73 @@ extension ContentResolverCommandPatterns on ContentResolverCommand {
       case _:
         return null;
     }
+  }
+}
+
+/// @nodoc
+
+class ContentResolverCommand_GetTrackDetails extends ContentResolverCommand {
+  const ContentResolverCommand_GetTrackDetails({required this.id}) : super._();
+
+  final String id;
+
+  /// Create a copy of ContentResolverCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ContentResolverCommand_GetTrackDetailsCopyWith<
+          ContentResolverCommand_GetTrackDetails>
+      get copyWith => _$ContentResolverCommand_GetTrackDetailsCopyWithImpl<
+          ContentResolverCommand_GetTrackDetails>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ContentResolverCommand_GetTrackDetails &&
+            (identical(other.id, id) || other.id == id));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, id);
+
+  @override
+  String toString() {
+    return 'ContentResolverCommand.getTrackDetails(id: $id)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ContentResolverCommand_GetTrackDetailsCopyWith<$Res>
+    implements $ContentResolverCommandCopyWith<$Res> {
+  factory $ContentResolverCommand_GetTrackDetailsCopyWith(
+          ContentResolverCommand_GetTrackDetails value,
+          $Res Function(ContentResolverCommand_GetTrackDetails) _then) =
+      _$ContentResolverCommand_GetTrackDetailsCopyWithImpl;
+  @useResult
+  $Res call({String id});
+}
+
+/// @nodoc
+class _$ContentResolverCommand_GetTrackDetailsCopyWithImpl<$Res>
+    implements $ContentResolverCommand_GetTrackDetailsCopyWith<$Res> {
+  _$ContentResolverCommand_GetTrackDetailsCopyWithImpl(this._self, this._then);
+
+  final ContentResolverCommand_GetTrackDetails _self;
+  final $Res Function(ContentResolverCommand_GetTrackDetails) _then;
+
+  /// Create a copy of ContentResolverCommand
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+  }) {
+    return _then(ContentResolverCommand_GetTrackDetails(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
@@ -3148,6 +3240,7 @@ extension PluginResponsePatterns on PluginResponse {
 
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(PluginResponse_TrackDetails value)? trackDetails,
     TResult Function(PluginResponse_AlbumDetails value)? albumDetails,
     TResult Function(PluginResponse_ArtistDetails value)? artistDetails,
     TResult Function(PluginResponse_PlaylistDetails value)? playlistDetails,
@@ -3173,6 +3266,8 @@ extension PluginResponsePatterns on PluginResponse {
   }) {
     final _that = this;
     switch (_that) {
+      case PluginResponse_TrackDetails() when trackDetails != null:
+        return trackDetails(_that);
       case PluginResponse_AlbumDetails() when albumDetails != null:
         return albumDetails(_that);
       case PluginResponse_ArtistDetails() when artistDetails != null:
@@ -3234,6 +3329,7 @@ extension PluginResponsePatterns on PluginResponse {
 
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(PluginResponse_TrackDetails value) trackDetails,
     required TResult Function(PluginResponse_AlbumDetails value) albumDetails,
     required TResult Function(PluginResponse_ArtistDetails value) artistDetails,
     required TResult Function(PluginResponse_PlaylistDetails value)
@@ -3260,6 +3356,8 @@ extension PluginResponsePatterns on PluginResponse {
   }) {
     final _that = this;
     switch (_that) {
+      case PluginResponse_TrackDetails():
+        return trackDetails(_that);
       case PluginResponse_AlbumDetails():
         return albumDetails(_that);
       case PluginResponse_ArtistDetails():
@@ -3317,6 +3415,7 @@ extension PluginResponsePatterns on PluginResponse {
 
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(PluginResponse_TrackDetails value)? trackDetails,
     TResult? Function(PluginResponse_AlbumDetails value)? albumDetails,
     TResult? Function(PluginResponse_ArtistDetails value)? artistDetails,
     TResult? Function(PluginResponse_PlaylistDetails value)? playlistDetails,
@@ -3341,6 +3440,8 @@ extension PluginResponsePatterns on PluginResponse {
   }) {
     final _that = this;
     switch (_that) {
+      case PluginResponse_TrackDetails() when trackDetails != null:
+        return trackDetails(_that);
       case PluginResponse_AlbumDetails() when albumDetails != null:
         return albumDetails(_that);
       case PluginResponse_ArtistDetails() when artistDetails != null:
@@ -3401,6 +3502,7 @@ extension PluginResponsePatterns on PluginResponse {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(Track field0)? trackDetails,
     TResult Function(AlbumDetails field0)? albumDetails,
     TResult Function(ArtistDetails field0)? artistDetails,
     TResult Function(PlaylistDetails field0)? playlistDetails,
@@ -3425,6 +3527,8 @@ extension PluginResponsePatterns on PluginResponse {
   }) {
     final _that = this;
     switch (_that) {
+      case PluginResponse_TrackDetails() when trackDetails != null:
+        return trackDetails(_that.field0);
       case PluginResponse_AlbumDetails() when albumDetails != null:
         return albumDetails(_that.field0);
       case PluginResponse_ArtistDetails() when artistDetails != null:
@@ -3486,6 +3590,7 @@ extension PluginResponsePatterns on PluginResponse {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(Track field0) trackDetails,
     required TResult Function(AlbumDetails field0) albumDetails,
     required TResult Function(ArtistDetails field0) artistDetails,
     required TResult Function(PlaylistDetails field0) playlistDetails,
@@ -3511,6 +3616,8 @@ extension PluginResponsePatterns on PluginResponse {
   }) {
     final _that = this;
     switch (_that) {
+      case PluginResponse_TrackDetails():
+        return trackDetails(_that.field0);
       case PluginResponse_AlbumDetails():
         return albumDetails(_that.field0);
       case PluginResponse_ArtistDetails():
@@ -3568,6 +3675,7 @@ extension PluginResponsePatterns on PluginResponse {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(Track field0)? trackDetails,
     TResult? Function(AlbumDetails field0)? albumDetails,
     TResult? Function(ArtistDetails field0)? artistDetails,
     TResult? Function(PlaylistDetails field0)? playlistDetails,
@@ -3591,6 +3699,8 @@ extension PluginResponsePatterns on PluginResponse {
   }) {
     final _that = this;
     switch (_that) {
+      case PluginResponse_TrackDetails() when trackDetails != null:
+        return trackDetails(_that.field0);
       case PluginResponse_AlbumDetails() when albumDetails != null:
         return albumDetails(_that.field0);
       case PluginResponse_ArtistDetails() when artistDetails != null:
@@ -3635,6 +3745,72 @@ extension PluginResponsePatterns on PluginResponse {
       case _:
         return null;
     }
+  }
+}
+
+/// @nodoc
+
+class PluginResponse_TrackDetails extends PluginResponse {
+  const PluginResponse_TrackDetails(this.field0) : super._();
+
+  final Track field0;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PluginResponse_TrackDetailsCopyWith<PluginResponse_TrackDetails>
+      get copyWith => _$PluginResponse_TrackDetailsCopyWithImpl<
+          PluginResponse_TrackDetails>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PluginResponse_TrackDetails &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @override
+  String toString() {
+    return 'PluginResponse.trackDetails(field0: $field0)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PluginResponse_TrackDetailsCopyWith<$Res>
+    implements $PluginResponseCopyWith<$Res> {
+  factory $PluginResponse_TrackDetailsCopyWith(
+          PluginResponse_TrackDetails value,
+          $Res Function(PluginResponse_TrackDetails) _then) =
+      _$PluginResponse_TrackDetailsCopyWithImpl;
+  @useResult
+  $Res call({Track field0});
+}
+
+/// @nodoc
+class _$PluginResponse_TrackDetailsCopyWithImpl<$Res>
+    implements $PluginResponse_TrackDetailsCopyWith<$Res> {
+  _$PluginResponse_TrackDetailsCopyWithImpl(this._self, this._then);
+
+  final PluginResponse_TrackDetails _self;
+  final $Res Function(PluginResponse_TrackDetails) _then;
+
+  /// Create a copy of PluginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(PluginResponse_TrackDetails(
+      null == field0
+          ? _self.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as Track,
+    ));
   }
 }
 

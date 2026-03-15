@@ -1508,6 +1508,19 @@ class AppLocalizationsHi extends AppLocalizations {
   String get songInfoOpenFailed => 'लिंक नहीं खोल सका';
 
   @override
+  String get songInfoUpdateMetadata => 'नवीनतम मेटाडेटा प्राप्त करें';
+
+  @override
+  String get songInfoMetadataUpdated => 'मेटाडेटा अपडेट हो गया';
+
+  @override
+  String get songInfoMetadataUpdateFailed => 'मेटाडेटा अपडेट नहीं हो सका';
+
+  @override
+  String get songInfoMetadataUnavailable =>
+      'इस स्रोत के लिए मेटाडेटा रीफ्रेश उपलब्ध नहीं है';
+
+  @override
   String get songInfoSearchTitle => 'इस गाने को Bloomee में खोजें';
 
   @override

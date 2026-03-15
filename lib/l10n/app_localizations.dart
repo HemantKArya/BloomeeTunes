@@ -2732,6 +2732,30 @@ abstract class AppLocalizations {
   /// **'Could not open link'**
   String get songInfoOpenFailed;
 
+  /// No description provided for @songInfoUpdateMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Get latest metadata'**
+  String get songInfoUpdateMetadata;
+
+  /// No description provided for @songInfoMetadataUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata updated'**
+  String get songInfoMetadataUpdated;
+
+  /// No description provided for @songInfoMetadataUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update metadata'**
+  String get songInfoMetadataUpdateFailed;
+
+  /// No description provided for @songInfoMetadataUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata refresh is unavailable for this source'**
+  String get songInfoMetadataUnavailable;
+
   /// No description provided for @songInfoSearchTitle.
   ///
   /// In en, this message translates to:

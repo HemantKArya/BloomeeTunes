@@ -181,6 +181,18 @@ impl Plugin for ContentResolverPluginAdapter {
             let plugin_id = &self.name;
 
             let response = match command {
+                ContentResolverCommand::GetTrackDetails { id } => {
+                    let func = exports_data_source::get_get_track_details(
+                        &state.instance,
+                        &mut state.store,
+                    )
+                    .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?;
+                    let result = func
+                        .call(&mut state.store, id)
+                        .map_err(|e| PluginError::WasmExecutionError(e.to_string()))?
+                        .map_err(|e| PluginError::WasmExecutionError(e))?;
+                    Ok(PluginResponse::TrackDetails(to_audio_track(result)))
+                }
                 ContentResolverCommand::GetHomeSections => {
                     let func =
                         exports_discovery::get_get_home_sections(&state.instance, &mut state.store)
@@ -613,6 +625,7 @@ fn stamp_paged_albums(pid: &str, mut p: PagedAlbums) -> PagedAlbums {
 
 fn stamp_response(plugin_id: &str, response: PluginResponse) -> PluginResponse {
     match response {
+        PluginResponse::TrackDetails(t) => PluginResponse::TrackDetails(stamp_track(plugin_id, t)),
         PluginResponse::Search(p) => PluginResponse::Search(stamp_paged_media_items(plugin_id, p)),
         PluginResponse::AlbumDetails(d) => PluginResponse::AlbumDetails(AlbumDetails {
             summary: stamp_album(plugin_id, d.summary),

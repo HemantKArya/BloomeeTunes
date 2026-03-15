@@ -2,24 +2,47 @@
 import 'dart:ui';
 
 import 'package:Bloomee/core/constants/route_paths.dart';
+import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
+import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
+import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
+import 'package:Bloomee/services/db/dao/track_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/src/rust/api/plugin/commands.dart';
+import 'package:Bloomee/src/rust/api/plugin/types.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SongInfoScreen extends StatelessWidget {
+class SongInfoScreen extends StatefulWidget {
   final Track song;
   const SongInfoScreen({
     Key? key,
     required this.song,
   }) : super(key: key);
+
+  @override
+  State<SongInfoScreen> createState() => _SongInfoScreenState();
+}
+
+class _SongInfoScreenState extends State<SongInfoScreen> {
+  late Track _song;
+  bool _isRefreshingMetadata = false;
+
+  Track get song => _song;
+
+  @override
+  void initState() {
+    super.initState();
+    _song = widget.song;
+  }
 
   String _formatDuration(BigInt? durationMs) {
     if (durationMs == null) return "0:00";
@@ -37,6 +60,64 @@ class SongInfoScreen extends StatelessWidget {
 
   IconData _getSourceIcon() {
     return MingCute.plugin_2_fill;
+  }
+
+  Future<void> _refreshMetadata(BuildContext context) async {
+    if (_isRefreshingMetadata) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final parts = tryParseMediaId(song.id);
+    if (parts == null) {
+      SnackbarService.showMessage(l10n.songInfoMetadataUpdateFailed);
+      return;
+    }
+
+    final pluginService = ServiceLocator.pluginService;
+    if (!pluginService.isInitialized) {
+      SnackbarService.showMessage(l10n.songInfoMetadataUnavailable);
+      return;
+    }
+
+    final isLoaded = await pluginService.isPluginLoaded(
+      pluginId: parts.pluginId,
+      pluginType: PluginType.contentResolver,
+    );
+    if (!isLoaded) {
+      SnackbarService.showMessage(l10n.songInfoMetadataUnavailable);
+      return;
+    }
+
+    setState(() => _isRefreshingMetadata = true);
+    try {
+      final response = await pluginService.execute(
+        pluginId: parts.pluginId,
+        request: PluginRequest.contentResolver(
+          ContentResolverCommand.getTrackDetails(id: parts.localId),
+        ),
+      );
+
+      if (response is! PluginResponse_TrackDetails) {
+        SnackbarService.showMessage(l10n.songInfoMetadataUpdateFailed);
+        return;
+      }
+
+      final refreshedTrack = response.field0;
+      await TrackDAO(DBProvider.db).upsertTrack(refreshedTrack);
+
+      if (!mounted) return;
+      setState(() {
+        _song = refreshedTrack;
+      });
+      SnackbarService.showMessage(l10n.songInfoMetadataUpdated);
+    } on PluginException {
+      SnackbarService.showMessage(l10n.songInfoMetadataUpdateFailed);
+    } catch (_) {
+      SnackbarService.showMessage(l10n.songInfoMetadataUpdateFailed);
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshingMetadata = false);
+      }
+    }
   }
 
   @override
@@ -391,6 +472,17 @@ class SongInfoScreen extends StatelessWidget {
         // Actions Section
         _SectionHeader(title: l10n.songInfoSectionActions),
         const SizedBox(height: 16),
+        _ActionButton(
+          icon: MingCute.refresh_3_fill,
+          label: l10n.songInfoUpdateMetadata,
+          isWide: true,
+          isPrimary: false,
+          isLoading: _isRefreshingMetadata,
+          onTap: () => _refreshMetadata(context),
+        ),
+
+        const SizedBox(height: 16),
+
         Row(
           children: [
             Expanded(
@@ -621,7 +713,8 @@ class _ActionButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final bool isWide;
-  final bool isPrimary; // Default true based on your snippet
+  final bool isPrimary;
+  final bool isLoading;
 
   const _ActionButton({
     required this.icon,
@@ -629,14 +722,17 @@ class _ActionButton extends StatelessWidget {
     required this.onTap,
     this.isWide = false,
     this.isPrimary = true,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isEnabled = !isLoading;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: isEnabled ? onTap : null,
         borderRadius: BorderRadius.circular(18),
         splashColor: (isPrimary
                 ? Default_Theme.accentColor2
@@ -665,13 +761,25 @@ class _ActionButton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: isWide ? MainAxisSize.max : MainAxisSize.min,
               children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: isPrimary
-                      ? Default_Theme.accentColor2
-                      : Default_Theme.primaryColor2.withValues(alpha: 0.9),
-                ),
+                if (isLoading)
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: isPrimary
+                          ? Default_Theme.accentColor2
+                          : Default_Theme.primaryColor2.withValues(alpha: 0.9),
+                    ),
+                  )
+                else
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: isPrimary
+                        ? Default_Theme.accentColor2
+                        : Default_Theme.primaryColor2.withValues(alpha: 0.9),
+                  ),
                 const SizedBox(width: 12),
                 Flexible(
                   child: Text(

@@ -4178,6 +4178,9 @@ const _: fn() = || {
         }
     }
     match None::<crate::api::plugin::commands::ContentResolverCommand>.unwrap() {
+        crate::api::plugin::commands::ContentResolverCommand::GetTrackDetails { id } => {
+            let _: String = id;
+        }
         crate::api::plugin::commands::ContentResolverCommand::GetAlbumDetails { id } => {
             let _: String = id;
         }
@@ -4302,6 +4305,9 @@ const _: fn() = || {
         }
     }
     match None::<crate::api::plugin::commands::PluginResponse>.unwrap() {
+        crate::api::plugin::commands::PluginResponse::TrackDetails(field0) => {
+            let _: crate::api::plugin::models::Track = field0;
+        }
         crate::api::plugin::commands::PluginResponse::AlbumDetails(field0) => {
             let _: crate::api::plugin::models::AlbumDetails = field0;
         }
@@ -4718,29 +4724,35 @@ impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
         match tag_ {
             0 => {
                 let mut var_id = <String>::sse_decode(deserializer);
-                return crate::api::plugin::commands::ContentResolverCommand::GetAlbumDetails {
+                return crate::api::plugin::commands::ContentResolverCommand::GetTrackDetails {
                     id: var_id,
                 };
             }
             1 => {
                 let mut var_id = <String>::sse_decode(deserializer);
-                return crate::api::plugin::commands::ContentResolverCommand::GetArtistDetails {
+                return crate::api::plugin::commands::ContentResolverCommand::GetAlbumDetails {
                     id: var_id,
                 };
             }
             2 => {
                 let mut var_id = <String>::sse_decode(deserializer);
-                return crate::api::plugin::commands::ContentResolverCommand::GetPlaylistDetails {
+                return crate::api::plugin::commands::ContentResolverCommand::GetArtistDetails {
                     id: var_id,
                 };
             }
             3 => {
                 let mut var_id = <String>::sse_decode(deserializer);
-                return crate::api::plugin::commands::ContentResolverCommand::GetStreams {
+                return crate::api::plugin::commands::ContentResolverCommand::GetPlaylistDetails {
                     id: var_id,
                 };
             }
             4 => {
+                let mut var_id = <String>::sse_decode(deserializer);
+                return crate::api::plugin::commands::ContentResolverCommand::GetStreams {
+                    id: var_id,
+                };
+            }
+            5 => {
                 let mut var_query = <String>::sse_decode(deserializer);
                 let mut var_filter =
                     <crate::api::plugin::commands::ContentSearchFilter>::sse_decode(deserializer);
@@ -4751,7 +4763,7 @@ impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
                     page_token: var_pageToken,
                 };
             }
-            5 => {
+            6 => {
                 let mut var_id = <String>::sse_decode(deserializer);
                 let mut var_pageToken = <String>::sse_decode(deserializer);
                 return crate::api::plugin::commands::ContentResolverCommand::MoreAlbumTracks {
@@ -4759,7 +4771,7 @@ impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
                     page_token: var_pageToken,
                 };
             }
-            6 => {
+            7 => {
                 let mut var_id = <String>::sse_decode(deserializer);
                 let mut var_pageToken = <String>::sse_decode(deserializer);
                 return crate::api::plugin::commands::ContentResolverCommand::MoreArtistAlbums {
@@ -4767,7 +4779,7 @@ impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
                     page_token: var_pageToken,
                 };
             }
-            7 => {
+            8 => {
                 let mut var_id = <String>::sse_decode(deserializer);
                 let mut var_pageToken = <String>::sse_decode(deserializer);
                 return crate::api::plugin::commands::ContentResolverCommand::MorePlaylistTracks {
@@ -4775,7 +4787,7 @@ impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
                     page_token: var_pageToken,
                 };
             }
-            8 => {
+            9 => {
                 let mut var_id = <String>::sse_decode(deserializer);
                 let mut var_pageToken = <Option<String>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::ContentResolverCommand::GetRadioTracks {
@@ -4783,10 +4795,10 @@ impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
                     page_token: var_pageToken,
                 };
             }
-            9 => {
+            10 => {
                 return crate::api::plugin::commands::ContentResolverCommand::GetHomeSections;
             }
-            10 => {
+            11 => {
                 let mut var_id = <String>::sse_decode(deserializer);
                 let mut var_moreLink = <String>::sse_decode(deserializer);
                 return crate::api::plugin::commands::ContentResolverCommand::LoadMore {
@@ -4794,7 +4806,7 @@ impl SseDecode for crate::api::plugin::commands::ContentResolverCommand {
                     more_link: var_moreLink,
                 };
             }
-            11 => {
+            12 => {
                 let mut var_id = <String>::sse_decode(deserializer);
                 return crate::api::plugin::commands::ContentResolverCommand::GetSegmentsForTrack {
                     id: var_id,
@@ -6088,80 +6100,84 @@ impl SseDecode for crate::api::plugin::commands::PluginResponse {
         let mut tag_ = <i32>::sse_decode(deserializer);
         match tag_ {
             0 => {
+                let mut var_field0 = <crate::api::plugin::models::Track>::sse_decode(deserializer);
+                return crate::api::plugin::commands::PluginResponse::TrackDetails(var_field0);
+            }
+            1 => {
                 let mut var_field0 =
                     <crate::api::plugin::models::AlbumDetails>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::AlbumDetails(var_field0);
             }
-            1 => {
+            2 => {
                 let mut var_field0 =
                     <crate::api::plugin::models::ArtistDetails>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::ArtistDetails(var_field0);
             }
-            2 => {
+            3 => {
                 let mut var_field0 =
                     <crate::api::plugin::models::PlaylistDetails>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::PlaylistDetails(var_field0);
             }
-            3 => {
+            4 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::StreamSource>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::Streams(var_field0);
             }
-            4 => {
+            5 => {
                 let mut var_field0 =
                     <crate::api::plugin::models::PagedMediaItems>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::Search(var_field0);
             }
-            5 => {
+            6 => {
                 let mut var_field0 =
                     <crate::api::plugin::models::PagedTracks>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::MoreTracks(var_field0);
             }
-            6 => {
+            7 => {
                 let mut var_field0 =
                     <crate::api::plugin::models::PagedAlbums>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::MoreAlbums(var_field0);
             }
-            7 => {
+            8 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::Section>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::HomeSections(var_field0);
             }
-            8 => {
+            9 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::MediaItem>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::LoadMoreItems(var_field0);
             }
-            9 => {
+            10 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::ChartSummary>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::Charts(var_field0);
             }
-            10 => {
+            11 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::ChartItem>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::ChartDetails(var_field0);
             }
-            11 => {
+            12 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::TrackSegment>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::Segments(var_field0);
             }
-            12 => {
+            13 => {
                 let mut var_field0 = <Option<(
                     crate::api::plugin::models::PluginLyrics,
                     crate::api::plugin::models::LyricsMetadata,
                 )>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::LyricsResult(var_field0);
             }
-            13 => {
+            14 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::LyricsMatch>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::LyricsSearchResults(
                     var_field0,
                 );
             }
-            14 => {
+            15 => {
                 let mut var_field0 =
                     <crate::api::plugin::models::PluginLyrics>::sse_decode(deserializer);
                 let mut var_field1 =
@@ -6170,26 +6186,26 @@ impl SseDecode for crate::api::plugin::commands::PluginResponse {
                     var_field0, var_field1,
                 );
             }
-            15 => {
+            16 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::Suggestion>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::Suggestions(var_field0);
             }
-            16 => {
+            17 => {
                 let mut var_field0 = <bool>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::CanHandle(var_field0);
             }
-            17 => {
+            18 => {
                 let mut var_field0 =
                     <crate::api::plugin::models::ImportCollectionSummary>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::CollectionInfo(var_field0);
             }
-            18 => {
+            19 => {
                 let mut var_field0 =
                     <Vec<crate::api::plugin::models::ImportTrackItem>>::sse_decode(deserializer);
                 return crate::api::plugin::commands::PluginResponse::ImportTracks(var_field0);
             }
-            19 => {
+            20 => {
                 return crate::api::plugin::commands::PluginResponse::Ack;
             }
             _ => {
@@ -7150,24 +7166,27 @@ impl flutter_rust_bridge::IntoDart
 {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self.0 {
-            crate::api::plugin::commands::ContentResolverCommand::GetAlbumDetails { id } => {
+            crate::api::plugin::commands::ContentResolverCommand::GetTrackDetails { id } => {
                 [0.into_dart(), id.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::ContentResolverCommand::GetArtistDetails { id } => {
+            crate::api::plugin::commands::ContentResolverCommand::GetAlbumDetails { id } => {
                 [1.into_dart(), id.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::ContentResolverCommand::GetPlaylistDetails { id } => {
+            crate::api::plugin::commands::ContentResolverCommand::GetArtistDetails { id } => {
                 [2.into_dart(), id.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::ContentResolverCommand::GetStreams { id } => {
+            crate::api::plugin::commands::ContentResolverCommand::GetPlaylistDetails { id } => {
                 [3.into_dart(), id.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::ContentResolverCommand::GetStreams { id } => {
+                [4.into_dart(), id.into_into_dart().into_dart()].into_dart()
             }
             crate::api::plugin::commands::ContentResolverCommand::Search {
                 query,
                 filter,
                 page_token,
             } => [
-                4.into_dart(),
+                5.into_dart(),
                 query.into_into_dart().into_dart(),
                 filter.into_into_dart().into_dart(),
                 page_token.into_into_dart().into_dart(),
@@ -7177,7 +7196,7 @@ impl flutter_rust_bridge::IntoDart
                 id,
                 page_token,
             } => [
-                5.into_dart(),
+                6.into_dart(),
                 id.into_into_dart().into_dart(),
                 page_token.into_into_dart().into_dart(),
             ]
@@ -7186,7 +7205,7 @@ impl flutter_rust_bridge::IntoDart
                 id,
                 page_token,
             } => [
-                6.into_dart(),
+                7.into_dart(),
                 id.into_into_dart().into_dart(),
                 page_token.into_into_dart().into_dart(),
             ]
@@ -7195,7 +7214,7 @@ impl flutter_rust_bridge::IntoDart
                 id,
                 page_token,
             } => [
-                7.into_dart(),
+                8.into_dart(),
                 id.into_into_dart().into_dart(),
                 page_token.into_into_dart().into_dart(),
             ]
@@ -7204,22 +7223,22 @@ impl flutter_rust_bridge::IntoDart
                 id,
                 page_token,
             } => [
-                8.into_dart(),
+                9.into_dart(),
                 id.into_into_dart().into_dart(),
                 page_token.into_into_dart().into_dart(),
             ]
             .into_dart(),
             crate::api::plugin::commands::ContentResolverCommand::GetHomeSections => {
-                [9.into_dart()].into_dart()
+                [10.into_dart()].into_dart()
             }
             crate::api::plugin::commands::ContentResolverCommand::LoadMore { id, more_link } => [
-                10.into_dart(),
+                11.into_dart(),
                 id.into_into_dart().into_dart(),
                 more_link.into_into_dart().into_dart(),
             ]
             .into_dart(),
             crate::api::plugin::commands::ContentResolverCommand::GetSegmentsForTrack { id } => {
-                [11.into_dart(), id.into_into_dart().into_dart()].into_dart()
+                [12.into_dart(), id.into_into_dart().into_dart()].into_dart()
             }
             _ => {
                 unimplemented!("");
@@ -8203,67 +8222,70 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::api::plugin::commands::
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::plugin::commands::PluginResponse> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self.0 {
-            crate::api::plugin::commands::PluginResponse::AlbumDetails(field0) => {
+            crate::api::plugin::commands::PluginResponse::TrackDetails(field0) => {
                 [0.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::ArtistDetails(field0) => {
+            crate::api::plugin::commands::PluginResponse::AlbumDetails(field0) => {
                 [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::PlaylistDetails(field0) => {
+            crate::api::plugin::commands::PluginResponse::ArtistDetails(field0) => {
                 [2.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::Streams(field0) => {
+            crate::api::plugin::commands::PluginResponse::PlaylistDetails(field0) => {
                 [3.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::Search(field0) => {
+            crate::api::plugin::commands::PluginResponse::Streams(field0) => {
                 [4.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::MoreTracks(field0) => {
+            crate::api::plugin::commands::PluginResponse::Search(field0) => {
                 [5.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::MoreAlbums(field0) => {
+            crate::api::plugin::commands::PluginResponse::MoreTracks(field0) => {
                 [6.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::HomeSections(field0) => {
+            crate::api::plugin::commands::PluginResponse::MoreAlbums(field0) => {
                 [7.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::LoadMoreItems(field0) => {
+            crate::api::plugin::commands::PluginResponse::HomeSections(field0) => {
                 [8.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::Charts(field0) => {
+            crate::api::plugin::commands::PluginResponse::LoadMoreItems(field0) => {
                 [9.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::ChartDetails(field0) => {
+            crate::api::plugin::commands::PluginResponse::Charts(field0) => {
                 [10.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::Segments(field0) => {
+            crate::api::plugin::commands::PluginResponse::ChartDetails(field0) => {
                 [11.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::LyricsResult(field0) => {
+            crate::api::plugin::commands::PluginResponse::Segments(field0) => {
                 [12.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::LyricsSearchResults(field0) => {
+            crate::api::plugin::commands::PluginResponse::LyricsResult(field0) => {
                 [13.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
+            crate::api::plugin::commands::PluginResponse::LyricsSearchResults(field0) => {
+                [14.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
             crate::api::plugin::commands::PluginResponse::LyricsById(field0, field1) => [
-                14.into_dart(),
+                15.into_dart(),
                 field0.into_into_dart().into_dart(),
                 field1.into_into_dart().into_dart(),
             ]
             .into_dart(),
             crate::api::plugin::commands::PluginResponse::Suggestions(field0) => {
-                [15.into_dart(), field0.into_into_dart().into_dart()].into_dart()
-            }
-            crate::api::plugin::commands::PluginResponse::CanHandle(field0) => {
                 [16.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::CollectionInfo(field0) => {
+            crate::api::plugin::commands::PluginResponse::CanHandle(field0) => {
                 [17.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::ImportTracks(field0) => {
+            crate::api::plugin::commands::PluginResponse::CollectionInfo(field0) => {
                 [18.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
-            crate::api::plugin::commands::PluginResponse::Ack => [19.into_dart()].into_dart(),
+            crate::api::plugin::commands::PluginResponse::ImportTracks(field0) => {
+                [19.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::plugin::commands::PluginResponse::Ack => [20.into_dart()].into_dart(),
             _ => {
                 unimplemented!("");
             }
@@ -8850,20 +8872,24 @@ impl SseEncode for crate::api::plugin::commands::ContentResolverCommand {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         match self {
-            crate::api::plugin::commands::ContentResolverCommand::GetAlbumDetails { id } => {
+            crate::api::plugin::commands::ContentResolverCommand::GetTrackDetails { id } => {
                 <i32>::sse_encode(0, serializer);
                 <String>::sse_encode(id, serializer);
             }
-            crate::api::plugin::commands::ContentResolverCommand::GetArtistDetails { id } => {
+            crate::api::plugin::commands::ContentResolverCommand::GetAlbumDetails { id } => {
                 <i32>::sse_encode(1, serializer);
                 <String>::sse_encode(id, serializer);
             }
-            crate::api::plugin::commands::ContentResolverCommand::GetPlaylistDetails { id } => {
+            crate::api::plugin::commands::ContentResolverCommand::GetArtistDetails { id } => {
                 <i32>::sse_encode(2, serializer);
                 <String>::sse_encode(id, serializer);
             }
-            crate::api::plugin::commands::ContentResolverCommand::GetStreams { id } => {
+            crate::api::plugin::commands::ContentResolverCommand::GetPlaylistDetails { id } => {
                 <i32>::sse_encode(3, serializer);
+                <String>::sse_encode(id, serializer);
+            }
+            crate::api::plugin::commands::ContentResolverCommand::GetStreams { id } => {
+                <i32>::sse_encode(4, serializer);
                 <String>::sse_encode(id, serializer);
             }
             crate::api::plugin::commands::ContentResolverCommand::Search {
@@ -8871,7 +8897,7 @@ impl SseEncode for crate::api::plugin::commands::ContentResolverCommand {
                 filter,
                 page_token,
             } => {
-                <i32>::sse_encode(4, serializer);
+                <i32>::sse_encode(5, serializer);
                 <String>::sse_encode(query, serializer);
                 <crate::api::plugin::commands::ContentSearchFilter>::sse_encode(filter, serializer);
                 <Option<String>>::sse_encode(page_token, serializer);
@@ -8880,7 +8906,7 @@ impl SseEncode for crate::api::plugin::commands::ContentResolverCommand {
                 id,
                 page_token,
             } => {
-                <i32>::sse_encode(5, serializer);
+                <i32>::sse_encode(6, serializer);
                 <String>::sse_encode(id, serializer);
                 <String>::sse_encode(page_token, serializer);
             }
@@ -8888,7 +8914,7 @@ impl SseEncode for crate::api::plugin::commands::ContentResolverCommand {
                 id,
                 page_token,
             } => {
-                <i32>::sse_encode(6, serializer);
+                <i32>::sse_encode(7, serializer);
                 <String>::sse_encode(id, serializer);
                 <String>::sse_encode(page_token, serializer);
             }
@@ -8896,7 +8922,7 @@ impl SseEncode for crate::api::plugin::commands::ContentResolverCommand {
                 id,
                 page_token,
             } => {
-                <i32>::sse_encode(7, serializer);
+                <i32>::sse_encode(8, serializer);
                 <String>::sse_encode(id, serializer);
                 <String>::sse_encode(page_token, serializer);
             }
@@ -8904,20 +8930,20 @@ impl SseEncode for crate::api::plugin::commands::ContentResolverCommand {
                 id,
                 page_token,
             } => {
-                <i32>::sse_encode(8, serializer);
+                <i32>::sse_encode(9, serializer);
                 <String>::sse_encode(id, serializer);
                 <Option<String>>::sse_encode(page_token, serializer);
             }
             crate::api::plugin::commands::ContentResolverCommand::GetHomeSections => {
-                <i32>::sse_encode(9, serializer);
+                <i32>::sse_encode(10, serializer);
             }
             crate::api::plugin::commands::ContentResolverCommand::LoadMore { id, more_link } => {
-                <i32>::sse_encode(10, serializer);
+                <i32>::sse_encode(11, serializer);
                 <String>::sse_encode(id, serializer);
                 <String>::sse_encode(more_link, serializer);
             }
             crate::api::plugin::commands::ContentResolverCommand::GetSegmentsForTrack { id } => {
-                <i32>::sse_encode(11, serializer);
+                <i32>::sse_encode(12, serializer);
                 <String>::sse_encode(id, serializer);
             }
             _ => {
@@ -9906,90 +9932,94 @@ impl SseEncode for crate::api::plugin::commands::PluginResponse {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         match self {
-            crate::api::plugin::commands::PluginResponse::AlbumDetails(field0) => {
+            crate::api::plugin::commands::PluginResponse::TrackDetails(field0) => {
                 <i32>::sse_encode(0, serializer);
+                <crate::api::plugin::models::Track>::sse_encode(field0, serializer);
+            }
+            crate::api::plugin::commands::PluginResponse::AlbumDetails(field0) => {
+                <i32>::sse_encode(1, serializer);
                 <crate::api::plugin::models::AlbumDetails>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::ArtistDetails(field0) => {
-                <i32>::sse_encode(1, serializer);
+                <i32>::sse_encode(2, serializer);
                 <crate::api::plugin::models::ArtistDetails>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::PlaylistDetails(field0) => {
-                <i32>::sse_encode(2, serializer);
+                <i32>::sse_encode(3, serializer);
                 <crate::api::plugin::models::PlaylistDetails>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::Streams(field0) => {
-                <i32>::sse_encode(3, serializer);
+                <i32>::sse_encode(4, serializer);
                 <Vec<crate::api::plugin::models::StreamSource>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::Search(field0) => {
-                <i32>::sse_encode(4, serializer);
+                <i32>::sse_encode(5, serializer);
                 <crate::api::plugin::models::PagedMediaItems>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::MoreTracks(field0) => {
-                <i32>::sse_encode(5, serializer);
+                <i32>::sse_encode(6, serializer);
                 <crate::api::plugin::models::PagedTracks>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::MoreAlbums(field0) => {
-                <i32>::sse_encode(6, serializer);
+                <i32>::sse_encode(7, serializer);
                 <crate::api::plugin::models::PagedAlbums>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::HomeSections(field0) => {
-                <i32>::sse_encode(7, serializer);
+                <i32>::sse_encode(8, serializer);
                 <Vec<crate::api::plugin::models::Section>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::LoadMoreItems(field0) => {
-                <i32>::sse_encode(8, serializer);
+                <i32>::sse_encode(9, serializer);
                 <Vec<crate::api::plugin::models::MediaItem>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::Charts(field0) => {
-                <i32>::sse_encode(9, serializer);
+                <i32>::sse_encode(10, serializer);
                 <Vec<crate::api::plugin::models::ChartSummary>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::ChartDetails(field0) => {
-                <i32>::sse_encode(10, serializer);
+                <i32>::sse_encode(11, serializer);
                 <Vec<crate::api::plugin::models::ChartItem>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::Segments(field0) => {
-                <i32>::sse_encode(11, serializer);
+                <i32>::sse_encode(12, serializer);
                 <Vec<crate::api::plugin::models::TrackSegment>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::LyricsResult(field0) => {
-                <i32>::sse_encode(12, serializer);
+                <i32>::sse_encode(13, serializer);
                 <Option<(
                     crate::api::plugin::models::PluginLyrics,
                     crate::api::plugin::models::LyricsMetadata,
                 )>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::LyricsSearchResults(field0) => {
-                <i32>::sse_encode(13, serializer);
+                <i32>::sse_encode(14, serializer);
                 <Vec<crate::api::plugin::models::LyricsMatch>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::LyricsById(field0, field1) => {
-                <i32>::sse_encode(14, serializer);
+                <i32>::sse_encode(15, serializer);
                 <crate::api::plugin::models::PluginLyrics>::sse_encode(field0, serializer);
                 <crate::api::plugin::models::LyricsMetadata>::sse_encode(field1, serializer);
             }
             crate::api::plugin::commands::PluginResponse::Suggestions(field0) => {
-                <i32>::sse_encode(15, serializer);
+                <i32>::sse_encode(16, serializer);
                 <Vec<crate::api::plugin::models::Suggestion>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::CanHandle(field0) => {
-                <i32>::sse_encode(16, serializer);
+                <i32>::sse_encode(17, serializer);
                 <bool>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::CollectionInfo(field0) => {
-                <i32>::sse_encode(17, serializer);
+                <i32>::sse_encode(18, serializer);
                 <crate::api::plugin::models::ImportCollectionSummary>::sse_encode(
                     field0, serializer,
                 );
             }
             crate::api::plugin::commands::PluginResponse::ImportTracks(field0) => {
-                <i32>::sse_encode(18, serializer);
+                <i32>::sse_encode(19, serializer);
                 <Vec<crate::api::plugin::models::ImportTrackItem>>::sse_encode(field0, serializer);
             }
             crate::api::plugin::commands::PluginResponse::Ack => {
-                <i32>::sse_encode(19, serializer);
+                <i32>::sse_encode(20, serializer);
             }
             _ => {
                 unimplemented!("");

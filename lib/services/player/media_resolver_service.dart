@@ -165,6 +165,8 @@ class MediaResolverService {
               : streamHeadersToMap(selectedStream.headers),
         );
       },
+      trackDetails: (_) =>
+          throw Exception('Unexpected response type: trackDetails'),
       albumDetails: (_) =>
           throw Exception('Unexpected response type: albumDetails'),
       artistDetails: (_) =>

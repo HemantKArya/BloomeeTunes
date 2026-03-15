@@ -41,6 +41,9 @@ sealed class ContentImporterCommand with _$ContentImporterCommand {
 sealed class ContentResolverCommand with _$ContentResolverCommand {
   const ContentResolverCommand._();
 
+  const factory ContentResolverCommand.getTrackDetails({
+    required String id,
+  }) = ContentResolverCommand_GetTrackDetails;
   const factory ContentResolverCommand.getAlbumDetails({
     required String id,
   }) = ContentResolverCommand_GetAlbumDetails;
@@ -134,6 +137,9 @@ sealed class PluginRequest with _$PluginRequest {
 sealed class PluginResponse with _$PluginResponse {
   const PluginResponse._();
 
+  const factory PluginResponse.trackDetails(
+    Track field0,
+  ) = PluginResponse_TrackDetails;
   const factory PluginResponse.albumDetails(
     AlbumDetails field0,
   ) = PluginResponse_AlbumDetails;

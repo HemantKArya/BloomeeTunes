@@ -3053,55 +3053,59 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     switch (raw[0]) {
       case 0:
-        return ContentResolverCommand_GetAlbumDetails(
+        return ContentResolverCommand_GetTrackDetails(
           id: dco_decode_String(raw[1]),
         );
       case 1:
-        return ContentResolverCommand_GetArtistDetails(
+        return ContentResolverCommand_GetAlbumDetails(
           id: dco_decode_String(raw[1]),
         );
       case 2:
-        return ContentResolverCommand_GetPlaylistDetails(
+        return ContentResolverCommand_GetArtistDetails(
           id: dco_decode_String(raw[1]),
         );
       case 3:
-        return ContentResolverCommand_GetStreams(
+        return ContentResolverCommand_GetPlaylistDetails(
           id: dco_decode_String(raw[1]),
         );
       case 4:
+        return ContentResolverCommand_GetStreams(
+          id: dco_decode_String(raw[1]),
+        );
+      case 5:
         return ContentResolverCommand_Search(
           query: dco_decode_String(raw[1]),
           filter: dco_decode_content_search_filter(raw[2]),
           pageToken: dco_decode_opt_String(raw[3]),
         );
-      case 5:
+      case 6:
         return ContentResolverCommand_MoreAlbumTracks(
           id: dco_decode_String(raw[1]),
           pageToken: dco_decode_String(raw[2]),
         );
-      case 6:
+      case 7:
         return ContentResolverCommand_MoreArtistAlbums(
           id: dco_decode_String(raw[1]),
           pageToken: dco_decode_String(raw[2]),
         );
-      case 7:
+      case 8:
         return ContentResolverCommand_MorePlaylistTracks(
           id: dco_decode_String(raw[1]),
           pageToken: dco_decode_String(raw[2]),
         );
-      case 8:
+      case 9:
         return ContentResolverCommand_GetRadioTracks(
           id: dco_decode_String(raw[1]),
           pageToken: dco_decode_opt_String(raw[2]),
         );
-      case 9:
-        return const ContentResolverCommand_GetHomeSections();
       case 10:
+        return const ContentResolverCommand_GetHomeSections();
+      case 11:
         return ContentResolverCommand_LoadMore(
           id: dco_decode_String(raw[1]),
           moreLink: dco_decode_String(raw[2]),
         );
-      case 11:
+      case 12:
         return ContentResolverCommand_GetSegmentsForTrack(
           id: dco_decode_String(raw[1]),
         );
@@ -3923,84 +3927,88 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     switch (raw[0]) {
       case 0:
+        return PluginResponse_TrackDetails(
+          dco_decode_box_autoadd_track(raw[1]),
+        );
+      case 1:
         return PluginResponse_AlbumDetails(
           dco_decode_box_autoadd_album_details(raw[1]),
         );
-      case 1:
+      case 2:
         return PluginResponse_ArtistDetails(
           dco_decode_box_autoadd_artist_details(raw[1]),
         );
-      case 2:
+      case 3:
         return PluginResponse_PlaylistDetails(
           dco_decode_box_autoadd_playlist_details(raw[1]),
         );
-      case 3:
+      case 4:
         return PluginResponse_Streams(
           dco_decode_list_stream_source(raw[1]),
         );
-      case 4:
+      case 5:
         return PluginResponse_Search(
           dco_decode_box_autoadd_paged_media_items(raw[1]),
         );
-      case 5:
+      case 6:
         return PluginResponse_MoreTracks(
           dco_decode_box_autoadd_paged_tracks(raw[1]),
         );
-      case 6:
+      case 7:
         return PluginResponse_MoreAlbums(
           dco_decode_box_autoadd_paged_albums(raw[1]),
         );
-      case 7:
+      case 8:
         return PluginResponse_HomeSections(
           dco_decode_list_section(raw[1]),
         );
-      case 8:
+      case 9:
         return PluginResponse_LoadMoreItems(
           dco_decode_list_media_item(raw[1]),
         );
-      case 9:
+      case 10:
         return PluginResponse_Charts(
           dco_decode_list_chart_summary(raw[1]),
         );
-      case 10:
+      case 11:
         return PluginResponse_ChartDetails(
           dco_decode_list_chart_item(raw[1]),
         );
-      case 11:
+      case 12:
         return PluginResponse_Segments(
           dco_decode_list_track_segment(raw[1]),
         );
-      case 12:
+      case 13:
         return PluginResponse_LyricsResult(
           dco_decode_opt_box_autoadd_record_plugin_lyrics_lyrics_metadata(
               raw[1]),
         );
-      case 13:
+      case 14:
         return PluginResponse_LyricsSearchResults(
           dco_decode_list_lyrics_match(raw[1]),
         );
-      case 14:
+      case 15:
         return PluginResponse_LyricsById(
           dco_decode_box_autoadd_plugin_lyrics(raw[1]),
           dco_decode_box_autoadd_lyrics_metadata(raw[2]),
         );
-      case 15:
+      case 16:
         return PluginResponse_Suggestions(
           dco_decode_list_suggestion(raw[1]),
         );
-      case 16:
+      case 17:
         return PluginResponse_CanHandle(
           dco_decode_bool(raw[1]),
         );
-      case 17:
+      case 18:
         return PluginResponse_CollectionInfo(
           dco_decode_box_autoadd_import_collection_summary(raw[1]),
         );
-      case 18:
+      case 19:
         return PluginResponse_ImportTracks(
           dco_decode_list_import_track_item(raw[1]),
         );
-      case 19:
+      case 20:
         return const PluginResponse_Ack();
       default:
         throw Exception("unreachable");
@@ -4755,50 +4763,53 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     switch (tag_) {
       case 0:
         var var_id = sse_decode_String(deserializer);
-        return ContentResolverCommand_GetAlbumDetails(id: var_id);
+        return ContentResolverCommand_GetTrackDetails(id: var_id);
       case 1:
         var var_id = sse_decode_String(deserializer);
-        return ContentResolverCommand_GetArtistDetails(id: var_id);
+        return ContentResolverCommand_GetAlbumDetails(id: var_id);
       case 2:
         var var_id = sse_decode_String(deserializer);
-        return ContentResolverCommand_GetPlaylistDetails(id: var_id);
+        return ContentResolverCommand_GetArtistDetails(id: var_id);
       case 3:
         var var_id = sse_decode_String(deserializer);
-        return ContentResolverCommand_GetStreams(id: var_id);
+        return ContentResolverCommand_GetPlaylistDetails(id: var_id);
       case 4:
+        var var_id = sse_decode_String(deserializer);
+        return ContentResolverCommand_GetStreams(id: var_id);
+      case 5:
         var var_query = sse_decode_String(deserializer);
         var var_filter = sse_decode_content_search_filter(deserializer);
         var var_pageToken = sse_decode_opt_String(deserializer);
         return ContentResolverCommand_Search(
             query: var_query, filter: var_filter, pageToken: var_pageToken);
-      case 5:
+      case 6:
         var var_id = sse_decode_String(deserializer);
         var var_pageToken = sse_decode_String(deserializer);
         return ContentResolverCommand_MoreAlbumTracks(
             id: var_id, pageToken: var_pageToken);
-      case 6:
+      case 7:
         var var_id = sse_decode_String(deserializer);
         var var_pageToken = sse_decode_String(deserializer);
         return ContentResolverCommand_MoreArtistAlbums(
             id: var_id, pageToken: var_pageToken);
-      case 7:
+      case 8:
         var var_id = sse_decode_String(deserializer);
         var var_pageToken = sse_decode_String(deserializer);
         return ContentResolverCommand_MorePlaylistTracks(
             id: var_id, pageToken: var_pageToken);
-      case 8:
+      case 9:
         var var_id = sse_decode_String(deserializer);
         var var_pageToken = sse_decode_opt_String(deserializer);
         return ContentResolverCommand_GetRadioTracks(
             id: var_id, pageToken: var_pageToken);
-      case 9:
-        return const ContentResolverCommand_GetHomeSections();
       case 10:
+        return const ContentResolverCommand_GetHomeSections();
+      case 11:
         var var_id = sse_decode_String(deserializer);
         var var_moreLink = sse_decode_String(deserializer);
         return ContentResolverCommand_LoadMore(
             id: var_id, moreLink: var_moreLink);
-      case 11:
+      case 12:
         var var_id = sse_decode_String(deserializer);
         return ContentResolverCommand_GetSegmentsForTrack(id: var_id);
       default:
@@ -5833,67 +5844,70 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var tag_ = sse_decode_i_32(deserializer);
     switch (tag_) {
       case 0:
+        var var_field0 = sse_decode_box_autoadd_track(deserializer);
+        return PluginResponse_TrackDetails(var_field0);
+      case 1:
         var var_field0 = sse_decode_box_autoadd_album_details(deserializer);
         return PluginResponse_AlbumDetails(var_field0);
-      case 1:
+      case 2:
         var var_field0 = sse_decode_box_autoadd_artist_details(deserializer);
         return PluginResponse_ArtistDetails(var_field0);
-      case 2:
+      case 3:
         var var_field0 = sse_decode_box_autoadd_playlist_details(deserializer);
         return PluginResponse_PlaylistDetails(var_field0);
-      case 3:
+      case 4:
         var var_field0 = sse_decode_list_stream_source(deserializer);
         return PluginResponse_Streams(var_field0);
-      case 4:
+      case 5:
         var var_field0 = sse_decode_box_autoadd_paged_media_items(deserializer);
         return PluginResponse_Search(var_field0);
-      case 5:
+      case 6:
         var var_field0 = sse_decode_box_autoadd_paged_tracks(deserializer);
         return PluginResponse_MoreTracks(var_field0);
-      case 6:
+      case 7:
         var var_field0 = sse_decode_box_autoadd_paged_albums(deserializer);
         return PluginResponse_MoreAlbums(var_field0);
-      case 7:
+      case 8:
         var var_field0 = sse_decode_list_section(deserializer);
         return PluginResponse_HomeSections(var_field0);
-      case 8:
+      case 9:
         var var_field0 = sse_decode_list_media_item(deserializer);
         return PluginResponse_LoadMoreItems(var_field0);
-      case 9:
+      case 10:
         var var_field0 = sse_decode_list_chart_summary(deserializer);
         return PluginResponse_Charts(var_field0);
-      case 10:
+      case 11:
         var var_field0 = sse_decode_list_chart_item(deserializer);
         return PluginResponse_ChartDetails(var_field0);
-      case 11:
+      case 12:
         var var_field0 = sse_decode_list_track_segment(deserializer);
         return PluginResponse_Segments(var_field0);
-      case 12:
+      case 13:
         var var_field0 =
             sse_decode_opt_box_autoadd_record_plugin_lyrics_lyrics_metadata(
                 deserializer);
         return PluginResponse_LyricsResult(var_field0);
-      case 13:
+      case 14:
         var var_field0 = sse_decode_list_lyrics_match(deserializer);
         return PluginResponse_LyricsSearchResults(var_field0);
-      case 14:
+      case 15:
         var var_field0 = sse_decode_box_autoadd_plugin_lyrics(deserializer);
         var var_field1 = sse_decode_box_autoadd_lyrics_metadata(deserializer);
         return PluginResponse_LyricsById(var_field0, var_field1);
-      case 15:
+      case 16:
         var var_field0 = sse_decode_list_suggestion(deserializer);
         return PluginResponse_Suggestions(var_field0);
-      case 16:
+      case 17:
         var var_field0 = sse_decode_bool(deserializer);
         return PluginResponse_CanHandle(var_field0);
-      case 17:
+      case 18:
         var var_field0 =
             sse_decode_box_autoadd_import_collection_summary(deserializer);
         return PluginResponse_CollectionInfo(var_field0);
-      case 18:
+      case 19:
         var var_field0 = sse_decode_list_import_track_item(deserializer);
         return PluginResponse_ImportTracks(var_field0);
-      case 19:
+      case 20:
         return const PluginResponse_Ack();
       default:
         throw UnimplementedError('');
@@ -6613,24 +6627,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ContentResolverCommand self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     switch (self) {
-      case ContentResolverCommand_GetAlbumDetails(id: final id):
+      case ContentResolverCommand_GetTrackDetails(id: final id):
         sse_encode_i_32(0, serializer);
         sse_encode_String(id, serializer);
-      case ContentResolverCommand_GetArtistDetails(id: final id):
+      case ContentResolverCommand_GetAlbumDetails(id: final id):
         sse_encode_i_32(1, serializer);
         sse_encode_String(id, serializer);
-      case ContentResolverCommand_GetPlaylistDetails(id: final id):
+      case ContentResolverCommand_GetArtistDetails(id: final id):
         sse_encode_i_32(2, serializer);
         sse_encode_String(id, serializer);
-      case ContentResolverCommand_GetStreams(id: final id):
+      case ContentResolverCommand_GetPlaylistDetails(id: final id):
         sse_encode_i_32(3, serializer);
+        sse_encode_String(id, serializer);
+      case ContentResolverCommand_GetStreams(id: final id):
+        sse_encode_i_32(4, serializer);
         sse_encode_String(id, serializer);
       case ContentResolverCommand_Search(
           query: final query,
           filter: final filter,
           pageToken: final pageToken
         ):
-        sse_encode_i_32(4, serializer);
+        sse_encode_i_32(5, serializer);
         sse_encode_String(query, serializer);
         sse_encode_content_search_filter(filter, serializer);
         sse_encode_opt_String(pageToken, serializer);
@@ -6638,41 +6655,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           id: final id,
           pageToken: final pageToken
         ):
-        sse_encode_i_32(5, serializer);
+        sse_encode_i_32(6, serializer);
         sse_encode_String(id, serializer);
         sse_encode_String(pageToken, serializer);
       case ContentResolverCommand_MoreArtistAlbums(
           id: final id,
           pageToken: final pageToken
         ):
-        sse_encode_i_32(6, serializer);
+        sse_encode_i_32(7, serializer);
         sse_encode_String(id, serializer);
         sse_encode_String(pageToken, serializer);
       case ContentResolverCommand_MorePlaylistTracks(
           id: final id,
           pageToken: final pageToken
         ):
-        sse_encode_i_32(7, serializer);
+        sse_encode_i_32(8, serializer);
         sse_encode_String(id, serializer);
         sse_encode_String(pageToken, serializer);
       case ContentResolverCommand_GetRadioTracks(
           id: final id,
           pageToken: final pageToken
         ):
-        sse_encode_i_32(8, serializer);
+        sse_encode_i_32(9, serializer);
         sse_encode_String(id, serializer);
         sse_encode_opt_String(pageToken, serializer);
       case ContentResolverCommand_GetHomeSections():
-        sse_encode_i_32(9, serializer);
+        sse_encode_i_32(10, serializer);
       case ContentResolverCommand_LoadMore(
           id: final id,
           moreLink: final moreLink
         ):
-        sse_encode_i_32(10, serializer);
+        sse_encode_i_32(11, serializer);
         sse_encode_String(id, serializer);
         sse_encode_String(moreLink, serializer);
       case ContentResolverCommand_GetSegmentsForTrack(id: final id):
-        sse_encode_i_32(11, serializer);
+        sse_encode_i_32(12, serializer);
         sse_encode_String(id, serializer);
     }
   }
@@ -7511,70 +7528,73 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       PluginResponse self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     switch (self) {
-      case PluginResponse_AlbumDetails(field0: final field0):
+      case PluginResponse_TrackDetails(field0: final field0):
         sse_encode_i_32(0, serializer);
+        sse_encode_box_autoadd_track(field0, serializer);
+      case PluginResponse_AlbumDetails(field0: final field0):
+        sse_encode_i_32(1, serializer);
         sse_encode_box_autoadd_album_details(field0, serializer);
       case PluginResponse_ArtistDetails(field0: final field0):
-        sse_encode_i_32(1, serializer);
+        sse_encode_i_32(2, serializer);
         sse_encode_box_autoadd_artist_details(field0, serializer);
       case PluginResponse_PlaylistDetails(field0: final field0):
-        sse_encode_i_32(2, serializer);
+        sse_encode_i_32(3, serializer);
         sse_encode_box_autoadd_playlist_details(field0, serializer);
       case PluginResponse_Streams(field0: final field0):
-        sse_encode_i_32(3, serializer);
+        sse_encode_i_32(4, serializer);
         sse_encode_list_stream_source(field0, serializer);
       case PluginResponse_Search(field0: final field0):
-        sse_encode_i_32(4, serializer);
+        sse_encode_i_32(5, serializer);
         sse_encode_box_autoadd_paged_media_items(field0, serializer);
       case PluginResponse_MoreTracks(field0: final field0):
-        sse_encode_i_32(5, serializer);
+        sse_encode_i_32(6, serializer);
         sse_encode_box_autoadd_paged_tracks(field0, serializer);
       case PluginResponse_MoreAlbums(field0: final field0):
-        sse_encode_i_32(6, serializer);
+        sse_encode_i_32(7, serializer);
         sse_encode_box_autoadd_paged_albums(field0, serializer);
       case PluginResponse_HomeSections(field0: final field0):
-        sse_encode_i_32(7, serializer);
+        sse_encode_i_32(8, serializer);
         sse_encode_list_section(field0, serializer);
       case PluginResponse_LoadMoreItems(field0: final field0):
-        sse_encode_i_32(8, serializer);
+        sse_encode_i_32(9, serializer);
         sse_encode_list_media_item(field0, serializer);
       case PluginResponse_Charts(field0: final field0):
-        sse_encode_i_32(9, serializer);
+        sse_encode_i_32(10, serializer);
         sse_encode_list_chart_summary(field0, serializer);
       case PluginResponse_ChartDetails(field0: final field0):
-        sse_encode_i_32(10, serializer);
+        sse_encode_i_32(11, serializer);
         sse_encode_list_chart_item(field0, serializer);
       case PluginResponse_Segments(field0: final field0):
-        sse_encode_i_32(11, serializer);
+        sse_encode_i_32(12, serializer);
         sse_encode_list_track_segment(field0, serializer);
       case PluginResponse_LyricsResult(field0: final field0):
-        sse_encode_i_32(12, serializer);
+        sse_encode_i_32(13, serializer);
         sse_encode_opt_box_autoadd_record_plugin_lyrics_lyrics_metadata(
             field0, serializer);
       case PluginResponse_LyricsSearchResults(field0: final field0):
-        sse_encode_i_32(13, serializer);
+        sse_encode_i_32(14, serializer);
         sse_encode_list_lyrics_match(field0, serializer);
       case PluginResponse_LyricsById(
           field0: final field0,
           field1: final field1
         ):
-        sse_encode_i_32(14, serializer);
+        sse_encode_i_32(15, serializer);
         sse_encode_box_autoadd_plugin_lyrics(field0, serializer);
         sse_encode_box_autoadd_lyrics_metadata(field1, serializer);
       case PluginResponse_Suggestions(field0: final field0):
-        sse_encode_i_32(15, serializer);
+        sse_encode_i_32(16, serializer);
         sse_encode_list_suggestion(field0, serializer);
       case PluginResponse_CanHandle(field0: final field0):
-        sse_encode_i_32(16, serializer);
+        sse_encode_i_32(17, serializer);
         sse_encode_bool(field0, serializer);
       case PluginResponse_CollectionInfo(field0: final field0):
-        sse_encode_i_32(17, serializer);
+        sse_encode_i_32(18, serializer);
         sse_encode_box_autoadd_import_collection_summary(field0, serializer);
       case PluginResponse_ImportTracks(field0: final field0):
-        sse_encode_i_32(18, serializer);
+        sse_encode_i_32(19, serializer);
         sse_encode_list_import_track_item(field0, serializer);
       case PluginResponse_Ack():
-        sse_encode_i_32(19, serializer);
+        sse_encode_i_32(20, serializer);
     }
   }
 

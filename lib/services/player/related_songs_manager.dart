@@ -161,6 +161,7 @@ class RelatedSongsManager {
           _isExhausted =
               pagedTracks.nextPageToken == null && uniqueTracks.isEmpty;
         },
+        trackDetails: (_) {},
         albumDetails: (_) {},
         artistDetails: (_) {},
         playlistDetails: (_) {},

@@ -3,7 +3,8 @@ use flutter_rust_bridge::frb;
 use crate::api::plugin::models::{
     AlbumDetails, ArtistDetails, ChartItem, ChartSummary, ImportCollectionSummary, ImportTrackItem,
     LyricsMatch, LyricsMetadata, MediaItem, PagedAlbums, PagedMediaItems, PagedTracks,
-    PlaylistDetails, PluginLyrics, Section, StreamSource, Suggestion, TrackMetadata, TrackSegment,
+    PlaylistDetails, PluginLyrics, Section, StreamSource, Suggestion, Track, TrackMetadata,
+    TrackSegment,
 };
 
 #[frb(mirror(PluginRequest))]
@@ -19,6 +20,9 @@ pub enum PluginRequest {
 #[frb(mirror(ContentResolverCommand))]
 #[derive(Debug)]
 pub enum ContentResolverCommand {
+    GetTrackDetails {
+        id: String,
+    },
     GetAlbumDetails {
         id: String,
     },
@@ -117,6 +121,7 @@ pub enum ContentImporterCommand {
 
 #[frb(mirror(PluginResponse))]
 pub enum PluginResponse {
+    TrackDetails(Track),
     AlbumDetails(AlbumDetails),
     ArtistDetails(ArtistDetails),
     PlaylistDetails(PlaylistDetails),

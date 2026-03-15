@@ -90,6 +90,7 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
             blob: encodeChartListCache(charts),
           );
         },
+        trackDetails: (_) => unexpectedFn(),
         search: (_) => unexpectedFn(),
         albumDetails: (_) => unexpectedFn(),
         artistDetails: (_) => unexpectedFn(),
@@ -183,6 +184,7 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
             blob: encodeChartItemsCache(items),
           );
         },
+        trackDetails: (_) => unexpectedFn(),
         search: (_) => unexpectedFn(),
         albumDetails: (_) => unexpectedFn(),
         artistDetails: (_) => unexpectedFn(),
@@ -254,6 +256,8 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
             blob: encodeChartItemsCache(items),
           );
         },
+        trackDetails: (_) =>
+            _unexpectedResponse(emit, 'forceRefreshChartDetails'),
         search: (_) => _unexpectedResponse(emit, 'forceRefreshChartDetails'),
         albumDetails: (_) =>
             _unexpectedResponse(emit, 'forceRefreshChartDetails'),
@@ -340,6 +344,7 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
               blob: encodeChartItemsCache(items),
             );
           },
+          trackDetails: (_) {},
           search: (_) {},
           albumDetails: (_) {},
           artistDetails: (_) {},

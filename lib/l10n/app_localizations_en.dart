@@ -1505,6 +1505,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get songInfoOpenFailed => 'Could not open link';
 
   @override
+  String get songInfoUpdateMetadata => 'Get latest metadata';
+
+  @override
+  String get songInfoMetadataUpdated => 'Metadata updated';
+
+  @override
+  String get songInfoMetadataUpdateFailed => 'Could not update metadata';
+
+  @override
+  String get songInfoMetadataUnavailable =>
+      'Metadata refresh is unavailable for this source';
+
+  @override
   String get songInfoSearchTitle => 'Search for this song in Bloomee';
 
   @override
