@@ -526,6 +526,7 @@ class _AlbumHeaderContent extends StatelessWidget {
   }
 
   Widget _buildActions(BuildContext context, {required bool isCentered}) {
+    final l10n = AppLocalizations.of(context)!;
     return Wrap(
       alignment: isCentered ? WrapAlignment.center : WrapAlignment.start,
       spacing: 12,
@@ -544,16 +545,18 @@ class _AlbumHeaderContent extends StatelessWidget {
           icon:
               isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
           isActive: isSaved,
-          tooltip: isSaved ? 'Remove from Library' : 'Save to Library',
+          tooltip: isSaved
+              ? l10n.tooltipRemoveFromLibrary
+              : l10n.tooltipSaveToLibrary,
           onTap: onToggleSave,
         ),
         if (url != null)
           _PremiumCircularButton(
             icon: MingCute.external_link_line,
             isActive: false,
-            tooltip: 'Open Original Link',
+            tooltip: l10n.tooltipOpenOriginalLink,
             onTap: () {
-              SnackbarService.showMessage('Opening original album page.');
+              SnackbarService.showMessage(l10n.snackbarOpeningAlbumPage);
               launchUrl(Uri.parse(url!), mode: LaunchMode.externalApplication);
             },
           ),
@@ -586,16 +589,16 @@ class _PremiumPlayButton extends StatelessWidget {
             color: Default_Theme.accentColor2.withValues(alpha: 0.1),
             border: Border.all(color: Default_Theme.accentColor2, width: 1.5),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(MingCute.play_fill,
+              const Icon(MingCute.play_fill,
                   size: 20, color: Default_Theme.accentColor2),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
-                'Play',
-                style: TextStyle(
+                AppLocalizations.of(context)!.chartPlay,
+                style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Default_Theme.accentColor2),

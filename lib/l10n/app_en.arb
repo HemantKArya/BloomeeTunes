@@ -382,7 +382,7 @@
   "updateCurrentVersion": "Current Version: {curr} + {build}",
   "@updateCurrentVersion": { "placeholders": { "curr": { "type": "String" }, "build": { "type": "String" } } },
   "updateNewVersionAvailable": "New Version of Bloomee🌸 is now available!!",
-  "updateVersion": "Version: {ver}+ {build}",
+  "updateVersion": "Version: {ver}+{build}",
   "@updateVersion": { "placeholders": { "ver": { "type": "String" }, "build": { "type": "String" } } },
   "updateDownloadNow": "Download Now",
   "updateChecking": "Checking if newer version are available or not!",
@@ -680,5 +680,26 @@
   "upNextTitle": "Up Next",
   "upNextItemsInQueue": "{count, plural, =1{1 item in queue} other{{count} items in queue}}",
   "@upNextItemsInQueue": { "placeholders": { "count": { "type": "int" } } },
-  "upNextAutoPlay": "Auto Play"
+  "upNextAutoPlay": "Auto Play",
+
+  "tooltipCopyToClipboard": "Copy to clipboard",
+  "snackbarCopiedToClipboard": "Copied to clipboard",
+  "tooltipSongInfo": "Song Info",
+  "snackbarCannotDeletePlayingSong": "Cannot delete currently playing song",
+
+  "playerLoopOff": "Off",
+  "playerLoopOne": "Loop One",
+  "playerLoopAll": "Loop All",
+
+  "snackbarOpeningAlbumPage": "Opening original album page.",
+
+  "updateAvailableBody": "New Version of Bloomee🌸 is now available!\n\nVersion: {ver}+{build}",
+  "@updateAvailableBody": { "placeholders": { "ver": { "type": "String" }, "build": { "type": "String" } } },
+
+  "pluginSnackbarInstalled": "Plugin \"{id}\" installed successfully",
+  "@pluginSnackbarInstalled": { "placeholders": { "id": { "type": "String" } } },
+  "pluginSnackbarLoaded": "Plugin \"{id}\" loaded",
+  "@pluginSnackbarLoaded": { "placeholders": { "id": { "type": "String" } } },
+  "pluginSnackbarDeleted": "Plugin \"{id}\" deleted successfully",
+  "@pluginSnackbarDeleted": { "placeholders": { "id": { "type": "String" } } }
 }

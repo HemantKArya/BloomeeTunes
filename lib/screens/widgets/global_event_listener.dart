@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/blocs/global_events/global_events_cubit.dart';
 import 'package:Bloomee/core/events/global_event_bus.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/screen/common_views/changelog_reader.dart';
 import 'package:Bloomee/screens/widgets/bloomee_ui_kit/bloomee_dialog.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
@@ -92,11 +93,20 @@ class _GlobalEventListenerState extends State<GlobalEventListener> {
         log('Plugin system error: $message', name: 'GlobalEventListener');
         _throttledSnackbar('Plugin error: $message');
       case PluginManagerEvent_PluginInstalled(:final id):
-        _throttledSnackbar('Plugin "$id" installed successfully');
+        if (mounted) {
+          _throttledSnackbar(
+              AppLocalizations.of(context)!.pluginSnackbarInstalled(id));
+        }
       case PluginManagerEvent_PluginLoaded(:final id):
-        _throttledSnackbar('Plugin "$id" loaded');
+        if (mounted) {
+          _throttledSnackbar(
+              AppLocalizations.of(context)!.pluginSnackbarLoaded(id));
+        }
       case PluginManagerEvent_PluginDeleted(:final id):
-        _throttledSnackbar('Plugin "$id" deleted successfully');
+        if (mounted) {
+          _throttledSnackbar(
+              AppLocalizations.of(context)!.pluginSnackbarDeleted(id));
+        }
       default:
         break;
     }
@@ -110,15 +120,16 @@ class _GlobalEventListenerState extends State<GlobalEventListener> {
         switch (state.runtimeType) {
           case UpdateAvailable:
             final s = state as UpdateAvailable;
-            log("Update Available: ${s.message}");
+            final l10n = AppLocalizations.of(dialogContext)!;
+            log("Update Available: ${s.newVersion}+${s.newBuild}");
             showBloomeeDialog(
               context: dialogContext,
-              title: 'Update Available',
-              subtitle: s.message,
+              title: l10n.dialogUpdateAvailable,
+              subtitle: l10n.updateAvailableBody(s.newVersion, s.newBuild),
               icon: Icons.system_update_rounded,
               actions: [
-                BloomeeDialogAction.text('Later'),
-                BloomeeDialogAction.filled('Update Now', onPressed: () {
+                BloomeeDialogAction.text(l10n.buttonLater),
+                BloomeeDialogAction.filled(l10n.dialogUpdateNow, onPressed: () {
                   openURL(s.downloadUrl);
                 }),
               ],
@@ -126,12 +137,13 @@ class _GlobalEventListenerState extends State<GlobalEventListener> {
             break;
           case AlertDialogState:
             final s = state as AlertDialogState;
+            final l10n = AppLocalizations.of(dialogContext)!;
             showBloomeeDialog(
               context: dialogContext,
               title: s.title,
               subtitle: s.content,
               actions: [
-                BloomeeDialogAction.filled('OK'),
+                BloomeeDialogAction.filled(l10n.buttonOk),
               ],
             );
             break;

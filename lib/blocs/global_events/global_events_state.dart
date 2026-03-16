@@ -11,12 +11,12 @@ final class GlobalEventsInitial extends GlobalEventsState {}
 
 final class UpdateAvailable extends GlobalEventsState {
   final String newVersion;
-  final String message;
+  final String newBuild;
   final String downloadUrl;
 
   const UpdateAvailable(
       {required this.newVersion,
-      required this.message,
+      required this.newBuild,
       required this.downloadUrl});
 }
 

@@ -25,14 +25,12 @@ class GlobalEventsCubit extends Cubit<GlobalEventsState> {
       emit(WhatIsNewState(changeLogs: updates['changelogs']));
     }
 
-    if (await _settingsDao.getSettingBool(
-            SettingKeys.autoUpdateNotify) ??
+    if (await _settingsDao.getSettingBool(SettingKeys.autoUpdateNotify) ??
         true) {
       if (updates["results"]) {
         emit(UpdateAvailable(
           newVersion: updates["newVer"],
-          message:
-              "New Version of Bloomee🌸 is now available!!\n\nVersion: ${updates["newVer"]} + ${updates["newBuild"]}",
+          newBuild: updates["newBuild"],
           downloadUrl: "https://bloomee.sourceforge.io/",
         ));
       }

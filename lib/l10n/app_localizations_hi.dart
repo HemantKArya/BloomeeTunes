@@ -1140,7 +1140,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String updateVersion(String ver, String build) {
-    return 'संस्करण: $ver+ $build';
+    return 'संस्करण: $ver+$build';
   }
 
   @override
@@ -1918,4 +1918,49 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get upNextAutoPlay => 'ऑटो प्ले';
+
+  @override
+  String get tooltipCopyToClipboard => 'क्लिपबोर्ड में कॉपी करें';
+
+  @override
+  String get snackbarCopiedToClipboard => 'क्लिपबोर्ड में कॉपी किया';
+
+  @override
+  String get tooltipSongInfo => 'गाने की जानकारी';
+
+  @override
+  String get snackbarCannotDeletePlayingSong =>
+      'अभी चल रहे गाने को नहीं हटा सकते';
+
+  @override
+  String get playerLoopOff => 'बंद';
+
+  @override
+  String get playerLoopOne => 'एक बार दोहराएं';
+
+  @override
+  String get playerLoopAll => 'सब दोहराएं';
+
+  @override
+  String get snackbarOpeningAlbumPage => 'मूल एल्बम पेज खोल रहे हैं।';
+
+  @override
+  String updateAvailableBody(String ver, String build) {
+    return 'Bloomee🌸 का नया संस्करण अब उपलब्ध है!\n\nसंस्करण: $ver+$build';
+  }
+
+  @override
+  String pluginSnackbarInstalled(String id) {
+    return 'प्लगइन \"$id\" सफलतापूर्वक इंस्टॉल हुआ';
+  }
+
+  @override
+  String pluginSnackbarLoaded(String id) {
+    return 'प्लगइन \"$id\" लोड हुआ';
+  }
+
+  @override
+  String pluginSnackbarDeleted(String id) {
+    return 'प्लगइन \"$id\" हटाया गया';
+  }
 }

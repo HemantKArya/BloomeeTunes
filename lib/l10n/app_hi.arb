@@ -386,7 +386,7 @@
   "updateViewPreRelease": "नवीनतम Pre-Release देखें",
   "updateCurrentVersion": "वर्तमान संस्करण: {curr} + {build}",
   "updateNewVersionAvailable": "Bloomee🌸 का नया संस्करण अब उपलब्ध है!!",
-  "updateVersion": "संस्करण: {ver}+ {build}",
+  "updateVersion": "संस्करण: {ver}+{build}",
   "updateDownloadNow": "अभी डाउनलोड करें",
   "updateChecking": "जाँच हो रही है कि नया संस्करण उपलब्ध है या नहीं!",
 
@@ -531,5 +531,26 @@
   "localMusicNoMusicFound": "कोई स्थानीय संगीत नहीं मिला",
   "localMusicNoSearchResults": "आपकी खोज से मेल खाने वाले कोई ट्रैक नहीं मिले।",
   "localMusicTrackCount": "{count, plural, =1{1 ट्रैक} other{{count} ट्रैक}}",
-  "@localMusicTrackCount": { "placeholders": { "count": { "type": "int" } } }
+  "@localMusicTrackCount": { "placeholders": { "count": { "type": "int" } } },
+
+  "tooltipCopyToClipboard": "क्लिपबोर्ड में कॉपी करें",
+  "snackbarCopiedToClipboard": "क्लिपबोर्ड में कॉपी किया",
+  "tooltipSongInfo": "गाने की जानकारी",
+  "snackbarCannotDeletePlayingSong": "अभी चल रहे गाने को नहीं हटा सकते",
+
+  "playerLoopOff": "बंद",
+  "playerLoopOne": "एक बार दोहराएं",
+  "playerLoopAll": "सब दोहराएं",
+
+  "snackbarOpeningAlbumPage": "मूल एल्बम पेज खोल रहे हैं।",
+
+  "updateAvailableBody": "Bloomee🌸 का नया संस्करण अब उपलब्ध है!\n\nसंस्करण: {ver}+{build}",
+  "@updateAvailableBody": { "placeholders": { "ver": { "type": "String" }, "build": { "type": "String" } } },
+
+  "pluginSnackbarInstalled": "प्लगइन \"{id}\" सफलतापूर्वक इंस्टॉल हुआ",
+  "@pluginSnackbarInstalled": { "placeholders": { "id": { "type": "String" } } },
+  "pluginSnackbarLoaded": "प्लगइन \"{id}\" लोड हुआ",
+  "@pluginSnackbarLoaded": { "placeholders": { "id": { "type": "String" } } },
+  "pluginSnackbarDeleted": "प्लगइन \"{id}\" हटाया गया",
+  "@pluginSnackbarDeleted": { "placeholders": { "id": { "type": "String" } } }
 }

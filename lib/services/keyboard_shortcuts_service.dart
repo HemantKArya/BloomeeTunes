@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:Bloomee/routes/app_router.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 
 class KeyboardShortcutsHandler extends StatefulWidget {
   final Widget child;
@@ -298,8 +299,11 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
     final isCurrentlyLiked = await playlistDao.isTrackLiked(currentMedia.id);
     final newLikeState = !isCurrentlyLiked;
     await playlistDao.setTrackLiked(currentMedia, newLikeState);
-    SnackbarService.showMessage(
-        "${currentMedia.title} is ${newLikeState ? 'Liked' : 'Unliked'}!!");
+    if (mounted) {
+      SnackbarService.showMessage(newLikeState
+          ? AppLocalizations.of(context)!.playerLiked(currentMedia.title)
+          : AppLocalizations.of(context)!.playerUnliked(currentMedia.title));
+    }
 
     if (mounted) {
       context.read<ShortcutIndicatorCubit>().showLike(newLikeState);

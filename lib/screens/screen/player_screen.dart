@@ -376,7 +376,7 @@ class _DownloadButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final player = context.read<BloomeePlayerCubit>().bloomeePlayer;
     return Tooltip(
-      message: "Available Offline",
+      message: AppLocalizations.of(context)!.tooltipAvailableOffline,
       child: StreamBuilder<MediaItem?>(
         stream: player.mediaItem,
         builder: (context, mediaSnapshot) {
@@ -585,11 +585,12 @@ class _LoopControl extends StatelessWidget {
       stream: context.read<BloomeePlayerCubit>().bloomeePlayer.loopMode,
       builder: (context, snapshot) {
         final loopMode = snapshot.data ?? LoopMode.off;
+        final l10n = AppLocalizations.of(context)!;
         return PopupMenuButton(
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 0, child: Text("Off")),
-            PopupMenuItem(value: 1, child: Text("Loop One")),
-            PopupMenuItem(value: 2, child: Text("Loop All")),
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 0, child: Text(l10n.playerLoopOff)),
+            PopupMenuItem(value: 1, child: Text(l10n.playerLoopOne)),
+            PopupMenuItem(value: 2, child: Text(l10n.playerLoopAll)),
           ],
           child: Icon(
             loopMode == LoopMode.off
@@ -653,7 +654,8 @@ class _ExternalLinkControl extends StatelessWidget {
         if (url != null) {
           await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
         } else {
-          SnackbarService.showMessage("Unable to open the link");
+          SnackbarService.showMessage(
+              AppLocalizations.of(context)!.snackbarCouldNotOpenLink);
         }
       },
     );

@@ -1138,7 +1138,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String updateVersion(String ver, String build) {
-    return 'Version: $ver+ $build';
+    return 'Version: $ver+$build';
   }
 
   @override
@@ -1913,4 +1913,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get upNextAutoPlay => 'Auto Play';
+
+  @override
+  String get tooltipCopyToClipboard => 'Copy to clipboard';
+
+  @override
+  String get snackbarCopiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get tooltipSongInfo => 'Song Info';
+
+  @override
+  String get snackbarCannotDeletePlayingSong =>
+      'Cannot delete currently playing song';
+
+  @override
+  String get playerLoopOff => 'Off';
+
+  @override
+  String get playerLoopOne => 'Loop One';
+
+  @override
+  String get playerLoopAll => 'Loop All';
+
+  @override
+  String get snackbarOpeningAlbumPage => 'Opening original album page.';
+
+  @override
+  String updateAvailableBody(String ver, String build) {
+    return 'New Version of Bloomee🌸 is now available!\n\nVersion: $ver+$build';
+  }
+
+  @override
+  String pluginSnackbarInstalled(String id) {
+    return 'Plugin \"$id\" installed successfully';
+  }
+
+  @override
+  String pluginSnackbarLoaded(String id) {
+    return 'Plugin \"$id\" loaded';
+  }
+
+  @override
+  String pluginSnackbarDeleted(String id) {
+    return 'Plugin \"$id\" deleted successfully';
+  }
 }

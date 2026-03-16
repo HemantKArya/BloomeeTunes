@@ -2075,7 +2075,7 @@ abstract class AppLocalizations {
   /// No description provided for @updateVersion.
   ///
   /// In en, this message translates to:
-  /// **'Version: {ver}+ {build}'**
+  /// **'Version: {ver}+{build}'**
   String updateVersion(String ver, String build);
 
   /// No description provided for @updateDownloadNow.
@@ -3421,6 +3421,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Auto Play'**
   String get upNextAutoPlay;
+
+  /// No description provided for @tooltipCopyToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to clipboard'**
+  String get tooltipCopyToClipboard;
+
+  /// No description provided for @snackbarCopiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get snackbarCopiedToClipboard;
+
+  /// No description provided for @tooltipSongInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Song Info'**
+  String get tooltipSongInfo;
+
+  /// No description provided for @snackbarCannotDeletePlayingSong.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete currently playing song'**
+  String get snackbarCannotDeletePlayingSong;
+
+  /// No description provided for @playerLoopOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get playerLoopOff;
+
+  /// No description provided for @playerLoopOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop One'**
+  String get playerLoopOne;
+
+  /// No description provided for @playerLoopAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop All'**
+  String get playerLoopAll;
+
+  /// No description provided for @snackbarOpeningAlbumPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening original album page.'**
+  String get snackbarOpeningAlbumPage;
+
+  /// No description provided for @updateAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New Version of Bloomee🌸 is now available!\n\nVersion: {ver}+{build}'**
+  String updateAvailableBody(String ver, String build);
+
+  /// No description provided for @pluginSnackbarInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin \"{id}\" installed successfully'**
+  String pluginSnackbarInstalled(String id);
+
+  /// No description provided for @pluginSnackbarLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin \"{id}\" loaded'**
+  String pluginSnackbarLoaded(String id);
+
+  /// No description provided for @pluginSnackbarDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin \"{id}\" deleted successfully'**
+  String pluginSnackbarDeleted(String id);
 }
 
 class _AppLocalizationsDelegate
