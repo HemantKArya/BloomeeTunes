@@ -434,7 +434,7 @@ class _WavePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
-    final barCount = 4;
+    const barCount = 4;
     final spacing = size.width / barCount;
 
     for (int i = 0; i < barCount; i++) {

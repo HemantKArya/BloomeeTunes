@@ -23,7 +23,7 @@ void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: Colors.transparent, // Essential for glass blur
+    backgroundColor: Colors.transparent,
     builder: (sheetContext) => _PlaylistOptionsSheet(
       title: playlist.title,
       isInternal: true,
@@ -36,7 +36,6 @@ void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
   );
 }
 
-/// Shows options for an external/remote playlist
 void showPlaylistOptsExtSheet(
   BuildContext context,
   String playlistName, {
@@ -47,13 +46,13 @@ void showPlaylistOptsExtSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: Colors.transparent, // Essential for glass blur
+    backgroundColor: Colors.transparent,
     builder: (sheetContext) => _PlaylistOptionsSheet(
       title: playlistName,
       playlistId: playlistId,
       isInternal: false,
       isPinned: isPinned,
-      parentContext: context, // Needed to read cubits safely after pop
+      parentContext: context,
     ),
   );
 }
@@ -81,7 +80,6 @@ class _PlaylistOptionsSheet extends StatelessWidget {
     final ctx = parentContext ?? context;
 
     return Center(
-      // Prevents awkward stretching on desktop
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: ClipRRect(
@@ -90,36 +88,33 @@ class _PlaylistOptionsSheet extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
             child: Container(
               decoration: BoxDecoration(
-                color: Default_Theme.themeColor.withOpacity(0.85),
+                color: Default_Theme.themeColor.withValues(alpha: 0.85),
                 border: Border(
                     top: BorderSide(
-                        color: Colors.white.withOpacity(0.08), width: 1)),
+                        color: Colors.white.withValues(alpha: 0.08), width: 1)),
               ),
               child: SafeArea(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ── iOS Style Drag Handle ──
                     Center(
                       child: Container(
                         margin: const EdgeInsets.only(top: 12, bottom: 16),
                         width: 42,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
-
-                    // ── Header Title ──
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 8),
                       child: Text(
                         title,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.95),
+                          color: Colors.white.withValues(alpha: 0.95),
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.3,
@@ -130,8 +125,6 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // ── Options List ──
                     Flexible(
                       child: SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
@@ -139,7 +132,6 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // SECTION 1: Playback (External Only)
                             if (!isInternal)
                               _OptionGroup(
                                 children: [
@@ -184,8 +176,6 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                   ),
                                 ],
                               ),
-
-                            // SECTION 2: Export & Share
                             _OptionGroup(
                               children: [
                                 _BottomSheetTile(
@@ -198,8 +188,13 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                         l10n.snackbarPreparingShare(title));
                                     final tmpPath = await ImportExportService
                                         .exportPlaylist(title);
-                                    if (tmpPath != null)
-                                      Share.shareXFiles([XFile(tmpPath)]);
+                                    if (tmpPath != null) {
+                                      await SharePlus.instance
+                                          .share(ShareParams(
+                                        files: [XFile(tmpPath)],
+                                        text: title,
+                                      ));
+                                    }
                                   },
                                 ),
                                 if (!Platform.isAndroid)
@@ -209,10 +204,11 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                     onTap: () async {
                                       String? path = await FilePicker.platform
                                           .getDirectoryPath();
-                                      if (path == null || path == "/")
+                                      if (path == null || path == "/") {
                                         path = (await getDownloadsDirectory())
                                             ?.path
                                             .toString();
+                                      }
                                       SnackbarService.showMessage(
                                           l10n.snackbarPreparingExport(title));
                                       final tmpPath = await ImportExportService
@@ -224,8 +220,6 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                   ),
                               ],
                             ),
-
-                            // SECTION 3: Management
                             _OptionGroup(
                               children: [
                                 if (isInternal)
@@ -246,10 +240,11 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                         ? l10n.playlistUnpin
                                         : l10n.playlistPinToTop,
                                     onTap: () {
-                                      if (playlistId != null)
+                                      if (playlistId != null) {
                                         ctx
                                             .read<LibraryItemsCubit>()
                                             .togglePin(playlistId!);
+                                      }
                                     },
                                   ),
                                   _BottomSheetTile(
@@ -290,7 +285,7 @@ class _OptionGroup extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04), // Borderless floating card
+        color: Colors.white.withValues(alpha: 0.04), // Borderless floating card
         borderRadius: BorderRadius.circular(16),
       ),
       child: ClipRRect(
@@ -313,7 +308,8 @@ class _OptionGroup extends StatelessWidget {
         result.add(
           Divider(
             height: 1,
-            color: Colors.white.withOpacity(0.04), // Ultra subtle separator
+            color:
+                Colors.white.withValues(alpha: 0.04), // Ultra subtle separator
             indent: 52, // Perfectly aligns with the start of the text
           ),
         );
@@ -342,16 +338,18 @@ class _BottomSheetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveIconColor = iconColor ?? Colors.white.withOpacity(0.55);
-    final effectiveTitleColor = titleColor ?? Colors.white.withOpacity(0.9);
+    final effectiveIconColor =
+        iconColor ?? Colors.white.withValues(alpha: 0.55);
+    final effectiveTitleColor =
+        titleColor ?? Colors.white.withValues(alpha: 0.9);
 
     return InkWell(
       onTap: () {
-        Navigator.pop(context); // Instant feedback by popping sheet
+        Navigator.pop(context);
         onTap();
       },
-      splashColor: Colors.white.withOpacity(0.06),
-      highlightColor: Colors.white.withOpacity(0.03),
+      splashColor: Colors.white.withValues(alpha: 0.06),
+      highlightColor: Colors.white.withValues(alpha: 0.03),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(

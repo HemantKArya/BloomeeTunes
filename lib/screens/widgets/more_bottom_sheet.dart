@@ -31,7 +31,7 @@ void showMoreBottomSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: Colors.transparent, // Required for pristine blur
+    backgroundColor: Colors.transparent,
     builder: (sheetContext) {
       return _TrackOptionsBottomSheet(
         song: song,
@@ -71,7 +71,6 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
     final player = parentContext.read<BloomeePlayerCubit>().bloomeePlayer;
 
     return Center(
-      // Tighter max-width (400) creates a sharp, focused context menu on Desktop
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: ClipRRect(
@@ -80,31 +79,27 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
             child: Container(
               decoration: BoxDecoration(
-                color: Default_Theme.themeColor
-                    .withOpacity(0.8), // Deep transparent base
+                color: Default_Theme.themeColor.withValues(alpha: 0.8),
                 border: Border(
                   top: BorderSide(
-                      color: Colors.white.withOpacity(0.08), width: 1),
+                      color: Colors.white.withValues(alpha: 0.08), width: 1),
                 ),
               ),
               child: SafeArea(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // --- Ultra-Minimal Drag Handle ---
                     Center(
                       child: Container(
                         margin: const EdgeInsets.only(top: 10, bottom: 4),
                         width: 36,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
-
-                    // --- Track Header ---
                     Padding(
                       padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                       child: SongCardWidget(
@@ -114,8 +109,6 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                         showInfoBtn: true,
                       ),
                     ),
-
-                    // --- Compact, Grouped Options ---
                     Flexible(
                       child: SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
@@ -165,7 +158,6 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                                 ],
                               ),
 
-                            // SECTION 2: Library
                             _OptionGroup(
                               children: [
                                 _BottomSheetTile(
@@ -199,7 +191,6 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                               ],
                             ),
 
-                            // SECTION 3: External & Destructive
                             _OptionGroup(
                               children: [
                                 BlocBuilder<DownloaderCubit, DownloaderState>(
@@ -211,9 +202,8 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                                       icon: isDownloaded
                                           ? Icons.offline_pin_rounded
                                           : MingCute.download_2_line,
-                                      iconColor: isDownloaded
-                                          ? Colors.green
-                                          : null, // Semantic highlight
+                                      iconColor:
+                                          isDownloaded ? Colors.green : null,
                                       title: isDownloaded
                                           ? l10n.menuAvailableOffline
                                           : l10n.menuDownload,
@@ -259,8 +249,7 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                                   _BottomSheetTile(
                                     icon: MingCute.delete_2_line,
                                     title: l10n.menuDeleteTrack,
-                                    iconColor:
-                                        Colors.redAccent, // Semantic highlight
+                                    iconColor: Colors.redAccent,
                                     titleColor: Colors.redAccent,
                                     onTap: onDelete ?? () {},
                                   ),
@@ -281,8 +270,6 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
   }
 }
 
-// ── Smart, Borderless Grouping Container ─────────────────────────────────────
-
 class _OptionGroup extends StatelessWidget {
   final List<Widget> children;
   const _OptionGroup({required this.children});
@@ -290,16 +277,15 @@ class _OptionGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12), // Tighter margin
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color:
-            Colors.white.withOpacity(0.04), // Borderless "floating glass" shelf
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Material(
-          color: Colors.transparent, // Ensures ripples display flawlessly
+          color: Colors.transparent,
           child: Column(
             children: _buildChildrenWithDividers(),
           ),
@@ -316,8 +302,8 @@ class _OptionGroup extends StatelessWidget {
         result.add(
           Divider(
             height: 1,
-            color: Colors.white.withOpacity(0.04), // Extremely subtle separator
-            indent: 50, // Perfectly aligns with the start of the text
+            color: Colors.white.withValues(alpha: 0.04),
+            indent: 50,
           ),
         );
       }
@@ -325,8 +311,6 @@ class _OptionGroup extends StatelessWidget {
     return result;
   }
 }
-
-// ── Ultra-Sleek Interactive Tile ─────────────────────────────────────────────
 
 class _BottomSheetTile extends StatelessWidget {
   final IconData icon;
@@ -345,26 +329,26 @@ class _BottomSheetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Optical balancing: Icons should be muted compared to text unless semantically colored
-    final effectiveIconColor = iconColor ?? Colors.white.withOpacity(0.55);
-    final effectiveTitleColor = titleColor ?? Colors.white.withOpacity(0.9);
+    final effectiveIconColor =
+        iconColor ?? Colors.white.withValues(alpha: 0.55);
+    final effectiveTitleColor =
+        titleColor ?? Colors.white.withValues(alpha: 0.9);
 
     return InkWell(
       onTap: () {
-        Navigator.pop(context); // Dismiss sheet first for snap-response
-        onTap(); // Execute action
+        Navigator.pop(context);
+        onTap();
       },
-      splashColor: Colors.white.withOpacity(0.06),
-      highlightColor: Colors.white.withOpacity(0.03),
+      splashColor: Colors.white.withValues(alpha: 0.06),
+      highlightColor: Colors.white.withValues(alpha: 0.03),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 16, vertical: 12), // Compact, dense padding
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
             Icon(
               icon,
               color: effectiveIconColor,
-              size: 20, // Smaller, tighter icon size
+              size: 20,
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -372,10 +356,9 @@ class _BottomSheetTile extends StatelessWidget {
                 title,
                 style: TextStyle(
                   color: effectiveTitleColor,
-                  fontSize:
-                      14.5, // Reduced from 17 for a much cleaner, professional typography scale
+                  fontSize: 14.5,
                   fontWeight: FontWeight.w500,
-                  letterSpacing: -0.2, // Tighter tracking looks more modern
+                  letterSpacing: -0.2,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

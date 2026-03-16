@@ -308,7 +308,6 @@ class _PlaylistViewState extends State<PlaylistView> {
           ),
         ),
 
-        // ─── RIGHT PANEL (Glassmorphic Tracklist) ───
         Expanded(
           child: Container(
             margin: const EdgeInsets.fromLTRB(0, 100, 48, 48),
@@ -414,11 +413,8 @@ class _PlaylistViewState extends State<PlaylistView> {
     );
   }
 
-  /// Extremely robust cover renderer. It dynamically sizes itself to prevent off-screen controls.
-  /// Uses a flawless Glass-Letterbox effect for wide thumbnails so they are never cropped.
   Widget _buildIntelligentCover(String imageUrl, Color dominantColor,
       {required bool isMobile, required BoxConstraints constraints}) {
-    // Dynamically calculate size based on both width AND height to guarantee controls stay on screen.
     final double coverSize = isMobile
         ? (constraints.maxWidth * 0.70).clamp(200.0, 320.0)
         : math
@@ -518,7 +514,6 @@ class _PlaylistViewState extends State<PlaylistView> {
     );
   }
 
-  /// Architected the 5-Button Layout: Symmetrical, Responsive, and Play-Centered.
   Widget _buildActions(CurrentPlaylistState state, Color fgColor, Color bgColor,
       {required bool isCentered}) {
     final isEmpty = state.playlist.tracks.isEmpty;
