@@ -1,13 +1,18 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/src/rust/api/bridge.dart' as bridge;
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:Bloomee/src/rust/api/plugin/manifest.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
+import 'package:Bloomee/utils/country_info.dart';
+import 'package:archive/archive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -186,6 +191,21 @@ class PluginService {
     bool shouldLoad = true,
   }) async {
     try {
+      final packedManifest = await _readPackedManifest(packedFilePath);
+      if (packedManifest.countryAllowlist.isNotEmpty) {
+        final countryCode = await CountryInfoService.resolveAndCacheCountryCode(
+          settingsDao: SettingsDAO(DBProvider.db),
+          requireResolved: true,
+        );
+        if (!packedManifest.countryAllowlist.contains(countryCode)) {
+          throw PluginCountryRestrictedException(
+            pluginId: packedManifest.pluginId,
+            countryCode: countryCode,
+            allowlist: packedManifest.countryAllowlist,
+          );
+        }
+      }
+
       final tempDir = (await getTemporaryDirectory()).path;
       final pluginsDir = await bridge.getPluginsDir(manager: manager);
 
@@ -200,6 +220,14 @@ class PluginService {
       log('Installed plugin: ${result.pluginId} (status: ${result.status})',
           name: 'PluginService');
       return result;
+    } on PluginInstallException {
+      rethrow;
+    } on CountryInfoException catch (e) {
+      throw PluginInstallException(
+        message:
+            'Connect to the internet once so Bloomee can verify your country before installing this plugin.',
+        cause: e,
+      );
     } catch (e) {
       throw PluginInstallException(
         message: 'Failed to install plugin from $packedFilePath: $e',
@@ -338,4 +366,59 @@ class PluginService {
       cause: error,
     );
   }
+}
+
+class _PackedPluginManifest {
+  final String pluginId;
+  final List<String> countryAllowlist;
+
+  const _PackedPluginManifest({
+    required this.pluginId,
+    required this.countryAllowlist,
+  });
+}
+
+Future<_PackedPluginManifest> _readPackedManifest(String packedFilePath) async {
+  final bytes = await File(packedFilePath).readAsBytes();
+  final archive = ZipDecoder().decodeBytes(bytes, verify: false);
+  final manifestFile = archive.files.cast<ArchiveFile?>().firstWhere(
+        (file) =>
+            file != null &&
+            file.isFile &&
+            p.basename(file.name).toLowerCase() == 'manifest.json',
+        orElse: () => null,
+      );
+
+  if (manifestFile == null) {
+    return const _PackedPluginManifest(
+        pluginId: 'unknown', countryAllowlist: []);
+  }
+
+  final manifestBytes = manifestFile.content as List<int>;
+  if (manifestBytes.isEmpty) {
+    return const _PackedPluginManifest(
+        pluginId: 'unknown', countryAllowlist: []);
+  }
+
+  final decoded = jsonDecode(utf8.decode(manifestBytes));
+  if (decoded is! Map) {
+    return const _PackedPluginManifest(
+        pluginId: 'unknown', countryAllowlist: []);
+  }
+
+  final json = Map<String, dynamic>.from(decoded);
+  final pluginId = json['id']?.toString() ?? 'unknown';
+  final countryAllowlist = (json['country_allowlist'] as List<dynamic>? ??
+          const [])
+      .map(
+          (value) => CountryInfoService.normalizeCountryCode(value?.toString()))
+      .where((value) => value.isNotEmpty)
+      .toSet()
+      .toList()
+    ..sort();
+
+  return _PackedPluginManifest(
+    pluginId: pluginId,
+    countryAllowlist: countryAllowlist,
+  );
 }

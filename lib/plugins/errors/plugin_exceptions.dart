@@ -64,6 +64,21 @@ class PluginInstallException extends PluginException {
   }) : super(pluginId: pluginId, message: message, cause: cause);
 }
 
+class PluginCountryRestrictedException extends PluginInstallException {
+  final String countryCode;
+  final List<String> allowlist;
+
+  const PluginCountryRestrictedException({
+    required String pluginId,
+    required this.countryCode,
+    required this.allowlist,
+  }) : super(
+          pluginId: pluginId,
+          message:
+              'Plugin "$pluginId" is not available in your country ($countryCode).',
+        );
+}
+
 /// Thrown when a plugin cannot be found (not available in plugin directory).
 class PluginNotFoundException extends PluginException {
   const PluginNotFoundException({

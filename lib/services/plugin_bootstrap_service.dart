@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
 import 'package:Bloomee/plugins/models/plugin_repository.dart';
 import 'package:Bloomee/plugins/utils/plugin_constants.dart';
 import 'package:Bloomee/plugins/services/plugin_repository_service.dart';
@@ -13,6 +14,8 @@ import 'package:Bloomee/services/plugin/plugin_load_state_service.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
+import 'package:Bloomee/utils/country_info.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
@@ -33,7 +36,19 @@ class _HostedRepoEntry {
 class PluginBootstrapResult {
   final bool success;
   final List<String> errors;
-  const PluginBootstrapResult({required this.success, required this.errors});
+  final PluginBootstrapFailureReason failureReason;
+
+  const PluginBootstrapResult({
+    required this.success,
+    required this.errors,
+    this.failureReason = PluginBootstrapFailureReason.none,
+  });
+}
+
+enum PluginBootstrapFailureReason {
+  none,
+  noInternet,
+  setupFailed,
 }
 
 class PluginBootstrapProgress {
@@ -76,6 +91,17 @@ class PluginBootstrapService {
 
     onProgress(const PluginBootstrapProgress(8));
 
+    final countryCode = await _resolveBootstrapCountryCode(settingsDao);
+    if (countryCode == null) {
+      return const PluginBootstrapResult(
+        success: false,
+        errors: [
+          'An internet connection is required to set up the plugin engine.',
+        ],
+        failureReason: PluginBootstrapFailureReason.noInternet,
+      );
+    }
+
     List<_HostedRepoEntry> entries;
     try {
       entries = await _fetchHostedEntries();
@@ -85,7 +111,13 @@ class PluginBootstrapService {
       log('Failed to fetch repositories.json: $e', name: 'PluginBootstrap');
       errors
           .add('Could not reach the plugin catalogue. Check your connection.');
-      return PluginBootstrapResult(success: false, errors: errors);
+      return PluginBootstrapResult(
+        success: false,
+        errors: errors,
+        failureReason: _isOfflineError(e)
+            ? PluginBootstrapFailureReason.noInternet
+            : PluginBootstrapFailureReason.setupFailed,
+      );
     }
 
     final existingUrls = await repositoryService.getSavedRepositoryUrls();
@@ -139,7 +171,8 @@ class PluginBootstrapService {
             ((processedPlugins * 55) ~/
                 (totalPlugins == 0 ? 1 : totalPlugins))));
 
-        if (installedIds.contains(plugin.id)) {
+        if (installedIds.contains(plugin.id) ||
+            !plugin.isAllowedInCountry(countryCode)) {
           processedPlugins++;
           continue;
         }
@@ -170,6 +203,8 @@ class PluginBootstrapService {
               lastError =
                   'Install returned status: ${result.status.name}${result.error != null ? ' — ${result.error}' : ''}';
             }
+          } on PluginCountryRestrictedException {
+            installed = true;
           } catch (e) {
             lastError = e.toString();
           }
@@ -228,6 +263,9 @@ class PluginBootstrapService {
     return PluginBootstrapResult(
       success: errors.isEmpty,
       errors: errors,
+      failureReason: errors.isEmpty
+          ? PluginBootstrapFailureReason.none
+          : PluginBootstrapFailureReason.setupFailed,
     );
   }
 
@@ -307,6 +345,9 @@ class PluginBootstrapService {
     required SettingsDAO settingsDao,
   }) async {
     try {
+      final countryCode = await CountryInfoService.resolveAndCacheCountryCode(
+        settingsDao: settingsDao,
+      );
       final hostedEntries = await _fetchHostedEntries();
       final existingUrls = await repositoryService.getSavedRepositoryUrls();
       final knownUrls = existingUrls.toSet();
@@ -349,6 +390,9 @@ class PluginBootstrapService {
           if (!_isRemoteManifestCompatible(remote)) {
             continue;
           }
+          if (!remote.isAllowedInCountry(countryCode)) {
+            continue;
+          }
           final existing = remoteLatestById[remote.id];
           if (existing == null ||
               _compareVersions(remote.version, existing.version) > 0) {
@@ -362,9 +406,6 @@ class PluginBootstrapService {
         final local = entry.value;
         final remote = remoteLatestById[pluginId];
         if (remote == null) {
-          continue;
-        }
-        if (local.manifest.manifestVersion != CURRENT_MANIFEST_VERSION) {
           continue;
         }
         if (_compareVersions(remote.version, local.manifest.version) <= 0) {
@@ -385,6 +426,8 @@ class PluginBootstrapService {
             await loadStateService
                 .writeAutoLoadPluginIds({...current, pluginId});
           }
+        } on PluginCountryRestrictedException {
+          continue;
         } catch (e) {
           log('Auto-update failed for $pluginId: $e', name: 'PluginBootstrap');
         }
@@ -443,8 +486,32 @@ class PluginBootstrapService {
   }
 
   static bool _isRemoteManifestCompatible(RemotePluginModel plugin) {
-    final value = int.tryParse(plugin.manifestVersion.trim());
+    final value = _parseManifestVersion(plugin.manifestVersion);
     return value != null && value == CURRENT_MANIFEST_VERSION;
+  }
+
+  static int? _parseManifestVersion(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    final asInt = int.tryParse(trimmed);
+    if (asInt != null) {
+      return asInt;
+    }
+
+    final asDouble = double.tryParse(trimmed);
+    if (asDouble == null) {
+      return null;
+    }
+
+    final floored = asDouble.floor();
+    if ((asDouble - floored).abs() > 0.000001) {
+      return null;
+    }
+
+    return floored;
   }
 
   static int _compareVersions(String left, String right) {
@@ -507,5 +574,33 @@ class PluginBootstrapService {
     } catch (_) {
       return [];
     }
+  }
+
+  static Future<String?> _resolveBootstrapCountryCode(
+    SettingsDAO settingsDao,
+  ) async {
+    final connectivity = await Connectivity().checkConnectivity();
+    final isConnected = connectivity.any(
+      (value) => value != ConnectivityResult.none,
+    );
+    if (!isConnected) {
+      final cached =
+          await CountryInfoService.readCachedCountryCode(settingsDao);
+      return cached;
+    }
+
+    try {
+      return await CountryInfoService.resolveAndCacheCountryCode(
+        settingsDao: settingsDao,
+        forceRefresh: true,
+        requireResolved: true,
+      );
+    } catch (_) {
+      return await CountryInfoService.readCachedCountryCode(settingsDao);
+    }
+  }
+
+  static bool _isOfflineError(Object error) {
+    return error is SocketException || error is TimeoutException;
   }
 }

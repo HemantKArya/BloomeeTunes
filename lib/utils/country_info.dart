@@ -1,43 +1,110 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:Bloomee/core/constants/setting_keys.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
-import 'package:Bloomee/services/db/dao/settings_dao.dart';
-import 'package:http/http.dart';
 
-Future<String> getCountry() async {
-  String countryCode = "IN";
-  final settingsDao = SettingsDAO(DBProvider.db);
-  await settingsDao
-      .getSettingBool(SettingKeys.autoGetCountry)
-      .then((value) async {
-    if (value != null && value == true) {
-      try {
-        final response = await get(Uri.parse('http://ip-api.com/json'));
-        if (response.statusCode == 200) {
-          Map data = jsonDecode(utf8.decode(response.bodyBytes));
-          countryCode = data['countryCode'];
-          await settingsDao.putSettingStr(SettingKeys.countryCode, countryCode);
-        }
-      } catch (err) {
-        await settingsDao.getSettingStr(SettingKeys.countryCode).then((value) {
-          if (value != null) {
-            countryCode = value;
-          } else {
-            countryCode = "IN";
-          }
-        });
-      }
-    } else {
-      await settingsDao.getSettingStr(SettingKeys.countryCode).then((value) {
-        if (value != null) {
-          countryCode = value;
-        } else {
-          countryCode = "IN";
-        }
-      });
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:http/http.dart' as http;
+
+class CountryInfoException implements Exception {
+  final String message;
+
+  const CountryInfoException(this.message);
+
+  @override
+  String toString() => message;
+}
+
+class CountryInfoService {
+  static final List<Uri> _countryLookupUris = [
+    Uri.parse('https://ipwho.is/'),
+    Uri.parse('http://ip-api.com/json'),
+  ];
+
+  const CountryInfoService._();
+
+  static String normalizeCountryCode(String? value) {
+    final normalized = (value ?? '').trim().toUpperCase().replaceAll(
+          RegExp(r'[^A-Z]'),
+          '',
+        );
+    return normalized.length == 2 ? normalized : '';
+  }
+
+  static Future<String?> readCachedCountryCode(SettingsDAO settingsDao) async {
+    final cached = normalizeCountryCode(
+      await settingsDao.getSettingStr(SettingKeys.countryCode),
+    );
+    return cached.isEmpty ? null : cached;
+  }
+
+  static Future<String> resolveAndCacheCountryCode({
+    required SettingsDAO settingsDao,
+    bool forceRefresh = false,
+    bool requireResolved = false,
+  }) async {
+    final cached = await readCachedCountryCode(settingsDao);
+    final autoGetCountry =
+        await settingsDao.getSettingBool(SettingKeys.autoGetCountry) ?? true;
+
+    if (!forceRefresh && cached != null) {
+      return cached;
     }
-  });
-  log("Country Code: $countryCode");
-  return countryCode;
+
+    if (forceRefresh || autoGetCountry || cached == null) {
+      final fetched = await _fetchCountryCode();
+      if (fetched != null) {
+        await settingsDao.putSettingStr(SettingKeys.countryCode, fetched);
+        log('Resolved country code: $fetched', name: 'CountryInfoService');
+        return fetched;
+      }
+    }
+
+    if (cached != null) {
+      return cached;
+    }
+
+    if (requireResolved) {
+      throw const CountryInfoException(
+        'Unable to determine your country without an internet connection.',
+      );
+    }
+
+    throw const CountryInfoException(
+      'Unable to determine your country.',
+    );
+  }
+
+  static Future<String?> _fetchCountryCode() async {
+    for (final uri in _countryLookupUris) {
+      try {
+        final response =
+            await http.get(uri).timeout(const Duration(seconds: 8));
+        if (response.statusCode != 200) {
+          continue;
+        }
+
+        final json = jsonDecode(utf8.decode(response.bodyBytes));
+        if (json is! Map) {
+          continue;
+        }
+
+        final map = Map<String, dynamic>.from(json);
+        final countryCode = normalizeCountryCode(
+          map['countryCode'] ?? map['country_code'],
+        );
+        if (countryCode.isNotEmpty) {
+          return countryCode;
+        }
+      } catch (_) {}
+    }
+
+    return null;
+  }
+}
+
+Future<String> getCountry() {
+  return CountryInfoService.resolveAndCacheCountryCode(
+    settingsDao: SettingsDAO(DBProvider.db),
+  );
 }

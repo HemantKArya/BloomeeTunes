@@ -26,6 +26,7 @@ dependencies:
   bloc: ^9.0.0
   dart_des: ^1.0.2
   http: ^1.5.0
+  archive: ^4.0.7
   convert: ^3.1.1
   html: ^0.15.6
   google_nav_bar: ^5.0.6

@@ -1,3 +1,5 @@
+import 'package:Bloomee/utils/country_info.dart';
+
 class RemotePluginModel {
   final String assetName;
   final String description;
@@ -9,6 +11,7 @@ class RemotePluginModel {
   final String downloadUrl;
   final String? thumbnailUrl;
   final String? publisherName;
+  final List<String> countryAllowlist;
   final DateTime? lastUpdated;
 
   RemotePluginModel({
@@ -22,6 +25,7 @@ class RemotePluginModel {
     required this.downloadUrl,
     this.thumbnailUrl,
     this.publisherName,
+    this.countryAllowlist = const [],
     this.lastUpdated,
   });
 
@@ -39,10 +43,26 @@ class RemotePluginModel {
       publisherName: json['publisher'] != null
           ? json['publisher']['name']?.toString()
           : null,
+      countryAllowlist:
+          (json['country_allowlist'] as List<dynamic>? ?? const [])
+              .map((value) =>
+                  CountryInfoService.normalizeCountryCode(value?.toString()))
+              .where((value) => value.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort(),
       lastUpdated: json['last_updated'] != null
           ? DateTime.tryParse(json['last_updated'].toString())
           : null,
     );
+  }
+
+  bool isAllowedInCountry(String countryCode) {
+    if (countryAllowlist.isEmpty) {
+      return true;
+    }
+    final normalized = CountryInfoService.normalizeCountryCode(countryCode);
+    return normalized.isNotEmpty && countryAllowlist.contains(normalized);
   }
 }
 
