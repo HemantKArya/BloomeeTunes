@@ -17,6 +17,7 @@ import 'package:Bloomee/screens/widgets/smart_replace_dialog.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
+import 'package:Bloomee/services/song_metadata_refresh_service.dart';
 
 void showMoreBottomSheet(
   BuildContext context,
@@ -185,6 +186,35 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                                   title: l10n.menuSmartReplace,
                                   onTap: () => showSmartReplaceDialog(
                                       parentContext, song),
+                                ),
+                                _BottomSheetTile(
+                                  icon: MingCute.refresh_3_line,
+                                  title: l10n.songInfoUpdateMetadata,
+                                  onTap: () async {
+                                    final result =
+                                        await SongMetadataRefreshService
+                                            .refreshTrack(
+                                      song,
+                                      player: parentContext
+                                          .read<BloomeePlayerCubit>()
+                                          .bloomeePlayer,
+                                    );
+                                    if (result.isSuccess) {
+                                      SnackbarService.showMessage(
+                                          l10n.songInfoMetadataUpdated);
+                                    } else if (result.status ==
+                                            SongMetadataRefreshStatus
+                                                .pluginUnavailable ||
+                                        result.status ==
+                                            SongMetadataRefreshStatus
+                                                .invalidMediaId) {
+                                      SnackbarService.showMessage(
+                                          l10n.songInfoMetadataUnavailable);
+                                    } else {
+                                      SnackbarService.showMessage(
+                                          l10n.songInfoMetadataUpdateFailed);
+                                    }
+                                  },
                                 ),
                               ],
                             ),

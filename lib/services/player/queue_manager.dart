@@ -409,6 +409,21 @@ class QueueManager {
     }
   }
 
+  bool replaceTrackById(String mediaId, Track replacement) {
+    final queue = List<Track>.from(_queue.value);
+    var changed = false;
+    for (var i = 0; i < queue.length; i++) {
+      if (queue[i].id == mediaId) {
+        queue[i] = replacement;
+        changed = true;
+      }
+    }
+    if (changed) {
+      _queue.add(queue);
+    }
+    return changed;
+  }
+
   // ─── Internal ──────────────────────────────────────────────────────────────
 
   void _ensureShuffleListValid() {

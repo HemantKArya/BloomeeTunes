@@ -1128,6 +1128,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
+  Future<void> replaceTrackInQueue(Track replacement) async {
+    final changed = _queueManager.replaceTrackById(replacement.id, replacement);
+    if (!changed) {
+      return;
+    }
+
+    if (_currentTrack.id == replacement.id) {
+      _updateCurrentTrack(replacement);
+    }
+  }
+
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
   @override

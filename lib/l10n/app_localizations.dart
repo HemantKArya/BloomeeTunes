@@ -3493,6 +3493,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plugin \"{id}\" deleted successfully'**
   String pluginSnackbarDeleted(String id);
+
+  /// No description provided for @pluginBootstrapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting up Bloomee'**
+  String get pluginBootstrapTitle;
+
+  /// No description provided for @pluginBootstrapProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting up new plugin engine... {percent}%'**
+  String pluginBootstrapProgress(int percent);
+
+  /// No description provided for @pluginBootstrapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This only happens once.'**
+  String get pluginBootstrapHint;
+
+  /// No description provided for @pluginBootstrapErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection too slow'**
+  String get pluginBootstrapErrorTitle;
+
+  /// No description provided for @pluginBootstrapErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Some plugins could not be installed. You can still use Bloomee — plugins will be retried on next launch.'**
+  String get pluginBootstrapErrorBody;
+
+  /// No description provided for @pluginBootstrapContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Anyway'**
+  String get pluginBootstrapContinue;
 }
 
 class _AppLocalizationsDelegate

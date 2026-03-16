@@ -61,6 +61,8 @@ import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:Bloomee/services/db/legacy/legacy_migration_service.dart'
     as legacy_migration;
 import 'package:Bloomee/screens/widgets/legacy_migration_overlay.dart';
+import 'package:Bloomee/screens/widgets/plugin_bootstrap_overlay.dart';
+import 'package:Bloomee/services/plugin_bootstrap_service.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
   if (sharedMedia.content != null && isUrl(sharedMedia.content!)) {
@@ -104,12 +106,6 @@ Future<void> main() async {
   setHighRefreshRate();
   DiscordService.initialize();
 
-  // AudioService.init() is called exactly once here, before runApp.
-  // This registers the Android foreground service at process start and
-  // guarantees a single BloomeeMusicPlayer instance for the lifetime of
-  // the process. Calling it inside a Cubit/Widget causes it to run again
-  // on every UI recreation, creating duplicate libmpv instances that play
-  // audio simultaneously with no notification.
   final player = await AudioService.init(
     builder: () => BloomeeMusicPlayer(),
     config: const AudioServiceConfig(
@@ -138,21 +134,38 @@ class _MyAppState extends State<MyApp> {
   StreamSubscription<SharedMedia>? _intentSub;
   SharedMedia? sharedMedia;
 
+  bool _bootstrapPending = false;
   bool _migrationPending = false;
 
   @override
   void initState() {
     super.initState();
 
+    _bootstrapPending = !PluginBootstrapService.bootstrapDone;
+
     _migrationPending = legacy_migration.needsMigration(
       DBProvider.appSuppDir,
       DBProvider.appDocDir,
     );
 
+    if (!_bootstrapPending) {
+      _runPluginSyncIfDue();
+    }
+
     if (io.Platform.isAndroid) {
       initPlatformState();
       _requestNotificationPermission();
     }
+  }
+
+  void _runPluginSyncIfDue() {
+    unawaited(
+      PluginBootstrapService.syncOnAppOpenIfDue(
+        pluginService: ServiceLocator.pluginService,
+        repositoryService: ServiceLocator.pluginRepositoryService,
+        settingsDao: SettingsDAO(DBProvider.db),
+      ),
+    );
   }
 
   Future<void> initPlatformState() async {
@@ -196,6 +209,18 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    if (_bootstrapPending) {
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: PluginBootstrapOverlay(
+          onComplete: () {
+            _runPluginSyncIfDue();
+            setState(() => _bootstrapPending = false);
+          },
+        ),
+      );
+    }
+
     if (_migrationPending) {
       return Directionality(
         textDirection: TextDirection.ltr,

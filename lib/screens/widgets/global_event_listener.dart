@@ -98,10 +98,7 @@ class _GlobalEventListenerState extends State<GlobalEventListener> {
               AppLocalizations.of(context)!.pluginSnackbarInstalled(id));
         }
       case PluginManagerEvent_PluginLoaded(:final id):
-        if (mounted) {
-          _throttledSnackbar(
-              AppLocalizations.of(context)!.pluginSnackbarLoaded(id));
-        }
+        log('Plugin loaded: $id', name: 'GlobalEventListener');
       case PluginManagerEvent_PluginDeleted(:final id):
         if (mounted) {
           _throttledSnackbar(

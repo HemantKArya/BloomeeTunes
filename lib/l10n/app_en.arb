@@ -701,5 +701,13 @@
   "pluginSnackbarLoaded": "Plugin \"{id}\" loaded",
   "@pluginSnackbarLoaded": { "placeholders": { "id": { "type": "String" } } },
   "pluginSnackbarDeleted": "Plugin \"{id}\" deleted successfully",
-  "@pluginSnackbarDeleted": { "placeholders": { "id": { "type": "String" } } }
+  "@pluginSnackbarDeleted": { "placeholders": { "id": { "type": "String" } } },
+
+  "pluginBootstrapTitle": "Setting up Bloomee",
+  "pluginBootstrapProgress": "Setting up new plugin engine... {percent}%",
+  "@pluginBootstrapProgress": { "placeholders": { "percent": { "type": "int" } } },
+  "pluginBootstrapHint": "This only happens once.",
+  "pluginBootstrapErrorTitle": "Connection too slow",
+  "pluginBootstrapErrorBody": "Some plugins could not be installed. You can still use Bloomee — plugins will be retried on next launch.",
+  "pluginBootstrapContinue": "Continue Anyway"
 }

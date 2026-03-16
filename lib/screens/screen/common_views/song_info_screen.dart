@@ -2,23 +2,19 @@
 import 'dart:ui';
 
 import 'package:Bloomee/core/constants/route_paths.dart';
-import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
-import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
-import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
-import 'package:Bloomee/services/db/dao/track_dao.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
-import 'package:Bloomee/src/rust/api/plugin/commands.dart';
-import 'package:Bloomee/src/rust/api/plugin/types.dart';
+import 'package:Bloomee/services/song_metadata_refresh_service.dart';
 import 'package:Bloomee/utils/load_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SongInfoScreen extends StatefulWidget {
@@ -66,51 +62,31 @@ class _SongInfoScreenState extends State<SongInfoScreen> {
     if (_isRefreshingMetadata) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final parts = tryParseMediaId(song.id);
-    if (parts == null) {
-      SnackbarService.showMessage(l10n.songInfoMetadataUpdateFailed);
-      return;
-    }
-
-    final pluginService = ServiceLocator.pluginService;
-    if (!pluginService.isInitialized) {
-      SnackbarService.showMessage(l10n.songInfoMetadataUnavailable);
-      return;
-    }
-
-    final isLoaded = await pluginService.isPluginLoaded(
-      pluginId: parts.pluginId,
-      pluginType: PluginType.contentResolver,
-    );
-    if (!isLoaded) {
-      SnackbarService.showMessage(l10n.songInfoMetadataUnavailable);
-      return;
-    }
 
     setState(() => _isRefreshingMetadata = true);
     try {
-      final response = await pluginService.execute(
-        pluginId: parts.pluginId,
-        request: PluginRequest.contentResolver(
-          ContentResolverCommand.getTrackDetails(id: parts.localId),
-        ),
+      final result = await SongMetadataRefreshService.refreshTrack(
+        song,
+        player: context.read<BloomeePlayerCubit>().bloomeePlayer,
       );
 
-      if (response is! PluginResponse_TrackDetails) {
-        SnackbarService.showMessage(l10n.songInfoMetadataUpdateFailed);
+      if (!result.isSuccess || result.track == null) {
+        final unavailable =
+            result.status == SongMetadataRefreshStatus.invalidMediaId ||
+                result.status == SongMetadataRefreshStatus.pluginUnavailable;
+        SnackbarService.showMessage(
+          unavailable
+              ? l10n.songInfoMetadataUnavailable
+              : l10n.songInfoMetadataUpdateFailed,
+        );
         return;
       }
 
-      final refreshedTrack = response.field0;
-      await TrackDAO(DBProvider.db).upsertTrack(refreshedTrack);
-
       if (!mounted) return;
       setState(() {
-        _song = refreshedTrack;
+        _song = result.track!;
       });
       SnackbarService.showMessage(l10n.songInfoMetadataUpdated);
-    } on PluginException {
-      SnackbarService.showMessage(l10n.songInfoMetadataUpdateFailed);
     } catch (_) {
       SnackbarService.showMessage(l10n.songInfoMetadataUpdateFailed);
     } finally {

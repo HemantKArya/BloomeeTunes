@@ -552,5 +552,13 @@
   "pluginSnackbarLoaded": "प्लगइन \"{id}\" लोड हुआ",
   "@pluginSnackbarLoaded": { "placeholders": { "id": { "type": "String" } } },
   "pluginSnackbarDeleted": "प्लगइन \"{id}\" हटाया गया",
-  "@pluginSnackbarDeleted": { "placeholders": { "id": { "type": "String" } } }
+  "@pluginSnackbarDeleted": { "placeholders": { "id": { "type": "String" } } },
+
+  "pluginBootstrapTitle": "Bloomee सेट हो रहा है",
+  "pluginBootstrapProgress": "नया प्लगइन इंजन सेट किया जा रहा है... {percent}%",
+  "@pluginBootstrapProgress": { "placeholders": { "percent": { "type": "int" } } },
+  "pluginBootstrapHint": "यह केवल एक बार होता है।",
+  "pluginBootstrapErrorTitle": "कनेक्शन बहुत धीमा है",
+  "pluginBootstrapErrorBody": "कुछ प्लगइन इंस्टॉल नहीं हो सके। आप अभी भी Bloomee का उपयोग कर सकते हैं — प्लगइन अगली बार पुनः प्रयास करेंगे।",
+  "pluginBootstrapContinue": "फिर भी जारी रखें"
 }

@@ -1963,4 +1963,25 @@ class AppLocalizationsHi extends AppLocalizations {
   String pluginSnackbarDeleted(String id) {
     return 'प्लगइन \"$id\" हटाया गया';
   }
+
+  @override
+  String get pluginBootstrapTitle => 'Bloomee सेट हो रहा है';
+
+  @override
+  String pluginBootstrapProgress(int percent) {
+    return 'नया प्लगइन इंजन सेट किया जा रहा है... $percent%';
+  }
+
+  @override
+  String get pluginBootstrapHint => 'यह केवल एक बार होता है।';
+
+  @override
+  String get pluginBootstrapErrorTitle => 'कनेक्शन बहुत धीमा है';
+
+  @override
+  String get pluginBootstrapErrorBody =>
+      'कुछ प्लगइन इंस्टॉल नहीं हो सके। आप अभी भी Bloomee का उपयोग कर सकते हैं — प्लगइन अगली बार पुनः प्रयास करेंगे।';
+
+  @override
+  String get pluginBootstrapContinue => 'फिर भी जारी रखें';
 }

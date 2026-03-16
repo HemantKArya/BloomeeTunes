@@ -1958,4 +1958,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String pluginSnackbarDeleted(String id) {
     return 'Plugin \"$id\" deleted successfully';
   }
+
+  @override
+  String get pluginBootstrapTitle => 'Setting up Bloomee';
+
+  @override
+  String pluginBootstrapProgress(int percent) {
+    return 'Setting up new plugin engine... $percent%';
+  }
+
+  @override
+  String get pluginBootstrapHint => 'This only happens once.';
+
+  @override
+  String get pluginBootstrapErrorTitle => 'Connection too slow';
+
+  @override
+  String get pluginBootstrapErrorBody =>
+      'Some plugins could not be installed. You can still use Bloomee — plugins will be retried on next launch.';
+
+  @override
+  String get pluginBootstrapContinue => 'Continue Anyway';
 }

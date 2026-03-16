@@ -11,6 +11,7 @@ import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
 import 'package:Bloomee/services/plugin/plugin_event_bus.dart';
 import 'package:Bloomee/services/plugin/plugin_load_state_service.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
+import 'package:Bloomee/services/plugin_bootstrap_service.dart';
 import 'package:Bloomee/src/rust/api/plugin/events.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
 
@@ -146,6 +147,11 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
       } else {
         await _persistAutoLoadSafe(loaded.toSet());
       }
+
+      unawaited(PluginBootstrapService.autoSelectPluginDefaults(
+        _pluginService,
+        SettingsDAO(DBProvider.db),
+      ));
 
       log('PluginBloc initialized: ${available.length} available, ${loaded.length} loaded',
           name: 'PluginBloc');

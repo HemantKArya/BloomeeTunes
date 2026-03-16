@@ -61,6 +61,10 @@ class SettingKeys {
   /// Value format: e.g. "v2.11.6+171".
   static const String readChangelogs = "readChangelogs";
 
+  /// Whether the first-run plugin repository bootstrap has been completed.
+  /// Once true, the bootstrap is never run again even if the user uninstalls plugins.
+  static const String repositoriesBootstrapped = "repositoriesBootstrapped";
+
   // ── Plugins ────────────────────────────────────────────────────────────────
   /// JSON-encoded list of plugin IDs that should auto-load on app startup.
   static const String autoLoadPluginIds = "autoLoadPluginIds";
@@ -83,6 +87,9 @@ class SettingKeys {
   /// ID of the search suggestion provider plugin.
   /// Empty string = no plugin-based suggestions.
   static const String suggestionPluginId = "suggestionPluginId";
+
+  /// ISO 8601 UTC timestamp of the last repository sync cycle.
+  static const String pluginRepositoryLastSync = "pluginRepositoryLastSync";
 
   // ── Local music ─────────────────────────────────────────────────────────────
   /// JSON-encoded list of directory paths to scan for local audio files.

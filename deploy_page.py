@@ -298,6 +298,33 @@ def copy_changelogs_into_build(repo_root: Path):
         log("ℹ️ No changelog files found at repo root to copy.")
     return copied_any
 
+
+def copy_repositories_into_build(repo_root: Path):
+    """Copy ghpage/repositories.json into the build dir so it is served as a static asset.
+
+    The Flutter app fetches this file from the hosted GitHub Pages URL at startup to
+    discover plugin repositories.  Returns True if the file was copied.
+    """
+    src = (repo_root / BUILD_SOURCE / "repositories.json").resolve()
+    build_dir = (repo_root / BUILD_DIR).resolve()
+
+    if not src.exists():
+        log("ℹ️ ghpage/repositories.json not found — skipping.")
+        return False
+
+    if not build_dir.exists():
+        log(f"⚠️ Build directory not found: {build_dir} — skipping repositories.json copy.")
+        return False
+
+    dest = build_dir / "repositories.json"
+    try:
+        shutil.copy2(src, dest)
+        log(f"📄 Copied repositories.json -> {dest}")
+        return True
+    except Exception as e:
+        log(f"⚠️ Failed to copy repositories.json -> {dest}: {e}")
+        return False
+
 def commit_and_push(wt: Path):
     # run_stream(["git", "config", "user.name", "ghpage-deployer"], cwd=wt, check=False)
     # run_stream(["git", "config", "user.email", "ghpage-deployer@example.com"], cwd=wt, check=False)
@@ -358,6 +385,12 @@ def main():
         copy_changelogs_into_build(repo_root)
     except Exception as e:
         log(f"⚠️ Failed while copying changelogs: {e}")
+
+    # Copy repositories.json so the Flutter app can fetch it at startup
+    try:
+        copy_repositories_into_build(repo_root)
+    except Exception as e:
+        log(f"⚠️ Failed while copying repositories.json: {e}")
 
     # Prepare temp worktree (from HEAD) and unique orphan branch
     try:
