@@ -19,6 +19,7 @@ import 'package:Bloomee/services/player/player_error_handler.dart';
 import 'package:Bloomee/services/player/queue_manager.dart';
 import 'package:Bloomee/services/player/related_songs_manager.dart';
 import 'package:Bloomee/services/player/recently_played_tracker.dart';
+import 'package:Bloomee/services/player/stream_quality_selector.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/services/meta_resolver/smart_track_replacement_service.dart';
 import 'package:Bloomee/services/discord_service.dart';
@@ -31,15 +32,6 @@ import 'package:rxdart/rxdart.dart';
 /// Main music player — extends [BaseAudioHandler] for OS notification / media
 /// controls and orchestrates [PlayerEngine],[QueueManager],
 /// and [PlayerErrorHandler].
-///
-/// ## Industry Standard Architecture
-/// - **CancelableCompleters**: Guarantees zero unhandled futures and prevents
-///   zombie network calls if the user skips tracks rapidly.
-/// - **Optimized OS Sync**: Avoids 60Hz position stream broadcasting. Only updates
-///   the OS on state changes, allowing native iOS/Android to interpolate time natively.
-/// - **Deterministic Transitions**: Consumes sealed [EngineResult] to prevent
-///   swallowed errors from breaking playback state.
-/// - **Circuit Breaker Error Handling**: Stops infinite skip loops securely on network failures.
 class BloomeeMusicPlayer extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   late PlayerEngine engine;
@@ -272,8 +264,27 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
       final cfStr =
           await settingsDao.getSettingStr(SettingKeys.crossfadeDuration);
-      final cfSeconds = int.tryParse(cfStr ?? '0') ?? 0;
+      final parsedCrossfade = int.tryParse((cfStr ?? '').trim());
+      final cfSeconds = parsedCrossfade ?? 2;
+      if (cfStr != cfSeconds.toString()) {
+        await settingsDao.putSettingStr(
+          SettingKeys.crossfadeDuration,
+          cfSeconds.toString(),
+        );
+      }
       engine.crossfadeDuration = Duration(seconds: cfSeconds);
+
+      final storedQuality = await settingsDao.getSettingStr(
+        SettingKeys.strmQuality,
+      );
+      final normalizedQuality = normalizeStoredStreamQualityLabel(
+        storedQuality,
+        fallback: AudioStreamQualityPreference.high.label,
+      );
+      if (storedQuality != normalizedQuality) {
+        await settingsDao.putSettingStr(
+            SettingKeys.strmQuality, normalizedQuality);
+      }
 
       final eqOn =
           await settingsDao.getSettingBool(SettingKeys.eqEnabled) ?? false;

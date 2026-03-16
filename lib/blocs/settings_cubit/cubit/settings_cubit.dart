@@ -130,10 +130,15 @@ class SettingsCubit extends Cubit<SettingsState> {
         }
         emit(state.copyWith(chartMap: Map.from(chartMap)));
       }),
-      _settingsRepo
-          .getSettingStr(SettingKeys.crossfadeDuration, defaultValue: '2')
-          .then((value) {
-        final seconds = int.tryParse(value ?? '2') ?? 2;
+      _settingsRepo.getSettingStr(SettingKeys.crossfadeDuration).then((value) {
+        final parsed = int.tryParse((value ?? '').trim());
+        final seconds = parsed ?? 2;
+        if (value != seconds.toString()) {
+          _settingsRepo.putSettingStr(
+            SettingKeys.crossfadeDuration,
+            seconds.toString(),
+          );
+        }
         emit(state.copyWith(crossfadeDuration: seconds));
       }),
       _settingsRepo.getSettingBool(SettingKeys.eqEnabled).then((value) {

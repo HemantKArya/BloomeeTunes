@@ -128,10 +128,19 @@ class MediaResolverService {
 
         final storedQuality = await _settingsDao.getSettingStr(
           SettingKeys.strmQuality,
-          defaultValue: AudioStreamQualityPreference.medium.label,
         );
-        final preference = AudioStreamQualityPreferenceX.fromStored(
+        final normalizedQuality = normalizeStoredStreamQualityLabel(
           storedQuality,
+          fallback: AudioStreamQualityPreference.high.label,
+        );
+        if (storedQuality != normalizedQuality) {
+          await _settingsDao.putSettingStr(
+            SettingKeys.strmQuality,
+            normalizedQuality,
+          );
+        }
+        final preference = AudioStreamQualityPreferenceX.fromStored(
+          normalizedQuality,
         );
         final selectedStream = StreamQualitySelector.selectPlaybackStream(
           streams,
