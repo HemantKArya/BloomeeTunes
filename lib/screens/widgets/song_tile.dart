@@ -68,7 +68,7 @@ class SongCardWidget extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 2),
           decoration: BoxDecoration(
             color: isPlaying
-                ? Default_Theme.accentColor2.withOpacity(0.08)
+                ? Default_Theme.accentColor2.withValues(alpha: 0.08)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
           ),
@@ -76,8 +76,9 @@ class SongCardWidget extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(14),
-              splashColor: Default_Theme.primaryColor1.withOpacity(0.06),
-              highlightColor: Default_Theme.primaryColor1.withOpacity(0.03),
+              splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.06),
+              highlightColor:
+                  Default_Theme.primaryColor1.withValues(alpha: 0.03),
               onTap: onTap,
               onLongPress: onOptionsTap, // Native UX feel
               child: Padding(
@@ -111,7 +112,7 @@ class SongCardWidget extends StatelessWidget {
                                     key: const ValueKey('index_text'),
                                     style: TextStyle(
                                       color: Default_Theme.primaryColor2
-                                          .withOpacity(0.5),
+                                          .withValues(alpha: 0.5),
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -148,7 +149,7 @@ class SongCardWidget extends StatelessWidget {
                             style: TextStyle(
                               color: isPlaying
                                   ? Default_Theme.accentColor2
-                                  : Colors.white.withOpacity(0.75),
+                                  : Colors.white.withValues(alpha: 0.75),
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                               letterSpacing: -0.2,
@@ -167,7 +168,7 @@ class SongCardWidget extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: Default_Theme.primaryColor2
-                                    .withOpacity(0.65),
+                                    .withValues(alpha: 0.65),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -177,7 +178,7 @@ class SongCardWidget extends StatelessWidget {
                               track: song,
                               style: TextStyle(
                                 color: Default_Theme.primaryColor2
-                                    .withOpacity(0.65),
+                                    .withValues(alpha: 0.65),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -230,7 +231,7 @@ class SongCardWidget extends StatelessWidget {
                         if (delDownBtn)
                           _ActionButton(
                             icon: MingCute.delete_2_line,
-                            iconColor: Colors.redAccent.withOpacity(0.9),
+                            iconColor: Colors.redAccent.withValues(alpha: 0.9),
                             onTap: () {
                               try {
                                 if (playerCubit.bloomeePlayer.currentMedia.id !=
@@ -296,14 +297,15 @@ class _ActionButton extends StatelessWidget {
       clipBehavior: Clip.hardEdge,
       child: InkWell(
         onTap: onTap,
-        splashColor: Default_Theme.primaryColor1.withOpacity(0.1),
-        highlightColor: Default_Theme.primaryColor1.withOpacity(0.05),
+        splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.1),
+        highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.05),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Icon(
             icon,
             size: iconSize,
-            color: iconColor ?? Default_Theme.primaryColor1.withOpacity(0.65),
+            color: iconColor ??
+                Default_Theme.primaryColor1.withValues(alpha: 0.65),
           ),
         ),
       ),
