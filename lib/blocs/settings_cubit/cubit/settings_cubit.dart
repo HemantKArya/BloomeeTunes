@@ -5,6 +5,7 @@ import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:Bloomee/services/player/stream_quality_selector.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
+import 'package:Bloomee/utils/country_info.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
@@ -103,13 +104,21 @@ class SettingsCubit extends Cubit<SettingsState> {
         emit(state.copyWith(autoBackup: value ?? false));
       }),
       _settingsRepo.getSettingBool(SettingKeys.autoGetCountry).then((value) {
-        emit(state.copyWith(autoGetCountry: value ?? false));
+        emit(state.copyWith(autoGetCountry: value ?? true));
       }),
       _settingsRepo.getSettingStr(SettingKeys.languageCode).then((value) {
         emit(state.copyWith(languageCode: value ?? ''));
       }),
       _settingsRepo.getSettingStr(SettingKeys.countryCode).then((value) {
-        emit(state.copyWith(countryCode: value ?? "IN"));
+        final normalized = CountryInfoService.normalizeCountryCode(value);
+        if (normalized.isNotEmpty) {
+          emit(state.copyWith(countryCode: normalized));
+          return;
+        }
+
+        // If no cached country, use the default and let bootstrap try to resolve it later.
+        emit(
+            state.copyWith(countryCode: CountryInfoService.defaultCountryCode));
       }),
       _settingsRepo.getSettingBool(SettingKeys.autoSaveLyrics).then((value) {
         emit(state.copyWith(autoSaveLyrics: value ?? false));

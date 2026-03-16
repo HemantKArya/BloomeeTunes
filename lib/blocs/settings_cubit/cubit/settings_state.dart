@@ -172,7 +172,7 @@ class SettingsInitial extends SettingsState {
           historyClearTime: "30",
           autoGetCountry: true,
           languageCode: '',
-          countryCode: "IN",
+          countryCode: "US",
           chartMap: {},
           lFMPicks: false,
           lastFMScrobble: true,

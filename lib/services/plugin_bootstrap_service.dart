@@ -15,7 +15,6 @@ import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
 import 'package:Bloomee/utils/country_info.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
@@ -92,15 +91,6 @@ class PluginBootstrapService {
     onProgress(const PluginBootstrapProgress(8));
 
     final countryCode = await _resolveBootstrapCountryCode(settingsDao);
-    if (countryCode == null) {
-      return const PluginBootstrapResult(
-        success: false,
-        errors: [
-          'An internet connection is required to set up the plugin engine.',
-        ],
-        failureReason: PluginBootstrapFailureReason.noInternet,
-      );
-    }
 
     List<_HostedRepoEntry> entries;
     try {
@@ -576,27 +566,16 @@ class PluginBootstrapService {
     }
   }
 
-  static Future<String?> _resolveBootstrapCountryCode(
+  static Future<String> _resolveBootstrapCountryCode(
     SettingsDAO settingsDao,
   ) async {
-    final connectivity = await Connectivity().checkConnectivity();
-    final isConnected = connectivity.any(
-      (value) => value != ConnectivityResult.none,
-    );
-    if (!isConnected) {
-      final cached =
-          await CountryInfoService.readCachedCountryCode(settingsDao);
-      return cached;
-    }
-
     try {
       return await CountryInfoService.resolveAndCacheCountryCode(
         settingsDao: settingsDao,
         forceRefresh: true,
-        requireResolved: true,
       );
     } catch (_) {
-      return await CountryInfoService.readCachedCountryCode(settingsDao);
+      return CountryInfoService.defaultCountryCode;
     }
   }
 

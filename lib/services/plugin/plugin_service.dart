@@ -195,7 +195,6 @@ class PluginService {
       if (packedManifest.countryAllowlist.isNotEmpty) {
         final countryCode = await CountryInfoService.resolveAndCacheCountryCode(
           settingsDao: SettingsDAO(DBProvider.db),
-          requireResolved: true,
         );
         if (!packedManifest.countryAllowlist.contains(countryCode)) {
           throw PluginCountryRestrictedException(
@@ -222,12 +221,6 @@ class PluginService {
       return result;
     } on PluginInstallException {
       rethrow;
-    } on CountryInfoException catch (e) {
-      throw PluginInstallException(
-        message:
-            'Connect to the internet once so Bloomee can verify your country before installing this plugin.',
-        cause: e,
-      );
     } catch (e) {
       throw PluginInstallException(
         message: 'Failed to install plugin from $packedFilePath: $e',

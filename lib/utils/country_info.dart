@@ -6,18 +6,13 @@ import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:http/http.dart' as http;
 
-class CountryInfoException implements Exception {
-  final String message;
-
-  const CountryInfoException(this.message);
-
-  @override
-  String toString() => message;
-}
-
 class CountryInfoService {
+  static const String defaultCountryCode = 'US';
+
   static final List<Uri> _countryLookupUris = [
     Uri.parse('https://ipwho.is/'),
+    Uri.parse('https://api.country.is/'),
+    Uri.parse('https://ipapi.co/json/'),
     Uri.parse('http://ip-api.com/json'),
   ];
 
@@ -41,7 +36,6 @@ class CountryInfoService {
   static Future<String> resolveAndCacheCountryCode({
     required SettingsDAO settingsDao,
     bool forceRefresh = false,
-    bool requireResolved = false,
   }) async {
     final cached = await readCachedCountryCode(settingsDao);
     final autoGetCountry =
@@ -64,15 +58,15 @@ class CountryInfoService {
       return cached;
     }
 
-    if (requireResolved) {
-      throw const CountryInfoException(
-        'Unable to determine your country without an internet connection.',
-      );
-    }
-
-    throw const CountryInfoException(
-      'Unable to determine your country.',
+    // Final fallback for first-run cold starts or provider outages.
+    // Keep setup non-blocking by persisting a sane default.
+    const fallback = defaultCountryCode;
+    await settingsDao.putSettingStr(SettingKeys.countryCode, fallback);
+    log(
+      'Country lookup failed; using fallback country $fallback',
+      name: 'CountryInfoService',
     );
+    return fallback;
   }
 
   static Future<String?> _fetchCountryCode() async {
@@ -91,7 +85,10 @@ class CountryInfoService {
 
         final map = Map<String, dynamic>.from(json);
         final countryCode = normalizeCountryCode(
-          map['countryCode'] ?? map['country_code'],
+          map['countryCode'] ??
+              map['country_code'] ??
+              map['country'] ??
+              map['countryCode2'],
         );
         if (countryCode.isNotEmpty) {
           return countryCode;
