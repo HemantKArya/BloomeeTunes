@@ -64,7 +64,7 @@ class SettingsCubit extends Cubit<SettingsState> {
           .then((value) {
         final normalized = normalizeStoredStreamQualityLabel(
           value,
-          fallback: AudioStreamQualityPreference.medium.label,
+          fallback: AudioStreamQualityPreference.high.label,
         );
         if (value != normalized) {
           _settingsRepo.putSettingStr(SettingKeys.strmQuality, normalized);
@@ -122,9 +122,9 @@ class SettingsCubit extends Cubit<SettingsState> {
         emit(state.copyWith(chartMap: Map.from(chartMap)));
       }),
       _settingsRepo
-          .getSettingStr(SettingKeys.crossfadeDuration, defaultValue: '0')
+          .getSettingStr(SettingKeys.crossfadeDuration, defaultValue: '2')
           .then((value) {
-        final seconds = int.tryParse(value ?? '0') ?? 0;
+        final seconds = int.tryParse(value ?? '2') ?? 2;
         emit(state.copyWith(crossfadeDuration: seconds));
       }),
       _settingsRepo.getSettingBool(SettingKeys.eqEnabled).then((value) {
