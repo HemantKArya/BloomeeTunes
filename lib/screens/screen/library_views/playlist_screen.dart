@@ -663,6 +663,7 @@ class _PlaylistViewState extends State<PlaylistView> {
           return AnimatedListItem(
             index: index,
             child: SongCardWidget(
+              index: index + 1,
               key: ValueKey(track.id),
               song: track,
               onTap: () => _playFromPlaylist(context, state, index: index),

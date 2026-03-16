@@ -292,6 +292,7 @@ class _AlbumViewState extends State<AlbumView> {
                         return AnimatedListItem(
                           index: index,
                           child: SongCardWidget(
+                            index: index + 1,
                             song: song,
                             onOptionsTap: () => showMoreBottomSheet(
                               context,
