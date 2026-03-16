@@ -125,8 +125,6 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                                   if (showSinglePlay)
                                     _BottomSheetTile(
                                       icon: MingCute.play_circle_fill,
-                                      iconColor: Default_Theme
-                                          .accentColor2, // Semantic highlight
                                       title: l10n.playerPlayWithMix,
                                       onTap: () {
                                         player.updateQueueTracks([song],

@@ -16,7 +16,7 @@ import 'package:Bloomee/utils/load_image.dart';
 
 class SongCardWidget extends StatelessWidget {
   final Track song;
-  final int? index; // Elegantly handles album/playlist numbering
+  final int? index;
   final bool showOptions;
   final bool showInfoBtn;
   final bool showPlayBtn;
@@ -54,8 +54,6 @@ class SongCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final playerCubit = context.read<BloomeePlayerCubit>();
 
-    // Isolated StreamBuilder: Rebuilds ONLY this specific card when its playing state changes,
-    // ensuring 120fps scrolling performance for massive playlists.
     return StreamBuilder<MediaItem?>(
       stream: playerCubit.bloomeePlayer.mediaItem,
       builder: (context, snapshot) {
@@ -64,7 +62,7 @@ class SongCardWidget extends StatelessWidget {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 350),
           curve: Curves.easeOutCubic,
-          height: 66, // Sleek, breathable modern height
+          height: 66,
           margin: const EdgeInsets.symmetric(vertical: 2),
           decoration: BoxDecoration(
             color: isPlaying
@@ -80,12 +78,12 @@ class SongCardWidget extends StatelessWidget {
               highlightColor:
                   Default_Theme.primaryColor1.withValues(alpha: 0.03),
               onTap: onTap,
-              onLongPress: onOptionsTap, // Native UX feel
+              onLongPress: onOptionsTap,
+              onSecondaryTap: onOptionsTap,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
                 child: Row(
                   children: [
-                    // ── Smooth Index / Playing Indicator Transition ──
                     if (index != null || isPlaying)
                       SizedBox(
                         width: 36,
@@ -273,7 +271,6 @@ class SongCardWidget extends StatelessWidget {
   }
 }
 
-// Ultra-compact, hit-box optimized action button
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
