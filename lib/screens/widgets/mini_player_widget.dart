@@ -240,9 +240,9 @@ class _MiniPlayerCardState extends State<MiniPlayerCard>
                       height: 0.5,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(colors: [
-                          Colors.white.withOpacity(0),
-                          Colors.white.withOpacity(0.15),
-                          Colors.white.withOpacity(0),
+                          Colors.white.withValues(alpha: 0),
+                          Colors.white.withValues(alpha: 0.15),
+                          Colors.white.withValues(alpha: 0),
                         ]),
                       ),
                     ),
@@ -289,12 +289,12 @@ class _GlassOverlay extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.black.withOpacity(0.45),
-              Colors.black.withOpacity(0.60),
+              Colors.black.withValues(alpha: 0.45),
+              Colors.black.withValues(alpha: 0.60),
             ],
           ),
           border: Border.all(
-            color: Colors.white.withOpacity(0.06),
+            color: Colors.white.withValues(alpha: 0.06),
             width: 0.5,
           ),
           borderRadius: BorderRadius.circular(16),
@@ -324,7 +324,7 @@ class _Artwork extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -388,7 +388,7 @@ class _TrackInfo extends StatelessWidget {
             fontFamily: 'Unageo',
             fontWeight: FontWeight.w600,
             fontSize: 11.5,
-            color: Colors.white.withOpacity(0.55),
+            color: Colors.white.withValues(alpha: 0.55),
             letterSpacing: 0.1,
           ),
           maxLines: 1,
@@ -499,8 +499,9 @@ class _PlayPauseButton extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.12),
-          border: Border.all(color: Colors.white.withOpacity(0.15), width: 0.5),
+          color: Colors.white.withValues(alpha: 0.12),
+          border: Border.all(
+              color: Colors.white.withValues(alpha: 0.15), width: 0.5),
         ),
         child: Center(
           child: AnimatedSwitcher(
@@ -542,7 +543,8 @@ class _ControlButton extends StatelessWidget {
         onTap: onPressed,
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, size: size, color: Colors.white.withOpacity(0.85)),
+          child: Icon(icon,
+              size: size, color: Colors.white.withValues(alpha: 0.85)),
         ),
       ),
     );
@@ -582,7 +584,8 @@ class _GlowingProgressBar extends StatelessWidget {
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Default_Theme.accentColor2.withOpacity(0.6),
+                            color: Default_Theme.accentColor2
+                                .withValues(alpha: 0.6),
                             blurRadius: 8,
                             spreadRadius: 1,
                           ),
@@ -602,8 +605,8 @@ class _GlowingProgressBar extends StatelessWidget {
                           right: Radius.circular(2),
                         ),
                         gradient: LinearGradient(colors: [
-                          Default_Theme.primaryColor2.withOpacity(0.8),
-                          Default_Theme.primaryColor2.withOpacity(0.5),
+                          Default_Theme.primaryColor2.withValues(alpha: 0.8),
+                          Default_Theme.primaryColor2.withValues(alpha: 0.5),
                         ]),
                       ),
                     ),
