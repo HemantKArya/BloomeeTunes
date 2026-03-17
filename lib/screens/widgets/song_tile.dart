@@ -102,7 +102,7 @@ class SongCardWidget extends StatelessWidget {
                             ),
                             child: isPlaying
                                 ? const Icon(
-                                    MingCute.music_3_fill, // Audio wave icon
+                                    MingCute.right_fill,
                                     key: ValueKey('playing_icon'),
                                     color: Default_Theme.accentColor2,
                                     size: 18,
