@@ -9,19 +9,33 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui' as ui;
 
-// ─── EQ Presets ─────────────────────────────────────────────────────────────
+// ─── Extended Pro-Audio EQ Presets ───────────────────────────────────────────
 
 const Map<String, List<double>> _kPresets = {
   'Flat': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  'Rock': [4, 3, 1, 0, -1, -1, 0, 2, 3, 4],
-  'Pop': [-1, 2, 4, 4, 2, 0, -1, -1, 2, 3],
   'Acoustic': [3, 2, 1, 0, 0, 0, 1, 2, 2, 3],
-  'EDM': [4, 3, 1, 0, -1, 1, 0, 1, 3, 4],
-  'Metal': [4, 3, 0, -1, 1, 0, 1, 0, 2, 3],
-  'Live': [2, 1, 0, 1, 1, 2, 2, 1, 0, 0],
   'Bass Boost': [6, 5, 4, 2, 0, 0, 0, 0, 0, 0],
-  'Treble': [0, 0, 0, 0, 0, 0, 2, 4, 5, 6],
-  'Vocal': [-2, -1, 0, 2, 4, 4, 3, 1, 0, -1],
+  'Bass Reducer': [-6, -5, -4, -2, 0, 0, 0, 0, 0, 0],
+  'Classical': [0, 0, 0, 0, 0, 0, -1, -2, -3, -4],
+  'Dance': [5, 4, 2, 0, 0, -1, -1, 0, 1, 2],
+  'Deep': [4, 3, 2, 1, 0, 0, 1, 2, 3, 4],
+  'EDM': [4, 3, 1, 0, -1, 1, 0, 1, 3, 4],
+  'Electronic': [4, 3, 1, 0, -2, 2, 0, 1, 3, 4],
+  'Hip-Hop': [5, 4, 1, 0, -1, -1, 0, 1, 2, 3],
+  'Jazz': [2, 1, 0, -1, -1, 0, 1, 2, 3, 3],
+  'Latin': [3, 2, 0, 0, -1, -1, -1, 0, 2, 3],
+  'Live': [2, 1, 0, 1, 1, 2, 2, 1, 0, 0],
+  'Lounge': [2, 1, 0, 0, 0, 0, 0, 0, 1, 2],
+  'Metal': [4, 3, 0, -1, 1, 0, 1, 0, 2, 3],
+  'Piano': [1, 1, 0, 2, 3, 3, 2, 1, 0, 0],
+  'Pop': [-1, 2, 4, 4, 2, 0, -1, -1, 2, 3],
+  'R&B': [3, 2, 1, 0, -1, 0, 1, 2, 2, 3],
+  'Rock': [4, 3, 1, 0, -1, -1, 0, 2, 3, 4],
+  'Small Speakers': [5, 4, 3, 2, 1, 0, -1, -2, -3, -4],
+  'Spoken Word': [-3, -2, -1, 2, 4, 4, 2, 0, -1, -2],
+  'Treble Boost': [0, 0, 0, 0, 0, 0, 2, 4, 5, 6],
+  'Treble Reducer': [0, 0, 0, 0, 0, 0, -2, -4, -5, -6],
+  'Vocal Booster': [-2, -1, 0, 2, 4, 4, 3, 1, 0, -1],
 };
 
 // ─── Main View ──────────────────────────────────────────────────────────────
@@ -252,7 +266,7 @@ class _EqualizerViewState extends State<EqualizerView>
           IconButton(
             tooltip: l10n.eqResetTooltip,
             icon: Icon(Icons.refresh_rounded,
-                color: Colors.white.withOpacity(0.8), size: 22),
+                color: Colors.white.withValues(alpha: 0.8), size: 22),
             onPressed: _resetEQ,
           ),
           const SizedBox(width: 8),
@@ -260,23 +274,25 @@ class _EqualizerViewState extends State<EqualizerView>
       ),
       body: FadeTransition(
         opacity: _fadeAnim,
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-                maxWidth: 640), // Premium Desktop Constraints
+            constraints: const BoxConstraints(maxWidth: 640),
             child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics()),
+              padding: const EdgeInsets.fromLTRB(0, 16, 0, 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // ── Presets Section ──
                   Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 8),
+                    padding: const EdgeInsets.only(left: 20, bottom: 12),
                     child: Text(
                       'PRESETS',
                       style: TextStyle(
-                        color: Default_Theme.primaryColor2.withOpacity(0.55),
+                        color:
+                            Default_Theme.primaryColor2.withValues(alpha: 0.55),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.2,
@@ -289,103 +305,107 @@ class _EqualizerViewState extends State<EqualizerView>
 
                   // ── Main Equalizer Card ──
                   Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 8),
+                    padding: const EdgeInsets.only(left: 20, bottom: 12),
                     child: Text(
                       'CUSTOM CURVE',
                       style: TextStyle(
-                        color: Default_Theme.primaryColor2.withOpacity(0.55),
+                        color:
+                            Default_Theme.primaryColor2.withValues(alpha: 0.55),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.2,
                       ),
                     ),
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Default_Theme.primaryColor1
-                          .withOpacity(0.04), // Beautiful floating glass look
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                          color: Default_Theme.primaryColor1.withOpacity(0.05),
-                          width: 1),
-                    ),
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              l10n.eqTitle,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.95),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.2,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color:
+                            Default_Theme.primaryColor1.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.05),
+                            width: 1),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.eqTitle,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                              BloomeeSwitch(
+                                value: isEnabled,
+                                onChanged: () {
+                                  _engine.setEqualizerEnabled(!isEnabled);
+                                  _settingsCubit.setEqEnabled(!isEnabled);
+                                  setState(() {});
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // ── The Spline Graph ──
+                          AnimatedOpacity(
+                            opacity: isEnabled ? 1.0 : 0.3,
+                            duration: const Duration(milliseconds: 300),
+                            child: SizedBox(
+                              height: _graphHeight,
+                              width: double.infinity,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onPanDown: (d) =>
+                                        _handleGraphPanStart(d, constraints),
+                                    onPanUpdate: (d) =>
+                                        _handleGraphPanUpdate(d, constraints),
+                                    onPanEnd: _handleGraphPanEnd,
+                                    onPanCancel: () => setState(
+                                        () => _draggingBandIndex = null),
+                                    child: AnimatedBuilder(
+                                      animation: _curveAnim,
+                                      builder: (context, _) {
+                                        return CustomPaint(
+                                          size: Size(constraints.maxWidth,
+                                              constraints.maxHeight),
+                                          painter: _InteractiveEQPainter(
+                                            startGains: _animStartGains,
+                                            targetGains: _currentGains,
+                                            minGain: _minGain,
+                                            maxGain: _maxGain,
+                                            accentColor: accent,
+                                            animValue: _curveAnim.value,
+                                            frequencies: bands
+                                                .map((b) => _freqLabel(
+                                                    b.centerFrequency))
+                                                .toList(),
+                                            draggingIndex: _draggingBandIndex,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                            BloomeeSwitch(
-                              value: isEnabled,
-                              onChanged: () {
-                                _engine.setEqualizerEnabled(!isEnabled);
-                                _settingsCubit.setEqEnabled(!isEnabled);
-                                setState(() {});
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-
-                        // ── The Spline Graph ──
-                        AnimatedOpacity(
-                          opacity: isEnabled ? 1.0 : 0.3,
-                          duration: const Duration(milliseconds: 300),
-                          child: SizedBox(
-                            height: _graphHeight,
-                            width: double.infinity,
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                return GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onPanDown: (d) =>
-                                      _handleGraphPanStart(d, constraints),
-                                  onPanUpdate: (d) =>
-                                      _handleGraphPanUpdate(d, constraints),
-                                  onPanEnd: _handleGraphPanEnd,
-                                  onPanCancel: () =>
-                                      setState(() => _draggingBandIndex = null),
-                                  child: AnimatedBuilder(
-                                    animation: _curveAnim,
-                                    builder: (context, _) {
-                                      return CustomPaint(
-                                        size: Size(constraints.maxWidth,
-                                            constraints.maxHeight),
-                                        painter: _InteractiveEQPainter(
-                                          startGains: _animStartGains,
-                                          targetGains: _currentGains,
-                                          minGain: _minGain,
-                                          maxGain: _maxGain,
-                                          accentColor: accent,
-                                          animValue: _curveAnim.value,
-                                          frequencies: bands
-                                              .map((b) =>
-                                                  _freqLabel(b.centerFrequency))
-                                              .toList(),
-                                          draggingIndex: _draggingBandIndex,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -395,16 +415,18 @@ class _EqualizerViewState extends State<EqualizerView>
     );
   }
 
-  // ─── Preset Tabs ────────────────────────────────────────────────────────
+  // ─── Compact Preset Tabs ───────────────────────────────────────────────────
 
   Widget _buildPresetTabs(Color accent) {
     return SizedBox(
-      height: 48,
+      height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 20), // Starts aligned with titles
         itemCount: _kPresets.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final name = _kPresets.keys.elementAt(index);
           final isActive = name == _selectedPreset;
@@ -413,24 +435,25 @@ class _EqualizerViewState extends State<EqualizerView>
             color: Colors.transparent,
             child: InkWell(
               onTap: () => _applyPreset(name),
-              borderRadius: BorderRadius.circular(24),
-              splashColor: accent.withOpacity(0.1),
-              highlightColor: accent.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(18),
+              splashColor: accent.withValues(alpha: 0.1),
+              highlightColor: accent.withValues(alpha: 0.05),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? accent.withOpacity(0.15)
-                      : Default_Theme.primaryColor1.withOpacity(0.04),
-                  borderRadius: BorderRadius.circular(24),
+                      ? accent.withValues(alpha: 0.15)
+                      : Default_Theme.primaryColor1.withValues(alpha: 0.04),
+                  borderRadius:
+                      BorderRadius.circular(18), // Perfectly pill shaped
                   border: Border.all(
                     color: isActive
-                        ? accent.withOpacity(0.5)
-                        : Default_Theme.primaryColor1.withOpacity(0.05),
-                    width: 1.2,
+                        ? accent.withValues(alpha: 0.5)
+                        : Default_Theme.primaryColor1.withValues(alpha: 0.05),
+                    width: 1.0, // Thinner, sharper border
                   ),
                 ),
                 child: Text(
@@ -438,9 +461,10 @@ class _EqualizerViewState extends State<EqualizerView>
                   style: TextStyle(
                     color: isActive
                         ? accent
-                        : Default_Theme.primaryColor1.withOpacity(0.7),
+                        : Default_Theme.primaryColor1.withValues(alpha: 0.75),
                     fontSize: 13,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    letterSpacing: -0.1,
                   ),
                 ),
               ),
@@ -452,9 +476,7 @@ class _EqualizerViewState extends State<EqualizerView>
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Pro-Audio Interactive EQ Graph Painter
-// ═══════════════════════════════════════════════════════════════════════════════
+// Interactive EQ Graph Painter
 
 class _InteractiveEQPainter extends CustomPainter {
   final List<double> startGains;
@@ -491,7 +513,7 @@ class _InteractiveEQPainter extends CustomPainter {
 
     // ── 0 dB Center Line ──
     final zeroPaint = Paint()
-      ..color = Colors.white.withOpacity(0.08)
+      ..color = Colors.white.withValues(alpha: 0.08)
       ..strokeWidth = 1.0;
     canvas.drawLine(Offset(0, zeroY), Offset(w, zeroY), zeroPaint);
 
@@ -506,14 +528,13 @@ class _InteractiveEQPainter extends CustomPainter {
       points.add(Offset(x, y));
     }
 
-    // ── Draw Stems (Pro-Audio DAW Look) ──
+    // ── Draw Stems ──
     for (var i = 0; i < N; i++) {
-      // Faint background trace line
       canvas.drawLine(
         Offset(points[i].dx, topPad - 15),
         Offset(points[i].dx, h - bottomPad),
         Paint()
-          ..color = Colors.white.withOpacity(0.03)
+          ..color = Colors.white.withValues(alpha: 0.03)
           ..strokeWidth = 1.5,
       );
 
@@ -523,14 +544,17 @@ class _InteractiveEQPainter extends CustomPainter {
         ..shader = ui.Gradient.linear(
           Offset(points[i].dx, points[i].dy),
           Offset(points[i].dx, h - bottomPad),
-          [accentColor.withOpacity(0.4), accentColor.withOpacity(0.0)],
+          [
+            accentColor.withValues(alpha: 0.4),
+            accentColor.withValues(alpha: 0.0)
+          ],
         );
 
       canvas.drawLine(Offset(points[i].dx, points[i].dy),
           Offset(points[i].dx, h - bottomPad), bottomStemPaint);
     }
 
-    // ── Smooth Spline Curve ──
+    // ── Spline Curve ──
     final curvePath = Path();
     curvePath.moveTo(points.first.dx, points.first.dy);
 
@@ -548,7 +572,7 @@ class _InteractiveEQPainter extends CustomPainter {
       curvePath.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
     }
 
-    // ── Ultra Clean Fill Below Curve ──
+    // ── Clean Fill Below Curve ──
     final fillPath = Path.from(curvePath);
     fillPath.lineTo(w, h - bottomPad);
     fillPath.lineTo(0, h - bottomPad);
@@ -558,19 +582,22 @@ class _InteractiveEQPainter extends CustomPainter {
       ..shader = ui.Gradient.linear(
         const Offset(0, topPad),
         Offset(0, h - bottomPad),
-        [accentColor.withOpacity(0.12), accentColor.withOpacity(0.0)],
+        [
+          accentColor.withValues(alpha: 0.12),
+          accentColor.withValues(alpha: 0.0)
+        ],
       );
     canvas.drawPath(fillPath, fillPaint);
 
     // ── Thick Neon Stroke ──
     final strokePaint = Paint()
       ..color = accentColor
-      ..strokeWidth = 3.5 // Thicker, modern neon line
+      ..strokeWidth = 3.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     canvas.drawPath(curvePath, strokePaint);
 
-    // ── Professional Hollow Nodes ──
+    // ── Hollow Nodes ──
     for (var i = 0; i < N; i++) {
       final isDragging = i == draggingIndex;
 
@@ -603,7 +630,7 @@ class _InteractiveEQPainter extends CustomPainter {
         text: TextSpan(
           text: frequencies[i],
           style: TextStyle(
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
             fontSize: 10.5,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
