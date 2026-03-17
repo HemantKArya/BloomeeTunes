@@ -113,7 +113,7 @@ class PluginService {
   /// Example:
   /// ```dart
   /// final response = await pluginService.execute(
-  ///   pluginId: 'com.example.ytmusic',
+  ///   pluginId: 'com.example.resolver',
   ///   request: PluginRequest.contentResolver(
   ///     ContentResolverCommand.search(query: 'hello', filter: ContentSearchFilter.all),
   ///   ),

@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Manages the visibility state of the full-screen player overlay.
 /// This allows the player to stay mounted in the widget tree and just
-/// animate in/out for smooth transitions like Spotify/YouTube Music.
+/// animate in/out for smooth transitions used by modern music apps.
 class PlayerOverlayCubit extends Cubit<bool> {
   PlayerOverlayCubit() : super(false);
 

@@ -56,7 +56,7 @@ String convertJsonToM3U(Map<String, dynamic> jsonData) {
         final artURL = item['artURL']?.toString() ?? "";
 
         String streamingURL = item['streamingURL']?.toString() ?? "";
-        // Use perma_url if source is youtube
+        // Use perma_url for legacy provider-source rows
         if (item["source"] == "youtube") {
           streamingURL = item['permaURL']?.toString() ?? "";
         }

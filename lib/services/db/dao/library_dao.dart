@@ -53,7 +53,7 @@ class LibraryDAO {
 
   /// Save (or update) an [ArtistSummary] in the library.
   ///
-  /// [sourceName] is the human-readable plugin name (e.g. "JioSaavn").
+  /// [sourceName] is the human-readable plugin/source name.
   /// Deduplicates by mediaId so re-saving the same artist updates in place.
   Future<int> saveArtist(ArtistSummary artist,
       {required String sourceName}) async {

@@ -243,7 +243,7 @@ class _PlaylistViewState extends State<PlaylistView> {
               ),
             ),
 
-            // Base Image Blur (Matches Apple Music / Spotify aesthetics)
+            // Base image blur for modern media-app aesthetics
             if (imageUrl.isNotEmpty)
               Positioned.fill(
                 child: Opacity(

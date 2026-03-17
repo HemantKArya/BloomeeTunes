@@ -1,3 +1,58 @@
+## [Unreleased]
+
+### Added
+- **Rust + WASM Plugin Runtime**: Introduced a Rust-backed plugin system with typed Flutter bridge APIs for installation, loading, unloading, execution, and updates.
+- **Plugin Types**:
+    - `contentResolver`: search, details, media resolution, home/discover sections.
+    - `chartProvider`: chart listings and chart detail feeds.
+    - `lyricsProvider`: synced and plain lyrics providers.
+    - `searchSuggestionProvider`: query suggestions/autocomplete.
+    - `contentImporter`: plugin-driven import flows for external collections.
+- **Plugin Repository Bootstrap**: Added hosted repository bootstrap, one-time setup flow, repository syncing, and install-on-bootstrap logic.
+- **Plugin Auto-Update Pipeline**: Added background repository sync with semantic version comparison and automatic plugin updates.
+- **Country-Aware Plugin Distribution**: Added `country_allowlist` support in repository manifests and packed plugin install validation.
+- **Country Detection Service**: Added normalized country detection with caching and fallback strategy for first-run reliability.
+- **Plugin Response Caching**: Added in-memory + persisted cache flow for plugin data (discover/charts/details).
+- **Plugin Priority Controls**: Added resolver/lyrics priority settings and plugin default auto-selection.
+- **Richer Plugin Commands**: Expanded plugin command surface (track/album/artist/playlist details, suggestions, lyrics, segments, import operations, collection metadata).
+- **Plugin Importer Improvements**: Refactored importer flow to integrate plugin-backed source parsing and internal collection mapping.
+- **Cross-Plugin Resolution**: Added fallback and replacement logic for unavailable tracks and dead source links.
+- **Smart Playback Recovery**: Added stronger recovery and fallback paths for interrupted/failed streaming operations.
+- **Local + Remote Unified Playback**: Added improved local content pathing and plugin-backed remote resolution coexistence.
+- **Keyboard Shortcut Enhancements**: Added desktop-focused shortcut improvements and shortcut feedback indicator improvements.
+- **UI/UX Refreshes**:
+    - Redesigned mini-player and player settings surfaces.
+    - Enhanced chart, search, and playlist browsing experiences.
+    - Improved context actions and visual transitions.
+- **Localization Expansion**: Added/updated large batches of localized strings for plugin and setup workflows.
+
+### Changed
+- **Architecture Migration (v3 line)**: Shifted from tightly coupled source integrations to a plugin-first modular architecture.
+- **Data/Storage Refactors**: Large refactor across repository/DAO/state boundaries to support plugin-native IDs and content abstractions.
+- **Downloader Evolution**: Moved major parts of downloading workflow toward Rust-backed internals and improved tracking pipeline.
+- **Player Engine Stability**: Refactored queue, transitions, crossfade flow, and error handling to reduce edge-case dead states.
+- **Settings Defaults & Normalization**:
+    - Crossfade default aligned to `2s` across UI + runtime restore paths.
+    - Streaming quality default aligned to `High` across settings + resolver usage.
+    - Country default standardized to `US` with one-time normalization and persistence.
+- **Bootstrap Reliability**: Removed fragile reachability gate that could produce false "offline" setup failures.
+- **Manifest Compatibility**: Improved manifest-version parsing and compatibility handling in update checks.
+- **Theme/Style Modernization**: Completed broad `withOpacity` migration to `withValues` and related visual consistency cleanups.
+
+### Fixed
+- Fixed plugin setup stalls around early bootstrap progress caused by strict network/country resolution paths.
+- Fixed auto-update gating that skipped valid plugin updates under older manifest value formats.
+- Fixed defaults mismatch where settings UI values could differ from runtime player behavior until manual toggle.
+- Fixed crossfade runtime restore fallback inconsistency that could disable crossfade on first launch.
+- Fixed stream quality fallback inconsistency causing startup playback to prefer lower quality than settings state.
+- Fixed multiple queue/player edge cases: skip/advance races, dead loading states, and stale resolver transitions.
+- Fixed repository/bootstrap failure handling and improved retry resilience for plugin setup/update flows.
+- Fixed numerous UI state sync issues in search, playlist, and details surfaces.
+
+### Developer Notes
+- Legacy source-specific identifiers are retained only where required for migration compatibility and old data mapping.
+- The recommended integration path is now fully plugin-based through repository manifests and `.bex` package installation.
+
 ## [2.13.3] - 2025-12-01
 
 ### Added
@@ -51,7 +106,7 @@
 - **Flutter Version Upgrade**: Updated Flutter version to 3.35.4 with CI/CD pipeline improvements.
 - **Package Upgrades**: Updated various dependencies and packages for better performance and security.
 - **Connectivity Improvements**: Enhanced connectivity handling after package upgrades.
-- **YouTube Shared Music**: Added support for playing YouTube shared music links.
+- **provider source Shared Music**: Added support for playing provider source shared music links.
 - **Audio Source Optimization**: Removed concatenating audio source usage for improved performance.
 - **Network Failure Handling**: Added maximum limit of 10 retries before shifting to next song on network failures.
 - **Track Recovery**: Improved track recovery when lost during network interruptions.
@@ -81,7 +136,7 @@
 - **Player Error Handling**: Enhanced error handling for network-related playback issues.
 - **Snackbar Improvements**: Enhanced snackbar notifications throughout the app.
 - **Volume Control**: Fixed volume sliding on cover art for manual control.
-- **YouTube Download Fix**: Temporary fix for YouTube downloading (requires future maintenance for youtube_explode_dart).
+- **provider source Download Fix**: Temporary fix for provider source downloading (requires future maintenance for legacy extractor package).
 - **Restore Warning**: Clarified warning messages for restore operations.
 - **Code Cleanup**: General code cleanup and optimizations.
 - **Documentation Updates**: Updated README, GitHub Pages, and fastlane changelog.
@@ -117,12 +172,12 @@
 - **Deploy script**: The deploy script now copies the changelog into the GitHub Pages build directory before force-pushes.
 - **Docs & README**: Small README and documentation updates.
  - **Global footer animation**: Page animation in the global footer changed to a soft zoom-in transition for smoother navigation.
- - **YouTube service improvements**: Enhanced the YouTube service/provider for better reliability and performance (provider enhancements and multiple bug fixes).
+ - **provider source service improvements**: Enhanced the provider source service/provider for better reliability and performance (provider enhancements and multiple bug fixes).
 
 ### Fixed
 - Resolved a bug with the 'like' button on album views.
 - Fixed an issue preventing clicks on media items in the "Recently Played" section.
-- Addressed loading problems on YouTube Music artist pages.
+- Addressed loading problems on provider music source artist pages.
 - Corrected the app updater logic and fixed a SourceForge header issue affecting Android updater requests.
 - Fixed various UI bugs, including carousel alignment and button states.
  - Fixed play/pause not responding on first-time button press.
@@ -131,7 +186,7 @@
 
 ### Removed
 - Removed the `flutter_downloader` package.
-- Removed the `yt_streams` script.
+- Removed the `legacy stream adapter` script.
 
 ## [2.11.6] - 2025-05-05
 
@@ -140,13 +195,13 @@
 - General code cleanups and optimizations.
 
 ### Fixed
-- Resolved issues with YouTube streaming.
-- Addressed bugs related to YouTube playlists.
+- Resolved issues with provider source streaming.
+- Addressed bugs related to provider source playlists.
 
 ## [2.11.5] - 2025-03-17
 
 ### Changed
-- Updated YouTube client and carousel functionality.
+- Updated provider source client and carousel functionality.
 - Upgraded libraries and packages.
 
 ## [2.11.4] - 2025-03-16
@@ -156,8 +211,8 @@
 - User interface improvements for playlist and artist views.
 
 ### Fixed
-- Addressed a bug in the YouTube Music API.
-- Fixed an issue with the YouTube audio stream.
+- Addressed a bug in the provider music source API.
+- Fixed an issue with the provider source audio stream.
 
 ## [2.11.3] - 2025-03-08
 
@@ -196,7 +251,7 @@
 ## [2.11.0] - 2025-02-24
 
 ### Added
-- Implemented `YTAudioSource` for improved YouTube audio handling.
+- Implemented `provider audio source` for improved provider source audio handling.
 - Added new queue management functions.
 
 ### Changed
@@ -205,22 +260,22 @@
 
 ### Fixed
 - Addressed bugs in the mini-player and "Up Next" animations.
-- Re-enabled cleartext traffic for YouTube streams to resolve playback issues.
+- Re-enabled cleartext traffic for provider source streams to resolve playback issues.
 
 ## [2.10.16] - 2025-02-17
 
 ### Changed
-- Updated the `youtube_explode_dart` package.
+- Updated the `legacy extractor package` package.
 
 ## [2.10.15] - 2025-02-05
 
 ### Fixed
-- Corrected formatting issues on the YouTube Music home screen.
+- Corrected formatting issues on the provider music source home screen.
 
 ## [2.10.14] - 2025-01-24
 
 ### Fixed
-- Addressed a bug causing YouTube stream failures.
+- Addressed a bug causing provider source stream failures.
 
 ## [2.10.13] - 2025-01-16
 
@@ -234,14 +289,14 @@
 ## [2.10.11] - 2024-12-26
 
 ### Changed
-- Switched to `yt_streams` for handling YouTube streams.
+- Switched to `legacy stream adapter` for handling provider source streams.
 - Improved caching mechanisms.
 
 ## [2.10.10] - 2024-12-23
 
 ### Changed
-- Updated the YouTube API implementation.
-- Refactored YouTube background link refreshing to run in a separate isolate for better performance.
+- Updated the provider source API implementation.
+- Refactored provider source background link refreshing to run in a separate isolate for better performance.
 
 ## [2.10.9] - 2024-11-09
 
@@ -263,7 +318,7 @@
 ## [2.10.7] - 2024-10-11
 
 ### Fixed
-- Addressed various bugs in the JioSaavn API integration.
+- Addressed various bugs in the legacy source adapter API integration.
 
 ## [2.10.6] - 2024-10-09
 
@@ -271,7 +326,7 @@
 - Implemented swipe gestures (next/previous) on the mini-player.
 
 ### Changed
-- Upgraded the `youtube_explode_dart` package.
+- Upgraded the `legacy extractor package` package.
 
 ## [2.10.5] - 2024-10-05
 
@@ -293,8 +348,8 @@
 ## [2.9.13] - 2024-09-25
 
 ### Fixed
-- Addressed a bug with YouTube links.
-- Updated `youtube_explode_dart` to fix a critical bug.
+- Addressed a bug with provider source links.
+- Updated `legacy extractor package` to fix a critical bug.
 
 ## [2.9.12] - 2024-09-22
 
@@ -335,7 +390,7 @@
 ## [2.9.6] - 2024-08-29
 
 ### Added
-- Support for searching and viewing YouTube Music artists, albums, and playlists.
+- Support for searching and viewing provider music source artists, albums, and playlists.
 - Added a "more options" menu to song cards.
 
 ### Fixed
@@ -370,7 +425,7 @@
 
 ### Added
 - Implemented a settings option to select and manage external charts.
-- **YouTube Music Importer**: Added the ability to import single tracks, albums, and playlists from YouTube Music.
+- **provider music source Importer**: Added the ability to import single tracks, albums, and playlists from provider music source.
 
 ## [2.8.3] - 2024-08-02
 
@@ -435,4 +490,4 @@
 ## [2.7.0] - 2024-04-12
 
 ### Added
-- **YouTube Home**: Integrated the YouTube Music homepage into the "Explore" tab.
+- **provider source Home**: Integrated the provider music source homepage into the "Explore" tab.

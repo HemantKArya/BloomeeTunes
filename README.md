@@ -1,100 +1,116 @@
- ![BloomeeTunes](./assets/docs/bloomeetunes_new_banner.png)
-**<h1 align=center>Bloomee🌸</h1>**
-<p align="center"><img src=https://img.shields.io/sourceforge/dt/bloomee?style=for-the-badge&logoSize=auto&label=DOWNLOADS(SF)
- /> <a href="https://github.com/HemantKArya/BloomeeTunes/releases/latest"><img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge&label=DOWNLOADS(GH)" >
-<img alt="GitHub Release" src="https://img.shields.io/github/v/release/HemantKArya/BloomeeTunes?display_name=release&style=for-the-badge&color=f01d7c" ></a>
-<img alt="GitHub License" src="https://img.shields.io/github/license/HemantKArya/BloomeeTunes?style=for-the-badge&color=1881cc" > <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/HemantKArya/BloomeeTunes/checkout.yml?style=for-the-badge" > <br><img src=https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white > <img src=https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white /> <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black"/>
-</p>
-<p align="center">
-    <a href="https://trendshift.io/repositories/11533" target="_blank"><img src="https://trendshift.io/api/badge/repositories/11533" alt="HemantKArya%2FBloomeeTunes | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-</p>
+# Bloomee
 
+A cross-platform, plugin-first music player built with Flutter + Rust.
 
-Bloomee is experimental cross-platform open Source Music player designed to bring you Ad-free tunes from various sources. Dive into a world of limitless music from platforms like YouTube and YTM, with more sources blooming soon! 🌼🎵
+[![Release](https://img.shields.io/github/v/release/HemantKArya/BloomeeTunes?style=for-the-badge)](https://github.com/HemantKArya/BloomeeTunes/releases/latest)
+[![GitHub Downloads](https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge)](https://github.com/HemantKArya/BloomeeTunes/releases)
+[![License](https://img.shields.io/github/license/HemantKArya/BloomeeTunes?style=for-the-badge)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/HemantKArya/BloomeeTunes/checkout.yml?style=for-the-badge)](https://github.com/HemantKArya/BloomeeTunes/actions)
 
+[![Windows](https://img.shields.io/badge/Windows-Supported-0078D6?style=for-the-badge&logo=windows&logoColor=white)](#)
+[![Android](https://img.shields.io/badge/Android-Supported-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#)
+[![Linux](https://img.shields.io/badge/Linux-Supported-FCC624?style=for-the-badge&logo=linux&logoColor=black)](#)
 
-![BloomeeTunesScrnShots](./assets/docs/banner2BloomeScrnShot.png)
+## Preview
 
-![BloomeeDesktop](./assets/docs/lyricsscrn.png)
+![App Banner Placeholder](./assets/docs/README_PLACEHOLDER_BANNER.png)
 
-### **Why Bloomee?**
+![Desktop Placeholder](./assets/docs/README_PLACEHOLDER_DESKTOP.png)
 
-🌟 **Ad-Free Experience:** Say goodbye to interruptions and enjoy uninterrupted musical bliss.
+![Mobile Placeholder](./assets/docs/README_PLACEHOLDER_MOBILE.png)
 
-🌍 **Multi-Source Player:** Access your favorite tracks from diverse platforms, with more sources continually joining our melody garden.
+Replace the placeholder images above with updated screenshots before the next public release.
 
-🚀 **Flutter-Powered Learning:** Bloomee is not just about music; it's about learning and growing with Flutter and BLoC architecture. Explore the intersection of beautiful design and smooth functionality while mastering the art of app development.
+## Why Bloomee
 
-### **Features**
-- [x] 🚫 Ad-Free Music
-- [x] 📝 Lyrics Support (Time Synced)
-- [x] 📊 Scrobble music with Last.FM
-- [x] 🎵 Offline Music Experience
-- [x] 🔽 Import playlists from various source.
-- [x] ⏲️ Sleep Timer
-- [x] 🎧 Personalized Playlist Creation and Sharing
-- [x] 🌐 Daily Updated Global Charts. (Billboard, Last.fm and more.)
-- [x] 🖥️ Support for Android, Windows and Linux.
-- [x] 📉 Minimal Data Usage
-- [x] 💾 Space Efficient
-- [x] 🏃 Lightweight App
-- [x] 🔓 Open Source
-- [x] 💿 Play Automatic Related Songs
-- [x] 🎸 Share your playlists with others
-- [ ] 🎼 AI-Generated Playlist
-- [ ] 💡 AI-Based Recommendations
-- [ ] 🆎 Multi-Language support
+- Plugin-first architecture with Rust-backed runtime.
+- Cross-platform playback and queue experience.
+- Typed plugin contracts for reliability and safer evolution.
+- Modern, localization-ready Flutter UI.
+- Open-source workflow with active release cadence.
 
+## Highlights
 
+- Plugin repository bootstrap and sync.
+- Auto-update for installed plugins.
+- Country-aware plugin allowlist handling.
+- Search, charts, lyrics, suggestions, and importer plugin types.
+- Smart fallback replacement for unavailable tracks.
+- Cached plugin responses for faster home/chart/detail loads.
+- Refined player engine with crossfade and robust error handling.
+- Desktop keyboard shortcuts and interaction polish.
+- Backup/restore, download management, and migration tooling.
 
-<h3 align=center>Download for Android, Windows & Linux(dev) 😍</h3>
-<p align="center"><a href="https://github.com/HemantKArya/BloomeeTunes/releases"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" height=40/></a>
-<a href="https://sourceforge.net/projects/bloomee/files/latest/download"><img alt="Download BloomeeTunes" src="https://a.fsdn.com/con/app/sf-download-button" height=40 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a></p>
-</br>
+## Plugin System Overview
 
-<h3 align="center"> Now you can support me via</h3>
-<p align="center"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"><br><img src="https://img.shields.io/liberapay/receives/hemantkarya?style=for-the-badge
-"> <img src="https://img.shields.io/liberapay/patrons/hemantkarya?style=for-the-badge"><br><a href="https://liberapay.com/hemantkarya/donate"></p>
+Bloomee now routes content operations through installable plugins instead of hardcoded provider integrations.
 
+### Plugin Types
 
-### **Contribute to BloomeeTunes! 🎶**
+- `contentResolver`: search, media details, stream resolution, home sections.
+- `chartProvider`: charts and chart details.
+- `lyricsProvider`: synced and plain lyrics.
+- `searchSuggestionProvider`: query suggestions/autocomplete.
+- `contentImporter`: import external collections into library/playlists.
 
-🌱 **Every Note Counts:** Your contribution, no matter how small, adds to the richness of Bloomee. Whether you're fixing a bug, enhancing features, or suggesting improvements, your notes in our melody matter. Also I'm new to flutter, So every contribution will help me and this project.
+### How It Works
 
-🚀 **Learn and Grow:** Contribute to Bloomee and enhance your Flutter and BLoC skills. Every pull request is an opportunity to learn, and we encourage contributors of all levels to join the journey.
+1. App reads hosted repository index.
+2. Repository manifests are downloaded and validated.
+3. Required plugins are installed from `.bex` packages.
+4. Installed plugins are loaded through the Rust plugin manager.
+5. Blocs/services call typed plugin commands via the bridge layer.
+6. Responses are cached and reused with stale-while-refresh behavior.
 
-To ensure a smooth and collaborative contribution process, we kindly ask that you first open an issue to discuss your ideas or proposed changes. This helps us align on the best approach and makes the review process more efficient. For detailed guidelines, please refer to our [CONTRIBUTING.md](CONTRIBUTING.md).
+## Getting Started
 
-**How to Contribute:**
+### Download
 
-1. **Fork the Repository:** Start your Bloomee journey by forking **main(Branch)**.
+- GitHub Releases: https://github.com/HemantKArya/BloomeeTunes/releases
+- SourceForge: https://sourceforge.net/projects/bloomee/files/latest/download
+- IzzyOnDroid: https://apt.izzysoft.de/fdroid/index/apk/ls.bloomee.musicplayer
 
-2. **Clone Locally:** Clone the forked repository to your local machine.
+### Development Setup
 
-3. **Create a Branch:** Create a new branch for your contribution.
+```bash
+flutter pub get
+flutter run
+```
 
-4. **Make Changes:** Make your contribution - fix a bug, add a feature, or improve the documentation.
+### Useful Commands
 
-5. **Push Changes:** Push your changes to your forked repository.
+```bash
+flutter analyze
+flutter test
+```
 
-6. **Create a Pull Request:** Submit a pull request, and let your notes join the Bloomee Symphony!
+## Release Notes
 
-</br>
-<p align=center>
-<a href="https://apt.izzysoft.de/fdroid/index/apk/ls.bloomee.musicplayer">
-<img alt="izzyondroid" src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidButtonGreyBorder.svg" height=45/></a></p>
+- Full release history: [CHANGELOG.md](CHANGELOG.md)
+- Architecture reference: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
 
-<h4 align=center>Get in touch with me at :-</h4>
-<p align=center>
-<a href=https://www.linkedin.com/in/iamhemantindia/>
-<img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"/>
-</a> <a href=https://instagram.com/iamhemantindia/>
-<img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white"/>
-</a>
-<a href=https://x.com/iamhemantindia/>
-<img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white"/>
-</a>
-<a href=mailto:iamhemantindia@protonmail.com/>
-<img src="https://img.shields.io/badge/proton%20mail-6D4AFF?style=for-the-badge&logo=protonmail&logoColor=white"/>
-</a>
-</p>
+## Support the Project
+
+If Bloomee helps you, consider supporting ongoing maintenance and development.
+
+- Liberapay: https://liberapay.com/hemantkarya/donate
+- Sponsor links and campaign updates will be kept in project metadata and release notes.
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a feature/fix branch.
+3. Make focused changes with clear commit messages.
+4. Run analyze/tests locally.
+5. Open a PR with context and screenshots (if UI changes).
+
+Please review [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) first.
+
+## Contact
+
+- LinkedIn: https://www.linkedin.com/in/iamhemantindia/
+- X: https://x.com/iamhemantindia/
+- Email: mailto:iamhemantindia@protonmail.com

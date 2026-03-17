@@ -713,7 +713,7 @@ class ProgressBarGradients {
   /// Cyber Blue - Electric blue gradient
   static const cyberBlue = [Color(0xFF00F2FF), Color(0xFF007BFF)];
 
-  /// Neon Lime - Green gradient (Spotify-like)
+  /// Neon Lime - Green gradient (popular media-app style)
   static const neonLime = [Color(0xFF81FF8A), Color(0xFF1DB954)];
 
   /// Solar Flare - Yellow to orange gradient
