@@ -7,7 +7,8 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:rxdart/rxdart.dart';
 
 enum PlayerErrorType {
-  networkError,
+  networkDropped,
+  sourceExpired,
   sourceError,
   playbackError,
   bufferingError,
@@ -41,9 +42,8 @@ class RetryConfig {
   final Duration maxDelay;
 
   const RetryConfig({
-    this.maxRetriesPerTrack = 1, // Max times to retry the SAME song
-    this.maxConsecutiveTrackFailures =
-        2, // Stop completely if 2 consecutive songs fail
+    this.maxRetriesPerTrack = 3,
+    this.maxConsecutiveTrackFailures = 4,
     this.initialDelay = const Duration(seconds: 1),
     this.backoffMultiplier = 2.0,
     this.maxDelay = const Duration(seconds: 10),
@@ -54,32 +54,63 @@ class PlayerErrorHandler {
   final BehaviorSubject<PlayerError?> lastError =
       BehaviorSubject<PlayerError?>.seeded(null);
   final RetryConfig _retryConfig = const RetryConfig();
+
   Timer? _reconnectionTimer;
 
-  // --- Circuit Breaker State ---
+  // --- Deterministic State Machine Tracking ---
+  int _currentAttemptSequence = 0;
+  int _handledFailureSequence = -1;
+
   int _currentTrackRetries = 0;
   int _consecutiveTrackFailures = 0;
-  String? _currentFailingTrackId;
+  String? _currentTrackId;
+  bool _currentTrackHadPlay = false;
 
-  // --- Callbacks ---
   Function()? onSkipToNext;
   Function()? onRetryCurrentTrack;
-  Function()? onStopPlayback; // Callback to gracefully halt player
+  Function()? onStopPlayback;
   Function(String?)? onClearCachedSource;
 
+  /// Called strictly before the engine commands a play/open.
+  /// Generates a new sequence ID to deterministically isolate error bursts.
+  void registerAttempt(String trackId) {
+    _currentAttemptSequence++;
+
+    if (_currentTrackId != trackId) {
+      _currentTrackId = trackId;
+      _currentTrackRetries = 0;
+      _currentTrackHadPlay = false;
+    }
+  }
+
   PlayerErrorType categorizeError(dynamic error) {
-    if (error is SocketException ||
-        error is TimeoutException ||
-        error is HttpException) {
-      return PlayerErrorType.networkError;
-    } else if (error is FormatException ||
-        error is ArgumentError ||
-        error.toString().toLowerCase().contains('format') ||
-        error.toString().toLowerCase().contains('source')) {
+    final msg = error.toString().toLowerCase();
+
+    if (msg.contains('403') ||
+        msg.contains('forbidden') ||
+        msg.contains('expired') ||
+        msg.contains('410')) {
+      return PlayerErrorType.sourceExpired;
+    } else if (msg.contains('eof') ||
+        msg.contains('broken pipe') ||
+        msg.contains('reset') ||
+        msg.contains('timeout') ||
+        msg.contains('unreachable') ||
+        msg.contains('socket') ||
+        msg.contains('abnormal eof') ||
+        error is SocketException ||
+        error is TimeoutException) {
+      return PlayerErrorType.networkDropped;
+    } else if (msg.contains('404') ||
+        msg.contains('not found') ||
+        msg.contains('format') ||
+        msg.contains('unrecognized') ||
+        msg.contains('decode') ||
+        msg.contains('demuxer')) {
       return PlayerErrorType.sourceError;
-    } else if (error.toString().toLowerCase().contains('permission')) {
+    } else if (msg.contains('permission') || msg.contains('access denied')) {
       return PlayerErrorType.permissionError;
-    } else if (error.toString().toLowerCase().contains('buffer')) {
+    } else if (msg.contains('buffer')) {
       return PlayerErrorType.bufferingError;
     }
     return PlayerErrorType.unknownError;
@@ -89,6 +120,17 @@ class PlayerErrorHandler {
       [dynamic originalError]) {
     if (track == null) return;
 
+    // STATE GATE: Guarantee we only process exactly ONE failure per attempt sequence.
+    // This perfectly eliminates race conditions from libmpv spamming 10 errors for one crash.
+    if (_handledFailureSequence == _currentAttemptSequence) {
+      dev.log(
+          'Suppressed cascading error for attempt $_currentAttemptSequence: $message',
+          name: 'PlayerErrorHandler');
+      return;
+    }
+
+    _handledFailureSequence = _currentAttemptSequence;
+
     final error = PlayerError(
       type: type,
       message: message,
@@ -97,30 +139,22 @@ class PlayerErrorHandler {
     );
 
     lastError.add(error);
-    dev.log('Player error: $error', name: 'PlayerErrorHandler');
+    dev.log('Player error processed: $error', name: 'PlayerErrorHandler');
 
-    // Detect if we moved to a new track that is now failing
-    if (_currentFailingTrackId != track.id) {
-      _currentTrackRetries = 0;
-      _currentFailingTrackId = track.id;
-    }
-
-    // Permission errors are fatal immediately, do not retry
     if (type == PlayerErrorType.permissionError) {
       _handleTrackTotalFailure(track);
       return;
     }
 
-    if (type == PlayerErrorType.sourceError) {
+    if (type == PlayerErrorType.sourceError ||
+        type == PlayerErrorType.sourceExpired) {
       onClearCachedSource?.call(track.id);
     }
 
-    // Standard Retry Loop
     if (_currentTrackRetries < _retryConfig.maxRetriesPerTrack) {
       _currentTrackRetries++;
       final delay = _calculateRetryDelay(_currentTrackRetries - 1);
 
-      // Show user feedback with retry attempt numbers
       SnackbarService.showMessage(
           '${_getUserFriendlyErrorMessage(type, message)} (Retry $_currentTrackRetries/${_retryConfig.maxRetriesPerTrack})',
           duration: const Duration(seconds: 3));
@@ -133,23 +167,22 @@ class PlayerErrorHandler {
         onRetryCurrentTrack?.call();
       });
     } else {
-      // Track completely failed
       _handleTrackTotalFailure(track);
     }
   }
 
   void _handleTrackTotalFailure(Track track) {
-    _consecutiveTrackFailures++;
+    if (!_currentTrackHadPlay) {
+      _consecutiveTrackFailures++;
+    }
+    _currentTrackHadPlay = false;
 
     if (_consecutiveTrackFailures >= _retryConfig.maxConsecutiveTrackFailures) {
-      dev.log(
-          'Circuit breaker tripped. $_consecutiveTrackFailures consecutive tracks failed.',
-          name: 'PlayerErrorHandler');
+      dev.log('Circuit breaker tripped.', name: 'PlayerErrorHandler');
       SnackbarService.showMessage(
           'Playback stopped due to continuous errors. Please check your connection.',
           duration: const Duration(seconds: 5));
-      onStopPlayback
-          ?.call(); // Completely halt playback to prevent infinite loop
+      onStopPlayback?.call();
     } else {
       dev.log('Track completely failed, skipping: ${track.title}',
           name: 'PlayerErrorHandler');
@@ -162,10 +195,12 @@ class PlayerErrorHandler {
 
   String _getUserFriendlyErrorMessage(PlayerErrorType type, String message) {
     switch (type) {
-      case PlayerErrorType.networkError:
-        return 'Network connection issue.';
+      case PlayerErrorType.sourceExpired:
+        return 'Link expired, refreshing source...';
+      case PlayerErrorType.networkDropped:
+        return 'Connection dropped, reconnecting...';
       case PlayerErrorType.sourceError:
-        return 'Song source unavailable.';
+        return 'Song format unsupported or corrupted.';
       case PlayerErrorType.playbackError:
         return 'Playback issue detected.';
       case PlayerErrorType.bufferingError:
@@ -173,7 +208,7 @@ class PlayerErrorHandler {
       case PlayerErrorType.permissionError:
         return 'Permission denied.';
       default:
-        return 'Unexpected error occurred.';
+        return 'Unexpected network or playback error.';
     }
   }
 
@@ -183,23 +218,19 @@ class PlayerErrorHandler {
     return delay > _retryConfig.maxDelay ? _retryConfig.maxDelay : delay;
   }
 
-  /// Called ONLY when a track genuinely starts outputting audio frames.
   void markTrackSuccess(String mediaId) {
-    if (_currentFailingTrackId == null && _consecutiveTrackFailures == 0)
-      return;
-
-    if (_currentFailingTrackId == mediaId) {
-      _currentFailingTrackId = null;
+    if (_currentTrackId == mediaId) {
+      _currentTrackHadPlay = true;
       _currentTrackRetries = 0;
+      _consecutiveTrackFailures = 0;
     }
-    _consecutiveTrackFailures = 0;
   }
 
-  /// Call this when the user explicitly interacts (e.g. manually pressing skip/play)
   void resetCircuitBreaker() {
-    _currentFailingTrackId = null;
+    _currentTrackId = null;
     _currentTrackRetries = 0;
     _consecutiveTrackFailures = 0;
+    _currentTrackHadPlay = false;
     lastError.add(null);
   }
 
