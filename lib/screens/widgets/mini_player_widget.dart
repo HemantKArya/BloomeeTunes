@@ -605,8 +605,8 @@ class _GlowingProgressBar extends StatelessWidget {
                           right: Radius.circular(2),
                         ),
                         gradient: LinearGradient(colors: [
-                          Default_Theme.primaryColor2.withValues(alpha: 0.8),
-                          Default_Theme.primaryColor2.withValues(alpha: 0.5),
+                          Colors.white.withValues(alpha: 0.8),
+                          Colors.white.withValues(alpha: 0.6),
                         ]),
                       ),
                     ),
