@@ -9,6 +9,15 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get onboardingTitle => 'Welcome to Bloomee';
+
+  @override
+  String get onboardingSubtitle => 'Let\'s set up your language and region.';
+
+  @override
+  String get continueButton => 'Continue';
+
+  @override
   String get navHome => 'Home';
 
   @override

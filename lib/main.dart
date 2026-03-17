@@ -63,6 +63,8 @@ import 'package:Bloomee/services/db/legacy/legacy_migration_service.dart'
 import 'package:Bloomee/screens/widgets/legacy_migration_overlay.dart';
 import 'package:Bloomee/screens/widgets/plugin_bootstrap_overlay.dart';
 import 'package:Bloomee/services/plugin_bootstrap_service.dart';
+import 'package:Bloomee/screens/widgets/onboarding_overlay.dart';
+import 'package:Bloomee/services/onboarding_service.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
   if (sharedMedia.content != null && isUrl(sharedMedia.content!)) {
@@ -134,6 +136,7 @@ class _MyAppState extends State<MyApp> {
   StreamSubscription<SharedMedia>? _intentSub;
   SharedMedia? sharedMedia;
 
+  bool _onboardingPending = false;
   bool _bootstrapPending = false;
   bool _migrationPending = false;
 
@@ -141,6 +144,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
+    _onboardingPending = !OnboardingService.onboardingDone;
     _bootstrapPending = !PluginBootstrapService.bootstrapDone;
 
     _migrationPending = legacy_migration.needsMigration(
@@ -148,7 +152,7 @@ class _MyAppState extends State<MyApp> {
       DBProvider.appDocDir,
     );
 
-    if (!_bootstrapPending) {
+    if (!_onboardingPending && !_bootstrapPending) {
       _runPluginSyncIfDue();
     }
 
@@ -209,6 +213,19 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    if (_onboardingPending) {
+      return OnboardingOverlay(
+        onComplete: () {
+          setState(() {
+            _onboardingPending = false;
+          });
+          if (!_bootstrapPending) {
+            _runPluginSyncIfDue();
+          }
+        },
+      );
+    }
+
     if (_bootstrapPending) {
       return Directionality(
         textDirection: TextDirection.ltr,

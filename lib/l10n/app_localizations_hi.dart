@@ -9,6 +9,15 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
+  String get onboardingTitle => 'ब्लूमी में आपका स्वागत है';
+
+  @override
+  String get onboardingSubtitle => 'आइए आपकी भाषा और क्षेत्र सेट करें।';
+
+  @override
+  String get continueButton => 'आगे बढ़ें';
+
+  @override
   String get navHome => 'होम';
 
   @override

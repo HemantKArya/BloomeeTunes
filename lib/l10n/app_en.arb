@@ -1,6 +1,9 @@
 {
   "@@locale": "en",
 
+  "onboardingTitle": "Welcome to Bloomee",
+  "onboardingSubtitle": "Let's set up your language and region.",
+  "continueButton": "Continue",
   "navHome": "Home",
   "navLibrary": "Library",
   "navSearch": "Search",

@@ -1,6 +1,10 @@
 {
   "@@locale": "hi",
 
+  "onboardingTitle": "ब्लूमी में आपका स्वागत है",
+  "onboardingSubtitle": "आइए आपकी भाषा और क्षेत्र सेट करें।",
+  "continueButton": "आगे बढ़ें",
+
   "navHome": "होम",
   "navLibrary": "लाइब्रेरी",
   "navSearch": "खोजें",

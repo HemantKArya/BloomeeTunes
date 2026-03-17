@@ -98,6 +98,24 @@ abstract class AppLocalizations {
     Locale('hi')
   ];
 
+  /// No description provided for @onboardingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Bloomee'**
+  String get onboardingTitle;
+
+  /// No description provided for @onboardingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s set up your language and region.'**
+  String get onboardingSubtitle;
+
+  /// No description provided for @continueButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueButton;
+
   /// No description provided for @navHome.
   ///
   /// In en, this message translates to:
