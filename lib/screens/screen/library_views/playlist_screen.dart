@@ -1,5 +1,11 @@
 import 'dart:ui';
 import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:icons_plus/icons_plus.dart';
+
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/core/models/exported.dart';
@@ -14,12 +20,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
-import 'package:go_router/go_router.dart';
-import 'package:icons_plus/icons_plus.dart';
 
 part 'playlist_info_dialog.dart';
 
@@ -161,7 +162,6 @@ class _PlaylistViewState extends State<PlaylistView> {
           final fgColor = colors[0];
           final bgColor = colors[1];
           final tracks = state.playlist.tracks;
-
           final imageUrl = tracks.isNotEmpty
               ? (tracks.first.thumbnail.urlHigh ?? tracks.first.thumbnail.url)
               : '';
@@ -223,8 +223,6 @@ class _PlaylistViewState extends State<PlaylistView> {
           fit: StackFit.expand,
           children: [
             Container(color: Default_Theme.themeColor),
-
-            // Core dominant color glow
             Positioned(
               top: isMobile ? -100 : -200,
               left: isMobile ? -50 : -200,
@@ -236,13 +234,12 @@ class _PlaylistViewState extends State<PlaylistView> {
                   gradient: RadialGradient(
                     colors: [
                       dominantColor.withValues(alpha: 0.45),
-                      Colors.transparent,
+                      Colors.transparent
                     ],
                   ),
                 ),
               ),
             ),
-
             if (imageUrl.isNotEmpty)
               Positioned.fill(
                 child: Opacity(
@@ -254,7 +251,6 @@ class _PlaylistViewState extends State<PlaylistView> {
                   ),
                 ),
               ),
-
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -275,6 +271,8 @@ class _PlaylistViewState extends State<PlaylistView> {
     );
   }
 
+  // ─── Pro-Desktop Layout (Perfectly Centered Left Panel) ───
+
   Widget _buildDesktopLayout(
       CurrentPlaylistState state,
       Color fgColor,
@@ -285,37 +283,62 @@ class _PlaylistViewState extends State<PlaylistView> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ─── LEFT PANEL (Adaptive Fixed Sidebar) ───
+        // FIXED LEFT PANEL: Centered content, elegant flex scaling
         SizedBox(
           width: math.max(340, constraints.maxWidth * 0.35),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(48, 100, 32, 40),
+          child: Padding(
+            // Optically balanced padding so it sits perfectly in the center of its space
+            padding: const EdgeInsets.fromLTRB(40, 90, 20, 40),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment:
+                  CrossAxisAlignment.center, // Centered alignment
               children: [
-                _buildIntelligentCover(imageUrl, bgColor,
-                    isMobile: false, constraints: constraints),
+                const Spacer(flex: 1), // Top breathing room
+
+                // Intelligently scaling cover art
+                Flexible(
+                  flex: 10,
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: 1.0,
+                      child: _buildIntelligentCover(imageUrl, bgColor),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 32),
-                _buildInfo(state, l10n, isCentered: false),
-                const SizedBox(height: 32),
-                _buildActions(state, fgColor, bgColor, isCentered: false),
+
+                // Meta Info (Centered)
+                _buildInfo(state, l10n, isCentered: true),
+
+                const SizedBox(height: 24),
+
+                // Single-Line Forced Actions (Centered)
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child:
+                      _buildActions(state, fgColor, bgColor, isCentered: true),
+                ),
+
+                const Spacer(flex: 2), // Bottom breathing room
               ],
             ),
           ),
         ),
 
+        // SCROLLABLE RIGHT PANEL: The track list
         Expanded(
           child: Container(
-            margin: const EdgeInsets.fromLTRB(0, 100, 48, 48),
+            margin: const EdgeInsets.fromLTRB(
+                20, 90, 40, 40), // Matches left panel gap
             decoration: BoxDecoration(
-              color: Default_Theme.themeColor.withValues(alpha: 0.05),
+              color: Default_Theme.themeColor.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 40,
                     offset: const Offset(0, 15)),
               ],
@@ -358,6 +381,8 @@ class _PlaylistViewState extends State<PlaylistView> {
     );
   }
 
+  // ─── Mobile Layout (Scrolling Canvas) ───
+
   Widget _buildMobileLayout(
       CurrentPlaylistState state,
       Color fgColor,
@@ -375,12 +400,20 @@ class _PlaylistViewState extends State<PlaylistView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildIntelligentCover(imageUrl, bgColor,
-                    isMobile: true, constraints: constraints),
+                SizedBox(
+                  width: constraints.maxWidth * 0.65,
+                  height: constraints.maxWidth * 0.65,
+                  child: _buildIntelligentCover(imageUrl, bgColor),
+                ),
                 const SizedBox(height: 32),
                 _buildInfo(state, l10n, isCentered: true),
                 const SizedBox(height: 28),
-                _buildActions(state, fgColor, bgColor, isCentered: true),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child:
+                      _buildActions(state, fgColor, bgColor, isCentered: true),
+                ),
               ],
             ),
           ),
@@ -411,28 +444,19 @@ class _PlaylistViewState extends State<PlaylistView> {
     );
   }
 
-  Widget _buildIntelligentCover(String imageUrl, Color dominantColor,
-      {required bool isMobile, required BoxConstraints constraints}) {
-    final double coverSize = isMobile
-        ? (constraints.maxWidth * 0.70).clamp(200.0, 320.0)
-        : math
-            .min(constraints.maxWidth * 0.35, constraints.maxHeight * 0.45)
-            .clamp(200.0, 420.0);
-
+  Widget _buildIntelligentCover(String imageUrl, Color dominantColor) {
     return RepaintBoundary(
       child: Container(
-        width: coverSize,
-        height: coverSize,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.black.withValues(alpha: 0.2), // Base fallback
+          color: Colors.black.withValues(alpha: 0.2),
           boxShadow: [
             BoxShadow(
                 color: dominantColor.withValues(alpha: 0.35),
                 blurRadius: 60,
                 offset: const Offset(0, 20)),
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
+                color: Colors.black.withValues(alpha: 0.4),
                 blurRadius: 20,
                 offset: const Offset(0, 10)),
             BoxShadow(
@@ -444,23 +468,21 @@ class _PlaylistViewState extends State<PlaylistView> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: imageUrl.isEmpty
-              ? Icon(MingCute.music_2_line,
-                  size: coverSize * 0.3,
-                  color: Colors.white.withValues(alpha: 0.3))
+              ? FractionallySizedBox(
+                  widthFactor: 0.3,
+                  heightFactor: 0.3,
+                  child: Icon(MingCute.music_2_line,
+                      color: Colors.white.withValues(alpha: 0.3)),
+                )
               : Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Glass Background for Wide Thumbnails
                     ImageFiltered(
                       imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
                       child: LoadImageCached(
                           imageUrl: imageUrl, fit: BoxFit.cover),
                     ),
-                    Container(
-                        color: Colors.black
-                            .withValues(alpha: 0.3)), // Darken letterbox
-
-                    // The actual un-cropped Image
+                    Container(color: Colors.black.withValues(alpha: 0.3)),
                     LoadImageCached(imageUrl: imageUrl, fit: BoxFit.contain),
                   ],
                 ),
@@ -482,31 +504,35 @@ class _PlaylistViewState extends State<PlaylistView> {
         Text(
           state.playlist.title,
           textAlign: isCentered ? TextAlign.center : TextAlign.left,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 38,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.95),
+            fontSize: 36,
             fontWeight: FontWeight.w800,
             letterSpacing: -1.0,
             height: 1.15,
-          ).merge(Default_Theme.secondoryTextStyleMedium),
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Text(
           l10n.playlistSongCount(state.totalTracks),
           textAlign: isCentered ? TextAlign.center : TextAlign.left,
           style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600)
-              .merge(Default_Theme.secondoryTextStyle),
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
           creatorText,
           textAlign: isCentered ? TextAlign.center : TextAlign.left,
           style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5), fontSize: 14)
-              .merge(Default_Theme.secondoryTextStyle),
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
@@ -518,25 +544,26 @@ class _PlaylistViewState extends State<PlaylistView> {
     final l10n = AppLocalizations.of(context)!;
 
     return RepaintBoundary(
-      child: Wrap(
-        alignment: isCentered ? WrapAlignment.center : WrapAlignment.start,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 12,
-        runSpacing: 16,
+      child: Row(
+        mainAxisAlignment:
+            isCentered ? MainAxisAlignment.center : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min, // Hug contents tightly
         children: [
-          // Left actions
           _buildActionIcon(
               MingCute.shuffle_line,
               l10n.playlistShuffle,
               isEmpty
                   ? null
                   : () => _playFromPlaylist(context, state, shuffle: true)),
+          const SizedBox(width: 12),
 
           Builder(builder: (ctx) {
             final downloaded = ctx.watch<DownloaderCubit>().state.downloaded;
             final allDownloaded = !isEmpty &&
                 state.playlist.tracks
                     .every((s) => downloaded.any((d) => d.id == s.id));
+
             if (allDownloaded) {
               return Tooltip(
                 message: l10n.playlistAvailableOffline,
@@ -548,7 +575,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                       color:
                           Default_Theme.accentColor2.withValues(alpha: 0.15)),
                   child: const Icon(Icons.offline_pin_rounded,
-                      color: Default_Theme.accentColor2, size: 22),
+                      color: Default_Theme.accentColor2, size: 20),
                 ),
               );
             }
@@ -558,64 +585,63 @@ class _PlaylistViewState extends State<PlaylistView> {
                 isEmpty ? null : () => _handleDownload(context, state, l10n));
           }),
 
-          // Center Big Play Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: StreamBuilder<String>(
-                stream: context
-                    .watch<BloomeePlayerCubit>()
-                    .bloomeePlayer
-                    .queueTitle,
-                builder: (context, snapshot) {
-                  final isCurrent =
-                      snapshot.hasData && snapshot.data == state.playlist.title;
-                  return StreamBuilder<bool>(
-                      stream: context
-                          .read<BloomeePlayerCubit>()
-                          .bloomeePlayer
-                          .engine
-                          .playingStream,
-                      builder: (context, playingSnapshot) {
-                        final isPlaying =
-                            isCurrent && (playingSnapshot.data ?? false);
-                        return Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Default_Theme.accentColor2
-                                      .withValues(alpha: 0.4),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8)),
-                            ],
-                          ),
-                          child: PlayPauseButton(
-                            isPlaying: isPlaying,
-                            size: 64,
-                            onPlay: isEmpty
-                                ? () {}
-                                : () => isCurrent
-                                    ? context
-                                        .read<BloomeePlayerCubit>()
-                                        .bloomeePlayer
-                                        .play()
-                                    : _playFromPlaylist(context, state),
-                            onPause: () => context
-                                .read<BloomeePlayerCubit>()
-                                .bloomeePlayer
-                                .pause(),
-                          ),
-                        );
-                      });
-                }),
-          ),
+          const SizedBox(width: 12),
 
-          // Right actions
+          // Big Center Play Button
+          StreamBuilder<String>(
+              stream:
+                  context.watch<BloomeePlayerCubit>().bloomeePlayer.queueTitle,
+              builder: (context, snapshot) {
+                final isCurrent =
+                    snapshot.hasData && snapshot.data == state.playlist.title;
+                return StreamBuilder<bool>(
+                    stream: context
+                        .read<BloomeePlayerCubit>()
+                        .bloomeePlayer
+                        .engine
+                        .playingStream,
+                    builder: (context, playingSnapshot) {
+                      final isPlaying =
+                          isCurrent && (playingSnapshot.data ?? false);
+                      return Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                                color: Default_Theme.accentColor2
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8)),
+                          ],
+                        ),
+                        child: PlayPauseButton(
+                          isPlaying: isPlaying,
+                          size: 60,
+                          onPlay: isEmpty
+                              ? () {}
+                              : () => isCurrent
+                                  ? context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .play()
+                                  : _playFromPlaylist(context, state),
+                          onPause: () => context
+                              .read<BloomeePlayerCubit>()
+                              .bloomeePlayer
+                              .pause(),
+                        ),
+                      );
+                    });
+              }),
+
+          const SizedBox(width: 12),
           _buildActionIcon(
               MingCute.information_line,
               l10n.buttonInfo,
               () => showPlaylistInfo(context, state,
                   fgColor: fgColor, bgColor: bgColor)),
+
+          const SizedBox(width: 12),
           _buildActionIcon(MingCute.more_2_line, l10n.buttonMore,
               () => showPlaylistOptsInrSheet(context, state.playlist)),
         ],
@@ -630,7 +656,9 @@ class _PlaylistViewState extends State<PlaylistView> {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(22),
+          splashColor: Colors.white.withValues(alpha: 0.1),
+          highlightColor: Colors.white.withValues(alpha: 0.05),
           child: Container(
             height: 44,
             width: 44,
@@ -640,7 +668,7 @@ class _PlaylistViewState extends State<PlaylistView> {
               border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             ),
             child: Icon(icon,
-                color: Colors.white.withValues(alpha: 0.8), size: 22),
+                color: Colors.white.withValues(alpha: 0.85), size: 20),
           ),
         ),
       ),
@@ -710,12 +738,13 @@ class _PlaylistViewState extends State<PlaylistView> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Default_Theme.accentColor2,
-              foregroundColor: Default_Theme.primaryColor2,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.dialogDownloadAll),
+            child: Text(l10n.dialogDownloadAll,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
