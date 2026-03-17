@@ -243,7 +243,6 @@ class _PlaylistViewState extends State<PlaylistView> {
               ),
             ),
 
-            // Base image blur for modern media-app aesthetics
             if (imageUrl.isNotEmpty)
               Positioned.fill(
                 child: Opacity(
@@ -256,7 +255,6 @@ class _PlaylistViewState extends State<PlaylistView> {
                 ),
               ),
 
-            // Deep fade to bottom to preserve tracklist readability
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

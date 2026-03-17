@@ -71,7 +71,7 @@ class TrackDAO {
 
   // ── Lookup ────────────────────────────────────────────────────────────────
 
-  /// Find a track by its plugin-scoped [mediaId] (e.g. "resolver.plugin::id").
+  /// Find a track by its plugin-scoped [mediaId] (e.g. "resolverplugin::id").
   ///
   /// Returns a domain [Track] model, or null if not found.
   Future<Track?> getTrackByMediaId(String mediaId) async {
