@@ -1,7 +1,16 @@
 ## [Unreleased]
 
 ### Added
-- **Rust + WASM Plugin Runtime**: Introduced a Rust-backed plugin system with typed Flutter bridge APIs for installation, loading, unloading, execution, and updates.
+- **Local Music Support Available Now**: Introduced the local music playing in the device.
+- **New Plugin Runtime [bex]**: Introduced a Rust-backed plugin system built with waclay + wasmi, loading, unloading, execution, and updates.
+- **Lyrics Viewer + Lyrics Offset**: You can now offset lyrics if lyrics are not syncing up.
+- **Equalizer support now available**: Equalizer support is now available for all devices😊.
+- **Languages support is expanding**: Strings are localized so soon you will have bloomee in your own languages.
+- **Karaoke style Lyrics**: Bydefault we will now have karaoke style lyrics player.
+- **Playlist ordering and pinning**: Playlists in library can now be pinned or reordered as user wants.
+- **Crossfade support**: Crossfade is now supported for all device.
+- **Smart Replace**: Sometimes some remote song may get dead to revive them using differnt song and replace in your playlist this feature will help you to replace the songs inside your playlist with working tracks.
+- **Refresh Metadata**: Can now refresh the old metadata if the track metadata is fuzzy.
 - **Plugin Types**:
     - `contentResolver`: search, details, media resolution, home/discover sections.
     - `chartProvider`: chart listings and chart detail feeds.
