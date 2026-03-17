@@ -12,6 +12,7 @@ import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
+import 'package:Bloomee/src/rust/api/plugin/models.dart';
 
 const int _kResolutionConcurrency = 5;
 const Duration _kPluginTimeout = Duration(seconds: 10);
@@ -367,6 +368,28 @@ class ContentImportCubit extends Cubit<ContentImportState> {
   void reset() {
     _cancelRequested = false;
     emit(const ContentImportState());
+  }
+
+  // ── M3U Import ────────────────────────────────────────────────────────────
+
+  /// Directly loads tracks parsed from an M3U file and starts resolution.
+  ///
+  /// Bypasses the URL-check / collection-info / fetch-tracks plugin steps.
+  /// The [summary] provides playlist metadata (title, kind, trackCount).
+  Future<void> loadFromM3U(
+    List<ImportTrackItem> tracks,
+    ImportCollectionSummary summary,
+  ) async {
+    _cancelRequested = false;
+    emit(state.copyWith(
+      phase: ImportPhase.resolving,
+      collectionInfo: summary,
+      tracks: List.unmodifiable(
+        tracks.map((t) => ImportTrackEntry(sourceTrack: t)).toList(),
+      ),
+      clearError: true,
+    ));
+    await _resolveTracks();
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────

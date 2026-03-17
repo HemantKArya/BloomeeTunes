@@ -1607,6 +1607,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importBloomeeFiles => 'Import Bloomee Files';
 
   @override
+  String get importM3UFiles => 'Import M3U Playlist';
+
+  @override
+  String get importM3UNameDialogTitle => 'Playlist Name';
+
+  @override
+  String get importM3UNameHint => 'Enter a name for this playlist';
+
+  @override
+  String get importM3UNoTracks => 'No valid tracks found in the M3U file.';
+
+  @override
   String get importNoteTitle => 'Note';
 
   @override

@@ -1612,6 +1612,18 @@ class AppLocalizationsHi extends AppLocalizations {
   String get importBloomeeFiles => 'Import Bloomee Files';
 
   @override
+  String get importM3UFiles => 'M3U प्लेलिस्ट आयात करें';
+
+  @override
+  String get importM3UNameDialogTitle => 'प्लेलिस्ट का नाम';
+
+  @override
+  String get importM3UNameHint => 'इस प्लेलिस्ट का नाम दर्ज करें';
+
+  @override
+  String get importM3UNoTracks => 'M3U फ़ाइल में कोई मान्य ट्रैक नहीं मिले।';
+
+  @override
   String get importNoteTitle => 'Note';
 
   @override

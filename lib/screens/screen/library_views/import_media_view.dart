@@ -1,9 +1,14 @@
 import 'dart:developer';
+import 'dart:io';
+
 import 'package:Bloomee/core/constants/route_paths.dart';
+import 'package:Bloomee/plugins/blocs/import/content_import_cubit.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/import_export_service.dart';
+import 'package:Bloomee/services/m3u_processor.dart';
+import 'package:Bloomee/src/rust/api/plugin/models.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,9 +17,16 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
 
-class ImportMediaFromPlatformsView extends StatelessWidget {
+class ImportMediaFromPlatformsView extends StatefulWidget {
   const ImportMediaFromPlatformsView({super.key});
 
+  @override
+  State<ImportMediaFromPlatformsView> createState() =>
+      _ImportMediaFromPlatformsViewState();
+}
+
+class _ImportMediaFromPlatformsViewState
+    extends State<ImportMediaFromPlatformsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,6 +80,12 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
                     btnIcon: MingCute.file_import_fill,
                     onClickFunc: () => _importBloomeeFile(context),
                   ),
+                  const SizedBox(height: 10),
+                  _ImportFromBtn(
+                    btnName: AppLocalizations.of(context)!.importM3UFiles,
+                    btnIcon: MingCute.playlist_2_line,
+                    onClickFunc: () => _importM3UFile(context),
+                  ),
                 ],
               );
             },
@@ -110,6 +128,8 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
       ),
     );
   }
+
+  // ─── Import Bloomee JSON/BLM files ────────────────────────────────────────
 
   void _importBloomeeFile(BuildContext context) {
     showDialog(
@@ -189,7 +209,173 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
       ),
     );
   }
+
+  // ─── Import M3U playlist ──────────────────────────────────────────────────
+
+  Future<void> _importM3UFile(BuildContext context) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['m3u', 'm3u8'],
+    );
+    if (result == null || result.files.isEmpty) return;
+    final filePath = result.files.first.path;
+    if (filePath == null) return;
+
+    if (!context.mounted) return;
+    SnackbarService.showMessage(
+        AppLocalizations.of(context)!.snackbarProcessingFile);
+
+    final Map<String, dynamic> parsed;
+    try {
+      final content = await File(filePath).readAsString();
+      parsed = parseM3UToJson(content);
+    } catch (e) {
+      log('Failed to parse M3U: $e', name: 'ImportM3U');
+      if (context.mounted) {
+        SnackbarService.showMessage(
+            AppLocalizations.of(context)!.snackbarInvalidFileFormat);
+      }
+      return;
+    }
+
+    // Use embedded playlist name or ask the user.
+    final rawName = (parsed['playlistName'] as String?)?.trim() ?? '';
+    final String playlistName;
+    if (rawName.isNotEmpty) {
+      playlistName = rawName;
+    } else {
+      if (!context.mounted) return;
+      final asked = await _askPlaylistName(context);
+      if (asked == null) return; // user cancelled
+      playlistName = asked;
+    }
+
+    // Build ImportTrackItem list from parsed M3U entries.
+    final rawItems = parsed['mediaItems'] as List<dynamic>? ?? [];
+    final tracks = rawItems
+        .whereType<Map<String, dynamic>>()
+        .map((item) {
+          final artistStr = item['artist']?.toString() ?? '';
+          final artists = artistStr.isNotEmpty ? [artistStr] : <String>[];
+          final durationSec = item['duration'] as num?;
+          return ImportTrackItem(
+            title: item['title']?.toString() ?? '',
+            artists: artists,
+            albumTitle: item['album']?.toString(),
+            thumbnailUrl: item['artURL']?.toString(),
+            durationMs: durationSec != null
+                ? BigInt.from((durationSec * 1000).toInt())
+                : null,
+            isExplicit: false,
+            url: item['streamingURL']?.toString(),
+          );
+        })
+        .where((t) => t.title.isNotEmpty)
+        .toList();
+
+    if (tracks.isEmpty) {
+      if (context.mounted) {
+        SnackbarService.showMessage(
+            AppLocalizations.of(context)!.importM3UNoTracks);
+      }
+      return;
+    }
+
+    final summary = ImportCollectionSummary(
+      title: playlistName,
+      kind: ImportCollectionType.playlist,
+      trackCount: tracks.length,
+    );
+
+    if (!context.mounted) return;
+    // Start resolution immediately; navigate so the process screen is visible.
+    context.read<ContentImportCubit>().loadFromM3U(tracks, summary);
+    context.goNamed(
+      RoutePaths.importProcess,
+      queryParameters: {'pluginId': ''},
+    );
+  }
+
+  /// Prompts the user to enter a playlist name. Returns null if cancelled.
+  Future<String?> _askPlaylistName(BuildContext context) {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: Default_Theme.themeColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+        contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        title: Text(
+          AppLocalizations.of(context)!.importM3UNameDialogTitle,
+          style: Default_Theme.primaryTextStyle.merge(
+            const TextStyle(color: Default_Theme.primaryColor1, fontSize: 18),
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          cursorColor: Default_Theme.accentColor2,
+          style: const TextStyle(color: Colors.white, fontSize: 15),
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.importM3UNameHint,
+            hintStyle: TextStyle(
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
+              fontSize: 15,
+            ),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.3)),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide:
+                  BorderSide(color: Default_Theme.accentColor2, width: 2),
+            ),
+          ),
+          onSubmitted: (v) {
+            final name = v.trim();
+            if (name.isNotEmpty) Navigator.of(dialogCtx).pop(name);
+          },
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: Text(
+              AppLocalizations.of(context)!.buttonCancel,
+              style: TextStyle(color: Default_Theme.primaryColor2),
+            ),
+          ),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller,
+            builder: (_, val, __) => FilledButton(
+              onPressed: val.text.trim().isEmpty
+                  ? null
+                  : () => Navigator.of(dialogCtx).pop(val.text.trim()),
+              style: FilledButton.styleFrom(
+                backgroundColor: Default_Theme.accentColor2,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor:
+                    Default_Theme.accentColor2.withValues(alpha: 0.4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+              child: Text(
+                AppLocalizations.of(context)!.buttonOk,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).whenComplete(controller.dispose);
+  }
 }
+
+// ─── Plugin importer tile ─────────────────────────────────────────────────────
 
 class _ImporterPluginTile extends StatelessWidget {
   final String pluginName;
@@ -247,8 +433,7 @@ class _ImporterPluginTile extends StatelessWidget {
                       Text(
                         pluginName,
                         style: const TextStyle(
-                          color:
-                              Colors.white, // Standard bold font, high contrast
+                          color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -286,6 +471,8 @@ class _ImporterPluginTile extends StatelessWidget {
     );
   }
 }
+
+// ─── Generic import button ────────────────────────────────────────────────────
 
 class _ImportFromBtn extends StatelessWidget {
   final String btnName;

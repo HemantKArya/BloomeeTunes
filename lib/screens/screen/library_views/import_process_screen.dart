@@ -46,6 +46,7 @@ class _ImportProcessScreenState extends State<ImportProcessScreen> {
   Widget build(BuildContext context) {
     return BlocListener<PluginBloc, PluginState>(
       listenWhen: (prev, curr) =>
+          widget.pluginId.isNotEmpty &&
           prev.loadedPluginIds.contains(widget.pluginId) &&
           !curr.loadedPluginIds.contains(widget.pluginId),
       listener: (context, _) {

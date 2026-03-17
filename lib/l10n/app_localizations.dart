@@ -2924,6 +2924,30 @@ abstract class AppLocalizations {
   /// **'Import Bloomee Files'**
   String get importBloomeeFiles;
 
+  /// No description provided for @importM3UFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Import M3U Playlist'**
+  String get importM3UFiles;
+
+  /// No description provided for @importM3UNameDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist Name'**
+  String get importM3UNameDialogTitle;
+
+  /// No description provided for @importM3UNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name for this playlist'**
+  String get importM3UNameHint;
+
+  /// No description provided for @importM3UNoTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid tracks found in the M3U file.'**
+  String get importM3UNoTracks;
+
   /// No description provided for @importNoteTitle.
   ///
   /// In en, this message translates to:
