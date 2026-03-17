@@ -57,7 +57,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
                         )),
                   const SizedBox(height: 16),
                   Divider(
-                    color: Default_Theme.primaryColor1.withOpacity(0.1),
+                    color: Default_Theme.primaryColor1.withValues(alpha: 0.1),
                     indent: 16,
                     endIndent: 16,
                     height: 32,
@@ -86,13 +86,13 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Default_Theme.primaryColor1.withOpacity(0.05),
+              color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               MingCute.plugin_2_line,
               size: 48,
-              color: Default_Theme.primaryColor2.withOpacity(0.5),
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -100,7 +100,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
             AppLocalizations.of(context)!.importNoPluginsLoaded,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Default_Theme.primaryColor2.withOpacity(0.8),
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.8),
               fontSize: 15,
               fontWeight: FontWeight.w500,
               height: 1.4,
@@ -131,7 +131,7 @@ class ImportMediaFromPlatformsView extends StatelessWidget {
         content: Text(
           AppLocalizations.of(context)!.importNoteMessage,
           style: TextStyle(
-            color: Default_Theme.primaryColor2.withOpacity(0.9),
+            color: Default_Theme.primaryColor2.withValues(alpha: 0.9),
             fontSize: 15,
             height: 1.5,
           ),
@@ -207,10 +207,10 @@ class _ImporterPluginTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Default_Theme.primaryColor1.withOpacity(0.04),
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: Default_Theme.primaryColor1.withOpacity(0.05)),
+        border: Border.all(
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.05)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -229,7 +229,7 @@ class _ImporterPluginTile extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Default_Theme.accentColor2.withOpacity(0.15),
+                    color: Default_Theme.accentColor2.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -260,7 +260,8 @@ class _ImporterPluginTile extends StatelessWidget {
                         Text(
                           description!,
                           style: TextStyle(
-                            color: Default_Theme.primaryColor2.withOpacity(0.8),
+                            color: Default_Theme.primaryColor2
+                                .withValues(alpha: 0.8),
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),
@@ -274,7 +275,7 @@ class _ImporterPluginTile extends StatelessWidget {
                 const SizedBox(width: 8),
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: Default_Theme.primaryColor2.withOpacity(0.5),
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
                   size: 24,
                 ),
               ],
@@ -301,10 +302,10 @@ class _ImportFromBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Default_Theme.primaryColor1.withOpacity(0.04),
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: Default_Theme.primaryColor1.withOpacity(0.05)),
+        border: Border.all(
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.05)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -318,7 +319,7 @@ class _ImportFromBtn extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Default_Theme.primaryColor2.withOpacity(0.15),
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -340,7 +341,7 @@ class _ImportFromBtn extends StatelessWidget {
                 ),
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: Default_Theme.primaryColor2.withOpacity(0.5),
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.5),
                   size: 24,
                 ),
               ],

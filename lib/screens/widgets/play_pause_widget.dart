@@ -52,8 +52,8 @@ class _PlayPauseButtonState extends State<PlayPauseButton>
     ));
 
     _glowAnimation = ColorTween(
-      begin: Default_Theme.accentColor2.withOpacity(0.6),
-      end: Default_Theme.accentColor1.withOpacity(0.6),
+      begin: Default_Theme.accentColor2.withValues(alpha: 0.6),
+      end: Default_Theme.accentColor1.withValues(alpha: 0.6),
     ).animate(CurvedAnimation(
       parent: _colorController,
       curve: Curves.easeOutCubic,

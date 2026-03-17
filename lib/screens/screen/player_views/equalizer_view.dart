@@ -258,7 +258,7 @@ class _EqualizerViewState extends State<EqualizerView>
                                 Text(
                                   l10n.eqTitle,
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.95),
+                                    color: Colors.white.withValues(alpha: 0.95),
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.2,
@@ -353,7 +353,7 @@ class _EqualizerViewState extends State<EqualizerView>
           Text(
             l10n.eqTitle,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 16,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.3,
@@ -362,7 +362,7 @@ class _EqualizerViewState extends State<EqualizerView>
           IconButton(
             tooltip: l10n.eqResetTooltip,
             icon: Icon(Icons.refresh_rounded,
-                color: Colors.white.withOpacity(0.7), size: 22),
+                color: Colors.white.withValues(alpha: 0.7), size: 22),
             onPressed: _resetEQ,
           ),
         ],
@@ -391,7 +391,8 @@ class _EqualizerViewState extends State<EqualizerView>
               child: AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),
                 style: TextStyle(
-                  color: isActive ? accent : Colors.white.withOpacity(0.4),
+                  color:
+                      isActive ? accent : Colors.white.withValues(alpha: 0.4),
                   fontSize: 13,
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   letterSpacing: 0.3,
@@ -426,15 +427,15 @@ class _PremiumFlatCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         // Extremely low opacity white to barely separate it from the theme background
-        color: Colors.white.withOpacity(0.02),
+        color: Colors.white.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -484,7 +485,7 @@ class _InteractiveEQPainter extends CustomPainter {
 
     // ── 0 dB Center Line ──
     final zeroPaint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
+      ..color = Colors.white.withValues(alpha: 0.05)
       ..strokeWidth = 1.0;
     canvas.drawLine(Offset(0, zeroY), Offset(w, zeroY), zeroPaint);
 
@@ -506,7 +507,7 @@ class _InteractiveEQPainter extends CustomPainter {
         Offset(points[i].dx, topPad - 15),
         Offset(points[i].dx, points[i].dy),
         Paint()
-          ..color = Colors.white.withOpacity(0.04)
+          ..color = Colors.white.withValues(alpha: 0.04)
           ..strokeWidth = 1.2,
       );
 
@@ -516,7 +517,10 @@ class _InteractiveEQPainter extends CustomPainter {
         ..shader = ui.Gradient.linear(
           Offset(points[i].dx, points[i].dy),
           Offset(points[i].dx, h - bottomPad),
-          [accentColor.withOpacity(0.5), accentColor.withOpacity(0.0)],
+          [
+            accentColor.withValues(alpha: 0.5),
+            accentColor.withValues(alpha: 0.0)
+          ],
         );
 
       canvas.drawLine(
@@ -555,8 +559,9 @@ class _InteractiveEQPainter extends CustomPainter {
         const Offset(0, topPad),
         Offset(0, h - bottomPad),
         [
-          accentColor.withOpacity(0.08), // Greatly reduced so it's ultra clean
-          accentColor.withOpacity(0.0),
+          accentColor.withValues(
+              alpha: 0.08), // Greatly reduced so it's ultra clean
+          accentColor.withValues(alpha: 0.0),
         ],
       );
     canvas.drawPath(fillPath, fillPaint);
@@ -594,7 +599,7 @@ class _InteractiveEQPainter extends CustomPainter {
         text: TextSpan(
           text: frequencies[i],
           style: TextStyle(
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             fontSize: 10,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.2,
