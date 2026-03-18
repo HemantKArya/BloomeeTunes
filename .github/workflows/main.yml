@@ -2,172 +2,157 @@ name: "Build & Release"
 
 on:
   workflow_dispatch:
-    branches: main
     
 jobs:
-  # 1. EXTRACT VERSION ONCE SO ALL JOBS SHARE THE EXACT SAME TAG
-  prepare:
-    name: Prepare Version
-    runs-on: windows-latest
-    outputs:
-      VERSION: ${{ steps.extract.outputs.VERSION }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    # JOB 1: WINDOWS & ANDROID
+    build-windows-android:
+        name: Build Windows & Android
+        runs-on: windows-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-      - name: Extract version from pubspec.yaml
-        id: extract
-        shell: powershell
-        run: |
-            $vLine = Select-String -Path pubspec.yaml -Pattern '^version:\s*(\S+)' | Select-Object -First 1
-            if (-not $vLine) { Write-Error 'version not found in pubspec.yaml'; exit 1 }
-            $ver = $vLine.Matches[0].Groups[1].Value.Split('+')[0]
-            echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+            - name: Setup-Java
+              uses: actions/setup-java@v3.12.0
+              with:
+                distribution: 'oracle'
+                java-version: '17'
 
-  # 2. BUILD WINDOWS & ANDROID
-  build-windows-android:
-    name: Build Windows & Android
-    needs: prepare
-    runs-on: windows-latest
-    env:
-      VERSION: ${{ needs.prepare.outputs.VERSION }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                flutter-version: '3.35.4'
+                channel: 'stable'
 
-      - name: Setup-Java
-        uses: actions/setup-java@v3.12.0
-        with:
-          distribution: 'oracle'
-          java-version: '17'
+            - name: Install Dependencies
+              run: flutter pub get
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.35.4'
-          channel: 'stable'
+            - name: Extract version from pubspec.yaml
+              shell: powershell
+              run: |
+                  $vLine = Select-String -Path pubspec.yaml -Pattern '^version:\s*(\S+)' | Select-Object -First 1
+                  if (-not $vLine) { Write-Error 'version not found in pubspec.yaml'; exit 1 }
+                  $ver = $vLine.Matches[0].Groups[1].Value.Split('+')[0]
+                  echo "VERSION=$ver" >> $env:GITHUB_ENV
 
-      - name: Install Dependencies
-        run: flutter pub get
+            - name: Create keystore file
+              run: |
+                  $b64 = "${{ secrets.KEY_STORE }}"
+                  $filename = "./android/bloomee.jks"
+                  $bytes =[Convert]::FromBase64String($b64)
+                  [IO.File]::WriteAllBytes($filename, $bytes)
+            
+            - name: Create Keystore properties
+              run: |
+                  echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
+                  echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
+                  echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
+            
+            - name: Build App files
+              run: flutter build apk --release --split-per-abi --build-number ${{github.run_number}}
 
-      - name: Create keystore file
-        run: |
-            $b64 = "${{ secrets.KEY_STORE }}"
-            $filename = "./android/bloomee.jks"
-            $bytes = [Convert]::FromBase64String($b64)
-            [IO.File]::WriteAllBytes($filename, $bytes)
-        
-      - name: Create Keystore properties
-        run: |
-            echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
-            echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
-            echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
-        
-      - name: Build App files
-        run: flutter build apk --release --split-per-abi --build-number ${{github.run_number}}
+            - name: Verify Sign
+              run: |
+                  $buildToolsDir = Get-ChildItem "$env:ANDROID_HOME\build-tools" | Where-Object { $_.PSIsContainer } | Sort-Object Name -Descending | Select-Object -First 1
+                  Write-Host "Using build tools version: $($buildToolsDir.Name)"
+                  & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-release.apk
+                  & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+                  & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+                  & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-x86_64-release.apk
 
-      - name: Verify Sign
-        run: |
-            $buildToolsDir = Get-ChildItem "$env:ANDROID_HOME\build-tools" | Where-Object { $_.PSIsContainer } | Sort-Object Name -Descending | Select-Object -First 1
-            Write-Host "Using build tools version: $($buildToolsDir.Name)"
-            & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-release.apk
-            & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-x86_64-release.apk
+            - name: Rename APK file
+              shell: powershell
+              run: |
+                  Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_universal.apk"
+                  Rename-Item -Path "build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_armeabi-v7a.apk"
+                  Rename-Item -Path "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_arm64-v8a.apk"
+                  Rename-Item -Path "build/app/outputs/flutter-apk/app-x86_64-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_x86_64.apk"
 
-      - name: Rename APK file
-        shell: powershell
-        run: |
-            Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_universal.apk"
-            Rename-Item -Path "build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_armeabi-v7a.apk"
-            Rename-Item -Path "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_arm64-v8a.apk"
-            Rename-Item -Path "build/app/outputs/flutter-apk/app-x86_64-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_x86_64.apk"
+            - name: Build Windows App
+              run: flutter build windows --release --build-number ${{github.run_number}}
+            
+            - name: Create build-number.txt file
+              run: echo ${{github.run_number}} > build-number.txt
 
-      - name: Build Windows App
-        run: flutter build windows --release --build-number ${{github.run_number}}
-        
-      - name: Create build-number.txt file
-        run: echo ${{github.run_number}} > build-number.txt
+            - name: Rename file
+              run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
+           
+            - name: ZIP build
+              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+            
+            - name: Upload Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: Release-Windows-Android
+                path: |
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
+                  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
+                  build-number.txt
 
-      - name: Rename file
-        run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
-        
-      - name: ZIP build
-        run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-        
-      - name: Flatten Artifacts into single folder
-        shell: powershell
-        run: |
-            New-Item -ItemType Directory -Force -Path out_artifacts
-            Copy-Item -Path "build/app/outputs/flutter-apk/bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_universal.apk" -Destination out_artifacts\
-            Copy-Item -Path "build/app/outputs/flutter-apk/bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_armeabi-v7a.apk" -Destination out_artifacts\
-            Copy-Item -Path "build/app/outputs/flutter-apk/bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_arm64-v8a.apk" -Destination out_artifacts\
-            Copy-Item -Path "build/app/outputs/flutter-apk/bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_x86_64.apk" -Destination out_artifacts\
-            Copy-Item -Path "build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip" -Destination out_artifacts\
-            Copy-Item -Path "build-number.txt" -Destination out_artifacts\
+            - name: Create Release
+              uses: ncipollo/release-action@v1
+              with:
+                artifacts: |
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
+                  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
+                  build-number.txt
+                tag: v${{ env.VERSION }}+${{github.run_number}}
+                token: ${{secrets.SECRET_KEY}}
+                prerelease: true
+                allowUpdates: true 
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-android-builds
-          path: out_artifacts/*
 
-  # 3. BUILD LINUX
-  build-linux:
-    name: Build Linux
-    needs: prepare
-    runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ needs.prepare.outputs.VERSION }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    build-linux:
+        name: Build Linux
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.35.4'
-          channel: 'stable'
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                flutter-version: '3.35.4'
+                channel: 'stable'
 
-      - name: Install Linux Build Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+            - name: Install Linux Dependencies
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 
-      - name: Install Dependencies
-        run: flutter pub get
+            - name: Install Dependencies
+              run: flutter pub get
 
-      - name: Build Linux App
-        run: flutter build linux --release --build-number ${{github.run_number}}
+            - name: Extract version from pubspec.yaml
+              run: |
+                VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+                echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Compress Linux Build (.tar.gz preserves execution permissions)
-        run: |
-          tar -czf bloomee_tunes_linux_x64_v${{ env.VERSION }}+${{github.run_number}}.tar.gz -C build/linux/x64/release/bundle .
+            - name: Build Linux App
+              run: flutter build linux --release --build-number ${{github.run_number}}
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-builds
-          path: bloomee_tunes_linux_x64_v${{ env.VERSION }}+${{github.run_number}}.tar.gz
+            - name: Compress Linux Build
+              run: |
+                tar -czf bloomee_tunes_linux_x64_v${{ env.VERSION }}+${{github.run_number}}.tar.gz -C build/linux/x64/release/bundle .
 
-  # 4. PUBLISH RELEASE TOGETHER
-  publish-release:
-    name: Create Release
-    needs:[prepare, build-windows-android, build-linux]
-    runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ needs.prepare.outputs.VERSION }}
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release-artifacts
-          merge-multiple: true
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: Release-Linux
+                path: bloomee_tunes_linux_x64_v${{ env.VERSION }}+${{github.run_number}}.tar.gz
 
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "release-artifacts/*" # <--- Now this will successfully find ALL files from both runners!
-          tag: v${{ env.VERSION }}+${{github.run_number}}
-          token: ${{secrets.SECRET_KEY}}
-          prerelease: true
+            - name: Publish Linux to Release
+              uses: ncipollo/release-action@v1
+              with:
+                artifacts: bloomee_tunes_linux_x64_v${{ env.VERSION }}+${{github.run_number}}.tar.gz
+                tag: v${{ env.VERSION }}+${{github.run_number}}
+                token: ${{secrets.SECRET_KEY}}
+                prerelease: true
+                allowUpdates: true 
+                omitBodyDuringUpdate: true
