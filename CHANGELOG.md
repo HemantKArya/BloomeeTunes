@@ -1,4 +1,4 @@
-## [Unreleased]
+## [3.0.0] - 2026-03-18
 
 ### Added
 - **Local Music Support Available Now**: Introduced the local music playing in the device.
