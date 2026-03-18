@@ -26,8 +26,9 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
 
   String _selectedLang = '';
   String _selectedCountry = CountryInfoService.defaultCountryCode;
-  bool _autoDetectCountry = true;
-  bool _isLoading = true;
+  bool _autoDetectCountry = false;
+  bool _isResolvingCountry = false;
+  bool _countryTouchedByUser = false;
   Locale? _currentLocale;
 
   @override
@@ -40,17 +41,16 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
     final lang =
         await _settingsDao.getSettingStr(SettingKeys.languageCode) ?? '';
     final auto =
-        await _settingsDao.getSettingBool(SettingKeys.autoGetCountry) ?? true;
+        await _settingsDao.getSettingBool(SettingKeys.autoGetCountry) ?? false;
 
-    String country =
-        await _settingsDao.getSettingStr(SettingKeys.countryCode) ??
-            CountryInfoService.defaultCountryCode;
+    final storedCountryRaw =
+        await _settingsDao.getSettingStr(SettingKeys.countryCode);
+    final storedCountry =
+        CountryInfoService.normalizeCountryCode(storedCountryRaw);
 
-    if (auto) {
-      country = await CountryInfoService.resolveAndCacheCountryCode(
-        settingsDao: _settingsDao,
-      );
-    }
+    final country = storedCountry.isEmpty
+        ? CountryInfoService.defaultCountryCode
+        : storedCountry;
 
     if (!mounted) return;
     setState(() {
@@ -58,8 +58,31 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
       _selectedCountry = country;
       _autoDetectCountry = auto;
       _currentLocale = lang.isEmpty ? null : Locale(lang);
-      _isLoading = false;
     });
+
+    // Improve first guess quickly without network delay.
+    _updateCountryFromDeviceLocaleIfNeeded(
+      shouldGuess: storedCountry.isEmpty,
+    );
+  }
+
+  Future<void> _updateCountryFromDeviceLocaleIfNeeded({
+    required bool shouldGuess,
+  }) async {
+    if (!shouldGuess) {
+      return;
+    }
+
+    final guessed =
+        await CountryInfoService.resolveCountryCodeFromDeviceLocale();
+    if (!mounted || guessed == null || _countryTouchedByUser) {
+      return;
+    }
+
+    setState(() {
+      _selectedCountry = guessed;
+    });
+    await _settingsDao.putSettingStr(SettingKeys.countryCode, guessed);
   }
 
   void _updateLang(String? val) {
@@ -74,6 +97,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
   void _updateCountry(String? val) {
     if (val == null) return;
     setState(() {
+      _countryTouchedByUser = true;
       _selectedCountry = val;
       if (_autoDetectCountry) {
         _autoDetectCountry = false;
@@ -83,24 +107,33 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
     _settingsDao.putSettingStr(SettingKeys.countryCode, val);
   }
 
-  void _updateAutoDetect(bool val) {
+  Future<void> _updateAutoDetect(bool val) async {
     setState(() {
       _autoDetectCountry = val;
     });
-    _settingsDao.putSettingBool(SettingKeys.autoGetCountry, val);
+    await _settingsDao.putSettingBool(SettingKeys.autoGetCountry, val);
 
     if (val) {
-      CountryInfoService.resolveAndCacheCountryCode(settingsDao: _settingsDao)
-          .then((code) {
-        if (!mounted) return;
-        setState(() {
-          _selectedCountry = code;
-        });
+      setState(() => _isResolvingCountry = true);
+      final code = await CountryInfoService.resolveAndCacheCountryCode(
+        settingsDao: _settingsDao,
+        forceRefresh: true,
+      );
+      if (!mounted) return;
+      setState(() {
+        _selectedCountry = code;
+        _isResolvingCountry = false;
       });
     }
   }
 
   Future<void> _finish() async {
+    await _settingsDao.putSettingBool(
+      SettingKeys.autoGetCountry,
+      _autoDetectCountry,
+    );
+    await _settingsDao.putSettingStr(SettingKeys.countryCode, _selectedCountry);
+    await _settingsDao.putSettingStr(SettingKeys.languageCode, _selectedLang);
     await OnboardingService.markDone(_settingsDao);
     widget.onComplete();
   }
@@ -151,17 +184,6 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
           final l10n = AppLocalizations.of(context);
           if (l10n == null) {
             return const Scaffold(backgroundColor: Default_Theme.themeColor);
-          }
-
-          if (_isLoading) {
-            return const Scaffold(
-              backgroundColor: Default_Theme.themeColor,
-              body: Center(
-                child: CircularProgressIndicator(
-                  color: Default_Theme.accentColor2,
-                ),
-              ),
-            );
           }
 
           final languageItems = _buildLanguageItems(l10n);
@@ -258,6 +280,17 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
                                   label: l10n.countrySettingAutoDetect,
                                 ),
                               ),
+                              if (_isResolvingCountry)
+                                const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Default_Theme.accentColor2,
+                                  ),
+                                ),
+                              if (_isResolvingCountry)
+                                const SizedBox(width: 10),
                               _AestheticSwitch(
                                 value: _autoDetectCountry,
                                 onChanged: _updateAutoDetect,

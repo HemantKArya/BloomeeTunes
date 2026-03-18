@@ -170,12 +170,14 @@ Future<PluginInstallResult> installPackedPlugin(
         required String pluginsDir,
         required String tempDir,
         required bool shouldLoad,
+        required String policyCountryCode,
         required PluginManager manager}) =>
     RustLib.instance.api.crateApiBridgeInstallPackedPlugin(
         packedFilePath: packedFilePath,
         pluginsDir: pluginsDir,
         tempDir: tempDir,
         shouldLoad: shouldLoad,
+        policyCountryCode: policyCountryCode,
         manager: manager);
 
 Future<List<String>> scanBexFiles({required String directory}) =>

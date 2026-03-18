@@ -229,6 +229,7 @@ pub async fn install_packed_plugin(
     plugins_dir: String,
     temp_dir: String,
     should_load: bool,
+    policy_country_code: String,
     manager: &PluginManager,
 ) -> Result<PluginInstallResult, String> {
     let manager_ref = if should_load { Some(manager) } else { None };
@@ -237,6 +238,7 @@ pub async fn install_packed_plugin(
         &plugins_dir,
         &temp_dir,
         should_load,
+        &policy_country_code,
         manager_ref,
     )
     .await

@@ -91,6 +91,8 @@ class PluginBootstrapService {
     onProgress(const PluginBootstrapProgress(8));
 
     final countryCode = await _resolveBootstrapCountryCode(settingsDao);
+    log('Bootstrap policy country: ${countryCode.isEmpty ? '<unset>' : countryCode}',
+        name: 'PluginBootstrap');
 
     List<_HostedRepoEntry> entries;
     try {
@@ -161,13 +163,24 @@ class PluginBootstrapService {
             ((processedPlugins * 55) ~/
                 (totalPlugins == 0 ? 1 : totalPlugins))));
 
-        if (installedIds.contains(plugin.id) ||
-            !plugin.isAllowedInCountry(countryCode)) {
+        if (installedIds.contains(plugin.id)) {
+          processedPlugins++;
+          continue;
+        }
+
+        if (!plugin.isAllowedInCountry(countryCode)) {
+          if (plugin.countryAllowlist.isNotEmpty) {
+            log(
+              'Skipped by allowlist: ${plugin.id} country=$countryCode allowlist=${plugin.countryAllowlist}',
+              name: 'PluginBootstrap',
+            );
+          }
           processedPlugins++;
           continue;
         }
 
         bool installed = false;
+        bool skippedByCountry = false;
         String? lastError;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
@@ -180,6 +193,7 @@ class PluginBootstrapService {
             final result = await pluginService.installPlugin(
               packedFilePath: file.path,
               shouldLoad: true,
+              policyCountryCode: countryCode,
             );
 
             final ok = result.status == PluginInstallStatus.installed ||
@@ -194,7 +208,8 @@ class PluginBootstrapService {
                   'Install returned status: ${result.status.name}${result.error != null ? ' — ${result.error}' : ''}';
             }
           } on PluginCountryRestrictedException {
-            installed = true;
+            skippedByCountry = true;
+            break;
           } catch (e) {
             lastError = e.toString();
           }
@@ -205,7 +220,7 @@ class PluginBootstrapService {
           if (installed) break;
         }
 
-        if (!installed) {
+        if (!installed && !skippedByCountry) {
           errors.add('Could not install "${plugin.name}": $lastError');
         }
 
@@ -335,9 +350,12 @@ class PluginBootstrapService {
     required SettingsDAO settingsDao,
   }) async {
     try {
-      final countryCode = await CountryInfoService.resolveAndCacheCountryCode(
+      final countryCode =
+          await CountryInfoService.resolveCountryCodeForPolicyCheck(
         settingsDao: settingsDao,
       );
+      log('Sync policy country: ${countryCode.isEmpty ? '<unset>' : countryCode}',
+          name: 'PluginBootstrap');
       final hostedEntries = await _fetchHostedEntries();
       final existingUrls = await repositoryService.getSavedRepositoryUrls();
       final knownUrls = existingUrls.toSet();
@@ -407,6 +425,7 @@ class PluginBootstrapService {
             pluginService: pluginService,
             plugin: remote,
             retries: maxRetries,
+            countryCode: countryCode,
           );
 
           // Add to auto-load list if updated.
@@ -439,6 +458,7 @@ class PluginBootstrapService {
     required PluginService pluginService,
     required RemotePluginModel plugin,
     required int retries,
+    required String countryCode,
   }) async {
     String? lastError;
 
@@ -452,6 +472,7 @@ class PluginBootstrapService {
         final result = await pluginService.installPlugin(
           packedFilePath: file.path,
           shouldLoad: true,
+          policyCountryCode: countryCode,
         );
 
         final ok = result.status == PluginInstallStatus.installed ||
@@ -570,12 +591,11 @@ class PluginBootstrapService {
     SettingsDAO settingsDao,
   ) async {
     try {
-      return await CountryInfoService.resolveAndCacheCountryCode(
+      return await CountryInfoService.resolveCountryCodeForPolicyCheck(
         settingsDao: settingsDao,
-        forceRefresh: true,
       );
     } catch (_) {
-      return CountryInfoService.defaultCountryCode;
+      return '';
     }
   }
 

@@ -111,6 +111,7 @@ pub async fn install_packed_plugin(
     plugins_dir: &str,
     temp_dir: &str,
     should_load: bool,
+    policy_country_code: &str,
     manager: Option<&crate::api::plugin::plugin::PluginManager>,
 ) -> Result<PluginInstallResult> {
     let (manifest, temp_plugin_dir) = unpack_and_read_manifest(packed_file_path, temp_dir).await?;
@@ -129,6 +130,22 @@ pub async fn install_packed_plugin(
                 CURRENT_MANIFEST_VERSION, manifest.manifest_version
             )),
         });
+    }
+
+    if !manifest.country_allowlist.is_empty() {
+        let normalized = policy_country_code.to_uppercase();
+        if normalized.is_empty() || !manifest.country_allowlist.contains(&normalized) {
+            cleanup().await;
+            return Ok(PluginInstallResult {
+                status: PluginInstallStatus::Failed,
+                plugin_id: manifest.id,
+                error: Some(format!(
+                    "country restriction: requires {}, got '{}'",
+                    manifest.country_allowlist.join(","),
+                    if normalized.is_empty() { "<unset>" } else { &normalized }
+                )),
+            });
+        }
     }
 
     if let Some(plugin_mgr) = manager {

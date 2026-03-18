@@ -294,6 +294,7 @@ abstract class RustLibApi extends BaseApi {
       required String pluginsDir,
       required String tempDir,
       required bool shouldLoad,
+      required String policyCountryCode,
       required PluginManager manager});
 
   Future<bool> crateApiBridgeIsPluginLoaded(
@@ -1990,6 +1991,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       required String pluginsDir,
       required String tempDir,
       required bool shouldLoad,
+      required String policyCountryCode,
       required PluginManager manager}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
@@ -1998,6 +2000,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(pluginsDir, serializer);
         sse_encode_String(tempDir, serializer);
         sse_encode_bool(shouldLoad, serializer);
+        sse_encode_String(policyCountryCode, serializer);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
@@ -2008,7 +2011,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_String,
       ),
       constMeta: kCrateApiBridgeInstallPackedPluginConstMeta,
-      argValues: [packedFilePath, pluginsDir, tempDir, shouldLoad, manager],
+      argValues: [
+        packedFilePath,
+        pluginsDir,
+        tempDir,
+        shouldLoad,
+        policyCountryCode,
+        manager
+      ],
       apiImpl: this,
     ));
   }
@@ -2021,6 +2031,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "pluginsDir",
           "tempDir",
           "shouldLoad",
+          "policyCountryCode",
           "manager"
         ],
       );
@@ -3536,8 +3547,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Manifest dco_decode_manifest(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 18)
-      throw Exception('unexpected arr length: expect 18 but see ${arr.length}');
+    if (arr.length != 19)
+      throw Exception('unexpected arr length: expect 19 but see ${arr.length}');
     return Manifest(
       manifestVersion: dco_decode_u_32(arr[0]),
       id: dco_decode_String(arr[1]),
@@ -3557,6 +3568,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       thumbnailUrl: dco_decode_opt_String(arr[15]),
       resolver: dco_decode_bool(arr[16]),
       lastUpdated: dco_decode_opt_String(arr[17]),
+      countryAllowlist: dco_decode_list_String(arr[18]),
     );
   }
 
@@ -5410,6 +5422,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_thumbnailUrl = sse_decode_opt_String(deserializer);
     var var_resolver = sse_decode_bool(deserializer);
     var var_lastUpdated = sse_decode_opt_String(deserializer);
+    var var_countryAllowlist = sse_decode_list_String(deserializer);
     return Manifest(
         manifestVersion: var_manifestVersion,
         id: var_id,
@@ -5428,7 +5441,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         keysRequired: var_keysRequired,
         thumbnailUrl: var_thumbnailUrl,
         resolver: var_resolver,
-        lastUpdated: var_lastUpdated);
+        lastUpdated: var_lastUpdated,
+        countryAllowlist: var_countryAllowlist);
   }
 
   @protected
@@ -7149,6 +7163,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.thumbnailUrl, serializer);
     sse_encode_bool(self.resolver, serializer);
     sse_encode_opt_String(self.lastUpdated, serializer);
+    sse_encode_list_String(self.countryAllowlist, serializer);
   }
 
   @protected
