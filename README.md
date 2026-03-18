@@ -53,6 +53,19 @@
 - [x] 🆎 **Multi-Language Support:** Localized app interface for global users *(Implementing more languages..)*
 
 ---
+## 🌍 Language Support
+
+| Language | Native Name | Status |
+|----------|------------|--------|
+| 🇮🇳 Hindi | हिन्दी | ✅ Complete |
+| 🇺🇸 English | English | ✅ Complete |
+| 🇰🇷 Korean | 한국어 | ✅ Complete |
+| 🇩🇪 German | Deutsch | ✅ Complete |
+| 🇪🇸 Spanish | Español | ✅ Complete |
+| 🇯🇵 Japanese | 日本語 | ✅ Complete |
+
+> 🟢 All translations are fully completed and maintained, Still if you feel any language needs more thought then please feel free to open the issue.
+---
 
 <h2 align="center">📥 Download & Install</h2>
 
