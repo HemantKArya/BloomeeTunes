@@ -1,6 +1,7 @@
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
+import 'package:Bloomee/l10n/language_options.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
@@ -52,12 +53,18 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
         ? CountryInfoService.defaultCountryCode
         : storedCountry;
 
+    final supportedCodes = AppLocalizations.supportedLocales
+        .map((locale) => locale.languageCode)
+        .toSet();
+    final normalizedLang =
+        lang.isEmpty || supportedCodes.contains(lang) ? lang : '';
+
     if (!mounted) return;
     setState(() {
-      _selectedLang = lang;
+      _selectedLang = normalizedLang;
       _selectedCountry = country;
       _autoDetectCountry = auto;
-      _currentLocale = lang.isEmpty ? null : Locale(lang);
+      _currentLocale = normalizedLang.isEmpty ? null : Locale(normalizedLang);
     });
 
     // Improve first guess quickly without network delay.
@@ -139,7 +146,6 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
   }
 
   List<DropdownMenuItem<String>> _buildLanguageItems(AppLocalizations l10n) {
-    final uniqueCodes = <String>{};
     final options = <DropdownMenuItem<String>>[
       DropdownMenuItem(
         value: '',
@@ -147,28 +153,16 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
       ),
     ];
 
-    for (final locale in AppLocalizations.supportedLocales) {
-      if (!uniqueCodes.add(locale.languageCode)) continue;
+    for (final option in buildLanguageOptions()) {
       options.add(
         DropdownMenuItem(
-          value: locale.languageCode,
-          child: Text(_languageLabel(locale.languageCode)),
+          value: option.code,
+          child: Text(option.label),
         ),
       );
     }
 
     return options;
-  }
-
-  String _languageLabel(String code) {
-    switch (code) {
-      case 'en':
-        return 'English';
-      case 'hi':
-        return 'हिन्दी';
-      default:
-        return code.toUpperCase();
-    }
   }
 
   @override
