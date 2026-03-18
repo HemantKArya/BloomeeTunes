@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/constants/sentinel_values.dart';
-import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
+import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';

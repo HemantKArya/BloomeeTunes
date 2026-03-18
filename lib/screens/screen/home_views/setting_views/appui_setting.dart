@@ -5,7 +5,7 @@ import 'package:Bloomee/plugins/blocs/chart/chart_event.dart';
 import 'package:Bloomee/plugins/blocs/chart/chart_state.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
 
-import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
+import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';

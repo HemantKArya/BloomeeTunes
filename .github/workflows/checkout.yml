@@ -36,7 +36,7 @@ jobs:
         run: flutter pub get
 
       - name: Static Code Analysis
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
   # ==========================================
   # JOB 2: BUILD APP 

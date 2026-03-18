@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
+import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
