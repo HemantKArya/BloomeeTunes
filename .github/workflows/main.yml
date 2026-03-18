@@ -95,17 +95,22 @@ jobs:
       - name: ZIP build
         run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
         
+      - name: Flatten Artifacts into single folder
+        shell: powershell
+        run: |
+            New-Item -ItemType Directory -Force -Path out_artifacts
+            Copy-Item -Path "build/app/outputs/flutter-apk/bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_universal.apk" -Destination out_artifacts\
+            Copy-Item -Path "build/app/outputs/flutter-apk/bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_armeabi-v7a.apk" -Destination out_artifacts\
+            Copy-Item -Path "build/app/outputs/flutter-apk/bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_arm64-v8a.apk" -Destination out_artifacts\
+            Copy-Item -Path "build/app/outputs/flutter-apk/bloomee_tunes_android_v$env:VERSION+${{github.run_number}}_x86_64.apk" -Destination out_artifacts\
+            Copy-Item -Path "build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip" -Destination out_artifacts\
+            Copy-Item -Path "build-number.txt" -Destination out_artifacts\
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-android-builds
-          path: |
-            build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
-            build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-            build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
-            build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
-            build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
-            build-number.txt
+          path: out_artifacts/*
 
   # 3. BUILD LINUX
   build-linux:
@@ -162,16 +167,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          # EXACT explicit paths are provided so nothing is ever missed
-          artifacts: |
-            release-artifacts/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
-            release-artifacts/build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-            release-artifacts/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
-            release-artifacts/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
-            release-artifacts/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
-            release-artifacts/bloomee_tunes_linux_x64_v${{ env.VERSION }}+${{github.run_number}}.tar.gz
-            release-artifacts/build-number.txt
-            
+          artifacts: "release-artifacts/*" # <--- Now this will successfully find ALL files from both runners!
           tag: v${{ env.VERSION }}+${{github.run_number}}
           token: ${{secrets.SECRET_KEY}}
           prerelease: true
