@@ -148,7 +148,7 @@ jobs:
   # 4. PUBLISH RELEASE TOGETHER
   publish-release:
     name: Create Release
-    needs: [prepare, build-windows-android, build-linux]
+    needs:[prepare, build-windows-android, build-linux]
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.prepare.outputs.VERSION }}
@@ -162,7 +162,16 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "release-artifacts/*"
+          # EXACT explicit paths are provided so nothing is ever missed
+          artifacts: |
+            release-artifacts/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
+            release-artifacts/build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+            release-artifacts/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
+            release-artifacts/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
+            release-artifacts/build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
+            release-artifacts/bloomee_tunes_linux_x64_v${{ env.VERSION }}+${{github.run_number}}.tar.gz
+            release-artifacts/build-number.txt
+            
           tag: v${{ env.VERSION }}+${{github.run_number}}
           token: ${{secrets.SECRET_KEY}}
           prerelease: true
