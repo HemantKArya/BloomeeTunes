@@ -32,6 +32,17 @@ Future<void> bootstrapApp() async {
   // DI wiring (registers singletons).
   await ServiceLocator.setup();
 
+  // Ensure hosted repositories are persisted in settings (idempotent).
+  // Missing URLs are added, existing ones are left untouched.
+  try {
+    await PluginBootstrapService.ensureHostedRepositoriesPresent(
+      repositoryService: ServiceLocator.pluginRepositoryService,
+    );
+  } catch (e) {
+    log('Hosted repository reconciliation skipped',
+        error: e, name: 'Bootstrap');
+  }
+
   // Initialize plugin system:
   //   Creates Rust PluginManager → connects event bus →
   //   preloads storage from Isar → starts storage event handler.

@@ -457,30 +457,33 @@ class LyricsCubit extends Cubit<LyricsState> {
     }
   }
 
-  void _autoSave(Lyrics lyrics) {
-    _settingsDao.getSettingBool(SettingKeys.autoSaveLyrics).then((enabled) {
-      if ((enabled ?? false)) {
-        _lyricsDao.putLyrics(lyrics);
-        log('Lyrics saved for ID: ${lyrics.mediaID}', name: 'LyricsCubit');
-      }
-    });
+  Future<void> _autoSave(Lyrics lyrics) async {
+    final enabled =
+        await _settingsDao.getSettingBool(SettingKeys.autoSaveLyrics);
+    if ((enabled ?? false)) {
+      await _lyricsDao.putLyrics(lyrics);
+      log('Lyrics saved for ID: ${lyrics.mediaID}', name: 'LyricsCubit');
+    }
   }
 
-  void setLyricsToDB(Lyrics lyrics, String mediaID, {int? offset}) {
+  Future<void> setLyricsToDB(Lyrics lyrics, String mediaID,
+      {int? offset}) async {
     final updated = lyrics.copyWith(mediaID: mediaID, offset: offset);
-    _lyricsDao.putLyrics(updated, offset: offset).then((_) {
+    await _lyricsDao.putLyrics(updated, offset: offset);
+    if (!isClosed) {
       emit(LyricsLoaded(updated, state.track));
-    });
+    }
     log('Lyrics updated for ID: ${updated.mediaID} (offset: $offset)',
         name: 'LyricsCubit');
   }
 
-  void deleteLyricsFromDB(Track track) {
-    _lyricsDao.removeLyricsById(track.id).then((_) {
+  Future<void> deleteLyricsFromDB(Track track) async {
+    await _lyricsDao.removeLyricsById(track.id);
+    if (!isClosed) {
       emit(LyricsInitial());
-      getLyrics(track);
-      log('Lyrics deleted for ID: ${track.id}', name: 'LyricsCubit');
-    });
+      unawaited(getLyrics(track));
+    }
+    log('Lyrics deleted for ID: ${track.id}', name: 'LyricsCubit');
   }
 
   @override

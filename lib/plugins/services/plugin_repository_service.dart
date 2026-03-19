@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/plugins/models/plugin_repository.dart';
@@ -6,9 +7,22 @@ import 'package:Bloomee/plugins/models/plugin_repository.dart';
 class PluginRepositoryService {
   final SettingsDAO _settingsDao;
   static const String _reposKey = 'user_plugin_repositories';
+  static Future<void> _mutationChain = Future<void>.value();
 
   PluginRepositoryService({required SettingsDAO settingsDao})
       : _settingsDao = settingsDao;
+
+  Future<T> _enqueueMutation<T>(Future<T> Function() action) {
+    final completer = Completer<T>();
+    _mutationChain = _mutationChain.catchError((_) {}).then((_) async {
+      try {
+        completer.complete(await action());
+      } catch (e, stack) {
+        completer.completeError(e, stack);
+      }
+    });
+    return completer.future;
+  }
 
   /// Fetch and parse a repository from a URL
   Future<PluginRepositoryModel> fetchRepository(String url) async {
@@ -43,21 +57,36 @@ class PluginRepositoryService {
 
   /// Add a new repository URL
   Future<void> addRepositoryUrl(String url) async {
-    final urls = await getSavedRepositoryUrls();
-    // basic validation
-    if (!Uri.parse(url).isAbsolute) throw Exception('Invalid URL');
-    if (!urls.contains(url)) {
-      urls.add(url);
-      await _settingsDao.putSettingStr(_reposKey, jsonEncode(urls));
-    }
+    await ensureRepositoryUrls(<String>[url]);
   }
 
   /// Remove a repository URL
   Future<void> removeRepositoryUrl(String url) async {
-    final urls = await getSavedRepositoryUrls();
-    if (urls.contains(url)) {
-      urls.remove(url);
-      await _settingsDao.putSettingStr(_reposKey, jsonEncode(urls));
-    }
+    await _enqueueMutation(() async {
+      final urls = await getSavedRepositoryUrls();
+      if (urls.contains(url)) {
+        urls.remove(url);
+        await _settingsDao.putSettingStr(_reposKey, jsonEncode(urls));
+      }
+    });
+  }
+
+  Future<int> ensureRepositoryUrls(Iterable<String> urls) {
+    return _enqueueMutation(() async {
+      final existing = (await getSavedRepositoryUrls()).toSet();
+      final validToAdd = urls
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .where((e) => Uri.tryParse(e)?.isAbsolute ?? false)
+          .where((e) => !existing.contains(e))
+          .toList(growable: false);
+
+      if (validToAdd.isEmpty) return 0;
+
+      existing.addAll(validToAdd);
+      final updated = existing.toList()..sort();
+      await _settingsDao.putSettingStr(_reposKey, jsonEncode(updated));
+      return validToAdd.length;
+    });
   }
 }

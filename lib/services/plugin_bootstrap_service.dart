@@ -80,6 +80,23 @@ class PluginBootstrapService {
     _bootstrapDone = true;
   }
 
+  static Future<void> ensureHostedRepositoriesPresent({
+    required PluginRepositoryService repositoryService,
+  }) async {
+    try {
+      final entries = await _fetchHostedEntries();
+      final added = await repositoryService.ensureRepositoryUrls(
+        entries.map((entry) => entry.url),
+      );
+      if (added > 0) {
+        log('Persisted $added hosted repositories', name: 'PluginBootstrap');
+      }
+    } catch (e) {
+      log('Hosted repository reconciliation skipped: $e',
+          name: 'PluginBootstrap');
+    }
+  }
+
   static Future<PluginBootstrapResult> run({
     required PluginService pluginService,
     required PluginRepositoryService repositoryService,
@@ -112,20 +129,9 @@ class PluginBootstrapService {
       );
     }
 
-    final existingUrls = await repositoryService.getSavedRepositoryUrls();
-    for (final entry in entries) {
-      if (entry.url.isEmpty) continue;
-      if (!existingUrls.contains(entry.url)) {
-        try {
-          await repositoryService.addRepositoryUrl(entry.url);
-          log('Added repository: ${entry.url}', name: 'PluginBootstrap');
-        } catch (e) {
-          log('Could not save repository URL ${entry.url}: $e',
-              name: 'PluginBootstrap');
-          // Non-fatal — continue with install attempts anyway.
-        }
-      }
-    }
+    await repositoryService.ensureRepositoryUrls(
+      entries.map((entry) => entry.url),
+    );
     onProgress(const PluginBootstrapProgress(24));
 
     final installEntries =
@@ -236,7 +242,6 @@ class PluginBootstrapService {
       // are added to the auto-load list so they are actually used.
       try {
         final loadStateService = PluginLoadStateService(settingsDao);
-        final currentAutoLoad = await loadStateService.readAutoLoadPluginIds();
 
         // Ensure everything that is "available" and part of our bootstrap
         // is in the auto-load list.
@@ -247,8 +252,7 @@ class PluginBootstrapService {
             .toSet();
 
         if (bootstrapIds.isNotEmpty) {
-          await loadStateService
-              .writeAutoLoadPluginIds({...currentAutoLoad, ...bootstrapIds});
+          await loadStateService.addAutoLoadPluginIds(bootstrapIds);
           log('Added ${bootstrapIds.length} plugins to auto-load list',
               name: 'PluginBootstrap');
         }
@@ -357,21 +361,11 @@ class PluginBootstrapService {
       log('Sync policy country: ${countryCode.isEmpty ? '<unset>' : countryCode}',
           name: 'PluginBootstrap');
       final hostedEntries = await _fetchHostedEntries();
-      final existingUrls = await repositoryService.getSavedRepositoryUrls();
-      final knownUrls = existingUrls.toSet();
-
-      for (final entry in hostedEntries) {
-        if (entry.url.isEmpty || knownUrls.contains(entry.url)) {
-          continue;
-        }
-        try {
-          await repositoryService.addRepositoryUrl(entry.url);
-          knownUrls.add(entry.url);
-        } catch (e) {
-          log('Failed to add hosted repository ${entry.url}: $e',
-              name: 'PluginBootstrap');
-        }
-      }
+      await repositoryService.ensureRepositoryUrls(
+        hostedEntries.map((entry) => entry.url),
+      );
+      final knownUrls =
+          (await repositoryService.getSavedRepositoryUrls()).toSet();
 
       final repos = <PluginRepositoryModel>[];
       for (final url in knownUrls) {
@@ -430,11 +424,7 @@ class PluginBootstrapService {
 
           // Add to auto-load list if updated.
           final loadStateService = PluginLoadStateService(settingsDao);
-          final current = await loadStateService.readAutoLoadPluginIds();
-          if (!current.contains(pluginId)) {
-            await loadStateService
-                .writeAutoLoadPluginIds({...current, pluginId});
-          }
+          await loadStateService.addAutoLoadPluginIds(<String>[pluginId]);
         } on PluginCountryRestrictedException {
           continue;
         } catch (e) {

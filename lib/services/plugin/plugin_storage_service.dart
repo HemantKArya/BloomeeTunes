@@ -23,6 +23,7 @@ class PluginStorageService {
   final PluginEventBus _eventBus;
 
   StreamSubscription<PluginManagerEvent>? _eventSubscription;
+  Future<void> _writeChain = Future<void>.value();
 
   PluginStorageService({
     required PluginStorageDao dao,
@@ -66,13 +67,13 @@ class PluginStorageService {
   void _handleEvent(PluginManagerEvent event) {
     event.when(
       storageSet: (pluginId, key, value) {
-        _persistSet(pluginId, key, value);
+        _enqueueWrite(() => _persistSet(pluginId, key, value));
       },
       storageDeleted: (pluginId, key) {
-        _persistDelete(pluginId, key);
+        _enqueueWrite(() => _persistDelete(pluginId, key));
       },
       storageCleared: (pluginId) {
-        _persistClear(pluginId);
+        _enqueueWrite(() => _persistClear(pluginId));
       },
       // All other events are not our concern.
       pluginLoading: (_) {},
@@ -91,6 +92,10 @@ class PluginStorageService {
       managerInitialized: () {},
       error: (_) {},
     );
+  }
+
+  void _enqueueWrite(Future<void> Function() op) {
+    _writeChain = _writeChain.catchError((_) {}).then((_) => op());
   }
 
   Future<void> _persistSet(String pluginId, String key, String value) async {
