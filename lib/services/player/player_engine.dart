@@ -53,6 +53,9 @@ class VolumeFader {
 }
 
 class PlayerEngine {
+  static const double _eqMinGainDb = -15.0;
+  static const double _eqMaxGainDb = 15.0;
+
   late final Player _playerA;
   late final Player _playerB;
   bool _aIsActive = true;
@@ -203,8 +206,9 @@ class PlayerEngine {
 
   void _checkCrossfadeTrigger(Duration pos) {
     if (_disposed || !_hasMedia || crossfadeDuration <= Duration.zero) return;
-    if (_crossfadeTriggered || _isTransitioning || _loopMode == LoopMode.one)
+    if (_crossfadeTriggered || _isTransitioning || _loopMode == LoopMode.one) {
       return;
+    }
     final dur = _durationSubject.value;
     if (dur <= Duration.zero) return;
     final remaining = dur - pos;
@@ -579,7 +583,9 @@ class PlayerEngine {
     if (_disposed) return false;
     if (_standbyPreloaded &&
         _preloadedNextUri == uri &&
-        _preloadedNextHeaders == httpHeaders) return true;
+        _preloadedNextHeaders == httpHeaders) {
+      return true;
+    }
 
     if (_isTransitioning) {
       _pendingPreloadUri = uri;
@@ -636,7 +642,7 @@ class PlayerEngine {
   Future<void> setEqualizerBandGain(int bandIndex, double gain,
       {bool immediate = false}) async {
     if (bandIndex < 0 || bandIndex >= _eqBands.length) return;
-    _eqBands[bandIndex].gain = gain.clamp(-12.0, 12.0);
+    _eqBands[bandIndex].gain = gain.clamp(_eqMinGainDb, _eqMaxGainDb);
     if (!_eqEnabled) return;
     if (immediate) {
       _eqApplyDebounceTimer?.cancel();
@@ -651,7 +657,7 @@ class PlayerEngine {
     final count =
         gains.length < _eqBands.length ? gains.length : _eqBands.length;
     for (var i = 0; i < count; i++) {
-      _eqBands[i].gain = gains[i].clamp(-12.0, 12.0);
+      _eqBands[i].gain = gains[i].clamp(_eqMinGainDb, _eqMaxGainDb);
     }
     if (!_eqEnabled) return;
     if (immediate) {
@@ -663,7 +669,9 @@ class PlayerEngine {
   }
 
   Future<void> resetEqualizer() async {
-    for (final band in _eqBands) band.gain = 0.0;
+    for (final band in _eqBands) {
+      band.gain = 0.0;
+    }
     _eqApplyDebounceTimer?.cancel();
     await _applyEqualizer();
   }
@@ -681,6 +689,8 @@ class PlayerEngine {
     if (_disposed) return;
     try {
       final filter = _eqEnabled ? _buildEqualizerFilter() : '';
+      log('Applying EQ filter: ${filter.isEmpty ? '<off>' : filter}',
+          name: 'PlayerEngine');
       final platformA = _playerA.platform;
       final platformB = _playerB.platform;
       if (platformA is NativePlayer) await platformA.setProperty('af', filter);
@@ -692,9 +702,20 @@ class PlayerEngine {
 
   String _buildEqualizerFilter() {
     final parts = <String>[];
-    for (final band in _eqBands) {
-      if (band.gain.abs() < 0.1) continue;
-      parts.add('equalizer=f=${band.centerFrequency}:t=o:w=1:g=${band.gain}');
+    for (var i = 0; i < _eqBands.length; i++) {
+      final band = _eqBands[i];
+      if (band.gain.abs() < 0.05) continue;
+
+      // Use broader octave widths at the edges so low/high bands are audibly effective.
+      final width = switch (i) {
+        0 || 1 => 1.8,
+        8 || 9 => 1.6,
+        _ => 1.25,
+      };
+
+      parts.add(
+        'equalizer=f=${band.centerFrequency}:t=o:w=$width:g=${band.gain.toStringAsFixed(2)}',
+      );
     }
     if (parts.isEmpty) return '';
     return 'lavfi=[${parts.join(',')}]';
@@ -712,7 +733,9 @@ class PlayerEngine {
     _eqApplyDebounceTimer?.cancel();
     _isTransitioning = false;
 
-    for (final sub in _subs) await sub.cancel();
+    for (final sub in _subs) {
+      await sub.cancel();
+    }
 
     await _activePlayerSubject.close();
     await Future.wait([_playerA.dispose(), _playerB.dispose()]);

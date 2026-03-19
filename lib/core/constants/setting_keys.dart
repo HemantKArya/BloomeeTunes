@@ -24,7 +24,7 @@ class SettingKeys {
   /// Whether the 10-band EQ is enabled. Stored as bool.
   static const String eqEnabled = "eqEnabled";
 
-  /// JSON-encoded list of 10 gain values (doubles, -12..+12 dB).
+  /// JSON-encoded list of 10 gain values (doubles, -15..+15 dB).
   static const String eqBandGains = "eqBandGains";
 
   /// Name of the currently selected EQ preset (e.g. "Flat", "Rock").

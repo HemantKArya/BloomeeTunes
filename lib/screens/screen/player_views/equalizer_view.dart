@@ -9,8 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui' as ui;
 
-// ─── Extended Pro-Audio EQ Presets ───────────────────────────────────────────
-
 const Map<String, List<double>> _kPresets = {
   'Flat': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   'Acoustic': [3, 2, 1, 0, 0, 0, 1, 2, 2, 3],
@@ -38,8 +36,6 @@ const Map<String, List<double>> _kPresets = {
   'Vocal Booster': [-2, -1, 0, 2, 4, 4, 3, 1, 0, -1],
 };
 
-// ─── Main View ──────────────────────────────────────────────────────────────
-
 class EqualizerView extends StatefulWidget {
   const EqualizerView({super.key});
 
@@ -63,9 +59,11 @@ class _EqualizerViewState extends State<EqualizerView>
 
   static const double _minGain = -15;
   static const double _maxGain = 15;
-
   static const double _graphHeight = 280.0;
+
   int? _draggingBandIndex;
+  bool _isGraphInteractive =
+      false; // Used to lock scroll view during EQ adjustment
 
   @override
   void initState() {
@@ -103,19 +101,16 @@ class _EqualizerViewState extends State<EqualizerView>
     super.dispose();
   }
 
-  // ─── Logic ──────────────────────────────────────────────────────────────
-
   void _onBandChanged(int index, double value) {
     setState(() {
       _currentGains[index] = value;
       _animStartGains[index] = value;
       _selectedPreset = _matchingPreset();
     });
-    // Deliberately NOT updating audio engine here to prevent audio tearing/stuttering while drawing.
+    // Engine update skipped during active drag to prevent audio stutter
   }
 
   void _onBandChangeEnd(int index) {
-    // Apply audio feedback ONLY when the user releases their finger.
     _engine.setEqualizerBandGain(index, _currentGains[index], immediate: true);
     _settingsCubit.setEqBandGains(List<double>.from(_currentGains));
     _settingsCubit.setEqPreset(_selectedPreset);
@@ -179,8 +174,6 @@ class _EqualizerViewState extends State<EqualizerView>
     return hz.toInt().toString();
   }
 
-  // ─── Gesture Handling ────────────────────────────────────────────────────
-
   void _handleGraphPanStart(
       DragDownDetails details, BoxConstraints constraints) {
     if (!_engine.equalizerEnabled) return;
@@ -212,13 +205,12 @@ class _EqualizerViewState extends State<EqualizerView>
 
     double fraction = 1.0 - ((localY - topPad) / availableHeight);
     fraction = fraction.clamp(0.0, 1.0);
-
     double newGain = _minGain + fraction * (_maxGain - _minGain);
 
-    // Magnetic snap to exactly 0 dB
     if (newGain.abs() < 0.6) {
-      if (_currentGains[_draggingBandIndex!] != 0.0)
+      if (_currentGains[_draggingBandIndex!] != 0.0) {
         HapticFeedback.selectionClick();
+      }
       newGain = 0.0;
     }
 
@@ -232,8 +224,6 @@ class _EqualizerViewState extends State<EqualizerView>
     }
   }
 
-  // ─── Build ──────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -246,25 +236,19 @@ class _EqualizerViewState extends State<EqualizerView>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded,
               color: Colors.white, size: 22),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          l10n.eqTitle,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
-        ),
+        title: Text(l10n.eqTitle,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w700)),
         actions: [
           IconButton(
-            tooltip: l10n.eqResetTooltip,
             icon: Icon(Icons.refresh_rounded,
                 color: Colors.white.withValues(alpha: 0.8), size: 22),
             onPressed: _resetEQ,
@@ -279,44 +263,17 @@ class _EqualizerViewState extends State<EqualizerView>
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
             child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics()),
+              physics: _isGraphInteractive
+                  ? const NeverScrollableScrollPhysics()
+                  : const BouncingScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(0, 16, 0, 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── Presets Section ──
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20, bottom: 12),
-                    child: Text(
-                      'PRESETS',
-                      style: TextStyle(
-                        color:
-                            Default_Theme.primaryColor2.withValues(alpha: 0.55),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
+                  _buildSectionHeader('PRESETS'),
                   _buildPresetTabs(accent),
-
                   const SizedBox(height: 32),
-
-                  // ── Main Equalizer Card ──
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20, bottom: 12),
-                    child: Text(
-                      'CUSTOM CURVE',
-                      style: TextStyle(
-                        color:
-                            Default_Theme.primaryColor2.withValues(alpha: 0.55),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
+                  _buildSectionHeader('CUSTOM CURVE'),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
@@ -326,25 +283,20 @@ class _EqualizerViewState extends State<EqualizerView>
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                             color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.05),
-                            width: 1),
+                                .withValues(alpha: 0.05)),
                       ),
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                l10n.eqTitle,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.95),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
+                              Text(l10n.eqTitle,
+                                  style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.95),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600)),
                               BloomeeSwitch(
                                 value: isEnabled,
                                 onChanged: () {
@@ -356,29 +308,33 @@ class _EqualizerViewState extends State<EqualizerView>
                             ],
                           ),
                           const SizedBox(height: 24),
-
-                          // ── The Spline Graph ──
                           AnimatedOpacity(
                             opacity: isEnabled ? 1.0 : 0.3,
                             duration: const Duration(milliseconds: 300),
                             child: SizedBox(
                               height: _graphHeight,
-                              width: double.infinity,
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onPanDown: (d) =>
-                                        _handleGraphPanStart(d, constraints),
-                                    onPanUpdate: (d) =>
-                                        _handleGraphPanUpdate(d, constraints),
-                                    onPanEnd: _handleGraphPanEnd,
-                                    onPanCancel: () => setState(
-                                        () => _draggingBandIndex = null),
-                                    child: AnimatedBuilder(
-                                      animation: _curveAnim,
-                                      builder: (context, _) {
-                                        return CustomPaint(
+                              child: Listener(
+                                onPointerDown: (_) => isEnabled
+                                    ? setState(() => _isGraphInteractive = true)
+                                    : null,
+                                onPointerUp: (_) =>
+                                    setState(() => _isGraphInteractive = false),
+                                onPointerCancel: (_) =>
+                                    setState(() => _isGraphInteractive = false),
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onPanDown: (d) =>
+                                          _handleGraphPanStart(d, constraints),
+                                      onPanUpdate: (d) =>
+                                          _handleGraphPanUpdate(d, constraints),
+                                      onPanEnd: _handleGraphPanEnd,
+                                      onPanCancel: () => setState(
+                                          () => _draggingBandIndex = null),
+                                      child: AnimatedBuilder(
+                                        animation: _curveAnim,
+                                        builder: (context, _) => CustomPaint(
                                           size: Size(constraints.maxWidth,
                                               constraints.maxHeight),
                                           painter: _InteractiveEQPainter(
@@ -394,11 +350,11 @@ class _EqualizerViewState extends State<EqualizerView>
                                                 .toList(),
                                             draggingIndex: _draggingBandIndex,
                                           ),
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),
@@ -415,7 +371,17 @@ class _EqualizerViewState extends State<EqualizerView>
     );
   }
 
-  // ─── Compact Preset Tabs ───────────────────────────────────────────────────
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, bottom: 12),
+      child: Text(title,
+          style: TextStyle(
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.55),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2)),
+    );
+  }
 
   Widget _buildPresetTabs(Color accent) {
     return SizedBox(
@@ -423,50 +389,41 @@ class _EqualizerViewState extends State<EqualizerView>
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(
-            horizontal: 20), // Starts aligned with titles
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: _kPresets.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final name = _kPresets.keys.elementAt(index);
           final isActive = name == _selectedPreset;
-
           return Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () => _applyPreset(name),
               borderRadius: BorderRadius.circular(18),
-              splashColor: accent.withValues(alpha: 0.1),
-              highlightColor: accent.withValues(alpha: 0.05),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isActive
                       ? accent.withValues(alpha: 0.15)
                       : Default_Theme.primaryColor1.withValues(alpha: 0.04),
-                  borderRadius:
-                      BorderRadius.circular(18), // Perfectly pill shaped
+                  borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: isActive
-                        ? accent.withValues(alpha: 0.5)
-                        : Default_Theme.primaryColor1.withValues(alpha: 0.05),
-                    width: 1.0, // Thinner, sharper border
-                  ),
+                      color: isActive
+                          ? accent.withValues(alpha: 0.5)
+                          : Default_Theme.primaryColor1
+                              .withValues(alpha: 0.05)),
                 ),
-                child: Text(
-                  name,
-                  style: TextStyle(
-                    color: isActive
-                        ? accent
-                        : Default_Theme.primaryColor1.withValues(alpha: 0.75),
-                    fontSize: 13,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    letterSpacing: -0.1,
-                  ),
-                ),
+                child: Text(name,
+                    style: TextStyle(
+                        color: isActive
+                            ? accent
+                            : Default_Theme.primaryColor1
+                                .withValues(alpha: 0.75),
+                        fontSize: 13,
+                        fontWeight:
+                            isActive ? FontWeight.w700 : FontWeight.w500)),
               ),
             ),
           );
@@ -475,8 +432,6 @@ class _EqualizerViewState extends State<EqualizerView>
     );
   }
 }
-
-// Interactive EQ Graph Painter
 
 class _InteractiveEQPainter extends CustomPainter {
   final List<double> startGains;
@@ -511,145 +466,87 @@ class _InteractiveEQPainter extends CustomPainter {
     final availableHeight = h - topPad - bottomPad;
     final zeroY = topPad + availableHeight / 2;
 
-    // ── 0 dB Center Line ──
-    final zeroPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
-      ..strokeWidth = 1.0;
-    canvas.drawLine(Offset(0, zeroY), Offset(w, zeroY), zeroPaint);
+    canvas.drawLine(Offset(0, zeroY), Offset(w, zeroY),
+        Paint()..color = Colors.white.withValues(alpha: 0.08));
 
-    // ── Calculate Points ──
     final points = <Offset>[];
     for (var i = 0; i < N; i++) {
       final x = w * i / (N > 1 ? N - 1 : 1);
       final currentGain =
           ui.lerpDouble(startGains[i], targetGains[i], animValue) ?? 0.0;
       final normalized = 1.0 - ((currentGain - minGain) / (maxGain - minGain));
-      final y = topPad + (normalized.clamp(0.0, 1.0) * availableHeight);
-      points.add(Offset(x, y));
+      points.add(
+          Offset(x, topPad + (normalized.clamp(0.0, 1.0) * availableHeight)));
     }
 
-    // ── Draw Stems ──
-    for (var i = 0; i < N; i++) {
-      canvas.drawLine(
-        Offset(points[i].dx, topPad - 15),
-        Offset(points[i].dx, h - bottomPad),
-        Paint()
-          ..color = Colors.white.withValues(alpha: 0.03)
-          ..strokeWidth = 1.5,
-      );
-
-      // Gradient drop from the node to the bottom
-      final bottomStemPaint = Paint()
-        ..strokeWidth = 2.0
-        ..shader = ui.Gradient.linear(
-          Offset(points[i].dx, points[i].dy),
-          Offset(points[i].dx, h - bottomPad),
-          [
-            accentColor.withValues(alpha: 0.4),
-            accentColor.withValues(alpha: 0.0)
-          ],
-        );
-
-      canvas.drawLine(Offset(points[i].dx, points[i].dy),
-          Offset(points[i].dx, h - bottomPad), bottomStemPaint);
-    }
-
-    // ── Spline Curve ──
-    final curvePath = Path();
-    curvePath.moveTo(points.first.dx, points.first.dy);
-
+    // Spline path construction
+    final curvePath = Path()..moveTo(points.first.dx, points.first.dy);
     for (var i = 0; i < points.length - 1; i++) {
       final p0 = i > 0 ? points[i - 1] : points[i];
       final p1 = points[i];
       final p2 = points[i + 1];
       final p3 = i + 2 < points.length ? points[i + 2] : points[i + 1];
-
-      final cp1x = p1.dx + (p2.dx - p0.dx) / 6;
-      final cp1y = p1.dy + (p2.dy - p0.dy) / 6;
-      final cp2x = p2.dx - (p3.dx - p1.dx) / 6;
-      final cp2y = p2.dy - (p3.dy - p1.dy) / 6;
-
-      curvePath.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
+      curvePath.cubicTo(
+          p1.dx + (p2.dx - p0.dx) / 6,
+          p1.dy + (p2.dy - p0.dy) / 6,
+          p2.dx - (p3.dx - p1.dx) / 6,
+          p2.dy - (p3.dy - p1.dy) / 6,
+          p2.dx,
+          p2.dy);
     }
 
-    // ── Clean Fill Below Curve ──
-    final fillPath = Path.from(curvePath);
-    fillPath.lineTo(w, h - bottomPad);
-    fillPath.lineTo(0, h - bottomPad);
-    fillPath.close();
-
-    final fillPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        const Offset(0, topPad),
-        Offset(0, h - bottomPad),
-        [
-          accentColor.withValues(alpha: 0.12),
-          accentColor.withValues(alpha: 0.0)
-        ],
-      );
-    canvas.drawPath(fillPath, fillPaint);
-
-    // ── Thick Neon Stroke ──
-    final strokePaint = Paint()
-      ..color = accentColor
-      ..strokeWidth = 3.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(curvePath, strokePaint);
-
-    // ── Hollow Nodes ──
-    for (var i = 0; i < N; i++) {
-      final isDragging = i == draggingIndex;
-
-      // Dark background cutout
-      canvas.drawCircle(
-        points[i],
-        isDragging ? 10.0 : 8.5,
-        Paint()..color = Default_Theme.themeColor,
-      );
-
-      // Bright thick rim
-      canvas.drawCircle(
-        points[i],
-        isDragging ? 8.0 : 6.5,
+    final fillPath = Path.from(curvePath)
+      ..lineTo(w, h - bottomPad)
+      ..lineTo(0, h - bottomPad)
+      ..close();
+    canvas.drawPath(
+        fillPath,
+        Paint()
+          ..shader = ui.Gradient.linear(
+              const Offset(0, topPad), Offset(0, h - bottomPad), [
+            accentColor.withValues(alpha: 0.12),
+            accentColor.withValues(alpha: 0.0)
+          ]));
+    canvas.drawPath(
+        curvePath,
         Paint()
           ..color = accentColor
+          ..strokeWidth = 3.5
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5,
-      );
+          ..strokeCap = StrokeCap.round);
 
-      // Solid inner core when dragging
+    for (var i = 0; i < N; i++) {
+      final isDragging = i == draggingIndex;
+      canvas.drawCircle(points[i], isDragging ? 10.0 : 8.5,
+          Paint()..color = Default_Theme.themeColor);
+      canvas.drawCircle(
+          points[i],
+          isDragging ? 8.0 : 6.5,
+          Paint()
+            ..color = accentColor
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5);
       if (isDragging) {
         canvas.drawCircle(points[i], 3.0, Paint()..color = accentColor);
       }
-    }
 
-    // ── Frequency Labels ──
-    for (var i = 0; i < N; i++) {
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: frequencies[i],
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
-            fontSize: 10.5,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-
-      textPainter.paint(
-        canvas,
-        Offset(points[i].dx - (textPainter.width / 2), h - bottomPad + 14),
-      );
+      final tp = TextPainter(
+          text: TextSpan(
+              text: frequencies[i],
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600)),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      tp.paint(
+          canvas, Offset(points[i].dx - (tp.width / 2), h - bottomPad + 14));
     }
   }
 
   @override
-  bool shouldRepaint(covariant _InteractiveEQPainter oldDelegate) {
-    return oldDelegate.animValue != animValue ||
-        oldDelegate.targetGains != targetGains ||
-        oldDelegate.draggingIndex != draggingIndex;
-  }
+  bool shouldRepaint(covariant _InteractiveEQPainter old) =>
+      old.animValue != animValue ||
+      old.targetGains != targetGains ||
+      old.draggingIndex != draggingIndex;
 }
