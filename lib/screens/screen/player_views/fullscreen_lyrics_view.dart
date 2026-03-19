@@ -257,22 +257,32 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
         final currentTrack = bloomeePlayerCubit.bloomeePlayer.currentTrackInfo;
         final artworkUrl =
             currentTrack.thumbnail.urlLow ?? currentTrack.thumbnail.url;
+
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 1000),
           child: Container(
             key: ValueKey(snapshot.data?.id),
-            decoration: BoxDecoration(
-              image: artworkUrl.isNotEmpty
-                  ? DecorationImage(
-                      image: getImageProviderSync(artworkUrl,
-                          fallbackUrl: currentTrack.thumbnail.url),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-              child: Container(color: Colors.black.withValues(alpha: 0.6)),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (artworkUrl.isNotEmpty)
+                  Transform.scale(
+                    scale: 1.2,
+                    child: ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: getImageProviderSync(artworkUrl,
+                                fallbackUrl: currentTrack.thumbnail.url),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                Container(color: Colors.black.withValues(alpha: 0.6)),
+              ],
             ),
           ),
         );
@@ -777,14 +787,15 @@ class _KaraokeLyricLine extends StatelessWidget {
   final ValueNotifier<Duration> positionNotifier;
   final bool isDesktop;
 
-  const _KaraokeLyricLine(
-      {required this.text,
-      required this.startTime,
-      required this.endTime,
-      required this.isActive,
-      required this.isPast,
-      required this.positionNotifier,
-      required this.isDesktop});
+  const _KaraokeLyricLine({
+    required this.text,
+    required this.startTime,
+    required this.endTime,
+    required this.isActive,
+    required this.isPast,
+    required this.positionNotifier,
+    required this.isDesktop,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -796,44 +807,58 @@ class _KaraokeLyricLine extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 300),
-            opacity: isActive ? 1.0 : (isPast ? 0.25 : 0.4),
-            child: isActive
-                ? ValueListenableBuilder<Duration>(
-                    valueListenable: positionNotifier,
-                    builder: (context, currentPosition, child) {
-                      final elapsed = currentPosition.inMilliseconds -
-                          startTime.inMilliseconds;
-                      final total =
-                          endTime.inMilliseconds - startTime.inMilliseconds;
-                      final double progress =
-                          total > 0 ? (elapsed / total).clamp(0.0, 1.0) : 1.0;
+      child: RepaintBoundary(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              opacity: isActive ? 1.0 : (isPast ? 0.25 : 0.4),
+              child: isActive
+                  ? ValueListenableBuilder<Duration>(
+                      valueListenable: positionNotifier,
+                      builder: (context, currentPosition, child) {
+                        final elapsed = currentPosition.inMilliseconds -
+                            startTime.inMilliseconds;
+                        final total =
+                            endTime.inMilliseconds - startTime.inMilliseconds;
+                        final double progress =
+                            total > 0 ? (elapsed / total).clamp(0.0, 1.0) : 1.0;
 
-                      return ShaderMask(
-                        shaderCallback: (Rect bounds) {
-                          return LinearGradient(
-                            colors: [
-                              Colors.white,
-                              Colors.white.withValues(alpha: 0.35)
-                            ],
-                            stops: [progress, progress],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ).createShader(bounds);
-                        },
-                        blendMode: BlendMode.srcIn,
-                        child: Text(text,
-                            textAlign: TextAlign.center, style: textStyle),
-                      );
-                    },
-                  )
-                : Text(text,
-                    textAlign: TextAlign.center,
-                    style: textStyle.copyWith(color: Colors.white)),
+                        return TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.linear,
+                          tween: Tween<double>(begin: progress, end: progress),
+                          builder: (context, animatedProgress, textChild) {
+                            return ShaderMask(
+                              shaderCallback: (Rect bounds) {
+                                return LinearGradient(
+                                  colors: [
+                                    Colors.white,
+                                    Colors.white.withValues(alpha: 0.35)
+                                  ],
+                                  stops: [
+                                    animatedProgress,
+                                    (animatedProgress + 0.05).clamp(0.0, 1.0)
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ).createShader(bounds);
+                              },
+                              blendMode: BlendMode.srcIn,
+                              child: textChild,
+                            );
+                          },
+                          child: child,
+                        );
+                      },
+                      child: Text(text,
+                          textAlign: TextAlign.center, style: textStyle),
+                    )
+                  : Text(text,
+                      textAlign: TextAlign.center,
+                      style: textStyle.copyWith(color: Colors.white)),
+            ),
           ),
         ),
       ),
