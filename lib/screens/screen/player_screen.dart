@@ -246,8 +246,7 @@ class _PlayerUI extends StatelessWidget {
                 child: PlayerCtrlWidgets(musicPlayer: musicPlayer),
               ),
 
-              // Bottom padding — parent Padding(bottom: 60) handles panel clearance,
-              // so only a small inset is needed here for visual breathing room.
+              // Bottom padding parent Padding(bottom: 60) handles panel clearance, so only a small inset is needed here for visual breathing room.
               const SizedBox(height: 16),
             ],
           ),
@@ -274,7 +273,6 @@ class CoverImageVolSlider extends StatelessWidget {
               currentTrack.thumbnail.urlHigh ?? currentTrack.thumbnail.url;
           final lowResUrl =
               currentTrack.thumbnail.urlLow ?? currentTrack.thumbnail.url;
-          
           // the source image resolution.
           return SizedBox.expand(
             child: Center(
@@ -520,8 +518,8 @@ class _PlayerControlsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: 
-        CrossAxisAlignment.start, // Ensures flush horizontal grid 
+      crossAxisAlignment:
+        CrossAxisAlignment.start, // Ensures flush horizontal grid
       children: [
         _buildControlColumn(
           top: IconButton(
