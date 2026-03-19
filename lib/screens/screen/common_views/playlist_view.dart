@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
-import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/core/events/global_event_bus.dart';
 import 'package:Bloomee/core/models/exported.dart';
@@ -120,41 +119,18 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
     return (clean == null || clean.isEmpty || clean == '[]') ? null : clean;
   }
 
-  Future<void> _handlePlayerFirstBack() async {
-    final overlayC = context.read<PlayerOverlayCubit>();
-    if (overlayC.state) {
-      if (!overlayC.collapseUpNextPanel()) {
-        overlayC.hidePlayer();
-      }
-      return;
-    }
-
-    if (!mounted) return;
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.pop();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
-        await _handlePlayerFirstBack();
-      },
-      child: Scaffold(
-        backgroundColor: Default_Theme.themeColor,
-        extendBodyBehindAppBar: true,
-        appBar: _buildAppBar(),
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            _buildOptimizedBackground(),
-            _buildScrollableContent(),
-          ],
-        ),
+    return Scaffold(
+      backgroundColor: Default_Theme.themeColor,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppBar(),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          _buildOptimizedBackground(),
+          _buildScrollableContent(),
+        ],
       ),
     );
   }
@@ -180,7 +156,7 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
               child: const Icon(Icons.arrow_back_rounded,
                   color: Default_Theme.primaryColor1, size: 20),
             ),
-            onPressed: _handlePlayerFirstBack,
+            onPressed: () => Navigator.pop(context),
           ),
         ),
       ),

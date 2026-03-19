@@ -22,43 +22,55 @@ class GlobalFooter extends StatelessWidget {
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
     return PlayerOverlayWrapper(
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) async {
-          if (didPop) return;
-          await _handleHardwareBackPress(context);
+      child: BackButtonListener(
+        onBackButtonPressed: () async {
+          final overlayC = context.read<PlayerOverlayCubit>();
+          if (!overlayC.state) return false;
+
+          if (!overlayC.collapseUpNextPanel()) {
+            overlayC.hidePlayer();
+          }
+          return true;
         },
-        child: Scaffold(
-          backgroundColor: Default_Theme.themeColor,
-          drawerScrimColor: Default_Theme.themeColor,
-          body: isMobile
-              ? _AnimatedPageView(navigationShell: navigationShell)
-              : Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4),
-                      child: VerticalNavBar(navigationShell: navigationShell),
-                    ),
-                    Expanded(
-                      child:
-                          _AnimatedPageView(navigationShell: navigationShell),
-                    ),
-                  ],
-                ),
-          bottomNavigationBar: SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min, // Essential for bottom navigation
-              children: [
-                const MiniPlayerWidget(),
-                if (isMobile)
-                  Container(
-                    color: Colors.transparent,
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                    child: HorizontalNavBar(navigationShell: navigationShell),
+        child: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) return;
+            await _handleHardwareBackPress(context);
+          },
+          child: Scaffold(
+            backgroundColor: Default_Theme.themeColor,
+            drawerScrimColor: Default_Theme.themeColor,
+            body: isMobile
+                ? _AnimatedPageView(navigationShell: navigationShell)
+                : Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: VerticalNavBar(navigationShell: navigationShell),
+                      ),
+                      Expanded(
+                        child:
+                            _AnimatedPageView(navigationShell: navigationShell),
+                      ),
+                    ],
                   ),
-              ],
+            bottomNavigationBar: SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize:
+                    MainAxisSize.min, // Essential for bottom navigation
+                children: [
+                  const MiniPlayerWidget(),
+                  if (isMobile)
+                    Container(
+                      color: Colors.transparent,
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 5, horizontal: 10),
+                      child: HorizontalNavBar(navigationShell: navigationShell),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
