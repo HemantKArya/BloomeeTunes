@@ -27,6 +27,7 @@ class LyricsCubit extends Cubit<LyricsState> {
   StreamSubscription? _mediaItemSubscription;
 
   static const double _kLyricsSearchMinConfidence = 0.56;
+  int _requestSerial = 0;
 
   LyricsCubit(
     BloomeePlayerCubit playerCubit, {
@@ -53,23 +54,29 @@ class LyricsCubit extends Cubit<LyricsState> {
   String _artistStr(Track track) =>
       track.artists.map((artist) => artist.name).join(', ');
 
+  bool _isStale(int requestId) => requestId != _requestSerial;
+
   Future<void> getLyrics(Track track) async {
+    if (state is LyricsLoading && state.track.id == track.id) return;
     if (state.track.id == track.id && state is LyricsLoaded) {
       return;
     }
 
+    final requestId = ++_requestSerial;
     emit(LyricsLoading(track));
 
-    // 1) Cache first.
     final cached = await _lyricsDao.getLyrics(track.id);
+    if (_isStale(requestId)) return;
+
     if (cached != null && cached.mediaID == track.id) {
       emit(LyricsLoaded(cached, track));
       log('Lyrics loaded for ID: ${track.id} [Offline]', name: 'LyricsCubit');
       return;
     }
 
-    // 2) Providers in priority order.
     final priority = await _loadPriority();
+    if (_isStale(requestId)) return;
+
     if (priority.isEmpty) {
       emit(LyricsNoPlugin(track));
       return;
@@ -78,12 +85,16 @@ class LyricsCubit extends Cubit<LyricsState> {
     final profile = _buildTrackProfile(track);
 
     for (final pluginId in priority) {
+      if (_isStale(requestId)) return;
+
       try {
         final direct = await _tryGetLyricsByMetadataVariants(
           pluginId: pluginId,
           profile: profile,
           track: track,
         );
+        if (_isStale(requestId)) return;
+
         if (direct != null) {
           emit(LyricsLoaded(direct, track));
           _autoSave(direct);
@@ -99,6 +110,8 @@ class LyricsCubit extends Cubit<LyricsState> {
           profile: profile,
           track: track,
         );
+        if (_isStale(requestId)) return;
+
         if (searched != null) {
           emit(LyricsLoaded(searched, track));
           _autoSave(searched);
@@ -113,6 +126,7 @@ class LyricsCubit extends Cubit<LyricsState> {
       }
     }
 
+    if (_isStale(requestId)) return;
     emit(LyricsError(track));
   }
 

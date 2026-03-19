@@ -36,7 +36,6 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
 
   final ValueNotifier<Duration> _positionNotifier =
       ValueNotifier(Duration.zero);
-  StreamSubscription<MediaItem?>? _mediaItemSubscription;
   String? _currentTrackId;
 
   @override
@@ -47,20 +46,6 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
 
     final playerCubit = context.read<BloomeePlayerCubit>();
     _currentTrackId = playerCubit.bloomeePlayer.currentTrackInfo.id;
-
-    _mediaItemSubscription =
-        playerCubit.bloomeePlayer.mediaItem.listen((mediaItem) {
-      if (mediaItem != null && mediaItem.id != _currentTrackId) {
-        if (mounted) {
-          setState(() {
-            _currentTrackId = mediaItem.id;
-            _lyricOffset = Duration.zero;
-            _isSyncMode = false;
-          });
-          _loadPersistedOffset();
-        }
-      }
-    });
 
     _loadPersistedOffset();
   }
@@ -82,7 +67,6 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
   void dispose() {
     _holdTimer?.cancel();
     _hideControlsTimer?.cancel();
-    _mediaItemSubscription?.cancel();
     _positionNotifier.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
@@ -191,12 +175,28 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
             ),
             BlocListener<LyricsCubit, LyricsState>(
               listener: (context, state) {
+                if (state is LyricsLoading || state is LyricsLoaded) {
+                  final newTrackId = state.track.id;
+
+                  if (_currentTrackId != newTrackId) {
+                    _currentTrackId = newTrackId;
+                    if (mounted) {
+                      setState(() {
+                        _lyricOffset = Duration.zero;
+                        _isSyncMode = false;
+                      });
+                    }
+                  }
+                }
+
                 if (state is LyricsLoaded &&
-                    state.track.id == _currentTrackId) {
+                    state.lyrics.mediaID == _currentTrackId) {
                   final offsetMs = state.lyrics.offset ?? 0;
-                  setState(() {
-                    _lyricOffset = Duration(milliseconds: offsetMs);
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _lyricOffset = Duration(milliseconds: offsetMs);
+                    });
+                  }
                 }
               },
               child: const SizedBox.shrink(),
