@@ -20,9 +20,15 @@
 </div>
 
 <div align="center">
-  <img src="./assets/docs/banner2BloomeScrnShot.png" alt="App Screenshots" width="100%">
-  <br>
-  <img src="./assets/docs/lyricsscrn.png" alt="Lyrics View" width="100%">
+  <p float="left">
+    <img src="./assets/docs/playlistview.png" width="48%" />
+    <img src="./assets/docs/artistview.png" width="48%" />
+  </p>
+  <p float="left">
+    <img src="./assets/docs/playerview.png" width="48%" />
+    <img src="./assets/docs/lyricsview1.png" width="48%" />
+<img src="./assets/docs/banner2BloomeScrnShot.png" width="90%"/>
+  </p>
 </div>
 
 ---
