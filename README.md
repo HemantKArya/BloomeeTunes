@@ -51,7 +51,7 @@
 - [x] 📊 **Last.fm Scrobbling:** Automatically log your listening history (includes offline caching).
 - [x] 🎮 **Discord Rich Presence:** Show off your current tunes on your Discord profile.
 - [x] 🌍 **Global Charts:** Daily updated charts from installed plugins.
--[x] 🖥️ **Cross-Platform:** Native media controls and shortcuts for Windows, Linux, and Android.
+- [x] 🖥️ **Cross-Platform:** Native media controls and shortcuts for Windows, Linux, and Android.
 - [x] 💾 **Backup & Restore:** Easily export/import your library and settings via JSON or M3U.
 - [x] 🤖 **AI-Based Recommendations:** Get smarter song suggestions (Last.fm/Plugin Based).
 - [x] 🆎 **Multi-Language Support:** Localized app interface for global users *(Implementing more languages..)*
