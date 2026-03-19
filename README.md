@@ -6,18 +6,16 @@
 
 **A unified local and plugin-first streaming music player built with Flutter & Rust.**
 
-[![Release](https://img.shields.io/github/v/release/HemantKArya/BloomeeTunes?style=for-the-badge&color=f01d7c)](https://github.com/HemantKArya/BloomeeTunes/releases/latest)
-[![GitHub Downloads](https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge&label=DOWNLOADS(GH))](https://github.com/HemantKArya/BloomeeTunes/releases)
-[![SourceForge](https://img.shields.io/sourceforge/dt/bloomee?style=for-the-badge&label=DOWNLOADS(SF))](https://sourceforge.net/projects/bloomee/files/latest/download)
-[![License](https://img.shields.io/github/license/HemantKArya/BloomeeTunes?style=for-the-badge&color=1881cc)](LICENSE)
+<p align="center"><img src=https://img.shields.io/sourceforge/dt/bloomee?style=for-the-badge&logoSize=auto&label=DOWNLOADS(SF)
+ /> <a href="https://github.com/HemantKArya/BloomeeTunes/releases/latest"><img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/HemantKArya/BloomeeTunes/total?style=for-the-badge&label=DOWNLOADS(GH)" >
+<img alt="GitHub Release" src="https://img.shields.io/github/v/release/HemantKArya/BloomeeTunes?display_name=release&style=for-the-badge&color=f01d7c" ></a>
+<img alt="GitHub License" src="https://img.shields.io/github/license/HemantKArya/BloomeeTunes?style=for-the-badge&color=1881cc" > <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/HemantKArya/BloomeeTunes/checkout.yml?style=for-the-badge" > <br><img src=https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white > <img src=https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white /> <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black"/>
+</p>
 
-[![Windows](https://img.shields.io/badge/Windows-Supported-0078D6?style=for-the-badge&logo=windows&logoColor=white)](#)
-[![Android](https://img.shields.io/badge/Android-Supported-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#)
-[![Linux](https://img.shields.io/badge/Linux-Supported-FCC624?style=for-the-badge&logo=linux&logoColor=black)](#)
 
 <a href="https://trendshift.io/repositories/11533" target="_blank"><img src="https://trendshift.io/api/badge/repositories/11533" alt="Bloomee on Trendshift" width="250" height="55"/></a>
 
-> **Bloomee** is an experimental, open-source music player designed to give you absolute freedom over your audio. Seamlessly mix your **local device music** with an infinite universe of streams powered by a secure, **Rust-backed plugin system**. No ads, no interruptions—just your tunes, your way. 🌼🎵
+ **Bloomee** is an experimental, open-source music player designed to give you absolute freedom over your audio. Seamlessly mix your **local device music** with an infinite universe of streams powered by a secure, **Rust-backed plugin system**. No ads, no interruptions—just your tunes, your way. 🌼🎵
 
 </div>
 
@@ -134,4 +132,4 @@ Have questions, feedback, or just want to say hi? Connect with me here:
 
 </div>
 
-<p align="center"><i>Made with ❤️ and a lot of ☕</i></p>
+<p align="center"><i>Made with ❤️</i></p>
