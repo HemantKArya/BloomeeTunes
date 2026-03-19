@@ -17,14 +17,13 @@ class GlobalFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Only watch states that dictate the UI layout/rebuilds here.
-    final isPlayerVisible = context.watch<PlayerOverlayCubit>().state;
-    final hasNestedRoute = GoRouter.of(context).canPop();
+    // Watch overlay state so footer rebuilds when player visibility changes.
+    context.watch<PlayerOverlayCubit>();
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
     return PlayerOverlayWrapper(
       child: PopScope(
-        canPop: !isPlayerVisible && hasNestedRoute,
+        canPop: false,
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) return;
           await _handleHardwareBackPress(context);
@@ -70,11 +69,17 @@ class GlobalFooter extends StatelessWidget {
   /// Handles complex back navigation deterministically
   Future<void> _handleHardwareBackPress(BuildContext context) async {
     final overlayC = context.read<PlayerOverlayCubit>();
+    final router = GoRouter.of(context);
 
     if (overlayC.state) {
       if (!overlayC.collapseUpNextPanel()) {
         overlayC.hidePlayer();
       }
+      return;
+    }
+
+    if (router.canPop()) {
+      router.pop();
       return;
     }
 

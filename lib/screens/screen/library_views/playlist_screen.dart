@@ -3,10 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
@@ -109,6 +109,22 @@ class _PlaylistViewState extends State<PlaylistView> {
         );
   }
 
+  Future<void> _handlePlayerFirstBack() async {
+    final overlayC = context.read<PlayerOverlayCubit>();
+    if (overlayC.state) {
+      if (!overlayC.collapseUpNextPanel()) {
+        overlayC.hidePlayer();
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+  }
+
   List<Color> _getOptimizedPalette(BuildContext context) {
     final pallete =
         context.read<CurrentPlaylistCubit>().getCurrentPlaylistPallete();
@@ -134,56 +150,63 @@ class _PlaylistViewState extends State<PlaylistView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: Default_Theme.themeColor,
-      extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(),
-      body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
-        builder: (context, state) {
-          final waitingForTarget = _targetPlaylistName != null &&
-              state.playlist.title != _targetPlaylistName;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        await _handlePlayerFirstBack();
+      },
+      child: Scaffold(
+        backgroundColor: Default_Theme.themeColor,
+        extendBodyBehindAppBar: true,
+        appBar: _buildAppBar(),
+        body: BlocBuilder<CurrentPlaylistCubit, CurrentPlaylistState>(
+          builder: (context, state) {
+            final waitingForTarget = _targetPlaylistName != null &&
+                state.playlist.title != _targetPlaylistName;
 
-          if (waitingForTarget ||
-              state.status == CurrentPlaylistLoadStatus.initial ||
-              state.status == CurrentPlaylistLoadStatus.loading) {
-            return const Center(
-                child: CircularProgressIndicator(
-                    color: Default_Theme.accentColor2));
-          }
+            if (waitingForTarget ||
+                state.status == CurrentPlaylistLoadStatus.initial ||
+                state.status == CurrentPlaylistLoadStatus.loading) {
+              return const Center(
+                  child: CircularProgressIndicator(
+                      color: Default_Theme.accentColor2));
+            }
 
-          if (state.status == CurrentPlaylistLoadStatus.error) {
-            return Center(
-                child: SignBoardWidget(
-                    message: state.errorMessage ?? 'Failed to load playlist',
-                    icon: MingCute.alert_line));
-          }
+            if (state.status == CurrentPlaylistLoadStatus.error) {
+              return Center(
+                  child: SignBoardWidget(
+                      message: state.errorMessage ?? 'Failed to load playlist',
+                      icon: MingCute.alert_line));
+            }
 
-          final colors = _getOptimizedPalette(context);
-          final fgColor = colors[0];
-          final bgColor = colors[1];
-          final tracks = state.playlist.tracks;
-          final imageUrl = tracks.isNotEmpty
-              ? (tracks.first.thumbnail.urlHigh ?? tracks.first.thumbnail.url)
-              : '';
+            final colors = _getOptimizedPalette(context);
+            final fgColor = colors[0];
+            final bgColor = colors[1];
+            final tracks = state.playlist.tracks;
+            final imageUrl = tracks.isNotEmpty
+                ? (tracks.first.thumbnail.urlHigh ?? tracks.first.thumbnail.url)
+                : '';
 
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final isMobile = constraints.maxWidth < 850;
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  _buildAmbientBackground(imageUrl, bgColor, isMobile),
-                  if (isMobile)
-                    _buildMobileLayout(
-                        state, fgColor, bgColor, imageUrl, l10n, constraints)
-                  else
-                    _buildDesktopLayout(
-                        state, fgColor, bgColor, imageUrl, l10n, constraints),
-                ],
-              );
-            },
-          );
-        },
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 850;
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _buildAmbientBackground(imageUrl, bgColor, isMobile),
+                    if (isMobile)
+                      _buildMobileLayout(
+                          state, fgColor, bgColor, imageUrl, l10n, constraints)
+                    else
+                      _buildDesktopLayout(
+                          state, fgColor, bgColor, imageUrl, l10n, constraints),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -208,7 +231,7 @@ class _PlaylistViewState extends State<PlaylistView> {
               child: const Icon(Icons.arrow_back_rounded,
                   color: Colors.white, size: 20),
             ),
-            onPressed: () => context.pop(),
+            onPressed: _handlePlayerFirstBack,
           ),
         ),
       ),

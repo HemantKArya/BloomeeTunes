@@ -21,6 +21,8 @@ class LibItemCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onSecondaryTap;
   final VoidCallback? onLongPress;
+  final VoidCallback? onMenuTap;
+  final bool showMenuButton;
   final bool isPinned;
   const LibItemCard({
     Key? key,
@@ -31,6 +33,8 @@ class LibItemCard extends StatelessWidget {
     this.onTap,
     this.onSecondaryTap,
     this.onLongPress,
+    this.onMenuTap,
+    this.showMenuButton = false,
     this.isPinned = false,
   }) : super(key: key);
 
@@ -139,7 +143,21 @@ class LibItemCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              )
+              ),
+              if (showMenuButton)
+                Padding(
+                  padding: const EdgeInsets.only(right: 2),
+                  child: IconButton(
+                    onPressed: onMenuTap,
+                    splashRadius: 20,
+                    icon: Icon(
+                      Icons.more_vert_rounded,
+                      size: 20,
+                      color:
+                          Default_Theme.primaryColor1.withValues(alpha: 0.72),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
