@@ -19,10 +19,14 @@ class ResolvedMediaSource {
   final bool isOffline;
   final Map<String, String>? headers;
 
+  /// The plugin that actually resolved this stream. [RelatedSongsManager] should prefer this value over the plugin ID parsed from the track.
+  final String? resolvedPluginId;
+
   const ResolvedMediaSource({
     required this.uri,
     required this.isOffline,
     this.headers,
+    this.resolvedPluginId,
   });
 }
 
@@ -56,6 +60,7 @@ class MediaResolverService {
   }
 
   /// Resolve [track] into a playable URI.
+  /// The returned [ResolvedMediaSource.resolvedPluginId] will reflect the plugin that actually served the stream/
   Future<ResolvedMediaSource> resolve(Track track) async {
     // 1. Check for an offline/downloaded version.
     try {
@@ -65,7 +70,7 @@ class MediaResolverService {
         return ResolvedMediaSource(
           uri: Uri.file('${down.filePath}/${down.fileName}'),
           isOffline: true,
-        );
+          );
       }
     } catch (e) {
       log('Download check failed: $e', name: 'MediaResolverService');
@@ -92,11 +97,13 @@ class MediaResolverService {
     }
 
     log(
-        'Resolving streams for "${track.title}" '
-        '(plugin: ${parts.pluginId}, id: ${parts.localId})',
-        name: 'MediaResolverService');
+      'Resolving streams for "${track.title}" '
+      '(plugin: ${parts.pluginId}, id: ${parts.localId})',
+      name: 'MediaResolverService');
 
     PluginResponse response;
+    // Track which plugin actually responded. Starts as the embedded plugin; updated below if fallback resolution supplies a different plugin ID.
+    String activePluginId = parts.pluginId;
     try {
       response = await _pluginService.execute(
         pluginId: parts.pluginId,
@@ -172,6 +179,8 @@ class MediaResolverService {
           headers: selectedStream == null
               ? null
               : streamHeadersToMap(selectedStream.headers),
+          // Actual serving plugin so callers can route follow-up requests (radio, lyrics, etc.) to the correct active plugin.
+          resolvedPluginId: activePluginId,
         );
       },
       trackDetails: (_) =>

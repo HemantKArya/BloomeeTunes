@@ -32,9 +32,12 @@ class RelatedSongsManager {
     required List<Track> queue,
     required int currentPlayingIdx,
     required LoopMode loopMode,
+    String? resolvedPluginId,
   }) async {
-    log("Checking for related songs: ${queue.isNotEmpty && (queue.length - currentPlayingIdx) < 2}",
-        name: "RelatedSongsManager");
+    log("Checking for related songs: "
+      "${queue.isNotEmpty && (queue.length - currentPlayingIdx) < 2}",
+      name: "RelatedSongsManager",
+    );
 
     final autoPlay =
         await SettingsDAO(DBProvider.db).getSettingBool(SettingKeys.autoPlay);
@@ -46,20 +49,21 @@ class RelatedSongsManager {
     if (!shouldQueueMore) {
       return;
     }
-
     final parts = tryParseMediaId(currentMedia.id);
     if (parts == null) {
       return;
     }
-
     if (parts.pluginId == kLocalPluginId) {
       clearRelatedSongs();
       return;
     }
 
+    // Prefer the caller-supplied resolved plugin ID over the one embedded
+    final effectivePluginId = resolvedPluginId ?? parts.pluginId;
+
     _syncReferenceState(
       trackId: currentMedia.id,
-      pluginId: parts.pluginId,
+      pluginId: effectivePluginId,
       localId: parts.localId,
     );
 
@@ -67,8 +71,12 @@ class RelatedSongsManager {
       await _fetchNextRadioPage();
     }
 
+    // Formatting 
     await loadRelatedSongs(
-        queue: queue, currentPlayingIdx: currentPlayingIdx, loopMode: loopMode);
+      queue: queue,
+      currentPlayingIdx: currentPlayingIdx,
+      loopMode: loopMode,
+    );
 
     if (relatedSongs.value.isEmpty) {
       await _fetchNextRadioPage();
@@ -109,7 +117,7 @@ class RelatedSongsManager {
     required String pluginId,
     required String localId,
   }) {
-    if (_referenceTrackId == trackId && _pluginId == pluginId) {
+   if (_referenceTrackId == trackId && _pluginId == pluginId) {
       return;
     }
 
@@ -152,7 +160,8 @@ class RelatedSongsManager {
           if (uniqueTracks.isNotEmpty) {
             relatedSongs.add([...relatedSongs.value, ...uniqueTracks]);
             log(
-              'Buffered ${uniqueTracks.length} related songs',
+              'Buffered ${uniqueTracks.length} related songs '
+              '(plugin: $_pluginId)',
               name: 'RelatedSongsManager',
             );
           }
