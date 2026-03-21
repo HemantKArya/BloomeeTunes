@@ -1,75 +1,101 @@
-name: "Build & Check"
-
+name: "CI / Build & Check"
 
 on:
   push:
+    branches:
+      - main
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
       - 'CHANGELOG.md'
       - 'CONTRIBUTING.md'
       - 'CODE_OF_CONDUCT.md'
-      - './fastlane/**'
-      - './github/FUNDING.yml'
-      - './ghpage/**'
+      - 'fastlane/**'
+      - '.github/FUNDING.yml'
+      - 'ghpage/**'
 
-    branches: main
-    
 jobs:
-    build:
-        name: Build & Check
-        runs-on: windows-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v3
+  # ==========================================
+  # JOB 1: FAST CHECK (Syntax & Errors only)
+  # ==========================================
+  check:
+    name: Code Analysis
+    runs-on: ubuntu-latest 
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            - name: Setup-Java
-              uses: actions/setup-java@v3.12.0
-              with:
-                distribution: 'oracle'
-                java-version: '17'
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.4'
+          channel: 'stable'
+          cache: true
 
-            - name: Setup Flutter
-              uses: subosito/flutter-action@v2
-              with:
-                flutter-version: '3.35.4'
-                channel: 'stable'
+      - name: Install Dependencies
+        run: flutter pub get
 
-            - name: Install Dependencies
-              run: flutter pub get
-            
-            - name: Extract version from pubspec.yaml
-              shell: powershell
-              run: |
-                  $vLine = Select-String -Path pubspec.yaml -Pattern '^version:\s*(\S+)' | Select-Object -First 1
-                  if (-not $vLine) { Write-Error 'version not found in pubspec.yaml'; exit 1 }
-                  $ver = $vLine.Matches[0].Groups[1].Value.Split('+')[0]
-                  echo "VERSION=$ver" >> $env:GITHUB_ENV
-            
-            - name: Build App files
-              run: flutter build apk --release --build-number ${{github.run_number}}
+      - name: Static Code Analysis
+        run: flutter analyze --no-fatal-infos
 
+  # ==========================================
+  # JOB 2: BUILD APP 
+  # ==========================================
+  build:
+    name: Build Android & Windows
+    needs: check 
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            - name: Rename APK file
-              shell: powershell
-              run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}.apk"
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+          cache: 'gradle' 
 
-            - name: Build Windows App
-              run: flutter build windows --release --build-number ${{github.run_number}}
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.4'
+          channel: 'stable'
+          cache: true 
 
-            - name: Rename file
-              run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
-           
-            - name: ZIP build
-              run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-            
-            - name: Upload Artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                name: Release
-                path: |
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}.apk
-                  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+      - name: Install Dependencies
+        run: flutter pub get
+        
+      - name: Extract version from pubspec.yaml
+        shell: powershell
+        run: |
+            $vLine = Select-String -Path pubspec.yaml -Pattern '^version:\s*(\S+)' | Select-Object -First 1
+            if (-not $vLine) { Write-Error 'version not found in pubspec.yaml'; exit 1 }
+            $ver = $vLine.Matches[0].Groups[1].Value.Split('+')[0]
+            echo "VERSION=$ver" >> $env:GITHUB_ENV
+        
+      - name: Build Android App
+        run: flutter build apk --release --build-number ${{github.run_number}}
 
+      - name: Rename APK file
+        shell: powershell
+        run: Rename-Item -Path "build/app/outputs/flutter-apk/app-release.apk" -NewName "bloomee_tunes_android_v$env:VERSION+${{github.run_number}}.apk"
 
-    
+      - name: Build Windows App
+        run: flutter build windows --release --build-number ${{github.run_number}}
+
+      - name: Rename file
+        shell: powershell
+        run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
+        
+      - name: ZIP build
+        shell: powershell
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+        
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI-Build-Artifacts
+          path: |
+            build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}.apk
+            build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip

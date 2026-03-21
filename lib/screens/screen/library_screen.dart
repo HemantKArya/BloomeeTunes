@@ -539,26 +539,23 @@ class _ListOfPlaylists extends StatelessWidget {
   }
 
   Widget _buildTile(BuildContext context, PlaylistItemProperties playlist) {
+    void openMenu() {
+      showPlaylistOptsExtSheet(
+        context,
+        playlist.playlistName,
+        playlistId: playlist.playlistId,
+        isPinned: playlist.isPinned,
+      );
+    }
+
     return LibItemCard(
       onTap: isReorderable ? null : () => _openLibraryItem(context, playlist),
-      onSecondaryTap: isReorderable
-          ? null
-          : () => showPlaylistOptsExtSheet(
-                context,
-                playlist.playlistName,
-                playlistId: playlist.playlistId,
-                isPinned: playlist.isPinned,
-              ),
+      onSecondaryTap: isReorderable ? null : openMenu,
       onLongPress: isReorderable
           ? null
-          : () => onEnterReorder != null
-              ? onEnterReorder!()
-              : showPlaylistOptsExtSheet(
-                  context,
-                  playlist.playlistName,
-                  playlistId: playlist.playlistId,
-                  isPinned: playlist.isPinned,
-                ),
+          : () => onEnterReorder != null ? onEnterReorder!() : openMenu,
+      onMenuTap: isReorderable ? null : openMenu,
+      showMenuButton: !isReorderable,
       title: playlist.playlistName,
       coverArt: playlist.coverImgUrl ?? '',
       subtitle: playlist.subTitle ?? '',

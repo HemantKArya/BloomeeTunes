@@ -113,7 +113,7 @@ class PluginService {
   /// Example:
   /// ```dart
   /// final response = await pluginService.execute(
-  ///   pluginId: 'com.example.ytmusic',
+  ///   pluginId: 'com.example.resolver',
   ///   request: PluginRequest.contentResolver(
   ///     ContentResolverCommand.search(query: 'hello', filter: ContentSearchFilter.all),
   ///   ),
@@ -189,20 +189,26 @@ class PluginService {
   Future<PluginInstallResult> installPlugin({
     required String packedFilePath,
     bool shouldLoad = true,
+    String? policyCountryCode,
   }) async {
     try {
       final packedManifest = await _readPackedManifest(packedFilePath);
-      if (packedManifest.countryAllowlist.isNotEmpty) {
-        final countryCode = await CountryInfoService.resolveAndCacheCountryCode(
+      var countryCode =
+          CountryInfoService.normalizeCountryCode(policyCountryCode);
+      if (countryCode.isEmpty) {
+        countryCode = await CountryInfoService.resolveCountryCodeForPolicyCheck(
           settingsDao: SettingsDAO(DBProvider.db),
         );
-        if (!packedManifest.countryAllowlist.contains(countryCode)) {
-          throw PluginCountryRestrictedException(
-            pluginId: packedManifest.pluginId,
-            countryCode: countryCode,
-            allowlist: packedManifest.countryAllowlist,
-          );
-        }
+      }
+
+      if (packedManifest.countryAllowlist.isNotEmpty &&
+          (countryCode.isEmpty ||
+              !packedManifest.countryAllowlist.contains(countryCode))) {
+        throw PluginCountryRestrictedException(
+          pluginId: packedManifest.pluginId,
+          countryCode: countryCode,
+          allowlist: packedManifest.countryAllowlist,
+        );
       }
 
       final tempDir = (await getTemporaryDirectory()).path;
@@ -213,8 +219,18 @@ class PluginService {
         pluginsDir: pluginsDir,
         tempDir: tempDir,
         shouldLoad: shouldLoad,
+        policyCountryCode: countryCode,
         manager: manager,
       );
+
+      if (result.status == PluginInstallStatus.failed &&
+          (result.error?.contains('country') ?? false)) {
+        throw PluginCountryRestrictedException(
+          pluginId: result.pluginId,
+          countryCode: countryCode,
+          allowlist: packedManifest.countryAllowlist,
+        );
+      }
 
       log('Installed plugin: ${result.pluginId} (status: ${result.status})',
           name: 'PluginService');

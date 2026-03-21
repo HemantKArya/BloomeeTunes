@@ -191,7 +191,7 @@ class _SettingsSection extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         // Solid, subtle surface color with NO border. Looks much cleaner.
-        color: Default_Theme.primaryColor1.withOpacity(0.02),
+        color: Default_Theme.primaryColor1.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(20),
       ),
       child: ClipRRect(
@@ -218,7 +218,7 @@ class _SettingsSection extends StatelessWidget {
           Divider(
             height: 1,
             color: Default_Theme.primaryColor1
-                .withOpacity(0.04), // Very faint line
+                .withValues(alpha: 0.04), // Very faint line
             indent: 66, // Aligns perfectly with the text start
             endIndent: 16,
           ),
@@ -252,8 +252,8 @@ class _SettingsTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       // Overriding the default harsh white/blue splash with a subtle, cohesive dark tint
-      splashColor: Default_Theme.primaryColor1.withOpacity(0.06),
-      highlightColor: Default_Theme.primaryColor1.withOpacity(0.04),
+      splashColor: Default_Theme.primaryColor1.withValues(alpha: 0.06),
+      highlightColor: Default_Theme.primaryColor1.withValues(alpha: 0.04),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -264,16 +264,18 @@ class _SettingsTile extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 color: isHighlightIcon
-                    ? iconColor.withOpacity(0.12)
-                    : Default_Theme.primaryColor1.withOpacity(
-                        0.06), // Muted background for non-highlight icons
+                    ? iconColor.withValues(alpha: 0.12)
+                    : Default_Theme.primaryColor1.withValues(
+                        alpha:
+                            0.06), // Muted background for non-highlight icons
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
                 size: 20,
-                color:
-                    isHighlightIcon ? iconColor : iconColor.withOpacity(0.85),
+                color: isHighlightIcon
+                    ? iconColor
+                    : iconColor.withValues(alpha: 0.85),
               ),
             ),
             const SizedBox(width: 14),
@@ -287,7 +289,7 @@ class _SettingsTile extends StatelessWidget {
                     title,
                     style: TextStyle(
                       // Using 0.92 opacity pure white prevents halation (harsh glow) on dark screens
-                      color: Colors.white.withOpacity(0.92),
+                      color: Colors.white.withValues(alpha: 0.92),
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.2,
@@ -299,8 +301,8 @@ class _SettingsTile extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Default_Theme.primaryColor2.withOpacity(
-                          0.65), // Softer, highly readable description
+                      color: Default_Theme.primaryColor2.withValues(
+                          alpha: 0.65), // Softer, highly readable description
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
                     ),
@@ -314,7 +316,7 @@ class _SettingsTile extends StatelessWidget {
             // Dimmed right chevron hint
             Icon(
               Icons.chevron_right_rounded,
-              color: Default_Theme.primaryColor2.withOpacity(0.3),
+              color: Default_Theme.primaryColor2.withValues(alpha: 0.3),
               size: 22,
             ),
           ],

@@ -62,20 +62,15 @@ pub struct Manifest {
     #[serde(default)]
     pub capabilities: Vec<String>,
     pub created_at: Option<String>,
-    /// Remote URL where this plugin was downloaded from.
-    /// Used for impersonation detection - if two plugins have the same ID
-    /// but different remote_url, it may indicate impersonation.
     pub remote_url: Option<String>,
-    /// Map of key name → requirement describing credentials the plugin needs.
     #[serde(default)]
     pub keys_required: HashMap<String, KeyRequirement>,
-    /// URL for the plugin's thumbnail/icon image.
     pub thumbnail_url: Option<String>,
-    /// Whether this plugin acts as the primary content resolver (for search routing).
     #[serde(default)]
     pub resolver: bool,
-    /// ISO 8601 timestamp of the last plugin update.
     pub last_updated: Option<String>,
+    #[serde(default)]
+    pub country_allowlist: Vec<String>,
 }
 
 fn parse_plugin_version(version: &str) -> Option<u64> {
@@ -185,6 +180,7 @@ impl Manifest {
             thumbnail_url: None,
             resolver: false,
             last_updated: None,
+            country_allowlist: Vec::new(),
         };
 
         // Validate the manifest

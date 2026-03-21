@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:country_codes/country_codes.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:http/http.dart' as http;
 
 class CountryInfoService {
-  static const String defaultCountryCode = 'US';
+  static const String defaultCountryCode = 'IN';
+  static bool _countryCodesInitialized = false;
 
   static final List<Uri> _countryLookupUris = [
     Uri.parse('https://ipwho.is/'),
@@ -31,6 +33,36 @@ class CountryInfoService {
       await settingsDao.getSettingStr(SettingKeys.countryCode),
     );
     return cached.isEmpty ? null : cached;
+  }
+
+  static Future<String?> resolveAndCacheCountryCodeFromDeviceLocale({
+    required SettingsDAO settingsDao,
+  }) async {
+    final code = await resolveCountryCodeFromDeviceLocale();
+    if (code == null) {
+      return null;
+    }
+
+    await settingsDao.putSettingStr(SettingKeys.countryCode, code);
+    return code;
+  }
+
+  static Future<String?> resolveCountryCodeFromDeviceLocale() async {
+    try {
+      if (!_countryCodesInitialized) {
+        await CountryCodes.init();
+        _countryCodesInitialized = true;
+      }
+
+      final locale = CountryCodes.getDeviceLocale();
+      final code = normalizeCountryCode(locale?.countryCode);
+      if (code.isEmpty) {
+        return null;
+      }
+      return code;
+    } catch (_) {
+      return null;
+    }
   }
 
   static Future<String> resolveAndCacheCountryCode({
@@ -67,6 +99,16 @@ class CountryInfoService {
       name: 'CountryInfoService',
     );
     return fallback;
+  }
+
+  // Policy resolver for plugin allowlist checks.
+  // Uses selected cached country only and never performs network lookup.
+  static Future<String> resolveCountryCodeForPolicyCheck({
+    required SettingsDAO settingsDao,
+    bool forceRefresh = false,
+  }) async {
+    final cached = await readCachedCountryCode(settingsDao);
+    return cached ?? '';
   }
 
   static Future<String?> _fetchCountryCode() async {

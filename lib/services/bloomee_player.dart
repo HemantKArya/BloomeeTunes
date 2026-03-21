@@ -362,10 +362,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       _broadcastPlaybackState(state, playing, engine.position, buffered, speed);
     });
 
-    // Hardware-verified playback success tracking
-    // Absolutely guarantees we only reset the circuit breaker if the track plays
     _positionSuccessSub = engine.positionStream.listen((pos) {
-      if (pos > Duration.zero &&
+      // MATHEMATICAL HEALTH CHECK:
+      // If the playback head organically surpasses 2 continuous seconds without error,
+      // the network route and decoding loop are completely healthy. We reset the circuit breaker.
+      if (pos > const Duration(seconds: 2) &&
           engine.state == EngineState.ready &&
           engine.playing) {
         final track = _queueManager.currentTrack;
@@ -381,7 +382,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log('Engine error: $error', name: 'BloomeeMusicPlayer');
       final track = _queueManager.currentTrack;
       if (track != null) {
-        _errorHandler.handleError(PlayerErrorType.playbackError, error, track);
+        final type = _errorHandler.categorizeError(error);
+        _errorHandler.handleError(type, error.toString(), track);
       }
     });
 
@@ -610,6 +612,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       } catch (e) {
         log('_updateCurrentTrack failed: $e', name: 'BloomeeMusicPlayer');
       }
+
+      // REGISTER NEW ATTEMPT SEQUENCE:
+      // Instructs the ErrorHandler state machine that a fresh isolated attempt is starting.
+      _errorHandler.registerAttempt(track.id);
+
       engine.setLoadingState();
       isResolving.add(true);
 
@@ -701,7 +708,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       if (!alive()) return;
       log('Timeout loading ${track.title}: $e', name: 'BloomeeMusicPlayer');
       _errorHandler.handleError(
-          PlayerErrorType.networkError, 'Network timeout', track, e);
+          PlayerErrorType.networkDropped, 'Network timeout', track, e);
       done();
     } catch (e, stackTrace) {
       isResolving.add(false);
@@ -872,6 +879,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> _retryCurrentTrack() async {
     final track = _queueManager.currentTrack;
     if (track == null) return;
+
     final pos = engine.position;
     log('Retrying: ${track.title} at $pos', name: 'BloomeeMusicPlayer');
     try {
@@ -879,8 +887,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       await _enqueuePlayTrack(track, doPlay: true, initialPosition: pos);
     } catch (e) {
       log('Retry failed: $e', name: 'BloomeeMusicPlayer');
-      _errorHandler.handleError(
-          PlayerErrorType.playbackError, 'Retry failed: $e', track, e);
+      final type = _errorHandler.categorizeError(e);
+      _errorHandler.handleError(type, 'Retry failed: $e', track, e);
     }
   }
 

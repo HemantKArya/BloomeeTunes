@@ -66,23 +66,12 @@ class Manifest {
   final List<String> hostSite;
   final List<String> capabilities;
   final String? createdAt;
-
-  /// Remote URL where this plugin was downloaded from.
-  /// Used for impersonation detection - if two plugins have the same ID
-  /// but different remote_url, it may indicate impersonation.
   final String? remoteUrl;
-
-  /// Map of key name → requirement describing credentials the plugin needs.
   final Map<String, KeyRequirement> keysRequired;
-
-  /// URL for the plugin's thumbnail/icon image.
   final String? thumbnailUrl;
-
-  /// Whether this plugin acts as the primary content resolver (for search routing).
   final bool resolver;
-
-  /// ISO 8601 timestamp of the last plugin update.
   final String? lastUpdated;
+  final List<String> countryAllowlist;
 
   const Manifest({
     required this.manifestVersion,
@@ -103,6 +92,7 @@ class Manifest {
     this.thumbnailUrl,
     required this.resolver,
     this.lastUpdated,
+    required this.countryAllowlist,
   });
 
   @override
@@ -124,7 +114,8 @@ class Manifest {
       keysRequired.hashCode ^
       thumbnailUrl.hashCode ^
       resolver.hashCode ^
-      lastUpdated.hashCode;
+      lastUpdated.hashCode ^
+      countryAllowlist.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -148,7 +139,8 @@ class Manifest {
           keysRequired == other.keysRequired &&
           thumbnailUrl == other.thumbnailUrl &&
           resolver == other.resolver &&
-          lastUpdated == other.lastUpdated;
+          lastUpdated == other.lastUpdated &&
+          countryAllowlist == other.countryAllowlist;
 }
 
 /// Plugin publisher information

@@ -289,6 +289,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  country_codes:
+    dependency: "direct main"
+    description:
+      name: country_codes
+      sha256: "80e441b8a4bec1e7a24d58955fe769e7c6199ffd025f4509d4172d8d0195dfc4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.0"
   cross_file:
     dependency: transitive
     description:

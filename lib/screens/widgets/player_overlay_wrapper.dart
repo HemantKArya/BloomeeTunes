@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// A persistent player overlay that stays mounted in the widget tree.
 /// This widget wraps the main content and overlays the full player on top
-/// with a slide-up animation when visible, similar to Spotify/YouTube Music.
+/// with a slide-up animation when visible, similar to modern media apps.
 class PlayerOverlayWrapper extends StatefulWidget {
   final Widget child;
 

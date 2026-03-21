@@ -2,13 +2,15 @@ import 'dart:developer';
 
 /// Converts the given JSON map to an M3U formatted text string.
 ///
-/// The JSON is expected to contain the following structure:
-/// - A `_meta` map with keys: generated_by, version, exportedAt, and note.
-/// - A `playlistName` key.
-/// - A `mediaItems` list, with each item being a map that includes:
-///     - title, artist, album, genre, artURL, duration, and streamingURL.
+/// Expected structure:
+/// - `_meta`: map with generated_by, version, exportedAt, note.
+/// - `playlistName`: string.
+/// - `mediaItems`: list of maps; each must have title, artist, album, genre,
+///   artURL, duration (num, seconds) and at least one of streamingURL /
+///   permaURL (used as the URL line — typically a stable track identifier).
 ///
-/// Throws a [FormatException] if required keys are missing or data is invalid.
+/// Items whose URL line is empty are silently skipped.
+/// Throws a [FormatException] only when top-level required keys are missing.
 String convertJsonToM3U(Map<String, dynamic> jsonData) {
   try {
     // Validate and extract metadata.
@@ -55,20 +57,23 @@ String convertJsonToM3U(Map<String, dynamic> jsonData) {
         final genre = item['genre']?.toString() ?? "Unknown Genre";
         final artURL = item['artURL']?.toString() ?? "";
 
-        String streamingURL = item['streamingURL']?.toString() ?? "";
-        // Use perma_url if source is youtube
-        if (item["source"] == "youtube") {
-          streamingURL = item['permaURL']?.toString() ?? "";
-        }
+        // Prefer the stable track identifier (permaURL) over a transient
+        // streaming URL.  Fall through to streamingURL when permaURL is absent.
+        final permaURL = item['permaURL']?.toString() ?? '';
+        final rawStreamingURL = item['streamingURL']?.toString() ?? '';
+        final urlLine = permaURL.isNotEmpty ? permaURL : rawStreamingURL;
 
         // Validate required fields.
         final duration = item['duration'];
         if (duration == null || duration is! num) {
-          throw FormatException(
-              "Missing or invalid 'duration' for track: $title");
+          log("Skipping '$title': missing or invalid 'duration'.",
+              name: 'm3u_processor');
+          continue;
         }
-        if (streamingURL.isEmpty) {
-          throw FormatException("Missing 'streamingURL' for track: $title");
+        if (urlLine.isEmpty) {
+          log("Skipping '$title': no URL or identifier available.",
+              name: 'm3u_processor');
+          continue;
         }
 
         buffer.writeln("#EXTINF:${duration.toString()}, $artist - $title");
@@ -78,8 +83,7 @@ String convertJsonToM3U(Map<String, dynamic> jsonData) {
         if (artURL.isNotEmpty) {
           buffer.writeln("#EXTALBUMARTURL: $artURL");
         }
-        // Append the streaming URL.
-        buffer.writeln(streamingURL);
+        buffer.writeln(urlLine);
       } else {
         throw FormatException(
             "Invalid media item format: expected a Map<String, dynamic> but found ${item.runtimeType}.");
@@ -95,9 +99,9 @@ String convertJsonToM3U(Map<String, dynamic> jsonData) {
 }
 
 /// Parses an M3U formatted string and converts it back to a Map<String, dynamic>
-/// matching the original JSON structure.
-///
-/// Throws a [FormatException] if the M3U format is invalid or missing required data.
+/// matching the original JSON structure.  `playlistName` in the returned map
+/// may be `null` when the file has no `#PLAYLIST:` tag (standard M3U files).
+/// The caller is responsible for prompting the user for a name in that case.
 Map<String, dynamic> parseM3UToJson(String m3uContent) {
   try {
     final lines = m3uContent.split('\n').map((e) => e.trim()).toList();
@@ -108,7 +112,7 @@ Map<String, dynamic> parseM3UToJson(String m3uContent) {
 
     final meta = <String, dynamic>{};
     final mediaItems = <Map<String, dynamic>>[];
-    String? playlistName;
+    String? playlistName; // null when the file has no #PLAYLIST: tag
 
     Map<String, dynamic> currentItem = {};
     num currentDuration = 0;
@@ -179,7 +183,8 @@ Map<String, dynamic> parseM3UToJson(String m3uContent) {
     }
 
     if (playlistName == null) {
-      throw const FormatException("Missing playlist name (#PLAYLIST:) in M3U.");
+      // Not an error — standard M3U files simply omit #PLAYLIST:.
+      // Callers should prompt for a name when this is null.
     }
 
     return {

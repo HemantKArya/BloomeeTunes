@@ -13,6 +13,7 @@ import 'package:Bloomee/services/plugin/plugin_load_state_service.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
 import 'package:Bloomee/services/plugin_bootstrap_service.dart';
 import 'package:Bloomee/src/rust/api/plugin/events.dart';
+import 'package:Bloomee/src/rust/api/plugin/plugin_info.dart';
 import 'package:Bloomee/src/rust/api/plugin/types.dart';
 
 /// Manages plugin lifecycle: load, unload, install, refresh.
@@ -29,6 +30,10 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
   final PluginLoadStateService _loadStateService;
 
   StreamSubscription<PluginManagerEvent>? _eventSubscription;
+  Set<String> _preferredAutoLoadIds = <String>{};
+  final Set<String> _autoLoadAttemptIds = <String>{};
+
+  static const Duration _autoLoadStartDelay = Duration(milliseconds: 180);
 
   PluginState _setPluginOperation(
     PluginState current,
@@ -58,7 +63,8 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
 
   Future<void> _persistAutoLoadSafe(Set<String> pluginIds) async {
     try {
-      await _loadStateService.writeAutoLoadPluginIds(pluginIds);
+      _preferredAutoLoadIds = {...pluginIds};
+      await _loadStateService.writeAutoLoadPluginIds(_preferredAutoLoadIds);
     } catch (e, stack) {
       log(
         'Failed to persist auto-load plugin IDs',
@@ -134,18 +140,27 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         pluginOperations: const {},
       ));
 
-      final preferredAutoLoadIds =
-          await _loadStateService.readAutoLoadPluginIds();
-      final missingAutoLoad = available
-          .where((p) => preferredAutoLoadIds.contains(p.manifest.id))
-          .where((p) => !loaded.contains(p.manifest.id))
-          .map((p) => (pluginId: p.manifest.id, pluginType: p.pluginType))
+      _preferredAutoLoadIds = await _loadStateService.readAutoLoadPluginIds();
+      final availableById = <String, PluginInfo>{
+        for (final plugin in available) plugin.manifest.id: plugin,
+      };
+
+      final missingAutoLoad = _preferredAutoLoadIds
+          .where((id) => !loaded.contains(id))
+          .map((id) {
+            final info = availableById[id];
+            if (info == null) return null;
+            return (pluginId: info.manifest.id, pluginType: info.pluginType);
+          })
+          .whereType<({String pluginId, PluginType pluginType})>()
           .toList(growable: false);
 
       if (missingAutoLoad.isNotEmpty) {
-        add(AutoLoadPlugins(plugins: missingAutoLoad));
-      } else {
-        await _persistAutoLoadSafe(loaded.toSet());
+        unawaited(Future<void>.delayed(_autoLoadStartDelay, () {
+          if (!isClosed) {
+            add(AutoLoadPlugins(plugins: missingAutoLoad));
+          }
+        }));
       }
 
       unawaited(PluginBootstrapService.autoSelectPluginDefaults(
@@ -278,6 +293,13 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
           'Plugin "${result.pluginId}" installed successfully.',
       };
 
+      if (event.shouldLoad &&
+          (result.status == PluginInstallStatus.installed ||
+              result.status == PluginInstallStatus.updated ||
+              result.status == PluginInstallStatus.alreadyInstalled)) {
+        await _persistAutoLoadSafe({..._preferredAutoLoadIds, result.pluginId});
+      }
+
       emit(state.copyWith(successMessage: message));
 
       // Refresh available plugins after install.
@@ -313,6 +335,8 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         pluginId: event.pluginId,
         pluginType: event.pluginType,
       );
+      await _persistAutoLoadSafe(
+          {..._preferredAutoLoadIds}..remove(event.pluginId));
       // deletePlugin() fires pluginListRefreshed (not pluginDeleted), so
       // we perform storage cleanup directly here instead of waiting for an
       // event that never arrives.
@@ -357,7 +381,6 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         isLoading: false,
         pluginOperations: const {},
       ));
-      await _persistAutoLoadSafe(loaded.toSet());
     } catch (e) {
       log('Failed to refresh plugins', error: e, name: 'PluginBloc');
     }
@@ -370,18 +393,23 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
     Emitter<PluginState> emit,
   ) async {
     for (final plugin in event.plugins) {
+      await Future<void>.delayed(Duration.zero);
+      _autoLoadAttemptIds.add(plugin.pluginId);
       try {
-        await _pluginService.loadPlugin(
-          pluginId: plugin.pluginId,
-          pluginType: plugin.pluginType,
-        );
+        await _pluginService
+            .loadPlugin(
+              pluginId: plugin.pluginId,
+              pluginType: plugin.pluginType,
+            )
+            .timeout(const Duration(seconds: 20));
+      } on TimeoutException {
+        log('Auto-load timed out for ${plugin.pluginId}', name: 'PluginBloc');
       } catch (e) {
         log('Auto-load failed for ${plugin.pluginId}: $e', name: 'PluginBloc');
+      } finally {
+        _autoLoadAttemptIds.remove(plugin.pluginId);
       }
     }
-
-    final loaded = _pluginService.getLoadedPlugins().toSet();
-    await _persistAutoLoadSafe(loaded);
   }
 
   // ── System Events (from Rust) ──────────────────────────────────────────────
@@ -407,9 +435,12 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
           loadedPluginIds: newLoaded,
           clearError: true,
         ));
-        unawaited(_persistAutoLoadSafe(newLoaded));
+        if (!_autoLoadAttemptIds.contains(pluginId)) {
+          unawaited(_persistAutoLoadSafe({..._preferredAutoLoadIds, pluginId}));
+        }
       },
       pluginLoadFailed: (pluginId, error) {
+        _autoLoadAttemptIds.remove(pluginId);
         emit(_clearPluginOperation(state, pluginId).copyWith(
           error: 'Failed to load $pluginId: $error',
         ));
@@ -432,7 +463,10 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
               deleting || state.pluginOperations.length > (deleting ? 0 : 1),
           clearError: true,
         ));
-        unawaited(_persistAutoLoadSafe(newLoaded));
+        if (!deleting) {
+          unawaited(_persistAutoLoadSafe(
+              {..._preferredAutoLoadIds}..remove(pluginId)));
+        }
       },
       pluginUnloadFailed: (pluginId, error) {
         emit(_clearPluginOperation(state, pluginId).copyWith(
@@ -459,7 +493,8 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
           loadedPluginIds: newLoaded,
           successMessage: 'Plugin "$pluginId" deleted successfully.',
         ));
-        unawaited(_persistAutoLoadSafe(newLoaded));
+        unawaited(
+            _persistAutoLoadSafe({..._preferredAutoLoadIds}..remove(pluginId)));
         // Refresh to update available list.
         add(const RefreshPlugins());
       },
@@ -500,7 +535,6 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
               : null,
           clearSuccessMessage: deletedIds.isEmpty,
         ));
-        unawaited(_persistAutoLoadSafe(loaded.toSet()));
       },
       storageSet: (_, __, ___) {},
       storageDeleted: (_, __) {},

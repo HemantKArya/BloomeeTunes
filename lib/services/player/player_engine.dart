@@ -26,37 +26,36 @@ class EqualizerBand {
 }
 
 class VolumeFader {
-  Timer? _timer;
+  bool _cancelled = false;
 
-  void fade(Player player, double startVol, double endVol, Duration duration) {
-    _timer?.cancel();
+  Future<void> fade(
+      Player player, double startVol, double endVol, Duration duration) async {
+    cancel();
+    _cancelled = false;
     if (duration <= Duration.zero) {
-      player.setVolume(endVol.clamp(0.0, 100.0)).ignore();
+      await player.setVolume(endVol.clamp(0.0, 100.0));
       return;
     }
-    final sw = Stopwatch()..start();
-    final totalMs = duration.inMilliseconds;
-    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      final elapsed = sw.elapsedMilliseconds;
-      if (elapsed >= totalMs) {
-        player.setVolume(endVol.clamp(0.0, 100.0)).ignore();
-        timer.cancel();
-        return;
-      }
-      final vol = startVol + ((endVol - startVol) * (elapsed / totalMs));
-      player.setVolume(vol.clamp(0.0, 100.0)).ignore();
-    });
+    final steps = 20;
+    final stepDuration =
+        Duration(milliseconds: duration.inMilliseconds ~/ steps);
+    for (int i = 1; i <= steps; i++) {
+      if (_cancelled) break;
+      final vol = startVol + ((endVol - startVol) * (i / steps));
+      await player.setVolume(vol.clamp(0.0, 100.0));
+      if (_cancelled) break;
+      await Future.delayed(stepDuration);
+    }
   }
 
-  void cancel() {
-    _timer?.cancel();
-    _timer = null;
-  }
-
+  void cancel() => _cancelled = true;
   void dispose() => cancel();
 }
 
 class PlayerEngine {
+  static const double _eqMinGainDb = -15.0;
+  static const double _eqMaxGainDb = 15.0;
+
   late final Player _playerA;
   late final Player _playerB;
   bool _aIsActive = true;
@@ -77,12 +76,6 @@ class PlayerEngine {
   int _generation = 0;
   bool _isTransitioning = false;
   bool _crossfadeTriggered = false;
-
-  // Prevents spurious EngineState.idle emissions during track transitions.
-  // When true, _deriveState() will not emit idle even if _hasMedia is false.
-  // Set by setLoadingState() at the start of every track load.
-  // Cleared when _hasMedia becomes true (media successfully opened) or when
-  // stop() is called without keepLoadingState (genuine user-initiated stop).
   bool _suppressIdleUntilMediaLoads = false;
 
   Uri? _pendingPreloadUri;
@@ -93,7 +86,6 @@ class PlayerEngine {
 
   LoopMode _loopMode = LoopMode.off;
   double _userVolume = 1.0;
-
   double _playerAVolume = 100.0;
   double _playerBVolume = 100.0;
   bool _hasMedia = false;
@@ -136,12 +128,29 @@ class PlayerEngine {
   PlayerEngine() {
     _playerA = Player(
         configuration: const PlayerConfiguration(
-            title: 'BloomeeTunes', bufferSize: 8 * 1024 * 1024));
+            title: 'BloomeeTunes', bufferSize: 16 * 1024 * 1024));
     _playerB = Player(
         configuration: const PlayerConfiguration(
-            title: 'BloomeeTunes', bufferSize: 8 * 1024 * 1024));
+            title: 'BloomeeTunes', bufferSize: 16 * 1024 * 1024));
+
+    _configureNativePlayer(_playerA);
+    _configureNativePlayer(_playerB);
+
     _activePlayerSubject = BehaviorSubject.seeded(_playerA);
     _subs = _buildSubscriptions();
+  }
+
+  void _configureNativePlayer(Player player) {
+    if (player.platform is NativePlayer) {
+      final native = player.platform as NativePlayer;
+      // Tell FFmpeg demuxer natively to automatically negotiate HTTP connection drops instead of halting.
+      native.setProperty('stream-lavf-o',
+          'reconnect=1,reconnect_streamed=1,reconnect_delay_max=5');
+      native.setProperty('cache', 'yes');
+      native.setProperty(
+          'demuxer-max-bytes', '134217728'); // 128 MB cache buffer
+      native.setProperty('network-timeout', '15'); // Underlying socket timeout
+    }
   }
 
   List<StreamSubscription> _buildSubscriptions() {
@@ -168,7 +177,19 @@ class PlayerEngine {
           .switchMap((p) => p.stream.completed)
           .listen((completed) {
         if (completed && _hasMedia && !_disposed && !_crossfadeTriggered) {
-          _handleCompletion();
+          final pos = _positionSubject.value;
+          final dur = _durationSubject.value;
+          // MATHEMATICAL ABNORMAL EOF DETECTION:
+          // If the player 'completed' but we are more than 2 seconds away from the known duration,
+          // the CDN severed the socket. Route to the error machine, do NOT advance to the next track.
+          if (dur > Duration.zero && (dur - pos) > const Duration(seconds: 2)) {
+            log('Abnormal EOF detected (pos: $pos, dur: $dur). Routing to error handler.',
+                name: 'PlayerEngine');
+            _triggerEngineFailure(
+                'Abnormal EOF: Connection dropped prematurely');
+          } else {
+            _handleCompletion();
+          }
         }
       }),
       _activePlayerSubject.switchMap((p) => p.stream.volume).listen((v) {
@@ -222,37 +243,13 @@ class PlayerEngine {
     _completionController.add(null);
   }
 
-  // ─── State machine ─────────────────────────────────────────────────────────
-  //
-  // The idle state is what audio_service maps to AudioProcessingState.idle,
-  // which signals Android to call stopForeground(). On Android 12+, once the
-  // foreground service is stopped, it cannot be restarted from the background
-  // (ForegroundServiceStartNotAllowedException). libmpv's native C threads are
-  // unaware of the Android service lifecycle and keep outputting audio,
-  // creating a zombie audio instance with no notification.
-  //
-  // During a track transition, _doPlay() in BloomeeMusicPlayer calls:
-  //   setLoadingState()           → sets _suppressIdleUntilMediaLoads = true
-  //   engine.stop(keepLoading)    → sets _hasMedia = false, does NOT clear suppression
-  //   [player streams fire]       → _deriveState() called, suppression blocks idle
-  //   engine.openDirect(...)      → sets _hasMedia = true, clearance in _deriveState()
-  //
-  // On genuine user stop or swipe-from-recents:
-  //   stop() with keepLoadingState = false → clears suppression, idle propagates correctly
-  //
   void _deriveState() {
     if (_disposed) return;
-
     if (!_hasMedia) {
-      if (!_suppressIdleUntilMediaLoads) {
-        _stateSubject.add(EngineState.idle);
-      }
+      if (!_suppressIdleUntilMediaLoads) _stateSubject.add(EngineState.idle);
       return;
     }
-
-    // Media is loaded — suppression no longer needed.
     _suppressIdleUntilMediaLoads = false;
-
     final player = _active;
     if (player.state.buffering) {
       _stateSubject.add(EngineState.buffering);
@@ -266,8 +263,6 @@ class PlayerEngine {
       _stateSubject.add(EngineState.loading);
     }
   }
-
-  // ─── Getters ───────────────────────────────────────────────────────────────
 
   EngineState get state => _stateSubject.value;
   bool get playing => _playingSubject.value;
@@ -287,22 +282,14 @@ class PlayerEngine {
   Stream<void> get completionStream => _completionController.stream;
   Stream<String> get errorStream => _errorController.stream;
 
-  // Called at the start of every track load. Activates idle suppression so
-  // the stream events fired by the subsequent stop() call do not propagate
-  // idle to audio_service.
   void setLoadingState() {
     if (_disposed) return;
     _suppressIdleUntilMediaLoads = true;
     _stateSubject.add(EngineState.loading);
   }
 
-  // ─── Transition primitives ─────────────────────────────────────────────────
-
-  Future<EngineResult> openDirect(
-    Uri uri, {
-    Map<String, String>? httpHeaders,
-    bool autoPlay = true,
-  }) async {
+  Future<EngineResult> openDirect(Uri uri,
+      {Map<String, String>? httpHeaders, bool autoPlay = true}) async {
     if (_disposed) return EngineFailure('Engine disposed');
     final gen = ++_generation;
 
@@ -319,10 +306,8 @@ class PlayerEngine {
 
     try {
       await _active.setVolume(_userVolume * 100.0);
-      await _active.open(
-        Media(uri.toString(), httpHeaders: httpHeaders),
-        play: autoPlay,
-      );
+      await _active.open(Media(uri.toString(), httpHeaders: httpHeaders),
+          play: autoPlay);
       if (_disposed || _generation != gen) return EngineCanceled();
 
       _hasMedia = true;
@@ -338,6 +323,13 @@ class PlayerEngine {
 
   Future<EngineResult> activatePreloaded({bool autoPlay = true}) async {
     if (_disposed || !_standbyPreloaded || _preloadedNextUri == null) {
+      if (_pendingPreloadUri != null) {
+        final uri = _pendingPreloadUri!;
+        final headers = _pendingPreloadHeaders;
+        _pendingPreloadUri = null;
+        _pendingPreloadHeaders = null;
+        return openDirect(uri, httpHeaders: headers, autoPlay: autoPlay);
+      }
       return EngineFailure('Not preloaded');
     }
 
@@ -352,6 +344,8 @@ class PlayerEngine {
     setLoadingState();
     final oldPlayer = _active;
     final newPlayer = _standby;
+    final nextUri = _preloadedNextUri!;
+    final nextHeaders = _preloadedNextHeaders;
 
     try {
       oldPlayer.stop().catchError((_) {});
@@ -360,7 +354,18 @@ class PlayerEngine {
       await newPlayer.setVolume(_userVolume * 100.0);
       if (_generation != gen || _disposed) return EngineCanceled();
 
-      if (autoPlay) await newPlayer.play();
+      if (autoPlay) {
+        try {
+          await newPlayer.play();
+        } catch (e) {
+          log('Socket dropped while idle on standby. Executing fallback re-open.',
+              name: 'PlayerEngine');
+          await newPlayer.open(
+              Media(nextUri.toString(), httpHeaders: nextHeaders),
+              play: true);
+        }
+      }
+
       if (_generation != gen || _disposed) return EngineCanceled();
 
       _standbyPreloaded = false;
@@ -408,10 +413,20 @@ class PlayerEngine {
     final oldPlayer = _active;
     final newPlayer = _standby;
     final oldStartVol = _aIsActive ? _playerAVolume : _playerBVolume;
+    final nextUri = _preloadedNextUri!;
+    final nextHeaders = _preloadedNextHeaders;
 
     try {
       await newPlayer.setVolume(0.0);
-      await newPlayer.play();
+      try {
+        await newPlayer.play();
+      } catch (e) {
+        log('Socket dropped while idle on standby. Executing fallback re-open.',
+            name: 'PlayerEngine');
+        await newPlayer.open(
+            Media(nextUri.toString(), httpHeaders: nextHeaders),
+            play: true);
+      }
 
       if (_generation != gen || _disposed) {
         newPlayer.stop().catchError((_) {});
@@ -485,7 +500,6 @@ class PlayerEngine {
 
   Future<void> stop({bool keepLoadingState = false}) async {
     if (_disposed) return;
-
     ++_generation;
 
     _oldPlayerFader.cancel();
@@ -502,13 +516,7 @@ class PlayerEngine {
     _pendingPreloadUri = null;
     _pendingPreloadHeaders = null;
 
-    // keepLoadingState = true means a track transition is in progress —
-    // setLoadingState() already activated suppression before this call.
-    // keepLoadingState = false means a genuine stop — clear suppression so
-    // idle state propagates to audio_service and the Android service stops.
-    if (!keepLoadingState) {
-      _suppressIdleUntilMediaLoads = false;
-    }
+    if (!keepLoadingState) _suppressIdleUntilMediaLoads = false;
 
     _positionSubject.add(Duration.zero);
     _durationSubject.add(Duration.zero);
@@ -523,9 +531,7 @@ class PlayerEngine {
       log('Stop error: $e', name: 'PlayerEngine');
     }
 
-    if (!keepLoadingState) {
-      _stateSubject.add(EngineState.idle);
-    }
+    if (!keepLoadingState) _stateSubject.add(EngineState.idle);
   }
 
   Future<void> play() async {
@@ -573,8 +579,6 @@ class PlayerEngine {
         [_playerA.setPlaylistMode(mpvMode), _playerB.setPlaylistMode(mpvMode)]);
   }
 
-  // ─── Gapless preloading ────────────────────────────────────────────────────
-
   Future<bool> preloadNext(Uri uri, {Map<String, String>? httpHeaders}) async {
     if (_disposed) return false;
     if (_standbyPreloaded &&
@@ -593,10 +597,8 @@ class PlayerEngine {
 
     try {
       await _standby.setVolume(0);
-      await _standby.open(
-        Media(uri.toString(), httpHeaders: httpHeaders),
-        play: false,
-      );
+      await _standby.open(Media(uri.toString(), httpHeaders: httpHeaders),
+          play: false);
       _preloadedNextUri = uri;
       _preloadedNextHeaders = httpHeaders;
       _standbyPreloaded = true;
@@ -628,8 +630,6 @@ class PlayerEngine {
 
   bool get isPreloaded => _standbyPreloaded || _pendingPreloadUri != null;
 
-  // ─── Equalizer ─────────────────────────────────────────────────────────────
-
   List<EqualizerBand> get equalizerBands => List.unmodifiable(_eqBands);
   bool get equalizerEnabled => _eqEnabled;
 
@@ -642,7 +642,7 @@ class PlayerEngine {
   Future<void> setEqualizerBandGain(int bandIndex, double gain,
       {bool immediate = false}) async {
     if (bandIndex < 0 || bandIndex >= _eqBands.length) return;
-    _eqBands[bandIndex].gain = gain.clamp(-12.0, 12.0);
+    _eqBands[bandIndex].gain = gain.clamp(_eqMinGainDb, _eqMaxGainDb);
     if (!_eqEnabled) return;
     if (immediate) {
       _eqApplyDebounceTimer?.cancel();
@@ -657,7 +657,7 @@ class PlayerEngine {
     final count =
         gains.length < _eqBands.length ? gains.length : _eqBands.length;
     for (var i = 0; i < count; i++) {
-      _eqBands[i].gain = gains[i].clamp(-12.0, 12.0);
+      _eqBands[i].gain = gains[i].clamp(_eqMinGainDb, _eqMaxGainDb);
     }
     if (!_eqEnabled) return;
     if (immediate) {
@@ -689,6 +689,8 @@ class PlayerEngine {
     if (_disposed) return;
     try {
       final filter = _eqEnabled ? _buildEqualizerFilter() : '';
+      log('Applying EQ filter: ${filter.isEmpty ? '<off>' : filter}',
+          name: 'PlayerEngine');
       final platformA = _playerA.platform;
       final platformB = _playerB.platform;
       if (platformA is NativePlayer) await platformA.setProperty('af', filter);
@@ -700,20 +702,28 @@ class PlayerEngine {
 
   String _buildEqualizerFilter() {
     final parts = <String>[];
-    for (final band in _eqBands) {
-      if (band.gain.abs() < 0.1) continue;
-      parts.add('equalizer=f=${band.centerFrequency}:t=o:w=1:g=${band.gain}');
+    for (var i = 0; i < _eqBands.length; i++) {
+      final band = _eqBands[i];
+      if (band.gain.abs() < 0.05) continue;
+
+      // Use broader octave widths at the edges so low/high bands are audibly effective.
+      final width = switch (i) {
+        0 || 1 => 1.8,
+        8 || 9 => 1.6,
+        _ => 1.25,
+      };
+
+      parts.add(
+        'equalizer=f=${band.centerFrequency}:t=o:w=$width:g=${band.gain.toStringAsFixed(2)}',
+      );
     }
     if (parts.isEmpty) return '';
     return 'lavfi=[${parts.join(',')}]';
   }
 
-  // ─── Lifecycle ─────────────────────────────────────────────────────────────
-
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
-
     ++_generation;
 
     _oldPlayerFader.dispose();
@@ -721,12 +731,12 @@ class PlayerEngine {
     _fadeCleanupTimer?.cancel();
     _fadeOutCleanupTimer?.cancel();
     _eqApplyDebounceTimer?.cancel();
-
     _isTransitioning = false;
 
     for (final sub in _subs) {
       await sub.cancel();
     }
+
     await _activePlayerSubject.close();
     await Future.wait([_playerA.dispose(), _playerB.dispose()]);
     await _stateSubject.close();

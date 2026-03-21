@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:ui';
+import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
@@ -64,6 +65,7 @@ class LyricsSearchDelegate extends SearchDelegate {
 
   final PluginService _pluginService = ServiceLocator.pluginService;
   final SettingsDAO _settingsDao = SettingsDAO(DBProvider.db);
+  int _searchEpoch = 0;
 
   LyricsSearchDelegate({
     required this.mediaID,
@@ -120,6 +122,16 @@ class LyricsSearchDelegate extends SearchDelegate {
         log('Lyrics search failed for $pluginId: $e', name: 'LyricsSearch');
       }
     }
+    return results;
+  }
+
+  Future<List<({String pluginId, plugin_models.LyricsMatch match})>>
+      _debouncedSearch(String currentQuery) async {
+    final epoch = ++_searchEpoch;
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (epoch != _searchEpoch) return [];
+    final results = await _searchPlugins(currentQuery);
+    if (epoch != _searchEpoch) return [];
     return results;
   }
 
@@ -196,12 +208,21 @@ class LyricsSearchDelegate extends SearchDelegate {
 
     return FutureBuilder<
         List<({String pluginId, plugin_models.LyricsMatch match})>>(
-      future: _searchPlugins(query),
+      future: _debouncedSearch(query),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(
                 color: Default_Theme.accentColor2, strokeWidth: 3),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: SignBoardWidget(
+              message: l10n.lyricsSearchNoResults(query.trim()),
+              icon: MingCute.ghost_line,
+            ),
           );
         }
 
@@ -263,6 +284,12 @@ class _LyricsResultCard extends StatefulWidget {
 class _LyricsResultCardState extends State<_LyricsResultCard> {
   bool _isApplying = false;
 
+  String _targetMediaId() {
+    final current =
+        context.read<BloomeePlayerCubit>().bloomeePlayer.currentTrackInfo.id;
+    return current.isNotEmpty ? current : widget.mediaID;
+  }
+
   Future<void> _applyDirectly() async {
     final l10n = AppLocalizations.of(context)!;
     if (_isApplying) return;
@@ -277,18 +304,17 @@ class _LyricsResultCardState extends State<_LyricsResultCard> {
       );
 
       if (response is PluginResponse_LyricsById && mounted) {
+        final targetMediaId = _targetMediaId();
         final fetchedLyrics = pluginLyricsToLyrics(
           response.field0,
           artist: widget.match.artist,
           title: widget.match.title,
           album: widget.match.album,
           durationMs: widget.match.durationMs,
-          mediaID: widget.mediaID,
+          mediaID: targetMediaId,
         );
 
-        context
-            .read<LyricsCubit>()
-            .setLyricsToDB(fetchedLyrics, widget.mediaID);
+        context.read<LyricsCubit>().setLyricsToDB(fetchedLyrics, targetMediaId);
         SnackbarService.showMessage(l10n.lyricsSearchApplied);
         widget.searchDelegate.close(context, null);
       }
@@ -512,6 +538,15 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
   Lyrics? _fetchedLyrics;
   bool _isLoading = true;
 
+  String _targetMediaId() {
+    final current = widget.parentContext
+        .read<BloomeePlayerCubit>()
+        .bloomeePlayer
+        .currentTrackInfo
+        .id;
+    return current.isNotEmpty ? current : widget.mediaID;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -526,6 +561,7 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
             LyricsProviderCommand.getLyricsById(id: widget.match.id)),
       );
       if (response is PluginResponse_LyricsById && mounted) {
+        final targetMediaId = _targetMediaId();
         setState(() {
           _fetchedLyrics = pluginLyricsToLyrics(
             response.field0,
@@ -533,7 +569,7 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
             title: widget.match.title,
             album: widget.match.album,
             durationMs: widget.match.durationMs,
-            mediaID: widget.mediaID,
+            mediaID: targetMediaId,
           );
           _isLoading = false;
         });
@@ -680,9 +716,10 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
+                    final targetMediaId = _targetMediaId();
                     widget.parentContext
                         .read<LyricsCubit>()
-                        .setLyricsToDB(_fetchedLyrics!, widget.mediaID);
+                        .setLyricsToDB(_fetchedLyrics!, targetMediaId);
                     SnackbarService.showMessage(l10n.lyricsSearchApplied);
                     Navigator.pop(context);
                     widget.searchDelegate.close(widget.parentContext, null);

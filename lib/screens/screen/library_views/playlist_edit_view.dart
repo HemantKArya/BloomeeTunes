@@ -212,10 +212,14 @@ class _SliverPlaylistItemsState extends State<SliverPlaylistItems> {
               children: [
                 IgnorePointer(
                   ignoring: true,
-                  child: SongCardWidget(song: track, showOptions: false),
+                  child: SongCardWidget(
+                    song: track,
+                    showOptions: false,
+                    trailing: const SizedBox(width: 44),
+                  ),
                 ),
                 Positioned(
-                  right: 12,
+                  right: 10,
                   top: 0,
                   bottom: 0,
                   child: Center(

@@ -3,8 +3,8 @@ import 'package:Bloomee/services/db/dao/search_history_dao.dart';
 /// Repository for search operations — history persistence and search
 /// suggestions.
 ///
-/// Wraps [SearchHistoryDAO]. API-level search (Saavn, YouTube, Spotify)
-/// is handled by the respective API clients; this repository handles
+/// Wraps [SearchHistoryDAO]. API-level search is handled by resolver plugins;
+/// this repository handles
 /// the cross-cutting concerns of search history and suggestion ranking.
 class SearchRepository {
   final SearchHistoryDAO _searchHistoryDao;

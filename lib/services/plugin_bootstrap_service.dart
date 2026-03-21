@@ -80,6 +80,23 @@ class PluginBootstrapService {
     _bootstrapDone = true;
   }
 
+  static Future<void> ensureHostedRepositoriesPresent({
+    required PluginRepositoryService repositoryService,
+  }) async {
+    try {
+      final entries = await _fetchHostedEntries();
+      final added = await repositoryService.ensureRepositoryUrls(
+        entries.map((entry) => entry.url),
+      );
+      if (added > 0) {
+        log('Persisted $added hosted repositories', name: 'PluginBootstrap');
+      }
+    } catch (e) {
+      log('Hosted repository reconciliation skipped: $e',
+          name: 'PluginBootstrap');
+    }
+  }
+
   static Future<PluginBootstrapResult> run({
     required PluginService pluginService,
     required PluginRepositoryService repositoryService,
@@ -91,6 +108,8 @@ class PluginBootstrapService {
     onProgress(const PluginBootstrapProgress(8));
 
     final countryCode = await _resolveBootstrapCountryCode(settingsDao);
+    log('Bootstrap policy country: ${countryCode.isEmpty ? '<unset>' : countryCode}',
+        name: 'PluginBootstrap');
 
     List<_HostedRepoEntry> entries;
     try {
@@ -110,20 +129,9 @@ class PluginBootstrapService {
       );
     }
 
-    final existingUrls = await repositoryService.getSavedRepositoryUrls();
-    for (final entry in entries) {
-      if (entry.url.isEmpty) continue;
-      if (!existingUrls.contains(entry.url)) {
-        try {
-          await repositoryService.addRepositoryUrl(entry.url);
-          log('Added repository: ${entry.url}', name: 'PluginBootstrap');
-        } catch (e) {
-          log('Could not save repository URL ${entry.url}: $e',
-              name: 'PluginBootstrap');
-          // Non-fatal — continue with install attempts anyway.
-        }
-      }
-    }
+    await repositoryService.ensureRepositoryUrls(
+      entries.map((entry) => entry.url),
+    );
     onProgress(const PluginBootstrapProgress(24));
 
     final installEntries =
@@ -161,13 +169,24 @@ class PluginBootstrapService {
             ((processedPlugins * 55) ~/
                 (totalPlugins == 0 ? 1 : totalPlugins))));
 
-        if (installedIds.contains(plugin.id) ||
-            !plugin.isAllowedInCountry(countryCode)) {
+        if (installedIds.contains(plugin.id)) {
+          processedPlugins++;
+          continue;
+        }
+
+        if (!plugin.isAllowedInCountry(countryCode)) {
+          if (plugin.countryAllowlist.isNotEmpty) {
+            log(
+              'Skipped by allowlist: ${plugin.id} country=$countryCode allowlist=${plugin.countryAllowlist}',
+              name: 'PluginBootstrap',
+            );
+          }
           processedPlugins++;
           continue;
         }
 
         bool installed = false;
+        bool skippedByCountry = false;
         String? lastError;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
@@ -180,6 +199,7 @@ class PluginBootstrapService {
             final result = await pluginService.installPlugin(
               packedFilePath: file.path,
               shouldLoad: true,
+              policyCountryCode: countryCode,
             );
 
             final ok = result.status == PluginInstallStatus.installed ||
@@ -194,7 +214,8 @@ class PluginBootstrapService {
                   'Install returned status: ${result.status.name}${result.error != null ? ' — ${result.error}' : ''}';
             }
           } on PluginCountryRestrictedException {
-            installed = true;
+            skippedByCountry = true;
+            break;
           } catch (e) {
             lastError = e.toString();
           }
@@ -205,7 +226,7 @@ class PluginBootstrapService {
           if (installed) break;
         }
 
-        if (!installed) {
+        if (!installed && !skippedByCountry) {
           errors.add('Could not install "${plugin.name}": $lastError');
         }
 
@@ -221,7 +242,6 @@ class PluginBootstrapService {
       // are added to the auto-load list so they are actually used.
       try {
         final loadStateService = PluginLoadStateService(settingsDao);
-        final currentAutoLoad = await loadStateService.readAutoLoadPluginIds();
 
         // Ensure everything that is "available" and part of our bootstrap
         // is in the auto-load list.
@@ -232,8 +252,7 @@ class PluginBootstrapService {
             .toSet();
 
         if (bootstrapIds.isNotEmpty) {
-          await loadStateService
-              .writeAutoLoadPluginIds({...currentAutoLoad, ...bootstrapIds});
+          await loadStateService.addAutoLoadPluginIds(bootstrapIds);
           log('Added ${bootstrapIds.length} plugins to auto-load list',
               name: 'PluginBootstrap');
         }
@@ -335,25 +354,18 @@ class PluginBootstrapService {
     required SettingsDAO settingsDao,
   }) async {
     try {
-      final countryCode = await CountryInfoService.resolveAndCacheCountryCode(
+      final countryCode =
+          await CountryInfoService.resolveCountryCodeForPolicyCheck(
         settingsDao: settingsDao,
       );
+      log('Sync policy country: ${countryCode.isEmpty ? '<unset>' : countryCode}',
+          name: 'PluginBootstrap');
       final hostedEntries = await _fetchHostedEntries();
-      final existingUrls = await repositoryService.getSavedRepositoryUrls();
-      final knownUrls = existingUrls.toSet();
-
-      for (final entry in hostedEntries) {
-        if (entry.url.isEmpty || knownUrls.contains(entry.url)) {
-          continue;
-        }
-        try {
-          await repositoryService.addRepositoryUrl(entry.url);
-          knownUrls.add(entry.url);
-        } catch (e) {
-          log('Failed to add hosted repository ${entry.url}: $e',
-              name: 'PluginBootstrap');
-        }
-      }
+      await repositoryService.ensureRepositoryUrls(
+        hostedEntries.map((entry) => entry.url),
+      );
+      final knownUrls =
+          (await repositoryService.getSavedRepositoryUrls()).toSet();
 
       final repos = <PluginRepositoryModel>[];
       for (final url in knownUrls) {
@@ -407,15 +419,12 @@ class PluginBootstrapService {
             pluginService: pluginService,
             plugin: remote,
             retries: maxRetries,
+            countryCode: countryCode,
           );
 
           // Add to auto-load list if updated.
           final loadStateService = PluginLoadStateService(settingsDao);
-          final current = await loadStateService.readAutoLoadPluginIds();
-          if (!current.contains(pluginId)) {
-            await loadStateService
-                .writeAutoLoadPluginIds({...current, pluginId});
-          }
+          await loadStateService.addAutoLoadPluginIds(<String>[pluginId]);
         } on PluginCountryRestrictedException {
           continue;
         } catch (e) {
@@ -439,6 +448,7 @@ class PluginBootstrapService {
     required PluginService pluginService,
     required RemotePluginModel plugin,
     required int retries,
+    required String countryCode,
   }) async {
     String? lastError;
 
@@ -452,6 +462,7 @@ class PluginBootstrapService {
         final result = await pluginService.installPlugin(
           packedFilePath: file.path,
           shouldLoad: true,
+          policyCountryCode: countryCode,
         );
 
         final ok = result.status == PluginInstallStatus.installed ||
@@ -570,12 +581,11 @@ class PluginBootstrapService {
     SettingsDAO settingsDao,
   ) async {
     try {
-      return await CountryInfoService.resolveAndCacheCountryCode(
+      return await CountryInfoService.resolveCountryCodeForPolicyCheck(
         settingsDao: settingsDao,
-        forceRefresh: true,
       );
     } catch (_) {
-      return CountryInfoService.defaultCountryCode;
+      return '';
     }
   }
 

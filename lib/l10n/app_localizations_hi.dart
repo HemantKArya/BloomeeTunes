@@ -9,6 +9,15 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
+  String get onboardingTitle => 'Bloomee में आपका स्वागत है';
+
+  @override
+  String get onboardingSubtitle => 'आइए आपकी भाषा और क्षेत्र सेट करें।';
+
+  @override
+  String get continueButton => 'आगे बढ़ें';
+
+  @override
   String get navHome => 'होम';
 
   @override
@@ -24,13 +33,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get navOffline => 'ऑफ़लाइन';
 
   @override
-  String get playerEnjoyingFrom => 'सुन रहे हैं';
+  String get playerEnjoyingFrom => 'यहाँ से सुन रहे हैं';
 
   @override
   String get playerQueue => 'कतार';
 
   @override
-  String get playerPlayWithMix => 'स्वचालित-मिक्स संगीत';
+  String get playerPlayWithMix => 'ऑटो-मिक्स प्ले';
 
   @override
   String get playerPlayNext => 'अगला चलाएँ';
@@ -42,14 +51,14 @@ class AppLocalizationsHi extends AppLocalizations {
   String get playerAddToFavorites => 'पसंदीदा में जोड़ें';
 
   @override
-  String get playerNoLyricsFound => 'गीत के बोल नहीं मिले';
+  String get playerNoLyricsFound => 'कोई लिरिक्स नहीं मिले';
 
   @override
   String get playerLyricsNoPlugin =>
-      'कोई गीत प्रदाता सेट नहीं है। एक इंस्टॉल करने के लिए Settings → Plugins पर जाएं।';
+      'लिरिक्स दिखाने वाला कोई प्लगइन सेट नहीं है। इसे इंस्टॉल करने के लिए सेटिंग्स → प्लगइन्स में जाएँ।';
 
   @override
-  String get playerFullscreenLyrics => 'पूर्ण स्क्रीन बोल';
+  String get playerFullscreenLyrics => 'फ़ुलस्क्रीन लिरिक्स';
 
   @override
   String get localMusicTitle => 'लोकल';
@@ -58,11 +67,11 @@ class AppLocalizationsHi extends AppLocalizations {
   String get localMusicGrantPermission => 'अनुमति दें';
 
   @override
-  String get localMusicStorageAccessRequired => 'स्टोरेज अनुमति चाहिए';
+  String get localMusicStorageAccessRequired => 'स्टोरेज की अनुमति चाहिए';
 
   @override
   String get localMusicStorageAccessDesc =>
-      'अपने डिवाइस पर ऑडियो फ़ाइलें स्कैन और चलाने के लिए अनुमति दें।';
+      'कृपया अपने डिवाइस पर मौजूद ऑडियो फ़ाइलों को स्कैन करने और चलाने की अनुमति दें।';
 
   @override
   String get localMusicAddFolder => 'म्यूज़िक फ़ोल्डर जोड़ें';
@@ -77,14 +86,14 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get localMusicScanning =>
-      'ऑडियो फ़ाइलों के लिए डिवाइस स्कैन हो रहा है...';
+      'ऑडियो फ़ाइलों के लिए डिवाइस को स्कैन किया जा रहा है...';
 
   @override
   String get localMusicEmpty => 'कोई लोकल म्यूज़िक नहीं मिला';
 
   @override
   String get localMusicSearchEmpty =>
-      'आपकी खोज से मेल खाते कोई ट्रैक नहीं मिले।';
+      'आपकी खोज से मेल खाने वाला कोई ट्रैक नहीं मिला।';
 
   @override
   String get localMusicShuffle => 'शफ़ल';
@@ -96,20 +105,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get localMusicSearchHint => 'लोकल म्यूज़िक खोजें...';
 
   @override
-  String get localMusicRescanDevice => 'फिर से स्कैन करें';
+  String get localMusicRescanDevice => 'डिवाइस को फिर से स्कैन करें';
 
   @override
-  String get localMusicRemoveFolder => 'फ़ोल्डर हटाएं';
+  String get localMusicRemoveFolder => 'फ़ोल्डर हटाएँ';
 
   @override
-  String get localMusicMusicFolders => 'म्यूज़िक फ़ोल्डर';
+  String get localMusicMusicFolders => 'म्यूज़िक फ़ोल्डर्स';
 
   @override
   String localMusicTrackCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ट्रैक',
+      other: '$count ट्रैक्स',
       one: '1 ट्रैक',
     );
     return '$_temp0';
@@ -125,44 +134,44 @@ class AppLocalizationsHi extends AppLocalizations {
   String get buttonOk => 'ठीक है';
 
   @override
-  String get buttonUpdate => 'अपडेट';
+  String get buttonUpdate => 'अपडेट करें';
 
   @override
-  String get buttonDownload => 'डाउनलोड';
+  String get buttonDownload => 'डाउनलोड करें';
 
   @override
-  String get buttonShare => 'शेयर';
+  String get buttonShare => 'शेयर करें';
 
   @override
   String get buttonLater => 'बाद में';
 
   @override
-  String get buttonInfo => 'Info';
+  String get buttonInfo => 'जानकारी';
 
   @override
-  String get buttonMore => 'More';
+  String get buttonMore => 'और विकल्प';
 
   @override
   String get dialogDeleteTrack => 'ट्रैक हटाएँ';
 
   @override
   String dialogDeleteTrackMessage(String title) {
-    return 'क्या आप \"$title\" को अपने डिवाइस से हटाना चाहते हैं? यह पूर्ववत नहीं किया जा सकता।';
+    return 'क्या आप वाकई \"$title\" को अपने डिवाइस से हटाना चाहते हैं? यह कार्रवाई वापस नहीं ली जा सकेगी।';
   }
 
   @override
   String get dialogDeleteTrackLinkedPlaylists =>
-      'यह ट्रैक इनसे भी हटाया जाएगा:';
+      'यह ट्रैक यहाँ से भी हटा दिया जाएगा:';
 
   @override
-  String get dialogDontAskAgain => 'दोबारा न पूछें';
+  String get dialogDontAskAgain => 'मुझसे दोबारा न पूछें';
 
   @override
   String get dialogDeletePlugin => 'प्लगइन हटाएँ?';
 
   @override
   String dialogDeletePluginMessage(String name) {
-    return 'क्या आप \"$name\" को हटाना चाहते हैं? इसकी फ़ाइलें स्थायी रूप से हटा दी जाएँगी।';
+    return 'क्या आप वाकई \"$name\" को हटाना चाहते हैं? यह इसकी फ़ाइलों को हमेशा के लिए हटा देगा।';
   }
 
   @override
@@ -176,7 +185,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String dialogDownloadPlaylistMessage(int count, String title) {
-    return 'क्या आप \"$title\" से $count गाने डाउनलोड करना चाहते हैं?';
+    return 'क्या आप \"$title\" से $count गाने डाउनलोड करना चाहते हैं? इससे वे डाउनलोड कतार में जुड़ जाएँगे।';
   }
 
   @override
@@ -189,7 +198,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get playlistShareFile => 'फ़ाइल शेयर करें';
 
   @override
-  String get playlistExportFile => 'फ़ाइल निर्यात करें';
+  String get playlistExportFile => 'फ़ाइल एक्सपोर्ट करें';
 
   @override
   String get playlistPlay => 'चलाएँ';
@@ -204,7 +213,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get playlistDelete => 'प्लेलिस्ट हटाएँ';
 
   @override
-  String get playlistEmptyState => 'अभी कोई गाने नहीं!';
+  String get playlistEmptyState => 'अभी कोई गाने नहीं हैं!';
 
   @override
   String get playlistAvailableOffline => 'ऑफ़लाइन उपलब्ध';
@@ -213,17 +222,18 @@ class AppLocalizationsHi extends AppLocalizations {
   String get playlistShuffle => 'शफ़ल';
 
   @override
-  String get playlistMoreOptions => 'और विकल्प';
+  String get playlistMoreOptions => 'अधिक विकल्प';
 
   @override
-  String get playlistNoMatchSearch => 'कोई प्लेलिस्ट नहीं मिली';
+  String get playlistNoMatchSearch =>
+      'आपकी खोज से मेल खाने वाली कोई प्लेलिस्ट नहीं है';
 
   @override
   String get playlistCreateNew => 'नई प्लेलिस्ट बनाएँ';
 
   @override
   String get playlistCreateFirstOne =>
-      'कोई प्लेलिस्ट नहीं। शुरू करने के लिए एक बनाएँ!';
+      'अभी तक कोई प्लेलिस्ट नहीं है। शुरुआत करने के लिए अपनी पहली प्लेलिस्ट बनाएँ!';
 
   @override
   String playlistSongCount(int count) {
@@ -238,109 +248,110 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String playlistRemovedTrack(String title, String playlist) {
-    return '$title removed from $playlist';
+    return '$playlist से $title हटा दिया गया';
   }
 
   @override
-  String get playlistFailedToLoad => 'Failed to load playlist';
+  String get playlistFailedToLoad => 'प्लेलिस्ट लोड करने में विफल';
 
   @override
   String get settingsTitle => 'सेटिंग्स';
 
   @override
-  String get settingsPlugins => 'प्लगइन';
+  String get settingsPlugins => 'प्लगइन्स';
 
   @override
-  String get settingsPluginsSubtitle => 'प्लगइन इंस्टॉल, लोड और प्रबंधित करें।';
+  String get settingsPluginsSubtitle => 'प्लगइन्स इंस्टॉल, लोड और मैनेज करें।';
 
   @override
-  String get settingsUpdates => 'अपडेट';
+  String get settingsUpdates => 'अपडेट्स';
 
   @override
-  String get settingsUpdatesSubtitle => 'नए अपडेट की जाँच करें';
+  String get settingsUpdatesSubtitle => 'नए अपडेट्स की जाँच करें।';
 
   @override
-  String get settingsDownloads => 'डाउनलोड';
+  String get settingsDownloads => 'डाउनलोड्स';
 
   @override
   String get settingsDownloadsSubtitle =>
-      'डाउनलोड पाथ, डाउनलोड क्वालिटी और अन्य...';
+      'डाउनलोड पाथ, ऑडियो क्वालिटी और बहुत कुछ...';
 
   @override
-  String get settingsLocalTracks => 'लोकल ट्रैक';
+  String get settingsLocalTracks => 'लोकल ट्रैक्स';
 
   @override
   String get settingsLocalTracksSubtitle =>
-      'स्कैन, फ़ोल्डर प्रबंधित और ऑटो-स्कैन सेटिंग्स।';
+      'स्कैन, फ़ोल्डर मैनेजमेंट और ऑटो-स्कैन सेटिंग्स।';
 
   @override
   String get settingsPlayer => 'प्लेयर सेटिंग्स';
 
   @override
-  String get settingsPlayerSubtitle => 'स्ट्रीम क्वालिटी, ऑटो प्ले, आदि।';
+  String get settingsPlayerSubtitle => 'स्ट्रीमिंग क्वालिटी, ऑटो प्ले आदि।';
 
   @override
-  String get settingsPluginDefaults => 'प्लगइन डिफ़ॉल्ट';
+  String get settingsPluginDefaults => 'प्लगइन डिफ़ॉल्ट्स';
 
   @override
   String get settingsPluginDefaultsSubtitle =>
-      'डिस्कवर स्रोत, रिज़ॉल्वर प्राथमिकता।';
+      'डिस्कवर सोर्स और रिज़ॉल्वर की प्राथमिकता सेट करें।';
 
   @override
-  String get settingsUIElements => 'UI एलिमेंट और सेवाएँ';
+  String get settingsUIElements => 'UI एलिमेंट्स और सेवाएँ';
 
   @override
-  String get settingsUIElementsSubtitle => 'ऑटो स्लाइड, UI ट्वीक्स आदि।';
+  String get settingsUIElementsSubtitle =>
+      'ऑटो स्लाइड, ऐप के डिज़ाइन में बदलाव आदि।';
 
   @override
   String get settingsLastFM => 'Last.FM सेटिंग्स';
 
   @override
   String get settingsLastFMSubtitle =>
-      'API Key, Secret, और स्क्रोबलिंग सेटिंग्स।';
+      'API Key, Secret, और स्क्रॉब्लिंग सेटिंग्स।';
 
   @override
   String get settingsStorage => 'स्टोरेज';
 
   @override
   String get settingsStorageSubtitle =>
-      'बैकअप, कैश, इतिहास, रीस्टोर और अन्य...';
+      'बैकअप, कैश, हिस्ट्री, रीस्टोर और बहुत कुछ...';
 
   @override
   String get settingsLanguageCountry => 'भाषा और देश';
 
   @override
-  String get settingsLanguageCountrySubtitle => 'अपनी भाषा और देश चुनें।';
+  String get settingsLanguageCountrySubtitle => 'अपनी भाषा और देश का चयन करें।';
 
   @override
   String get settingsAbout => 'ऐप के बारे में';
 
   @override
-  String get settingsAboutSubtitle => 'ऐप, वर्शन, डेवलपर आदि के बारे में।';
+  String get settingsAboutSubtitle => 'ऐप का वर्शन, डेवलपर की जानकारी आदि।';
 
   @override
   String get settingsScanning => 'स्कैनिंग';
 
   @override
-  String get settingsMusicFolders => 'म्यूज़िक फ़ोल्डर';
+  String get settingsMusicFolders => 'म्यूज़िक फ़ोल्डर्स';
 
   @override
-  String get settingsQuality => 'गुणवत्ता';
+  String get settingsQuality => 'क्वालिटी';
 
   @override
-  String get settingsHistory => 'इतिहास';
+  String get settingsHistory => 'हिस्ट्री';
 
   @override
   String get settingsBackupRestore => 'बैकअप और रीस्टोर';
 
   @override
-  String get settingsAutomatic => 'स्वचालित';
+  String get settingsAutomatic => 'ऑटोमैटिक';
 
   @override
-  String get settingsDangerZone => 'खतरा क्षेत्र';
+  String get settingsDangerZone => 'डेंजर ज़ोन';
 
   @override
-  String get settingsScrobbling => 'स्क्रोबलिंग';
+  String get settingsScrobbling => 'स्क्रॉब्लिंग';
 
   @override
   String get settingsAuthentication => 'प्रमाणीकरण';
@@ -349,17 +360,17 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsHomeScreen => 'होम स्क्रीन';
 
   @override
-  String get settingsChartVisibility => 'चार्ट दृश्यता';
+  String get settingsChartVisibility => 'चार्ट दिखाएँ';
 
   @override
-  String get settingsLocation => 'स्थान';
+  String get settingsLocation => 'लोकेशन';
 
   @override
-  String get pluginRepositoryTitle => 'प्लगइन रिपॉज़िटरी';
+  String get pluginRepositoryTitle => 'प्लगइन रिपॉज़िटरीज़';
 
   @override
   String get pluginRepositorySubtitle =>
-      'रिमोट प्लगइन देखने के लिए JSON स्रोत जोड़ें।';
+      'रिमोट प्लगइन्स ब्राउज़ करने के लिए एक JSON सोर्स जोड़ें।';
 
   @override
   String get pluginRepositoryAddAction => 'रिपॉज़िटरी जोड़ें';
@@ -369,70 +380,71 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get pluginRepositoryAddSubtitle =>
-      'मान्य प्लगइन रिपॉज़िटरी JSON फ़ाइल का URL दर्ज करें।';
+      'किसी सही प्लगइन रिपॉज़िटरी JSON फ़ाइल का URL डालें।';
 
   @override
   String get pluginRepositoryEmpty => 'अभी तक कोई रिपॉज़िटरी नहीं जोड़ी गई है।';
 
   @override
   String get pluginRepositoryUrlCopied =>
-      'रिपॉज़िटरी URL क्लिपबोर्ड पर कॉपी कर दिया गया';
+      'रिपॉज़िटरी URL क्लिपबोर्ड पर कॉपी हो गया।';
 
   @override
-  String get pluginRepositoryNoDescription => 'कोई विवरण उपलब्ध नहीं है।';
+  String get pluginRepositoryNoDescription => 'कोई विवरण नहीं दिया गया है।';
 
   @override
-  String get pluginRepositoryUnknownUpdate => 'अपडेट जानकारी उपलब्ध नहीं';
+  String get pluginRepositoryUnknownUpdate => 'अपडेट की जानकारी नहीं है';
 
   @override
   String pluginRepositoryPluginsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count प्लगइन',
+      other: '$count प्लगइन्स',
       one: '1 प्लगइन',
     );
     return '$_temp0';
   }
 
   @override
-  String get pluginRepositoryErrorLoad => 'रिपॉज़िटरी लोड नहीं हो सकीं।';
+  String get pluginRepositoryErrorLoad => 'रिपॉज़िटरीज़ लोड करने में विफल।';
 
   @override
   String get pluginRepositoryErrorInvalid =>
-      'रिपॉज़िटरी URL या रिपॉज़िटरी फ़ाइल अमान्य है।';
+      'रिपॉज़िटरी URL या फ़ाइल सही नहीं है।';
 
   @override
-  String get pluginRepositoryErrorRemove => 'रिपॉज़िटरी हटाई नहीं जा सकी।';
+  String get pluginRepositoryErrorRemove => 'रिपॉज़िटरी नहीं हटाई जा सकी।';
 
   @override
   String pluginRepositoryError(String message) {
-    return 'Error: $message';
+    return 'त्रुटि: $message';
   }
 
   @override
-  String get dialogAddingToDownloadQueue => 'Adding to download queue';
+  String get dialogAddingToDownloadQueue =>
+      'डाउनलोड कतार में जोड़ा जा रहा है...';
 
   @override
-  String get emptyNoInternet => 'इंटरनेट कनेक्शन नहीं!';
+  String get emptyNoInternet => 'कोई इंटरनेट कनेक्शन नहीं!';
 
   @override
   String get emptyNoContentPlugin =>
-      'कोई कंटेंट प्लगइन लोड नहीं। प्लगइन मैनेजर में Content Resolver लोड करें।';
+      'कोई कंटेंट प्लगइन मौजूद नहीं है। प्लगइन मैनेजर से एक कंटेंट रिज़ॉल्वर इंस्टॉल करें।';
 
   @override
   String get emptyRefreshingSource =>
-      'डिस्कवर स्रोत रिफ़्रेश हो रहा है... पिछला स्रोत अब उपलब्ध नहीं है।';
+      'डिस्कवर सोर्स को रीफ्रेश किया जा रहा है... पुराना सोर्स अब उपलब्ध नहीं है।';
 
   @override
-  String get emptyNoTracks => 'कोई ट्रैक उपलब्ध नहीं';
+  String get emptyNoTracks => 'कोई गाना मौजूद नहीं है';
 
   @override
   String get emptyNoResults => 'कोई परिणाम नहीं मिला';
 
   @override
   String snackbarDeletedTrack(String title) {
-    return '\"$title\" हटाया गया';
+    return '\"$title\" हटा दिया गया';
   }
 
   @override
@@ -441,14 +453,14 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get snackbarAddedToNextQueue => 'कतार में अगला जोड़ा गया';
+  String get snackbarAddedToNextQueue => 'कतार में आगे जोड़ा गया';
 
   @override
   String get snackbarAddedToQueue => 'कतार में जोड़ा गया';
 
   @override
   String snackbarAddedToLiked(String title) {
-    return '$title पसंदीदा में जोड़ा गया!!';
+    return '$title को पसंदीदा में जोड़ा गया!!';
   }
 
   @override
@@ -458,57 +470,57 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String snackbarPlaylistAddedToQueue(String name) {
-    return '$name कतार में जोड़ा गया';
+    return '$name को कतार में जोड़ा गया';
   }
 
   @override
-  String get snackbarPlaylistQueued => 'प्लेलिस्ट डाउनलोड कतार में जोड़ी गई';
+  String get snackbarPlaylistQueued => 'प्लेलिस्ट डाउनलोड कतार में जुड़ गई है';
 
   @override
-  String get snackbarPlaylistUpdated => 'प्लेलिस्ट अपडेट हुई!';
+  String get snackbarPlaylistUpdated => 'प्लेलिस्ट अपडेट हो गई!';
 
   @override
-  String get snackbarNoInternet => 'इंटरनेट कनेक्शन नहीं।';
+  String get snackbarNoInternet => 'कोई इंटरनेट कनेक्शन नहीं।';
 
   @override
-  String get snackbarImportFailed => 'आयात विफल!';
+  String get snackbarImportFailed => 'इम्पोर्ट विफल!';
 
   @override
-  String get snackbarImportCompleted => 'आयात पूर्ण';
+  String get snackbarImportCompleted => 'इम्पोर्ट पूरा हुआ';
 
   @override
   String get snackbarBackupFailed => 'बैकअप विफल!';
 
   @override
   String snackbarExportedTo(String path) {
-    return 'निर्यात: $path';
+    return 'यहाँ एक्सपोर्ट किया गया: $path';
   }
 
   @override
-  String get snackbarMediaIdCopied => 'मीडिया ID कॉपी हुई';
+  String get snackbarMediaIdCopied => 'मीडिया ID कॉपी की गई';
 
   @override
-  String get snackbarLinkCopied => 'लिंक कॉपी हुई';
+  String get snackbarLinkCopied => 'लिंक कॉपी किया गया';
 
   @override
-  String get snackbarNoLinkAvailable => 'कोई लिंक उपलब्ध नहीं';
+  String get snackbarNoLinkAvailable => 'कोई लिंक उपलब्ध नहीं है';
 
   @override
-  String get snackbarCouldNotOpenLink => 'लिंक नहीं खोल सका';
+  String get snackbarCouldNotOpenLink => 'लिंक नहीं खोला जा सका';
 
   @override
   String snackbarPreparingDownload(String title) {
-    return '$title डाउनलोड तैयार हो रहा है...';
+    return '$title को डाउनलोड के लिए तैयार किया जा रहा है...';
   }
 
   @override
   String snackbarAlreadyDownloaded(String title) {
-    return '$title पहले से डाउनलोड है।';
+    return '$title पहले से ही डाउनलोड है।';
   }
 
   @override
   String snackbarAlreadyInQueue(String title) {
-    return '$title पहले से कतार में है।';
+    return '$title पहले से ही कतार में है।';
   }
 
   @override
@@ -518,16 +530,16 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get snackbarDownloadServiceUnavailable =>
-      'त्रुटि: डाउनलोड सेवा उपलब्ध नहीं है।';
+      'त्रुटि: डाउनलोड सेवा अनुपलब्ध है।';
 
   @override
   String snackbarSongsAddedToQueue(int count) {
-    return 'Added $count songs to download queue';
+    return '$count गानों को डाउनलोड कतार में जोड़ा गया';
   }
 
   @override
   String get snackbarDeleteTrackFailDevice =>
-      'Failed to delete track from device storage.';
+      'डिवाइस स्टोरेज से ट्रैक हटाने में विफल।';
 
   @override
   String get searchHintExplore => 'आप क्या सुनना चाहते हैं?';
@@ -539,59 +551,60 @@ class AppLocalizationsHi extends AppLocalizations {
   String get searchHintOfflineMusic => 'अपने गाने खोजें...';
 
   @override
-  String get searchHintPlaylists => 'प्लेलिस्ट खोजें...';
+  String get searchHintPlaylists => 'प्लेलिस्ट्स खोजें...';
 
   @override
-  String get searchStartTyping => 'खोजने के लिए टाइप करें...';
+  String get searchStartTyping => 'खोजने के लिए टाइप करना शुरू करें...';
 
   @override
   String get searchNoSuggestions => 'कोई सुझाव नहीं मिला!';
 
   @override
   String get searchNoResults =>
-      'कोई परिणाम नहीं मिला!\nकोई अन्य कीवर्ड या स्रोत आज़माएँ।';
+      'कोई परिणाम नहीं मिला!\nकुछ और खोज कर देखें या स्रोत बदलें।';
 
   @override
-  String get searchFailed => 'खोज विफल!';
+  String get searchFailed => 'खोज विफल रही!';
 
   @override
-  String get searchDiscover => 'अद्भुत संगीत खोजें...';
+  String get searchDiscover => 'बेहतरीन संगीत खोजें...';
 
   @override
-  String get searchSources => 'स्रोत';
+  String get searchSources => 'सोर्स';
 
   @override
-  String get searchNoPlugins => 'कोई प्लगइन इंस्टॉल नहीं';
+  String get searchNoPlugins => 'कोई प्लगइन इंस्टॉल नहीं है';
 
   @override
-  String get searchTracks => 'ट्रैक';
+  String get searchTracks => 'गाने';
 
   @override
-  String get searchAlbums => 'एल्बम';
+  String get searchAlbums => 'एल्बम्स';
 
   @override
   String get searchArtists => 'कलाकार';
 
   @override
-  String get searchPlaylists => 'प्लेलिस्ट';
+  String get searchPlaylists => 'प्लेलिस्ट्स';
 
   @override
   String get exploreDiscover => 'डिस्कवर';
 
   @override
-  String get exploreRecently => 'हाल ही में';
+  String get exploreRecently => 'हाल ही में बजाए गए';
 
   @override
   String get exploreLastFmPicks => 'Last.Fm पिक्स';
 
   @override
-  String get exploreFailedToLoad => 'होम सेक्शन लोड करने में विफल।';
+  String get exploreFailedToLoad => 'होम सेक्शन लोड नहीं हो पाया।';
 
   @override
   String get libraryTitle => 'लाइब्रेरी';
 
   @override
-  String get libraryEmptyState => 'आपकी लाइब्रेरी खाली है। कुछ धुनें जोड़ें!';
+  String get libraryEmptyState =>
+      'आपकी लाइब्रेरी एकदम सूनी है। अपनी पसंद के कुछ बेहतरीन गाने जोड़ें!';
 
   @override
   String libraryIn(String playlistName) {
@@ -605,13 +618,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get menuSmartReplace => 'स्मार्ट रिप्लेस';
 
   @override
-  String get menuShare => 'शेयर';
+  String get menuShare => 'शेयर करें';
 
   @override
   String get menuAvailableOffline => 'ऑफ़लाइन उपलब्ध';
 
   @override
-  String get menuDownload => 'डाउनलोड';
+  String get menuDownload => 'डाउनलोड करें';
 
   @override
   String get menuOpenOriginalLink => 'मूल लिंक खोलें';
@@ -632,7 +645,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get songInfoMediaId => 'मीडिया ID';
 
   @override
-  String get songInfoCopyId => 'आईडी कॉपी करें';
+  String get songInfoCopyId => 'ID कॉपी करें';
 
   @override
   String get songInfoCopyLink => 'लिंक कॉपी करें';
@@ -644,43 +657,43 @@ class AppLocalizationsHi extends AppLocalizations {
   String get tooltipRemoveFromLibrary => 'लाइब्रेरी से हटाएँ';
 
   @override
-  String get tooltipSaveToLibrary => 'लाइब्रेरी में सहेजें';
+  String get tooltipSaveToLibrary => 'लाइब्रेरी में सेव करें';
 
   @override
   String get tooltipOpenOriginalLink => 'मूल लिंक खोलें';
 
   @override
-  String get tooltipShuffle => 'Shuffle';
+  String get tooltipShuffle => 'शफ़ल';
 
   @override
-  String get tooltipAvailableOffline => 'Available Offline';
+  String get tooltipAvailableOffline => 'ऑफ़लाइन उपलब्ध';
 
   @override
-  String get tooltipDownloadPlaylist => 'Download playlist';
+  String get tooltipDownloadPlaylist => 'प्लेलिस्ट डाउनलोड करें';
 
   @override
-  String get tooltipMoreOptions => 'More Options';
+  String get tooltipMoreOptions => 'और विकल्प';
 
   @override
-  String get tooltipInfo => 'Info';
+  String get tooltipInfo => 'जानकारी';
 
   @override
   String get appuiTitle => 'UI और सेवाएँ';
 
   @override
-  String get appuiAutoSlideCharts => 'चार्ट स्वतः स्लाइड';
+  String get appuiAutoSlideCharts => 'चार्ट्स ऑटो-स्लाइड करें';
 
   @override
   String get appuiAutoSlideChartsSubtitle =>
-      'होम स्क्रीन में चार्ट स्वचालित रूप से स्लाइड करें।';
+      'होम स्क्रीन पर चार्ट्स अपने आप स्लाइड होंगे।';
 
   @override
   String get appuiLastFmPicksSubtitle =>
-      'Last.FM से सुझाव दिखाएँ। लॉगिन और पुनः आरंभ करना आवश्यक है।';
+      'Last.FM से गानों के सुझाव दिखाएँ। इसके लिए लॉगिन और ऐप को रीस्टार्ट करना ज़रूरी है।';
 
   @override
   String get appuiNoChartsAvailable =>
-      'कोई चार्ट उपलब्ध नहीं। चार्ट प्रदाता प्लगइन लोड करें।';
+      'कोई चार्ट उपलब्ध नहीं है। कृपया कोई चार्ट प्रोवाइडर प्लगइन इंस्टॉल करें।';
 
   @override
   String get appuiLoginToLastFm => 'कृपया पहले Last.FM में लॉगिन करें।';
@@ -692,11 +705,11 @@ class AppLocalizationsHi extends AppLocalizations {
   String get countrySettingTitle => 'देश और भाषा';
 
   @override
-  String get countrySettingAutoDetect => 'देश स्वतः पहचानें';
+  String get countrySettingAutoDetect => 'देश का स्वतः पता लगाएँ';
 
   @override
   String get countrySettingAutoDetectSubtitle =>
-      'ऐप खुलने पर स्वचालित रूप से आपका देश पहचानें।';
+      'ऐप खुलने पर स्वचालित रूप से आपके देश की पहचान करेगा।';
 
   @override
   String get countrySettingCountryLabel => 'देश';
@@ -708,14 +721,14 @@ class AppLocalizationsHi extends AppLocalizations {
   String get countrySettingSystemDefault => 'सिस्टम डिफ़ॉल्ट';
 
   @override
-  String get downloadSettingTitle => 'डाउनलोड';
+  String get downloadSettingTitle => 'डाउनलोड्स';
 
   @override
   String get downloadSettingQuality => 'डाउनलोड क्वालिटी';
 
   @override
   String get downloadSettingQualitySubtitle =>
-      'डाउनलोड किए गए ट्रैक के लिए सार्वभौमिक ऑडियो क्वालिटी।';
+      'डाउनलोड होने वाले सभी गानों की डिफ़ॉल्ट ऑडियो क्वालिटी।';
 
   @override
   String get downloadSettingFolder => 'डाउनलोड फ़ोल्डर';
@@ -725,33 +738,34 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get downloadSettingResetFolderSubtitle =>
-      'डिफ़ॉल्ट डाउनलोड पाथ पुनः स्थापित करें।';
+      'डिफ़ॉल्ट डाउनलोड पाथ को वापस सेट करें।';
 
   @override
   String get lastfmTitle => 'Last.FM';
 
   @override
-  String get lastfmScrobbleTracks => 'ट्रैक स्क्रोबल करें';
+  String get lastfmScrobbleTracks => 'ट्रैक्स स्क्रॉबल करें';
 
   @override
   String get lastfmScrobbleTracksSubtitle =>
-      'चलाए गए ट्रैक आपकी Last.FM प्रोफ़ाइल पर भेजें।';
+      'बजाए गए गानों को अपनी Last.FM प्रोफ़ाइल पर सिंक करें।';
 
   @override
-  String get lastfmAuthFirst => 'पहले Last.FM API प्रमाणित करें।';
+  String get lastfmAuthFirst =>
+      'पहले Last.FM API को प्रमाणित (Authenticate) करें।';
 
   @override
-  String get lastfmAuthenticatedAs => 'प्रमाणित: ';
+  String get lastfmAuthenticatedAs => 'इसके रूप में प्रमाणित:';
 
   @override
   String get lastfmAuthFailed => 'प्रमाणीकरण विफल:';
 
   @override
-  String get lastfmNotAuthenticated => 'प्रमाणित नहीं';
+  String get lastfmNotAuthenticated => 'प्रमाणित नहीं है';
 
   @override
   String get lastfmSteps =>
-      'प्रमाणित करने के चरण:\n1. last.fm पर खाता बनाएँ / खोलें\n2. last.fm/api/account/create पर API Key बनाएँ\n3. नीचे API Key और Secret दर्ज करें\n4. \"Start Auth\" दबाएँ और ब्राउज़र में स्वीकृति दें\n5. \"Get & Save Session Key\" दबाएँ';
+      'प्रमाणित करने के चरण:\n1. last.fm पर अपना खाता बनाएँ या खोलें\n2. last.fm/api/account/create पर जाकर API Key बनाएँ\n3. नीचे API Key और Secret दर्ज करें\n4. \"प्रमाणीकरण शुरू करें\" पर टैप करके ब्राउज़र में अनुमति दें\n5. पूरा करने के लिए \"सेशन Key प्राप्त करें और सहेजें\" पर टैप करें';
 
   @override
   String get lastfmApiKey => 'API Key';
@@ -763,7 +777,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get lastfmStartAuth => '1. प्रमाणीकरण शुरू करें';
 
   @override
-  String get lastfmGetSession => '2. सेशन Key प्राप्त करें';
+  String get lastfmGetSession => '2. सेशन Key प्राप्त करें और सहेजें';
 
   @override
   String get lastfmRemoveKeys => 'Keys हटाएँ';
@@ -773,14 +787,14 @@ class AppLocalizationsHi extends AppLocalizations {
       'पहले प्रमाणीकरण शुरू करें, फिर ब्राउज़र में स्वीकृति दें।';
 
   @override
-  String get localSettingTitle => 'लोकल ट्रैक';
+  String get localSettingTitle => 'लोकल ट्रैक्स';
 
   @override
-  String get localSettingAutoScan => 'स्टार्टअप पर स्वतः स्कैन';
+  String get localSettingAutoScan => 'ऐप शुरू होने पर स्वतः स्कैन करें';
 
   @override
   String get localSettingAutoScanSubtitle =>
-      'ऐप शुरू होने पर स्वचालित रूप से नए लोकल ट्रैक स्कैन करें।';
+      'ऐप खुलने पर नए लोकल गानों के लिए अपने-आप स्कैन करेगा।';
 
   @override
   String get localSettingLastScan => 'अंतिम स्कैन';
@@ -789,15 +803,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get localSettingNeverScanned => 'कभी नहीं';
 
   @override
-  String get localSettingScanInProgress => 'स्कैनिंग प्रगति में है…';
+  String get localSettingScanInProgress => 'स्कैनिंग जारी है…';
 
   @override
   String get localSettingScanNowSubtitle =>
-      'पूरी लाइब्रेरी स्कैन मैन्युअली शुरू करें।';
+      'पूरी लाइब्रेरी को मैन्युअल रूप से स्कैन करें।';
 
   @override
   String get localSettingNoFolders =>
-      'कोई फ़ोल्डर नहीं जोड़ा गया। स्कैनिंग शुरू करने के लिए फ़ोल्डर जोड़ें।';
+      'कोई फ़ोल्डर नहीं जुड़ा है। स्कैनिंग शुरू करने के लिए एक फ़ोल्डर जोड़ें।';
 
   @override
   String get localSettingAddFolder => 'फ़ोल्डर जोड़ें';
@@ -813,16 +827,16 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get playerSettingStreamQualitySubtitle =>
-      'ऑनलाइन प्लेबैक के लिए वैश्विक ऑडियो बिटरेट।';
+      'ऑनलाइन गाने बजाने के लिए डिफ़ॉल्ट ऑडियो बिटरेट।';
 
   @override
-  String get playerSettingQualityLow => 'कम';
+  String get playerSettingQualityLow => 'कम (Low)';
 
   @override
-  String get playerSettingQualityMedium => 'मध्यम';
+  String get playerSettingQualityMedium => 'मध्यम (Medium)';
 
   @override
-  String get playerSettingQualityHigh => 'अधिक';
+  String get playerSettingQualityHigh => 'उच्च (High)';
 
   @override
   String get playerSettingPlaybackHeader => 'प्लेबैक';
@@ -832,34 +846,34 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get playerSettingAutoPlaySubtitle =>
-      'कतार समाप्त होने पर समान गाने जोड़ें।';
+      'कतार खत्म होने पर उसी तरह के अन्य गाने अपने-आप बजने लगें।';
 
   @override
   String get playerSettingAutoFallback => 'ऑटो फ़ॉलबैक प्लेबैक';
 
   @override
   String get playerSettingAutoFallbackSubtitle =>
-      'यदि प्लगइन अनुपलब्ध है या कोई स्ट्रीम नहीं है, तो केवल प्लेबैक के लिए संगत रिज़ॉल्वर प्रयास करें।';
+      'यदि कोई प्लगइन काम न करे, तो गाना चलाने के लिए किसी अन्य संगत रिज़ॉल्वर का इस्तेमाल करें।';
 
   @override
-  String get playerSettingCrossfade => 'क्रॉसफ़ेड';
+  String get playerSettingCrossfade => 'क्रॉसफ़ेड (Crossfade)';
 
   @override
   String get playerSettingCrossfadeOff => 'बंद';
 
   @override
-  String get playerSettingCrossfadeInstant => 'ट्रैक तुरंत बदलते हैं';
+  String get playerSettingCrossfadeInstant => 'गाने तुरंत बदलेंगे';
 
   @override
   String playerSettingCrossfadeBlend(int seconds) {
-    return '${seconds}s ट्रैक के बीच मिश्रण';
+    return 'गानों के बीच $seconds सेकंड का ब्लेंड';
   }
 
   @override
   String get playerSettingEqualizer => 'इक्वलाइज़र';
 
   @override
-  String get playerSettingEqualizerActive => 'सक्रिय';
+  String get playerSettingEqualizerActive => 'चालू';
 
   @override
   String playerSettingEqualizerActivePreset(String preset) {
@@ -868,65 +882,66 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get playerSettingEqualizerSubtitle =>
-      'FFmpeg के माध्यम से 10-बैंड पैरामेट्रिक EQ।';
+      'FFmpeg के ज़रिए 10-बैंड पैरामेट्रिक EQ।';
 
   @override
-  String get pluginDefaultsTitle => 'प्लगइन डिफ़ॉल्ट';
+  String get pluginDefaultsTitle => 'प्लगइन डिफ़ॉल्ट्स';
 
   @override
-  String get pluginDefaultsDiscoverHeader => 'डिस्कवर स्रोत';
+  String get pluginDefaultsDiscoverHeader => 'डिस्कवर सोर्स';
 
   @override
   String get pluginDefaultsNoResolver =>
-      'कोई कंटेंट रिज़ॉल्वर लोड नहीं। डिस्कवर स्रोत चुनने के लिए प्लगइन लोड करें।';
+      'कोई कंटेंट रिज़ॉल्वर इंस्टॉल नहीं है। डिस्कवर सोर्स चुनने के लिए प्लगइन लोड करें।';
 
   @override
   String get pluginDefaultsAutomaticSubtitle =>
-      'पहला उपलब्ध कंटेंट रिज़ॉल्वर उपयोग करें।';
+      'जो भी पहला कंटेंट रिज़ॉल्वर उपलब्ध हो, उसका उपयोग करें।';
 
   @override
-  String get pluginDefaultsPriorityHeader => 'रिज़ॉल्वर प्राथमिकता';
+  String get pluginDefaultsPriorityHeader => 'रिज़ॉल्वर की प्राथमिकता';
 
   @override
   String get pluginDefaultsNoPriority =>
-      'कोई कंटेंट रिज़ॉल्वर लोड नहीं। प्लगइन लोड होने पर प्राथमिकता क्रम यहाँ दिखेगा।';
+      'कोई कंटेंट रिज़ॉल्वर नहीं मिला। प्लगइन्स इंस्टॉल होने के बाद आप यहाँ उनकी प्राथमिकता तय कर सकेंगे।';
 
   @override
   String get pluginDefaultsPriorityDesc =>
-      'क्रमबद्ध करने के लिए खींचें। उच्च प्राथमिकता के रिज़ॉल्वर पहले प्रयास किए जाते हैं।';
+      'क्रम बदलने के लिए ऊपर-नीचे खींचें। गाने खोजते समय सबसे ऊपर वाले रिज़ॉल्वर को पहले आज़माया जाएगा।';
 
   @override
-  String get pluginDefaultsLyricsHeader => 'लिरिक्स प्राथमिकता';
+  String get pluginDefaultsLyricsHeader => 'लिरिक्स की प्राथमिकता';
 
   @override
-  String get pluginDefaultsLyricsNone => 'कोई लिरिक्स प्रदाता लोड नहीं है।';
+  String get pluginDefaultsLyricsNone => 'लिरिक्स वाला कोई प्लगइन लोड नहीं है।';
 
   @override
   String get pluginDefaultsLyricsDesc =>
-      'लिरिक्स प्रदाताओं को पुनः क्रमित करने के लिए खींचें। पहला प्रदाता पहले आज़माया जाता है।';
+      'लिरिक्स प्रदाताओं का क्रम बदलने के लिए उन्हें खींचें।';
 
   @override
-  String get pluginDefaultsSuggestionsHeader => 'खोज सुझाव';
+  String get pluginDefaultsSuggestionsHeader => 'खोज के सुझाव';
 
   @override
-  String get pluginDefaultsSuggestionsNone => 'कोई सुझाव प्रदाता लोड नहीं है।';
+  String get pluginDefaultsSuggestionsNone =>
+      'खोज सुझाव वाला कोई प्लगइन मौजूद नहीं है।';
 
   @override
   String get pluginDefaultsSuggestionsHistoryOnlyTitle => 'कोई नहीं';
 
   @override
   String get pluginDefaultsSuggestionsHistoryOnlySubtitle =>
-      'केवल खोज इतिहास का उपयोग करें।';
+      'केवल मेरी पुरानी खोज (History) का इस्तेमाल करें।';
 
   @override
   String get storageSettingTitle => 'स्टोरेज';
 
   @override
-  String get storageClearHistoryEvery => 'इतिहास हर बार साफ़ करें';
+  String get storageClearHistoryEvery => 'हिस्ट्री कितने दिनों में साफ करें';
 
   @override
   String get storageClearHistorySubtitle =>
-      'चुनी अवधि के बाद सुनने का इतिहास साफ़ करें।';
+      'चुने गए समय के बाद सुनने की हिस्ट्री अपने-आप मिटा दी जाएगी।';
 
   @override
   String storageDays(int count) {
@@ -940,24 +955,24 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get storageBackupLocation => 'बैकअप स्थान';
+  String get storageBackupLocation => 'बैकअप की जगह';
 
   @override
-  String get storageBackupLocationAndroid => 'डाउनलोड / ऐप-डेटा डायरेक्टरी';
+  String get storageBackupLocationAndroid => 'Downloads / App-Data फ़ोल्डर';
 
   @override
-  String get storageBackupLocationDownloads => 'डाउनलोड डायरेक्टरी';
+  String get storageBackupLocationDownloads => 'Downloads फ़ोल्डर';
 
   @override
   String get storageCreateBackup => 'बैकअप बनाएँ';
 
   @override
   String get storageCreateBackupSubtitle =>
-      'अपनी सेटिंग्स और डेटा एक बैकअप फ़ाइल में सहेजें।';
+      'अपनी सेटिंग्स और डेटा को एक बैकअप फ़ाइल में सुरक्षित करें।';
 
   @override
   String storageBackupCreatedAt(String path) {
-    return 'बैकअप बनाया गया: $path';
+    return 'बैकअप $path में बन गया है';
   }
 
   @override
@@ -966,77 +981,76 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get storageBackupFailed => 'बैकअप विफल!';
+  String get storageBackupFailed => 'बैकअप विफल रहा!';
 
   @override
-  String get storageRestoreBackup => 'बैकअप पुनः स्थापित करें';
+  String get storageRestoreBackup => 'बैकअप रीस्टोर करें';
 
   @override
   String get storageRestoreBackupSubtitle =>
-      'बैकअप फ़ाइल से अपनी सेटिंग्स और डेटा पुनः स्थापित करें।';
+      'किसी बैकअप फ़ाइल से अपनी सेटिंग्स और डेटा वापस लाएँ।';
 
   @override
-  String get storageAutoBackup => 'स्वतः बैकअप';
+  String get storageAutoBackup => 'ऑटो बैकअप';
 
   @override
   String get storageAutoBackupSubtitle =>
-      'अपने डेटा का समय-समय पर स्वचालित बैकअप बनाएँ।';
+      'समय-समय पर अपने डेटा का बैकअप अपने-आप तैयार करें।';
 
   @override
-  String get storageAutoLyrics => 'गीत के बोल स्वतः सहेजें';
+  String get storageAutoLyrics => 'लिरिक्स अपने-आप सेव करें';
 
   @override
   String get storageAutoLyricsSubtitle =>
-      'गाना चलने पर गीत के बोल स्वचालित रूप से सहेजें।';
+      'गाना बजते समय उसके लिरिक्स अपने-आप डिवाइस में सेव कर लें।';
 
   @override
-  String get storageResetApp => 'Bloomee ऐप रीसेट करें';
+  String get storageResetApp => 'Bloomee ऐप को रीसेट करें';
 
   @override
   String get storageResetAppSubtitle =>
-      'सभी डेटा हटाएँ और ऐप को डिफ़ॉल्ट स्थिति में पुनः स्थापित करें।';
+      'सारा डेटा मिटाकर ऐप को उसकी शुरुआती स्थिति में वापस लाएँ।';
 
   @override
-  String get storageResetConfirmTitle => 'रीसेट की पुष्टि';
+  String get storageResetConfirmTitle => 'रीसेट की पुष्टि करें';
 
   @override
   String get storageResetConfirmMessage =>
-      'क्या आप Bloomee को रीसेट करना चाहते हैं? यह आपका सभी डेटा हटा देगा और यह पूर्ववत नहीं किया जा सकता।';
+      'क्या आप वाकई Bloomee को रीसेट करना चाहते हैं? इससे आपका सारा डेटा डिलीट हो जाएगा और इसे वापस नहीं पाया जा सकेगा।';
 
   @override
-  String get storageResetButton => 'रीसेट';
+  String get storageResetButton => 'रीसेट करें';
 
   @override
-  String get storageResetSuccess =>
-      'ऐप को डिफ़ॉल्ट स्थिति में पुनः स्थापित किया गया।';
+  String get storageResetSuccess => 'ऐप को पूरी तरह से रीसेट कर दिया गया है।';
 
   @override
-  String get storageLocationDialogTitle => 'बैकअप स्थान';
+  String get storageLocationDialogTitle => 'बैकअप की लोकेशन';
 
   @override
   String get storageLocationAndroid =>
-      'बैकअप यहाँ संग्रहीत हैं:\n\n1. डाउनलोड डायरेक्टरी\n2. Android/data/ls.bloomee.musicplayer/data\n\nकिसी भी स्थान से फ़ाइल कॉपी करें।';
+      'बैकअप यहाँ सेव किए जाते हैं:\n\n1. Downloads फ़ोल्डर\n2. Android/data/ls.bloomee.musicplayer/data\n\nदोनों में से किसी भी जगह से आप फ़ाइल कॉपी कर सकते हैं।';
 
   @override
   String get storageLocationOther =>
-      'बैकअप डाउनलोड डायरेक्टरी में संग्रहीत हैं। वहाँ से फ़ाइल कॉपी करें।';
+      'बैकअप आपके Downloads फ़ोल्डर में मौजूद हैं।';
 
   @override
-  String get storageRestoreOptionsTitle => 'पुनः स्थापना विकल्प';
+  String get storageRestoreOptionsTitle => 'रीस्टोर विकल्प';
 
   @override
   String get storageRestoreOptionsDesc =>
-      'चुनें कि आप बैकअप फ़ाइल से कौन सा डेटा पुनः स्थापित करना चाहते हैं। जो आइटम आयात नहीं करना चाहते उन्हें अनचेक करें।';
+      'चुनें कि बैकअप फ़ाइल में से आप कौन-सा डेटा वापस लाना चाहते हैं। जिन्हें आप इम्पोर्ट नहीं करना चाहते, उनसे टिक हटा दें।';
 
   @override
   String get storageRestoreSelectAll => 'सभी चुनें';
 
   @override
   String get storageRestoreMediaItems =>
-      'मीडिया आइटम (गाने, ट्रैक, लाइब्रेरी प्रविष्टियाँ)';
+      'मीडिया डेटा (गाने, ट्रैक्स, लाइब्रेरी)';
 
   @override
-  String get storageRestoreSearchHistory => 'खोज इतिहास';
+  String get storageRestoreSearchHistory => 'खोज की हिस्ट्री (Search History)';
 
   @override
   String get storageRestoreContinue => 'जारी रखें';
@@ -1045,117 +1059,115 @@ class AppLocalizationsHi extends AppLocalizations {
   String get storageRestoreNoFile => 'कोई फ़ाइल नहीं चुनी गई।';
 
   @override
-  String get storageRestoreSaveFailed => 'चुनी गई फ़ाइल सहेजने में विफल।';
+  String get storageRestoreSaveFailed => 'चुनी गई फ़ाइल सेव नहीं हो पाई।';
 
   @override
-  String get storageRestoreConfirmTitle => 'पुनः स्थापना की पुष्टि';
+  String get storageRestoreConfirmTitle => 'रीस्टोर की पुष्टि करें';
 
   @override
   String get storageRestoreConfirmPrefix =>
-      'यह बैकअप फ़ाइल से चुने गए भागों के डेटा को मर्ज/अधिलेखित कर देगा:';
+      'यह आपके चुने हुए ऐप के मौजूदा डेटा को बैकअप फ़ाइल के डेटा के साथ बदल या मिला देगा:';
 
   @override
   String get storageRestoreConfirmSuffix =>
-      'आपका वर्तमान डेटा बदल जाएगा। क्या आप आगे बढ़ना चाहते हैं?';
+      'आपका मौजूदा डेटा बदल जाएगा। क्या आप सचमुच आगे बढ़ना चाहते हैं?';
 
   @override
-  String get storageRestoreYes => 'हाँ, पुनः स्थापित करें';
+  String get storageRestoreYes => 'हाँ, रीस्टोर करें';
 
   @override
   String get storageRestoreNo => 'नहीं';
 
   @override
   String get storageRestoring =>
-      'चुना डेटा पुनः स्थापित हो रहा है…\nकृपया ऑपरेशन पूरा होने तक प्रतीक्षा करें।';
+      'चुना हुआ डेटा रीस्टोर किया जा रहा है…\nकृपया प्रक्रिया पूरी होने तक इंतज़ार करें।';
 
   @override
-  String get storageRestoreMediaBullet => '• मीडिया आइटम';
+  String get storageRestoreMediaBullet => '• मीडिया डेटा';
 
   @override
-  String get storageRestoreHistoryBullet => '• खोज इतिहास';
+  String get storageRestoreHistoryBullet => '• खोज की हिस्ट्री';
 
   @override
   String get storageUnexpectedError =>
-      'पुनः स्थापना के दौरान अप्रत्याशित त्रुटि हुई।';
+      'रीस्टोर करते समय कुछ अज्ञात त्रुटि आ गई।';
 
   @override
-  String get storageRestoreCompleted => 'पुनः स्थापना पूर्ण';
+  String get storageRestoreCompleted => 'रीस्टोर पूरा हुआ';
 
   @override
-  String get storageRestoreFailedTitle => 'पुनः स्थापना विफल';
+  String get storageRestoreFailedTitle => 'रीस्टोर विफल';
 
   @override
   String get storageRestoreSuccessMessage =>
-      'चुना डेटा सफलतापूर्वक पुनः स्थापित हो गया। सर्वोत्तम परिणामों के लिए, अब ऐप पुनः शुरू करें।';
+      'डेटा सफलतापूर्वक रीस्टोर कर लिया गया है। बेहतर अनुभव के लिए, कृपया ऐप को एक बार बंद करके दोबारा खोलें।';
 
   @override
   String get storageRestoreFailedMessage =>
-      'पुनः स्थापना की प्रक्रिया निम्न त्रुटियों के साथ विफल हुई:';
+      'रीस्टोर प्रक्रिया इन वजहों से पूरी नहीं हो पाई:';
 
   @override
   String get storageRestoreUnknownError =>
-      'पुनः स्थापना के दौरान अज्ञात त्रुटि हुई।';
+      'रीस्टोर के दौरान अज्ञात समस्या आ गई।';
 
   @override
   String get storageRestoreRestartHint =>
-      'बेहतर स्थिरता के लिए कृपया ऐप पुनः शुरू करें।';
+      'ऐप को सुचारू रूप से चलाने के लिए कृपया इसे रीस्टार्ट करें।';
 
   @override
-  String get updateSettingTitle => 'अपडेट';
+  String get updateSettingTitle => 'अपडेट्स';
 
   @override
-  String get updateAppUpdatesHeader => 'ऐप अपडेट';
+  String get updateAppUpdatesHeader => 'ऐप अपडेट्स';
 
   @override
-  String get updateCheckForUpdates => 'अपडेट जाँचें';
+  String get updateCheckForUpdates => 'अपडेट्स चेक करें';
 
   @override
   String get updateCheckSubtitle =>
-      'देखें कि Bloomee का नया संस्करण उपलब्ध है या नहीं।';
+      'देखें कि Bloomee का कोई नया वर्शन मौजूद है या नहीं।';
 
   @override
-  String get updateAutoNotify => 'स्वतः अपडेट सूचना';
+  String get updateAutoNotify => 'ऑटो अपडेट सूचना';
 
   @override
   String get updateAutoNotifySubtitle =>
-      'ऐप शुरू होने पर नए अपडेट की सूचना पाएँ।';
+      'ऐप खोलते ही नया अपडेट उपलब्ध होने पर जानकारी पाएँ।';
 
   @override
-  String get updateCheckTitle => 'अपडेट जाँचें';
+  String get updateCheckTitle => 'अपडेट्स चेक करें';
 
   @override
-  String get updateUpToDate => 'Bloomee🌸 अप-टू-डेट है!!!';
+  String get updateUpToDate => 'Bloomee🌸 पूरी तरह से अपडेटेड है!';
 
   @override
-  String get updateViewPreRelease => 'नवीनतम Pre-Release देखें';
+  String get updateViewPreRelease => 'नया प्री-रिलीज़ वर्शन देखें';
 
   @override
   String updateCurrentVersion(String curr, String build) {
-    return 'वर्तमान संस्करण: $curr + $build';
+    return 'वर्तमान वर्शन: $curr + $build';
   }
 
   @override
   String get updateNewVersionAvailable =>
-      'Bloomee🌸 का नया संस्करण अब उपलब्ध है!!';
+      'Bloomee🌸 का एक नया वर्शन उपलब्ध है!';
 
   @override
   String updateVersion(String ver, String build) {
-    return 'संस्करण: $ver+$build';
+    return 'वर्शन: $ver+$build';
   }
 
   @override
   String get updateDownloadNow => 'अभी डाउनलोड करें';
 
   @override
-  String get updateChecking =>
-      'जाँच हो रही है कि नया संस्करण उपलब्ध है या नहीं!';
+  String get updateChecking => 'नए वर्शन की जाँच की जा रही है!';
 
   @override
   String get timerTitle => 'स्लीप टाइमर';
 
   @override
-  String get timerInterludeMessage =>
-      'एक शांतिपूर्ण विराम की तैयारी हो रही है…';
+  String get timerInterludeMessage => 'कुछ ही देर में संगीत रुक जाएगा…';
 
   @override
   String get timerHours => 'घंटे';
@@ -1170,29 +1182,29 @@ class AppLocalizationsHi extends AppLocalizations {
   String get timerStop => 'टाइमर रोकें';
 
   @override
-  String get timerFinishedMessage => 'धुनें आराम कर रही हैं। शुभ स्वप्न 🥰।';
+  String get timerFinishedMessage => 'संगीत बंद हो गया है। शुभ रात्रि 🥰।';
 
   @override
   String get timerGotIt => 'समझ गया!';
 
   @override
-  String get timerSetTimeError => 'कृपया समय सेट करें';
+  String get timerSetTimeError => 'कृपया एक समय सेट करें';
 
   @override
   String get timerStart => 'टाइमर शुरू करें';
 
   @override
-  String get notificationsTitle => 'सूचनाएँ';
+  String get notificationsTitle => 'नोटिफ़िकेशन्स';
 
   @override
-  String get notificationsEmpty => 'अभी कोई सूचना नहीं!';
+  String get notificationsEmpty => 'अभी तक कोई नया नोटिफ़िकेशन नहीं है!';
 
   @override
-  String get recentsTitle => 'इतिहास';
+  String get recentsTitle => 'हिस्ट्री';
 
   @override
   String playlistByCreator(String creator) {
-    return '$creator द्वारा';
+    return '$creator के द्वारा';
   }
 
   @override
@@ -1205,17 +1217,17 @@ class AppLocalizationsHi extends AppLocalizations {
   String get playlistYou => 'आप';
 
   @override
-  String get pluginManagerTitle => 'प्लगइन';
+  String get pluginManagerTitle => 'प्लगइन्स';
 
   @override
   String get pluginManagerEmpty =>
-      'कोई प्लगइन इंस्टॉल नहीं।\n+ दबाएँ और .bex फ़ाइल जोड़ें।';
+      'कोई प्लगइन इंस्टॉल नहीं है।\n.bex फ़ाइल जोड़ने के लिए + पर टैप करें।';
 
   @override
   String get pluginManagerFilterAll => 'सभी';
 
   @override
-  String get pluginManagerFilterContent => 'कंटेंट रिज़ॉल्वर';
+  String get pluginManagerFilterContent => 'कंटेंट रिज़ॉल्वर्स';
 
   @override
   String get pluginManagerFilterCharts => 'चार्ट प्रदाता';
@@ -1227,20 +1239,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pluginManagerFilterSuggestions => 'सुझाव प्रदाता';
 
   @override
-  String get pluginManagerFilterImporters => 'Content Importers';
+  String get pluginManagerFilterImporters => 'कंटेंट इम्पोर्टर्स';
 
   @override
-  String get pluginManagerTooltipRefresh => 'रिफ़्रेश';
+  String get pluginManagerTooltipRefresh => 'रीफ्रेश करें';
 
   @override
   String get pluginManagerTooltipInstall => 'प्लगइन इंस्टॉल करें';
 
   @override
-  String get pluginManagerNoMatch => 'इस फ़िल्टर से कोई प्लगइन नहीं मिला';
+  String get pluginManagerNoMatch => 'इस फ़िल्टर से कोई प्लगइन मैच नहीं हुआ।';
 
   @override
   String pluginManagerPickFailed(String error) {
-    return 'फ़ाइल चुनने में विफल: $error';
+    return 'फ़ाइल चुनने में दिक्कत आई: $error';
   }
 
   @override
@@ -1256,17 +1268,17 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pluginManagerTypeLyricsProvider => 'लिरिक्स प्रदाता';
 
   @override
-  String get pluginManagerTypeSuggestionProvider => 'खोज सुझाव';
+  String get pluginManagerTypeSuggestionProvider => 'खोज के सुझाव';
 
   @override
-  String get pluginManagerTypeContentImporter => 'Content Importer';
+  String get pluginManagerTypeContentImporter => 'कंटेंट इम्पोर्टर';
 
   @override
   String get pluginManagerDeleteTitle => 'प्लगइन हटाएँ?';
 
   @override
   String pluginManagerDeleteMessage(String name) {
-    return 'क्या आप \"$name\" को हटाना चाहते हैं? इससे इसकी फ़ाइलें स्थायी रूप से हट जाएँगी।';
+    return 'क्या आप वाकई \"$name\" को हटाना चाहते हैं? यह इसकी फ़ाइलों को हमेशा के लिए मिटा देगा।';
   }
 
   @override
@@ -1276,81 +1288,81 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pluginManagerCancel => 'रद्द करें';
 
   @override
-  String get pluginManagerEnablePlugin => 'प्लगइन सक्षम करें';
+  String get pluginManagerEnablePlugin => 'प्लगइन चालू करें';
 
   @override
-  String get pluginManagerUnloadPlugin => 'प्लगइन अनलोड करें';
+  String get pluginManagerUnloadPlugin => 'प्लगइन बंद करें';
 
   @override
   String get pluginManagerDeleting => 'हटाया जा रहा है...';
 
   @override
-  String get pluginManagerApiKeysTitle => 'API कुंजियाँ';
+  String get pluginManagerApiKeysTitle => 'API Keys';
 
   @override
-  String get pluginManagerApiKeysSaved => 'API कुंजियाँ सहेजी गईं';
+  String get pluginManagerApiKeysSaved => 'API keys सेव कर ली गई हैं';
 
   @override
-  String get pluginManagerSave => 'सहेजें';
+  String get pluginManagerSave => 'सेव करें';
 
   @override
-  String get pluginManagerDetailVersion => 'Version';
+  String get pluginManagerDetailVersion => 'वर्शन';
 
   @override
-  String get pluginManagerDetailType => 'Type';
+  String get pluginManagerDetailType => 'प्रकार';
 
   @override
-  String get pluginManagerDetailPublisher => 'Publisher';
+  String get pluginManagerDetailPublisher => 'प्रकाशक';
 
   @override
-  String get pluginManagerDetailLastUpdated => 'Last Updated';
+  String get pluginManagerDetailLastUpdated => 'अंतिम अपडेट';
 
   @override
-  String get pluginManagerDetailCreated => 'Created';
+  String get pluginManagerDetailCreated => 'बनाया गया';
 
   @override
-  String get pluginManagerDetailHomepage => 'Homepage';
+  String get pluginManagerDetailHomepage => 'होमपेज';
 
   @override
-  String get pluginManagerDowngradeTitle => 'Downgrade Plugin?';
+  String get pluginManagerDowngradeTitle => 'प्लगइन को डाउनग्रेड करें?';
 
   @override
   String pluginManagerDowngradeMessage(String name) {
-    return 'You are installing an older or equal version of \"$name\". Continue?';
+    return 'आप \"$name\" का कोई पुराना या समान वर्शन इंस्टॉल कर रहे हैं। क्या आप ऐसा करना चाहते हैं?';
   }
 
   @override
-  String get pluginManagerDowngradeAction => 'Install Anyway';
+  String get pluginManagerDowngradeAction => 'हाँ, इंस्टॉल करें';
 
   @override
-  String get pluginManagerDeleteStorageTitle => 'Delete Plugin Data?';
+  String get pluginManagerDeleteStorageTitle => 'प्लगइन डेटा भी हटाएँ?';
 
   @override
   String pluginManagerDeleteStorageMessage(String name) {
-    return 'Also remove saved API keys and settings for \"$name\"?';
+    return 'क्या \"$name\" के लिए सेव की गई API कुंजियाँ और सेटिंग्स भी हटा दी जाएँ?';
   }
 
   @override
-  String get pluginManagerDeleteStorageKeep => 'Keep Data';
+  String get pluginManagerDeleteStorageKeep => 'डेटा रखें';
 
   @override
-  String get pluginManagerDeleteStorageRemove => 'Remove Data';
+  String get pluginManagerDeleteStorageRemove => 'डेटा हटाएँ';
 
   @override
-  String get segmentsSheetTitle => 'सेगमेंट';
+  String get segmentsSheetTitle => 'सेगमेंट्स';
 
   @override
   String get segmentsSheetEmpty => 'कोई सेगमेंट उपलब्ध नहीं है';
 
   @override
-  String get segmentsSheetUntitled => 'बिना शीर्षक का सेगमेंट';
+  String get segmentsSheetUntitled => 'बिना नाम का सेगमेंट';
 
   @override
   String get smartReplaceTitle => 'स्मार्ट रिप्लेस';
 
   @override
   String smartReplaceSubtitle(String title) {
-    return '\"$title\" के लिए चलाने योग्य विकल्प चुनें और सहेजी प्लेलिस्ट संदर्भ अपडेट करें।';
+    return '\"$title\" की जगह चलने वाला कोई दूसरा ट्रैक चुनें और सेव की गई प्लेलिस्ट को अपडेट करें।';
   }
 
   @override
@@ -1361,13 +1373,13 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get smartReplaceNoMatchSubtitle =>
-      'किसी भी लोड किए गए रिज़ॉल्वर प्लगइन ने पर्याप्त मिलान नहीं लौटाया।';
+      'किसी भी रिज़ॉल्वर प्लगइन को सही मैच नहीं मिला।';
 
   @override
-  String get smartReplaceBestMatch => 'सबसे अच्छा मिलान';
+  String get smartReplaceBestMatch => 'सर्वश्रेष्ठ मैच';
 
   @override
-  String get smartReplaceSearchFailed => 'खोज विफल';
+  String get smartReplaceSearchFailed => 'खोज विफल रही';
 
   @override
   String smartReplaceApplyFailed(String error) {
@@ -1376,32 +1388,32 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String smartReplaceApplied(String queue) {
-    return 'विकल्प लागू किया$queue।';
+    return 'नया गाना लागू किया गया$queue।';
   }
 
   @override
   String smartReplaceAppliedPlaylists(int count, String plural, String queue) {
-    return '$count प्लेलिस्ट$plural में बदला$queue।';
+    return '$count प्लेलिस्ट$plural में गाना बदल दिया गया$queue।';
   }
 
   @override
-  String get smartReplaceQueueUpdated => ' और कतार अपडेट हुई';
+  String get smartReplaceQueueUpdated => ' और कतार अपडेट की गई';
 
   @override
   String get playerUnknownQueue => 'अज्ञात';
 
   @override
   String playerLiked(String title) {
-    return '$title पसंदीदा में जोड़ा!!';
+    return '$title को पसंद किया गया!!';
   }
 
   @override
   String playerUnliked(String title) {
-    return '$title पसंदीदा से हटाया!!';
+    return '$title से पसंद हटाई गई!!';
   }
 
   @override
-  String get offlineNoDownloads => 'कोई डाउनलोड नहीं';
+  String get offlineNoDownloads => 'कोई गाना डाउनलोड नहीं है';
 
   @override
   String get offlineTitle => 'ऑफ़लाइन';
@@ -1410,7 +1422,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get offlineSearchHint => 'अपने गाने खोजें...';
 
   @override
-  String get offlineRefreshTooltip => 'डाउनलोड रिफ़्रेश करें';
+  String get offlineRefreshTooltip => 'डाउनलोड्स रीफ्रेश करें';
 
   @override
   String get offlineCloseSearch => 'खोज बंद करें';
@@ -1420,59 +1432,59 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get offlineOpenFailed =>
-      'यह ऑफ़लाइन ट्रैक नहीं खुल सका। डाउनलोड रिफ़्रेश करें।';
+      'इस ऑफ़लाइन ट्रैक को नहीं खोला जा सका। कृपया डाउनलोड्स को रीफ्रेश करके देखें।';
 
   @override
   String get offlinePlayFailed =>
-      'यह ऑफ़लाइन गाना नहीं चला। कृपया पुनः प्रयास करें।';
+      'यह ऑफ़लाइन गाना नहीं चल पाया। कृपया दोबारा कोशिश करें।';
 
   @override
   String albumViewTrackCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ट्रैक',
+      other: '$count ट्रैक्स',
       one: '1 ट्रैक',
     );
     return '$_temp0';
   }
 
   @override
-  String get albumViewLoadFailed => 'एल्बम लोड करने में विफल';
+  String get albumViewLoadFailed => 'एल्बम लोड नहीं हो पाया';
 
   @override
-  String get aboutCraftingSubtitle => 'कोड में सिम्फनी बना रहे हैं।';
+  String get aboutCraftingSubtitle => 'कोड के ज़रिए संगीत पिरोना।';
 
   @override
   String get aboutFollowGitHub => 'GitHub पर फ़ॉलो करें';
 
   @override
-  String get aboutSendInquiry => 'व्यावसायिक पूछताछ भेजें';
+  String get aboutSendInquiry => 'बिज़नेस के लिए संपर्क करें';
 
   @override
-  String get aboutCreativeHighlights => 'अपडेट और रचनात्मक झलक';
+  String get aboutCreativeHighlights => 'अपडेट्स और रचनात्मक बातें';
 
   @override
   String get aboutTipQuote =>
-      'Bloomee पसंद है? एक छोटी सी सहायता इसे खिलाए रखती है। 🌸';
+      'Bloomee पसंद आ रहा है? आपका छोटा-सा सहयोग इसे और बेहतर बनाने में मदद करेगा। 🌸';
 
   @override
-  String get aboutTipButton => 'मैं मदद करूँगा';
+  String get aboutTipButton => 'मैं सहायता करना चाहता/चाहती हूँ';
 
   @override
-  String get aboutTipDesc => 'मैं चाहता हूँ कि Bloomee बेहतर होता रहे।';
+  String get aboutTipDesc => 'Bloomee को और बेहतर बनाने में अपना योगदान दें।';
 
   @override
   String get aboutGitHub => 'GitHub';
 
   @override
-  String get songInfoSectionDetails => 'गाने की जानकारी';
+  String get songInfoSectionDetails => 'गाने का विवरण';
 
   @override
   String get songInfoSectionTechnical => 'तकनीकी जानकारी';
 
   @override
-  String get songInfoSectionActions => 'क्रियाएँ';
+  String get songInfoSectionActions => 'कार्रवाइयाँ';
 
   @override
   String get songInfoLabelTitle => 'शीर्षक';
@@ -1487,65 +1499,65 @@ class AppLocalizationsHi extends AppLocalizations {
   String get songInfoLabelDuration => 'अवधि';
 
   @override
-  String get songInfoLabelSource => 'स्रोत';
+  String get songInfoLabelSource => 'सोर्स';
 
   @override
-  String get songInfoLabelMediaId => 'मीडिया आईडी';
+  String get songInfoLabelMediaId => 'मीडिया ID';
 
   @override
-  String get songInfoLabelPluginId => 'प्लगइन आईडी';
+  String get songInfoLabelPluginId => 'प्लगइन ID';
 
   @override
-  String get songInfoIdCopied => 'मीडिया आईडी कॉपी हो गई';
+  String get songInfoIdCopied => 'मीडिया ID कॉपी हो गई है';
 
   @override
-  String get songInfoLinkCopied => 'लिंक कॉपी हो गया';
+  String get songInfoLinkCopied => 'लिंक कॉपी हो गया है';
 
   @override
-  String get songInfoNoLink => 'कोई लिंक उपलब्ध नहीं';
+  String get songInfoNoLink => 'कोई लिंक मौजूद नहीं है';
 
   @override
-  String get songInfoOpenFailed => 'लिंक नहीं खोल सका';
+  String get songInfoOpenFailed => 'लिंक नहीं खुल पाया';
 
   @override
-  String get songInfoUpdateMetadata => 'नवीनतम मेटाडेटा प्राप्त करें';
+  String get songInfoUpdateMetadata => 'मेटाडेटा अपडेट करें';
 
   @override
-  String get songInfoMetadataUpdated => 'मेटाडेटा अपडेट हो गया';
+  String get songInfoMetadataUpdated => 'मेटाडेटा अपडेट कर दिया गया है';
 
   @override
   String get songInfoMetadataUpdateFailed => 'मेटाडेटा अपडेट नहीं हो सका';
 
   @override
   String get songInfoMetadataUnavailable =>
-      'इस स्रोत के लिए मेटाडेटा रीफ्रेश उपलब्ध नहीं है';
+      'इस सोर्स के लिए नया डेटा लाना उपलब्ध नहीं है';
 
   @override
-  String get songInfoSearchTitle => 'इस गाने को Bloomee में खोजें';
+  String get songInfoSearchTitle => 'Bloomee में यह गाना खोजें';
 
   @override
-  String get songInfoSearchArtist => 'इस कलाकार को Bloomee में खोजें';
+  String get songInfoSearchArtist => 'Bloomee में इस कलाकार को खोजें';
 
   @override
-  String get songInfoSearchAlbum => 'इस एल्बम को Bloomee में खोजें';
+  String get songInfoSearchAlbum => 'Bloomee में इस एल्बम को खोजें';
 
   @override
   String get eqTitle => 'इक्वलाइज़र';
 
   @override
-  String get eqResetTooltip => 'फ्लैट पर रीसेट करें';
+  String get eqResetTooltip => 'रीसेट करें (Flat)';
 
   @override
-  String get chartNoItems => 'इस चार्ट में कोई आइटम नहीं';
+  String get chartNoItems => 'इस चार्ट में कोई गाना नहीं है';
 
   @override
-  String get chartLoadFailed => 'चार्ट लोड करने में विफल';
+  String get chartLoadFailed => 'चार्ट लोड करने में समस्या आई';
 
   @override
-  String get chartPlay => 'चलाएं';
+  String get chartPlay => 'चलाएँ';
 
   @override
-  String get chartResolving => 'खोज रहे हैं';
+  String get chartResolving => 'खोजा जा रहा है';
 
   @override
   String get chartReady => 'तैयार';
@@ -1555,21 +1567,20 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get chartNoResolver =>
-      'कोई कंटेंट रिज़ॉल्वर लोड नहीं है। चलाने के लिए प्लगइन इंस्टॉल करें।';
+      'कोई कंटेंट रिज़ॉल्वर लोड नहीं है। चलाने के लिए एक प्लगइन इंस्टॉल करें।';
 
   @override
   String get chartResolveFailed =>
-      'रिज़ॉल्व नहीं हो सका। इसके बजाय खोज रहे हैं...';
+      'गाना नहीं मिल पाया। इसके बजाय सर्च किया जा रहा है...';
 
   @override
-  String get chartNoResolverAdd => 'कोई कंटेंट रिज़ॉल्वर लोड नहीं है।';
+  String get chartNoResolverAdd => 'कोई कंटेंट रिज़ॉल्वर इंस्टॉल नहीं है।';
 
   @override
-  String get chartNoMatch =>
-      'कोई मिलान नहीं मिला। मैन्युअल रूप से खोजने का प्रयास करें।';
+  String get chartNoMatch => 'कोई मैच नहीं मिला। कृपया ख़ुद सर्च करके देखें।';
 
   @override
-  String get chartStatPeak => 'चरम';
+  String get chartStatPeak => 'शिखर (Peak)';
 
   @override
   String get chartStatWeeks => 'सप्ताह';
@@ -1579,14 +1590,14 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String menuSharePreparing(String title) {
-    return '$title शेयर करने की तैयारी हो रही है।';
+    return '$title को शेयर करने के लिए तैयार किया जा रहा है।';
   }
 
   @override
-  String get menuOpenLinkFailed => 'लिंक नहीं खोल सका';
+  String get menuOpenLinkFailed => 'लिंक नहीं खुल पाया';
 
   @override
-  String get localMusicFolders => 'संगीत फ़ोल्डर';
+  String get localMusicFolders => 'म्यूज़िक फ़ोल्डर्स';
 
   @override
   String get localMusicCloseSearch => 'खोज बंद करें';
@@ -1595,175 +1606,190 @@ class AppLocalizationsHi extends AppLocalizations {
   String get localMusicOpenSearch => 'खोजें';
 
   @override
-  String get localMusicNoMusicFound => 'कोई स्थानीय संगीत नहीं मिला';
+  String get localMusicNoMusicFound => 'कोई लोकल गाना नहीं मिला';
 
   @override
   String get localMusicNoSearchResults =>
-      'आपकी खोज से मेल खाने वाले कोई ट्रैक नहीं मिले।';
+      'आपकी खोज से मिलता-जुलता कोई ट्रैक नहीं मिला।';
 
   @override
-  String get importSongsTitle => 'Import Songs';
+  String get importSongsTitle => 'गाने इम्पोर्ट करें';
 
   @override
   String get importNoPluginsLoaded =>
-      'No content-importer plugins loaded.\nInstall an importer plugin to import playlists from external services.';
+      'कोई इम्पोर्टर प्लगइन मौजूद नहीं है।\nबाहरी जगहों से प्लेलिस्ट लाने के लिए पहले कोई इम्पोर्टर प्लगइन इंस्टॉल करें।';
 
   @override
-  String get importBloomeeFiles => 'Import Bloomee Files';
+  String get importBloomeeFiles => 'Bloomee फ़ाइलें इम्पोर्ट करें';
 
   @override
-  String get importNoteTitle => 'Note';
+  String get importM3UFiles => 'M3U प्लेलिस्ट इम्पोर्ट करें';
+
+  @override
+  String get importM3UNameDialogTitle => 'प्लेलिस्ट का नाम';
+
+  @override
+  String get importM3UNameHint => 'इस प्लेलिस्ट का कोई नाम रखें';
+
+  @override
+  String get importM3UNoTracks =>
+      'इस M3U फ़ाइल में कोई भी सही ट्रैक नहीं मिला।';
+
+  @override
+  String get importNoteTitle => 'नोट';
 
   @override
   String get importNoteMessage =>
-      'You can only import files created by Bloomee.\nIf your file is from another source, it will not work. Continue anyway?';
+      'आप केवल Bloomee द्वारा बनाई गई फ़ाइलें ही इम्पोर्ट कर सकते हैं।\nयदि आपकी फ़ाइल किसी और जगह की है, तो वह काम नहीं करेगी। क्या आप फिर भी आगे बढ़ना चाहते हैं?';
 
   @override
-  String get importTitle => 'Import';
+  String get importTitle => 'इम्पोर्ट करें';
 
   @override
-  String get importCheckingUrl => 'Checking URL...';
+  String get importCheckingUrl => 'URL की जाँच हो रही है...';
 
   @override
-  String get importFetchingTracks => 'Fetching tracks...';
+  String get importFetchingTracks => 'गाने लाए जा रहे हैं...';
 
   @override
-  String get importSavingToLibrary => 'Saving to library...';
+  String get importSavingToLibrary => 'लाइब्रेरी में सेव किया जा रहा है...';
 
   @override
-  String get importPasteUrlHint => 'Paste a playlist or album URL to import';
+  String get importPasteUrlHint =>
+      'इम्पोर्ट करने के लिए किसी प्लेलिस्ट या एल्बम का URL यहाँ पेस्ट करें';
 
   @override
-  String get importAction => 'Import';
+  String get importAction => 'इम्पोर्ट करें';
 
   @override
   String importTrackCount(int count) {
-    return '$count tracks';
+    return '$count गाने';
   }
 
   @override
-  String get importResolving => 'Resolving...';
+  String get importResolving => 'सर्च किया जा रहा है...';
 
   @override
   String importResolvingProgress(int done, int total) {
-    return 'Resolving tracks: $done / $total';
+    return 'गानों को ढूँढा जा रहा है: $done / $total';
   }
 
   @override
-  String get importReviewTitle => 'Import Review';
+  String get importReviewTitle => 'इम्पोर्ट की समीक्षा';
 
   @override
   String importReviewSummary(int resolved, int failed, int total) {
-    return '$resolved resolved, $failed failed out of $total';
+    return '$total में से $resolved मिल गए, $failed नहीं मिले';
   }
 
   @override
   String importSaveTracks(int count) {
-    return 'Save $count Tracks';
+    return '$count गाने सेव करें';
   }
 
   @override
   String importTracksSaved(int count) {
-    return '$count tracks saved!';
+    return '$count गाने सेव हो गए!';
   }
 
   @override
-  String get importDone => 'Done';
+  String get importDone => 'हो गया';
 
   @override
-  String get importMore => 'Import More';
+  String get importMore => 'और इम्पोर्ट करें';
 
   @override
-  String get importUnknownError => 'Unknown error';
+  String get importUnknownError => 'कुछ अज्ञात समस्या आ गई';
 
   @override
-  String get importTryAgain => 'Try Again';
+  String get importTryAgain => 'दोबारा कोशिश करें';
 
   @override
-  String get importSkipTrack => 'Skip this track';
+  String get importSkipTrack => 'इस गाने को छोड़ दें';
 
   @override
-  String get importMatchOptions => 'Match options';
+  String get importMatchOptions => 'मैच के विकल्प';
 
   @override
-  String get importAutoMatched => 'Auto-matched';
+  String get importAutoMatched => 'अपने-आप मैच हुआ';
 
   @override
-  String get importUserSelected => 'Selected';
+  String get importUserSelected => 'आपके द्वारा चुना गया';
 
   @override
-  String get importSkipped => 'Skipped';
+  String get importSkipped => 'छोड़ दिया गया';
 
   @override
-  String get importNoMatch => 'No match found';
+  String get importNoMatch => 'कोई मैच नहीं मिला';
 
   @override
-  String get importReorderTip => 'Long press a playlist to start reordering';
+  String get importReorderTip =>
+      'प्लेलिस्ट का क्रम बदलने के लिए उसे देर तक दबाकर रखें';
 
   @override
   String get importErrorCannotHandleUrl =>
-      'This plugin cannot handle the provided URL.';
+      'यह प्लगइन इस URL को सपोर्ट नहीं करता।';
 
   @override
-  String get importErrorUnexpectedResponse =>
-      'Unexpected response from plugin.';
+  String get importErrorUnexpectedResponse => 'प्लगइन से सही जवाब नहीं मिला।';
 
   @override
   String importErrorFailedToCheck(String error) {
-    return 'Failed to check URL: $error';
+    return 'URL जाँचने में विफल: $error';
   }
 
   @override
   String importErrorFailedToFetchInfo(String error) {
-    return 'Failed to fetch collection info: $error';
+    return 'कलेक्शन की जानकारी नहीं मिल पाई: $error';
   }
 
   @override
   String importErrorFailedToFetchTracks(String error) {
-    return 'Failed to fetch tracks: $error';
+    return 'गाने नहीं मिल पाए: $error';
   }
 
   @override
   String importErrorFailedToSave(String error) {
-    return 'Failed to save playlist: $error';
+    return 'प्लेलिस्ट सेव करने में विफल: $error';
   }
 
   @override
-  String get playlistPinToTop => 'Pin to Top';
+  String get playlistPinToTop => 'सबसे ऊपर पिन करें';
 
   @override
-  String get playlistUnpin => 'Unpin';
+  String get playlistUnpin => 'अनपिन करें';
 
   @override
-  String get snackbarImportingMedia => 'Importing MediaItems..';
+  String get snackbarImportingMedia => 'मीडिया आइटम्स लाये जा रहे हैं...';
 
   @override
-  String get snackbarPlaylistSaved => 'Playlist saved to library!';
+  String get snackbarPlaylistSaved =>
+      'प्लेलिस्ट आपकी लाइब्रेरी में सेव हो गई है!';
 
   @override
-  String get snackbarInvalidFileFormat => 'Invalid File Format';
+  String get snackbarInvalidFileFormat => 'फ़ाइल का फ़ॉर्मैट सही नहीं है';
 
   @override
-  String get snackbarMediaItemImported => 'Media Item Imported';
+  String get snackbarMediaItemImported => 'मीडिया आइटम इम्पोर्ट कर लिया गया';
 
   @override
-  String get snackbarPlaylistImported => 'Playlist Imported';
+  String get snackbarPlaylistImported => 'प्लेलिस्ट इम्पोर्ट कर ली गई';
 
   @override
   String get snackbarOpenImportForUrl =>
-      'Open the Import screen in Library to import from this URL.';
+      'इस URL से गानें लाने के लिए लाइब्रेरी में \'इम्पोर्ट\' स्क्रीन खोलें।';
 
   @override
-  String get snackbarProcessingFile => 'Processing File...';
+  String get snackbarProcessingFile => 'फ़ाइल को प्रोसेस किया जा रहा है...';
 
   @override
   String snackbarPreparingShare(String title) {
-    return 'Preparing $title for share';
+    return '$title को शेयर करने के लिए तैयार किया जा रहा है';
   }
 
   @override
   String snackbarPreparingExport(String title) {
-    return 'Preparing $title for export.';
+    return '$title को एक्सपोर्ट करने के लिए तैयार किया जा रहा है।';
   }
 
   @override
@@ -1773,21 +1799,21 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pluginManagerTabStore => 'प्लगइन स्टोर';
 
   @override
-  String get pluginManagerSelectPackage => 'प्लगइन पैकेज चुनें (.bex)';
+  String get pluginManagerSelectPackage => 'प्लगइन पैकेज (.bex) चुनें';
 
   @override
   String get pluginManagerOutdatedManifest =>
-      'यह प्लगइन पुराने मैनिफेस्ट संस्करण का उपयोग करता है। कुछ फीचर सही से काम नहीं कर सकते। अपडेट करने पर विचार करें।';
+      'यह प्लगइन बहुत पुराना है। कुछ फ़ीचर्स काम करना बंद कर सकते हैं। इसे अपडेट करने पर विचार करें।';
 
   @override
-  String get pluginManagerStatusActive => 'सक्रिय';
+  String get pluginManagerStatusActive => 'चालू';
 
   @override
-  String get pluginManagerStatusInactive => 'निष्क्रिय';
+  String get pluginManagerStatusInactive => 'बंद';
 
   @override
   String pluginRepositoryUpdatedOn(String date) {
-    return 'अपडेट: $date';
+    return '$date को अपडेट हुआ';
   }
 
   @override
@@ -1795,27 +1821,27 @@ class AppLocalizationsHi extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count प्लगइन उपलब्ध',
-      one: '1 प्लगइन उपलब्ध',
+      other: '$count प्लगइन्स मौजूद',
+      one: '1 प्लगइन मौजूद',
     );
     return '$_temp0';
   }
 
   @override
   String get pluginRepositoryOutdatedManifest =>
-      'पुराना मैनिफेस्ट। कुछ फीचर ठीक से काम नहीं कर सकते।';
+      'पुराना मैनिफेस्ट। फ़ीचर्स ठीक से काम नहीं कर सकते।';
 
   @override
-  String get pluginRepositoryUnknownPublisher => 'अज्ञात प्रकाशक';
+  String get pluginRepositoryUnknownPublisher => 'प्रकाशक अज्ञात है';
 
   @override
-  String get pluginRepositoryActionRetry => 'फिर से प्रयास करें';
+  String get pluginRepositoryActionRetry => 'दोबारा कोशिश करें';
 
   @override
-  String get pluginRepositoryActionOutdated => 'पुराना';
+  String get pluginRepositoryActionOutdated => 'पुराना वर्शन';
 
   @override
-  String get pluginRepositoryActionInstalled => 'इंस्टॉल किया गया';
+  String get pluginRepositoryActionInstalled => 'इंस्टॉल्ड';
 
   @override
   String get pluginRepositoryActionInstall => 'इंस्टॉल करें';
@@ -1824,11 +1850,11 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pluginRepositoryActionUnavailable => 'उपलब्ध नहीं';
 
   @override
-  String get pluginRepositoryInstallFailed => 'इंस्टॉलेशन विफल हुआ।';
+  String get pluginRepositoryInstallFailed => 'इंस्टॉलेशन पूरा नहीं हो सका।';
 
   @override
   String pluginRepositoryDownloadFailed(String name) {
-    return '$name डाउनलोड नहीं हो सका।';
+    return '$name को डाउनलोड करने में समस्या आई।';
   }
 
   @override
@@ -1836,82 +1862,85 @@ class AppLocalizationsHi extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count प्लेलिस्ट में बदल दिया गया$queue.',
-      one: '1 प्लेलिस्ट में बदल दिया गया$queue.',
+      other: '$count प्लेलिस्ट्स में गाना बदल दिया गया$queue।',
+      one: '1 प्लेलिस्ट में गाना बदल दिया गया$queue।',
     );
     return '$_temp0';
   }
 
   @override
-  String get lyricsSearchFieldLabel => 'गीत के बोल खोजें...';
+  String get lyricsSearchFieldLabel => 'लिरिक्स खोजें...';
 
   @override
   String get lyricsSearchEmptyPrompt =>
-      'बोल खोजने के लिए गीत या कलाकार का नाम लिखें।';
+      'लिरिक्स खोजने के लिए गाने या कलाकार का नाम टाइप करें।';
 
   @override
   String lyricsSearchNoResults(String query) {
-    return '\"$query\" के लिए कोई बोल नहीं मिले';
+    return '\"$query\" के लिए कोई लिरिक्स नहीं मिले';
   }
 
   @override
-  String get lyricsSearchApplied => 'बोल सफलतापूर्वक लागू किए गए';
+  String get lyricsSearchApplied => 'लिरिक्स सफलतापूर्वक सेट कर दिए गए हैं';
 
   @override
-  String get lyricsSearchFetchFailed => 'बोल प्राप्त नहीं किए जा सके';
+  String get lyricsSearchFetchFailed => 'लिरिक्स नहीं मिल पाए';
 
   @override
-  String get lyricsSearchPreview => 'पूर्वावलोकन';
+  String get lyricsSearchPreview => 'पूर्वावलोकन (Preview)';
 
   @override
-  String get lyricsSearchPreviewTooltip => 'बोल का पूर्वावलोकन देखें';
+  String get lyricsSearchPreviewTooltip => 'लिरिक्स का पूर्वावलोकन देखें';
 
   @override
-  String get lyricsSearchSynced => 'सिंक';
+  String get lyricsSearchSynced => 'सिंक किए हुए';
 
   @override
-  String get lyricsSearchPreviewLoadFailed => 'बोल लोड नहीं हो सके।';
+  String get lyricsSearchPreviewLoadFailed => 'लिरिक्स लोड नहीं हो सके।';
 
   @override
-  String get lyricsSearchApplyAction => 'बोल लागू करें';
+  String get lyricsSearchApplyAction => 'लिरिक्स लगाएँ';
 
   @override
-  String get lyricsSettingsSearchTitle => 'कस्टम बोल खोजें';
+  String get lyricsSettingsSearchTitle => 'कस्टम लिरिक्स खोजें';
 
   @override
-  String get lyricsSettingsSearchSubtitle => 'ऑनलाइन वैकल्पिक संस्करण खोजें';
+  String get lyricsSettingsSearchSubtitle =>
+      'लिरिक्स के दूसरे वर्शन ऑनलाइन खोजें';
 
   @override
-  String get lyricsSettingsSyncTitle => 'सिंक समायोजित करें (डिले/ऑफसेट)';
+  String get lyricsSettingsSyncTitle => 'लिरिक्स की टाइमिंग सेट करें';
 
   @override
-  String get lyricsSettingsSyncSubtitle => 'बहुत तेज़ या धीमे बोल ठीक करें';
+  String get lyricsSettingsSyncSubtitle =>
+      'अगर लिरिक्स गाने से आगे या पीछे चल रहे हों, तो उन्हें ठीक करें';
 
   @override
-  String get lyricsSettingsSaveTitle => 'ऑफ़लाइन सहेजें';
+  String get lyricsSettingsSaveTitle => 'ऑफ़लाइन सेव करें';
 
   @override
-  String get lyricsSettingsSaveSubtitle => 'इन बोलों को अपने डिवाइस पर सहेजें';
+  String get lyricsSettingsSaveSubtitle =>
+      'इन लिरिक्स को अपने डिवाइस में हमेशा के लिए सेव करें';
 
   @override
-  String get lyricsSettingsDeleteTitle => 'सहेजे गए बोल हटाएँ';
+  String get lyricsSettingsDeleteTitle => 'सेव किए गए लिरिक्स हटाएँ';
 
   @override
-  String get lyricsSettingsDeleteSubtitle => 'ऑफ़लाइन बोल डेटा हटाएँ';
+  String get lyricsSettingsDeleteSubtitle => 'ऑफ़लाइन लिरिक्स का डेटा हटा दें';
 
   @override
   String get lyricsSyncTapToReset => 'रीसेट करने के लिए टैप करें';
 
   @override
-  String get upNextTitle => 'अगला';
+  String get upNextTitle => 'आगे क्या बजेगा';
 
   @override
   String upNextItemsInQueue(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'कतार में $count आइटम',
-      one: 'कतार में 1 आइटम',
+      other: 'कतार में $count गाने हैं',
+      one: 'कतार में 1 गाना है',
     );
     return '$_temp0';
   }
@@ -1920,68 +1949,68 @@ class AppLocalizationsHi extends AppLocalizations {
   String get upNextAutoPlay => 'ऑटो प्ले';
 
   @override
-  String get tooltipCopyToClipboard => 'क्लिपबोर्ड में कॉपी करें';
+  String get tooltipCopyToClipboard => 'क्लिपबोर्ड पर कॉपी करें';
 
   @override
-  String get snackbarCopiedToClipboard => 'क्लिपबोर्ड में कॉपी किया';
+  String get snackbarCopiedToClipboard => 'क्लिपबोर्ड पर कॉपी हो गया';
 
   @override
   String get tooltipSongInfo => 'गाने की जानकारी';
 
   @override
   String get snackbarCannotDeletePlayingSong =>
-      'अभी चल रहे गाने को नहीं हटा सकते';
+      'जो गाना अभी बज रहा है, उसे हटाया नहीं जा सकता';
 
   @override
-  String get playerLoopOff => 'बंद';
+  String get playerLoopOff => 'रिपीट बंद';
 
   @override
-  String get playerLoopOne => 'एक बार दोहराएं';
+  String get playerLoopOne => 'यही गाना दोहराएँ';
 
   @override
-  String get playerLoopAll => 'सब दोहराएं';
+  String get playerLoopAll => 'सभी दोहराएँ';
 
   @override
-  String get snackbarOpeningAlbumPage => 'मूल एल्बम पेज खोल रहे हैं।';
+  String get snackbarOpeningAlbumPage => 'मूल एल्बम का पेज खोला जा रहा है।';
 
   @override
   String updateAvailableBody(String ver, String build) {
-    return 'Bloomee🌸 का नया संस्करण अब उपलब्ध है!\n\nसंस्करण: $ver+$build';
+    return 'Bloomee🌸 का नया वर्शन आ गया है!\n\nवर्शन: $ver+$build';
   }
 
   @override
   String pluginSnackbarInstalled(String id) {
-    return 'प्लगइन \"$id\" सफलतापूर्वक इंस्टॉल हुआ';
+    return 'प्लगइन \"$id\" सफलतापूर्वक इंस्टॉल हो गया';
   }
 
   @override
   String pluginSnackbarLoaded(String id) {
-    return 'प्लगइन \"$id\" लोड हुआ';
+    return 'प्लगइन \"$id\" लोड हो गया';
   }
 
   @override
   String pluginSnackbarDeleted(String id) {
-    return 'प्लगइन \"$id\" हटाया गया';
+    return 'प्लगइन \"$id\" सफलतापूर्वक हटा दिया गया';
   }
 
   @override
-  String get pluginBootstrapTitle => 'Bloomee सेट हो रहा है';
+  String get pluginBootstrapTitle => 'Bloomee को तैयार किया जा रहा है';
 
   @override
   String pluginBootstrapProgress(int percent) {
-    return 'नया प्लगइन इंजन सेट किया जा रहा है... $percent%';
+    return 'नया प्लगइन इंजन सेट हो रहा है... $percent%';
   }
 
   @override
-  String get pluginBootstrapHint => 'यह केवल एक बार होता है।';
+  String get pluginBootstrapHint => 'ऐसा सिर्फ़ पहली बार होता है।';
 
   @override
-  String get pluginBootstrapErrorTitle => 'कनेक्शन बहुत धीमा है';
+  String get pluginBootstrapErrorTitle => 'इंटरनेट कनेक्शन धीमा है';
 
   @override
   String get pluginBootstrapErrorBody =>
-      'कुछ प्लगइन इंस्टॉल नहीं हो सके। आप अभी भी Bloomee का उपयोग कर सकते हैं — प्लगइन अगली बार पुनः प्रयास करेंगे।';
+      'कुछ प्लगइन्स इंस्टॉल नहीं हो सके। आप फिर भी Bloomee का उपयोग कर सकते हैं — ऐप दोबारा खुलने पर इन्हें इंस्टॉल करने की कोशिश की जाएगी।';
 
   @override
-  String get pluginBootstrapContinue => 'फिर भी जारी रखें';
+  String get pluginBootstrapContinue => 'फिर भी आगे बढ़ें';
 }

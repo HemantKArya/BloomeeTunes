@@ -1,4 +1,5 @@
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/l10n/language_options.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -12,11 +13,15 @@ class CountrySettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final languageItems = [
+    final languageItems = <SettingDropdownItem<String>>[
       SettingDropdownItem<String>(
           value: '', label: l10n.countrySettingSystemDefault),
-      const SettingDropdownItem<String>(value: 'en', label: 'English'),
-      const SettingDropdownItem<String>(value: 'hi', label: 'हिन्दी'),
+      ...buildLanguageOptions().map(
+        (option) => SettingDropdownItem<String>(
+          value: option.code,
+          label: option.label,
+        ),
+      ),
     ];
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,

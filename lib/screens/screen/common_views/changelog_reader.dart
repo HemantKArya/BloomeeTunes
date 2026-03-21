@@ -23,13 +23,13 @@ const String changelogText = """
 - Refactored import/export functionality.
 
 ### Fixed
-- Resolved issues with **YouTube streaming**.
-- Addressed bugs related to `YouTube` playlists.
+- Resolved issues with plugin-based streaming.
+- Addressed bugs related to imported provider playlists.
 
 ## [2.11.5] - 2025-03-17
 
 ### Changed
-- Updated YouTube client and carousel functionality.
+- Updated resolver client and carousel functionality.
 
 ## [2.11.4] - 2025-02-28
 

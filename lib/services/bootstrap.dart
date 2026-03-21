@@ -5,6 +5,7 @@ import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/local_music_service.dart';
 import 'package:Bloomee/services/plugin_bootstrap_service.dart';
+import 'package:Bloomee/services/onboarding_service.dart';
 import 'package:Bloomee/src/rust/frb_generated.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -30,6 +31,17 @@ Future<void> bootstrapApp() async {
 
   // DI wiring (registers singletons).
   await ServiceLocator.setup();
+
+  // Ensure hosted repositories are persisted in settings (idempotent).
+  // Missing URLs are added, existing ones are left untouched.
+  try {
+    await PluginBootstrapService.ensureHostedRepositoriesPresent(
+      repositoryService: ServiceLocator.pluginRepositoryService,
+    );
+  } catch (e) {
+    log('Hosted repository reconciliation skipped',
+        error: e, name: 'Bootstrap');
+  }
 
   // Initialize plugin system:
   //   Creates Rust PluginManager → connects event bus →
@@ -60,7 +72,9 @@ Future<void> bootstrapApp() async {
   // Pre-load the plugin-bootstrap done-flag so that _MyAppState can check
   // it synchronously in initState() without an async call.
   try {
-    await PluginBootstrapService.checkAndCacheDone(SettingsDAO(DBProvider.db));
+    final settingsDao = SettingsDAO(DBProvider.db);
+    await OnboardingService.checkAndCacheDone(settingsDao);
+    await PluginBootstrapService.checkAndCacheDone(settingsDao);
   } catch (e) {
     log('Could not load bootstrap flag (will re-run bootstrap)',
         error: e, name: 'Bootstrap');

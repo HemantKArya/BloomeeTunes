@@ -412,7 +412,7 @@ class _GradientProgressBarState extends State<GradientProgressBar>
     final defaultLabelStyle = widget.timeLabelStyle ??
         TextStyle(
           fontSize: 12,
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withValues(alpha: 0.7),
           fontWeight: FontWeight.w500,
         );
 
@@ -510,8 +510,8 @@ class _GradientProgressBarState extends State<GradientProgressBar>
               _colorAnimation.value,
             )!;
             final currentBufferedColor = Color.lerp(
-              Colors.white.withOpacity(0.1),
-              currentColor.withOpacity(0.02),
+              Colors.white.withValues(alpha: 0.1),
+              currentColor.withValues(alpha: 0.02),
               0.08, // Mostly white with subtle color hint
             );
 
@@ -634,7 +634,7 @@ class _GradientProgressBarPainter extends CustomPainter {
     // 4. Draw thumb glow when dragging (behind thumb)
     if (isDragging) {
       final glowPaint = Paint()
-        ..color = thumbInnerColor.withOpacity(0.15)
+        ..color = thumbInnerColor.withValues(alpha: 0.15)
         ..style = PaintingStyle.fill
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       canvas.drawCircle(Offset(thumbX, centerY), thumbRadius * 2, glowPaint);
@@ -642,7 +642,7 @@ class _GradientProgressBarPainter extends CustomPainter {
 
     // 5. Draw thumb shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
     canvas.drawCircle(
       Offset(thumbX, centerY + 1),
@@ -713,7 +713,7 @@ class ProgressBarGradients {
   /// Cyber Blue - Electric blue gradient
   static const cyberBlue = [Color(0xFF00F2FF), Color(0xFF007BFF)];
 
-  /// Neon Lime - Green gradient (Spotify-like)
+  /// Neon Lime - Green gradient (popular media-app style)
   static const neonLime = [Color(0xFF81FF8A), Color(0xFF1DB954)];
 
   /// Solar Flare - Yellow to orange gradient

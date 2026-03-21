@@ -9,6 +9,15 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get onboardingTitle => 'Welcome to Bloomee';
+
+  @override
+  String get onboardingSubtitle => 'Let\'s set up your language and region.';
+
+  @override
+  String get continueButton => 'Continue';
+
+  @override
   String get navHome => 'Home';
 
   @override
@@ -1605,6 +1614,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importBloomeeFiles => 'Import Bloomee Files';
+
+  @override
+  String get importM3UFiles => 'Import M3U Playlist';
+
+  @override
+  String get importM3UNameDialogTitle => 'Playlist Name';
+
+  @override
+  String get importM3UNameHint => 'Enter a name for this playlist';
+
+  @override
+  String get importM3UNoTracks => 'No valid tracks found in the M3U file.';
 
   @override
   String get importNoteTitle => 'Note';

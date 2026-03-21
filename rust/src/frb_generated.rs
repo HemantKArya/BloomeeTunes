@@ -3132,6 +3132,7 @@ fn wire__crate__api__bridge__install_packed_plugin_impl(
             let api_plugins_dir = <String>::sse_decode(&mut deserializer);
             let api_temp_dir = <String>::sse_decode(&mut deserializer);
             let api_should_load = <bool>::sse_decode(&mut deserializer);
+            let api_policy_country_code = <String>::sse_decode(&mut deserializer);
             let api_manager = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PluginManager>,
             >>::sse_decode(&mut deserializer);
@@ -3163,6 +3164,7 @@ fn wire__crate__api__bridge__install_packed_plugin_impl(
                             api_plugins_dir,
                             api_temp_dir,
                             api_should_load,
+                            api_policy_country_code,
                             &*api_manager_guard,
                         )
                         .await?;
@@ -5536,6 +5538,7 @@ impl SseDecode for crate::api::plugin::manifest::Manifest {
         let mut var_thumbnailUrl = <Option<String>>::sse_decode(deserializer);
         let mut var_resolver = <bool>::sse_decode(deserializer);
         let mut var_lastUpdated = <Option<String>>::sse_decode(deserializer);
+        let mut var_countryAllowlist = <Vec<String>>::sse_decode(deserializer);
         return crate::api::plugin::manifest::Manifest {
             manifest_version: var_manifestVersion,
             id: var_id,
@@ -5555,6 +5558,7 @@ impl SseDecode for crate::api::plugin::manifest::Manifest {
             thumbnail_url: var_thumbnailUrl,
             resolver: var_resolver,
             last_updated: var_lastUpdated,
+            country_allowlist: var_countryAllowlist,
         };
     }
 }
@@ -7809,6 +7813,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::plugin::manifest::Manifest {
             self.thumbnail_url.into_into_dart().into_dart(),
             self.resolver.into_into_dart().into_dart(),
             self.last_updated.into_into_dart().into_dart(),
+            self.country_allowlist.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -9513,6 +9518,7 @@ impl SseEncode for crate::api::plugin::manifest::Manifest {
         <Option<String>>::sse_encode(self.thumbnail_url, serializer);
         <bool>::sse_encode(self.resolver, serializer);
         <Option<String>>::sse_encode(self.last_updated, serializer);
+        <Vec<String>>::sse_encode(self.country_allowlist, serializer);
     }
 }
 

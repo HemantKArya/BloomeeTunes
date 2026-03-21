@@ -1,4 +1,4 @@
-import 'package:Bloomee/repository/lastfm/lastfmapi.dart';
+import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
 
@@ -47,12 +47,9 @@ class ScrobbleRepository {
     required String username,
   }) async {
     await _settingsDao.putSettingStr(CacheKeys.lFMApiKey, apiKey);
-    await _settingsDao.putSettingStr(
-        CacheKeys.lFMSecret, apiSecret);
-    await _settingsDao.putSettingStr(
-        CacheKeys.lFMSession, sessionKey);
-    await _settingsDao.putSettingStr(
-        CacheKeys.lFMUsername, username);
+    await _settingsDao.putSettingStr(CacheKeys.lFMSecret, apiSecret);
+    await _settingsDao.putSettingStr(CacheKeys.lFMSession, sessionKey);
+    await _settingsDao.putSettingStr(CacheKeys.lFMUsername, username);
   }
 
   /// Checks whether scrobbling is enabled in settings.
@@ -92,8 +89,7 @@ class ScrobbleRepository {
   Future<Map<String, dynamic>> getUserRecommendedList() =>
       LastFmAPI.getUserRecommendedList();
 
-  Future<Map<String, dynamic>> getUserMixList() =>
-      LastFmAPI.getUserMixList();
+  Future<Map<String, dynamic>> getUserMixList() => LastFmAPI.getUserMixList();
 
   Future<Map<String, dynamic>> getUserLibraryList() =>
       LastFmAPI.getUserLibraryList();

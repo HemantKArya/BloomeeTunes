@@ -24,7 +24,7 @@ class SettingKeys {
   /// Whether the 10-band EQ is enabled. Stored as bool.
   static const String eqEnabled = "eqEnabled";
 
-  /// JSON-encoded list of 10 gain values (doubles, -12..+12 dB).
+  /// JSON-encoded list of 10 gain values (doubles, -15..+15 dB).
   static const String eqBandGains = "eqBandGains";
 
   /// Name of the currently selected EQ preset (e.g. "Flat", "Rock").
@@ -64,6 +64,7 @@ class SettingKeys {
   /// Whether the first-run plugin repository bootstrap has been completed.
   /// Once true, the bootstrap is never run again even if the user uninstalls plugins.
   static const String repositoriesBootstrapped = "repositoriesBootstrapped";
+  static const String appSetupCompleted = "appSetupCompleted";
 
   // ── Plugins ────────────────────────────────────────────────────────────────
   /// JSON-encoded list of plugin IDs that should auto-load on app startup.
