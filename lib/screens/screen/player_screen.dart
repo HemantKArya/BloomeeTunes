@@ -141,17 +141,18 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
         child: isMobile
             ? LayoutBuilder(
                 builder: (context, constraints) {
+                  const double peekHeight = 60.0;
                   return Stack(
-                    alignment: Alignment.bottomCenter, // Strictly ground the UI
                     children: [
-                      Positioned.fill(
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: peekHeight),
                         child: _PlayerUI(
                           musicPlayer: musicPlayer,
                           tabController: _tabController,
                         ),
                       ),
                       UpNextPanel(
-                        peekHeight: 60.0,
+                        peekHeight: peekHeight,
                         parentHeight: constraints.maxHeight,
                         controller: _upNextPanelController,
                       ),
@@ -245,8 +246,8 @@ class _PlayerUI extends StatelessWidget {
                 child: PlayerCtrlWidgets(musicPlayer: musicPlayer),
               ),
 
-              // Reserve exact space for the grounded UpNextPanel so buttons are never hidden
-              const SizedBox(height: 80),
+              // Bottom padding parent Padding(bottom: 60) handles panel clearance, so only a small inset is needed here for visual breathing room.
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -272,7 +273,6 @@ class CoverImageVolSlider extends StatelessWidget {
               currentTrack.thumbnail.urlHigh ?? currentTrack.thumbnail.url;
           final lowResUrl =
               currentTrack.thumbnail.urlLow ?? currentTrack.thumbnail.url;
-
           // the source image resolution.
           return SizedBox.expand(
             child: Center(
@@ -519,7 +519,7 @@ class _PlayerControlsRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment:
-          CrossAxisAlignment.start, // Ensures flush horizontal grid
+        CrossAxisAlignment.start, // Ensures flush horizontal grid
       children: [
         _buildControlColumn(
           top: IconButton(
@@ -550,8 +550,8 @@ class _PlayerControlsRow extends StatelessWidget {
           ),
         ),
         _buildControlColumn(
-          top:
-              const _PlayPauseButton(), // Perfectly integrated into the alignment matrix
+          top: 
+            const _PlayPauseButton(), // Perfectly integrated into the alignment matrix
           bottom: const SizedBox(height: 40),
         ),
         _buildControlColumn(
@@ -688,7 +688,7 @@ class _PlayPauseButton extends StatelessWidget {
               color: Default_Theme.primaryColor1, size: 32);
         } else if (state.isVisible) {
           return PlayPauseButton(
-            size: 70, // Resized to perfectly match and feel proportional
+            size: 70,
             onPause: musicPlayer.pause,
             onPlay: musicPlayer.play,
             isPlaying: state.isPlaying,
