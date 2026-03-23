@@ -88,9 +88,6 @@ class _UpNextPanelState extends State<UpNextPanel> {
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
   late bool _isExpanded;
-
-  final ValueNotifier<double> _contentOpacity = ValueNotifier(0.0);
-
   double _minSheetSize = 0.1;
   double _maxSheetSize = 0.9;
   late final BloomeePlayerCubit _playerCubit;
@@ -100,7 +97,6 @@ class _UpNextPanelState extends State<UpNextPanel> {
     super.initState();
     _playerCubit = context.read<BloomeePlayerCubit>();
     _isExpanded = widget.startExpanded;
-    _contentOpacity.value = widget.startExpanded ? 1.0 : 0.0;
 
     widget.controller?._attach(
       toggle: _toggleSheet,
@@ -108,7 +104,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
       isExpanded: () => _isExpanded,
     );
 
-    _sheetController.addListener(_onSheetPositionChanged); 
+    _sheetController.addListener(_updateExpandedState);
   }
 
   @override
@@ -127,8 +123,18 @@ class _UpNextPanelState extends State<UpNextPanel> {
   }
 
   void _updateSheetSizes() {
-    final minSize = _calculateMinSize();
-    final maxSize = _calculateMaxSize();
+    final minSize = widget.canBeHidden
+        ? 0.0
+        : (widget.parentHeight > 0
+            ? (widget.peekHeight / widget.parentHeight)
+            : 0.1);
+
+    final safeTopOffset = MediaQuery.of(context).padding.top + 8.0;
+    final maxSize = widget.parentHeight > 0
+        ? ((widget.parentHeight - safeTopOffset) / widget.parentHeight)
+            .clamp(minSize + 0.1, math.max<double>(0.98, minSize + 0.15))
+        : 0.95;
+
     if (minSize != _minSheetSize || maxSize != _maxSheetSize) {
       setState(() {
         _minSheetSize = minSize;
@@ -137,42 +143,8 @@ class _UpNextPanelState extends State<UpNextPanel> {
     }
   }
 
-  // Accounts for bottom safe area (notch/home indicator)
-  double _calculateMinSize() {
-    if (widget.canBeHidden) return 0.0;
-    if (widget.parentHeight == 0) return 0.1;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    return ((widget.peekHeight + bottomPadding) / widget.parentHeight)
-        .clamp(0.05, 0.85);
-  }
-
-  // Uses top padding from context
-  double _calculateMaxSize() {
-    if (widget.parentHeight == 0) return 0.95;
-    final topPadding = MediaQuery.of(context).padding.top;
-    final safeTopOffset = topPadding + 8.0;
-    final minSize = _calculateMinSize();
-    final calculatedMax =
-        (widget.parentHeight - safeTopOffset) / widget.parentHeight;
-    final upperBound = math.max<double>(0.98, minSize + 0.15);
-    return calculatedMax.clamp(minSize + 0.1, upperBound);
-  }
-
-  // FIX: Renamed from _updateExpandedState. Drives opacity via ValueNotifier
-  // so each drag frame only rebuilds the Opacity widget, not the whole tree.
-  void _onSheetPositionChanged() {
-    final bool nowExpanded = _sheetController.size > _minSheetSize + 0.1;
-
-    final expansionProgress = ((_sheetController.size - _minSheetSize) /
-            (_maxSheetSize - _minSheetSize))
-        .clamp(0.0, 1.0);
-    final newOpacity = expansionProgress < 0.15
-        ? 0.0
-        : ((expansionProgress - 0.15) / 0.35).clamp(0.0, 1.0);
-
-    _contentOpacity.value = newOpacity; // no setState — no rebuild cascade
-
-    // setState only fires when the expanded flag actually flips
+  void _updateExpandedState() {
+    final nowExpanded = _sheetController.size > _minSheetSize + 0.1;
     if (nowExpanded != _isExpanded) {
       setState(() => _isExpanded = nowExpanded);
     }
@@ -181,9 +153,8 @@ class _UpNextPanelState extends State<UpNextPanel> {
   @override
   void dispose() {
     widget.controller?._detach();
-    _sheetController.removeListener(_onSheetPositionChanged);
+    _sheetController.removeListener(_updateExpandedState);
     _sheetController.dispose();
-    _contentOpacity.dispose(); 
     super.dispose();
   }
 
@@ -202,19 +173,6 @@ class _UpNextPanelState extends State<UpNextPanel> {
         duration: const Duration(milliseconds: 300), curve: Curves.easeOutExpo);
   }
 
-  // Respond to drag velocity on the header so fast flicks feel natural
-  void _onHeaderDragEnd(DragEndDetails details) {
-    if (!_sheetController.isAttached) return;
-    final rawVelocity = details.primaryVelocity ?? 0;
-    if (rawVelocity < 0) {
-      _sheetController.animateTo(_maxSheetSize,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutExpo);
-    } else if (rawVelocity > 0) {
-      _collapseSheet();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (widget.isDesktopMode) {
@@ -230,17 +188,17 @@ class _UpNextPanelState extends State<UpNextPanel> {
         minChildSize: _minSheetSize,
         maxChildSize: _maxSheetSize,
         snap: true,
-        snapSizes: [_minSheetSize, _maxSheetSize],
         snapAnimationDuration: const Duration(milliseconds: 250),
         builder: (context, scrollController) {
           return _PanelContent(
             peekHeight: widget.peekHeight,
             isExpanded: _isExpanded,
-            contentOpacity: _contentOpacity,
             onHeaderTap: _toggleSheet,
-            onHeaderDragEnd: _onHeaderDragEnd,
             scrollController: scrollController,
             playerCubit: _playerCubit,
+            sheetController: _sheetController,
+            minSize: _minSheetSize,
+            maxSize: _maxSheetSize,
           );
         },
       ),
@@ -251,20 +209,22 @@ class _UpNextPanelState extends State<UpNextPanel> {
 class _PanelContent extends StatelessWidget {
   final double peekHeight;
   final bool isExpanded;
-  final ValueNotifier<double> contentOpacity;
   final VoidCallback onHeaderTap;
-  final GestureDragEndCallback onHeaderDragEnd;
   final ScrollController scrollController;
   final BloomeePlayerCubit playerCubit;
+  final DraggableScrollableController sheetController;
+  final double minSize;
+  final double maxSize;
 
   const _PanelContent({
     required this.peekHeight,
     required this.isExpanded,
-    required this.contentOpacity,
     required this.onHeaderTap,
-    required this.onHeaderDragEnd,
     required this.scrollController,
     required this.playerCubit,
+    required this.sheetController,
+    required this.minSize,
+    required this.maxSize,
   });
 
   @override
@@ -285,55 +245,54 @@ class _PanelContent extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.1),
                         width: 0.5)),
               ),
-              // LayoutBuilder so header height is clamped safely on tiny screens
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Column(
-                    children: [
-                      GestureDetector(
-                        onTap: onHeaderTap,
-                        onVerticalDragEnd: onHeaderDragEnd,
-                        behavior: HitTestBehavior.opaque,
-                        child: SizedBox(
-                          height: math.min(peekHeight, constraints.maxHeight),
-                          child: _CompactHeader(isExpanded: isExpanded),
-                        ),
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: onHeaderTap,
+                    behavior: HitTestBehavior.opaque,
+                    child: SizedBox(
+                      height: peekHeight - 0.5,
+                      child: _CompactHeader(isExpanded: isExpanded),
+                    ),
+                  ),
+                  Expanded(
+                    child: AnimatedBuilder(
+                      animation: sheetController,
+                      builder: (context, child) {
+                        final currentSize = sheetController.isAttached
+                            ? sheetController.size
+                            : minSize;
+                        final progress =
+                            ((currentSize - minSize) / (maxSize - minSize))
+                                .clamp(0.0, 1.0);
+                        final opacity = progress < 0.15
+                            ? 0.0
+                            : ((progress - 0.15) / 0.35).clamp(0.0, 1.0);
+
+                        return IgnorePointer(
+                          ignoring: opacity == 0.0,
+                          child: Opacity(opacity: opacity, child: child),
+                        );
+                      },
+                      child: CustomScrollView(
+                        controller: scrollController,
+                        physics: const ClampingScrollPhysics(),
+                        slivers: [
+                          SliverToBoxAdapter(
+                              child: _QueueInfoRow(playerCubit: playerCubit)),
+                          _SongListSliver(
+                              playerCubit: playerCubit,
+                              scrollController: scrollController),
+                          SliverToBoxAdapter(
+                              child: SizedBox(
+                                  height:
+                                      MediaQuery.of(context).padding.bottom +
+                                          20)),
+                        ],
                       ),
-                      Expanded(
-                        // ValueListenableBuilder rebuilds only the Opacity
-                        // widget on each frame, the scroll tree is built once via the child: parameter and reused.
-                        child: ValueListenableBuilder<double>(
-                          valueListenable: contentOpacity,
-                          builder: (context, opacity, child) => Opacity(
-                            opacity: opacity,
-                            child: child,
-                          ),
-                          child: CustomScrollView(
-                            controller: scrollController,
-                            // Wrap in AlwaysScrollable so touch events
-                            // on empty list space aren't swallowed
-                            physics: const AlwaysScrollableScrollPhysics(
-                              parent: ClampingScrollPhysics(),
-                            ),
-                            slivers: [
-                              SliverToBoxAdapter(
-                                  child:
-                                      _QueueInfoRow(playerCubit: playerCubit)),
-                              _SongListSliver(
-                                  playerCubit: playerCubit,
-                                  scrollController: scrollController),
-                              SliverToBoxAdapter(
-                                  child: SizedBox(
-                                      height:
-                                          MediaQuery.of(context).padding.bottom +
-                                              20)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -507,14 +466,6 @@ class _DesktopSongListState extends State<_DesktopSongList> {
     final clampedOffset =
         targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
 
-    //Skip the animation if the item is already fully visible
-    final viewportHeight = _scrollController.position.viewportDimension;
-    final currentOffset = _scrollController.offset;
-    if (targetOffset >= currentOffset &&
-        targetOffset + _itemHeight <= currentOffset + viewportHeight) {
-      return;
-    }
-
     _scrollController.animateTo(clampedOffset,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic);
@@ -605,15 +556,6 @@ class _SongListSliverState extends State<_SongListSliver> {
         0.0, _headerOffset + (index * _itemHeight) - (_itemHeight * 1.5));
     final clampedOffset = targetOffset.clamp(
         0.0, widget.scrollController.position.maxScrollExtent);
-
-    //Skip the animation if the item is already fully visible
-    final viewportHeight =
-        widget.scrollController.position.viewportDimension;
-    final currentOffset = widget.scrollController.offset;
-    if (targetOffset >= currentOffset &&
-        targetOffset + _itemHeight <= currentOffset + viewportHeight) {
-      return;
-    }
 
     widget.scrollController.animateTo(clampedOffset,
         duration: const Duration(milliseconds: 300),
