@@ -1,5 +1,6 @@
 library;
 
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -20,6 +21,7 @@ import 'package:path/path.dart' as p;
 const _pluginJisSaavn = 'content-resolver.bloomfactory.jisaavn';
 const _pluginYtMusic = 'content-resolver.bloomfactory.ytmusic';
 const _pluginYtVideo = 'content-resolver.bloomfactory.ytvideo';
+const _migrationStateFileName = 'legacy_migration_state.json';
 const _likedPlaylistName = 'Liked';
 const _skipPlaylistNames = {
   '_DOWNLOADS',
@@ -83,8 +85,11 @@ LegacyDbLocation? findLegacyDbLocation({
   return candidates.first;
 }
 
-bool needsMigration(String appSuppDir, String appDocDir) =>
-    findLegacyDbLocation(appSuppDir: appSuppDir, appDocDir: appDocDir) != null;
+bool needsMigration(String appSuppDir, String appDocDir) => switch (
+        findLegacyDbLocation(appSuppDir: appSuppDir, appDocDir: appDocDir)) {
+      null => false,
+      final location => !_isLegacyAlreadyMarkedMigrated(appSuppDir, location),
+    };
 
 Future<MigrationResult> runMigration({
   required String appSuppDir,
@@ -144,6 +149,7 @@ Future<MigrationResult> runMigration({
     await legacy_opener.closeLegacyDB();
     legacyClosed = true;
     _renameLegacyFiles(legacyLocation.filePath);
+    _writeMigrationState(appSuppDir, legacyLocation.filePath);
 
     result.success = true;
     result.statusMessage = result.totalSourceItems == 0
@@ -293,6 +299,7 @@ Future<_MigrationPlan> _buildMigrationPlan(Isar legacyIsar) async {
   }
 
   final collectionPlans = <_CollectionPlan>[];
+  final seenCollectionKeys = <String>{};
   var skippedCollections = 0;
   final legacyCollections =
       legacyIsar.collection<legacy.SavedCollectionsDB>().where().findAllSync();
@@ -305,6 +312,11 @@ Future<_MigrationPlan> _buildMigrationPlan(Isar legacyIsar) async {
     final mediaId = _buildCollectionMediaId(collection.sourceId, pluginId);
     if (mediaId == null) {
       skippedCollections++;
+      continue;
+    }
+
+    final collectionKey = '${type.toLowerCase()}::${mediaId.toLowerCase()}';
+    if (!seenCollectionKeys.add(collectionKey)) {
       continue;
     }
 
@@ -342,7 +354,7 @@ Future<_MigrationPlan> _buildMigrationPlan(Isar legacyIsar) async {
   }
 
   return _MigrationPlan(
-    playlists: playlistPlans,
+    playlists: _mergeDuplicatePlaylistPlans(playlistPlans),
     likedTracks: likedTracksById.values.toList(growable: false),
     downloads: downloadPlans,
     collections: collectionPlans,
@@ -372,7 +384,15 @@ Future<void> _migratePlaylists(
     final progress = 0.12 + ((index + 1) / plan.playlists.length) * 0.33;
     report('Migrating playlist ${playlist.name}', progress);
 
-    final playlistId = await playlistDao.ensurePlaylist(playlist.name);
+    int playlistId;
+    try {
+      playlistId = await playlistDao.ensurePlaylist(playlist.name);
+    } catch (e) {
+      if (!_isUniqueIndexViolation(e)) rethrow;
+      final existing = await _findPlaylistByNameInsensitive(playlist.name);
+      if (existing == null) rethrow;
+      playlistId = existing.id;
+    }
     await playlistDao.updatePlaylistMeta(
       playlistId,
       thumbnail: _artworkDbFromUrl(playlist.artworkUrl),
@@ -452,32 +472,40 @@ Future<void> _migrateCollections(
     final progress = 0.70 + ((index + 1) / plan.collections.length) * 0.12;
     report('Migrating ${collection.type.name} ${collection.title}', progress);
 
-    if (collection.type == PlaylistTypeDB.artist) {
-      await libraryDao.saveArtist(
-        models.ArtistSummary(
-          id: collection.mediaId,
-          name: collection.title,
-          thumbnail: _artworkFromUrl(collection.coverUrl),
-          subtitle: collection.subtitle,
-          url: collection.sourceUrl.isEmpty ? null : collection.sourceUrl,
-        ),
-        sourceName: collection.sourceDisplayName,
-      );
-    } else {
-      await libraryDao.saveAlbum(
-        models.AlbumSummary(
-          id: collection.mediaId,
-          title: collection.title,
-          artists: const [],
-          thumbnail: _artworkFromUrl(collection.coverUrl),
-          subtitle: collection.subtitle,
-          url: collection.sourceUrl.isEmpty ? null : collection.sourceUrl,
-        ),
-        sourceName: collection.sourceDisplayName,
-      );
-    }
+    try {
+      if (collection.type == PlaylistTypeDB.artist) {
+        await libraryDao.saveArtist(
+          models.ArtistSummary(
+            id: collection.mediaId,
+            name: collection.title,
+            thumbnail: _artworkFromUrl(collection.coverUrl),
+            subtitle: collection.subtitle,
+            url: collection.sourceUrl.isEmpty ? null : collection.sourceUrl,
+          ),
+          sourceName: collection.sourceDisplayName,
+        );
+      } else {
+        await libraryDao.saveAlbum(
+          models.AlbumSummary(
+            id: collection.mediaId,
+            title: collection.title,
+            artists: const [],
+            thumbnail: _artworkFromUrl(collection.coverUrl),
+            subtitle: collection.subtitle,
+            url: collection.sourceUrl.isEmpty ? null : collection.sourceUrl,
+          ),
+          sourceName: collection.sourceDisplayName,
+        );
+      }
 
-    result.collectionsMigrated++;
+      result.collectionsMigrated++;
+    } catch (e) {
+      if (_isUniqueIndexViolation(e)) {
+        result.skippedCollections++;
+        continue;
+      }
+      rethrow;
+    }
     await _yieldIfNeeded(index);
   }
 }
@@ -637,7 +665,7 @@ String? _collectionSourceToPluginId(String source) {
 
 String? _buildCollectionMediaId(String sourceId, String? pluginId) {
   if (sourceId.isEmpty) return null;
-  final cleanedId = sourceId.replaceFirst('youtube', '');
+  final cleanedId = _stripYoutubePrefix(sourceId);
   if (_isPluginScopedMediaId(cleanedId)) return cleanedId;
   if (pluginId == null) return null;
   return '$pluginId::$cleanedId';
@@ -657,7 +685,7 @@ String _sourceDisplayName(String? pluginId) {
 }
 
 String? _coerceExistingMediaId(String rawId) {
-  final cleanedId = rawId.replaceFirst('youtube', '');
+  final cleanedId = _stripYoutubePrefix(rawId);
   if (_isPluginScopedMediaId(cleanedId)) return cleanedId;
   return null;
 }
@@ -671,7 +699,7 @@ String? _buildNewMediaId(
   String permaUrl = '',
 }) {
   if (rawId.isEmpty) return null;
-  final cleanedId = rawId.replaceFirst('youtube', '');
+  final cleanedId = _stripYoutubePrefix(rawId);
   if (_isPluginScopedMediaId(cleanedId)) return cleanedId;
 
   final normalizedSource = source.trim().toLowerCase();
@@ -686,6 +714,96 @@ String? _buildNewMediaId(
         : '$_pluginYtVideo::$cleanedId';
   }
   return null;
+}
+
+String _stripYoutubePrefix(String id) {
+  if (id.toLowerCase().startsWith('youtube')) {
+    return id.substring(7);
+  }
+  return id;
+}
+
+bool _isUniqueIndexViolation(Object error) {
+  final text = error.toString().toLowerCase();
+  return text.contains('unique index') || text.contains('unique constraint');
+}
+
+Future<PlaylistDB?> _findPlaylistByNameInsensitive(String name) async {
+  final isar = await DBProvider.db;
+  return isar.playlistDBs
+      .filter()
+      .nameEqualTo(name, caseSensitive: false)
+      .findFirst();
+}
+
+List<_PlaylistPlan> _mergeDuplicatePlaylistPlans(List<_PlaylistPlan> plans) {
+  final mergedByName = <String, _PlaylistPlan>{};
+
+  for (final plan in plans) {
+    final key = plan.name.toLowerCase();
+    final existing = mergedByName[key];
+    if (existing == null) {
+      mergedByName[key] = plan;
+      continue;
+    }
+
+    final seenIds = <String>{for (final t in existing.tracks) t.id};
+    final mergedTracks = <models.Track>[...existing.tracks];
+    for (final t in plan.tracks) {
+      if (seenIds.add(t.id)) {
+        mergedTracks.add(t);
+      }
+    }
+
+    mergedByName[key] = _PlaylistPlan(
+      name: existing.name,
+      tracks: mergedTracks,
+      artworkUrl: existing.artworkUrl ?? plan.artworkUrl,
+      description: existing.description ?? plan.description,
+      subtitle: existing.subtitle ?? plan.subtitle,
+    );
+  }
+
+  return mergedByName.values.toList(growable: false);
+}
+
+bool _isLegacyAlreadyMarkedMigrated(
+    String appSuppDir, LegacyDbLocation location) {
+  final stateFile = File(p.join(appSuppDir, _migrationStateFileName));
+  if (!stateFile.existsSync()) return false;
+
+  try {
+    final decoded =
+        jsonDecode(stateFile.readAsStringSync()) as Map<String, dynamic>;
+    final markedPath = decoded['legacyPath'] as String?;
+    final markedFingerprint = decoded['fingerprint'] as String?;
+    final currentFingerprint = _legacyFileFingerprint(location.filePath);
+
+    if (markedPath == null || markedFingerprint == null) return false;
+    return markedPath == location.filePath &&
+        markedFingerprint == currentFingerprint;
+  } catch (_) {
+    return false;
+  }
+}
+
+void _writeMigrationState(String appSuppDir, String legacyFilePath) {
+  final stateFile = File(p.join(appSuppDir, _migrationStateFileName));
+  final payload = {
+    'legacyPath': legacyFilePath,
+    'fingerprint': _legacyFileFingerprint(legacyFilePath),
+    'completedAt': DateTime.now().toIso8601String(),
+  };
+  stateFile.writeAsStringSync(jsonEncode(payload), flush: true);
+}
+
+String _legacyFileFingerprint(String filePath) {
+  try {
+    final stat = File(filePath).statSync();
+    return '${stat.size}:${stat.modified.millisecondsSinceEpoch}';
+  } catch (_) {
+    return 'missing';
+  }
 }
 
 models.Track? _legacyItemToTrack(legacy.MediaItemDB item) {
