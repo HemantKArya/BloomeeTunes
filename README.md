@@ -32,12 +32,13 @@
 </div>
 
 ---
-> ⚠️ **SECURITY WARNING: BEWARE OF FAKE WEBSITES!** ⚠️
-> Due to the app's growing popularity, several unofficial websites have popped up claiming to be the "official" Bloomee site. **I do not have an official website for this app right now.** 
+> ⚠️ **SECURITY WARNING: BEWARE OF FAKE WEBSITES!** ⚠️    
+> Due to the app's popularity, several unofficial websites claim to be the "official" Bloomee site. The ONLY official websites maintained by me are:
 > 
-> These impersonating sites are shady, completely unauthorized, and may distribute modified APKs containing viruses or malware. I am **not responsible** for any damage, privacy loss, or issues caused by downloading the app from these third-party sources. 
+> - https://bloomeex.org
+> - https://hemantkarya.github.io/BloomeeTunes/
 >
-> **The ONLY official and safe places to download Bloomee are right here on GitHub, SourceForge, and IzzyOnDroid.** If an official website is ever launched, it will be announced directly in this README. Stay safe!
+> These two URLs are the only official and safe sites for Bloomee. Do not trust other websites claiming to be official — unofficial sites may distribute modified APKs or malware. I am **not responsible** for any damage, privacy loss, or issues caused by downloading the app from third-party sources.
 ---
 
 ## 🚀 Features & Roadmap
@@ -46,7 +47,7 @@
 - [x] 🦀 **Plugins system:** Secure, auto-updating `.bex` plugin system for endless music sources.
 - [x] 📂 **Local Music:** Play your local offline music seamlessly alongside online streams.
 - [x] 🎤 **Karaoke-Style Lyrics:** Time-synced lyrics with manual offset adjustment.
-- [x] 🎛️ **Audio Tweaks:** Built-in Equalizer and customizable Crossfade transitions.
+- [x] 🎛️ **Audio Equalizer:** Built-in Equalizer and customizable Crossfade transitions.
 - [x] 🔄 **Smart Replace:** Auto-recovery finds working streams if a playlist track goes dead.
 - [x] 📊 **Last.fm Scrobbling:** Automatically log your listening history (includes offline caching).
 - [x] 🎮 **Discord Rich Presence:** Show off your current tunes on your Discord profile.
