@@ -68,14 +68,25 @@ class _PlaylistEditViewState extends State<PlaylistEditView> {
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: IconButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        final playlistCubit =
+                            context.read<CurrentPlaylistCubit>();
+                        final navigator = Navigator.of(context);
                         if (_localTracks.isNotEmpty) {
-                          context
-                              .read<CurrentPlaylistCubit>()
-                              .updatePlaylist(_localTracks);
-                          SnackbarService.showMessage('Playlist Updated!');
+                          try {
+                            await playlistCubit.updatePlaylist(_localTracks);
+                            if (!mounted) return;
+                            SnackbarService.showMessage('Playlist Updated!');
+                          } catch (_) {
+                            if (!mounted) return;
+                            SnackbarService.showMessage(
+                              'Unable to save playlist order. Please try again.',
+                            );
+                            return;
+                          }
                         }
-                        Navigator.of(context).pop();
+                        if (!mounted) return;
+                        navigator.pop();
                       },
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       icon: const Icon(
