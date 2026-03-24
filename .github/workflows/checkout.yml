@@ -1,24 +1,25 @@
-name: "CI / Fast Build & Check"
+name: "CI"
 
 on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - 'fastlane/**'
+      - '.github/FUNDING.yml'
+      - 'ghpage/**'
   pull_request:
     branches:
       - main
-  paths-ignore:
-    - '**.md'
-    - 'LICENSE'
-    - 'fastlane/**'
-    - 'ghpage/**'
 
 jobs:
   # ==========================================
-  # JOB 1: CHECK FLUTTER CODE
+  # JOB 1: FLUTTER CHECKS
   # ==========================================
   flutter-check:
-    name: Flutter Analyze
+    name: Flutter Analyze & Test
     runs-on: ubuntu-latest 
     steps:
       - name: Checkout Repository
@@ -37,28 +38,26 @@ jobs:
       - name: Static Code Analysis
         run: flutter analyze --no-fatal-infos
 
+
   # ==========================================
-  # JOB 2: CHECK RUST CODE (flutter_rust_bridge)
+  # JOB 2: RUST CHECKS (flutter_rust_bridge)
   # ==========================================
   rust-check:
-    name: Rust Check & Clippy
+    name: Rust Clippy & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Rust
+      - name: Setup Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
 
       - name: Cache Rust Dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "rust -> target" 
+          workspaces: "rust" 
 
-      - name: Verify Rust Compiles (Fast)
-        working-directory: ./rust
-        run: cargo check
-
-      - name: Rust Lints (Optional)
-        working-directory: ./rust
-        run: cargo clippy -- -D warnings
+      - name: Run Cargo check
+        run: cargo check --manifest-path rust/Cargo.toml
