@@ -1,3 +1,12 @@
+## [3.0.1] - 2026-03-24
+
+### Fixed
+- Fixed equalizer range to around - 15db.
+- Fixed linear stacking of repeated listned songs.
+- Fixed Some migration related problems.
+- Fixed only 40 songs persisted after a reordering applied to the playlist.
+
+
 ## [3.0.0] - 2026-03-18
 
 ### Added
