@@ -100,24 +100,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   freezed: ^3.2.3
-  # icons_launcher: ^2.1.7
-
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-# dart run icons_launcher:create
-# icons_launcher:
-#   image_path: "assets/icons/new_bloomee_logo_zoomedout.png"
-#   platforms:
-#     android:
-#       enable: true
-#       adaptive_icon_background: "assets/icons/bloomee_new_logo_gradient_bg.png"
-#       adaptive_icon_foreground: "assets/icons/new_bloomee_logo_zoomedout.png"
-#       adaptive_monochrome_image: "assets/icons/new_bloomee_logo_mono.png"
-#     ios:
-#       enable: true
-#     windows:
-#       enable: true
+  
 
 flutter_launcher_icons:
   android: true
