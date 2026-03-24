@@ -59,6 +59,10 @@ import 'package:Bloomee/services/discord_service.dart';
 import 'package:Bloomee/services/db/legacy/legacy_migration_service.dart'
     as legacy_migration;
 import 'package:Bloomee/screens/widgets/legacy_migration_overlay.dart';
+import 'package:Bloomee/screens/widgets/onboarding_overlay.dart';
+import 'package:Bloomee/screens/widgets/plugin_bootstrap_overlay.dart';
+import 'package:Bloomee/services/onboarding_service.dart';
+import 'package:Bloomee/services/plugin_bootstrap_service.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
   // Check if there's text content that might be a URL
@@ -130,6 +134,8 @@ class _MyAppState extends State<MyApp> {
   // Remove this field (and the overlay block in build) once no users
   // need legacy migration.
   bool _migrationPending = false;
+  bool _onboardingPending = false;
+  bool _pluginBootstrapPending = false;
   // ------------------
 
   @override
@@ -141,6 +147,9 @@ class _MyAppState extends State<MyApp> {
       DBProvider.appSuppDir,
       DBProvider.appDocDir,
     );
+
+    _onboardingPending = !OnboardingService.onboardingDone;
+    _pluginBootstrapPending = !PluginBootstrapService.bootstrapDone;
     //--------------------------------------------------------------------
 
     if (io.Platform.isAndroid) {
@@ -204,6 +213,30 @@ class _MyAppState extends State<MyApp> {
           onComplete: (result) {
             if (!result.success) return;
             setState(() => _migrationPending = false);
+          },
+        ),
+      );
+    }
+
+    if (_onboardingPending) {
+      return OnboardingOverlay(
+        onComplete: () {
+          if (!mounted) return;
+          setState(() {
+            _onboardingPending = false;
+            _pluginBootstrapPending = !PluginBootstrapService.bootstrapDone;
+          });
+        },
+      );
+    }
+
+    if (_pluginBootstrapPending) {
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: PluginBootstrapOverlay(
+          onComplete: () {
+            if (!mounted) return;
+            setState(() => _pluginBootstrapPending = false);
           },
         ),
       );

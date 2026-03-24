@@ -159,6 +159,7 @@ class PluginBootstrapService {
 
     final available = await _safeGetAvailable(pluginService);
     final installedIds = available.map((p) => p.manifest.id).toSet();
+    final bootstrapTargetIds = <String>{};
     final totalPlugins =
         installRepos.fold<int>(0, (sum, repo) => sum + repo.plugins.length);
     var processedPlugins = 0;
@@ -184,6 +185,8 @@ class PluginBootstrapService {
           processedPlugins++;
           continue;
         }
+
+        bootstrapTargetIds.add(plugin.id);
 
         bool installed = false;
         bool skippedByCountry = false;
@@ -235,6 +238,21 @@ class PluginBootstrapService {
             ((processedPlugins * 55) ~/
                 (totalPlugins == 0 ? 1 : totalPlugins))));
       }
+    }
+
+    // Persist bootstrap-managed plugin IDs for auto-load regardless of
+    // non-fatal install errors, so successful installs remain loaded on
+    // subsequent app opens.
+    try {
+      if (bootstrapTargetIds.isNotEmpty) {
+        final loadStateService = PluginLoadStateService(settingsDao);
+        await loadStateService.addAutoLoadPluginIds(bootstrapTargetIds);
+        log('Persisted ${bootstrapTargetIds.length} bootstrap plugin IDs for auto-load',
+            name: 'PluginBootstrap');
+      }
+    } catch (e) {
+      log('Failed to persist bootstrap auto-load IDs: $e',
+          name: 'PluginBootstrap');
     }
 
     if (errors.isEmpty) {
