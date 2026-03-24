@@ -37,6 +37,8 @@ String languageLabelForCode(String code) {
       return '한국어';
     case 'zh':
       return '中文';
+    case 'ru':
+      return 'Русский';
     default:
       return code.toUpperCase();
   }
