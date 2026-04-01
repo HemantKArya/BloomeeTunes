@@ -19,7 +19,7 @@ class ResolvedMediaSource {
   final bool isOffline;
   final Map<String, String>? headers;
 
-  /// The plugin that actually resolved this stream. [RelatedSongsManager] should prefer this value over the plugin ID parsed from the track.
+  /// Used as the identifier for the plugin that *resolved* the playback request. Takes priority over metadata stored by [RelatedSongsManager].
   final String? resolvedPluginId;
 
   const ResolvedMediaSource({
@@ -60,7 +60,6 @@ class MediaResolverService {
   }
 
   /// Resolve [track] into a playable URI.
-  /// The returned [ResolvedMediaSource.resolvedPluginId] will reflect the plugin that actually served the stream/
   Future<ResolvedMediaSource> resolve(Track track) async {
     // 1. Check for an offline/downloaded version.
     try {
@@ -70,7 +69,7 @@ class MediaResolverService {
         return ResolvedMediaSource(
           uri: Uri.file('${down.filePath}/${down.fileName}'),
           isOffline: true,
-          );
+        );
       }
     } catch (e) {
       log('Download check failed: $e', name: 'MediaResolverService');
@@ -97,12 +96,13 @@ class MediaResolverService {
     }
 
     log(
-      'Resolving streams for "${track.title}" '
-      '(plugin: ${parts.pluginId}, id: ${parts.localId})',
-      name: 'MediaResolverService');
+        'Resolving streams for "${track.title}" '
+        '(plugin: ${parts.pluginId}, id: ${parts.localId})',
+        name: 'MediaResolverService');
 
     PluginResponse response;
-    // Track which plugin actually responded. Starts as the embedded plugin; updated below if fallback resolution supplies a different plugin ID.
+
+    // Captures the *source* plugin id from the embedded media id.
     String activePluginId = parts.pluginId;
     try {
       response = await _pluginService.execute(
@@ -179,7 +179,7 @@ class MediaResolverService {
           headers: selectedStream == null
               ? null
               : streamHeadersToMap(selectedStream.headers),
-          // Actual serving plugin so callers can route follow-up requests (radio, lyrics, etc.) to the correct active plugin.
+          // Remaps the source plugin to the resolved plugin id
           resolvedPluginId: activePluginId,
         );
       },

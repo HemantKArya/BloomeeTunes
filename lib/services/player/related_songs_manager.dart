@@ -32,6 +32,7 @@ class RelatedSongsManager {
     required List<Track> queue,
     required int currentPlayingIdx,
     required LoopMode loopMode,
+    // Ensures AutoPlay-Mix uses the functional *resolved* plugin id instead of the original *source* id
     String? resolvedPluginId,
   }) async {
     log("Checking for related songs: "
@@ -58,7 +59,6 @@ class RelatedSongsManager {
       return;
     }
 
-    // Prefer the caller-supplied resolved plugin ID over the one embedded
     final effectivePluginId = resolvedPluginId ?? parts.pluginId;
 
     _syncReferenceState(
@@ -71,7 +71,6 @@ class RelatedSongsManager {
       await _fetchNextRadioPage();
     }
 
-    // Formatting 
     await loadRelatedSongs(
       queue: queue,
       currentPlayingIdx: currentPlayingIdx,

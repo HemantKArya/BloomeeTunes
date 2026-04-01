@@ -63,10 +63,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   String? _preloadedTrackId;
   bool _preloadedTrackOffline = false;
 
-  /// The plugin that actually resolved the current track's stream.
-  ///
-  /// Usually matches the plugin ID in the track’s media ID. If a fallback plugin is chosen by [_tryAutoResolveUnavailableTrack], this holds
-  /// the fallback ID so [_checkRelatedSongs] forwards the active plugin to [RelatedSongsManager] for radio/mix requests.
+  // Resolver
+  /// Takes the place of the *source* plugin embedded in the track's media ID when the fallback is used.
   String? _lastResolvedPluginId;
 
   // Stream subscriptions
@@ -368,10 +366,18 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       _broadcastPlaybackState(state, playing, engine.position, buffered, speed);
     });
 
-    // Hardware-verified playback success tracking
-    // Absolutely guarantees we only reset the circuit breaker if the track plays
+
     _positionSuccessSub = engine.positionStream.listen((pos) {
-      if (pos > Duration.zero &&
+      // MATHEMATICAL HEALTH CHECK:
+      // If the playback head organically surpasses 2 continuous seconds without error,
+      // the network route and decoding loop are completely healthy. We reset the circuit breaker.
+      // For tracks shorter than 2s, fall back to a 50% duration threshold.
+      final duration = engine.duration;
+      final threshold =
+          (duration > Duration.zero && duration < const Duration(seconds: 2))
+              ? duration ~/ 2
+              : const Duration(seconds: 2);
+      if (pos > threshold &&
           engine.state == EngineState.ready &&
           engine.playing) {
         final track = _queueManager.currentTrack;
@@ -387,7 +393,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log('Engine error: $error', name: 'BloomeeMusicPlayer');
       final track = _queueManager.currentTrack;
       if (track != null) {
-        _errorHandler.handleError(PlayerErrorType.playbackError, error, track);
+        final type = _errorHandler.categorizeError(error);
+        _errorHandler.handleError(type, error.toString(), track);
       }
     });
 
@@ -616,6 +623,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       } catch (e) {
         log('_updateCurrentTrack failed: $e', name: 'BloomeeMusicPlayer');
       }
+
+      _errorHandler.registerAttempt(track.id);
+
       engine.setLoadingState();
       isResolving.add(true);
 
@@ -623,9 +633,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
       if (!crossfadeEnabled) {
         if (canUsePreloaded) {
-          // Preloaded path: the stream was resolved earlier by _preResolveNextTrack.
-          // We don't have access to its resolvedPluginId here, so clear the cached value the preloaded track's embedded plugin ID will be used for radio.
-          // This works because preloading only succeeds when the original plugin is active (it was able to resolve the stream), so its plugin ID is valid.
           _lastResolvedPluginId = null;
           _setOfflineState(_preloadedTrackOffline);
           transitionResult = await engine.activatePreloaded(autoPlay: doPlay);
@@ -643,10 +650,18 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           if (result == null || !alive()) return;
           resolvedTrack = result.$1;
           if (resolvedTrack.id != track.id) {
-            _updateCurrentTrack(resolvedTrack);
+          _updateCurrentTrack(resolvedTrack);
+          try {
+            _queueManager.replaceTrackById(track.id, resolvedTrack);
+          } catch (e) {
+            // Fallback: just append if replacement fails (rare, but possible)
+            log('Failed to replace track in queue: $e', name: 'BloomeeMusicPlayer');
+            addQueueTrack(resolvedTrack);
           }
+        }
 
-          // Cache the plugin that actually served this stream so that _checkRelatedSongs can forward it to RelatedSongsManager.
+          // Cache the plugin that actually served this stream so that _checkRelatedSongs can forward it to RelatedSongsManager 
+          // Now the *resolved plugin*
           _lastResolvedPluginId = result.$2.resolvedPluginId;
 
           _setOfflineState(result.$2.isOffline);
@@ -677,8 +692,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           if (result == null || !alive()) return;
           resolvedTrack = result.$1;
           if (resolvedTrack.id != track.id) {
-            _updateCurrentTrack(resolvedTrack);
+          _updateCurrentTrack(resolvedTrack);
+          try {
+            _queueManager.replaceTrackById(track.id, resolvedTrack);
+          } catch (e) {
+            // Fallback: just append if replacement fails (rare, but possible)
+            log('Failed to replace track in queue: $e', name: 'BloomeeMusicPlayer');
+            addQueueTrack(resolvedTrack);
           }
+        }
 
           // Cache the plugin that actually served this stream.
           _lastResolvedPluginId = result.$2.resolvedPluginId;
@@ -719,7 +741,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       if (!alive()) return;
       log('Timeout loading ${track.title}: $e', name: 'BloomeeMusicPlayer');
       _errorHandler.handleError(
-          PlayerErrorType.networkError, 'Network timeout', track, e);
+         PlayerErrorType.networkDropped, 'Network timeout', track, e);
       done();
     } catch (e, stackTrace) {
       isResolving.add(false);
@@ -907,7 +929,9 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _checkingRelated = true;
 
     try {
-      final track = _queueManager.currentTrack;
+      final track = _currentTrack.id != trackNull.id
+          ? _currentTrack
+          : _queueManager.currentTrack;
       if (track == null) return;
       final queueItems = _queueManager.tracks;
 
@@ -916,8 +940,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         queue: queueItems,
         currentPlayingIdx: _queueManager.currentIndex,
         loopMode: loopMode.value,
-        // Forward the plugin that actually resolved the stream.
-        // When cross-plugin fallback was used (e.g. ytmusic disabled, stream served by youtube plugin instead), this ensures getRadioTracks is sent to the active fallback plugin rather than the disabled original, so the Auto-Mix queue is built correctly.
+        // Remaps to the plugin that actually resolved the stream.
         resolvedPluginId: _lastResolvedPluginId,
       );
     } finally {
