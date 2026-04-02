@@ -654,7 +654,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           try {
             _queueManager.replaceTrackById(track.id, resolvedTrack);
           } catch (e) {
-            // Fallback: just append if replacement fails (rare, but possible)
             log('Failed to replace track in queue: $e', name: 'BloomeeMusicPlayer');
             addQueueTrack(resolvedTrack);
           }
@@ -696,7 +695,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
           try {
             _queueManager.replaceTrackById(track.id, resolvedTrack);
           } catch (e) {
-            // Fallback: just append if replacement fails (rare, but possible)
             log('Failed to replace track in queue: $e', name: 'BloomeeMusicPlayer');
             addQueueTrack(resolvedTrack);
           }
