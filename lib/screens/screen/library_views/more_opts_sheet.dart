@@ -11,6 +11,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
+import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/playlist_edit_view.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -27,7 +28,10 @@ void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
     builder: (sheetContext) => _PlaylistOptionsSheet(
       title: playlist.title,
       isInternal: true,
-      onEdit: () {
+      onEdit: () async {
+        final playlistCubit = context.read<CurrentPlaylistCubit>();
+        await playlistCubit.ensureAllTracksLoaded();
+        if (!context.mounted || !sheetContext.mounted) return;
         Navigator.pop(sheetContext);
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const PlaylistEditView()));
@@ -140,17 +144,17 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                     iconColor: Default_Theme.accentColor2,
                                     title: l10n.playlistPlay,
                                     onTap: () async {
-                                      final list = await ctx
-                                          .read<LibraryItemsCubit>()
+                                      final libraryCubit =
+                                          ctx.read<LibraryItemsCubit>();
+                                      final playerCubit =
+                                          ctx.read<BloomeePlayerCubit>();
+                                      final list = await libraryCubit
                                           .getPlaylistTracks(title);
                                       if (list != null && list.isNotEmpty) {
-                                        ctx
-                                            .read<BloomeePlayerCubit>()
-                                            .bloomeePlayer
-                                            .loadPlaylist(
-                                                Playlist(
-                                                    tracks: list, title: title),
-                                                doPlay: true);
+                                        playerCubit.bloomeePlayer.loadPlaylist(
+                                            Playlist(
+                                                tracks: list, title: title),
+                                            doPlay: true);
                                         SnackbarService.showMessage(
                                             l10n.snackbarNowPlaying(title));
                                       }
@@ -160,13 +164,14 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                     icon: MingCute.playlist_2_line,
                                     title: l10n.playlistAddToQueue,
                                     onTap: () async {
-                                      final list = await ctx
-                                          .read<LibraryItemsCubit>()
+                                      final libraryCubit =
+                                          ctx.read<LibraryItemsCubit>();
+                                      final playerCubit =
+                                          ctx.read<BloomeePlayerCubit>();
+                                      final list = await libraryCubit
                                           .getPlaylistTracks(title);
                                       if (list != null && list.isNotEmpty) {
-                                        ctx
-                                            .read<BloomeePlayerCubit>()
-                                            .bloomeePlayer
+                                        playerCubit.bloomeePlayer
                                             .addQueueTracks(list);
                                         SnackbarService.showMessage(
                                             l10n.snackbarPlaylistAddedToQueue(

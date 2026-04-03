@@ -59,11 +59,13 @@ class HistoryDAO {
 
     await Future.wait(entries.map((e) => e.track.load()));
 
+    final seen = <String>{};
     return entries
-        .map((e) => e.track.value)
-        .whereType<TrackDB>()
-        .map(trackDBToTrack)
-        .toList();
+    .map((e) => e.track.value)
+    .whereType<TrackDB>()
+    .where((t) => seen.add(t.mediaId))
+    .map(trackDBToTrack)
+    .toList();
   }
 
   /// Return raw [PlaybackHistoryDB] rows sorted newest-first.

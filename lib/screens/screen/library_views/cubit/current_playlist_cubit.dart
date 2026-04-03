@@ -215,6 +215,25 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
   /// the position-index mismatch that silently broke the old approach.
   Future<void> updatePlaylist(List<Track> reorderedTracks) async {
     if (_playlist == null || _playlistId == null) return;
+    final fullyLoaded = await ensureAllTracksLoaded();
+    final existingTracks = fullyLoaded.tracks;
+
+    if (reorderedTracks.length != existingTracks.length) {
+      throw StateError(
+        'Refusing to save partial playlist reorder: expected '
+        '${existingTracks.length} tracks, got ${reorderedTracks.length}.',
+      );
+    }
+
+    final expectedIds = existingTracks.map((t) => t.id).toSet();
+    final providedIds = reorderedTracks.map((t) => t.id).toSet();
+    if (expectedIds.length != providedIds.length ||
+        !expectedIds.containsAll(providedIds)) {
+      throw StateError(
+        'Refusing to save playlist reorder with mismatched track set.',
+      );
+    }
+
     // Optimistic in-memory update so callers see the new order immediately.
     _playlist = _playlist!.copyWith(tracks: List<Track>.from(reorderedTracks));
     _loadedCount = reorderedTracks.length;

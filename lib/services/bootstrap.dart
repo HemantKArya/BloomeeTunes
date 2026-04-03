@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:Bloomee/core/constants/setting_keys.dart';
@@ -63,7 +64,7 @@ Future<void> bootstrapApp() async {
         await settingsDao.getSettingBool(SettingKeys.localMusicAutoScan) ??
             true;
     if (autoScan) {
-      LocalMusicService.create().scanAndPersist();
+      unawaited(LocalMusicService.create().scanAndPersist());
     }
   } catch (e) {
     log('Local music auto-scan skipped', error: e, name: 'Bootstrap');

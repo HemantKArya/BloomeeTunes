@@ -12,7 +12,6 @@
 library;
 
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/services/db/legacy/legacy_migration_service.dart'
