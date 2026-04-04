@@ -645,16 +645,28 @@ class _QueueItem extends StatelessWidget {
             children: [
               Expanded(
                 child: SongCardWidget(
-                  showOptions: true,
+                  showOptions: false,
                   onTap: () => playerCubit.bloomeePlayer.skipToQueueItem(index),
-                  onOptionsTap: () => showMoreBottomSheet(
-                    context,
-                    songModel,
-                    showAddToQueue: false,
-                    showPlayNext: false,
-                    showSinglePlay: true,
-                  ),
                   song: songModel,
+                  trailing: IconButton(
+                    tooltip: 'More options',
+                    iconSize: 20,
+                    splashRadius: 18,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.65),
+                    icon: const Icon(Icons.more_horiz_rounded),
+                    onPressed: () => showMoreBottomSheet(
+                      context,
+                      songModel,
+                      showAddToQueue: false,
+                      showPlayNext: false,
+                      showSinglePlay: true,
+                    ),
+                  ),
                 ),
               ),
               if (isDesktop)

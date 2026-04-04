@@ -18,6 +18,7 @@ import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:async/async.dart';
 
 part 'downloader_state.dart';
 
@@ -31,10 +32,14 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   Future<void>? _serviceInitialization;
   final List<DownloadProgress> _activeDownloads = [];
   StreamSubscription? _librarySubscription;
+  Timer? _libraryRefreshDebounce;
   StreamSubscription<DownloadManagerEvent>? _downloadSubscription;
   List<Track> _downloadedSongs = [];
   final Set<String> _persistingTaskIds = <String>{};
   bool _restoredSnapshots = false;
+  // Tracks completion of initial downloaded songs load (prevents playback race)
+  final CancelableCompleter<void> _initialLoadCompleter =
+      CancelableCompleter<void>();
 
   DownloaderCubit({
     required this.connectivityCubit,
@@ -49,6 +54,17 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     _setupLibrarySubscription();
     _loadDownloadedSongs();
     unawaited(_warmUpDownloadService());
+  }
+
+  /// Waits for initial downloaded songs to be loaded from database.
+  /// Call this before using [isDownloaded] on first app startup to prevent
+  /// race conditions on Android where playback might start before DB load completes.
+  Future<void> ensureDownloadsInitialized() async {
+    try {
+      await _initialLoadCompleter.operation.value;
+    } catch (_) {
+      // Ignore cancellation; initialization will proceed normally
+    }
   }
 
   Future<void> _warmUpDownloadService() async {
@@ -97,16 +113,31 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   }
 
   void _setupLibrarySubscription() {
-    _librarySubscription = libraryItemsCubit.stream.listen((event) {
-      log("LibraryItemsCubit event: ${event.playlists.length}",
-          name: "DownloaderCubit");
-      _loadDownloadedSongs();
+    _librarySubscription = libraryItemsCubit.stream.listen((_) {
+      _libraryRefreshDebounce?.cancel();
+      _libraryRefreshDebounce = Timer(const Duration(milliseconds: 600), () {
+        if (!isClosed) {
+          _loadDownloadedSongs();
+        }
+      });
     });
   }
 
   Future<void> _loadDownloadedSongs() async {
-    _downloadedSongs = await _downloadRepo.getDownloadedTracks();
-    _emitUpdatedState();
+    try {
+      _downloadedSongs = await _downloadRepo.getDownloadedTracks();
+      _emitUpdatedState();
+      // Signal that initial load is complete
+      if (!_initialLoadCompleter.isCompleted) {
+        _initialLoadCompleter.complete();
+      }
+    } catch (error, stackTrace) {
+      // Even on error, mark as attempted to avoid hanging
+      if (!_initialLoadCompleter.isCompleted) {
+        _initialLoadCompleter.completeError(error, stackTrace);
+      }
+      rethrow;
+    }
   }
 
   void _emitUpdatedState() {
@@ -423,6 +454,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
   @override
   Future<void> close() async {
+    _libraryRefreshDebounce?.cancel();
     await _librarySubscription?.cancel();
     await _downloadSubscription?.cancel();
     await _downloadService.dispose();

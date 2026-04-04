@@ -5,8 +5,11 @@ import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/global_db.dart';
+import 'package:Bloomee/src/rust/api/local_music.dart';
 import 'package:Bloomee/src/rust/api/plugin/models.dart';
 import 'package:isar_community/isar.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 /// DAO for tracking downloaded media files — accepts domain [Track] models.
 ///
@@ -200,13 +203,19 @@ class DownloadDAO {
   Future<List<Track>> getValidDownloadedTracks() async {
     final downloads = await getValidDownloads();
     final result = <Track>[];
+    final runtimeArtworkCacheDir = await _runtimeArtworkCacheDir();
 
     for (final record in downloads) {
       if (isLocalMediaId(record.mediaId)) continue;
 
       final track = await _trackDAO.getTrackByMediaId(record.mediaId);
       if (track != null) {
-        result.add(track);
+        final trackWithArtwork = await _resolveEmbeddedArtworkAtRuntime(
+          record,
+          track,
+          runtimeArtworkCacheDir: runtimeArtworkCacheDir,
+        );
+        result.add(trackWithArtwork);
         continue;
       }
 
@@ -223,6 +232,83 @@ class DownloadDAO {
     }
 
     return result;
+  }
+
+  Future<String> _runtimeArtworkCacheDir() async {
+    final tempDir = await getTemporaryDirectory();
+    return p.join(tempDir.path, 'bloomee_runtime_embedded_art');
+  }
+
+  Future<Track> _resolveEmbeddedArtworkAtRuntime(
+    DownloadDB record,
+    Track track, {
+    required String runtimeArtworkCacheDir,
+  }) async {
+    final currentArtworkUrl = track.thumbnail.url;
+    if (_isExistingLocalImagePath(currentArtworkUrl)) {
+      return track;
+    }
+
+    try {
+      final filePath = p.join(record.filePath, record.fileName);
+      final metadata = await readAudioMetadata(
+        filePath: filePath,
+        coverCacheDir: runtimeArtworkCacheDir,
+      );
+
+      final embeddedArtworkPath = metadata.coverArtPath;
+      if (embeddedArtworkPath == null || embeddedArtworkPath.isEmpty) {
+        return track;
+      }
+
+      final artworkFile = File(embeddedArtworkPath);
+      if (!artworkFile.existsSync()) {
+        return track;
+      }
+
+      return Track(
+        id: track.id,
+        title: track.title,
+        artists: track.artists,
+        album: track.album,
+        durationMs: track.durationMs,
+        thumbnail: Artwork(
+          url: embeddedArtworkPath,
+          urlLow: track.thumbnail.urlLow,
+          urlHigh: track.thumbnail.urlHigh,
+          layout: track.thumbnail.layout,
+        ),
+        url: track.url,
+        isExplicit: track.isExplicit,
+        lyrics: track.lyrics,
+      );
+    } catch (error) {
+      log(
+        'Runtime embedded artwork lookup failed for ${track.id}',
+        name: 'DownloadDAO',
+        error: error,
+      );
+      return track;
+    }
+  }
+
+  bool _isExistingLocalImagePath(String? value) {
+    if (value == null || value.trim().isEmpty) return false;
+    final trimmed = value.trim();
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return false;
+    }
+
+    try {
+      final uri = Uri.tryParse(trimmed);
+      if (uri != null && uri.scheme == 'file') {
+        final file = File(uri.toFilePath(windows: Platform.isWindows));
+        return file.existsSync();
+      }
+    } catch (_) {}
+
+    return File(trimmed).existsSync();
   }
 
   /// Returns true if [mediaId] has a valid download record and the file exists.

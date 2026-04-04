@@ -54,35 +54,127 @@ LegacyDbLocation? findLegacyDbLocation({
   required String appSuppDir,
   required String appDocDir,
 }) {
-  final candidates = <LegacyDbLocation>[];
+  final preferredCandidates = <LegacyDbLocation>[];
+  final dbFallbackCandidates = <LegacyDbLocation>[];
   final seenPaths = <String>{};
 
-  void addCandidate(String dir) {
-    final filePath = p.join(dir, 'default.isar');
+  bool _isMigratedArtifact(String filePath) {
+    final lower = filePath.toLowerCase();
+    // Skip already-migrated files, temp files, lock files, and staging directories
+    return lower.endsWith('.migrated') ||
+        lower.endsWith('.lock') ||
+        lower.endsWith('.tmp') ||
+        lower.contains('legacy_migration_staging');
+  }
+
+  bool hasMigratedArtifacts(String dir) {
+    final directory = Directory(dir);
+    if (!directory.existsSync()) return false;
+
+    try {
+      for (final entity in directory.listSync(followLinks: false)) {
+        if (entity is! File) continue;
+        final name = p.basename(entity.path).toLowerCase();
+        if (name.startsWith('default') && name.endsWith('.migrated')) {
+          return true;
+        }
+      }
+    } catch (_) {
+      // Ignore read/list failures and continue with conservative behavior.
+    }
+
+    return false;
+  }
+
+  int candidatePriority(String filePath) {
+    final name = p.basename(filePath).toLowerCase();
+    if (name == 'default.isar') return 0;
+    if (name == 'default.isar.db') return 1;
+    if (name == 'default.db') return 2;
+    return 99;
+  }
+
+  void sortCandidates(List<LegacyDbLocation> candidates) {
+    candidates.sort((a, b) {
+      final aPriority = candidatePriority(a.filePath);
+      final bPriority = candidatePriority(b.filePath);
+      final priorityCompare = aPriority.compareTo(bPriority);
+      if (priorityCompare != 0) return priorityCompare;
+
+      final aStat = File(a.filePath).statSync();
+      final bStat = File(b.filePath).statSync();
+      final modified = bStat.modified.compareTo(aStat.modified);
+      if (modified != 0) return modified;
+      final size = bStat.size.compareTo(aStat.size);
+      if (size != 0) return size;
+      if (a.directory == appSuppDir && b.directory != appSuppDir) return -1;
+      if (b.directory == appSuppDir && a.directory != appSuppDir) return 1;
+      return a.filePath.compareTo(b.filePath);
+    });
+  }
+
+  void addCandidateFile(
+    String dir,
+    String filename,
+    List<LegacyDbLocation> target,
+  ) {
+    final filePath = p.join(dir, filename);
     if (!seenPaths.add(filePath)) return;
+    if (_isMigratedArtifact(filePath)) return;
     if (File(filePath).existsSync()) {
-      candidates.add(LegacyDbLocation(directory: dir, filePath: filePath));
+      target.add(LegacyDbLocation(directory: dir, filePath: filePath));
     }
   }
 
-  addCandidate(appSuppDir);
-  addCandidate(appDocDir);
+  void addPreferredCandidates(String dir) {
+    addCandidateFile(dir, 'default.isar', preferredCandidates);
+    addCandidateFile(dir, 'default.isar.db', preferredCandidates);
+  }
 
-  if (candidates.isEmpty) return null;
+  void addDbFallbackCandidates(String dir) {
+    addCandidateFile(dir, 'default.db', dbFallbackCandidates);
+  }
 
-  candidates.sort((a, b) {
-    final aStat = File(a.filePath).statSync();
-    final bStat = File(b.filePath).statSync();
-    final modified = bStat.modified.compareTo(aStat.modified);
-    if (modified != 0) return modified;
-    final size = bStat.size.compareTo(aStat.size);
-    if (size != 0) return size;
-    if (a.directory == appSuppDir && b.directory != appSuppDir) return -1;
-    if (b.directory == appSuppDir && a.directory != appSuppDir) return 1;
-    return a.filePath.compareTo(b.filePath);
-  });
+  addPreferredCandidates(appSuppDir);
+  addPreferredCandidates(appDocDir);
 
-  return candidates.first;
+  if (preferredCandidates.isNotEmpty) {
+    sortCandidates(preferredCandidates);
+    log(
+      'Legacy DB discovery: found ${preferredCandidates.length} preferred candidates, selecting ${preferredCandidates.first.filePath}',
+      name: 'LegacyMigration',
+    );
+    return preferredCandidates.first;
+  }
+
+  final hasStateFile =
+      File(p.join(appSuppDir, _migrationStateFileName)).existsSync();
+  final hasMigrated =
+      hasMigratedArtifacts(appSuppDir) || hasMigratedArtifacts(appDocDir);
+
+  // Fix #1: fallback to default.db ONLY when there is no migration state and
+  // no migrated artifacts present.
+  if (hasStateFile || hasMigrated) {
+    log(
+      'Legacy DB discovery: skipping default.db fallback (stateFile=$hasStateFile, migratedArtifacts=$hasMigrated)',
+      name: 'LegacyMigration',
+    );
+    return null;
+  }
+
+  addDbFallbackCandidates(appSuppDir);
+  addDbFallbackCandidates(appDocDir);
+
+  if (dbFallbackCandidates.isEmpty) return null;
+
+  sortCandidates(dbFallbackCandidates);
+
+  log(
+    'Legacy DB discovery: using default.db fallback, found ${dbFallbackCandidates.length} candidates, selecting ${dbFallbackCandidates.first.filePath}',
+    name: 'LegacyMigration',
+  );
+
+  return dbFallbackCandidates.first;
 }
 
 bool needsMigration(String appSuppDir, String appDocDir) => switch (
@@ -121,8 +213,11 @@ Future<MigrationResult> runMigration({
 
     result.legacyDbPath = legacyLocation.filePath;
     report('Opening legacy database', 0.02);
-    final legacyIsar =
-        await legacy_opener.openLegacyDB(legacyLocation.directory);
+    final legacyIsar = await legacy_opener.openLegacyDB(
+      legacyLocation.directory,
+      legacyFilePath: legacyLocation.filePath,
+      appSuppDir: appSuppDir,
+    );
 
     report('Scanning legacy data', 0.08);
     final plan = await _buildMigrationPlan(legacyIsar);
@@ -148,8 +243,12 @@ Future<MigrationResult> runMigration({
 
     await legacy_opener.closeLegacyDB();
     legacyClosed = true;
+    // Calculate fingerprint BEFORE renaming the file so we don't get 'missing'
+    final preRenameFingerprint =
+        _legacyFileFingerprint(legacyLocation.filePath);
     _renameLegacyFiles(legacyLocation.filePath);
-    _writeMigrationState(appSuppDir, legacyLocation.filePath);
+    _writeMigrationState(appSuppDir, legacyLocation.filePath,
+        preComputedFingerprint: preRenameFingerprint);
 
     result.success = true;
     result.statusMessage = result.totalSourceItems == 0
@@ -787,11 +886,16 @@ bool _isLegacyAlreadyMarkedMigrated(
   }
 }
 
-void _writeMigrationState(String appSuppDir, String legacyFilePath) {
+void _writeMigrationState(String appSuppDir, String legacyFilePath,
+    {String? preComputedFingerprint}) {
   final stateFile = File(p.join(appSuppDir, _migrationStateFileName));
+  // Use pre-computed fingerprint if provided (calculated before file rename)
+  // to avoid 'missing' when file is renamed after migration.
+  final fingerprint =
+      preComputedFingerprint ?? _legacyFileFingerprint(legacyFilePath);
   final payload = {
     'legacyPath': legacyFilePath,
-    'fingerprint': _legacyFileFingerprint(legacyFilePath),
+    'fingerprint': fingerprint,
     'completedAt': DateTime.now().toIso8601String(),
   };
   stateFile.writeAsStringSync(jsonEncode(payload), flush: true);

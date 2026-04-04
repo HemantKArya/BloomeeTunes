@@ -128,6 +128,43 @@ class BackupSettings extends StatelessWidget {
                       ),
                       const SettingDivider(),
                       SettingNavTile(
+                        icon: MingCute.file_export_line,
+                        title: '${l10n.storageCreateBackup} (JSON)',
+                        subtitle:
+                            'Export a portable JSON backup for migration/import.',
+                        onTap: () {
+                          StorageBackupService.createJsonBackup().then((value) {
+                            if (value != null) {
+                              SnackbarService.showMessage(
+                                  l10n.storageBackupCreatedAt(value));
+                              if (Platform.isAndroid) {
+                                try {
+                                  SharePlus.instance
+                                      .share(ShareParams(
+                                    files: [XFile(value)],
+                                    text: 'Bloomee JSON backup file',
+                                    subject: 'Bloomee JSON Backup',
+                                  ))
+                                      .catchError((e) {
+                                    SnackbarService.showMessage(
+                                        l10n.storageBackupShareFailed(
+                                            e.toString()));
+                                    return ShareResult.unavailable;
+                                  });
+                                } catch (e) {
+                                  SnackbarService.showMessage(l10n
+                                      .storageBackupShareFailed(e.toString()));
+                                }
+                              }
+                            } else {
+                              SnackbarService.showMessage(
+                                  l10n.storageBackupFailed);
+                            }
+                          });
+                        },
+                      ),
+                      const SettingDivider(),
+                      SettingNavTile(
                         icon: MingCute.restore_line,
                         title: l10n.storageRestoreBackup,
                         subtitle: l10n.storageRestoreBackupSubtitle,
@@ -267,9 +304,9 @@ Future<void> _onRestoreTap(BuildContext context) async {
     // 1) Ask user to pick a file
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
-      withData: true,
+      withData: false,
       type: FileType.custom,
-      allowedExtensions: ['json'],
+      allowedExtensions: ['json', 'isar', 'db'],
     );
 
     if (result == null || result.files.isEmpty) {
@@ -473,19 +510,20 @@ Future<void> _onRestoreTap(BuildContext context) async {
     // 6) Execute restore (guarantee progress dialog closed in finally)
     Map<String, dynamic> restoreResult = {
       "success": false,
-      "errors": ["Restore not executed."]
+      "error": "Restore not executed."
     };
     try {
       // NOTE: This call must be async and ideally run heavy work inside its own isolates.
       // Signature: restoreDB(path, settings, searchHistory, mediaitems)
       restoreResult = await StorageBackupService.restoreBackup(
         savedPath,
+        options: options.toBackupOptions(),
       );
     } catch (e, st) {
       log("restoreDB threw: $e\n$st", name: "DBProvider");
       restoreResult = {
         "success": false,
-        "errors": ["Exception during restore: $e"]
+        "error": "Exception during restore: $e"
       };
     } finally {
       // Always attempt to close the progress dialog using captured context
@@ -520,6 +558,12 @@ Future<void> _onRestoreTap(BuildContext context) async {
         errors.add(raw.toString());
       }
     }
+    if (restoreResult.containsKey("error")) {
+      final raw = restoreResult["error"];
+      if (raw != null && raw.toString().trim().isNotEmpty) {
+        errors.add(raw.toString());
+      }
+    }
 
     await _showResultDialog(context, success: success, errors: errors);
   } catch (e, st) {
@@ -539,6 +583,14 @@ class _RestoreOptions {
     required this.restoreSearchHistory,
     required this.restoreSettings,
   });
+
+  RestoreBackupOptions toBackupOptions() {
+    return RestoreBackupOptions(
+      restoreMediaItems: restoreMediaItems,
+      restoreSearchHistory: restoreSearchHistory,
+      restoreSettings: restoreSettings,
+    );
+  }
 }
 
 /// Save the picked file to app documents directory so the app retains access.

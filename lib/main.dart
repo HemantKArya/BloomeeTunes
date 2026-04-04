@@ -123,7 +123,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // Initialize the player
   // This widget is the root of your application.
   StreamSubscription<SharedMedia>? _intentSub;
@@ -141,6 +141,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     // Check once at startup; DBProvider.appSuppDir is set by bootstrapApp().
     _migrationPending = legacy_migration.needsMigration(
@@ -154,6 +155,25 @@ class _MyAppState extends State<MyApp> {
 
     if (io.Platform.isAndroid) {
       initPlatformState();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_ensurePlayerHealthyOnResume());
+    }
+  }
+
+  Future<void> _ensurePlayerHealthyOnResume() async {
+    try {
+      final player = await PlayerInitializer().getBloomeeMusicPlayer();
+      if (!player.isPlayerHealthy) {
+        await player.revive();
+      }
+      player.syncPublicState();
+    } catch (error, stackTrace) {
+      debugPrint('Player health check on resume failed: $error\n$stackTrace');
     }
   }
 
@@ -187,6 +207,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _intentSub?.cancel();
     bloomeePlayerCubit.close();
     if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {

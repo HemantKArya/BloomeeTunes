@@ -36,8 +36,8 @@ class PlayerInitializer {
             androidNotificationIcon: 'mipmap/ic_launcher',
             androidResumeOnClick: true,
             androidShowNotificationBadge: true,
-            // Allows user to swipe away the notification when paused
-            androidStopForegroundOnPause: true,
+            // Keep foreground priority while paused to reduce OS kills.
+            androidStopForegroundOnPause: false,
             notificationColor: Default_Theme.accentColor2,
           ),
         );

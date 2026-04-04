@@ -171,13 +171,15 @@ class PlayerErrorHandler {
     }
   }
 
-  void _handleTrackTotalFailure(Track track) {
-    if (!_currentTrackHadPlay) {
+  void _handleTrackTotalFailure(Track track,
+      {bool countTowardsCircuitBreaker = true}) {
+    if (!_currentTrackHadPlay && countTowardsCircuitBreaker) {
       _consecutiveTrackFailures++;
     }
     _currentTrackHadPlay = false;
 
-    if (_consecutiveTrackFailures >= _retryConfig.maxConsecutiveTrackFailures) {
+    if (countTowardsCircuitBreaker &&
+        _consecutiveTrackFailures >= _retryConfig.maxConsecutiveTrackFailures) {
       dev.log('Circuit breaker tripped.', name: 'PlayerErrorHandler');
       SnackbarService.showMessage(
           'Playback stopped due to continuous errors. Please check your connection.',

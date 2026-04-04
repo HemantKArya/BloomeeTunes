@@ -180,9 +180,12 @@ class _ImportMediaFromPlatformsViewState
                   if (path.endsWith('.blm') || path.endsWith('.json')) {
                     SnackbarService.showMessage(
                         AppLocalizations.of(context)!.snackbarImportingMedia);
-                    ImportExportService.importJSON(path).then((_) {
-                      SnackbarService.showMessage(AppLocalizations.of(context)!
-                          .snackbarImportCompleted);
+                    ImportExportService.importJSON(path).then((imported) {
+                      if (imported) {
+                        SnackbarService.showMessage(
+                            AppLocalizations.of(context)!
+                                .snackbarImportCompleted);
+                      }
                     });
                   } else {
                     log('Invalid File Format', name: 'Import File');

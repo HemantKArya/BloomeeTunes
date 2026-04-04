@@ -42,15 +42,22 @@ const List<CollectionSchema<dynamic>> _legacySchemas = [
 ];
 
 Isar? _legacyInstance;
+Directory? _stagingDir;
 
-/// Returns `true` when the legacy `default.isar` file exists in [dir].
+/// Returns `true` when any supported legacy database filename exists in [dir].
 bool legacyDbExists(String dir) =>
-    File(p.join(dir, 'default.isar')).existsSync();
+    File(p.join(dir, 'default.isar')).existsSync() ||
+    File(p.join(dir, 'default.isar.db')).existsSync() ||
+    File(p.join(dir, 'default.db')).existsSync();
 
 /// Opens the legacy DB. Returns the [Isar] instance.
 ///
 /// Safe to call multiple times — returns the existing instance if already open.
-Future<Isar> openLegacyDB(String dir) async {
+Future<Isar> openLegacyDB(
+  String dir, {
+  String? legacyFilePath,
+  String? appSuppDir,
+}) async {
   if (_legacyInstance != null && _legacyInstance!.isOpen) {
     return _legacyInstance!;
   }
@@ -61,10 +68,42 @@ Future<Isar> openLegacyDB(String dir) async {
     return named;
   }
 
-  log('Opening legacy DB at $dir/default.isar', name: 'LegacyDBOpener');
+  var openDir = dir;
+
+  if (legacyFilePath != null) {
+    final source = File(legacyFilePath);
+    final sourceName = p.basename(source.path).toLowerCase();
+
+    if (sourceName != 'default.isar') {
+      final stagingRoot = Directory(
+        p.join(appSuppDir ?? dir, 'legacy_migration_staging'),
+      );
+      if (!stagingRoot.existsSync()) {
+        stagingRoot.createSync(recursive: true);
+      }
+
+      final stagedDir = Directory(
+        p.join(
+            stagingRoot.path, DateTime.now().millisecondsSinceEpoch.toString()),
+      );
+      stagedDir.createSync(recursive: true);
+
+      final stagedFile = File(p.join(stagedDir.path, 'default.isar'));
+      source.copySync(stagedFile.path);
+      openDir = stagedDir.path;
+      _stagingDir = stagedDir;
+
+      log(
+        'Staged legacy DB ${source.path} to ${stagedFile.path} for migration open',
+        name: 'LegacyDBOpener',
+      );
+    }
+  }
+
+  log('Opening legacy DB at $openDir/default.isar', name: 'LegacyDBOpener');
   _legacyInstance = Isar.openSync(
     _legacySchemas,
-    directory: dir,
+    directory: openDir,
     name: legacyDbName,
     relaxedDurability: true, // read-heavy; we never write
   );
@@ -79,6 +118,12 @@ Future<void> closeLegacyDB() async {
       _legacyInstance = null;
       log('Legacy DB closed', name: 'LegacyDBOpener');
     }
+
+    if (_stagingDir != null && _stagingDir!.existsSync()) {
+      _stagingDir!.deleteSync(recursive: true);
+      log('Legacy DB staging cleaned', name: 'LegacyDBOpener');
+    }
+    _stagingDir = null;
   } catch (e) {
     log('Error closing legacy DB', error: e, name: 'LegacyDBOpener');
   }

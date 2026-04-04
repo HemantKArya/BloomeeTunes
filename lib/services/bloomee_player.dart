@@ -93,7 +93,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       _relatedSongsManager.relatedSongs;
 
   /// Whether the player is currently resolving a media URL (before engine loads).
-  final BehaviorSubject<bool> isResolving = BehaviorSubject<bool>.seeded(false);
+  BehaviorSubject<bool> isResolving = BehaviorSubject<bool>.seeded(false);
 
   @override
   BehaviorSubject<String> get queueTitle => _queueManager.queueTitle;
@@ -839,11 +839,40 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   // ─── Player Health ─────────────────────────────────────────────────────────
 
-  bool get isPlayerHealthy => !_isDisposed;
+  bool get isPlayerHealthy {
+    if (_isDisposed) return false;
+    if (fromPlaylist.isClosed ||
+        isOffline.isClosed ||
+        loopMode.isClosed ||
+        isResolving.isClosed) {
+      return false;
+    }
+    try {
+      final _ = engine.state;
+      final __ = engine.playing;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<void> revive() async {
-    if (!_isDisposed) return;
+    if (!_isDisposed && isPlayerHealthy) return;
     log('Reviving BloomeeMusicPlayer...', name: 'BloomeeMusicPlayer');
+
+    // Re-create long-lived stream subjects only if they were closed.
+    if (fromPlaylist.isClosed) {
+      fromPlaylist = BehaviorSubject<bool>.seeded(false);
+    }
+    if (isOffline.isClosed) {
+      isOffline = BehaviorSubject<bool>.seeded(false);
+    }
+    if (loopMode.isClosed) {
+      loopMode = BehaviorSubject<LoopMode>.seeded(LoopMode.off);
+    }
+    if (isResolving.isClosed) {
+      isResolving = BehaviorSubject<bool>.seeded(false);
+    }
 
     _initEngine();
     _initModules();
@@ -1067,7 +1096,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> onNotificationDeleted() async {
     await stop();
-    await _cleanup();
+    // Keep the handler alive so app-side state can recover cleanly after
+    // notification swipe actions.
     return super.onNotificationDeleted();
   }
 
@@ -1093,7 +1123,6 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager.dispose();
     _relatedSongsManager.dispose();
     await _recentlyPlayedTracker.dispose();
-    isResolving.close();
 
     DiscordService.clearPresence();
 

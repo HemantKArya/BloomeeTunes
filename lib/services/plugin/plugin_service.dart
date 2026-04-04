@@ -360,21 +360,64 @@ class PluginService {
   PluginException _mapError(String pluginId, Object error) {
     final message = error.toString();
 
-    // Rust bridge encodes errors as "PLUGIN_ERROR::{variant}::{message}"
-    if (message.contains('PLUGIN_ERROR::PluginNotLoaded')) {
-      return PluginNotLoadedException(pluginId: pluginId);
-    }
-    if (message.contains('PLUGIN_ERROR::PluginNotFound')) {
-      return PluginNotFoundException(pluginId: pluginId);
+    final parsed = _parseBridgePluginError(message);
+    if (parsed != null) {
+      final variant = parsed.variant;
+      final detail = parsed.message;
+
+      if (variant == 'PluginNotLoaded') {
+        return PluginNotLoadedException(pluginId: pluginId, message: detail);
+      }
+      if (variant == 'PluginNotFound') {
+        return PluginNotFoundException(pluginId: pluginId, message: detail);
+      }
+
+      return PluginExecutionException(
+        pluginId: pluginId,
+        message: detail,
+        errorCode: 'PLUGIN_ERROR::$variant',
+        cause: error,
+      );
     }
 
     return PluginExecutionException(
       pluginId: pluginId,
-      message: 'Command execution failed',
+      message: 'Command execution failed: $message',
       errorCode: message,
       cause: error,
     );
   }
+
+  _ParsedBridgePluginError? _parseBridgePluginError(String raw) {
+    const prefix = 'PLUGIN_ERROR::';
+    if (!raw.startsWith(prefix)) return null;
+
+    final withoutPrefix = raw.substring(prefix.length);
+    final separatorIndex = withoutPrefix.indexOf('::');
+    if (separatorIndex <= 0) return null;
+
+    final variantRaw = withoutPrefix.substring(0, separatorIndex).trim();
+    final detail = withoutPrefix.substring(separatorIndex + 2).trim();
+    if (variantRaw.isEmpty || detail.isEmpty) return null;
+
+    final canonicalVariant = variantRaw.split('(').first.trim();
+    if (canonicalVariant.isEmpty) return null;
+
+    return _ParsedBridgePluginError(
+      variant: canonicalVariant,
+      message: detail,
+    );
+  }
+}
+
+class _ParsedBridgePluginError {
+  final String variant;
+  final String message;
+
+  _ParsedBridgePluginError({
+    required this.variant,
+    required this.message,
+  });
 }
 
 class _PackedPluginManifest {

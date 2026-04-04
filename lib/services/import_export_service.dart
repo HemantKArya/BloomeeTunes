@@ -6,6 +6,7 @@ import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/db/legacy/legacy_media_id_mapper.dart';
 import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/m3u_processor.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -116,7 +117,14 @@ class ImportExportService {
     }
 
     // ── Legacy MediaItemDB format ────────────────────────────────────────────
-    final id = (m['permaURL'] as String?) ?? (m['id'] as String?) ?? '';
+    final mappedId = buildPluginScopedMediaIdFromLegacyMap(m);
+    final fallbackId = (m['mediaID'] as String?) ??
+        (m['mediaId'] as String?) ??
+        (m['id'] as String?) ??
+        (m['permaURL'] as String?) ??
+        '';
+    final id =
+        (mappedId != null && mappedId.isNotEmpty) ? mappedId : fallbackId;
     final title = (m['title'] as String?) ?? '';
     final artist = (m['artist'] as String?) ?? '';
     final album = (m['album'] as String?) ?? '';
@@ -233,14 +241,16 @@ class ImportExportService {
 
       final playlistId = await _playlistDao.ensurePlaylist(playlistName);
       final items = (playlistMap[isV2 ? 'tracks' : 'mediaItems'] as List);
+      final tracks = <Track>[];
 
       for (final item in items) {
         if (item is Map<String, dynamic>) {
           final track = _trackFromMap(item);
-          await _playlistDao.addTrackToPlaylist(playlistId, track);
-          log("Track imported: ${track.title}", name: "FileManager");
+          tracks.add(track);
         }
       }
+
+      await _playlistDao.addTracksToPlaylist(playlistId, tracks);
 
       log("Playlist imported successfully");
       return true;
@@ -260,7 +270,7 @@ class ImportExportService {
 
       final track = _trackFromMap(trackMap);
       final playlistId = await _playlistDao.ensurePlaylist("Imported");
-      await _playlistDao.addTrackToPlaylist(playlistId, track);
+      await _playlistDao.addTracksToPlaylist(playlistId, [track]);
       log("Track imported successfully");
       return true;
     } catch (e) {
