@@ -19,10 +19,14 @@ class ResolvedMediaSource {
   final bool isOffline;
   final Map<String, String>? headers;
 
+  /// Used as the identifier for the plugin that *resolved* the playback request. Takes priority over metadata stored by [RelatedSongsManager].
+  final String? resolvedPluginId;
+
   const ResolvedMediaSource({
     required this.uri,
     required this.isOffline,
     this.headers,
+    this.resolvedPluginId,
   });
 }
 
@@ -97,6 +101,9 @@ class MediaResolverService {
         name: 'MediaResolverService');
 
     PluginResponse response;
+
+    // Captures the *source* plugin id from the embedded media id.
+    String activePluginId = parts.pluginId;
     try {
       response = await _pluginService.execute(
         pluginId: parts.pluginId,
@@ -172,6 +179,8 @@ class MediaResolverService {
           headers: selectedStream == null
               ? null
               : streamHeadersToMap(selectedStream.headers),
+          // Remaps the source plugin to the resolved plugin id
+          resolvedPluginId: activePluginId,
         );
       },
       trackDetails: (_) =>
