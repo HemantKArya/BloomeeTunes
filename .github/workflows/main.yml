@@ -138,7 +138,18 @@ jobs:
           STAGING="/tmp/bloomee_mac"
           mkdir -p "$STAGING"
           cp -R "build/macos/Build/Products/Release/Bloomee.app" "$STAGING/"
-          create-dmg --volname "Bloomee" --window-size 788 312 --icon-size 75 --icon "Bloomee.app" 455 210 --app-drop-link 686 210 --background "assets/icons/dmg-background.jpg" "bloomee_macos_v$VER.dmg" "$STAGING"
+          rm -f "bloomee_macos_v$VER.dmg"
+          create-dmg \
+            --volname "Bloomee" \
+            --background "assets/icons/dmg-background.jpg" \
+            --window-size 788 312 \
+            --icon-size 75 \
+            --text-size 10 \
+            --icon "Bloomee.app" 455 210 \
+            --app-drop-link 686 210 \
+            --hide-extension "Bloomee.app" \
+            "bloomee_macos_v$VER.dmg" \
+            "$STAGING"
           echo "VER=$VER" >> $GITHUB_ENV
 
       - name: Release macOS
