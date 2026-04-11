@@ -18,6 +18,9 @@
 *.ipr
 *.iws
 .idea/
+merge_code.py
+merge_dart.py
+merge_rust.py
 
 # Visual Studio Code related
 .classpath
