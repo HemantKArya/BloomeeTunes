@@ -23,6 +23,9 @@ class QueueManager {
   int _currentIndex = 0;
   int _shuffleIndex = 0;
   List<int> _shuffleList = [];
+  // Next insertion index for manual queued items (so multiple manual adds
+  // are inserted in FIFO order right after current track).
+  int _nextManualInsertIndex = -1;
 
   // ─── Getters ───────────────────────────────────────────────────────────────
 
@@ -155,6 +158,14 @@ class QueueManager {
     }
   }
 
+  List<Track> _pendingManualTracks() {
+    if (_queue.value.isEmpty) return [];
+    final start = (_currentIndex + 1).clamp(0, _queue.value.length);
+    final end = _nextManualInsertIndex.clamp(start, _queue.value.length);
+    if (start >= end) return [];
+    return _queue.value.sublist(start, end);
+  }
+
   // ─── Queue Mutations ──────────────────────────────────────────────────────
 
   /// Replace the queue with a new playlist.
@@ -164,6 +175,8 @@ class QueueManager {
     int idx = 0,
     bool shuffling = false,
   }) {
+    final pendingManualTracks = _pendingManualTracks();
+
     // Deduplicate by ID, preserving order. We track whether the requested
     // start index needs to be remapped after deduplication.
     final seenIds = <String>{};
@@ -181,14 +194,22 @@ class QueueManager {
       remappedIdx = pos != -1 ? pos : 0;
     }
 
-    _queue.add(deduped);
+    final finalQueue = List<Track>.from(deduped);
+    if (pendingManualTracks.isNotEmpty && remappedIdx < finalQueue.length) {
+      final insertIdx = (remappedIdx + 1).clamp(0, finalQueue.length);
+      finalQueue.insertAll(insertIdx, pendingManualTracks);
+    } else if (pendingManualTracks.isNotEmpty) {
+      finalQueue.addAll(pendingManualTracks);
+    }
+
+    _queue.add(finalQueue);
     queueTitle.add(playlistName);
 
     final shouldShuffle = shuffling || shuffleMode.value;
     shuffleMode.add(shouldShuffle);
 
-    if (shouldShuffle && deduped.isNotEmpty) {
-      _shuffleList = generateRandomIndices(deduped.length);
+    if (shouldShuffle && finalQueue.isNotEmpty) {
+      _shuffleList = generateRandomIndices(finalQueue.length);
       if (shuffling) {
         _shuffleIndex = 0;
         _currentIndex = _shuffleList[0];
@@ -201,8 +222,11 @@ class QueueManager {
       _shuffleList = [];
       _shuffleIndex = 0;
       _currentIndex =
-          remappedIdx.clamp(0, deduped.isEmpty ? 0 : deduped.length - 1);
+          remappedIdx.clamp(0, finalQueue.isEmpty ? 0 : finalQueue.length - 1);
     }
+    // Preserve the pending manual block so future new-song loads keep it.
+    _nextManualInsertIndex = (_currentIndex + 1 + pendingManualTracks.length)
+        .clamp(0, finalQueue.length);
   }
 
   /// Toggle shuffle mode.
@@ -220,15 +244,36 @@ class QueueManager {
     }
   }
 
-  /// Add a track to the end of the queue. Skips duplicates (by id).
+  /// Add a track to play next (after current).
+  /// For empty queue, starts the track at index 0.
   void addTrack(Track track) {
-    if (_queue.value.any((t) => t.id == track.id)) return;
     queueTitle.add('Queue');
-    final newQueue = List<Track>.from(_queue.value)..add(track);
-    final newIdx = newQueue.length - 1;
+    
+    if (_queue.value.isEmpty) {
+      _queue.add([track]);
+      _currentIndex = 0;
+      _nextManualInsertIndex = 1;
+      return;
+    }
+
+    // Determine insertion index. Use the manual-insert pointer so multiple
+    // manual adds appear in FIFO order after the current track.
+    var insertIdx = _nextManualInsertIndex;
+    final minIdx = _currentIndex + 1;
+    if (insertIdx < minIdx || insertIdx > _queue.value.length) insertIdx = minIdx;
+
+    final newQueue = List<Track>.from(_queue.value)..insert(insertIdx, track);
     _queue.add(newQueue);
+
+    // Advance the manual insert pointer so subsequent manual adds come after
+    // this newly inserted item.
+    _nextManualInsertIndex = (insertIdx + 1).clamp(0, _queue.value.length);
+
     if (shuffleMode.value && _shuffleList.isNotEmpty) {
-      _shuffleList.add(newIdx);
+      for (int i = 0; i < _shuffleList.length; i++) {
+        if (_shuffleList[i] >= insertIdx) _shuffleList[i]++;
+      }
+      _shuffleList.insert(_shuffleIndex + 1, insertIdx);
     }
   }
 
@@ -251,8 +296,46 @@ class QueueManager {
         }
       }
     } else {
+      addTracksAfterCurrent(tracks);
+    }
+  }
+
+  /// Insert multiple tracks to play next (right after current), in order.
+  /// Used for manually queued songs. Returns the insertion index.
+  void addTracksAfterCurrent(List<Track> tracks) {
+    if (_queue.value.isEmpty || tracks.isEmpty) {
       for (final track in tracks) {
         addTrack(track);
+      }
+      return;
+    }
+
+    // Determine insertion index using the manual-insert pointer so bulk
+    // manual adds preserve ordering (FIFO) after current track.
+    var insertIdx = _nextManualInsertIndex;
+    final minIdx = _currentIndex + 1;
+    if (insertIdx < minIdx || insertIdx > _queue.value.length) insertIdx = minIdx;
+
+    final newQueue = List<Track>.from(_queue.value);
+    for (int i = 0; i < tracks.length; i++) {
+      newQueue.insert(insertIdx + i, tracks[i]);
+    }
+    _queue.add(newQueue);
+
+    // Advance the manual insert pointer by the number of inserted items.
+    _nextManualInsertIndex = (insertIdx + tracks.length)
+        .clamp(0, _queue.value.length);
+
+    // Update shuffle list indices: shift all indices >= insertIdx
+    if (shuffleMode.value && _shuffleList.isNotEmpty) {
+      for (int i = 0; i < _shuffleList.length; i++) {
+        if (_shuffleList[i] >= insertIdx) {
+          _shuffleList[i] += tracks.length;
+        }
+      }
+      // Insert the new track indices right after current in shuffle list
+      for (int i = 0; i < tracks.length; i++) {
+        _shuffleList.insert(_shuffleIndex + 1 + i, insertIdx + i);
       }
     }
   }
@@ -262,13 +345,18 @@ class QueueManager {
     if (_queue.value.isEmpty) {
       _queue.add([track]);
       _currentIndex = 0;
+      _nextManualInsertIndex = 1;
       return;
     }
-    if (_queue.value.any((t) => t.id == track.id)) return;
 
     final insertIdx = _currentIndex + 1;
     final newQueue = List<Track>.from(_queue.value)..insert(insertIdx, track);
     _queue.add(newQueue);
+    if (_nextManualInsertIndex < 0 || insertIdx <= _nextManualInsertIndex) {
+      _nextManualInsertIndex = _nextManualInsertIndex < 0
+          ? insertIdx + 1
+          : _nextManualInsertIndex + 1;
+    }
 
     if (shuffleMode.value && _shuffleList.isNotEmpty) {
       for (int i = 0; i < _shuffleList.length; i++) {
@@ -280,9 +368,6 @@ class QueueManager {
 
   /// Insert a track at a specific index.
   void insertTrack(int index, Track track) {
-    // Guard against inserting a duplicate ID — same reason as addTrack.
-    if (_queue.value.any((t) => t.id == track.id)) return;
-
     final queue = List<Track>.from(_queue.value);
     final actualIdx = index.clamp(0, queue.length);
     if (actualIdx < queue.length) {
@@ -291,6 +376,11 @@ class QueueManager {
       queue.add(track);
     }
     _queue.add(queue);
+    if (_nextManualInsertIndex < 0 || actualIdx <= _nextManualInsertIndex) {
+      _nextManualInsertIndex = _nextManualInsertIndex < 0
+          ? actualIdx + 1
+          : _nextManualInsertIndex + 1;
+    }
 
     if (_currentIndex >= actualIdx) _currentIndex++;
 
@@ -339,6 +429,10 @@ class QueueManager {
       }
     } else if (_currentIndex > index) {
       _currentIndex--;
+    }
+
+    if (_nextManualInsertIndex > index) {
+      _nextManualInsertIndex--;
     }
   }
 
@@ -390,23 +484,36 @@ class QueueManager {
     }
     _shuffleList = [];
     _shuffleIndex = 0;
+    _nextManualInsertIndex = _currentIndex + 1;
   }
 
   /// Replace the entire queue with new tracks.
   void updateQueue(List<Track> tracks, {int startIndex = 0}) {
+    final pendingManualTracks = _pendingManualTracks();
     final seenIds = <String>{};
     final deduped =
         tracks.where((t) => seenIds.add(t.id)).toList(growable: false);
-    _queue.add(deduped);
+    final finalQueue = List<Track>.from(deduped);
+    if (pendingManualTracks.isNotEmpty && startIndex < finalQueue.length) {
+      final insertIdx = (startIndex + 1).clamp(0, finalQueue.length);
+      finalQueue.insertAll(insertIdx, pendingManualTracks);
+    } else if (pendingManualTracks.isNotEmpty) {
+      finalQueue.addAll(pendingManualTracks);
+    }
+
+    _queue.add(finalQueue);
     _currentIndex =
-        startIndex.clamp(0, deduped.isEmpty ? 0 : deduped.length - 1);
-    if (shuffleMode.value && deduped.isNotEmpty) {
-      _shuffleList = generateRandomIndices(deduped.length);
+        startIndex.clamp(0, finalQueue.isEmpty ? 0 : finalQueue.length - 1);
+    if (shuffleMode.value && finalQueue.isNotEmpty) {
+      _shuffleList = generateRandomIndices(finalQueue.length);
       _shuffleIndex = 0;
     } else {
       _shuffleList = [];
       _shuffleIndex = 0;
     }
+    // Preserve the pending manual block so future new-song loads keep it.
+    _nextManualInsertIndex = (_currentIndex + 1 + pendingManualTracks.length)
+        .clamp(0, finalQueue.length);
   }
 
   bool replaceTrackById(String mediaId, Track replacement) {

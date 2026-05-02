@@ -137,5 +137,7 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 !.vscode/settings.json
 
-
 /assets/*.env
+
+# FVM Version Cache
+.fvm/
