@@ -1,0 +1,3 @@
+build/linux/x64/release/bundle/* /usr/share/bloomeetunes/
+debian/bloomeetunes.desktop /usr/share/applications/
+usr/share/icons/hicolor/
