@@ -507,7 +507,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistCreateNew.
   ///
   /// In en, this message translates to:
-  /// **'Create New Playlist'**
+  /// **'Create New Playlist 😍'**
   String get playlistCreateNew;
 
   /// No description provided for @playlistCreateFirstOne.
@@ -515,6 +515,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No playlists yet. Create one to get started!'**
   String get playlistCreateFirstOne;
+
+  /// No description provided for @addToPlaylistNoSongSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No song selected'**
+  String get addToPlaylistNoSongSelected;
+
+  /// No description provided for @createPlaylistDialogBarrierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Create playlist dialog'**
+  String get createPlaylistDialogBarrierLabel;
+
+  /// No description provided for @createPlaylistDialogNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Summer Vibes'**
+  String get createPlaylistDialogNameHint;
+
+  /// No description provided for @createPlaylistDialogCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get createPlaylistDialogCreate;
 
   /// No description provided for @playlistSongCount.
   ///

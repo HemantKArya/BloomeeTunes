@@ -11,6 +11,7 @@ import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/constants/sentinel_values.dart';
 import 'package:Bloomee/screens/widgets/create_playlist_bottomsheet.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:icons_plus/icons_plus.dart';
 
@@ -140,14 +141,16 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
       }
       _songInPlaylists.value = rollbackMembership;
     } finally {
-      if (!mounted) return;
-      _pendingPlaylistOps.value = Set<String>.from(_pendingPlaylistOps.value)
-        ..remove(playlist.playlistName);
+      if (mounted) {
+        _pendingPlaylistOps.value = Set<String>.from(_pendingPlaylistOps.value)
+          ..remove(playlist.playlistName);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       appBar: AppBar(
@@ -161,7 +164,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'Add to Playlist',
+          l10n.menuAddToPlaylist,
           style: Default_Theme.secondoryTextStyleMedium.merge(
             const TextStyle(
               color: Default_Theme.primaryColor1,
@@ -177,7 +180,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
               color: Default_Theme.accentColor2,
               size: 26,
             ),
-            tooltip: 'Create New Playlist',
+            tooltip: l10n.playlistCreateNew,
             onPressed: () => createPlaylistDialog(context),
           ),
           const SizedBox(width: 4),
@@ -189,9 +192,9 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
             final mediaItem = addToPlaylistState.track;
 
             if (isTrackNull(mediaItem)) {
-              return const Center(
+              return Center(
                 child: SignBoardWidget(
-                  message: "No song selected",
+                  message: l10n.addToPlaylistNoSongSelected,
                   icon: MingCute.music_2_line,
                 ),
               );
@@ -251,8 +254,8 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                             return Center(
                               child: SignBoardWidget(
                                 message: query.isEmpty
-                                    ? "No playlists yet.\nCreate one to get started!"
-                                    : "No playlists match your search",
+                                    ? l10n.playlistCreateFirstOne
+                                    : l10n.playlistNoMatchSearch,
                                 icon: query.isEmpty
                                     ? MingCute.playlist_line
                                     : MingCute.search_line,
@@ -367,7 +370,7 @@ class _CreatePlaylistTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 14),
                 Text(
-                  'Create New Playlist',
+                  AppLocalizations.of(context)!.playlistCreateNew,
                   style: Default_Theme.secondoryTextStyleMedium.merge(
                     const TextStyle(
                       color: Default_Theme.accentColor2,
@@ -482,7 +485,7 @@ class _SearchBar extends StatelessWidget {
             ),
           ),
           decoration: InputDecoration(
-            hintText: 'Search playlists...',
+            hintText: AppLocalizations.of(context)!.searchHintPlaylists,
             hintStyle: Default_Theme.secondoryTextStyle.merge(
               TextStyle(
                 color: Default_Theme.primaryColor1.withValues(alpha: 0.35),

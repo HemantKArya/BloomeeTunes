@@ -226,11 +226,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistNoMatchSearch => 'No playlists match your search';
 
   @override
-  String get playlistCreateNew => 'Create New Playlist';
+  String get playlistCreateNew => 'Create New Playlist 😍';
 
   @override
   String get playlistCreateFirstOne =>
       'No playlists yet. Create one to get started!';
+
+  @override
+  String get addToPlaylistNoSongSelected => 'No song selected';
+
+  @override
+  String get createPlaylistDialogBarrierLabel => 'Create playlist dialog';
+
+  @override
+  String get createPlaylistDialogNameHint => 'Summer Vibes';
+
+  @override
+  String get createPlaylistDialogCreate => 'Create';
 
   @override
   String playlistSongCount(int count) {

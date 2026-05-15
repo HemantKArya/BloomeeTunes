@@ -219,10 +219,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get playlistNoMatchSearch => '一致するプレイリストがありません';
 
   @override
-  String get playlistCreateNew => '新しいプレイリストを作成';
+  String get playlistCreateNew => '新しいプレイリストを作成 😍';
 
   @override
   String get playlistCreateFirstOne => 'プレイリストがありません。お気に入りを作ってみましょう！';
+
+  @override
+  String get addToPlaylistNoSongSelected => '曲が選択されていません';
+
+  @override
+  String get createPlaylistDialogBarrierLabel => 'プレイリスト作成ダイアログ';
+
+  @override
+  String get createPlaylistDialogNameHint => 'サマー・バイブス';
+
+  @override
+  String get createPlaylistDialogCreate => '作成';
 
   @override
   String playlistSongCount(int count) {

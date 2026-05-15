@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 
 void createPlaylistDialog(BuildContext context) {
+  final l10n = AppLocalizations.of(context)!;
   showGeneralDialog(
     context: context,
     barrierDismissible: true,
-    barrierLabel: "Create Playlist Dialog",
+    barrierLabel: l10n.createPlaylistDialogBarrierLabel,
     barrierColor: Colors.black.withValues(alpha: 0.85),
     transitionDuration: const Duration(milliseconds: 250), // Slightly faster
     pageBuilder: (context, animation, secondaryAnimation) {
@@ -80,6 +82,7 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Dialog(
@@ -125,7 +128,7 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
                       children: [
                         // Title
                         Text(
-                          "Create new Playlist 😍",
+                          l10n.playlistCreateNew,
                           style: Default_Theme.secondoryTextStyleMedium.merge(
                             const TextStyle(
                               fontSize: 26,
@@ -156,7 +159,7 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
                           ),
                           decoration: InputDecoration(
                             counterText: "",
-                            hintText: "Summer Vibes",
+                            hintText: l10n.createPlaylistDialogNameHint,
                             hintStyle:
                                 Default_Theme.secondoryTextStyleMedium.merge(
                               TextStyle(
@@ -212,7 +215,7 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 8),
                                 child: Text(
-                                  "Cancel",
+                                  l10n.buttonCancel,
                                   style: Default_Theme.secondoryTextStyleMedium
                                       .merge(
                                     TextStyle(
@@ -248,7 +251,7 @@ class _CreatePlaylistDialogState extends State<_CreatePlaylistDialog> {
                                     ),
                                   ),
                                   child: Text(
-                                    "Create",
+                                    l10n.createPlaylistDialogCreate,
                                     style: Default_Theme
                                         .secondoryTextStyleMedium
                                         .merge(
