@@ -426,7 +426,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
           ),
           IconButton(
             padding: const EdgeInsets.all(8),
-            onPressed: () => createPlaylistBottomSheet(context),
+            onPressed: () => createPlaylistDialog(context),
             icon: const Icon(MingCute.add_fill,
                 size: 25, color: Default_Theme.primaryColor1),
           ),

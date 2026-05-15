@@ -178,7 +178,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
               size: 26,
             ),
             tooltip: 'Create New Playlist',
-            onPressed: () => createPlaylistBottomSheet(context),
+            onPressed: () => createPlaylistDialog(context),
           ),
           const SizedBox(width: 4),
         ],
@@ -278,8 +278,7 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                                       if (index == 0) {
                                         return _CreatePlaylistTile(
                                           onTap: () =>
-                                              createPlaylistBottomSheet(
-                                                  context),
+                                              createPlaylistDialog(context),
                                         );
                                       }
 
