@@ -30,6 +30,13 @@ class SettingKeys {
   /// Name of the currently selected EQ preset (e.g. "Flat", "Rock").
   static const String eqPreset = "eqPreset";
 
+  /// EQ routing mode: 'builtin' (default) uses the in-app EQ.
+  /// 'device' disables the in-app EQ so audio passes through unmodified,
+  /// allowing the device's system equalizer (e.g. Dolby Atmos, OEM EQ) to
+  /// process the audio. Note: switching to 'device' does NOT automatically
+  /// activate the system EQ — the user configures it in device Settings.
+  static const String eqSource = "eqSource";
+
   // ── Downloads ───────────────────────────────────────────────────────────────
   static const String downPathSetting = "downloadPath";
 
@@ -41,11 +48,18 @@ class SettingKeys {
   static const String backupPath = "backupPath";
   static const String autoBackup = "autoBackup";
 
+  /// ISO 8601 UTC timestamp of the most recent completed backup.
+  /// Used to gate the once-per-24-hours auto-backup check.
+  static const String lastBackupTimestamp = "lastBackupTimestamp";
+
   // ── History ─────────────────────────────────────────────────────────────────
   static const String historyClearTime = "autoHistoryCleanupTime";
 
   /// Special playlist name for recently played tracks.
   static const String recentlyPlayedPlaylist = "recently_played";
+
+  /// JSON-encoded last queue state for session resume.
+  static const String lastQueueState = 'lastQueueState';
 
   // ── Location / charts ───────────────────────────────────────────────────────
   static const String languageCode = "languageCode";
@@ -107,4 +121,15 @@ class SettingKeys {
 
   /// Whether to confirm before deleting a local track.
   static const String localMusicConfirmDelete = 'localMusicConfirmDelete';
+}
+
+/// Valid values for [SettingKeys.eqSource].
+class EqSourceValues {
+  EqSourceValues._();
+
+  /// In-app 10-band FFmpeg equalizer (default).
+  static const String builtin = 'builtin';
+
+  /// Pass audio through without in-app EQ so the device system EQ can apply.
+  static const String device = 'device';
 }

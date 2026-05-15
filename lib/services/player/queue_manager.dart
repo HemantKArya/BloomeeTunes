@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'dart:developer';
 
+import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/services/db/dao/settings_dao.dart';
+import 'package:Bloomee/services/db/dao/track_dao.dart';
+import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:rxdart/rxdart.dart';
@@ -23,6 +28,12 @@ class QueueManager {
   int _currentIndex = 0;
   int _shuffleIndex = 0;
   List<int> _shuffleList = [];
+
+  /// True while [restoreQueueState] is populating the queue from disk.
+  /// [BloomeeMusicPlayer] checks this to skip the persistence listener
+  /// and avoid writing back the exact same data we just read.
+  bool _isRestoring = false;
+  bool get isRestoring => _isRestoring;
 
   // ─── Getters ───────────────────────────────────────────────────────────────
 
@@ -432,6 +443,82 @@ class QueueManager {
       _shuffleList = generateRandomIndices(_queue.value.length);
       _shuffleIndex = _shuffleList.indexOf(_currentIndex);
       if (_shuffleIndex == -1) _shuffleIndex = 0;
+    }
+  }
+
+  // ─── Queue Persistence ───────────────────────────────────────────────────
+
+  /// Persist current queue state to DB settings for session restore.
+  ///
+  /// Stores only track IDs + index — the full Track objects are already in
+  /// TrackDAO from the normal play/add pipeline. This avoids fragile custom
+  /// serialization and keeps the persisted payload tiny.
+  ///
+  /// Called from [BloomeeMusicPlayer] via a throttled listener on
+  /// [tracksStream], and eagerly in [onTaskRemoved] as a last-chance save.
+  Future<void> persistQueueState() async {
+    final tracks = _queue.value;
+    if (tracks.isEmpty) return;
+    try {
+      // Ensure all tracks exist in TrackDAO (ephemeral tracks from search
+      // results or intent handling might not have been saved yet).
+      final trackDao = TrackDAO(DBProvider.db);
+      await trackDao.upsertTracks(tracks);
+
+      final dao = SettingsDAO(DBProvider.db);
+      final queueData = {
+        'v': 2, // v2: ID-only persistence
+        'trackIds': tracks.map((t) => t.id).toList(),
+        'currentIndex': _currentIndex,
+        'queueTitle': queueTitle.value,
+      };
+      await dao.putSettingStr(
+          SettingKeys.lastQueueState, jsonEncode(queueData));
+    } catch (e) {
+      log('Failed to persist queue: $e', name: 'QueueManager');
+    }
+  }
+
+  /// Restore queue state from DB settings. Returns true if restored.
+  ///
+  /// Fetches full [Track] objects from [TrackDAO] by their IDs, so every
+  /// field (title, artists, artwork, plugin-stamped ID) is correct and
+  /// the tracks are immediately resolvable by [MediaResolverService].
+  Future<bool> restoreQueueState() async {
+    try {
+      final dao = SettingsDAO(DBProvider.db);
+      final raw = await dao.getSettingStr(SettingKeys.lastQueueState);
+      if (raw == null || raw.isEmpty) return false;
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+
+      // Support both v2 (ID-only) and legacy v1 (full track JSON)
+      final trackIds = data['trackIds'] as List?;
+      if (trackIds == null || trackIds.isEmpty) return false;
+
+      final trackDao = TrackDAO(DBProvider.db);
+      final tracks = <Track>[];
+      for (final id in trackIds) {
+        if (id is! String || id.isEmpty) continue;
+        try {
+          final track = await trackDao.getTrackByMediaId(id);
+          if (track != null) tracks.add(track);
+        } catch (e) {
+          log('Skipping track $id: $e', name: 'QueueManager');
+        }
+      }
+      if (tracks.isEmpty) return false;
+
+      final idx = (data['currentIndex'] as int?)
+              ?.clamp(0, tracks.length - 1) ??
+          0;
+      _isRestoring = true;
+      loadTracks(tracks, idx: idx, playlistName: data['queueTitle'] ?? 'Queue');
+      _isRestoring = false;
+      return true;
+    } catch (e) {
+      _isRestoring = false;
+      log('Failed to restore queue: $e', name: 'QueueManager');
+      return false;
     }
   }
 

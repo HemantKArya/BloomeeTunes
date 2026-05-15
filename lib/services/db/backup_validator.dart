@@ -42,19 +42,17 @@ Map<String, dynamic> _verifyBackup(String filePath) {
 
   // 3️⃣ Check for _meta section
   final meta = jsonData["_meta"];
-  if (meta == null) {
-    errors.add("Missing '_meta' section.");
-  } else if (meta is! Map<String, dynamic>) {
-    errors.add("'_meta' must be a JSON object.");
-  } else {
+  if (meta != null && meta is Map<String, dynamic>) {
     // Required meta fields
-    const requiredMetaKeys = ["generated_by", "version", "created_at", "note"];
+    const requiredMetaKeys = ["generated_by", "version"];
     for (var key in requiredMetaKeys) {
       final val = meta[key];
       if (val == null || val.toString().trim().isEmpty) {
         errors.add("Missing or empty meta field: $key");
       }
     }
+  } else if (meta != null && meta is! Map<String, dynamic>) {
+    errors.add("'_meta' is present but not a JSON object.");
   }
 
   // 4️⃣ Validate each section dynamically (except _meta)

@@ -54,7 +54,15 @@ class StorageBackupService {
     final payloadType = await _detectPayloadType(file);
     switch (payloadType) {
       case _RestorePayloadType.isarSnapshot:
-        return DBProvider.restoreDB(path);
+        final result = await DBProvider.restoreDB(path);
+        if (result['success'] == true) return result;
+        // If the Isar schema doesn't match (old version), give clear error
+        return {
+          'success': false,
+          'error': 'This backup is from an older app version with an '
+              'incompatible database format. Please export as JSON from '
+              'the old version first, then import the JSON file here.',
+        };
       case _RestorePayloadType.legacyFullJson:
         return DBProvider.restoreLegacyJsonBackup(
           path,
@@ -94,8 +102,7 @@ class StorageBackupService {
         return _RestorePayloadType.unsupported;
       }
 
-      final isLegacyFull = decoded.containsKey('_meta') &&
-          decoded.containsKey('playlists') &&
+      final isLegacyFull = decoded.containsKey('playlists') &&
           decoded.containsKey('media_items');
       if (isLegacyFull) {
         return _RestorePayloadType.legacyFullJson;

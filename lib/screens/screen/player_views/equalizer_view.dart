@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/custom_switch.dart';
@@ -52,6 +55,9 @@ class _EqualizerViewState extends State<EqualizerView>
   late List<double> _animStartGains;
   String _selectedPreset = 'Flat';
 
+  // FIX H-01: EQ source (builtin vs device) state
+  late String _eqSource;
+
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
   late AnimationController _curveCtrl;
@@ -62,14 +68,20 @@ class _EqualizerViewState extends State<EqualizerView>
   static const double _graphHeight = 280.0;
 
   int? _draggingBandIndex;
-  bool _isGraphInteractive =
-      false; // Used to lock scroll view during EQ adjustment
+  bool _isGraphInteractive = false;
+
+  // FIX L-01: Reactive subscriptions so the view stays in sync with engine state
+  // changes from external code (settings restore, revive, Bloomee settings page).
+  StreamSubscription? _eqEnabledSub;
+  StreamSubscription? _eqGainsSub;
 
   @override
   void initState() {
     super.initState();
     _engine = context.read<BloomeePlayerCubit>().bloomeePlayer.engine;
     _settingsCubit = context.read<SettingsCubit>();
+
+    _eqSource = _settingsCubit.state.eqSource;
 
     _currentGains =
         _engine.equalizerBands.map((b) => b.gain).toList(growable: false);
@@ -79,6 +91,21 @@ class _EqualizerViewState extends State<EqualizerView>
     if (_selectedPreset != _matchingPreset()) {
       _selectedPreset = _matchingPreset();
     }
+
+    // FIX L-01: Subscribe to reactive EQ streams so band gains and enabled
+    // state are always in sync even if changed from another code path.
+    _eqEnabledSub = _engine.equalizerEnabledStream.listen((enabled) {
+      if (mounted) setState(() {});
+    });
+    _eqGainsSub = _engine.equalizerBandGainsStream.listen((gains) {
+      if (mounted && !_draggingBandIndex.isNotNull) {
+        setState(() {
+          _animStartGains = List.from(_currentGains);
+          _currentGains = List.from(gains);
+          _selectedPreset = _matchingPreset();
+        });
+      }
+    });
 
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
@@ -94,6 +121,8 @@ class _EqualizerViewState extends State<EqualizerView>
 
   @override
   void dispose() {
+    _eqEnabledSub?.cancel();
+    _eqGainsSub?.cancel();
     _settingsCubit.setEqBandGains(List<double>.from(_currentGains));
     _settingsCubit.setEqPreset(_selectedPreset);
     _fadeCtrl.dispose();
@@ -150,6 +179,23 @@ class _EqualizerViewState extends State<EqualizerView>
     _curveCtrl.forward(from: 0);
     _settingsCubit.setEqBandGains(List<double>.from(_currentGains));
     _settingsCubit.setEqPreset('Flat');
+  }
+
+  /// FIX H-01: Toggle EQ source between 'builtin' and 'device'.
+  void _setEqSource(String source) {
+    HapticFeedback.lightImpact();
+    setState(() => _eqSource = source);
+    _settingsCubit.setEqSource(source);
+
+    if (source == EqSourceValues.device) {
+      // Disable in-app EQ so audio passes through to the device system EQ.
+      _engine.setEqualizerEnabled(false);
+      _settingsCubit.setEqEnabled(false);
+    } else {
+      // Restore in-app EQ to its last saved enabled state.
+      final savedEnabled = _settingsCubit.state.eqEnabled;
+      _engine.setEqualizerEnabled(savedEnabled);
+    }
   }
 
   String _matchingPreset() {
@@ -229,6 +275,7 @@ class _EqualizerViewState extends State<EqualizerView>
     final l10n = AppLocalizations.of(context)!;
     final bands = _engine.equalizerBands;
     final isEnabled = _engine.equalizerEnabled;
+    final isBuiltinMode = _eqSource == EqSourceValues.builtin;
     const accent = Default_Theme.accentColor2;
 
     return Scaffold(
@@ -248,11 +295,12 @@ class _EqualizerViewState extends State<EqualizerView>
                 fontSize: 20,
                 fontWeight: FontWeight.w700)),
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh_rounded,
-                color: Colors.white.withValues(alpha: 0.8), size: 22),
-            onPressed: _resetEQ,
-          ),
+          if (isBuiltinMode)
+            IconButton(
+              icon: Icon(Icons.refresh_rounded,
+                  color: Colors.white.withValues(alpha: 0.8), size: 22),
+              onPressed: _resetEQ,
+            ),
           const SizedBox(width: 8),
         ],
       ),
@@ -270,98 +318,182 @@ class _EqualizerViewState extends State<EqualizerView>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildSectionHeader('PRESETS'),
-                  _buildPresetTabs(accent),
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('CUSTOM CURVE'),
+                  // FIX H-01: EQ Source selection — 'Built-in' or 'Device'
+                  _buildSectionHeader('EQ SOURCE'),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
                       decoration: BoxDecoration(
                         color:
                             Default_Theme.primaryColor1.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                             color: Default_Theme.primaryColor1
                                 .withValues(alpha: 0.05)),
                       ),
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(l10n.eqTitle,
-                                  style: TextStyle(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.95),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600)),
-                              BloomeeSwitch(
-                                value: isEnabled,
-                                onChanged: () {
-                                  _engine.setEqualizerEnabled(!isEnabled);
-                                  _settingsCubit.setEqEnabled(!isEnabled);
-                                  setState(() {});
-                                },
+                              Expanded(
+                                child: _EqSourceOption(
+                                  label: 'Built-in EQ',
+                                  subtitle: '10-band in-app equalizer',
+                                  isSelected:
+                                      _eqSource == EqSourceValues.builtin,
+                                  onTap: () =>
+                                      _setEqSource(EqSourceValues.builtin),
+                                  accent: accent,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _EqSourceOption(
+                                  label: 'Device EQ',
+                                  subtitle: 'System / Dolby Atmos',
+                                  isSelected:
+                                      _eqSource == EqSourceValues.device,
+                                  onTap: () =>
+                                      _setEqSource(EqSourceValues.device),
+                                  accent: accent,
+                                ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
-                          AnimatedOpacity(
-                            opacity: isEnabled ? 1.0 : 0.3,
-                            duration: const Duration(milliseconds: 300),
-                            child: SizedBox(
-                              height: _graphHeight,
-                              child: Listener(
-                                onPointerDown: (_) => isEnabled
-                                    ? setState(() => _isGraphInteractive = true)
-                                    : null,
-                                onPointerUp: (_) =>
-                                    setState(() => _isGraphInteractive = false),
-                                onPointerCancel: (_) =>
-                                    setState(() => _isGraphInteractive = false),
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      onPanDown: (d) =>
-                                          _handleGraphPanStart(d, constraints),
-                                      onPanUpdate: (d) =>
-                                          _handleGraphPanUpdate(d, constraints),
-                                      onPanEnd: _handleGraphPanEnd,
-                                      onPanCancel: () => setState(
-                                          () => _draggingBandIndex = null),
-                                      child: AnimatedBuilder(
-                                        animation: _curveAnim,
-                                        builder: (context, _) => CustomPaint(
-                                          size: Size(constraints.maxWidth,
-                                              constraints.maxHeight),
-                                          painter: _InteractiveEQPainter(
-                                            startGains: _animStartGains,
-                                            targetGains: _currentGains,
-                                            minGain: _minGain,
-                                            maxGain: _maxGain,
-                                            accentColor: accent,
-                                            animValue: _curveAnim.value,
-                                            frequencies: bands
-                                                .map((b) => _freqLabel(
-                                                    b.centerFrequency))
-                                                .toList(),
-                                            draggingIndex: _draggingBandIndex,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                          if (_eqSource == EqSourceValues.device) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: accent.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.info_outline_rounded,
+                                      color: accent, size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'In-app EQ is disabled. Configure your device EQ in:\nSettings → Sound & Vibration → Equalizer',
+                                      style: TextStyle(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.7),
+                                          fontSize: 12,
+                                          height: 1.5),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Only show built-in EQ controls when in builtin mode
+                  if (isBuiltinMode) ...[
+                    _buildSectionHeader('PRESETS'),
+                    _buildPresetTabs(accent),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader('CUSTOM CURVE'),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.05)),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(l10n.eqTitle,
+                                    style: TextStyle(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.95),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600)),
+                                BloomeeSwitch(
+                                  value: isEnabled,
+                                  onChanged: () {
+                                    _engine.setEqualizerEnabled(!isEnabled);
+                                    _settingsCubit.setEqEnabled(!isEnabled);
+                                    setState(() {});
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            AnimatedOpacity(
+                              opacity: isEnabled ? 1.0 : 0.3,
+                              duration: const Duration(milliseconds: 300),
+                              child: SizedBox(
+                                height: _graphHeight,
+                                child: Listener(
+                                  onPointerDown: (_) => isEnabled
+                                      ? setState(
+                                          () => _isGraphInteractive = true)
+                                      : null,
+                                  onPointerUp: (_) => setState(
+                                      () => _isGraphInteractive = false),
+                                  onPointerCancel: (_) => setState(
+                                      () => _isGraphInteractive = false),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onPanDown: (d) => _handleGraphPanStart(
+                                            d, constraints),
+                                        onPanUpdate: (d) =>
+                                            _handleGraphPanUpdate(
+                                                d, constraints),
+                                        onPanEnd: _handleGraphPanEnd,
+                                        onPanCancel: () => setState(
+                                            () => _draggingBandIndex = null),
+                                        child: AnimatedBuilder(
+                                          animation: _curveAnim,
+                                          builder: (context, _) => CustomPaint(
+                                            size: Size(constraints.maxWidth,
+                                                constraints.maxHeight),
+                                            painter: _InteractiveEQPainter(
+                                              startGains: _animStartGains,
+                                              targetGains: _currentGains,
+                                              minGain: _minGain,
+                                              maxGain: _maxGain,
+                                              accentColor: accent,
+                                              animValue: _curveAnim.value,
+                                              frequencies: bands
+                                                  .map((b) => _freqLabel(
+                                                      b.centerFrequency))
+                                                  .toList(),
+                                              draggingIndex: _draggingBandIndex,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -433,6 +565,92 @@ class _EqualizerViewState extends State<EqualizerView>
   }
 }
 
+/// A tappable EQ source option card.
+class _EqSourceOption extends StatelessWidget {
+  final String label;
+  final String subtitle;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Color accent;
+
+  const _EqSourceOption({
+    required this.label,
+    required this.subtitle,
+    required this.isSelected,
+    required this.onTap,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? accent.withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? accent.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.08),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected
+                          ? accent
+                          : Colors.white.withValues(alpha: 0.3),
+                      width: isSelected ? 4 : 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected
+                        ? accent
+                        : Colors.white.withValues(alpha: 0.8),
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.45),
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Helper extension used in EqualizerView
+extension _NullableIntExt on int? {
+  bool get isNotNull => this != null;
+}
+
 class _InteractiveEQPainter extends CustomPainter {
   final List<double> startGains;
   final List<double> targetGains;
@@ -479,7 +697,6 @@ class _InteractiveEQPainter extends CustomPainter {
           Offset(x, topPad + (normalized.clamp(0.0, 1.0) * availableHeight)));
     }
 
-    // Spline path construction
     final curvePath = Path()..moveTo(points.first.dx, points.first.dy);
     for (var i = 0; i < points.length - 1; i++) {
       final p0 = i > 0 ? points[i - 1] : points[i];

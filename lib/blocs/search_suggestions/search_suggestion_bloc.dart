@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/services/db/dao/search_history_dao.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
@@ -20,6 +21,7 @@ class SearchSuggestionBloc
   final SearchHistoryDAO _searchHistoryDao;
   final PluginService _pluginService;
   final SettingsDAO _settingsDao;
+  bool _isDisposed = false;
 
   SearchSuggestionBloc({
     required SearchHistoryDAO searchHistoryDao,
@@ -31,15 +33,17 @@ class SearchSuggestionBloc
         super(const SearchSuggestionLoading()) {
     on<SearchSuggestionFetch>(
       (event, emit) async {
+        if (_isDisposed) return;
         final pastSearches = await getPastSearches(event.query, limit: 2);
         final (queries, entities) = await _getPluginSuggestions(event.query);
+        if (_isDisposed) return;
         emit(SearchSuggestionLoaded(
           queries,
           pastSearches,
           entitySuggestionList: entities,
         ));
       },
-      transformer: _debounce(const Duration(milliseconds: 350)),
+      transformer: _debounce(const Duration(milliseconds: 250)),
     );
 
     on<SearchSuggestionSave>((event, emit) async {
@@ -104,7 +108,7 @@ class SearchSuggestionBloc
       final response = await _pluginService.execute(
         pluginId: pluginId,
         request: request,
-      );
+      ).timeout(const Duration(seconds: 5));
 
       if (response is PluginResponse_Suggestions) {
         final queries = <String>[];
@@ -119,6 +123,8 @@ class SearchSuggestionBloc
         }
         return (queries, entities);
       }
+    } on TimeoutException {
+      log("Plugin suggestion timed out", name: "SearchSuggestionBloc");
     } catch (e) {
       log("Plugin suggestion error: $e", name: "SearchSuggestionBloc");
     }
@@ -143,5 +149,11 @@ class SearchSuggestionBloc
       searchSuggestions = [];
     }
     return searchSuggestions;
+  }
+
+  @override
+  Future<void> close() {
+    _isDisposed = true;
+    return super.close();
   }
 }

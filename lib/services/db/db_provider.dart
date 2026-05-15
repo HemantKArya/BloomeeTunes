@@ -493,9 +493,7 @@ class DBProvider {
   }
 
   static bool _isLegacyFullBackupMap(Map<String, dynamic> map) {
-    return map.containsKey('_meta') &&
-        map.containsKey('playlists') &&
-        map.containsKey('media_items');
+    return map.containsKey('playlists') && map.containsKey('media_items');
   }
 
   static List<Map<String, dynamic>> _decodeLegacySection(dynamic section) {

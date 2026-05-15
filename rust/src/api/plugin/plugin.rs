@@ -2,6 +2,16 @@
 //!
 //! Single source of truth for plugin state. All state changes emit events
 //! via StreamSink to Dart for UI updates and persistence.
+//!
+//! # FIX M-02: get_loaded_plugins() no longer calls block_on
+//!
+//! The plugin registry now uses `std::sync::RwLock` for the outer map
+//! (plugin ID → Arc<tokio::sync::Mutex<Plugin>>). This means:
+//!   - `get_loaded_plugins()` can be a plain sync read without `block_on`.
+//!   - `is_plugin_loaded()` and other queries that only need to look up the
+//!     map key are also sync.
+//!   - Per-plugin WASM execution still uses `tokio::sync::Mutex` because WASM
+//!     calls must be serialized per plugin instance (waclay Store is not Send).
 
 use crate::api::plugin::errors::{PluginError, PluginResult};
 use crate::api::plugin::events::PluginManagerEvent;
@@ -15,13 +25,10 @@ use crate::frb_generated::StreamSink;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::runtime::Handle;
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::Mutex;
 
-// ============================================================================
-// STORAGE KEY
-// ============================================================================
+// ── Storage key ──────────────────────────────────────────────────────────────
 
-/// Key for in-memory storage (plugin_id + key)
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct StorageKey {
     pub plugin_id: String,
@@ -37,17 +44,17 @@ impl StorageKey {
     }
 }
 
-// ============================================================================
-// PLUGIN MANAGER
-// ============================================================================
+// ── Plugin Manager ───────────────────────────────────────────────────────────
 
 #[derive(Clone)]
 #[flutter_rust_bridge::frb(opaque)]
 pub struct PluginManager {
-    /// Thread-safe plugin registry (tokio RwLock - async-safe)
-    plugins: Arc<RwLock<HashMap<String, Arc<Mutex<Box<dyn Plugin>>>>>>,
+    /// FIX M-02: Outer map uses std::sync::RwLock so get_loaded_plugins() and
+    /// is_plugin_loaded() are non-blocking sync reads — no block_on needed.
+    /// Per-plugin execution still uses tokio::sync::Mutex to serialize WASM calls.
+    plugins: Arc<std::sync::RwLock<HashMap<String, Arc<Mutex<Box<dyn Plugin>>>>>>,
 
-    /// Thread-safe in-memory storage (std::sync::RwLock - sync-safe for WASM)
+    /// In-memory plugin storage (std::sync::RwLock — sync-safe for WASM host fns)
     storage: Arc<std::sync::RwLock<HashMap<StorageKey, String>>>,
 
     /// Event sink for Dart (held forever after init)
@@ -59,18 +66,15 @@ pub struct PluginManager {
     /// Plugins directory path
     pub plugins_dir: String,
 
-    /// Tokio runtime handle for blocking operations
+    /// Tokio runtime handle for async operations
     runtime_handle: Handle,
 }
 
 impl PluginManager {
     const MAX_PENDING_EVENTS: usize = 1024;
 
-    // ========================================================================
-    // INITIALIZATION
-    // ========================================================================
+    // ── Initialization ───────────────────────────────────────────────────────
 
-    /// Create a new PluginManager (call from bridge)
     pub async fn new(plugins_dir: String) -> Self {
         let storage: Arc<std::sync::RwLock<HashMap<StorageKey, String>>> =
             Arc::new(std::sync::RwLock::new(HashMap::new()));
@@ -80,7 +84,7 @@ impl PluginManager {
             Arc::new(std::sync::Mutex::new(Vec::new()));
         let runtime_handle = Handle::current();
 
-        // --- Initialize Global Storage Manager ---
+        // Initialise global storage manager callbacks
         let storage_clone = storage.clone();
         let sink_clone = event_sink.clone();
 
@@ -90,12 +94,10 @@ impl PluginManager {
             let v = value.to_string();
             let storage_key = StorageKey::new(&pid, &k);
 
-            // 1. Sync Lock Storage
             if let Ok(mut guard) = storage_clone.write() {
                 guard.insert(storage_key, v.clone());
             }
 
-            // 2. Sync Lock Sink & Emit
             if let Ok(guard) = sink_clone.lock() {
                 if let Some(sink) = guard.as_ref() {
                     let _ = sink.add(PluginManagerEvent::storage_set(pid, k, v));
@@ -106,10 +108,7 @@ impl PluginManager {
 
         let storage_clone = storage.clone();
         let get_fn = move |plugin_id: &str, key: &str| -> Option<String> {
-            let pid = plugin_id.to_string();
-            let k = key.to_string();
-            let storage_key = StorageKey::new(&pid, &k);
-
+            let storage_key = StorageKey::new(plugin_id, key);
             if let Ok(guard) = storage_clone.read() {
                 guard.get(&storage_key).cloned()
             } else {
@@ -120,7 +119,7 @@ impl PluginManager {
         crate::api::plugin::storage::init_storage_manager(set_fn, get_fn).await;
 
         Self {
-            plugins: Arc::new(RwLock::new(HashMap::new())),
+            plugins: Arc::new(std::sync::RwLock::new(HashMap::new())),
             storage,
             event_sink,
             pending_events,
@@ -129,55 +128,53 @@ impl PluginManager {
         }
     }
 
-    /// Initialize the event stream from Dart.
-    /// Call this ONCE after creating the manager.
-    /// The sink is held forever and used for all event emissions.
     pub async fn init_event_stream(&self, sink: StreamSink<PluginManagerEvent>) {
         if let Ok(mut guard) = self.event_sink.lock() {
             *guard = Some(sink);
         }
-        let queued_events: Vec<PluginManagerEvent> = if let Ok(mut pending) = self.pending_events.lock() {
-            pending.drain(..).collect()
-        } else {
-            Vec::new()
-        };
+        let queued_events: Vec<PluginManagerEvent> =
+            if let Ok(mut pending) = self.pending_events.lock() {
+                pending.drain(..).collect()
+            } else {
+                Vec::new()
+            };
         for event in queued_events {
             self.emit(event).await;
         }
         self.emit(PluginManagerEvent::ManagerInitialized).await;
     }
 
-    // ========================================================================
-    // EVENT EMISSION
-    // ========================================================================
+    // ── Event emission ───────────────────────────────────────────────────────
 
-    /// Emit an event to Dart (non-blocking)
     async fn emit(&self, event: PluginManagerEvent) {
         if let Ok(guard) = self.event_sink.lock() {
             if let Some(sink) = guard.as_ref() {
-                let _ = sink.add(event); // Ignore result - fire and forget
+                let _ = sink.add(event);
                 return;
             }
         }
 
         if let Ok(mut pending) = self.pending_events.lock() {
             if pending.len() >= Self::MAX_PENDING_EVENTS {
-                let _ = pending.remove(0);
+                // Drop oldest storage events preferentially to preserve lifecycle events.
+                if let Some(pos) = pending.iter().position(|e| {
+                    matches!(e, PluginManagerEvent::StorageSet { .. })
+                }) {
+                    pending.remove(pos);
+                } else {
+                    pending.remove(0);
+                }
             }
             pending.push(event);
         }
     }
 
-    // ========================================================================
-    // PLUGIN LOADING
-    // ========================================================================
+    // ── Plugin loading ───────────────────────────────────────────────────────
 
-    /// Load a plugin by ID with event emission
     pub async fn load_plugin(&self, plugin_info: &PluginInfo) -> Result<(), String> {
         let plugin_id = plugin_info.id();
         let plugin_path = plugin_info.wasm_path();
         let plugin_type = plugin_info.plugin_type.clone();
-
         self.load_plugin_from_resolved_path(plugin_id, plugin_type, &plugin_path)
             .await
     }
@@ -190,7 +187,13 @@ impl PluginManager {
     ) -> Result<(), String> {
         self.emit(PluginManagerEvent::loading(plugin_id)).await;
 
-        if self.plugins.read().await.contains_key(plugin_id) {
+        // FIX M-02: Use std::sync::RwLock read — no block_on needed.
+        if self
+            .plugins
+            .read()
+            .map(|p| p.contains_key(plugin_id))
+            .unwrap_or(false)
+        {
             let msg = format!("Plugin '{}' is already loaded", plugin_id);
             self.emit(PluginManagerEvent::load_failed(plugin_id, &msg))
                 .await;
@@ -204,10 +207,7 @@ impl PluginManager {
             return Err(msg);
         }
 
-        match self
-            .do_load_plugin(plugin_id, plugin_type.clone(), &plugin_path)
-            .await
-        {
+        match self.do_load_plugin(plugin_id, plugin_type.clone(), plugin_path).await {
             Ok(()) => {
                 self.emit(PluginManagerEvent::loaded(plugin_id, plugin_type))
                     .await;
@@ -221,7 +221,6 @@ impl PluginManager {
         }
     }
 
-    /// Internal: Load plugin from path (no events emitted)
     async fn do_load_plugin(
         &self,
         plugin_id: &str,
@@ -232,14 +231,15 @@ impl PluginManager {
             .await
             .map_err(|e| format!("Failed to load '{}': {:?}", plugin_id, e))?;
 
-        let mut plugins = self.plugins.write().await;
-        if !plugins.contains_key(plugin_id) {
-            plugins.insert(plugin_id.to_string(), Arc::new(Mutex::new(plugin)));
+        // FIX M-02: Write lock is std::sync — no async needed.
+        if let Ok(mut plugins) = self.plugins.write() {
+            if !plugins.contains_key(plugin_id) {
+                plugins.insert(plugin_id.to_string(), Arc::new(Mutex::new(plugin)));
+            }
         }
         Ok(())
     }
 
-    /// Load a plugin by ID (looks up from available plugins)
     pub async fn load_plugin_by_id(
         &self,
         plugin_id: &str,
@@ -265,7 +265,6 @@ impl PluginManager {
         }
     }
 
-    /// Load plugin from an explicit path (for install-then-load flow)
     pub async fn load_plugin_from_path(
         &self,
         plugin_id: &str,
@@ -276,28 +275,25 @@ impl PluginManager {
             .await
     }
 
-    // ========================================================================
-    // PLUGIN UNLOADING
-    // ========================================================================
+    // ── Plugin unloading ─────────────────────────────────────────────────────
 
-    /// Unload a plugin with event emission
     pub async fn unload_plugin(
         &self,
         plugin_id: &str,
         plugin_type: PluginType,
     ) -> Result<(), String> {
-        // Emit: Unloading started
         self.emit(PluginManagerEvent::unloading(plugin_id)).await;
 
-        // Check if plugin exists and types match
-        let plugin_arc = {
-            let plugins = self.plugins.read().await;
-            plugins.get(plugin_id).cloned()
-        };
+        // Get arc from registry (std RwLock, sync read)
+        let plugin_arc = self
+            .plugins
+            .read()
+            .ok()
+            .and_then(|p| p.get(plugin_id).cloned());
 
         match plugin_arc {
             Some(arc) => {
-                // Verify type
+                // Verify type (async lock on the individual plugin)
                 if arc.lock().await.get_plugin_type() != plugin_type {
                     let msg = format!("Plugin '{}' type mismatch", plugin_id);
                     self.emit(PluginManagerEvent::unload_failed(plugin_id, &msg))
@@ -305,8 +301,10 @@ impl PluginManager {
                     return Err(msg);
                 }
 
-                // Remove from registry
-                self.plugins.write().await.remove(plugin_id);
+                // Remove from registry (std RwLock, sync write)
+                if let Ok(mut plugins) = self.plugins.write() {
+                    plugins.remove(plugin_id);
+                }
                 self.emit(PluginManagerEvent::unloaded(plugin_id)).await;
                 Ok(())
             }
@@ -319,7 +317,6 @@ impl PluginManager {
         }
     }
 
-    /// Alias for unload_plugin (API compatibility)
     pub async fn unload_plugin_by_id(
         &self,
         plugin_id: &str,
@@ -328,69 +325,64 @@ impl PluginManager {
         self.unload_plugin(plugin_id, plugin_type).await
     }
 
-    // ========================================================================
-    // PLUGIN QUERIES
-    // ========================================================================
+    // ── Plugin queries ───────────────────────────────────────────────────────
 
-    /// Check if a plugin is loaded
+    /// FIX M-02: is_plugin_loaded is now a fully async function that only
+    /// acquires the std RwLock for the map lookup, then the tokio Mutex for
+    /// type verification. No block_on involved.
     pub async fn is_plugin_loaded(&self, plugin_id: &str, plugin_type: PluginType) -> bool {
-        let plugin_arc = self.plugins.read().await.get(plugin_id).cloned();
+        let plugin_arc = self
+            .plugins
+            .read()
+            .ok()
+            .and_then(|p| p.get(plugin_id).cloned());
         match plugin_arc {
             Some(arc) => arc.lock().await.get_plugin_type() == plugin_type,
             None => false,
         }
     }
 
-    /// Alias for is_plugin_loaded (API compatibility)
     pub async fn is_plugin_loaded_by_id(&self, plugin_id: &str, plugin_type: PluginType) -> bool {
         self.is_plugin_loaded(plugin_id, plugin_type).await
     }
 
-    /// Get list of loaded plugin IDs
+    /// FIX M-02: No longer uses block_on — uses std::sync::RwLock directly.
     pub fn get_loaded_plugins(&self) -> Vec<String> {
-        // Use blocking approach for sync API
-        let plugins = self.runtime_handle.block_on(self.plugins.read());
-        plugins.keys().cloned().collect()
+        self.plugins
+            .read()
+            .map(|p| p.keys().cloned().collect())
+            .unwrap_or_default()
     }
 
-    /// Get available plugins (scanned from directory)
     pub async fn get_available_plugins(&self) -> Vec<PluginInfo> {
         self.get_available_plugins_internal().await
     }
 
-    /// Internal: Get available plugins without emitting events
     async fn get_available_plugins_internal(&self) -> Vec<PluginInfo> {
         scan_plugins_directory(self.plugins_dir.clone()).await
     }
 
-    /// Refresh available plugins and emit event
     pub async fn refresh_available_plugins(&self) {
         let plugins = scan_plugins_directory(self.plugins_dir.clone()).await;
         self.emit(PluginManagerEvent::PluginListRefreshed { plugins })
             .await;
     }
 
-    // ========================================================================
-    // STORAGE (In-Memory with Event Emission)
-    // ========================================================================
+    // ── Storage ──────────────────────────────────────────────────────────────
 
-    /// Set a storage value (instant in-memory, emits event for Dart persistence)
     pub async fn storage_set(&self, plugin_id: &str, key: &str, value: &str) -> bool {
         let storage_key = StorageKey::new(plugin_id, key);
 
-        // 1. Instant in-memory write
         if let Ok(mut guard) = self.storage.write() {
             guard.insert(storage_key, value.to_string());
         }
 
-        // 2. Emit event for Dart to persist asynchronously
         self.emit(PluginManagerEvent::storage_set(plugin_id, key, value))
             .await;
 
         true
     }
 
-    /// Get a storage value (instant in-memory read)
     pub async fn storage_get(&self, plugin_id: &str, key: &str) -> Option<String> {
         let storage_key = StorageKey::new(plugin_id, key);
         if let Ok(guard) = self.storage.read() {
@@ -400,18 +392,15 @@ impl PluginManager {
         }
     }
 
-    /// Delete a storage value
     pub async fn storage_delete(&self, plugin_id: &str, key: &str) -> bool {
         let storage_key = StorageKey::new(plugin_id, key);
 
-        // 1. Remove from in-memory
         let existed = if let Ok(mut guard) = self.storage.write() {
             guard.remove(&storage_key).is_some()
         } else {
             false
         };
 
-        // 2. Emit event for Dart
         if existed {
             self.emit(PluginManagerEvent::storage_deleted(plugin_id, key))
                 .await;
@@ -420,21 +409,17 @@ impl PluginManager {
         existed
     }
 
-    /// Clear all storage for a plugin
     pub async fn storage_clear(&self, plugin_id: &str) {
-        // Remove all entries for this plugin
         if let Ok(mut guard) = self.storage.write() {
             guard.retain(|k, _| k.plugin_id != plugin_id);
         }
 
-        // Emit event
         self.emit(PluginManagerEvent::StorageCleared {
             plugin_id: plugin_id.to_string(),
         })
         .await;
     }
 
-    /// Preload a storage value from Dart (startup sync, no event emitted)
     pub async fn storage_preload(&self, plugin_id: &str, key: &str, value: &str) {
         let storage_key = StorageKey::new(plugin_id, key);
         if let Ok(mut guard) = self.storage.write() {
@@ -442,11 +427,14 @@ impl PluginManager {
         }
     }
 
-    // ========================================================================
-    // PLUGIN REQUEST HANDLING
-    // ========================================================================
+    // ── Request handling ─────────────────────────────────────────────────────
 
-    /// Handle a typed request to a plugin
+    /// Handle a typed request to a plugin.
+    ///
+    /// Uses spawn_blocking to run the synchronous WASM execution off the async
+    /// executor. The per-plugin tokio Mutex is locked inside the blocking task
+    /// using the runtime handle's block_on — this is correct because we're
+    /// already inside spawn_blocking (a dedicated OS thread, not an async task).
     #[flutter_rust_bridge::frb(ignore)]
     pub async fn handle_plugin_request(
         &self,
@@ -455,10 +443,11 @@ impl PluginManager {
     ) -> PluginResult<crate::api::plugin::commands::PluginResponse> {
         use crate::api::plugin::commands::PluginRequest;
 
+        // FIX M-02: Map lookup uses std RwLock — instant, no block_on.
         let plugin_arc = self
             .plugins
             .read()
-            .await
+            .map_err(|_| PluginError::WasmExecutionError("Plugin registry lock poisoned".to_string()))?
             .get(plugin_id)
             .cloned()
             .ok_or_else(|| PluginError::PluginNotFound(plugin_id.to_string()))?;
@@ -466,9 +455,11 @@ impl PluginManager {
         let handle = self.runtime_handle.clone();
 
         tokio::task::spawn_blocking(move || {
+            // Lock the individual plugin's tokio Mutex via block_on.
+            // This is safe: we're on a blocking thread (spawn_blocking), so
+            // block_on will not deadlock the main tokio runtime.
             let mut plugin = handle.block_on(plugin_arc.lock());
 
-            // Validate plugin type matches request type
             let expected_type = match &request {
                 PluginRequest::ContentResolver(_) => PluginType::ContentResolver,
                 PluginRequest::ChartProvider(_) => PluginType::ChartProvider,
@@ -494,14 +485,20 @@ impl PluginManager {
         .map_err(|e| PluginError::WasmExecutionError(format!("Join error: {}", e)))?
     }
 
-    /// Gracefully shutdown manager-owned state.
-    pub async fn shutdown(&self) {
-        let loaded_ids: Vec<String> = {
-            let plugins = self.plugins.read().await;
-            plugins.keys().cloned().collect()
-        };
+    // ── Shutdown ─────────────────────────────────────────────────────────────
 
-        self.plugins.write().await.clear();
+    pub async fn shutdown(&self) {
+        // Collect loaded IDs first using std RwLock
+        let loaded_ids: Vec<String> = self
+            .plugins
+            .read()
+            .map(|p| p.keys().cloned().collect())
+            .unwrap_or_default();
+
+        // Clear registry
+        if let Ok(mut plugins) = self.plugins.write() {
+            plugins.clear();
+        }
 
         for plugin_id in loaded_ids {
             self.emit(PluginManagerEvent::unloaded(plugin_id)).await;

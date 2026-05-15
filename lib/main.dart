@@ -63,12 +63,24 @@ import 'package:Bloomee/screens/widgets/onboarding_overlay.dart';
 import 'package:Bloomee/screens/widgets/plugin_bootstrap_overlay.dart';
 import 'package:Bloomee/services/onboarding_service.dart';
 import 'package:Bloomee/services/plugin_bootstrap_service.dart';
+import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
-  // Check if there's text content that might be a URL
   if (sharedMedia.content != null && isUrl(sharedMedia.content!)) {
-    SnackbarService.showMessage(
-        'Open the Import screen in Library to import from this URL.');
+    final urlType = getUrlType(sharedMedia.content!);
+    switch (urlType) {
+      case UrlType.youtubeVideo:
+        _handleYoutubeVideoIntent(sharedMedia.content!);
+        break;
+      case UrlType.youtubePlaylist:
+      case UrlType.spotifyTrack:
+      case UrlType.spotifyPlaylist:
+      case UrlType.spotifyAlbum:
+      case UrlType.other:
+        SnackbarService.showMessage(
+            'Open the Import screen in Library to import from this URL.');
+        break;
+    }
   } else if (sharedMedia.attachments != null &&
       sharedMedia.attachments!.isNotEmpty) {
     final attachment = sharedMedia.attachments!.first;
@@ -76,6 +88,48 @@ void processIncomingIntent(SharedMedia sharedMedia) {
       SnackbarService.showMessage('Processing File...');
       importItems(attachment.path);
     }
+  }
+}
+
+Future<void> _handleYoutubeVideoIntent(String url) async {
+  final videoId = extractVideoId(url);
+  if (videoId == null) {
+    SnackbarService.showMessage('Invalid YouTube URL');
+    return;
+  }
+  SnackbarService.showMessage('Getting YouTube Audio...');
+  try {
+    final pluginService = ServiceLocator.pluginService;
+    // Try YT Music resolver, then YT Video resolver
+    for (final pluginId in [
+      'content-resolver.bloomfactory.ytmusic',
+      'content-resolver.bloomfactory.ytvideo',
+    ]) {
+      if (!pluginService.getLoadedPlugins().contains(pluginId)) continue;
+      try {
+        final response = await pluginService
+            .execute(
+              pluginId: pluginId,
+              request: PluginRequest.contentResolver(
+                ContentResolverCommand.getTrackDetails(id: videoId),
+              ),
+            )
+            .timeout(const Duration(seconds: 10));
+        if (response is PluginResponse_TrackDetails) {
+          final coreTrack = response.field0;
+          final player = await PlayerInitializer().getBloomeeMusicPlayer();
+          await player.updateQueueTracks([coreTrack], doPlay: true);
+          SnackbarService.showMessage('Playing: ${coreTrack.title}');
+          return;
+        }
+      } catch (_) {
+        continue;
+      }
+    }
+    SnackbarService.showMessage(
+        'Could not resolve video. Open Import in Library instead.');
+  } catch (e) {
+    SnackbarService.showMessage('Failed to get YouTube audio.');
   }
 }
 
@@ -101,6 +155,7 @@ Future<void> setHighRefreshRate() async {
 
 late BloomeePlayerCubit bloomeePlayerCubit;
 Future<void> setupPlayerCubit() async {
+  await setupAudioSession();
   final player = await PlayerInitializer().getBloomeeMusicPlayer();
   bloomeePlayerCubit = BloomeePlayerCubit(player);
 }
