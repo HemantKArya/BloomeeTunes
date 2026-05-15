@@ -63,7 +63,7 @@ import 'package:Bloomee/screens/widgets/onboarding_overlay.dart';
 import 'package:Bloomee/screens/widgets/plugin_bootstrap_overlay.dart';
 import 'package:Bloomee/services/onboarding_service.dart';
 import 'package:Bloomee/services/plugin_bootstrap_service.dart';
-import 'package:Bloomee/src/rust/api/plugin/commands.dart';
+import 'package:Bloomee/services/shared_url_resolver_service.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
   if (sharedMedia.content != null && isUrl(sharedMedia.content!)) {
@@ -92,43 +92,33 @@ void processIncomingIntent(SharedMedia sharedMedia) {
 }
 
 Future<void> _handleYoutubeVideoIntent(String url) async {
-  final videoId = extractVideoId(url);
-  if (videoId == null) {
+  if (extractVideoId(url) == null) {
     SnackbarService.showMessage('Invalid YouTube URL');
     return;
   }
   SnackbarService.showMessage('Getting YouTube Audio...');
-  try {
-    final pluginService = ServiceLocator.pluginService;
-    // Try YT Music resolver, then YT Video resolver
-    for (final pluginId in [
-      'content-resolver.bloomfactory.ytmusic',
-      'content-resolver.bloomfactory.ytvideo',
-    ]) {
-      if (!pluginService.getLoadedPlugins().contains(pluginId)) continue;
-      try {
-        final response = await pluginService
-            .execute(
-              pluginId: pluginId,
-              request: PluginRequest.contentResolver(
-                ContentResolverCommand.getTrackDetails(id: videoId),
-              ),
-            )
-            .timeout(const Duration(seconds: 10));
-        if (response is PluginResponse_TrackDetails) {
-          final coreTrack = response.field0;
-          final player = await PlayerInitializer().getBloomeeMusicPlayer();
-          await player.updateQueueTracks([coreTrack], doPlay: true);
-          SnackbarService.showMessage('Playing: ${coreTrack.title}');
-          return;
-        }
-      } catch (_) {
-        continue;
-      }
-    }
+
+  final result = await SharedUrlResolverService.resolveYoutubeVideo(url);
+  if (result.status == SharedUrlResolveStatus.invalidUrl) {
+    SnackbarService.showMessage('Invalid YouTube URL');
+    return;
+  }
+
+  if (result.status == SharedUrlResolveStatus.noResolver) {
     SnackbarService.showMessage(
-        'Could not resolve video. Open Import in Library instead.');
-  } catch (e) {
+        'No loaded content resolver can handle this URL.');
+    return;
+  }
+
+  final track = result.track;
+  if (result.status == SharedUrlResolveStatus.success && track != null) {
+    final player = await PlayerInitializer().getBloomeeMusicPlayer();
+    await player.updateQueueTracks([track], doPlay: true);
+    SnackbarService.showMessage('Playing: ${track.title}');
+    return;
+  }
+
+  if (result.status == SharedUrlResolveStatus.failed) {
     SnackbarService.showMessage('Failed to get YouTube audio.');
   }
 }
