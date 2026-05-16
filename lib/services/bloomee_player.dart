@@ -963,6 +963,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       _relatedSongsManager.clearRelatedSongs();
       _clearPreloadedMarker();
 
+      final trackToPlay = (idx >= 0 && idx < playlist.tracks.length)
+          ? playlist.tracks[idx]
+          : null;
+
       final sanitized = playlist.tracks
           .where((t) => t.id.trim().isNotEmpty && t.title.trim().isNotEmpty)
           .toList();
@@ -973,8 +977,14 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         return;
       }
 
+      int newIdx = 0;
+      if (trackToPlay != null) {
+        final pos = sanitized.indexWhere((t) => t.id == trackToPlay.id);
+        newIdx = pos != -1 ? pos : 0;
+      }
+
       _queueManager.loadTracks(sanitized,
-          playlistName: playlist.title, idx: idx, shuffling: shuffling);
+          playlistName: playlist.title, idx: newIdx, shuffling: shuffling);
       queueTitle.add(playlist.title);
 
       if (doPlay || shuffling) {
