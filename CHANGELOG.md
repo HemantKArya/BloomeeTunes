@@ -1,3 +1,14 @@
+## [3.0.3] - 2026-05-16
+
+### Fixed
+- Fixed playlist tap misalignment by remapping track index
+- Fixed linear stacking of repeated listned songs.
+- Fixed shared url resolver early stage
+- search suggestion enhancements
+- stabilize playback startup and plugin.
+- some localizations completion
+
+
 ## [3.0.1] - 2026-03-24
 
 ### Fixed

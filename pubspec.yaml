@@ -3,7 +3,7 @@ description: An Open source Free Music Player.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 3.0.2+0
+version: 3.0.3+0
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -70,7 +70,7 @@ dependencies:
 
   # audio service dependencies
   audio_service: ^0.18.18
-  audio_session: ^0.2.2
+  audio_session: ^0.2.3
   media_kit: ^1.2.6 
   media_kit_libs_audio: ^1.0.7 
   audio_service_mpris: ^0.2.0
