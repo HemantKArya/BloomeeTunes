@@ -1,0 +1,67 @@
+Source: bloomeetunes
+Section: sound
+Priority: optional
+Maintainer: Hemant KArya <iamhemantindia@protonmail.com>
+Build-Depends: debhelper-compat (= 13),
+               ca-certificates,
+               clang,
+               cmake,
+               curl,
+               git,
+               imagemagick,
+               libglu1-mesa,
+               libgtk-3-dev,
+               libmpv-dev,
+               libyaml-perl,
+               ninja-build,
+               rustup <!pkg.bloomeetunes.downloadrustup>,
+               unzip,
+               xz-utils,
+               zip,
+Standards-Version: 4.7.0
+Homepage: https://hemantkarya.github.io/BloomeeTunes/
+Rules-Requires-Root: no
+#Vcs-Git: https://salsa.debian.org/bastif/bloomeetunes.git
+#Vcs-Browser: https://salsa.debian.org/bastif/bloomeetunes
+
+Package: bloomeetunes
+Architecture: any
+Multi-Arch: foreign
+Depends: libmpv2 | libmpv1, ${misc:Depends}, ${shlibs:Depends},
+Description: Multi-source and open music app for free
+ Bloomee is experimental cross-platform open Source Music player designed to
+ bring you Ad-free tunes from various sources. Dive into a world of limitless
+ music from platforms like YouTube and Jio Saavn, with more sources blooming
+ soon!
+ .
+ Why Bloomee?
+ .
+  - Ad-Free Experience: Say goodbye to interruptions and enjoy uninterrupted
+    musical bliss.
+  - Multi-Source Player: Access your favorite tracks from diverse platforms,
+    with more sources continually joining our melody garden.
+  - Flutter-Powered Learning: Bloomee is not just about music; it's about
+    learning and growing with Flutter and BLoC architecture. Explore the
+    intersection of beautiful design and smooth functionality while mastering
+    the art of app development.
+ .
+ Features
+ .
+    - Ad-Free Music
+    - Lyrics Support (Time Synced)
+    - Scrobble music with Last.FM
+    - Offline Music Experience
+    - Import playlists from various source.
+    - Sleep Timer
+    - Personalized Playlist Creation and Sharing
+    - Daily Updated Global Charts. (Billboard, Last.fm and more.)
+    - Support for Android, Windows and Linux.
+    - Minimal Data Usage
+    - Space Efficient
+    - Lightweight App
+    - Open Source
+    - Play Automatic Related Songs
+    - Share your playlists with others
+    - AI-Generated Playlist
+    - AI-Based Recommendations
+    - Multi-Language support
