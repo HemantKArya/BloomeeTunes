@@ -65,6 +65,12 @@ jobs:
             mv "$file" "bloomee_v${{ env.VERSION }}+${{ github.run_number }}_${file/-release/}"
           done
 
+      - name: Upload Android Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Release-Android
+          path: build/app/outputs/flutter-apk/*.apk
+
       - name: Release Android
         uses: ncipollo/release-action@v1
         with:
@@ -102,6 +108,12 @@ jobs:
           Compress-Archive -Path build/windows/x64/runner/Release/* -Destination "bloomee_windows_v$ver.zip"
           echo "VER=$ver" >> $env:GITHUB_ENV
 
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Release-Windows
+          path: "*.zip"
+
       - name: Release Windows
         uses: ncipollo/release-action@v1
         with:
@@ -115,50 +127,68 @@ jobs:
     name: Build macOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Max Cache macOS
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            build/macos/Build/Products/Release/
-          key: ${{ runner.os }}-mac-v3-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-mac-v3-
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
+          flutter-version: '3.35.4'
+          channel: 'stable'
 
-      - name: Build DMG
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Extract version from pubspec.yaml
         run: |
-          VER=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
-          flutter build macos --release --build-number ${{ github.run_number }}
-          if ! command -v create-dmg &> /dev/null; then brew install create-dmg; fi
-          STAGING="/tmp/bloomee_mac"
-          mkdir -p "$STAGING"
-          cp -R "build/macos/Build/Products/Release/Bloomee.app" "$STAGING/"
-          rm -f "bloomee_macos_v$VER.dmg"
+          VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build macOS App
+        run: flutter build macos --release --build-number ${{github.run_number}}
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG package
+        run: |
+          mkdir -p dist
+          # Prepare a staging area with the .app and an Applications symlink for drag-and-drop install UX
+          rm -rf /tmp/bloomee_dmg
+          mkdir -p /tmp/bloomee_dmg
+          ditto "build/macos/Build/Products/Release/Bloomee.app" "/tmp/bloomee_dmg/Bloomee.app"
+          ln -s /Applications /tmp/bloomee_dmg/Applications
+          
+          # Create DMG using create-dmg with background image and icon positioning
+          # Path exists at assets/icons/dmg-background.jpg in repo.
           create-dmg \
             --volname "Bloomee" \
             --background "assets/icons/dmg-background.jpg" \
-            --window-size 788 312 \
-            --icon-size 75 \
-            --text-size 10 \
-            --icon "Bloomee.app" 455 210 \
-            --app-drop-link 686 210 \
-            --hide-extension "Bloomee.app" \
-            "bloomee_macos_v$VER.dmg" \
-            "$STAGING"
-          echo "VER=$VER" >> $GITHUB_ENV
+            --window-size 700 450 \
+            --icon-size 100 \
+            --icon "Bloomee.app" 200 150 \
+            --app-drop-link 500 150 \
+            dist/bloomee_tunes_macos_v${{ env.VERSION }}+${{github.run_number}}.dmg \
+            /tmp/bloomee_dmg
+          
+          # Cleanup
+          rm -rf /tmp/bloomee_dmg
 
-      - name: Release macOS
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Release-macOS
+          path: dist/bloomee_tunes_macos_v${{ env.VERSION }}+${{github.run_number}}.dmg
+
+      - name: Publish macOS to Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "*.dmg"
-          tag: v${{ env.VER }}+${{ github.run_number }}
-          token: ${{ secrets.SECRET_KEY || secrets.GITHUB_TOKEN }}
+          artifacts: dist/bloomee_tunes_macos_v${{ env.VERSION }}+${{github.run_number}}.dmg
+          tag: v${{ env.VERSION }}+${{github.run_number}}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: true
           allowUpdates: true
+          omitBodyDuringUpdate: true
 
   # JOB 4: LINUX
   build-linux:
@@ -187,6 +217,12 @@ jobs:
           flutter build linux --release --build-number ${{ github.run_number }}
           tar -czf bloomee_linux_v$VER.tar.gz -C build/linux/x64/release/bundle .
           echo "VER=$VER" >> $GITHUB_ENV
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Release-Linux
+          path: "*.tar.gz"
 
       - name: Release Linux
         uses: ncipollo/release-action@v1
