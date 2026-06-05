@@ -25,7 +25,7 @@ abstract class DownloaderState extends Equatable {
       {this.downloads = const [], this.downloaded = const []});
 
   @override
-  List<Object> get props => [downloads, downloaded];
+  List<Object> get props => [downloads, downloaded, runtimeType];
 }
 
 /// The initial state of the downloader cubit.

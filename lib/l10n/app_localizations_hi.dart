@@ -229,11 +229,23 @@ class AppLocalizationsHi extends AppLocalizations {
       'आपकी खोज से मेल खाने वाली कोई प्लेलिस्ट नहीं है';
 
   @override
-  String get playlistCreateNew => 'नई प्लेलिस्ट बनाएँ';
+  String get playlistCreateNew => 'नई प्लेलिस्ट बनाएँ 😍';
 
   @override
   String get playlistCreateFirstOne =>
       'अभी तक कोई प्लेलिस्ट नहीं है। शुरुआत करने के लिए अपनी पहली प्लेलिस्ट बनाएँ!';
+
+  @override
+  String get addToPlaylistNoSongSelected => 'कोई गाना चुना नहीं गया';
+
+  @override
+  String get createPlaylistDialogBarrierLabel => 'प्लेलिस्ट बनाने का संवाद';
+
+  @override
+  String get createPlaylistDialogNameHint => 'समर वाइब्स';
+
+  @override
+  String get createPlaylistDialogCreate => 'बनाएँ';
 
   @override
   String playlistSongCount(int count) {

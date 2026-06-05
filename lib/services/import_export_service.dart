@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:Bloomee/core/models/exported.dart';
+import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
@@ -9,8 +11,10 @@ import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/services/db/legacy/legacy_media_id_mapper.dart';
 import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/m3u_processor.dart';
+import 'package:Bloomee/services/storage_backup_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:Bloomee/l10n/app_localizations.dart';
 
 /// Service for importing and exporting playlists and tracks.
 ///
@@ -293,6 +297,9 @@ class ImportExportService {
       } else if (data.containsKey('title') &&
           (data.containsKey('mediaId') || data.containsKey('duration'))) {
         return await importMediaItem(filePath);
+      } else if (data.containsKey('playlists') && data.containsKey('media_items')) {
+        final result = await DBProvider.restoreLegacyJsonBackup(filePath);
+        return result['success'] == true;
       } else {
         throw const FormatException("Unrecognized JSON structure.");
       }
@@ -424,6 +431,228 @@ class ImportExportService {
     } catch (e) {
       log("Error writing file:", error: e, name: "FileManager");
       return null;
+    }
+  }
+
+  /// Production-level entry point to handle any shared or picked import/restore file.
+  /// Handles: Isar snapshots (.isar/.db), legacy full JSON backups, and playlist/song JSON exports.
+  static Future<void> handleImportOrRestore(BuildContext context, String filePath) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        SnackbarService.showMessage(l10n.storageRestoreNoFile);
+        return;
+      }
+
+      final payloadType = await StorageBackupService.detectPayloadType(file);
+
+      switch (payloadType) {
+        case RestorePayloadType.isarSnapshot:
+          if (!context.mounted) return;
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 24, 24, 24),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(
+                l10n.storageRestoreConfirmTitle,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              content: Text(
+                "${l10n.storageRestoreConfirmPrefix}\n\n${l10n.storageRestoreMediaBullet}\n${l10n.storageRestoreHistoryBullet}\n\n${l10n.storageRestoreConfirmSuffix}",
+                style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l10n.storageRestoreNo, style: const TextStyle(color: Colors.white70)),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Default_Theme.accentColor2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l10n.storageRestoreYes, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+
+          if (confirm != true) return;
+          if (!context.mounted) return;
+
+          // Show progress dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => WillPopScope(
+              onWillPop: () async => false,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 24, 24, 24),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(color: Default_Theme.accentColor2),
+                      const SizedBox(height: 16),
+                      Text(l10n.storageRestoring, style: const TextStyle(color: Colors.white, decoration: TextDecoration.none, fontSize: 14), textAlign: TextAlign.center),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          final result = await StorageBackupService.restoreBackup(filePath);
+          if (!context.mounted) return;
+          Navigator.pop(context); // Dismiss progress dialog
+
+          final success = result['success'] == true;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 24, 24, 24),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(
+                success ? l10n.storageRestoreCompleted : l10n.storageRestoreFailedTitle,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              content: Text(
+                success
+                    ? l10n.storageRestoreSuccessMessage
+                    : "${l10n.storageRestoreFailedMessage}\n- ${result['error'] ?? l10n.storageRestoreUnknownError}",
+                style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+              ),
+              actions: [
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Default_Theme.accentColor2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(l10n.buttonOk, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+          break;
+
+        case RestorePayloadType.legacyFullJson:
+          if (!context.mounted) return;
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 24, 24, 24),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(
+                l10n.storageRestoreConfirmTitle,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              content: Text(
+                "${l10n.storageRestoreConfirmPrefix}\n\n${l10n.storageRestoreMediaBullet}\n\n${l10n.storageRestoreConfirmSuffix}",
+                style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l10n.storageRestoreNo, style: const TextStyle(color: Colors.white70)),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Default_Theme.accentColor2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l10n.storageRestoreYes, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+
+          if (confirm != true) return;
+          if (!context.mounted) return;
+
+          // Show progress dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => WillPopScope(
+              onWillPop: () async => false,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 24, 24, 24),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(color: Default_Theme.accentColor2),
+                      const SizedBox(height: 16),
+                      Text(l10n.storageRestoring, style: const TextStyle(color: Colors.white, decoration: TextDecoration.none, fontSize: 14), textAlign: TextAlign.center),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          final result = await DBProvider.restoreLegacyJsonBackup(filePath);
+          if (!context.mounted) return;
+          Navigator.pop(context); // Dismiss progress dialog
+
+          final success = result['success'] == true;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 24, 24, 24),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(
+                success ? l10n.storageRestoreCompleted : l10n.storageRestoreFailedTitle,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              content: Text(
+                success
+                    ? l10n.storageRestoreSuccessMessage
+                    : "${l10n.storageRestoreFailedMessage}\n- ${result['error'] ?? l10n.storageRestoreUnknownError}",
+                style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+              ),
+              actions: [
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Default_Theme.accentColor2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(l10n.buttonOk, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+          break;
+
+        case RestorePayloadType.playlistOrTrackJson:
+          SnackbarService.showMessage(l10n.snackbarImportingMedia);
+          final res = await importJSON(filePath);
+          if (res) {
+            SnackbarService.showMessage(l10n.snackbarImportCompleted);
+          }
+          break;
+
+        case RestorePayloadType.unsupported:
+          SnackbarService.showMessage(l10n.snackbarInvalidFileFormat);
+          break;
+      }
+    } catch (e) {
+      log("Error during import/restore: $e", name: "ImportExportService");
+      SnackbarService.showMessage(l10n.storageUnexpectedError);
     }
   }
 }

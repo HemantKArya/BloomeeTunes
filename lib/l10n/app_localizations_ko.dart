@@ -218,10 +218,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playlistNoMatchSearch => '일치하는 플레이리스트가 없습니다';
 
   @override
-  String get playlistCreateNew => '새 플레이리스트 만들기';
+  String get playlistCreateNew => '새 플레이리스트 만들기 😍';
 
   @override
   String get playlistCreateFirstOne => '플레이리스트가 없습니다. 첫 번째 리스트를 만들어 보세요!';
+
+  @override
+  String get addToPlaylistNoSongSelected => '선택된 곡이 없습니다';
+
+  @override
+  String get createPlaylistDialogBarrierLabel => '플레이리스트 생성 대화상자';
+
+  @override
+  String get createPlaylistDialogNameHint => '썸머 바이브';
+
+  @override
+  String get createPlaylistDialogCreate => '만들기';
 
   @override
   String playlistSongCount(int count) {

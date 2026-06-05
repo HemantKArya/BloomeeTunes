@@ -1,4 +1,5 @@
-﻿import 'dart:developer';
+import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:Bloomee/plugins/utils/media_id.dart';
@@ -90,8 +91,8 @@ class DownloadDAO {
     if (deleteFile) {
       try {
         final file = File('${record.filePath}/${record.fileName}');
-        if (file.existsSync()) {
-          file.deleteSync();
+        if (await file.exists()) {
+          await file.delete();
           log('Deleted file: ${record.fileName}', name: 'DownloadDAO');
         }
       } catch (e) {
@@ -145,6 +146,35 @@ class DownloadDAO {
     await isar.writeTxn(() => isar.downloadDBs.delete(record.id));
   }
 
+  /// Remove multiple download records in a single batch transaction.
+  Future<void> removeDownloadsBatch(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    final isar = await _db;
+
+    final records = <DownloadDB>[];
+    for (final mediaId in mediaIds) {
+      final record =
+          await isar.downloadDBs.filter().mediaIdEqualTo(mediaId).findFirst();
+      if (record != null) {
+        records.add(record);
+      }
+    }
+
+    if (records.isEmpty) return;
+
+    await isar.writeTxn(() async {
+      await isar.downloadDBs.deleteAll(records.map((r) => r.id).toList());
+    });
+
+    final downloadsPlaylist =
+        await _playlistDAO.getPlaylistByName(downloadsPlaylistName);
+    if (downloadsPlaylist != null) {
+      for (final mediaId in mediaIds) {
+        await _playlistDAO.removeTrackFromPlaylist(downloadsPlaylist.id, mediaId);
+      }
+    }
+  }
+
   // ── Read ───────────────────────────────────────────────────────────────────
 
   /// Return the [DownloadDB] record for [mediaId], or null if not found or the
@@ -155,7 +185,7 @@ class DownloadDAO {
         await isar.downloadDBs.filter().mediaIdEqualTo(mediaId).findFirst();
     if (record == null) return null;
     final file = File('${record.filePath}/${record.fileName}');
-    if (!file.existsSync()) return null;
+    if (!(await file.exists())) return null;
     return record;
   }
 
@@ -177,19 +207,23 @@ class DownloadDAO {
     final valid = <DownloadDB>[];
     final stale = <DownloadDB>[];
 
-    for (final record in all) {
-      if (File('${record.filePath}/${record.fileName}').existsSync()) {
+    final existences = await Future.wait(
+      all.map((record) => File('${record.filePath}/${record.fileName}').exists()),
+    );
+
+    for (var i = 0; i < all.length; i++) {
+      final record = all[i];
+      final exists = existences[i];
+      if (exists) {
         valid.add(record);
       } else {
         stale.add(record);
       }
     }
 
-    // Clean up stale records in the background.
+    // Clean up stale records in the background in a single batch.
     if (stale.isNotEmpty) {
-      for (final s in stale) {
-        removeDownload(s.mediaId, deleteFile: false);
-      }
+      unawaited(removeDownloadsBatch(stale.map((s) => s.mediaId).toList()));
     }
 
     return valid;
@@ -245,7 +279,7 @@ class DownloadDAO {
     required String runtimeArtworkCacheDir,
   }) async {
     final currentArtworkUrl = track.thumbnail.url;
-    if (_isExistingLocalImagePath(currentArtworkUrl)) {
+    if (await _isExistingLocalImagePath(currentArtworkUrl)) {
       return track;
     }
 
@@ -262,7 +296,7 @@ class DownloadDAO {
       }
 
       final artworkFile = File(embeddedArtworkPath);
-      if (!artworkFile.existsSync()) {
+      if (!(await artworkFile.exists())) {
         return track;
       }
 
@@ -292,7 +326,7 @@ class DownloadDAO {
     }
   }
 
-  bool _isExistingLocalImagePath(String? value) {
+  Future<bool> _isExistingLocalImagePath(String? value) async {
     if (value == null || value.trim().isEmpty) return false;
     final trimmed = value.trim();
 
@@ -304,11 +338,11 @@ class DownloadDAO {
       final uri = Uri.tryParse(trimmed);
       if (uri != null && uri.scheme == 'file') {
         final file = File(uri.toFilePath(windows: Platform.isWindows));
-        return file.existsSync();
+        return await file.exists();
       }
     } catch (_) {}
 
-    return File(trimmed).existsSync();
+    return await File(trimmed).exists();
   }
 
   /// Returns true if [mediaId] has a valid download record and the file exists.

@@ -217,10 +217,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlistNoMatchSearch => '没有匹配搜索的歌单';
 
   @override
-  String get playlistCreateNew => '创建新歌单';
+  String get playlistCreateNew => '创建新歌单 😍';
 
   @override
   String get playlistCreateFirstOne => '暂无歌单。创建一个来开始吧！';
+
+  @override
+  String get addToPlaylistNoSongSelected => '未选择歌曲';
+
+  @override
+  String get createPlaylistDialogBarrierLabel => '创建歌单对话框';
+
+  @override
+  String get createPlaylistDialogNameHint => '夏日氛围';
+
+  @override
+  String get createPlaylistDialogCreate => '创建';
 
   @override
   String playlistSongCount(int count) {

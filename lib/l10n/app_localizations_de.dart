@@ -228,11 +228,24 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Playlists entsprechen deiner Suche';
 
   @override
-  String get playlistCreateNew => 'Neue Playlist erstellen';
+  String get playlistCreateNew => 'Neue Playlist erstellen 😍';
 
   @override
   String get playlistCreateFirstOne =>
       'Noch keine Playlists. Erstelle eine, um loszulegen!';
+
+  @override
+  String get addToPlaylistNoSongSelected => 'Kein Song ausgewählt';
+
+  @override
+  String get createPlaylistDialogBarrierLabel =>
+      'Dialog zum Erstellen einer Playlist';
+
+  @override
+  String get createPlaylistDialogNameHint => 'Sommer-Vibes';
+
+  @override
+  String get createPlaylistDialogCreate => 'Erstellen';
 
   @override
   String playlistSongCount(int count) {

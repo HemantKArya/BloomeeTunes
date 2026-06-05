@@ -86,7 +86,7 @@ class DBProvider {
       // Migrate DB from documents dir to support dir if needed
       if (!await dbFile.exists() &&
           await File(p.join(appDocDir, 'dbv3.isar')).exists()) {
-        final tempDb = Isar.openSync(_schemas, directory: appDocDir);
+        final tempDb = Isar.openSync(_schemas, directory: appDocDir, name: 'dbv3');
         tempDb.copyToFile(dbFile.path);
         log("DB Copied to $appSuppDir", name: "DBProvider");
         tempDb.close();
@@ -493,9 +493,7 @@ class DBProvider {
   }
 
   static bool _isLegacyFullBackupMap(Map<String, dynamic> map) {
-    return map.containsKey('_meta') &&
-        map.containsKey('playlists') &&
-        map.containsKey('media_items');
+    return map.containsKey('playlists') && map.containsKey('media_items');
   }
 
   static List<Map<String, dynamic>> _decodeLegacySection(dynamic section) {

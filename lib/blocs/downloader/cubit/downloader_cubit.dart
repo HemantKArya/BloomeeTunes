@@ -37,6 +37,8 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   List<Track> _downloadedSongs = [];
   final Set<String> _persistingTaskIds = <String>{};
   bool _restoredSnapshots = false;
+  Future<void>? _activeLoadFuture;
+  bool _needsReload = false;
   // Tracks completion of initial downloaded songs load (prevents playback race)
   final CancelableCompleter<void> _initialLoadCompleter =
       CancelableCompleter<void>();
@@ -123,7 +125,22 @@ class DownloaderCubit extends Cubit<DownloaderState> {
     });
   }
 
-  Future<void> _loadDownloadedSongs() async {
+  Future<void> _loadDownloadedSongs() {
+    if (_activeLoadFuture != null) {
+      _needsReload = true;
+      return _activeLoadFuture!;
+    }
+
+    final completer = Completer<void>();
+    _activeLoadFuture = completer.future;
+    _needsReload = false;
+
+    _executeLoad(completer);
+
+    return completer.future;
+  }
+
+  Future<void> _executeLoad(Completer<void> completer) async {
     try {
       _downloadedSongs = await _downloadRepo.getDownloadedTracks();
       _emitUpdatedState();
@@ -131,12 +148,18 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       if (!_initialLoadCompleter.isCompleted) {
         _initialLoadCompleter.complete();
       }
+      completer.complete();
     } catch (error, stackTrace) {
       // Even on error, mark as attempted to avoid hanging
       if (!_initialLoadCompleter.isCompleted) {
         _initialLoadCompleter.completeError(error, stackTrace);
       }
-      rethrow;
+      completer.completeError(error, stackTrace);
+    } finally {
+      _activeLoadFuture = null;
+      if (_needsReload) {
+        unawaited(_loadDownloadedSongs());
+      }
     }
   }
 

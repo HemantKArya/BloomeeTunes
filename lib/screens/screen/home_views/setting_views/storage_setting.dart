@@ -301,12 +301,11 @@ class _BackupLocationDialog extends StatelessWidget {
 Future<void> _onRestoreTap(BuildContext context) async {
   final l10n = AppLocalizations.of(context)!;
   try {
-    // 1) Ask user to pick a file
+    // 1) Ask user to pick a file (using FileType.any so that custom extensions like .isar / .db are not grayed out on Android)
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
       withData: false,
-      type: FileType.custom,
-      allowedExtensions: ['json', 'isar', 'db'],
+      type: FileType.any,
     );
 
     if (result == null || result.files.isEmpty) {

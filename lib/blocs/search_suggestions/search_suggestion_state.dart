@@ -5,11 +5,13 @@ class SearchSuggestionState extends Equatable {
   final List<String> suggestionList;
   final List<Map<String, String>> dbSuggestionList;
   final List<plugin_models.EntitySuggestion> entitySuggestionList;
+  final bool isPluginLoading;
 
   const SearchSuggestionState(
     this.suggestionList,
     this.dbSuggestionList, {
     this.entitySuggestionList = const [],
+    this.isPluginLoading = false,
   });
 
   @override
@@ -17,6 +19,7 @@ class SearchSuggestionState extends Equatable {
         suggestionList,
         dbSuggestionList,
         entitySuggestionList,
+        isPluginLoading,
         dbSuggestionList.length,
         suggestionList.length,
         entitySuggestionList.length,
@@ -26,11 +29,13 @@ class SearchSuggestionState extends Equatable {
     List<String>? suggestionList,
     List<Map<String, String>>? dbSuggestionList,
     List<plugin_models.EntitySuggestion>? entitySuggestionList,
+    bool? isPluginLoading,
   }) {
     return SearchSuggestionState(
       suggestionList ?? this.suggestionList,
       dbSuggestionList ?? this.dbSuggestionList,
       entitySuggestionList: entitySuggestionList ?? this.entitySuggestionList,
+      isPluginLoading: isPluginLoading ?? this.isPluginLoading,
     );
   }
 }
@@ -44,6 +49,8 @@ final class SearchSuggestionLoaded extends SearchSuggestionState {
     List<String> suggestionList,
     List<Map<String, String>> dbSuggestionList, {
     List<plugin_models.EntitySuggestion> entitySuggestionList = const [],
+    bool isPluginLoading = false,
   }) : super(suggestionList, dbSuggestionList,
-            entitySuggestionList: entitySuggestionList);
+            entitySuggestionList: entitySuggestionList,
+            isPluginLoading: isPluginLoading);
 }

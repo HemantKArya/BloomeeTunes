@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/import_export_service.dart';
 
-enum _RestorePayloadType {
+enum RestorePayloadType {
   isarSnapshot,
   legacyFullJson,
   playlistOrTrackJson,
@@ -51,16 +51,24 @@ class StorageBackupService {
       return {'success': false, 'error': 'Backup file not found: $path'};
     }
 
-    final payloadType = await _detectPayloadType(file);
+    final payloadType = await detectPayloadType(file);
     switch (payloadType) {
-      case _RestorePayloadType.isarSnapshot:
-        return DBProvider.restoreDB(path);
-      case _RestorePayloadType.legacyFullJson:
+      case RestorePayloadType.isarSnapshot:
+        final result = await DBProvider.restoreDB(path);
+        if (result['success'] == true) return result;
+        // If the Isar schema doesn't match (old version), give clear error
+        return {
+          'success': false,
+          'error': 'This backup is from an older app version with an '
+              'incompatible database format. Please export as JSON from '
+              'the old version first, then import the JSON file here.',
+        };
+      case RestorePayloadType.legacyFullJson:
         return DBProvider.restoreLegacyJsonBackup(
           path,
           restoreMediaItems: options.restoreMediaItems,
         );
-      case _RestorePayloadType.playlistOrTrackJson:
+      case RestorePayloadType.playlistOrTrackJson:
         final imported = await ImportExportService.importJSON(path);
         return {
           'success': imported,
@@ -68,7 +76,7 @@ class StorageBackupService {
           if (!imported)
             'error': 'Failed to import playlist/song JSON. Check file format.'
         };
-      case _RestorePayloadType.unsupported:
+      case RestorePayloadType.unsupported:
         return {
           'success': false,
           'error':
@@ -77,44 +85,41 @@ class StorageBackupService {
     }
   }
 
-  static Future<_RestorePayloadType> _detectPayloadType(File file) async {
+  static Future<RestorePayloadType> detectPayloadType(File file) async {
     final normalizedPath = file.path.toLowerCase();
     final ext = normalizedPath.split('.').last;
     if (ext == 'isar' || ext == 'db' || normalizedPath.endsWith('.isar.db')) {
-      return _RestorePayloadType.isarSnapshot;
+      return RestorePayloadType.isarSnapshot;
     }
 
-    if (ext != 'json' && ext != 'blm') {
-      return _RestorePayloadType.unsupported;
-    }
-
+    // Try parsing as JSON first, even if extension doesn't match, to be extremely robust!
     try {
-      final decoded = jsonDecode(await file.readAsString());
-      if (decoded is! Map<String, dynamic>) {
-        return _RestorePayloadType.unsupported;
-      }
+      final content = await file.readAsString();
+      final decoded = jsonDecode(content);
+      if (decoded is Map<String, dynamic>) {
+        final isLegacyFull = decoded.containsKey('playlists') &&
+            decoded.containsKey('media_items');
+        if (isLegacyFull) {
+          return RestorePayloadType.legacyFullJson;
+        }
 
-      final isLegacyFull = decoded.containsKey('_meta') &&
-          decoded.containsKey('playlists') &&
-          decoded.containsKey('media_items');
-      if (isLegacyFull) {
-        return _RestorePayloadType.legacyFullJson;
-      }
+        final isPlaylistExport = decoded.containsKey('playlistName') &&
+            (decoded.containsKey('tracks') || decoded.containsKey('mediaItems'));
+        final isTrackExport = decoded.containsKey('title') &&
+            (decoded.containsKey('mediaId') ||
+                decoded.containsKey('duration') ||
+                decoded.containsKey('permaURL'));
 
-      final isPlaylistExport = decoded.containsKey('playlistName') &&
-          (decoded.containsKey('tracks') || decoded.containsKey('mediaItems'));
-      final isTrackExport = decoded.containsKey('title') &&
-          (decoded.containsKey('mediaId') ||
-              decoded.containsKey('duration') ||
-              decoded.containsKey('permaURL'));
-
-      if (isPlaylistExport || isTrackExport) {
-        return _RestorePayloadType.playlistOrTrackJson;
+        if (isPlaylistExport || isTrackExport) {
+          return RestorePayloadType.playlistOrTrackJson;
+        }
       }
-    } catch (_) {
-      return _RestorePayloadType.unsupported;
+    } catch (_) {}
+
+    if (ext == 'json' || ext == 'blm') {
+      return RestorePayloadType.unsupported;
     }
 
-    return _RestorePayloadType.unsupported;
+    return RestorePayloadType.unsupported;
   }
 }

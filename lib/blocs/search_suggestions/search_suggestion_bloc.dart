@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:Bloomee/services/db/dao/search_history_dao.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
@@ -11,8 +12,8 @@ import 'package:rxdart/rxdart.dart';
 part 'search_suggestion_event.dart';
 part 'search_suggestion_state.dart';
 
-EventTransformer<E> _debounce<E>(Duration duration) {
-  return (events, mapper) => events.debounceTime(duration).asyncExpand(mapper);
+EventTransformer<E> _debounceRestartable<E>(Duration duration) {
+  return (events, mapper) => events.debounceTime(duration).switchMap(mapper);
 }
 
 class SearchSuggestionBloc
@@ -20,6 +21,8 @@ class SearchSuggestionBloc
   final SearchHistoryDAO _searchHistoryDao;
   final PluginService _pluginService;
   final SettingsDAO _settingsDao;
+  bool _isDisposed = false;
+  int _fetchVersion = 0;
 
   SearchSuggestionBloc({
     required SearchHistoryDAO searchHistoryDao,
@@ -31,15 +34,32 @@ class SearchSuggestionBloc
         super(const SearchSuggestionLoading()) {
     on<SearchSuggestionFetch>(
       (event, emit) async {
-        final pastSearches = await getPastSearches(event.query, limit: 2);
-        final (queries, entities) = await _getPluginSuggestions(event.query);
+        if (_isDisposed) return;
+        final version = ++_fetchVersion;
+        final query = event.query.trim();
+        final pastSearches = await getPastSearches(
+          query,
+          limit: _historyLimitForQuery(query),
+        );
+        if (_isDisposed || emit.isDone || version != _fetchVersion) return;
+
         emit(SearchSuggestionLoaded(
-          queries,
+          const [],
+          pastSearches,
+          isPluginLoading: true,
+        ));
+
+        final (queries, entities) = await _getPluginSuggestions(query);
+        if (_isDisposed || emit.isDone || version != _fetchVersion) return;
+
+        emit(SearchSuggestionLoaded(
+          _dedupePluginQueries(queries, pastSearches),
           pastSearches,
           entitySuggestionList: entities,
+          isPluginLoading: false,
         ));
       },
-      transformer: _debounce(const Duration(milliseconds: 350)),
+      transformer: _debounceRestartable(const Duration(milliseconds: 250)),
     );
 
     on<SearchSuggestionSave>((event, emit) async {
@@ -65,6 +85,7 @@ class SearchSuggestionBloc
             state.suggestionList,
             List<Map<String, String>>.from(res),
             entitySuggestionList: state.entitySuggestionList,
+            isPluginLoading: state.isPluginLoading,
           ));
         }
       } catch (e) {
@@ -104,7 +125,7 @@ class SearchSuggestionBloc
       final response = await _pluginService.execute(
         pluginId: pluginId,
         request: request,
-      );
+      ).timeout(const Duration(seconds: 5));
 
       if (response is PluginResponse_Suggestions) {
         final queries = <String>[];
@@ -119,11 +140,42 @@ class SearchSuggestionBloc
         }
         return (queries, entities);
       }
+    } on TimeoutException {
+      log("Plugin suggestion timed out", name: "SearchSuggestionBloc");
     } catch (e) {
       log("Plugin suggestion error: $e", name: "SearchSuggestionBloc");
     }
     return (<String>[], <plugin_models.EntitySuggestion>[]);
   }
+
+  int _historyLimitForQuery(String query) {
+    return query.isEmpty ? 8 : 5;
+  }
+
+  List<String> _dedupePluginQueries(
+    List<String> pluginQueries,
+    List<Map<String, String>> historyRows,
+  ) {
+    final seen = <String>{};
+    for (final row in historyRows) {
+      if (row.values.isNotEmpty) {
+        seen.add(_suggestionKey(row.values.first));
+      }
+    }
+    final result = <String>[];
+
+    for (final query in pluginQueries) {
+      final normalized = query.trim().replaceAll(RegExp(r'\s+'), ' ');
+      if (normalized.isEmpty) continue;
+      if (seen.add(_suggestionKey(normalized))) {
+        result.add(normalized);
+      }
+    }
+
+    return result;
+  }
+
+  String _suggestionKey(String value) => value.trim().toLowerCase();
 
   Future<List<Map<String, String>>> getPastSearches(String query,
       {int limit = 10}) async {
@@ -143,5 +195,11 @@ class SearchSuggestionBloc
       searchSuggestions = [];
     }
     return searchSuggestions;
+  }
+
+  @override
+  Future<void> close() {
+    _isDisposed = true;
+    return super.close();
   }
 }

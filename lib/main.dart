@@ -63,12 +63,25 @@ import 'package:Bloomee/screens/widgets/onboarding_overlay.dart';
 import 'package:Bloomee/screens/widgets/plugin_bootstrap_overlay.dart';
 import 'package:Bloomee/services/onboarding_service.dart';
 import 'package:Bloomee/services/plugin_bootstrap_service.dart';
+import 'package:Bloomee/plugins/services/plugin_repository_service.dart';
+import 'package:Bloomee/services/shared_url_resolver_service.dart';
 
 void processIncomingIntent(SharedMedia sharedMedia) {
-  // Check if there's text content that might be a URL
   if (sharedMedia.content != null && isUrl(sharedMedia.content!)) {
-    SnackbarService.showMessage(
-        'Open the Import screen in Library to import from this URL.');
+    final urlType = getUrlType(sharedMedia.content!);
+    switch (urlType) {
+      case UrlType.youtubeVideo:
+        _handleYoutubeVideoIntent(sharedMedia.content!);
+        break;
+      case UrlType.youtubePlaylist:
+      case UrlType.spotifyTrack:
+      case UrlType.spotifyPlaylist:
+      case UrlType.spotifyAlbum:
+      case UrlType.other:
+        SnackbarService.showMessage(
+            'Open the Import screen in Library to import from this URL.');
+        break;
+    }
   } else if (sharedMedia.attachments != null &&
       sharedMedia.attachments!.isNotEmpty) {
     final attachment = sharedMedia.attachments!.first;
@@ -79,18 +92,48 @@ void processIncomingIntent(SharedMedia sharedMedia) {
   }
 }
 
-Future<void> importItems(String path) async {
-  bool res = await ImportExportService.importMediaItem(path);
-  if (res) {
-    SnackbarService.showMessage("Media Item Imported");
-  } else {
-    res = await ImportExportService.importPlaylist(path);
-    if (res) {
-      SnackbarService.showMessage("Playlist Imported");
-    } else {
-      SnackbarService.showMessage("Invalid File Format");
-    }
+Future<void> _handleYoutubeVideoIntent(String url) async {
+  if (extractVideoId(url) == null) {
+    SnackbarService.showMessage('Invalid YouTube URL');
+    return;
   }
+  SnackbarService.showMessage('Getting YouTube Audio...');
+
+  final result = await SharedUrlResolverService.resolveYoutubeVideo(url);
+  if (result.status == SharedUrlResolveStatus.invalidUrl) {
+    SnackbarService.showMessage('Invalid YouTube URL');
+    return;
+  }
+
+  if (result.status == SharedUrlResolveStatus.noResolver) {
+    SnackbarService.showMessage(
+        'No loaded content resolver can handle this URL.');
+    return;
+  }
+
+  final track = result.track;
+  if (result.status == SharedUrlResolveStatus.success && track != null) {
+    final player = await PlayerInitializer().getBloomeeMusicPlayer();
+    await player.updateQueueTracks([track], doPlay: true);
+    SnackbarService.showMessage('Playing: ${track.title}');
+    return;
+  }
+
+  if (result.status == SharedUrlResolveStatus.failed) {
+    SnackbarService.showMessage('Failed to get YouTube audio.');
+  }
+}
+
+Future<void> importItems(String path) async {
+  final context = GlobalRoutes.globalRouterKey.currentContext;
+  if (context == null) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      importItems(path);
+    });
+    return;
+  }
+
+  await ImportExportService.handleImportOrRestore(context, path);
 }
 
 Future<void> setHighRefreshRate() async {
@@ -101,6 +144,7 @@ Future<void> setHighRefreshRate() async {
 
 late BloomeePlayerCubit bloomeePlayerCubit;
 Future<void> setupPlayerCubit() async {
+  await setupAudioSession();
   final player = await PlayerInitializer().getBloomeeMusicPlayer();
   bloomeePlayerCubit = BloomeePlayerCubit(player);
 }
@@ -162,6 +206,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_ensurePlayerHealthyOnResume());
+      // Check for plugin updates when app resumes (30-min cooldown enforced).
+      unawaited(_checkPluginUpdatesOnResume());
     }
   }
 
@@ -177,6 +223,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _checkPluginUpdatesOnResume() async {
+    try {
+      final settingsDao = SettingsDAO(DBProvider.db);
+      final repositoryService =
+          PluginRepositoryService(settingsDao: settingsDao);
+      await PluginBootstrapService.syncOnAppOpenIfDue(
+        pluginService: ServiceLocator.pluginService,
+        repositoryService: repositoryService,
+        settingsDao: settingsDao,
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Plugin update check on resume failed: $error\n$stackTrace');
+    }
+  }
+
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     try {
@@ -189,7 +250,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           sharedMedia = media;
         });
         if (sharedMedia != null) {
-          processIncomingIntent(sharedMedia!);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            processIncomingIntent(sharedMedia!);
+          });
         }
       });
       if (!mounted) return;
@@ -197,7 +260,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       setState(() {
         // If there's initial shared media, process it
         if (sharedMedia != null) {
-          processIncomingIntent(sharedMedia!);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            processIncomingIntent(sharedMedia!);
+          });
         }
       });
     } catch (error, stackTrace) {
@@ -274,6 +339,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           create: (context) => PluginBloc(
             pluginService: ServiceLocator.pluginService,
             eventBus: ServiceLocator.pluginEventBus,
+            repositoryService: ServiceLocator.pluginRepositoryService,
+            settingsDao: SettingsDAO(DBProvider.db),
           )..add(const InitializePluginSystem()),
           lazy: false,
         ),

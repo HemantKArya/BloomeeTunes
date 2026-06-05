@@ -879,8 +879,32 @@ bool _isLegacyAlreadyMarkedMigrated(
     final currentFingerprint = _legacyFileFingerprint(location.filePath);
 
     if (markedPath == null || markedFingerprint == null) return false;
-    return markedPath == location.filePath &&
-        markedFingerprint == currentFingerprint;
+    if (markedPath == location.filePath &&
+        markedFingerprint == currentFingerprint) {
+      return true;
+    }
+
+    // Relaxed check: if the state file indicates the migration completed successfully,
+    // and the database being scanned is just an empty/small dynamically-created default.isar
+    // file, we consider it already migrated to prevent the migration overlay from reappearing.
+    if (decoded['completedAt'] != null) {
+      final fileName = p.basename(location.filePath).toLowerCase();
+      if (fileName == 'default.isar') {
+        try {
+          final file = File(location.filePath);
+          if (file.existsSync() && file.lengthSync() < 1024 * 1024) {
+            log(
+              'LegacyMigration: Found existing state file indicating successful migration. '
+              'Candidate is an empty/small default.isar (${file.lengthSync()} bytes). Skipping redundant migration.',
+              name: 'LegacyMigration',
+            );
+            return true;
+          }
+        } catch (_) {}
+      }
+    }
+
+    return false;
   } catch (_) {
     return false;
   }

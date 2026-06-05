@@ -22,13 +22,19 @@ class SettingsState extends Equatable {
   final Map chartMap;
   final int crossfadeDuration; // seconds, 0 = disabled
   final bool eqEnabled;
-  final List<double> eqBandGains; // 10 gains, -12..+12 dB
+  final List<double> eqBandGains; // 10 gains, -15..+15 dB
   final String eqPreset;
+
+  /// EQ routing source: 'builtin' or 'device'.
+  /// See [EqSourceValues] for valid values.
+  final String eqSource;
+
   final String homePluginId; // content resolver plugin for home sections
   final String searchPluginId; // persisted search plugin selection
   final List<String> resolverPriority; // content resolver priority order
   final List<String> lyricsPriority; // lyrics provider plugin priority order
   final String suggestionPluginId; // search suggestion provider plugin
+
   const SettingsState({
     required this.settingsReady,
     required this.autoUpdateNotify,
@@ -52,6 +58,7 @@ class SettingsState extends Equatable {
     required this.eqEnabled,
     required this.eqBandGains,
     required this.eqPreset,
+    required this.eqSource,
     required this.homePluginId,
     required this.searchPluginId,
     required this.resolverPriority,
@@ -82,6 +89,7 @@ class SettingsState extends Equatable {
     bool? eqEnabled,
     List<double>? eqBandGains,
     String? eqPreset,
+    String? eqSource,
     String? homePluginId,
     String? searchPluginId,
     List<String>? resolverPriority,
@@ -114,6 +122,7 @@ class SettingsState extends Equatable {
           ? List<double>.from(eqBandGains)
           : List<double>.from(this.eqBandGains),
       eqPreset: eqPreset ?? this.eqPreset,
+      eqSource: eqSource ?? this.eqSource,
       homePluginId: homePluginId ?? this.homePluginId,
       searchPluginId: searchPluginId ?? this.searchPluginId,
       resolverPriority: resolverPriority != null
@@ -150,6 +159,7 @@ class SettingsState extends Equatable {
         eqEnabled,
         eqBandGains,
         eqPreset,
+        eqSource,
         homePluginId,
         searchPluginId,
         resolverPriority,
@@ -183,6 +193,7 @@ class SettingsInitial extends SettingsState {
           eqEnabled: false,
           eqBandGains: List<double>.filled(10, 0.0),
           eqPreset: 'Flat',
+          eqSource: EqSourceValues.builtin,
           homePluginId: '',
           searchPluginId: '',
           resolverPriority: const [],

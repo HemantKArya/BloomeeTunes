@@ -8,6 +8,7 @@ import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_event.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
+import 'package:Bloomee/plugins/services/plugin_repository_service.dart';
 import 'package:Bloomee/services/plugin/plugin_event_bus.dart';
 import 'package:Bloomee/services/plugin/plugin_load_state_service.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
@@ -28,6 +29,8 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
   final PluginService _pluginService;
   final PluginEventBus _eventBus;
   final PluginLoadStateService _loadStateService;
+  final PluginRepositoryService _repositoryService;
+  final SettingsDAO _settingsDao;
 
   StreamSubscription<PluginManagerEvent>? _eventSubscription;
   Set<String> _preferredAutoLoadIds = <String>{};
@@ -79,10 +82,15 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
     required PluginService pluginService,
     required PluginEventBus eventBus,
     PluginLoadStateService? loadStateService,
+    PluginRepositoryService? repositoryService,
+    SettingsDAO? settingsDao,
   })  : _pluginService = pluginService,
         _eventBus = eventBus,
         _loadStateService = loadStateService ??
             PluginLoadStateService(SettingsDAO(DBProvider.db)),
+        _repositoryService = repositoryService ??
+            PluginRepositoryService(settingsDao: SettingsDAO(DBProvider.db)),
+        _settingsDao = settingsDao ?? SettingsDAO(DBProvider.db),
         super(const PluginState.initial()) {
     // Register event handlers.
     on<InitializePluginSystem>(_onInitialize);
@@ -167,6 +175,17 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         _pluginService,
         SettingsDAO(DBProvider.db),
       ));
+
+      // Trigger background plugin sync AFTER auto-load has had a chance to run.
+      // We delay long enough for AutoLoadPlugins to complete so that
+      // syncRepositoriesAndAutoUpdate sees the correct set of loaded plugins
+      // and can properly unload them before applying any updates.
+      // The 30-minute cooldown inside syncOnAppOpenIfDue prevents spamming.
+      unawaited(Future<void>.delayed(const Duration(seconds: 5), () {
+        if (!isClosed) {
+          unawaited(_syncPluginRepositoriesIfDue());
+        }
+      }));
 
       log('PluginBloc initialized: ${available.length} available, ${loaded.length} loaded',
           name: 'PluginBloc');
@@ -270,13 +289,69 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
     ));
 
     try {
-      final result = await _pluginService.installPlugin(
+      // If the plugin is currently loaded, we must unload it first.
+      // On Windows (and some Android setups), the native library file is
+      // locked while loaded, so the Rust installer returns `pluginLoaded`
+      // and refuses to overwrite. We mirror what the auto-updater already does:
+      // unload → install → reload.
+      //
+      // We read the pluginId from the packed manifest by attempting a first
+      // install and reacting to `pluginLoaded`, keeping this code path simple
+      // and avoiding duplicating manifest-reading logic.
+      PluginInstallResult result = await _pluginService.installPlugin(
         packedFilePath: event.packedFilePath,
         shouldLoad: event.shouldLoad,
       );
 
-      log('Install result: ${result.pluginId} — ${result.status}',
-          name: 'PluginBloc');
+      if (result.status == PluginInstallStatus.pluginLoaded) {
+        // Plugin is loaded — unload it, reinstall, then reload.
+        final pluginId = result.pluginId;
+        log('Plugin $pluginId is loaded; unloading before update',
+            name: 'PluginBloc');
+
+        // Find plugin type from current available list (needed for unload call).
+        final info = state.availablePlugins
+            .where((p) => p.manifest.id == pluginId)
+            .firstOrNull;
+
+        if (info != null) {
+          try {
+            await _pluginService.unloadPlugin(
+              pluginId: pluginId,
+              pluginType: info.pluginType,
+            );
+            log('Unloaded $pluginId for update', name: 'PluginBloc');
+          } catch (unloadErr) {
+            log('Failed to unload $pluginId before update: $unloadErr',
+                name: 'PluginBloc');
+          }
+
+          // Retry the install now that the plugin is unloaded.
+          result = await _pluginService.installPlugin(
+            packedFilePath: event.packedFilePath,
+            shouldLoad: event.shouldLoad,
+          );
+
+          log('Install result after unload: ${result.pluginId} — ${result.status}',
+              name: 'PluginBloc');
+        } else {
+          // Plugin info not in state — cannot safely unload; surface error.
+          emit(state.copyWith(
+            isLoading: false,
+            error:
+                'Cannot update "$pluginId": plugin info not found. Try restarting the app.',
+          ));
+          return;
+        }
+      } else {
+        log('Install result: ${result.pluginId} — ${result.status}',
+            name: 'PluginBloc');
+      }
+
+      final isSuccess = result.status == PluginInstallStatus.installed ||
+          result.status == PluginInstallStatus.updated ||
+          result.status == PluginInstallStatus.alreadyInstalled ||
+          result.status == PluginInstallStatus.downgraded;
 
       final message = switch (result.status) {
         PluginInstallStatus.updated =>
@@ -286,18 +361,22 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         PluginInstallStatus.downgraded =>
           'Plugin "${result.pluginId}" installed with an older version.',
         PluginInstallStatus.pluginLoaded =>
-          'Plugin "${result.pluginId}" is currently loaded. Unload it before reinstalling.',
+          'Could not update "${result.pluginId}": plugin is still in use. Try restarting the app.',
         PluginInstallStatus.failed =>
           'Failed to install plugin "${result.pluginId}".',
         PluginInstallStatus.installed =>
           'Plugin "${result.pluginId}" installed successfully.',
       };
 
-      if (event.shouldLoad &&
-          (result.status == PluginInstallStatus.installed ||
-              result.status == PluginInstallStatus.updated ||
-              result.status == PluginInstallStatus.alreadyInstalled)) {
-        await _persistAutoLoadSafe({..._preferredAutoLoadIds, result.pluginId});
+      if (result.status == PluginInstallStatus.pluginLoaded ||
+          result.status == PluginInstallStatus.failed) {
+        emit(state.copyWith(isLoading: false, error: message));
+        return;
+      }
+
+      if (event.shouldLoad && isSuccess) {
+        await _persistAutoLoadSafe(
+            {..._preferredAutoLoadIds, result.pluginId});
       }
 
       emit(state.copyWith(successMessage: message));
@@ -546,6 +625,25 @@ class PluginBloc extends Bloc<PluginEvent, PluginState> {
         emit(state.copyWith(error: message, clearSuccessMessage: true));
       },
     );
+  }
+
+  // ── Background Plugin Sync ─────────────────────────────────────────────────
+
+  Future<void> _syncPluginRepositoriesIfDue() async {
+    try {
+      await PluginBootstrapService.syncOnAppOpenIfDue(
+        pluginService: _pluginService,
+        repositoryService: _repositoryService,
+        settingsDao: _settingsDao,
+      );
+      // Refresh UI after sync to reflect any updates.
+      if (!isClosed) {
+        add(const RefreshPlugins());
+      }
+    } catch (e, stack) {
+      log('Background plugin sync failed',
+          error: e, stackTrace: stack, name: 'PluginBloc');
+    }
   }
 
   Future<void> _cleanupPluginStorage(String pluginId) async {

@@ -433,12 +433,46 @@ class PluginBootstrapService {
         }
 
         try {
+          // Check if plugin is currently loaded RIGHT NOW (not from snapshot)
+          // — auto-load may have loaded it since the snapshot was taken.
+          final currentlyLoaded = pluginService.getLoadedPlugins().contains(pluginId);
+          if (currentlyLoaded) {
+            try {
+              await pluginService.unloadPlugin(
+                pluginId: pluginId,
+                pluginType: local.pluginType,
+              );
+              log('Unloaded $pluginId for update', name: 'PluginBootstrap');
+            } catch (e) {
+              log('Failed to unload $pluginId before update: $e',
+                  name: 'PluginBootstrap');
+            }
+          }
+
+          // Always pass shouldLoad:false here because we handle the reload
+          // explicitly below. Passing true would cause the Rust side to load
+          // the plugin AND then we'd call loadPlugin() again, double-loading it.
           await _installRemotePluginWithRetry(
             pluginService: pluginService,
             plugin: remote,
             retries: maxRetries,
             countryCode: countryCode,
+            shouldLoad: false,
           );
+
+          // Reload plugin only if it was previously loaded.
+          if (currentlyLoaded) {
+            try {
+              await pluginService.loadPlugin(
+                pluginId: pluginId,
+                pluginType: local.pluginType,
+              );
+              log('Reloaded $pluginId after update', name: 'PluginBootstrap');
+            } catch (e) {
+              log('Failed to reload $pluginId after update: $e',
+                  name: 'PluginBootstrap');
+            }
+          }
 
           // Add to auto-load list if updated.
           final loadStateService = PluginLoadStateService(settingsDao);
@@ -467,6 +501,7 @@ class PluginBootstrapService {
     required RemotePluginModel plugin,
     required int retries,
     required String countryCode,
+    bool shouldLoad = true,
   }) async {
     String? lastError;
 
@@ -479,7 +514,7 @@ class PluginBootstrapService {
 
         final result = await pluginService.installPlugin(
           packedFilePath: file.path,
-          shouldLoad: true,
+          shouldLoad: shouldLoad,
           policyCountryCode: countryCode,
         );
 

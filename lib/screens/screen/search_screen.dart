@@ -793,6 +793,7 @@ class _SuggestionsSliver extends StatelessWidget {
               state.dbSuggestionList.map((e) => e.values.first).toList();
           final apiList = state.suggestionList;
           final entityList = state.entitySuggestionList;
+          final isPluginLoading = state.isPluginLoading;
 
           final combined = <({String query, ContentSearchFilter filter})>[
             ...dbList.map(
@@ -808,6 +809,21 @@ class _SuggestionsSliver extends StatelessWidget {
           WidgetsBinding.instance
               .addPostFrameCallback((_) => onSuggestionsGenerated(combined));
 
+          if (combined.isEmpty && isPluginLoading) {
+            return const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Default_Theme.accentColor2,
+                  ),
+                ),
+              ),
+            );
+          }
           if (combined.isEmpty && textEditingController.text.isEmpty) {
             return SliverFillRemaining(
                 hasScrollBody: false,
@@ -836,6 +852,21 @@ class _SuggestionsSliver extends StatelessWidget {
                     onSearch: onSearchInAllCategories,
                     onPopulate: onSetSearchFieldText,
                   )),
+              const SizedBox(height: 12),
+            ],
+            if (isPluginLoading) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                    minHeight: 2,
+                    color: Default_Theme.accentColor2.withValues(alpha: 0.7),
+                    backgroundColor:
+                        Default_Theme.primaryColor1.withValues(alpha: 0.06),
+                  ),
+                ),
+              ),
               const SizedBox(height: 12),
             ],
             if (apiList.isNotEmpty) ...[

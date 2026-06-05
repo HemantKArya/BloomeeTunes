@@ -17,20 +17,44 @@ class GlobalFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Watch overlay state so footer rebuilds when player visibility changes.
     context.watch<PlayerOverlayCubit>();
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
     return PlayerOverlayWrapper(
       child: BackButtonListener(
+        // FIX H-04: Back button priority order:
+        // ① Navigator routes (FullscreenLyricsView, PlayerSettings, TimerView, etc.)
+        // ② UpNext panel collapse
+        // ③ Player overlay hide
+        // ④ GoRouter shell navigation
+        // ⑤ System exit
+        //
+        // Previously the handler short-circuited at step ③ whenever the player
+        // was visible, swallowing Navigator pops and causing sub-screens to
+        // appear orphaned over a hidden/collapsed player.
         onBackButtonPressed: () async {
           final overlayC = context.read<PlayerOverlayCubit>();
-          if (!overlayC.state) return false;
+          final router = GoRouter.of(context);
 
-          if (!overlayC.collapseUpNextPanel()) {
-            overlayC.hidePlayer();
+          // ① Navigator MUST have first priority — always.
+          if (router.canPop()) {
+            router.pop();
+            return true;
           }
-          return true;
+
+          // ② Collapse UpNext panel if expanded (player must be visible).
+          if (overlayC.state && overlayC.collapseUpNextPanel()) {
+            return true;
+          }
+
+          // ③ Hide the player overlay.
+          if (overlayC.state) {
+            overlayC.hidePlayer();
+            return true;
+          }
+
+          // ④ Let PopScope handle tab/exit navigation below.
+          return false;
         },
         child: PopScope(
           canPop: false,
@@ -58,8 +82,7 @@ class GlobalFooter extends StatelessWidget {
             bottomNavigationBar: SafeArea(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize:
-                    MainAxisSize.min, // Essential for bottom navigation
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const MiniPlayerWidget(),
                   if (isMobile)
@@ -78,28 +101,34 @@ class GlobalFooter extends StatelessWidget {
     );
   }
 
-  /// Handles complex back navigation deterministically
+  /// Handles PopScope back presses using the same priority order as
+  /// BackButtonListener above.
   Future<void> _handleHardwareBackPress(BuildContext context) async {
     final overlayC = context.read<PlayerOverlayCubit>();
     final router = GoRouter.of(context);
 
-    if (overlayC.state) {
-      if (!overlayC.collapseUpNextPanel()) {
-        overlayC.hidePlayer();
-      }
-      return;
-    }
-
+    // ① Navigator routes first
     if (router.canPop()) {
       router.pop();
       return;
     }
 
+    // ② Collapse UpNext panel
+    if (overlayC.state && overlayC.collapseUpNextPanel()) return;
+
+    // ③ Hide player
+    if (overlayC.state) {
+      overlayC.hidePlayer();
+      return;
+    }
+
+    // ④ Navigate to home tab
     if (navigationShell.currentIndex != 0) {
       navigationShell.goBranch(0);
       return;
     }
 
+    // ⑤ Exit app
     if (context.mounted) {
       await SystemNavigator.pop();
     }
@@ -116,7 +145,6 @@ class _AnimatedPageView extends StatefulWidget {
 
 class _AnimatedPageViewState extends State<_AnimatedPageView>
     with SingleTickerProviderStateMixin {
-  // Optimization: Use SingleTickerProvider
   late final AnimationController _animationController;
   late final Animation<double> _fadeAnimation;
   late final Animation<double> _scaleAnimation;
@@ -128,7 +156,7 @@ class _AnimatedPageViewState extends State<_AnimatedPageView>
     _previousIndex = widget.navigationShell.currentIndex;
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 250), // slightly smoother duration
+      duration: const Duration(milliseconds: 250),
       vsync: this,
     );
 
@@ -150,12 +178,9 @@ class _AnimatedPageViewState extends State<_AnimatedPageView>
   @override
   void didUpdateWidget(_AnimatedPageView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Deterministic check: Only animate if the tab ACTUALLY changed.
-    // Prevents random UI jumps if parent widget rebuilds.
     if (widget.navigationShell.currentIndex != _previousIndex) {
       _previousIndex = widget.navigationShell.currentIndex;
-      _animationController.forward(
-          from: 0.0); // cleaner than reset() + forward()
+      _animationController.forward(from: 0.0);
     }
   }
 
@@ -204,8 +229,8 @@ class VerticalNavBar extends StatelessWidget {
             label: Text(l10n.navOffline)),
       ],
       selectedIndex: navigationShell.currentIndex,
-      minWidth: 70, // Slightly improved touch target for desktop
-      onDestinationSelected: navigationShell.goBranch, // Clean tear-off
+      minWidth: 70,
+      onDestinationSelected: navigationShell.goBranch,
       groupAlignment: 0.0,
       unselectedIconTheme:
           const IconThemeData(color: Default_Theme.primaryColor2),
@@ -243,7 +268,7 @@ class HorizontalNavBar extends StatelessWidget {
         GButton(icon: MingCute.folder_download_fill, text: l10n.navOffline),
       ],
       selectedIndex: navigationShell.currentIndex,
-      onTabChange: navigationShell.goBranch, // Clean tear-off
+      onTabChange: navigationShell.goBranch,
     );
   }
 }
