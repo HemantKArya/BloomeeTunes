@@ -143,7 +143,6 @@ jobs:
         run: |
           VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-
       - name: Build macOS App
         run: flutter build macos --release --build-number ${{github.run_number}}
 
@@ -160,20 +159,20 @@ jobs:
           ln -s /Applications /tmp/bloomee_dmg/Applications
           
           # Create DMG using create-dmg with background image and icon positioning
-          # Path exists at assets/icons/dmg-background.jpg in repo.
           create-dmg \
             --volname "Bloomee" \
-            --background "assets/icons/dmg-background.jpg" \
-            --window-size 700 450 \
-            --icon-size 100 \
-            --icon "Bloomee.app" 200 150 \
-            --app-drop-link 500 150 \
+            --background "assets/icons/dmg-background@2x.jpg" \
+            --window-size 788 312 \
+            --icon-size 75 \
+            --text-size 10 \
+            --icon "Bloomee.app" 455 210 \
+            --app-drop-link 686 210 \
+            --hide-extension "Bloomee.app" \
             dist/bloomee_tunes_macos_v${{ env.VERSION }}+${{github.run_number}}.dmg \
             /tmp/bloomee_dmg
           
           # Cleanup
           rm -rf /tmp/bloomee_dmg
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -187,7 +186,7 @@ jobs:
           tag: v${{ env.VERSION }}+${{github.run_number}}
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: true
-          allowUpdates: true
+          allowUpdates: true 
           omitBodyDuringUpdate: true
 
   # JOB 4: LINUX
