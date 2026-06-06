@@ -146,6 +146,10 @@ jobs:
       - name: Build macOS App
         run: flutter build macos --release --build-number ${{github.run_number}}
 
+      - name: Sign App (Ad-Hoc)
+        run: |
+          codesign --deep --force --sign - "build/macos/Build/Products/Release/Bloomee.app"
+
       - name: Install create-dmg
         run: brew install create-dmg
 
