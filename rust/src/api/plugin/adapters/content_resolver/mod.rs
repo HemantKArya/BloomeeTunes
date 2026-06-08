@@ -66,7 +66,7 @@ impl bindgen::UtilsHost for ContentResolverHostImpl {
             bindgen::HttpMethod::Options => reqwest::Method::OPTIONS,
         };
 
-        let mut req = HTTP_CLIENT.request(method, &url);
+        let mut req = HTTP_CLIENT.request(method.clone(), &url);
 
         if let Some(timeout) = options.timeout_seconds {
             let capped_timeout = timeout.min(30);
@@ -80,7 +80,10 @@ impl bindgen::UtilsHost for ContentResolverHostImpl {
         }
 
         if let Some(body) = options.body {
-            req = req.body(body);
+            let has_body = !body.is_empty();
+            if has_body || !(method == reqwest::Method::GET || method == reqwest::Method::HEAD) {
+                req = req.body(body);
+            }
         }
 
         let resp = req.send().map_err(|e| e.to_string())?;
