@@ -13,6 +13,7 @@ use crate::api::plugin::models::{
 use crate::api::plugin::traits::Plugin;
 use crate::api::plugin::types::{PluginAdapter, PluginType};
 use crate::api::plugin::wasm_runtime::{HostPluginStore, SharedWasmEngine};
+use log::debug;
 use once_cell::sync::Lazy;
 use std::any::Any;
 use std::collections::HashMap;
@@ -66,35 +67,60 @@ impl bindgen::UtilsHost for ContentResolverHostImpl {
             bindgen::HttpMethod::Options => reqwest::Method::OPTIONS,
         };
 
+        debug!("[HTTP] Starting {} request to: {}", method, url);
+
         let mut req = HTTP_CLIENT.request(method.clone(), &url);
 
         if let Some(timeout) = options.timeout_seconds {
             let capped_timeout = timeout.min(30);
+            debug!("[HTTP] Setting timeout: {} seconds", capped_timeout);
             req = req.timeout(std::time::Duration::from_secs(capped_timeout as u64));
         }
 
         if let Some(headers) = options.headers {
+            debug!("[HTTP] Adding {} headers", headers.len());
             for (k, v) in headers {
+                debug!("[HTTP]   Header: {} = {}", k, if v.contains("Bearer") || v.contains("Authorization") { "***REDACTED***" } else { &v });
                 req = req.header(k, v);
             }
         }
 
         if let Some(body) = options.body {
             let has_body = !body.is_empty();
+            debug!("[HTTP] Body present: {} bytes (empty: {})", body.len(), !has_body);
             if has_body || !(method == reqwest::Method::GET || method == reqwest::Method::HEAD) {
+                debug!("[HTTP] Attaching body to request");
                 req = req.body(body);
+            } else {
+                debug!("[HTTP] Skipping empty body for {} request", method);
             }
+        } else {
+            debug!("[HTTP] No body provided");
         }
 
-        let resp = req.send().map_err(|e| e.to_string())?;
+        debug!("[HTTP] Sending request...");
+        let resp = req.send().map_err(|e| {
+            debug!("[HTTP] Request failed: {}", e);
+            e.to_string()
+        })?;
 
         let status = resp.status().as_u16();
+        debug!("[HTTP] Response status: {}", status);
+        
         let headers: Vec<(String, String)> = resp
             .headers()
             .iter()
             .map(|(k, v)| (k.as_str().to_string(), v.to_str().unwrap_or("").to_string()))
             .collect();
-        let body_bytes = resp.bytes().map_err(|e| e.to_string())?.to_vec();
+        
+        debug!("[HTTP] Response has {} headers", headers.len());
+        
+        let body_bytes = resp.bytes().map_err(|e| {
+            debug!("[HTTP] Failed to read response body: {}", e);
+            e.to_string()
+        })?.to_vec();
+        
+        debug!("[HTTP] Response body: {} bytes", body_bytes.len());
 
         Ok(bindgen::HttpResponse {
             status,
