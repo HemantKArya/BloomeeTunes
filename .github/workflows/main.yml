@@ -76,10 +76,25 @@ jobs:
 
             - name: Rename file
               run: Rename-Item -Path "build/windows/x64/runner/Release/bloomee.exe" -NewName "Bloomee.exe"
-           
+
             - name: ZIP build
               run: Compress-Archive -Path build/windows/x64/runner/Release/* -Destination  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-            
+
+            - name: Build Windows Installer (Inno Setup)
+              shell: powershell
+              run: |
+                  $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+                  if (-not (Test-Path $iscc)) { throw "ISCC.exe not found at $iscc" }
+                  & $iscc "/DMyAppVersion=$env:VERSION" windows\installer\bloomee.iss
+                  if ($LASTEXITCODE -ne 0) { throw "ISCC.exe failed (exit $LASTEXITCODE)" }
+
+            - name: Rename Installer
+              shell: powershell
+              run: |
+                  $src = "build/windows/x64/installer/bloomee_tunes_windows_x64_v$env:VERSION`_setup.exe"
+                  $dst = "build/windows/x64/installer/bloomee_tunes_windows_x64_v$env:VERSION+${{github.run_number}}_setup.exe"
+                  Rename-Item -Path $src -NewName (Split-Path $dst -Leaf)
+
             - name: Upload Artifacts
               uses: actions/upload-artifact@v4
               with:
@@ -87,6 +102,7 @@ jobs:
                 path: |
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
                   build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+                  build/windows/x64/installer/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}_setup.exe
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
@@ -98,6 +114,7 @@ jobs:
                 artifacts: |
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
                   build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
+                  build/windows/x64/installer/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}_setup.exe
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
                   build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
