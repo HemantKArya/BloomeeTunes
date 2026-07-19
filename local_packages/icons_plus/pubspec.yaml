@@ -1,0 +1,13 @@
+name: icons_plus
+description: A local wrapper package that redirects to iconsx_plus to support Flutter 3.27+ final IconData class restriction.
+version: 5.0.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  iconsx_plus: ^1.0.1
