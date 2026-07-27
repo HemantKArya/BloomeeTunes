@@ -436,7 +436,11 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     EasyThrottle.throttle('discord_rpc', const Duration(seconds: 1), () {
       DiscordService.updatePresence(
-          track: currentTrackInfo, isPlaying: playing);
+        track: currentTrackInfo,
+        isPlaying: playing,
+        position: position,
+        duration: engine.duration,
+      );
     });
   }
 
