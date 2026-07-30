@@ -18,7 +18,7 @@
       <i class="fa-brands fa-github"></i>
       GitHub
     </a>
-  <a href="https://instagram.com/iamhemantindia" class="contact-btn instagram" target="_blank" rel="noopener noreferrer" aria-label="Hemant on Instagram" title="Instagram - iamhemantindia">
+  <a href="https://instagram.com/iamhemant.in" class="contact-btn instagram" target="_blank" rel="noopener noreferrer" aria-label="Hemant on Instagram" title="Instagram - iamhemantindia">
       <i class="fa-brands fa-instagram"></i>
       Instagram
     </a>
