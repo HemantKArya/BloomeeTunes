@@ -35,6 +35,8 @@ String languageLabelForCode(String code) {
       return '日本語';
     case 'ko':
       return '한국어';
+    case 'pt':
+      return 'Português (Brasil)';
     case 'zh':
       return '中文';
     default:

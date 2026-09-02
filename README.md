@@ -68,6 +68,7 @@
 | 🇩🇪 German | Deutsch | ✅ Complete |
 | 🇪🇸 Spanish | Español | ✅ Complete |
 | 🇯🇵 Japanese | 日本語 | ✅ Complete |
+| 🇧🇷 Portuguese (Brazil) | Português (Brasil) | ✅ Complete |
 
 > 🟢 All translations are fully completed and maintained, Still if you feel any language needs more thought then please feel free to open the issue.
 ---
