@@ -452,7 +452,7 @@
   "pluginManagerDetailCreated": "作成日",
   "pluginManagerDetailHomepage": "ホームページ",
   "pluginManagerDowngradeTitle": "ダウングレードしますか？",
-  "pluginManagerDowngradeMessage": "現在より古い（または同じ）バージョンをインストールしようとしています。続行しますか？",
+  "pluginManagerDowngradeMessage": "「{name}」の現在より古い（または同じ）バージョンをインストールしようとしています。続行しますか？",
   "@pluginManagerDowngradeMessage": { "placeholders": { "name": { "type": "String" } } },
   "pluginManagerDowngradeAction": "そのままインストール",
   "pluginManagerDeleteStorageTitle": "データを削除しますか？",

@@ -482,9 +482,9 @@
   "smartReplaceQueueUpdated": " y se actualizó la cola",
 
   "playerUnknownQueue": "Desconocido",
-  "playerLiked": "¡Añadido a Me gusta!",
+  "playerLiked": "¡{title} añadido a Me gusta!",
   "@playerLiked": { "placeholders": { "title": { "type": "String" } } },
-  "playerUnliked": "¡Quitado de Me gusta!",
+  "playerUnliked": "¡{title} quitado de Me gusta!",
   "@playerUnliked": { "placeholders": { "title": { "type": "String" } } },
 
   "offlineNoDownloads": "No hay descargas",
