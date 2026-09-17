@@ -482,9 +482,9 @@
   "smartReplaceQueueUpdated": " und Warteschlange aktualisiert",
 
   "playerUnknownQueue": "Unbekannt",
-  "playerLiked": "Zu Favoriten hinzugefügt!",
+  "playerLiked": "{title} zu Favoriten hinzugefügt!",
   "@playerLiked": { "placeholders": { "title": { "type": "String" } } },
-  "playerUnliked": "Aus Favoriten entfernt!",
+  "playerUnliked": "{title} aus Favoriten entfernt!",
   "@playerUnliked": { "placeholders": { "title": { "type": "String" } } },
 
   "offlineNoDownloads": "Keine Downloads",
