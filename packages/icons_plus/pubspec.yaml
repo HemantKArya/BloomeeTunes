@@ -1,0 +1,156 @@
+name: icons_plus
+description: Icons Plus is a package that has many icon packs that are popular and easy to use, such as Bootstrap, Font Awesome, Eva Icons, Line Awesome, Ionicons, and others.
+version: 6.0.0
+homepage: https://github.com/chouhan-rahul
+repository: https://github.com/chouhan-rahul/icons_plus
+issue_tracker: https://github.com/chouhan-rahul/icons_plus/issues
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.0.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+screenshots:
+  - description: 'Icons Plus Banner'
+    path: icons-plus.svg
+
+flutter:
+  # Images
+  assets:
+    # Characters SVG images
+    - assets/images/characters/abc-warriors-characters/
+    - assets/images/characters/adventure-time-cartoon/
+    - assets/images/characters/animation-characters/
+    - assets/images/characters/bt21/
+    - assets/images/characters/cinema-symbols/
+    - assets/images/characters/dc-characters/
+    - assets/images/characters/futurama/
+    - assets/images/characters/gaming/
+    - assets/images/characters/houses-of-game-of-thrones/
+    - assets/images/characters/marvel-characters/
+    - assets/images/characters/movie-characters/
+    - assets/images/characters/naruto/
+    - assets/images/characters/other/
+    - assets/images/characters/star-trek-movie/
+    - assets/images/characters/star-wars-movie/
+    - assets/images/characters/steven-universe/
+    - assets/images/characters/the-matrix/
+    - assets/images/characters/the-simpsons-movie/
+    # Flags SVG images
+    - assets/images/logos/flags/
+    # Logos SVG images
+    - assets/images/logos/adobe/
+    - assets/images/logos/apple/
+    - assets/images/logos/browsers/
+    - assets/images/logos/cinema/
+    - assets/images/logos/clothing-brands/
+    - assets/images/logos/cloud-storage/
+    - assets/images/logos/creative-software/
+    - assets/images/logos/crypto-currency/
+    - assets/images/logos/eating-places/
+    - assets/images/logos/ecommerce/
+    - assets/images/logos/education/
+    - assets/images/logos/enterprise/
+    - assets/images/logos/google-services/
+    - assets/images/logos/hardware/
+    - assets/images/logos/hosting/
+    - assets/images/logos/icons8/
+    - assets/images/logos/marketing/
+    - assets/images/logos/messengers/
+    - assets/images/logos/microsoft/
+    - assets/images/logos/military-symbols/
+    - assets/images/logos/music/
+    - assets/images/logos/networks/
+    - assets/images/logos/other/
+    - assets/images/logos/photo-and-video/
+    - assets/images/logos/publishing/
+    - assets/images/logos/search-engines/
+    - assets/images/logos/social-bookmarking/
+    - assets/images/logos/social-media/
+    - assets/images/logos/software-development/
+    - assets/images/logos/sports/
+    - assets/images/logos/streaming/
+    - assets/images/logos/transport/
+    - assets/images/logos/travel/
+    - assets/images/logos/utilities/
+    - assets/images/logos/video-games/
+    # Popular SVG images
+    - assets/images/popular/common-actions/
+    - assets/images/popular/documents-and-folders/
+    - assets/images/popular/other/
+    - assets/images/popular/settings/
+    - assets/images/popular/social-media/
+    - assets/images/popular/status/
+    - assets/images/popular/website-sections/
+
+  # Fonts
+  fonts:
+    # AntDesign
+    - family: AntDesign
+      fonts:
+        - asset: assets/fonts/AntDesign.ttf
+    # Bootstrap
+    - family: Bootstrap
+      fonts:
+        - asset: assets/fonts/Bootstrap.ttf
+    # BoxIcons
+    - family: BoxIcons
+      fonts:
+        - asset: assets/fonts/BoxIcons.ttf
+    # Clarity
+    - family: Clarity
+      fonts:
+        - asset: assets/fonts/Clarity.ttf
+    # EvaIcons
+    - family: EvaIcons
+      fonts:
+        - asset: assets/fonts/EvaIcons.ttf
+    # FontAwesome
+    - family: FontAwesome
+      fonts:
+        - asset: assets/fonts/FontAwesome.ttf
+    # HeroIcons
+    - family: HeroIcons
+      fonts:
+        - asset: assets/fonts/HeroIcons.ttf
+    # Iconsax
+    - family: Iconsax
+      fonts:
+        - asset: assets/fonts/Iconsax.ttf
+    # IonIcons
+    - family: IonIcons
+      fonts:
+        - asset: assets/fonts/IonIcons.ttf
+    # LineAwesome
+    - family: LineAwesome
+      fonts:
+        - asset: assets/fonts/LineAwesome.ttf
+    # MingCute
+    - family: MingCute
+      fonts:
+        - asset: assets/fonts/MingCute.ttf
+    # OctIcons
+    - family: OctIcons
+      fonts:
+        - asset: assets/fonts/OctIcons.ttf
+    # PixelArtIcons
+    - family: PixelartIcons
+      fonts:
+        - asset: assets/fonts/PixelArtIcons.ttf
+    # TeenyIcons
+    - family: TeenyIcons
+      fonts:
+        - asset: assets/fonts/TeenyIcons.ttf
+    # ZondIcons
+    - family: ZondIcons
+      fonts:
+        - asset: assets/fonts/ZondIcons.ttf

@@ -20,7 +20,8 @@ dependencies:
 
   device_info_plus: ^12.1.0
   equatable: ^2.0.7
-  icons_plus: ^5.0.0
+  icons_plus:
+    path: packages/icons_plus
   cached_network_image: ^3.4.1
   flutter_bloc: ^9.1.1
   bloc: ^9.0.0
