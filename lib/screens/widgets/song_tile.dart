@@ -132,6 +132,8 @@ class SongCardWidget extends StatelessWidget {
                           fallbackUrl:
                               song.thumbnail.urlLow ?? song.thumbnail.url,
                           fit: BoxFit.cover,
+                          width: isWide ? 86 : 50,
+                          height: 50,
                         ),
                       ),
                     ),

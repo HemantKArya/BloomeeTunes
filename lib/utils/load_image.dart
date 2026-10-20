@@ -67,9 +67,11 @@ Widget _buildLocalFileImage({
   required BoxFit fit,
   double? width,
   double? height,
+  int? cacheWidth,
 }) {
   return Image.file(
     file,
+    cacheWidth: cacheWidth,
     fit: fit,
     width: width,
     height: height,
@@ -195,6 +197,7 @@ class _LoadImageCachedState extends State<LoadImageCached> {
       return _buildLocalFileImage(
         file: primaryFile,
         placeholderPath: widget.placeholderUrl,
+        cacheWidth: _memCacheWidth,
         fit: widget.fit,
         width: widget.width,
         height: widget.height,
@@ -207,6 +210,7 @@ class _LoadImageCachedState extends State<LoadImageCached> {
       return _buildLocalFileImage(
         file: fallbackFile,
         placeholderPath: widget.placeholderUrl,
+        cacheWidth: _memCacheWidth,
         fit: widget.fit,
         width: widget.width,
         height: widget.height,
@@ -245,6 +249,7 @@ class _LoadImageCachedState extends State<LoadImageCached> {
           return _buildLocalFileImage(
             file: fallbackFile,
             placeholderPath: widget.placeholderUrl,
+            cacheWidth: _memCacheWidth,
             fit: widget.fit,
             width: widget.width,
             height: widget.height,

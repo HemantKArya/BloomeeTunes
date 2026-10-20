@@ -3817,6 +3817,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error.'**
   String get backupStartupFailedDetails;
+
+  /// No description provided for @lyricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics'**
+  String get lyricsTitle;
+
+  /// No description provided for @lyricsEnterFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen lyrics'**
+  String get lyricsEnterFullscreen;
+
+  /// No description provided for @lyricsExitFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit fullscreen'**
+  String get lyricsExitFullscreen;
+
+  /// No description provided for @lyricsFollowPlayback.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow playback'**
+  String get lyricsFollowPlayback;
+
+  /// No description provided for @lyricsTimingEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get lyricsTimingEarlier;
+
+  /// No description provided for @lyricsTimingLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get lyricsTimingLater;
+
+  /// No description provided for @lyricsTimingSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save timing'**
+  String get lyricsTimingSave;
+
+  /// No description provided for @lyricsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics saved.'**
+  String get lyricsSaved;
+
+  /// No description provided for @lyricsSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save lyrics. Try again.'**
+  String get lyricsSaveFailed;
+
+  /// No description provided for @lyricsDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete saved lyrics. Try again.'**
+  String get lyricsDeleteFailed;
 }
 
 class _AppLocalizationsDelegate

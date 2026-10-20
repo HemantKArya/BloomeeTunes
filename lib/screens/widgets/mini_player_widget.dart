@@ -8,6 +8,8 @@ import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
+import 'package:Bloomee/screens/widgets/player_view_activity.dart';
+import 'package:Bloomee/screens/widgets/ambient_artwork_texture.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -264,16 +266,8 @@ class _BlurredBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
-      child: Transform.scale(
-        scale: 1.6,
-        child: ImageFiltered(
-          imageFilter: ImageFilter.blur(
-            sigmaX: 40,
-            sigmaY: 40,
-            tileMode: TileMode.clamp,
-          ),
-          child: LoadImageCached(imageUrl: imageUrl, fit: BoxFit.cover),
-        ),
+      child: RepaintBoundary(
+        child: AmbientArtworkTexture(imageUrl: imageUrl),
       ),
     );
   }
@@ -336,6 +330,8 @@ class _Artwork extends StatelessWidget {
           imageUrl: imageUrl,
           fallbackUrl: fallbackUrl,
           fit: BoxFit.cover,
+          width: size,
+          height: size,
         ),
       ),
     );
@@ -405,26 +401,21 @@ class _NowPlayingWave extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        return CustomPaint(
-          size: const Size(18, 14),
-          painter: _WavePainter(
-            progress: controller.value,
-            color: Colors.white,
-          ),
-        );
-      },
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: const Size(18, 14),
+        painter: _WavePainter(animation: controller, color: Colors.white),
+      ),
     );
   }
 }
 
 class _WavePainter extends CustomPainter {
-  final double progress;
+  final Animation<double> animation;
   final Color color;
 
-  _WavePainter({required this.progress, required this.color});
+  _WavePainter({required this.animation, required this.color})
+      : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -433,27 +424,22 @@ class _WavePainter extends CustomPainter {
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
-
     const barCount = 4;
     final spacing = size.width / barCount;
-
     for (int i = 0; i < barCount; i++) {
       final phase = i * 0.8;
       final amplitude = size.height * 0.4;
-      final wave = sin((progress * 2 * pi) + phase);
+      final wave = sin((animation.value * 2 * pi) + phase);
       final barHeight = (amplitude * (wave + 1) / 2) + (size.height * 0.15);
-
       final x = (i * spacing) + spacing / 2;
-      final top = (size.height - barHeight) / 2;
-      final bottom = top + barHeight;
-
-      canvas.drawLine(Offset(x, top), Offset(x, bottom), paint);
+      canvas.drawLine(Offset(x, (size.height - barHeight) / 2),
+          Offset(x, (size.height + barHeight) / 2), paint);
     }
   }
 
   @override
   bool shouldRepaint(_WavePainter oldDelegate) =>
-      oldDelegate.progress != progress;
+      oldDelegate.animation != animation || oldDelegate.color != color;
 }
 
 class _PlayPauseButton extends StatelessWidget {
@@ -562,7 +548,9 @@ class _GlowingProgressBar extends StatelessWidget {
       right: 0,
       height: 3,
       child: StreamBuilder<ProgressBarStreams>(
-        stream: context.watch<BloomeePlayerCubit>().progressStreams,
+        stream: PlayerViewActivity.isActive(context)
+            ? context.read<BloomeePlayerCubit>().progressStreams
+            : null,
         builder: (context, snapshot) {
           double fraction = 0;
           if (snapshot.hasData && snapshot.data!.duration != Duration.zero) {

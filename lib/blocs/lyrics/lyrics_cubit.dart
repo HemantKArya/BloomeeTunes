@@ -480,7 +480,9 @@ class LyricsCubit extends Cubit<LyricsState> {
       {int? offset}) async {
     final updated = lyrics.copyWith(mediaID: mediaID, offset: offset);
     await _lyricsDao.putLyrics(updated, offset: offset);
-    if (!isClosed) {
+    if (!isClosed && state.track.id == mediaID) {
+      // A manual choice wins over any older automatic lookup still in flight.
+      ++_requestSerial;
       emit(LyricsLoaded(updated, state.track));
     }
     log('Lyrics updated for ID: ${updated.mediaID} (offset: $offset)',
@@ -489,7 +491,7 @@ class LyricsCubit extends Cubit<LyricsState> {
 
   Future<void> deleteLyricsFromDB(Track track) async {
     await _lyricsDao.removeLyricsById(track.id);
-    if (!isClosed) {
+    if (!isClosed && state.track.id == track.id) {
       emit(LyricsInitial());
       unawaited(getLyrics(track));
     }

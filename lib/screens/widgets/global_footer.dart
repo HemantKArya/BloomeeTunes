@@ -17,7 +17,6 @@ class GlobalFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<PlayerOverlayCubit>();
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
     return PlayerOverlayWrapper(

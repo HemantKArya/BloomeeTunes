@@ -2150,4 +2150,34 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get backupStartupFailedDetails =>
       'Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error.';
+
+  @override
+  String get lyricsTitle => 'Lyrics';
+
+  @override
+  String get lyricsEnterFullscreen => 'Fullscreen lyrics';
+
+  @override
+  String get lyricsExitFullscreen => 'Exit fullscreen';
+
+  @override
+  String get lyricsFollowPlayback => 'Follow playback';
+
+  @override
+  String get lyricsTimingEarlier => 'Earlier';
+
+  @override
+  String get lyricsTimingLater => 'Later';
+
+  @override
+  String get lyricsTimingSave => 'Save timing';
+
+  @override
+  String get lyricsSaved => 'Lyrics saved.';
+
+  @override
+  String get lyricsSaveFailed => 'Could not save lyrics. Try again.';
+
+  @override
+  String get lyricsDeleteFailed => 'Could not delete saved lyrics. Try again.';
 }

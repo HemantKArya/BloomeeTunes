@@ -791,5 +791,15 @@
     "entries": {"type": "int"}, "downloads": {"type": "int"}
   } },
   "backupStartupFailed": "Bloomee could not start",
-  "backupStartupFailedDetails": "Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error."
+  "backupStartupFailedDetails": "Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error.",
+  "lyricsTitle": "Lyrics",
+  "lyricsEnterFullscreen": "Fullscreen lyrics",
+  "lyricsExitFullscreen": "Exit fullscreen",
+  "lyricsFollowPlayback": "Follow playback",
+  "lyricsTimingEarlier": "Earlier",
+  "lyricsTimingLater": "Later",
+  "lyricsTimingSave": "Save timing",
+  "lyricsSaved": "Lyrics saved.",
+  "lyricsSaveFailed": "Could not save lyrics. Try again.",
+  "lyricsDeleteFailed": "Could not delete saved lyrics. Try again."
 }

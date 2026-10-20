@@ -26,7 +26,6 @@ class _UpNextStyles {
   );
   static const panelBorderRadius =
       BorderRadius.vertical(top: Radius.circular(25));
-  static const desktopBorderRadius = BorderRadius.all(Radius.circular(25));
 }
 
 class UpNextPanelController {
@@ -71,6 +70,7 @@ class UpNextPanel extends StatefulWidget {
     this.startExpanded = false,
     this.canBeHidden = false,
     this.controller,
+    this.onDesktopCollapse,
   });
 
   final double peekHeight;
@@ -79,6 +79,7 @@ class UpNextPanel extends StatefulWidget {
   final bool startExpanded;
   final bool canBeHidden;
   final UpNextPanelController? controller;
+  final VoidCallback? onDesktopCollapse;
 
   @override
   State<UpNextPanel> createState() => _UpNextPanelState();
@@ -159,6 +160,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
   }
 
   void _toggleSheet() {
+    if (!_sheetController.isAttached) return;
     if (_sheetController.size < _minSheetSize + 0.1) {
       _sheetController.animateTo(_maxSheetSize,
           duration: const Duration(milliseconds: 300),
@@ -169,6 +171,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
   }
 
   void _collapseSheet() {
+    if (!_sheetController.isAttached) return;
     _sheetController.animateTo(_minSheetSize,
         duration: const Duration(milliseconds: 300), curve: Curves.easeOutExpo);
   }
@@ -176,7 +179,10 @@ class _UpNextPanelState extends State<UpNextPanel> {
   @override
   Widget build(BuildContext context) {
     if (widget.isDesktopMode) {
-      return _DesktopLayout(playerCubit: _playerCubit);
+      return _DesktopLayout(
+        playerCubit: _playerCubit,
+        onCollapse: widget.onDesktopCollapse,
+      );
     }
 
     return MediaQuery.removeViewInsets(
@@ -344,13 +350,18 @@ class _QueueInfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          StreamBuilder<List<MediaItem>>(
-            stream: playerCubit.bloomeePlayer.queue,
-            builder: (context, snapshot) {
-              return Text(l10n.upNextItemsInQueue(snapshot.data?.length ?? 0),
-                  style: _UpNextStyles.queueCountStyle);
-            },
+          Expanded(
+            child: StreamBuilder<List<MediaItem>>(
+              stream: playerCubit.bloomeePlayer.queue,
+              builder: (context, snapshot) {
+                return Text(l10n.upNextItemsInQueue(snapshot.data?.length ?? 0),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _UpNextStyles.queueCountStyle);
+              },
+            ),
           ),
+          const SizedBox(width: 8),
           _ClearQueueButton(playerCubit: playerCubit),
         ],
       ),
@@ -404,28 +415,55 @@ class _ClearQueueButton extends StatelessWidget {
 
 class _DesktopLayout extends StatelessWidget {
   final BloomeePlayerCubit playerCubit;
-  const _DesktopLayout({required this.playerCubit});
+  final VoidCallback? onCollapse;
+  const _DesktopLayout({required this.playerCubit, this.onCollapse});
 
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
       child: ClipRRect(
-        borderRadius: _UpNextStyles.desktopBorderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
+        borderRadius: BorderRadius.circular(20),
+        // The ambient artwork behind this panel is already blurred. Tinting
+        // it gives the same glass surface without re-sampling the moving
+        // window (including the library underneath) on every transition frame.
+        child: Material(
+          color: const Color(0x9910141C),
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.7),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1), width: 0.5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.045),
+                  Colors.black.withValues(alpha: 0.12),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                const _CompactHeader(isExpanded: true),
-                _QueueInfoRow(playerCubit: playerCubit),
-                Expanded(child: _DesktopSongList(playerCubit: playerCubit)),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
+              child: Column(
+                children: [
+                  Tooltip(
+                    message:
+                        MaterialLocalizations.of(context).closeButtonTooltip,
+                    child: InkWell(
+                      onTap: onCollapse,
+                      borderRadius: BorderRadius.circular(12),
+                      child: const SizedBox(
+                        height: 44,
+                        child: _CompactHeader(isExpanded: true),
+                      ),
+                    ),
+                  ),
+                  _QueueInfoRow(playerCubit: playerCubit),
+                  const SizedBox(height: 4),
+                  Expanded(child: _DesktopSongList(playerCubit: playerCubit)),
+                ],
+              ),
             ),
           ),
         ),
@@ -445,6 +483,7 @@ class _DesktopSongList extends StatefulWidget {
 class _DesktopSongListState extends State<_DesktopSongList> {
   final ScrollController _scrollController = ScrollController();
   String? _lastPlayingId;
+  bool _hasPositionedCurrentSong = false;
   static const double _itemHeight = 70.0;
 
   @override
@@ -466,15 +505,23 @@ class _DesktopSongListState extends State<_DesktopSongList> {
     final clampedOffset =
         targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
 
-    _scrollController.animateTo(clampedOffset,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic);
+    if (!_hasPositionedCurrentSong) {
+      // Do not run a second animation (and decode every intermediate sleeve)
+      // while the full player is opening at a song deep in a long queue.
+      _hasPositionedCurrentSong = true;
+      _scrollController.jumpTo(clampedOffset);
+    } else {
+      _scrollController.animateTo(clampedOffset,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<MediaItem>>(
       stream: widget.playerCubit.bloomeePlayer.queue,
+      initialData: widget.playerCubit.bloomeePlayer.queue.valueOrNull,
       builder: (context, queueSnapshot) {
         if (!queueSnapshot.hasData) {
           return const Center(
@@ -485,6 +532,7 @@ class _DesktopSongListState extends State<_DesktopSongList> {
 
         return StreamBuilder<MediaItem?>(
           stream: widget.playerCubit.bloomeePlayer.mediaItem,
+          initialData: widget.playerCubit.bloomeePlayer.mediaItem.valueOrNull,
           builder: (context, mediaSnapshot) {
             final currentId = mediaSnapshot.data?.id;
             if (currentId != null && currentId != _lastPlayingId) {
