@@ -1,3 +1,27 @@
+## [Unreleased]
+
+### Added
+- **Portable JSON Backups**: Save and share playlists, likes, saved collections, playback and search histories, and portable preferences.
+- **Import Preview and Options**: Preview backup contents before importing as new playlists, merging with existing data, or replacing selected sections. Older JSON backups can be imported as new playlists or merged.
+- **Library Recovery**: Recover missing playlists and download records from retained v3 databases and recovery copies through Storage settings or the empty Offline tab.
+- **Recovery Copies**: Browse private recovery snapshots, with automatic daily checks and protection copies before imports and database resets.
+- **Android Download Folder Selection**: Choose a download folder through the system picker with persistent access permissions.
+
+### Changed
+- **Player Redesign**: Improved desktop space usage with larger artwork and a collapsible queue, and unified ambient artwork backgrounds across desktop, mobile, and lyrics views.
+- **Lyrics Experience**: Refined fullscreen lyrics, scrolling, timing adjustments, and shared playback progress styling.
+- **Backup File Handling**: Unified file import previews across Settings, Library, Android Open With and Share, and desktop file arguments.
+- **Content Imports**: Allow more time to fetch collection details and tracks, and retry the failed step while reusing requests already in progress.
+- **Playback Efficiency**: Reduced background network traffic by bounding audio buffering and removing bulk chart prefetching, and reduced player transition jank and unnecessary rendering.
+
+### Fixed
+- Preserved download records and playlist membership when audio files are temporarily missing or inaccessible, with improved recovery of relocated files.
+- Improved playback interruption recovery and refreshed rejected stream URLs when servers return HTTP 401, 403, or 410.
+- Fixed local music scanning on Android 8.1 and improved playback, deletion, and recovery of files accessed through Android document URIs.
+- Improved plugin setup verification and restored providers after failed plugin updates.
+- Fixed lyrics timestamp parsing, scrolling edge cases, cache failure handling, and requests completing after the lyrics view closes.
+- Prevented outdated content import results from affecting a new or canceled import.
+- Fixed Android build compatibility and icon dependency issues.
 
 ## [3.0.4] - 2026-05-29
 
