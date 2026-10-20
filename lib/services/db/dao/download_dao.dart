@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:Bloomee/services/download/download_storage.dart';
 
 import 'package:Bloomee/plugins/utils/media_id.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
@@ -76,9 +77,8 @@ class DownloadDAO {
 
     if (deleteFile) {
       try {
-        final file = File('${record.filePath}/${record.fileName}');
-        if (await file.exists()) {
-          await file.delete();
+        if (await DownloadStorage.exists(record.filePath, record.fileName)) {
+          await DownloadStorage.delete(record.filePath, record.fileName);
           log('Deleted file: ${record.fileName}', name: 'DownloadDAO');
         }
       } catch (e) {
@@ -136,7 +136,8 @@ class DownloadDAO {
   Future<DownloadDB?> _resolveRecord(Isar isar, DownloadDB record) async {
     final resolved = await _files.resolve(record.filePath, record.fileName);
     if (resolved == null) return null;
-    final directory = p.dirname(resolved);
+    final directory =
+        DownloadStorage.isDocument(resolved) ? resolved : p.dirname(resolved);
     if (directory == record.filePath) return record;
     // File checks yield. Do not resurrect a deleted row or overwrite a newer
     // download that finished while we were checking the old path.
@@ -235,6 +236,8 @@ class DownloadDAO {
     Track track, {
     required String runtimeArtworkCacheDir,
   }) async {
+    // SAF URIs are consumed by the Android player, not Rust's file metadata API.
+    if (DownloadStorage.isDocument(record.filePath)) return track;
     final currentArtworkUrl = track.thumbnail.url;
     if (await _isExistingLocalImagePath(currentArtworkUrl)) {
       return track;
@@ -342,6 +345,9 @@ class DownloadFileResolver {
   }
 
   Future<String?> resolve(String directory, String name) async {
+    if (DownloadStorage.isDocument(directory)) {
+      return await DownloadStorage.exists(directory, name) ? directory : null;
+    }
     if (name.isEmpty || p.basename(name) != name) return null;
     if (directory.startsWith('file:')) {
       try {

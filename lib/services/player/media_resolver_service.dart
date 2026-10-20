@@ -1,3 +1,4 @@
+import 'package:Bloomee/services/download/download_storage.dart';
 import 'dart:developer';
 import 'dart:async';
 
@@ -84,7 +85,7 @@ class MediaResolverService {
       if (down != null) {
         log('Playing Offline: ${track.title}', name: 'MediaResolverService');
         return ResolvedMediaSource(
-          uri: Uri.file('${down.filePath}/${down.fileName}'),
+          uri: DownloadStorage.mediaUri(down.filePath, down.fileName),
           isOffline: true,
         );
       }

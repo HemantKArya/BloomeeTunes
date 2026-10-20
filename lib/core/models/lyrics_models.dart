@@ -48,7 +48,7 @@ class Lyrics {
 
   @override
   String toString() {
-    return 'Lyrics{artist: $artist, title: $title, album: $album, lyrics: ${lyricsPlain.substring(0, 15)}, lyricsSynced: ${lyricsSynced?.substring(0, 15)},duration: $duration, url: $url, id: $id, mediaID: $mediaID provider: $provider, offset: $offset}';
+    return 'Lyrics{artist: $artist, title: $title, album: $album, lyrics: ${lyricsPlain.length} characters, duration: $duration, url: $url, id: $id, mediaID: $mediaID provider: $provider, offset: $offset}';
   }
 
   Lyrics copyWith({
@@ -122,26 +122,27 @@ class ParsedLyrics {
   }
 
   void parseLyrics(String syncedLyrics) {
-    //LRC fromat is [mm:ss.xx] lyrics
-    final regex = RegExp(r'\[(\d+):(\d+)\.(\d+)\] (.+)');
-    final matches = regex.allMatches(syncedLyrics);
-
-    for (var match in matches) {
-      final min = int.parse(match.group(1)!);
-      final sec = int.parse(match.group(2)!);
-      final milli = int.parse(match.group(3)!);
-      final text = match.group(4)!;
-      lyrics.add(
-        ParsedLyric(
+    lyrics.clear();
+    final timestamp = RegExp(r'\[(\d+):(\d{2})(?:\.(\d{1,3}))?\]');
+    for (final line in syncedLyrics.split('\n')) {
+      final matches = timestamp.allMatches(line).toList();
+      if (matches.isEmpty) continue;
+      final text = line.substring(matches.last.end).trim();
+      for (final match in matches) {
+        final minutes = int.tryParse(match.group(1)!);
+        final seconds = int.tryParse(match.group(2)!);
+        if (minutes == null || seconds == null || seconds >= 60) continue;
+        final fraction = match.group(3) ?? '';
+        lyrics.add(ParsedLyric(
           text: text,
           start: Duration(
-            minutes: min,
-            seconds: sec.toInt(),
-            milliseconds: milli,
-          ),
-        ),
-      );
+              minutes: minutes,
+              seconds: seconds,
+              milliseconds: int.parse(fraction.padRight(3, '0'))),
+        ));
+      }
     }
+    lyrics.sort((a, b) => a.start.compareTo(b.start));
     log("ParsedLyrics: ${lyrics.length}");
   }
 

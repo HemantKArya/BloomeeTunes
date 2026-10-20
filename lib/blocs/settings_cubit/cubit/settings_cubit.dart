@@ -383,8 +383,8 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(state.copyWith(autoSlideCharts: v));
   }
 
-  void setDownPath(String v) {
-    _settingsRepo.putSettingStr(SettingKeys.downPathSetting, v);
+  Future<void> setDownPath(String v) async {
+    await _settingsRepo.putSettingStr(SettingKeys.downPathSetting, v);
     emit(state.copyWith(downPath: v));
   }
 
@@ -471,7 +471,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     final path = ((await getDownloadsDirectory()) ??
             (await getApplicationDocumentsDirectory()))
         .path;
-    setDownPath(path);
+    await setDownPath(path);
   }
 
   Future<void> putSettingStr(String key, String value) async =>

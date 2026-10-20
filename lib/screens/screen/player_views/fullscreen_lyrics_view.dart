@@ -694,20 +694,22 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
 
   int _findCurrentLyricIndex(Duration currentPosition) {
     final lyrics = widget.state.lyrics.parsedLyrics?.lyrics;
-    if (lyrics == null || lyrics.isEmpty) return 0;
+    if (lyrics == null || lyrics.isEmpty) return -1;
     if (currentPosition < lyrics[0].start) return 0;
     if (currentPosition >= lyrics.last.start) return lyrics.length - 1;
     for (int i = 0; i < lyrics.length; i++) {
       final nextStart =
           i + 1 < lyrics.length ? lyrics[i + 1].start : const Duration(days: 1);
-      if (currentPosition >= lyrics[i].start && currentPosition < nextStart)
+      if (currentPosition >= lyrics[i].start && currentPosition < nextStart) {
         return i;
+      }
     }
     return lyrics.length - 1;
   }
 
   void _scrollToCurrentLyric() {
-    if (_userScrolling) return;
+    final length = widget.state.lyrics.parsedLyrics?.lyrics.length ?? 0;
+    if (!mounted || _userScrolling || _currentIndex >= length) return;
     if (_itemScrollController.isAttached && _currentIndex >= 0) {
       _itemScrollController.scrollTo(
           index: _currentIndex,
@@ -734,7 +736,9 @@ class _FullscreenSyncedLyricsState extends State<FullscreenSyncedLyrics> {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification is ScrollStartNotification &&
-            notification.dragDetails != null) _onUserScroll();
+            notification.dragDetails != null) {
+          _onUserScroll();
+        }
         return false;
       },
       child: ShaderMask(

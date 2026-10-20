@@ -39,6 +39,7 @@ class _PluginBootstrapOverlayState extends State<PluginBootstrapOverlay>
   final ValueNotifier<_Phase> _phase = ValueNotifier(_Phase.running);
   final ValueNotifier<int> _progress = ValueNotifier(0);
   int _runToken = 0;
+  List<String> _errors = const [];
 
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulse;
@@ -96,6 +97,7 @@ class _PluginBootstrapOverlayState extends State<PluginBootstrapOverlay>
     );
 
     if (!mounted || token != _runToken) return;
+    _errors = result.errors;
 
     if (result.success) {
       await PluginBootstrapService.autoSelectPluginDefaults(
@@ -147,6 +149,7 @@ class _PluginBootstrapOverlayState extends State<PluginBootstrapOverlay>
                         : phase == _Phase.failed
                             ? _ErrorBody(
                                 onRetry: _run,
+                                errors: _errors,
                               )
                             : _SpinnerBody(
                                 pulse: _pulse,
@@ -267,9 +270,11 @@ class _SpinnerBody extends StatelessWidget {
 class _ErrorBody extends StatelessWidget {
   const _ErrorBody({
     required this.onRetry,
+    required this.errors,
   });
 
   final VoidCallback onRetry;
+  final List<String> errors;
 
   @override
   Widget build(BuildContext context) {
@@ -315,6 +320,15 @@ class _ErrorBody extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 28),
+            if (errors.isNotEmpty)
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 160),
+                child: SingleChildScrollView(
+                  child: SelectableText(errors.join('\n'),
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 12)),
+                ),
+              ),
             SizedBox(
               width: double.infinity,
               child: FilledButton(

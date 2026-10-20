@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 /** Consume document URIs while their grants are valid; Flutter receives private files. */
 class MainActivity : AudioServiceActivity() {
+    private val downloadStorage by lazy { DownloadStorage(this) }
     private val io = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private var channel: MethodChannel? = null
@@ -22,6 +23,8 @@ class MainActivity : AudioServiceActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ls.bloomee/download_storage")
+            .setMethodCallHandler(downloadStorage::handle)
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ls.bloomee/imports")
         channel!!.setMethodCallHandler { call, result ->
             when (call.method) {
@@ -63,6 +66,12 @@ class MainActivity : AudioServiceActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         receive(intent)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (!downloadStorage.onActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
     }
 
     @Suppress("DEPRECATION")

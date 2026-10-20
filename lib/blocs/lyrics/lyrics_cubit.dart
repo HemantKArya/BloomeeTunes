@@ -54,9 +54,10 @@ class LyricsCubit extends Cubit<LyricsState> {
   String _artistStr(Track track) =>
       track.artists.map((artist) => artist.name).join(', ');
 
-  bool _isStale(int requestId) => requestId != _requestSerial;
+  bool _isStale(int requestId) => isClosed || requestId != _requestSerial;
 
   Future<void> getLyrics(Track track) async {
+    if (isClosed) return;
     if (state is LyricsLoading && state.track.id == track.id) return;
     if (state.track.id == track.id && state is LyricsLoaded) {
       return;
@@ -65,7 +66,12 @@ class LyricsCubit extends Cubit<LyricsState> {
     final requestId = ++_requestSerial;
     emit(LyricsLoading(track));
 
-    final cached = await _lyricsDao.getLyrics(track.id);
+    Lyrics? cached;
+    try {
+      cached = await _lyricsDao.getLyrics(track.id);
+    } catch (error) {
+      log('Could not read cached lyrics: $error', name: 'LyricsCubit');
+    }
     if (_isStale(requestId)) return;
 
     if (cached != null && cached.mediaID == track.id) {
@@ -458,11 +464,15 @@ class LyricsCubit extends Cubit<LyricsState> {
   }
 
   Future<void> _autoSave(Lyrics lyrics) async {
-    final enabled =
-        await _settingsDao.getSettingBool(SettingKeys.autoSaveLyrics);
-    if ((enabled ?? false)) {
-      await _lyricsDao.putLyrics(lyrics);
-      log('Lyrics saved for ID: ${lyrics.mediaID}', name: 'LyricsCubit');
+    try {
+      final enabled =
+          await _settingsDao.getSettingBool(SettingKeys.autoSaveLyrics);
+      if ((enabled ?? false)) {
+        await _lyricsDao.putLyrics(lyrics);
+        log('Lyrics saved for ID: ${lyrics.mediaID}', name: 'LyricsCubit');
+      }
+    } catch (error) {
+      log('Could not cache lyrics: $error', name: 'LyricsCubit');
     }
   }
 
@@ -488,6 +498,7 @@ class LyricsCubit extends Cubit<LyricsState> {
 
   @override
   Future<void> close() {
+    ++_requestSerial;
     _mediaItemSubscription?.cancel();
     return super.close();
   }
