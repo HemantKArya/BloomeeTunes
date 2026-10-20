@@ -1,22 +1,19 @@
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:file_picker/file_picker.dart';
 
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
-import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
+import 'package:Bloomee/blocs/current_playlist/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/screen/library_views/playlist_edit_view.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
-import 'package:Bloomee/services/import_export_service.dart';
+import 'package:Bloomee/screens/widgets/backup_import_flow.dart';
+import 'package:Bloomee/blocs/backup/backup_cubit.dart';
 
 /// Shows options for an internal/local playlist
 void showPlaylistOptsInrSheet(BuildContext context, Playlist playlist) {
@@ -183,46 +180,21 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                               ),
                             _OptionGroup(
                               children: [
-                                _BottomSheetTile(
-                                  icon: MingCute.share_forward_line,
-                                  title: isInternal
-                                      ? l10n.playlistShareFile
-                                      : l10n.playlistShare,
-                                  onTap: () async {
-                                    SnackbarService.showMessage(
-                                        l10n.snackbarPreparingShare(title));
-                                    final tmpPath = await ImportExportService
-                                        .exportPlaylist(title);
-                                    if (tmpPath != null) {
-                                      await SharePlus.instance
-                                          .share(ShareParams(
-                                        files: [XFile(tmpPath)],
-                                        text: title,
-                                      ));
-                                    }
-                                  },
-                                ),
-                                if (!Platform.isAndroid)
+                                if (ctx.read<BackupCubit>().canShareFiles)
                                   _BottomSheetTile(
-                                    icon: MingCute.file_export_line,
-                                    title: l10n.playlistExportFile,
-                                    onTap: () async {
-                                      String? path = await FilePicker.platform
-                                          .getDirectoryPath();
-                                      if (path == null || path == "/") {
-                                        path = (await getDownloadsDirectory())
-                                            ?.path
-                                            .toString();
-                                      }
-                                      SnackbarService.showMessage(
-                                          l10n.snackbarPreparingExport(title));
-                                      final tmpPath = await ImportExportService
-                                          .exportPlaylist(title,
-                                              filePath: path);
-                                      SnackbarService.showMessage(l10n
-                                          .snackbarExportedTo(tmpPath ?? ''));
-                                    },
+                                    icon: MingCute.share_forward_line,
+                                    title: isInternal
+                                        ? l10n.playlistShareFile
+                                        : l10n.playlistShare,
+                                    onTap: () => BackupImportFlow.export(ctx,
+                                        share: true, playlistName: title),
                                   ),
+                                _BottomSheetTile(
+                                  icon: MingCute.file_export_line,
+                                  title: l10n.playlistExportFile,
+                                  onTap: () => BackupImportFlow.export(ctx,
+                                      playlistName: title),
+                                ),
                               ],
                             ),
                             _OptionGroup(

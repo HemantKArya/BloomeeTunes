@@ -720,5 +720,57 @@
   "pluginBootstrapHint": "This only happens once.",
   "pluginBootstrapErrorTitle": "Connection too slow",
   "pluginBootstrapErrorBody": "Some plugins could not be installed. You can still use Bloomee — plugins will be retried on next launch.",
-  "pluginBootstrapContinue": "Continue Anyway"
+  "pluginBootstrapContinue": "Continue Anyway",
+  "backupBusy": "Another backup operation is open. Finish it first.",
+  "backupSave": "Save backup as JSON",
+  "backupShare": "Share JSON backup",
+  "backupPortableDetails": "Includes playlists, likes, saved collections, histories and portable preferences. Audio files, accounts and device folders are excluded.",
+  "backupHistories": "Playback and search histories",
+  "backupPreferences": "Portable preferences",
+  "backupNewCopy": "Import as new playlists",
+  "backupMerge": "Merge with existing data",
+  "backupReplace": "Replace selected sections",
+  "backupMergeDetails": "Existing tracks, metadata and preferences are preserved. Missing tracks are appended in file order. Likes are merged.",
+  "backupReplaceWarning": "This replaces the selected sections, including existing playlists and likes when library is selected. Unselected sections and device files are preserved. A private recovery snapshot is created first.",
+  "backupAutoDetails": "Keeps seven private recovery snapshots. Checked when the app opens, at most once per 24 hours. Private snapshots are removed on uninstall.",
+  "backupLocationDetails": "Choose a destination with Save backup. Private recovery snapshots are kept inside the app.",
+  "backupResetDetails": "Reset all database data on the next app start. Downloaded audio files and installed plugin files remain on this device. A private recovery snapshot is created first.",
+  "backupResetPending": "Reset scheduled. Close and reopen Bloomee to complete it.",
+  "backupPreviewCounts": "{playlists} playlists and {tracks} tracks",
+  "@backupPreviewCounts": {
+    "placeholders": {
+      "playlists": {
+        "type": "int"
+      },
+      "tracks": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImportResult": "Import complete: {playlists} playlists created, {tracks} track entries added, {history} history records added and {settings} preferences applied.",
+  "@backupImportResult": {
+    "placeholders": {
+      "playlists": {
+        "type": "int"
+      },
+      "tracks": {
+        "type": "int"
+      },
+      "history": {
+        "type": "int"
+      },
+      "settings": {
+        "type": "int"
+      }
+    }
+  },
+  "backupRefreshFailed": "Data was imported. Close and reopen Bloomee to refresh all preferences.",
+  "backupRecoveryCopies": "Recovery copies",
+  "backupNoRecoveryCopies": "No recovery copies yet.",
+  "backupRecoveryAutomatic": "Automatic backup",
+  "backupRecoveryBeforeImport": "Before an import",
+  "backupRecoveryBeforeReset": "Before a reset",
+  "backupCancelReset": "Cancel reset",
+  "backupStartupFailed": "Bloomee could not start",
+  "backupStartupFailedDetails": "Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error."
 }

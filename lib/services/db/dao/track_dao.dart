@@ -1,9 +1,9 @@
-import 'dart:developer';
-
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/mappers/media_item_mapper.dart';
 import 'package:Bloomee/src/rust/api/plugin/models.dart';
 import 'package:isar_community/isar.dart';
+import 'dart:convert';
+import 'package:Bloomee/core/constants/setting_keys.dart';
 
 /// DAO for track persistence — accepts domain [Track] models.
 ///
@@ -32,15 +32,7 @@ class TrackDAO {
   /// they were added to before the re-upsert).
   Future<int> upsertTrack(Track track) async {
     final isar = await _db;
-    final trackDB = trackToTrackDB(track);
-    // Preserve the existing Isar id so `put()` is an in-place update, not a
-    // delete-then-insert that would invalidate all existing link references.
-    final existing =
-        await isar.trackDBs.filter().mediaIdEqualTo(track.id).findFirst();
-    if (existing != null) {
-      trackDB.id = existing.id;
-    }
-    return isar.writeTxn(() => isar.trackDBs.put(trackDB));
+    return isar.writeTxnSync(() => upsertTrackInTransaction(isar, track));
   }
 
   /// Insert or replace many tracks in a single transaction.
@@ -48,25 +40,47 @@ class TrackDAO {
   /// More efficient than calling [upsertTrack] N times for bulk imports.
   /// Preserves existing Isar ids to avoid breaking IsarLink references.
   Future<List<int>> upsertTracks(List<Track> tracks) async {
-    if (tracks.isEmpty) return [];
     final isar = await _db;
-    final trackDBs = <TrackDB>[];
-    for (final track in tracks) {
-      final trackDB = trackToTrackDB(track);
-      final existing =
-          await isar.trackDBs.filter().mediaIdEqualTo(track.id).findFirst();
-      if (existing != null) {
-        trackDB.id = existing.id;
-      }
-      trackDBs.add(trackDB);
-    }
-    return isar.writeTxn(() => isar.trackDBs.putAll(trackDBs));
+    return isar.writeTxnSync(() =>
+        [for (final track in tracks) upsertTrackInTransaction(isar, track)]);
   }
 
-  /// Internal method: upsert a [TrackDB] directly (for internal DAO use).
-  Future<int> upsertTrackDB(TrackDB track) async {
+  /// Caller must hold a write transaction. Lookup and update share that transaction.
+  int upsertTrackInTransaction(Isar isar, Track track) {
+    if (track.id.trim().isEmpty) {
+      throw ArgumentError('Track ID must not be empty.');
+    }
+    final row = trackToTrackDB(track);
+    final existing =
+        isar.trackDBs.filter().mediaIdEqualTo(track.id).findFirstSync();
+    if (existing != null) row.id = existing.id;
+    return isar.trackDBs.putSync(row);
+  }
+
+  /// Queue references and their tracks must become durable together.
+  Future<void> persistQueueState(List<Track> tracks,
+      {required int currentIndex, required String title}) async {
     final isar = await _db;
-    return isar.writeTxn(() => isar.trackDBs.put(track));
+    isar.writeTxnSync(() {
+      if (tracks.isEmpty) {
+        isar.appSettingsStrDBs
+            .filter()
+            .settingNameEqualTo(SettingKeys.lastQueueState)
+            .deleteAllSync();
+        return;
+      }
+      for (final track in tracks) {
+        upsertTrackInTransaction(isar, track);
+      }
+      isar.appSettingsStrDBs.putSync(AppSettingsStrDB(
+          settingName: SettingKeys.lastQueueState,
+          settingValue: jsonEncode({
+            'v': 2,
+            'trackIds': tracks.map((t) => t.id).toList(),
+            'currentIndex': currentIndex.clamp(0, tracks.length - 1),
+            'queueTitle': title
+          })));
+    });
   }
 
   // ── Lookup ────────────────────────────────────────────────────────────────
@@ -124,24 +138,11 @@ class TrackDAO {
   /// Safe to call after removing a playlist entry.
   Future<void> purgeOrphanTrack(String mediaId) async {
     final isar = await _db;
-    final track =
-        await isar.trackDBs.filter().mediaIdEqualTo(mediaId).findFirst();
-    if (track == null) return;
-
-    final hasEntry = await isar.playlistEntryDBs
-        .filter()
-        .playlistIdIsNotNull()
-        .and()
-        .track((q) => q.mediaIdEqualTo(mediaId))
-        .findFirst();
-    if (hasEntry != null) return; // still in a playlist
-
-    final hasDownload =
-        await isar.downloadDBs.filter().mediaIdEqualTo(mediaId).findFirst();
-    if (hasDownload != null) return; // still downloaded
-
-    await isar.writeTxn(() => isar.trackDBs.delete(track.id));
-    log('Purged orphan track: $mediaId', name: 'TrackDAO');
+    isar.writeTxnSync(() {
+      final track =
+          isar.trackDBs.filter().mediaIdEqualTo(mediaId).findFirstSync();
+      if (track != null) _deleteIfOrphan(isar, track, _queueIds(isar));
+    });
   }
 
   /// Scan all tracks and delete those with no playlist entries, no downloads,
@@ -150,37 +151,66 @@ class TrackDAO {
   /// Run as periodic maintenance (30 s after startup).
   Future<int> purgeOrphanTracks() async {
     final isar = await _db;
-    final allTracks = await isar.trackDBs.where().findAll();
-    int purged = 0;
-
-    for (final track in allTracks) {
-      final hasEntry = await isar.playlistEntryDBs
-          .filter()
-          .track((q) => q.idEqualTo(track.id))
-          .findFirst();
-      if (hasEntry != null) continue;
-
-      final hasDownload = await isar.downloadDBs
-          .filter()
-          .mediaIdEqualTo(track.mediaId)
-          .findFirst();
-      if (hasDownload != null) continue;
-
-      final hasHistory = await isar.playbackHistoryDBs
-          .filter()
-          .track((q) => q.idEqualTo(track.id))
-          .findFirst();
-      if (hasHistory != null) continue;
-
-      await isar.writeTxn(() => isar.trackDBs.delete(track.id));
-      purged++;
+    final ids = await isar.trackDBs.where().idProperty().findAll();
+    var purged = 0;
+    for (var offset = 0; offset < ids.length; offset += 100) {
+      purged += isar.writeTxnSync(() {
+        final queue = _queueIds(isar);
+        var count = 0;
+        for (final id in ids.skip(offset).take(100)) {
+          final track = isar.trackDBs.getSync(id);
+          if (track != null && _deleteIfOrphan(isar, track, queue)) count++;
+        }
+        return count;
+      });
+      await Future<void>.delayed(Duration.zero);
     }
-
-    log('Purged $purged orphan track(s)', name: 'TrackDAO');
     return purged;
   }
 
   // ── Watchers ──────────────────────────────────────────────────────────────
+
+  Set<String>? _queueIds(Isar isar) {
+    final value = isar.appSettingsStrDBs
+        .filter()
+        .settingNameEqualTo(SettingKeys.lastQueueState)
+        .findFirstSync()
+        ?.settingValue;
+    if (value == null) return {};
+    try {
+      return ((jsonDecode(value) as Map)['trackIds'] as List)
+          .cast<String>()
+          .toSet();
+    } catch (_) {
+      return null;
+    } // Do not delete tracks when queue references cannot be verified.
+  }
+
+  bool _deleteIfOrphan(Isar isar, TrackDB track, Set<String>? queue) {
+    if (queue == null || queue.contains(track.mediaId)) return false;
+    if (isar.playlistEntryDBs
+            .filter()
+            .track((q) => q.idEqualTo(track.id))
+            .findFirstSync() !=
+        null) {
+      return false;
+    }
+    if (isar.downloadDBs
+            .filter()
+            .mediaIdEqualTo(track.mediaId)
+            .findFirstSync() !=
+        null) {
+      return false;
+    }
+    if (isar.playbackHistoryDBs
+            .filter()
+            .track((q) => q.idEqualTo(track.id))
+            .findFirstSync() !=
+        null) {
+      return false;
+    }
+    return isar.trackDBs.deleteSync(track.id);
+  }
 
   Future<Stream<void>> watchTracks() async {
     final isar = await _db;

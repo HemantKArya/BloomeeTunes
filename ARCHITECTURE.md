@@ -103,9 +103,16 @@ lib/
 ### DBProvider
 
 - **Location**: `lib/services/db/db_provider.dart`
-- Owns the Isar instance lifecycle, DB path, maintenance, backup/restore.
+- Owns the canonical Isar instance lifecycle, DB path, ordinary maintenance, and explicitly requested reset at bootstrap. It never replaces the live connection during import.
 - Access: `await DBProvider.db` → `Isar`.
 - Initialised once in `bootstrap.dart` via `await DBProvider.init()`.
+
+Backup UI flows through `BackupCubit` → `BackupRepository` → `BackupDAO`.
+`BackupFiles` owns platform document transport. The repository serializes backup operations;
+the DAO maps versioned JSON and commits selected data in one transaction using a worker
+connection. The live connection and watchers remain open. See
+[backup-and-import.md](docs/backup-and-import.md) for the format, restore policies,
+platform support, and validation matrix. Startup legacy migration/repair is removed.
 
 ### DAOs
 

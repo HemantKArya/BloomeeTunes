@@ -274,6 +274,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   // ─── Engine Settings Restore ───────────────────────────────────────────────
 
+  Future<void> reloadPreferences() => _restoreEngineSettings();
+
   Future<void> _restoreEngineSettings() async {
     try {
       final dao = SettingsDAO(DBProvider.db);

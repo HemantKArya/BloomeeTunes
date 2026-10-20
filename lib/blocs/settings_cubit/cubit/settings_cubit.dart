@@ -1,10 +1,10 @@
+import 'package:Bloomee/repository/backup/backup_repository.dart';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
 import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:Bloomee/services/player/stream_quality_selector.dart';
-import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/utils/country_info.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,11 +13,17 @@ part 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _settingsRepo;
+  final BackupRepository _backupRepository;
 
-  SettingsCubit(this._settingsRepo) : super(SettingsInitial()) {
+  SettingsCubit(this._settingsRepo,
+      {required BackupRepository backupRepository})
+      : _backupRepository = backupRepository,
+        super(SettingsInitial()) {
     _initSettings();
     _autoBackupWithGate();
   }
+
+  Future<void> reload() => _initSettings();
 
   // Load settings in parallel, then emit once.
   // Previously 20+ individual emits cascaded widget rebuilds before the app
@@ -80,90 +86,88 @@ class SettingsCubit extends Cubit<SettingsState> {
         () => _settingsRepo.getSettingBool(CacheKeys.lFMUIPicks),
         CacheKeys.lFMUIPicks,
       ),
-      // [10] backupPath
-      _resolveBackupPath(),
-      // [11] autoBackup
+      // [10] autoBackup
       _readSetting(
         () => _settingsRepo.getSettingBool(SettingKeys.autoBackup),
         SettingKeys.autoBackup,
       ),
-      // [12] autoGetCountry
+      // [11] autoGetCountry
       _readSetting(
         () => _settingsRepo.getSettingBool(SettingKeys.autoGetCountry),
         SettingKeys.autoGetCountry,
       ),
-      // [13] languageCode
+      // [12] languageCode
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.languageCode),
         SettingKeys.languageCode,
       ),
-      // [14] countryCode
+      // [13] countryCode
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.countryCode),
         SettingKeys.countryCode,
       ),
-      // [15] autoSaveLyrics
+      // [14] autoSaveLyrics
       _readSetting(
         () => _settingsRepo.getSettingBool(SettingKeys.autoSaveLyrics),
         SettingKeys.autoSaveLyrics,
       ),
-      // [16] chartShowMap
+      // [15] chartShowMap
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.chartShowMap),
         SettingKeys.chartShowMap,
       ),
-      // [17] crossfadeDuration
+      // [16] crossfadeDuration
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.crossfadeDuration),
         SettingKeys.crossfadeDuration,
       ),
-      // [18] eqEnabled
+      // [17] eqEnabled
       _readSetting(
         () => _settingsRepo.getSettingBool(SettingKeys.eqEnabled),
         SettingKeys.eqEnabled,
       ),
-      // [19] eqBandGains
+      // [18] eqBandGains
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.eqBandGains),
         SettingKeys.eqBandGains,
       ),
-      // [20] eqPreset
+      // [19] eqPreset
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.eqPreset,
             defaultValue: 'Flat'),
         SettingKeys.eqPreset,
       ),
-      // [21] eqSource
+      // [20] eqSource
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.eqSource,
             defaultValue: EqSourceValues.builtin),
         SettingKeys.eqSource,
       ),
-      // [22] homePluginId
+      // [21] homePluginId
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.homePluginId,
             defaultValue: ''),
         SettingKeys.homePluginId,
       ),
-      // [23] searchPluginId
+      // [22] searchPluginId
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.searchPluginId,
             defaultValue: ''),
         SettingKeys.searchPluginId,
       ),
-      // [24] resolverPriority
+      // [23] resolverPriority
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.resolverPriority,
             defaultValue: '[]'),
         SettingKeys.resolverPriority,
       ),
-      // [25] lyricsPriority
+      // [24] lyricsPriority
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.lyricsPriority,
             defaultValue: '[]'),
         SettingKeys.lyricsPriority,
       ),
-      // [26] suggestionPluginId
+      // [25] suggestionPluginId
       _readSetting(
         () => _settingsRepo.getSettingStr(SettingKeys.suggestionPluginId,
             defaultValue: ''),
@@ -188,7 +192,7 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     // Parse chart map.
     Map chartMap = {};
-    final chartJson = results[16] as String?;
+    final chartJson = results[15] as String?;
     if (chartJson != null) {
       try {
         chartMap = jsonDecode(chartJson);
@@ -196,8 +200,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
 
     // Normalize crossfade duration.
-    final cfStr = results[17] as String?;
-    final crossfadeSeconds = int.tryParse((cfStr ?? '').trim()) ?? 2;
+    final cfStr = results[16] as String?;
+    final crossfadeSeconds =
+        (int.tryParse((cfStr ?? '').trim()) ?? 2).clamp(0, 12);
     if (cfStr != crossfadeSeconds.toString()) {
       _settingsRepo.putSettingStr(
           SettingKeys.crossfadeDuration, crossfadeSeconds.toString());
@@ -205,7 +210,7 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     // Parse EQ gains.
     List<double> eqGains = List<double>.filled(10, 0.0);
-    final gainsJson = results[19] as String?;
+    final gainsJson = results[18] as String?;
     if (gainsJson != null) {
       try {
         final decoded = jsonDecode(gainsJson) as List;
@@ -219,7 +224,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     // Parse plugin priority lists.
     List<String> resolverPriority = const [];
     try {
-      final rj = results[24] as String?;
+      final rj = results[23] as String?;
       if (rj != null && rj.isNotEmpty) {
         resolverPriority = (jsonDecode(rj) as List).cast<String>();
       }
@@ -227,14 +232,14 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     List<String> lyricsPriority = const [];
     try {
-      final lj = results[25] as String?;
+      final lj = results[24] as String?;
       if (lj != null && lj.isNotEmpty) {
         lyricsPriority = (jsonDecode(lj) as List).cast<String>();
       }
     } catch (_) {}
 
     // Normalize country code.
-    final rawCountry = results[14] as String?;
+    final rawCountry = results[13] as String?;
     final normalizedCountry =
         CountryInfoService.normalizeCountryCode(rawCountry);
     final resolvedCountry = normalizedCountry.isNotEmpty
@@ -242,7 +247,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         : CountryInfoService.defaultCountryCode;
 
     // Validate EQ source.
-    final rawEqSource = results[21] as String?;
+    final rawEqSource = results[20] as String?;
     final eqSource = rawEqSource == EqSourceValues.device
         ? EqSourceValues.device
         : EqSourceValues.builtin;
@@ -258,28 +263,27 @@ class SettingsCubit extends Cubit<SettingsState> {
       downPath: results[2] as String,
       downQuality: normalizedDownQ,
       strmQuality: normalizedStrmQ,
-      backupPath: results[10] as String,
-      autoBackup: (results[11] as bool?) ?? false,
+      autoBackup: (results[10] as bool?) ?? false,
       historyClearTime: (results[5] as String?) ?? '30',
-      autoGetCountry: (results[12] as bool?) ?? true,
-      languageCode: (results[13] as String?) ?? '',
+      autoGetCountry: (results[11] as bool?) ?? true,
+      languageCode: (results[12] as String?) ?? '',
       countryCode: resolvedCountry,
-      autoSaveLyrics: (results[15] as bool?) ?? false,
+      autoSaveLyrics: (results[14] as bool?) ?? false,
       lFMPicks: (results[9] as bool?) ?? false,
       lastFMScrobble: (results[6] as bool?) ?? false,
       chartMap: Map.from(chartMap),
       autoPlay: (results[7] as bool?) ?? true,
       autoResolveUnavailableTracks: (results[8] as bool?) ?? true,
       crossfadeDuration: crossfadeSeconds,
-      eqEnabled: (results[18] as bool?) ?? false,
+      eqEnabled: (results[17] as bool?) ?? false,
       eqBandGains: eqGains,
-      eqPreset: (results[20] as String?) ?? 'Flat',
+      eqPreset: (results[19] as String?) ?? 'Flat',
       eqSource: eqSource,
-      homePluginId: (results[22] as String?) ?? '',
-      searchPluginId: (results[23] as String?) ?? '',
+      homePluginId: (results[21] as String?) ?? '',
+      searchPluginId: (results[22] as String?) ?? '',
       resolverPriority: resolverPriority,
       lyricsPriority: lyricsPriority,
-      suggestionPluginId: (results[26] as String?) ?? '',
+      suggestionPluginId: (results[25] as String?) ?? '',
     ));
   }
 
@@ -311,35 +315,13 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
   }
 
-  Future<String> _resolveBackupPath() async {
-    try {
-      final defaultPath = await DBProvider.getDbBackupFilePath();
-      await _settingsRepo.putSettingStr(SettingKeys.backupPath, defaultPath);
-      return defaultPath;
-    } catch (e) {
-      log('_resolveBackupPath failed: $e', name: 'SettingsCubit');
-      return '';
-    }
-  }
-
   // M-13: Backup only once per 24 hours, not every cold start.
-  void _autoBackupWithGate() {
-    _settingsRepo.getSettingBool(SettingKeys.autoBackup).then((on) async {
-      try {
-        if (on != true) return;
-        final lastStr =
-            await _settingsRepo.getSettingStr(SettingKeys.lastBackupTimestamp);
-        final last = lastStr != null ? DateTime.tryParse(lastStr) : null;
-        final now = DateTime.now().toUtc();
-        if (last == null || now.difference(last) > const Duration(hours: 24)) {
-          await DBProvider.createBackUp();
-          await _settingsRepo.putSettingStr(
-              SettingKeys.lastBackupTimestamp, now.toIso8601String());
-        }
-      } catch (e) {
-        log('Auto-backup check failed: $e', name: 'SettingsCubit');
-      }
-    });
+  Future<void> _autoBackupWithGate() async {
+    try {
+      await _backupRepository.automaticIfDue();
+    } catch (error) {
+      log('Auto-backup check failed: $error', name: 'SettingsCubit');
+    }
   }
 
   // Setters
@@ -420,14 +402,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(state.copyWith(strmQuality: n));
   }
 
-  void setBackupPath(String v) {
-    _settingsRepo.putSettingStr(SettingKeys.backupPath, v);
-    emit(state.copyWith(backupPath: v));
-  }
-
-  void setAutoBackup(bool v) {
-    _settingsRepo.putSettingBool(SettingKeys.autoBackup, v);
+  Future<void> setAutoBackup(bool v) async {
+    await _settingsRepo.putSettingBool(SettingKeys.autoBackup, v);
     emit(state.copyWith(autoBackup: v));
+    if (v) await _autoBackupWithGate();
   }
 
   void setHistoryClearTime(String v) {

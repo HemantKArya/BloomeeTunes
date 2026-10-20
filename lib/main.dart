@@ -1,3 +1,5 @@
+import 'package:Bloomee/services/backup/incoming_backup_service.dart';
+import 'package:Bloomee/screens/widgets/startup_failure_app.dart';
 import 'dart:async';
 import 'dart:io' as io;
 import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
@@ -38,7 +40,8 @@ import 'package:Bloomee/services/audio_service_initializer.dart';
 import 'package:Bloomee/services/keyboard_shortcuts_service.dart';
 import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/services/import_export_service.dart';
+import 'package:Bloomee/screens/widgets/backup_import_flow.dart';
+import 'package:Bloomee/blocs/backup/backup_cubit.dart';
 import 'package:Bloomee/utils/ticker.dart';
 import 'package:Bloomee/utils/url_checker.dart';
 import 'package:flutter/gestures.dart';
@@ -49,16 +52,12 @@ import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/plugins/blocs/import/content_import_cubit.dart';
 import 'package:Bloomee/routes/app_router.dart';
-import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
+import 'package:Bloomee/blocs/current_playlist/cubit/current_playlist_cubit.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:share_handler/share_handler.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/media_player/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:Bloomee/services/discord_service.dart';
-import 'package:Bloomee/services/db/legacy/legacy_migration_service.dart'
-    as legacy_migration;
-import 'package:Bloomee/screens/widgets/legacy_migration_overlay.dart';
 import 'package:Bloomee/screens/widgets/onboarding_overlay.dart';
 import 'package:Bloomee/screens/widgets/plugin_bootstrap_overlay.dart';
 import 'package:Bloomee/services/onboarding_service.dart';
@@ -66,12 +65,12 @@ import 'package:Bloomee/services/plugin_bootstrap_service.dart';
 import 'package:Bloomee/plugins/services/plugin_repository_service.dart';
 import 'package:Bloomee/services/shared_url_resolver_service.dart';
 
-void processIncomingIntent(SharedMedia sharedMedia) {
-  if (sharedMedia.content != null && isUrl(sharedMedia.content!)) {
-    final urlType = getUrlType(sharedMedia.content!);
+Future<void> processIncomingText(String text) async {
+  if (isUrl(text)) {
+    final urlType = getUrlType(text);
     switch (urlType) {
       case UrlType.youtubeVideo:
-        _handleYoutubeVideoIntent(sharedMedia.content!);
+        await _handleYoutubeVideoIntent(text);
         break;
       case UrlType.youtubePlaylist:
       case UrlType.spotifyTrack:
@@ -81,13 +80,6 @@ void processIncomingIntent(SharedMedia sharedMedia) {
         SnackbarService.showMessage(
             'Open the Import screen in Library to import from this URL.');
         break;
-    }
-  } else if (sharedMedia.attachments != null &&
-      sharedMedia.attachments!.isNotEmpty) {
-    final attachment = sharedMedia.attachments!.first;
-    if (attachment != null) {
-      SnackbarService.showMessage('Processing File...');
-      importItems(attachment.path);
     }
   }
 }
@@ -124,21 +116,13 @@ Future<void> _handleYoutubeVideoIntent(String url) async {
   }
 }
 
-Future<void> importItems(String path) async {
-  final context = GlobalRoutes.globalRouterKey.currentContext;
-  if (context == null) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      importItems(path);
-    });
-    return;
-  }
-
-  await ImportExportService.handleImportOrRestore(context, path);
-}
-
 Future<void> setHighRefreshRate() async {
   if (io.Platform.isAndroid) {
-    await FlutterDisplayMode.setHighRefreshRate();
+    try {
+      await FlutterDisplayMode.setHighRefreshRate();
+    } catch (error) {
+      debugPrint('High refresh rate unavailable: $error');
+    }
   }
 }
 
@@ -149,19 +133,25 @@ Future<void> setupPlayerCubit() async {
   bloomeePlayerCubit = BloomeePlayerCubit(player);
 }
 
-Future<void> main() async {
+Future<void> main(List<String> arguments) async {
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
-  MediaKit.ensureInitialized();
-  await bootstrapApp();
-  setHighRefreshRate();
-  await setupPlayerCubit();
-  DiscordService.initialize();
-  runApp(const MyApp());
+  try {
+    MediaKit.ensureInitialized();
+    await bootstrapApp();
+    unawaited(setHighRefreshRate());
+    await setupPlayerCubit();
+    DiscordService.initialize();
+    runApp(MyApp(initialFiles: arguments));
+  } catch (error, stack) {
+    debugPrint('Application startup failed: $error\n$stack');
+    runApp(StartupFailureApp(details: '$error'));
+  }
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final List<String> initialFiles;
+  const MyApp({super.key, this.initialFiles = const []});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -170,14 +160,10 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // Initialize the player
   // This widget is the root of your application.
-  StreamSubscription<SharedMedia>? _intentSub;
-  SharedMedia? sharedMedia;
+  IncomingBackupService? _incomingFiles;
+  final _importReady = Completer<void>();
+  final _disposed = Completer<void>();
 
-  // TODO: remove this after one or two releases.
-  // Legacy migration — set to true when a default.isar file is found.
-  // Remove this field (and the overlay block in build) once no users
-  // need legacy migration.
-  bool _migrationPending = false;
   bool _onboardingPending = false;
   bool _pluginBootstrapPending = false;
   // ------------------
@@ -187,18 +173,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Check once at startup; DBProvider.appSuppDir is set by bootstrapApp().
-    _migrationPending = legacy_migration.needsMigration(
-      DBProvider.appSuppDir,
-      DBProvider.appDocDir,
-    );
-
     _onboardingPending = !OnboardingService.onboardingDone;
     _pluginBootstrapPending = !PluginBootstrapService.bootstrapDone;
     //--------------------------------------------------------------------
 
     if (io.Platform.isAndroid) {
       initPlatformState();
+    }
+    if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
+      unawaited(_openDesktopArguments());
     }
   }
 
@@ -239,41 +222,51 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    try {
-      final handler = ShareHandlerPlatform.instance;
-      sharedMedia = await handler.getInitialSharedMedia();
+  Future<void> _openIncomingFile(String path) async {
+    await Future.any([_importReady.future, _disposed.future]);
+    if (!mounted)
+      throw StateError(
+          'Application closed before the document could be opened.');
+    final context = GlobalRoutes.globalRouterKey.currentContext;
+    if (context == null || !context.mounted)
+      throw StateError('Import screen is unavailable.');
+    await BackupImportFlow.show(context, path);
+  }
 
-      _intentSub = handler.sharedMediaStream.listen((SharedMedia media) {
-        if (!mounted) return;
-        setState(() {
-          sharedMedia = media;
-        });
-        if (sharedMedia != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            processIncomingIntent(sharedMedia!);
-          });
-        }
-      });
-      if (!mounted) return;
-
-      setState(() {
-        // If there's initial shared media, process it
-        if (sharedMedia != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            processIncomingIntent(sharedMedia!);
-          });
-        }
-      });
-    } catch (error, stackTrace) {
-      debugPrint('Failed to initialize share handler: $error\n$stackTrace');
+  Future<void> _openDesktopArguments() async {
+    for (final argument in widget.initialFiles) {
+      try {
+        final uri = Uri.tryParse(argument);
+        final path = uri?.scheme == 'file' ? uri!.toFilePath() : argument;
+        if (await io.File(path).exists()) await _openIncomingFile(path);
+      } catch (error) {
+        SnackbarService.showMessage('$error');
+      }
     }
+  }
+
+  Future<void> initPlatformState() async {
+    _incomingFiles = IncomingBackupService(
+      onFile: _openIncomingFile,
+      onText: (text) async {
+        await Future.any([_importReady.future, _disposed.future]);
+        if (mounted) await processIncomingText(text);
+      },
+      onError: (message) => unawaited(_showIncomingError(message)),
+    );
+    await _incomingFiles!.start();
+  }
+
+  Future<void> _showIncomingError(String message) async {
+    await Future.any([_importReady.future, _disposed.future]);
+    if (mounted) SnackbarService.showMessage(message);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _intentSub?.cancel();
+    _incomingFiles?.dispose();
+    if (!_disposed.isCompleted) _disposed.complete();
     bloomeePlayerCubit.close();
     if (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS) {
       DiscordService.clearPresence();
@@ -283,27 +276,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // ── Legacy migration guard ────────────────────────────────────────────
-    // If a default.isar (legacy DB) exists, show the non-dismissible
-    // migration overlay before starting the normal app. Once migration
-    // finishes successfully the overlay removes itself.
-    //
-    // To remove this feature in future: delete the `if` block below AND the
-    // import at the top of this file AND lib/services/db/legacy/.
-    if (_migrationPending) {
-      return Directionality(
-        textDirection: TextDirection.ltr,
-        child: LegacyMigrationOverlay(
-          appSuppDir: DBProvider.appSuppDir,
-          appDocDir: DBProvider.appDocDir,
-          onComplete: (result) {
-            if (!result.success) return;
-            setState(() => _migrationPending = false);
-          },
-        ),
-      );
-    }
-
     if (_onboardingPending) {
       return OnboardingOverlay(
         onComplete: () {
@@ -336,6 +308,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
+            create: (_) => BackupCubit(
+                ServiceLocator.backupRepository, ServiceLocator.backupFiles,
+                refreshPreferences:
+                    bloomeePlayerCubit.bloomeePlayer.reloadPreferences)),
+        BlocProvider(
           create: (context) => PluginBloc(
             pluginService: ServiceLocator.pluginService,
             eventBus: ServiceLocator.pluginEventBus,
@@ -355,6 +332,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         BlocProvider(
           create: (context) => SettingsCubit(
             SettingsRepository(SettingsDAO(DBProvider.db)),
+            backupRepository: ServiceLocator.backupRepository,
           ),
           lazy: false,
         ),
@@ -478,21 +456,31 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                           AppLocalizations.localizationsDelegates,
                       supportedLocales: AppLocalizations.supportedLocales,
                       locale: locale,
-                      builder: (context, child) =>
-                          ResponsiveBreakpoints.builder(
-                        breakpoints: [
-                          const Breakpoint(start: 0, end: 450, name: MOBILE),
-                          const Breakpoint(start: 451, end: 800, name: TABLET),
-                          const Breakpoint(
-                              start: 801, end: 1920, name: DESKTOP),
-                          const Breakpoint(
-                              start: 1921, end: double.infinity, name: '4K'),
-                        ],
-                        child: GlobalEventListener(
-                          navigatorKey: GlobalRoutes.globalRouterKey,
-                          child: child!,
-                        ),
-                      ),
+                      builder: (context, child) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted &&
+                              !_importReady.isCompleted &&
+                              GlobalRoutes.globalRouterKey.currentContext !=
+                                  null) {
+                            _importReady.complete();
+                          }
+                        });
+                        return ResponsiveBreakpoints.builder(
+                          breakpoints: [
+                            const Breakpoint(start: 0, end: 450, name: MOBILE),
+                            const Breakpoint(
+                                start: 451, end: 800, name: TABLET),
+                            const Breakpoint(
+                                start: 801, end: 1920, name: DESKTOP),
+                            const Breakpoint(
+                                start: 1921, end: double.infinity, name: '4K'),
+                          ],
+                          child: GlobalEventListener(
+                            navigatorKey: GlobalRoutes.globalRouterKey,
+                            child: child!,
+                          ),
+                        );
+                      },
                       scaffoldMessengerKey: SnackbarService.messengerKey,
                       routerConfig: GlobalRoutes.globalRouter,
                       theme: Default_Theme().defaultThemeData,

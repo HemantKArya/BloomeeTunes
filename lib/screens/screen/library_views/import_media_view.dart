@@ -6,7 +6,7 @@ import 'package:Bloomee/plugins/blocs/import/content_import_cubit.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
-import 'package:Bloomee/services/import_export_service.dart';
+import 'package:Bloomee/screens/widgets/backup_import_flow.dart';
 import 'package:Bloomee/services/m3u_processor.dart';
 import 'package:Bloomee/src/rust/api/plugin/models.dart';
 import 'package:file_picker/file_picker.dart';
@@ -174,17 +174,7 @@ class _ImportMediaFromPlatformsViewState
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              FilePicker.platform.pickFiles(
-                allowMultiple: false,
-                type: FileType.any,
-              ).then((value) {
-                if (value != null && value.files.isNotEmpty && value.files[0].path != null) {
-                  final path = value.files[0].path!;
-                  if (context.mounted) {
-                    ImportExportService.handleImportOrRestore(context, path);
-                  }
-                }
-              });
+              BackupImportFlow.show(context);
             },
             style: FilledButton.styleFrom(
               backgroundColor: Default_Theme.accentColor2,

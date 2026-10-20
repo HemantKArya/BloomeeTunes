@@ -1,7 +1,7 @@
 // Page for editing and reordering playlist items.
 import 'dart:ui';
 import 'package:Bloomee/core/models/exported.dart';
-import 'package:Bloomee/screens/screen/library_views/cubit/current_playlist_cubit.dart';
+import 'package:Bloomee/blocs/current_playlist/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';

@@ -1,4 +1,4 @@
-﻿import 'dart:developer';
+import 'dart:developer';
 
 import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/global_db.dart';
@@ -25,22 +25,13 @@ class HistoryDAO {
   /// same track each get their own history row (non-deduplicating log).
   Future<void> recordPlay(Track track) async {
     final isar = await _db;
-    final trackId = await _trackDAO.upsertTrack(track);
-    final trackObj = await isar.trackDBs.get(trackId);
-    if (trackObj == null) {
-      log('recordPlay: track ${track.id} not found after upsert',
-          name: 'HistoryDAO');
-      return;
-    }
-
-    final entry = PlaybackHistoryDB(playedAt: DateTime.now())
-      ..track.value = trackObj;
-
-    await isar.writeTxn(() async {
-      await isar.playbackHistoryDBs.put(entry);
-      await entry.track.save();
+    isar.writeTxnSync(() {
+      final id = _trackDAO.upsertTrackInTransaction(isar, track);
+      final entry = PlaybackHistoryDB(playedAt: DateTime.now())
+        ..track.value = isar.trackDBs.getSync(id);
+      isar.playbackHistoryDBs.putSync(entry);
+      entry.track.saveSync();
     });
-    log('Recorded play for ${track.id}', name: 'HistoryDAO');
   }
 
   // ── Read ───────────────────────────────────────────────────────────────────
@@ -61,11 +52,11 @@ class HistoryDAO {
 
     final seen = <String>{};
     return entries
-    .map((e) => e.track.value)
-    .whereType<TrackDB>()
-    .where((t) => seen.add(t.mediaId))
-    .map(trackDBToTrack)
-    .toList();
+        .map((e) => e.track.value)
+        .whereType<TrackDB>()
+        .where((t) => seen.add(t.mediaId))
+        .map(trackDBToTrack)
+        .toList();
   }
 
   /// Return raw [PlaybackHistoryDB] rows sorted newest-first.
@@ -77,29 +68,6 @@ class HistoryDAO {
         limit > 0 ? await query.limit(limit).findAll() : await query.findAll();
     await Future.wait(entries.map((e) => e.track.load()));
     return entries;
-  }
-
-  /// Remove broken history rows where track link is missing.
-  ///
-  /// Returns number of deleted rows.
-  Future<int> purgeBrokenHistoryEntries() async {
-    final isar = await _db;
-    final entries = await isar.playbackHistoryDBs.where().findAll();
-    await Future.wait(entries.map((e) => e.track.load()));
-
-    final brokenIds = entries
-        .where((e) => e.track.value == null)
-        .map((e) => e.id)
-        .toList(growable: false);
-
-    if (brokenIds.isEmpty) return 0;
-
-    final deleted = await isar.writeTxn(() async {
-      return isar.playbackHistoryDBs.deleteAll(brokenIds);
-    });
-
-    log('Purged $deleted broken history entries', name: 'HistoryDAO');
-    return deleted;
   }
 
   // ── Maintenance ───────────────────────────────────────────────────────────

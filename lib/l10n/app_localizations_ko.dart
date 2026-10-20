@@ -1894,4 +1894,96 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get pluginBootstrapContinue => '무시하고 계속';
+
+  @override
+  String get backupBusy => 'Another backup operation is open. Finish it first.';
+
+  @override
+  String get backupSave => 'Save backup as JSON';
+
+  @override
+  String get backupShare => 'Share JSON backup';
+
+  @override
+  String get backupPortableDetails =>
+      'Includes playlists, likes, saved collections, histories and portable preferences. Audio files, accounts and device folders are excluded.';
+
+  @override
+  String get backupHistories => 'Playback and search histories';
+
+  @override
+  String get backupPreferences => 'Portable preferences';
+
+  @override
+  String get backupNewCopy => 'Import as new playlists';
+
+  @override
+  String get backupMerge => 'Merge with existing data';
+
+  @override
+  String get backupReplace => 'Replace selected sections';
+
+  @override
+  String get backupMergeDetails =>
+      'Existing tracks, metadata and preferences are preserved. Missing tracks are appended in file order. Likes are merged.';
+
+  @override
+  String get backupReplaceWarning =>
+      'This replaces the selected sections, including existing playlists and likes when library is selected. Unselected sections and device files are preserved. A private recovery snapshot is created first.';
+
+  @override
+  String get backupAutoDetails =>
+      'Keeps seven private recovery snapshots. Checked when the app opens, at most once per 24 hours. Private snapshots are removed on uninstall.';
+
+  @override
+  String get backupLocationDetails =>
+      'Choose a destination with Save backup. Private recovery snapshots are kept inside the app.';
+
+  @override
+  String get backupResetDetails =>
+      'Reset all database data on the next app start. Downloaded audio files and installed plugin files remain on this device. A private recovery snapshot is created first.';
+
+  @override
+  String get backupResetPending =>
+      'Reset scheduled. Close and reopen Bloomee to complete it.';
+
+  @override
+  String backupPreviewCounts(int playlists, int tracks) {
+    return '$playlists playlists and $tracks tracks';
+  }
+
+  @override
+  String backupImportResult(
+      int playlists, int tracks, int history, int settings) {
+    return 'Import complete: $playlists playlists created, $tracks track entries added, $history history records added and $settings preferences applied.';
+  }
+
+  @override
+  String get backupRefreshFailed =>
+      'Data was imported. Close and reopen Bloomee to refresh all preferences.';
+
+  @override
+  String get backupRecoveryCopies => 'Recovery copies';
+
+  @override
+  String get backupNoRecoveryCopies => 'No recovery copies yet.';
+
+  @override
+  String get backupRecoveryAutomatic => 'Automatic backup';
+
+  @override
+  String get backupRecoveryBeforeImport => 'Before an import';
+
+  @override
+  String get backupRecoveryBeforeReset => 'Before a reset';
+
+  @override
+  String get backupCancelReset => 'Cancel reset';
+
+  @override
+  String get backupStartupFailed => 'Bloomee could not start';
+
+  @override
+  String get backupStartupFailedDetails =>
+      'Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error.';
 }

@@ -39,36 +39,19 @@ class DownloadDAO {
     DateTime? lastDownloaded,
   }) async {
     final isar = await _db;
-    lastDownloaded ??= DateTime.now();
-
-    // Upsert track and ensure the downloads playlist exists.
-    await _trackDAO.upsertTrack(track);
-    final downloadsId =
-        await _playlistDAO.ensurePlaylist(downloadsPlaylistName);
-    await _playlistDAO.addTrackToPlaylist(downloadsId, track);
-
-    // Upsert the DownloadDB row.
-    final existing =
-        await isar.downloadDBs.filter().mediaIdEqualTo(track.id).findFirst();
-
-    await isar.writeTxn(() async {
-      if (existing != null) {
-        existing
-          ..fileName = fileName
-          ..filePath = filePath
-          ..lastDownloaded = lastDownloaded;
-        await isar.downloadDBs.put(existing);
-        log('Updated download record for ${track.id}', name: 'DownloadDAO');
-      } else {
-        final record = DownloadDB(
+    isar.writeTxnSync(() {
+      final playlistId =
+          _playlistDAO.ensurePlaylistInTransaction(isar, downloadsPlaylistName);
+      _playlistDAO.addTrackInTransaction(isar, playlistId, track);
+      final existing =
+          isar.downloadDBs.filter().mediaIdEqualTo(track.id).findFirstSync();
+      final row = DownloadDB(
           fileName: fileName,
           filePath: filePath,
-          lastDownloaded: lastDownloaded,
-          mediaId: track.id,
-        );
-        await isar.downloadDBs.put(record);
-        log('Created download record for ${track.id}', name: 'DownloadDAO');
-      }
+          lastDownloaded: lastDownloaded ?? DateTime.now(),
+          mediaId: track.id);
+      if (existing != null) row.id = existing.id;
+      isar.downloadDBs.putSync(row);
     });
   }
 
@@ -112,28 +95,17 @@ class DownloadDAO {
     DateTime? lastDownloaded,
   }) async {
     final isar = await _db;
-    lastDownloaded ??= DateTime.now();
-
-    await _trackDAO.upsertTrack(track);
-
-    final existing =
-        await isar.downloadDBs.filter().mediaIdEqualTo(track.id).findFirst();
-
-    await isar.writeTxn(() async {
-      if (existing != null) {
-        existing
-          ..fileName = fileName
-          ..filePath = filePath
-          ..lastDownloaded = lastDownloaded;
-        await isar.downloadDBs.put(existing);
-      } else {
-        await isar.downloadDBs.put(DownloadDB(
+    isar.writeTxnSync(() {
+      _trackDAO.upsertTrackInTransaction(isar, track);
+      final existing =
+          isar.downloadDBs.filter().mediaIdEqualTo(track.id).findFirstSync();
+      final row = DownloadDB(
           fileName: fileName,
           filePath: filePath,
-          lastDownloaded: lastDownloaded,
-          mediaId: track.id,
-        ));
-      }
+          lastDownloaded: lastDownloaded ?? DateTime.now(),
+          mediaId: track.id);
+      if (existing != null) row.id = existing.id;
+      isar.downloadDBs.putSync(row);
     });
   }
 
@@ -170,7 +142,8 @@ class DownloadDAO {
         await _playlistDAO.getPlaylistByName(downloadsPlaylistName);
     if (downloadsPlaylist != null) {
       for (final mediaId in mediaIds) {
-        await _playlistDAO.removeTrackFromPlaylist(downloadsPlaylist.id, mediaId);
+        await _playlistDAO.removeTrackFromPlaylist(
+            downloadsPlaylist.id, mediaId);
       }
     }
   }
@@ -208,7 +181,8 @@ class DownloadDAO {
     final stale = <DownloadDB>[];
 
     final existences = await Future.wait(
-      all.map((record) => File('${record.filePath}/${record.fileName}').exists()),
+      all.map(
+          (record) => File('${record.filePath}/${record.fileName}').exists()),
     );
 
     for (var i = 0; i < all.length; i++) {

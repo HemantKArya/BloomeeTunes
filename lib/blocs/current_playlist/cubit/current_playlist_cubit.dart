@@ -2,7 +2,6 @@
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
-import 'package:Bloomee/services/db/mappers/media_item_mapper.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -22,6 +21,9 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
   int? _playlistId;
   int _loadedCount = 0;
   bool _isFetchingPage = false;
+  String? _openedStorageKey;
+  int _loadRevision = 0;
+  Future<void>? _pageInFlight;
 
   CurrentPlaylistCubit({
     Playlist? playlist,
@@ -45,6 +47,10 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     String playlistName, {
     bool deferFirstPage = false,
   }) async {
+    final revision = ++_loadRevision;
+    _openedStorageKey = playlistName;
+    _isFetchingPage = false;
+    _pageInFlight = null;
     emit(
       state.copyWith(
         isFetched: false,
@@ -61,8 +67,9 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     _loadedCount = 0;
     _playlistId = null;
 
-    final playlistDB = await _playlistDao.getPlaylistByName(playlistName);
-    if (playlistDB == null) {
+    final header = await _playlistDao.getPlaylistHeader(playlistName);
+    if (isClosed || revision != _loadRevision) return;
+    if (header == null) {
       emit(
         state.copyWith(
           status: CurrentPlaylistLoadStatus.error,
@@ -72,10 +79,10 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
       return;
     }
 
-    _playlistId = playlistDB.id;
-    final totalTracks = await _playlistDao.getPlaylistTrackCount(playlistDB.id);
-    final basePlaylist =
-        playlistDBToPlaylist(playlistDB).copyWith(tracks: const []);
+    _playlistId = header.$1;
+    final totalTracks = await _playlistDao.getPlaylistTrackCount(header.$1);
+    if (isClosed || revision != _loadRevision) return;
+    final basePlaylist = header.$2;
 
     _playlist = basePlaylist;
 
@@ -99,7 +106,13 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
   }
 
   /// Load the next track page if available.
-  Future<void> loadMoreTracks() async {
+  Future<void> loadMoreTracks() {
+    if (_playlistId == null || !state.hasMore) return Future<void>.value();
+    return _pageInFlight ??= _loadMoreTracks();
+  }
+
+  Future<void> _loadMoreTracks() async {
+    final revision = _loadRevision;
     final playlistId = _playlistId;
     if (playlistId == null || _isFetchingPage || !state.hasMore) return;
 
@@ -107,12 +120,12 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     emit(state.copyWith(isLoadingMore: true));
 
     try {
-      final page = await _playlistDao.getPlaylistTracksPage(
+      final pageTracks = await _playlistDao.loadTracksPage(
         playlistId,
         offset: _loadedCount,
         limit: _pageSize,
       );
-      final pageTracks = page.map(trackDBToTrack).toList(growable: false);
+      if (isClosed || revision != _loadRevision) return;
 
       final merged = <Track>[
         ...state.playlist.tracks,
@@ -139,6 +152,7 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
         _generatePalette(merged.first.thumbnail.url);
       }
     } catch (error) {
+      if (isClosed || revision != _loadRevision) return;
       emit(
         state.copyWith(
           isLoadingMore: false,
@@ -147,13 +161,18 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
         ),
       );
     } finally {
-      _isFetchingPage = false;
+      if (revision == _loadRevision) {
+        _isFetchingPage = false;
+        _pageInFlight = null;
+      }
     }
   }
 
   Future<void> _generatePalette(String imageUrl) async {
     if (imageUrl.isEmpty) return;
+    final revision = _loadRevision;
     final palette = await getPalleteFromImage(imageUrl);
+    if (isClosed || revision != _loadRevision) return;
     _paletteGenerator = palette;
     emit(state.copyWith());
   }
@@ -269,4 +288,9 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
 
   /// Returns the name of the currently loaded playlist, or null if none.
   String? get currentPlaylistName => _playlist?.title;
+
+  Future<void> refreshAfterImport() async {
+    final key = _openedStorageKey;
+    if (key != null && !isClosed) await openPlaylist(key);
+  }
 }

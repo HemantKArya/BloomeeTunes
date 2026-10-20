@@ -3605,6 +3605,163 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue Anyway'**
   String get pluginBootstrapContinue;
+
+  /// No description provided for @backupBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Another backup operation is open. Finish it first.'**
+  String get backupBusy;
+
+  /// No description provided for @backupSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save backup as JSON'**
+  String get backupSave;
+
+  /// No description provided for @backupShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share JSON backup'**
+  String get backupShare;
+
+  /// No description provided for @backupPortableDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes playlists, likes, saved collections, histories and portable preferences. Audio files, accounts and device folders are excluded.'**
+  String get backupPortableDetails;
+
+  /// No description provided for @backupHistories.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback and search histories'**
+  String get backupHistories;
+
+  /// No description provided for @backupPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Portable preferences'**
+  String get backupPreferences;
+
+  /// No description provided for @backupNewCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Import as new playlists'**
+  String get backupNewCopy;
+
+  /// No description provided for @backupMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge with existing data'**
+  String get backupMerge;
+
+  /// No description provided for @backupReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace selected sections'**
+  String get backupReplace;
+
+  /// No description provided for @backupMergeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing tracks, metadata and preferences are preserved. Missing tracks are appended in file order. Likes are merged.'**
+  String get backupMergeDetails;
+
+  /// No description provided for @backupReplaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This replaces the selected sections, including existing playlists and likes when library is selected. Unselected sections and device files are preserved. A private recovery snapshot is created first.'**
+  String get backupReplaceWarning;
+
+  /// No description provided for @backupAutoDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps seven private recovery snapshots. Checked when the app opens, at most once per 24 hours. Private snapshots are removed on uninstall.'**
+  String get backupAutoDetails;
+
+  /// No description provided for @backupLocationDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a destination with Save backup. Private recovery snapshots are kept inside the app.'**
+  String get backupLocationDetails;
+
+  /// No description provided for @backupResetDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all database data on the next app start. Downloaded audio files and installed plugin files remain on this device. A private recovery snapshot is created first.'**
+  String get backupResetDetails;
+
+  /// No description provided for @backupResetPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset scheduled. Close and reopen Bloomee to complete it.'**
+  String get backupResetPending;
+
+  /// No description provided for @backupPreviewCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{playlists} playlists and {tracks} tracks'**
+  String backupPreviewCounts(int playlists, int tracks);
+
+  /// No description provided for @backupImportResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Import complete: {playlists} playlists created, {tracks} track entries added, {history} history records added and {settings} preferences applied.'**
+  String backupImportResult(
+      int playlists, int tracks, int history, int settings);
+
+  /// No description provided for @backupRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Data was imported. Close and reopen Bloomee to refresh all preferences.'**
+  String get backupRefreshFailed;
+
+  /// No description provided for @backupRecoveryCopies.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery copies'**
+  String get backupRecoveryCopies;
+
+  /// No description provided for @backupNoRecoveryCopies.
+  ///
+  /// In en, this message translates to:
+  /// **'No recovery copies yet.'**
+  String get backupNoRecoveryCopies;
+
+  /// No description provided for @backupRecoveryAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup'**
+  String get backupRecoveryAutomatic;
+
+  /// No description provided for @backupRecoveryBeforeImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Before an import'**
+  String get backupRecoveryBeforeImport;
+
+  /// No description provided for @backupRecoveryBeforeReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Before a reset'**
+  String get backupRecoveryBeforeReset;
+
+  /// No description provided for @backupCancelReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel reset'**
+  String get backupCancelReset;
+
+  /// No description provided for @backupStartupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Bloomee could not start'**
+  String get backupStartupFailed;
+
+  /// No description provided for @backupStartupFailedDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error.'**
+  String get backupStartupFailedDetails;
 }
 
 class _AppLocalizationsDelegate
