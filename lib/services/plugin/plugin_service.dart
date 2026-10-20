@@ -33,6 +33,41 @@ import 'package:path/path.dart' as p;
 class PluginService {
   PluginManager? _manager;
   Future<void>? _initializing;
+  final _pendingImports =
+      <(String, ContentImporterCommand), Future<PluginResponse>>{};
+
+  /// Import commands can perform several sequential HTTP requests (each with
+  /// a 30-second host limit). These are caller wait budgets, not cancellation.
+  /// Keep the native request until it finishes so retries share its work rather
+  /// than queueing duplicates behind the plugin's execution lock.
+  Future<PluginResponse> executeImport({
+    required String pluginId,
+    required ContentImporterCommand command,
+  }) {
+    final key = (pluginId, command);
+    final pending = _pendingImports.putIfAbsent(
+      key,
+      () => _executeImport(pluginId, command),
+    );
+    final timeout = switch (command) {
+      ContentImporterCommand_CanHandleUrl() => const Duration(seconds: 10),
+      ContentImporterCommand_GetCollectionInfo() => const Duration(minutes: 1),
+      ContentImporterCommand_GetTracks() => const Duration(minutes: 2),
+    };
+    return pending.timeout(timeout);
+  }
+
+  Future<PluginResponse> _executeImport(
+      String pluginId, ContentImporterCommand command) async {
+    try {
+      return await execute(
+        pluginId: pluginId,
+        request: PluginRequest.contentImporter(command),
+      );
+    } finally {
+      _pendingImports.remove((pluginId, command));
+    }
+  }
 
   /// Whether the service has been initialized.
   bool get isInitialized => _manager != null;

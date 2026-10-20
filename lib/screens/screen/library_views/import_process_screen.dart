@@ -176,7 +176,8 @@ class _ImportProcessScreenState extends State<ImportProcessScreen> {
           error: state.error == null
               ? AppLocalizations.of(context)!.importUnknownError
               : _localizedImportError(context, state.error!),
-          onRetry: () => cubit.reset(),
+          onRetry: () => cubit.retry(),
+          onCancel: () => cubit.reset(),
         );
     }
   }
@@ -1295,7 +1296,13 @@ class _DoneView extends StatelessWidget {
 class _ErrorView extends StatelessWidget {
   final String error;
   final VoidCallback onRetry;
-  const _ErrorView({super.key, required this.error, required this.onRetry});
+  final VoidCallback onCancel;
+  const _ErrorView({
+    super.key,
+    required this.error,
+    required this.onRetry,
+    required this.onCancel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1340,6 +1347,11 @@ class _ErrorView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: onCancel,
+              child: Text(AppLocalizations.of(context)!.buttonCancel),
             ),
           ],
         ),

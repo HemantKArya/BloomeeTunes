@@ -15,7 +15,6 @@ import 'package:Bloomee/src/rust/api/plugin/types.dart';
 import 'package:Bloomee/src/rust/api/plugin/models.dart';
 
 const int _kResolutionConcurrency = 5;
-const Duration _kPluginTimeout = Duration(seconds: 10);
 const double _kMinConfidence = 0.45;
 const int _kMaxCandidatesPerTrack = 5;
 
@@ -25,6 +24,10 @@ class ContentImportCubit extends Cubit<ContentImportState> {
   final PlaylistDAO _playlistDao;
 
   bool _cancelRequested = false;
+  int _operationId = 0;
+  ContentImporterCommand? _retryCommand;
+
+  bool _isCurrent(int operationId) => !isClosed && operationId == _operationId;
 
   ContentImportCubit({
     PluginService? pluginService,
@@ -43,136 +46,137 @@ class ContentImportCubit extends Cubit<ContentImportState> {
     return PlaylistDAO(DBProvider.db, trackDao);
   }
 
-  // ── Step 1: Check URL ────────────────────────────────────────────────────
+  // ── URL import pipeline ─────────────────────────────────────────────────
 
   Future<void> checkUrl(String pluginId, String url) async {
+    if (isClosed) return;
+    final operationId = ++_operationId;
     _cancelRequested = false;
-    emit(state.copyWith(
-      phase: ImportPhase.checkingUrl,
-      pluginId: pluginId,
-      url: url,
-      clearError: true,
-    ));
+    emit(ContentImportState(pluginId: pluginId, url: url));
+    await _runImportStep(
+      pluginId,
+      ContentImporterCommand.canHandleUrl(url: url),
+      operationId,
+    );
+  }
 
+  /// Resume the failed command, sharing any native request still in progress.
+  Future<void> retry() async {
+    if (isClosed || state.phase != ImportPhase.error) return;
+    final command = _retryCommand;
+    final pluginId = state.pluginId;
+    if (command == null || pluginId == null) {
+      reset();
+      return;
+    }
+    await _runImportStep(pluginId, command, ++_operationId);
+  }
+
+  Future<void> _runImportStep(
+    String pluginId,
+    ContentImporterCommand command,
+    int operationId,
+  ) async {
+    if (!_isCurrent(operationId)) return;
+    final (phase, timeoutError, failurePrefix) = switch (command) {
+      ContentImporterCommand_CanHandleUrl() => (
+          ImportPhase.checkingUrl,
+          'Plugin timed out while checking URL.',
+          'Failed to check URL',
+        ),
+      ContentImporterCommand_GetCollectionInfo() => (
+          ImportPhase.fetchingInfo,
+          'Timed out fetching collection info.',
+          'Failed to fetch collection info',
+        ),
+      ContentImporterCommand_GetTracks() => (
+          ImportPhase.fetchingTracks,
+          'Timed out fetching tracks.',
+          'Failed to fetch tracks',
+        ),
+    };
+    _retryCommand = command;
+    emit(state.copyWith(phase: phase, clearError: true));
+
+    final PluginResponse response;
     try {
-      final response = await _pluginService
-          .execute(
-            pluginId: pluginId,
-            request: PluginRequest.contentImporter(
-              ContentImporterCommand.canHandleUrl(url: url),
-            ),
-          )
-          .timeout(_kPluginTimeout);
+      response = await _pluginService.executeImport(
+        pluginId: pluginId,
+        command: command,
+      );
+    } catch (e, stackTrace) {
+      if (!_isCurrent(operationId)) return;
+      log('$failurePrefix ($pluginId): $e',
+          name: 'ContentImportCubit', error: e, stackTrace: stackTrace);
+      emit(state.copyWith(
+        phase: ImportPhase.error,
+        error: e is TimeoutException ? timeoutError : '$failurePrefix: $e',
+      ));
+      return;
+    }
+    if (!_isCurrent(operationId)) return;
 
-      if (response is PluginResponse_CanHandle && response.field0) {
-        await _fetchCollectionInfo(pluginId, url);
-      } else {
+    switch (command) {
+      case ContentImporterCommand_CanHandleUrl(:final url):
+        if (response is PluginResponse_CanHandle && response.field0) {
+          await _runImportStep(pluginId,
+              ContentImporterCommand.getCollectionInfo(url: url), operationId);
+          return;
+        }
+        _retryCommand = null;
         emit(state.copyWith(
           phase: ImportPhase.error,
           error: 'This plugin cannot handle the provided URL.',
         ));
-      }
-    } on TimeoutException {
-      emit(state.copyWith(
-        phase: ImportPhase.error,
-        error: 'Plugin timed out while checking URL.',
-      ));
-    } catch (e) {
-      log('checkUrl failed: $e', name: 'ContentImportCubit');
-      emit(state.copyWith(
-        phase: ImportPhase.error,
-        error: 'Failed to check URL: $e',
-      ));
-    }
-  }
-
-  // ── Step 2: Fetch Collection Info ────────────────────────────────────────
-
-  Future<void> _fetchCollectionInfo(String pluginId, String url) async {
-    emit(state.copyWith(phase: ImportPhase.fetchingInfo));
-
-    try {
-      final response = await _pluginService
-          .execute(
-            pluginId: pluginId,
-            request: PluginRequest.contentImporter(
-              ContentImporterCommand.getCollectionInfo(url: url),
-            ),
-          )
-          .timeout(_kPluginTimeout);
-
-      if (response is PluginResponse_CollectionInfo) {
-        emit(state.copyWith(
-          collectionInfo: response.field0,
-          phase: ImportPhase.fetchingTracks,
-        ));
-        await _fetchTracks(pluginId, url);
-      } else {
+      case ContentImporterCommand_GetCollectionInfo(:final url):
+        if (response is PluginResponse_CollectionInfo) {
+          emit(state.copyWith(collectionInfo: response.field0));
+          await _runImportStep(pluginId,
+              ContentImporterCommand.getTracks(url: url), operationId);
+          return;
+        }
         emit(state.copyWith(
           phase: ImportPhase.error,
           error: 'Unexpected response when fetching collection info.',
         ));
-      }
-    } on TimeoutException {
-      emit(state.copyWith(
-        phase: ImportPhase.error,
-        error: 'Timed out fetching collection info.',
-      ));
-    } catch (e) {
-      log('_fetchCollectionInfo failed: $e', name: 'ContentImportCubit');
-      emit(state.copyWith(
-        phase: ImportPhase.error,
-        error: 'Failed to fetch collection info: $e',
-      ));
-    }
-  }
-
-  // ── Step 3: Fetch Tracks ─────────────────────────────────────────────────
-
-  Future<void> _fetchTracks(String pluginId, String url) async {
-    try {
-      final response = await _pluginService
-          .execute(
-            pluginId: pluginId,
-            request: PluginRequest.contentImporter(
-              ContentImporterCommand.getTracks(url: url),
+      case ContentImporterCommand_GetTracks():
+        if (response is PluginResponse_ImportTracks) {
+          emit(state.copyWith(
+            tracks: List.unmodifiable(
+              response.field0.map((t) => ImportTrackEntry(sourceTrack: t)),
             ),
-          )
-          .timeout(_kPluginTimeout);
-
-      if (response is PluginResponse_ImportTracks) {
-        final entries = response.field0
-            .map((t) => ImportTrackEntry(sourceTrack: t))
-            .toList();
-        emit(state.copyWith(
-          tracks: List.unmodifiable(entries),
-          phase: ImportPhase.resolving,
-        ));
-        await _resolveTracks();
-      } else {
+            phase: ImportPhase.resolving,
+          ));
+          await _resolveTracks(operationId);
+          if (_isCurrent(operationId) && state.phase != ImportPhase.error) {
+            _retryCommand = null;
+          }
+          return;
+        }
         emit(state.copyWith(
           phase: ImportPhase.error,
           error: 'Unexpected response when fetching tracks.',
         ));
-      }
-    } on TimeoutException {
-      emit(state.copyWith(
-        phase: ImportPhase.error,
-        error: 'Timed out fetching tracks.',
-      ));
-    } catch (e) {
-      log('_fetchTracks failed: $e', name: 'ContentImportCubit');
-      emit(state.copyWith(
-        phase: ImportPhase.error,
-        error: 'Failed to fetch tracks: $e',
-      ));
     }
   }
 
-  // ── Step 4: Resolve Tracks ───────────────────────────────────────────────
+  // ── Resolve imported tracks ──────────────────────────────────────────────
 
-  Future<void> _resolveTracks() async {
-    final resolverPluginIds = await _getContentResolverPluginIds();
+  Future<void> _resolveTracks(int operationId) async {
+    final List<String> resolverPluginIds;
+    try {
+      resolverPluginIds = await _getContentResolverPluginIds();
+    } catch (e, stackTrace) {
+      if (!_isCurrent(operationId) || _cancelRequested) return;
+      log('Resolver discovery failed: $e',
+          name: 'ContentImportCubit', error: e, stackTrace: stackTrace);
+      emit(state.copyWith(
+        phase: ImportPhase.error,
+        error: 'Failed to fetch tracks: resolver discovery failed: $e',
+      ));
+      return;
+    }
+    if (!_isCurrent(operationId) || _cancelRequested) return;
     if (resolverPluginIds.isEmpty) {
       log('No content-resolver plugins loaded; skipping resolution.',
           name: 'ContentImportCubit');
@@ -188,6 +192,7 @@ class ContentImportCubit extends Cubit<ContentImportState> {
       final index = i;
       futures.add(
         semaphore.run(() => _resolveOneEntry(
+              operationId: operationId,
               tracks: tracks,
               index: index,
               pluginIds: resolverPluginIds,
@@ -197,7 +202,7 @@ class ContentImportCubit extends Cubit<ContentImportState> {
 
     await Future.wait(futures);
 
-    if (!isClosed && !_cancelRequested) {
+    if (_isCurrent(operationId) && !_cancelRequested) {
       final counts = _recount(tracks);
       log(
         'Resolution complete: ${counts.resolved} resolved, '
@@ -214,17 +219,18 @@ class ContentImportCubit extends Cubit<ContentImportState> {
   }
 
   Future<void> _resolveOneEntry({
+    required int operationId,
     required List<ImportTrackEntry> tracks,
     required int index,
     required List<String> pluginIds,
   }) async {
-    if (isClosed || _cancelRequested) return;
+    if (!_isCurrent(operationId) || _cancelRequested) return;
 
     final entry = tracks[index];
 
     // Mark as resolving.
     tracks[index] = entry.copyWith(status: TrackResolutionStatus.resolving);
-    if (!isClosed) {
+    if (_isCurrent(operationId)) {
       emit(state.copyWith(tracks: List.unmodifiable(tracks)));
     }
 
@@ -246,7 +252,7 @@ class ContentImportCubit extends Cubit<ContentImportState> {
         limit: _kMaxCandidatesPerTrack,
       );
 
-      if (isClosed || _cancelRequested) return;
+      if (!_isCurrent(operationId) || _cancelRequested) return;
 
       if (candidates.isNotEmpty) {
         tracks[index] = entry.copyWith(
@@ -265,7 +271,7 @@ class ContentImportCubit extends Cubit<ContentImportState> {
         'Failed to resolve "${entry.sourceTrack.title}": $e',
         name: 'ContentImportCubit',
       );
-      if (!isClosed && !_cancelRequested) {
+      if (_isCurrent(operationId) && !_cancelRequested) {
         tracks[index] = entry.copyWith(
           status: TrackResolutionStatus.failed,
           candidates: const [],
@@ -274,7 +280,7 @@ class ContentImportCubit extends Cubit<ContentImportState> {
     }
 
     // Emit progress.
-    if (!isClosed && !_cancelRequested) {
+    if (_isCurrent(operationId) && !_cancelRequested) {
       final counts = _recount(tracks);
       emit(state.copyWith(
         tracks: List.unmodifiable(tracks),
@@ -366,6 +372,9 @@ class ContentImportCubit extends Cubit<ContentImportState> {
   // ── Reset ────────────────────────────────────────────────────────────────
 
   void reset() {
+    if (isClosed) return;
+    ++_operationId;
+    _retryCommand = null;
     _cancelRequested = false;
     emit(const ContentImportState());
   }
@@ -380,16 +389,18 @@ class ContentImportCubit extends Cubit<ContentImportState> {
     List<ImportTrackItem> tracks,
     ImportCollectionSummary summary,
   ) async {
+    if (isClosed) return;
+    final operationId = ++_operationId;
+    _retryCommand = null;
     _cancelRequested = false;
-    emit(state.copyWith(
+    emit(ContentImportState(
       phase: ImportPhase.resolving,
       collectionInfo: summary,
       tracks: List.unmodifiable(
         tracks.map((t) => ImportTrackEntry(sourceTrack: t)).toList(),
       ),
-      clearError: true,
     ));
-    await _resolveTracks();
+    await _resolveTracks(operationId);
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
