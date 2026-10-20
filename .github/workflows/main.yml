@@ -13,9 +13,9 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Setup-Java
-              uses: actions/setup-java@v3.12.0
+              uses: actions/setup-java@v6
               with:
-                distribution: 'oracle'
+                distribution: 'temurin'
                 java-version: '17'
 
             - name: Setup Flutter
@@ -24,11 +24,17 @@ jobs:
                 flutter-version: '3.47.7'
                 channel: 'stable'
 
+            - name: Setup Rust Toolchain
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Select Build JDK
+              run: flutter config --jdk-dir="$env:JAVA_HOME"
+
             - name: Install Dependencies
-              run: flutter pub get
+              run: flutter pub get --enforce-lockfile
 
             - name: Extract version from pubspec.yaml
-              shell: powershell
+              shell: pwsh
               run: |
                   $vLine = Select-String -Path pubspec.yaml -Pattern '^version:\s*(\S+)' | Select-Object -First 1
                   if (-not $vLine) { Write-Error 'version not found in pubspec.yaml'; exit 1 }
@@ -36,17 +42,33 @@ jobs:
                   echo "VERSION=$ver" >> $env:GITHUB_ENV
 
             - name: Create keystore file
+              env:
+                  KEY_STORE: ${{ secrets.KEY_STORE }}
               run: |
-                  $b64 = "${{ secrets.KEY_STORE }}"
+                  $b64 = $env:KEY_STORE
+                  if ([string]::IsNullOrWhiteSpace($b64)) { throw 'KEY_STORE secret is required for release signing' }
                   $filename = "./android/bloomee.jks"
                   $bytes =[Convert]::FromBase64String($b64)
                   [IO.File]::WriteAllBytes($filename, $bytes)
             
             - name: Create Keystore properties
+              env:
+                  KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+                  STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+                  KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
               run: |
-                  echo keyPassword=\${{ secrets.KEY_PASSWORD }} > ./android/key.properties
-                  echo storePassword=\${{ secrets.STORE_PASSWORD }} >> ./android/key.properties
-                  echo keyAlias=\${{ secrets.KEY_ALIAS }} >> ./android/key.properties
+                  function ConvertTo-PropertyValue([string]$value) {
+                      if ([string]::IsNullOrEmpty($value)) { throw 'Signing secrets must not be empty' }
+                      $escaped = $value.Replace('\', '\\').Replace("`r", '\r').Replace("`n", '\n').Replace("`t", '\t').Replace(' ', '\ ')
+                      return -join ($escaped.ToCharArray() | ForEach-Object {
+                          if ([int]$_ -gt 127) { '\u{0:x4}' -f [int]$_ } else { [string]$_ }
+                      })
+                  }
+                  @(
+                      "keyPassword=$(ConvertTo-PropertyValue $env:KEY_PASSWORD)"
+                      "storePassword=$(ConvertTo-PropertyValue $env:STORE_PASSWORD)"
+                      "keyAlias=$(ConvertTo-PropertyValue $env:KEY_ALIAS)"
+                  ) | Set-Content -Path ./android/key.properties -Encoding ascii
             
             - name: Build App files
               run: flutter build apk --release --split-per-abi --build-number ${{github.run_number}}
@@ -56,9 +78,13 @@ jobs:
                   $buildToolsDir = Get-ChildItem "$env:ANDROID_HOME\build-tools" | Where-Object { $_.PSIsContainer } | Sort-Object Name -Descending | Select-Object -First 1
                   Write-Host "Using build tools version: $($buildToolsDir.Name)"
                   & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-release.apk
+                  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                   & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+                  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                   & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+                  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                   & "$($buildToolsDir.FullName)\apksigner.bat" verify build/app/outputs/flutter-apk/app-x86_64-release.apk
+                  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
             - name: Rename APK file
               shell: powershell
@@ -95,12 +121,13 @@ jobs:
             - name: Create Release
               uses: ncipollo/release-action@v1
               with:
-                artifacts: |
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk
-                  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk
-                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk
+                artifactErrorsFailBuild: true
+                artifacts: >-
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_universal.apk,
+                  build/windows/x64/bloomee_tunes_windows_x64_v${{ env.VERSION }}+${{github.run_number}}.zip,
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_armeabi-v7a.apk,
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_arm64-v8a.apk,
+                  build/app/outputs/flutter-apk/bloomee_tunes_android_v${{ env.VERSION }}+${{github.run_number}}_x86_64.apk,
                   build-number.txt
                 tag: v${{ env.VERSION }}+${{github.run_number}}
                 token: ${{secrets.SECRET_KEY}}
@@ -126,8 +153,11 @@ jobs:
                 sudo apt-get update
                 sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 
+            - name: Setup Rust Toolchain
+              uses: dtolnay/rust-toolchain@stable
+
             - name: Install Dependencies
-              run: flutter pub get
+              run: flutter pub get --enforce-lockfile
 
             - name: Extract version from pubspec.yaml
               run: |

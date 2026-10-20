@@ -1,5 +1,38 @@
 # How to contribute
 
+## Build prerequisites
+
+Use Flutter **3.47.7** (the version pinned in GitHub Actions), Rust stable,
+and **JDK 17** for Android builds. Gradle 8.14.3 cannot run on Java 25.
+Select the JDK used by Flutter explicitly, since it can differ from `JAVA_HOME`:
+
+```powershell
+flutter config --jdk-dir="C:/path/to/jdk-17"
+flutter doctor -v
+flutter pub get --enforce-lockfile
+flutter analyze --no-fatal-infos
+flutter test --no-pub
+flutter build apk --debug --target-platform android-x64
+flutter build apk --release --split-per-abi
+```
+
+On Linux/macOS, use the same commands with your JDK installation path.
+Install the Android SDK and accept its licenses with `flutter doctor --android-licenses`.
+Native Rust libraries are built by Cargokit during `flutter build`; keep the Dart
+and Rust `flutter_rust_bridge` versions aligned. Commit `pubspec.lock` when updating
+dependencies so local and CI builds resolve the same versions.
+Keep `flutter build`'s default pub step enabled so Flutter regenerates plugin
+registration for the selected build mode, excluding test plugins from release builds.
+
+Localization generation writes missing translation keys as JSON to
+`untranslated-messages.json`. Missing translations use the English fallback
+and do not prevent compilation.
+
+Release signing uses `android/bloomee.jks` and `android/key.properties` locally,
+or the `KEY_STORE` (base64 keystore), `KEY_ALIAS`, `KEY_PASSWORD`, and
+`STORE_PASSWORD` GitHub secrets. Without a local `key.properties`, release builds
+use the debug key for build verification. The release workflow requires signing secrets.
+
 ## 1. Fork the repository
 
 Click the "Fork" button in the top-right corner of the repository's page on GitHub, and clone your forked repository to your local machine.

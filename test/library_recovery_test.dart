@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:async';
 import 'dart:io';
 import 'package:Bloomee/repository/backup/backup_repository.dart';
@@ -14,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path/path.dart' as p;
+import 'support/isar_test_support.dart';
 
 Track song(String id, {String? title, String art = ''}) => Track(
     id: id,
@@ -40,15 +40,7 @@ void main() {
   late DownloadDAO downloads;
   late PlaylistDAO playlists;
   late TrackDAO tracks;
-  setUpAll(() async {
-    final configured = Platform.environment['ISAR_TEST_LIBRARY'];
-    final built = p.absolute('build/windows/x64/runner/Debug/libisar.dll');
-    final path = configured ??
-        (Platform.isWindows && File(built).existsSync() ? built : null);
-    await Isar.initializeIsarCore(
-        libraries: {if (path != null) Abi.current(): path},
-        download: path == null);
-  });
+  setUpAll(initializeTestIsar);
   setUp(() async {
     root = await Directory.systemTemp.createTemp('bloomee_recovery_test_');
     database = await Isar.open(DBProvider.schemas,

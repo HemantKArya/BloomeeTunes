@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
@@ -21,6 +20,7 @@ import 'package:Bloomee/blocs/current_playlist/cubit/current_playlist_cubit.dart
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/repository/bloomee/settings_repository.dart';
 import 'package:flutter/services.dart';
+import 'support/isar_test_support.dart';
 
 class DelayedPlaylistDAO extends PlaylistDAO {
   String? blockedName;
@@ -60,15 +60,7 @@ void main() {
   late BackupDAO backups;
   late BackupRepository repository;
 
-  setUpAll(() async {
-    final configured = Platform.environment['ISAR_TEST_LIBRARY'];
-    final built = p.absolute('build/windows/x64/runner/Debug/libisar.dll');
-    final path = configured ??
-        (Platform.isWindows && File(built).existsSync() ? built : null);
-    await Isar.initializeIsarCore(
-        libraries: {if (path != null) Abi.current(): path},
-        download: path == null);
-  });
+  setUpAll(initializeTestIsar);
   setUp(() async {
     root = await Directory.systemTemp.createTemp('bloomee_backup_test_');
     isar = await Isar.open(DBProvider.schemas,
