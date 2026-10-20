@@ -7,7 +7,7 @@ part of 'global_db.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetTrackDBCollection on Isar {
   IsarCollection<TrackDB> get trackDBs => this.collection();
@@ -108,7 +108,7 @@ const TrackDBSchema = CollectionSchema(
   getId: _trackDBGetId,
   getLinks: _trackDBGetLinks,
   attach: _trackDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _trackDBEstimateSize(
@@ -1717,7 +1717,7 @@ extension TrackDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetPlaylistDBCollection on Isar {
   IsarCollection<PlaylistDB> get playlistDBs => this.collection();
@@ -1862,7 +1862,7 @@ const PlaylistDBSchema = CollectionSchema(
   getId: _playlistDBGetId,
   getLinks: _playlistDBGetLinks,
   attach: _playlistDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _playlistDBEstimateSize(
@@ -3967,7 +3967,7 @@ extension PlaylistDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetPlaylistEntryDBCollection on Isar {
   IsarCollection<PlaylistEntryDB> get playlistEntryDBs => this.collection();
@@ -4036,7 +4036,7 @@ const PlaylistEntryDBSchema = CollectionSchema(
   getId: _playlistEntryDBGetId,
   getLinks: _playlistEntryDBGetLinks,
   attach: _playlistEntryDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _playlistEntryDBEstimateSize(
@@ -4839,7 +4839,7 @@ extension PlaylistEntryDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetNotificationsDBCollection on Isar {
   IsarCollection<NotificationsDB> get notificationsDBs => this.collection();
@@ -4918,7 +4918,7 @@ const NotificationsDBSchema = CollectionSchema(
   getId: _notificationsDBGetId,
   getLinks: _notificationsDBGetLinks,
   attach: _notificationsDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _notificationsDBEstimateSize(
@@ -6378,7 +6378,7 @@ extension NotificationsDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetLyricsDBCollection on Isar {
   IsarCollection<LyricsDB> get lyricsDBs => this.collection();
@@ -6474,7 +6474,7 @@ const LyricsDBSchema = CollectionSchema(
   getId: _lyricsDBGetId,
   getLinks: _lyricsDBGetLinks,
   attach: _lyricsDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _lyricsDBEstimateSize(
@@ -8710,7 +8710,7 @@ extension LyricsDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetSearchHistoryDBCollection on Isar {
   IsarCollection<SearchHistoryDB> get searchHistoryDBs => this.collection();
@@ -8769,7 +8769,7 @@ const SearchHistoryDBSchema = CollectionSchema(
   getId: _searchHistoryDBGetId,
   getLinks: _searchHistoryDBGetLinks,
   attach: _searchHistoryDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _searchHistoryDBEstimateSize(
@@ -9486,7 +9486,7 @@ extension SearchHistoryDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetDownloadDBCollection on Isar {
   IsarCollection<DownloadDB> get downloadDBs => this.collection();
@@ -9542,7 +9542,7 @@ const DownloadDBSchema = CollectionSchema(
   getId: _downloadDBGetId,
   getLinks: _downloadDBGetLinks,
   attach: _downloadDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _downloadDBEstimateSize(
@@ -10511,7 +10511,7 @@ extension DownloadDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetAppSettingsStrDBCollection on Isar {
   IsarCollection<AppSettingsStrDB> get appSettingsStrDBs => this.collection();
@@ -10572,7 +10572,7 @@ const AppSettingsStrDBSchema = CollectionSchema(
   getId: _appSettingsStrDBGetId,
   getLinks: _appSettingsStrDBGetLinks,
   attach: _appSettingsStrDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _appSettingsStrDBEstimateSize(
@@ -11700,7 +11700,7 @@ extension AppSettingsStrDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetAppSettingsBoolDBCollection on Isar {
   IsarCollection<AppSettingsBoolDB> get appSettingsBoolDBs => this.collection();
@@ -11751,7 +11751,7 @@ const AppSettingsBoolDBSchema = CollectionSchema(
   getId: _appSettingsBoolDBGetId,
   getLinks: _appSettingsBoolDBGetLinks,
   attach: _appSettingsBoolDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _appSettingsBoolDBEstimateSize(
@@ -12427,7 +12427,7 @@ extension AppSettingsBoolDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetPlaybackHistoryDBCollection on Isar {
   IsarCollection<PlaybackHistoryDB> get playbackHistoryDBs => this.collection();
@@ -12475,7 +12475,7 @@ const PlaybackHistoryDBSchema = CollectionSchema(
   getId: _playbackHistoryDBGetId,
   getLinks: _playbackHistoryDBGetLinks,
   attach: _playbackHistoryDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _playbackHistoryDBEstimateSize(
@@ -12929,7 +12929,7 @@ extension PlaybackHistoryDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetCacheEntryDBCollection on Isar {
   IsarCollection<CacheEntryDB> get cacheEntryDBs => this.collection();
@@ -13016,7 +13016,7 @@ const CacheEntryDBSchema = CollectionSchema(
   getId: _cacheEntryDBGetId,
   getLinks: _cacheEntryDBGetLinks,
   attach: _cacheEntryDBAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _cacheEntryDBEstimateSize(
@@ -14284,7 +14284,7 @@ extension CacheEntryDBQueryProperty
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetPluginStorageEntityCollection on Isar {
   IsarCollection<PluginStorageEntity> get pluginStorageEntitys =>
@@ -14359,7 +14359,7 @@ const PluginStorageEntitySchema = CollectionSchema(
   getId: _pluginStorageEntityGetId,
   getLinks: _pluginStorageEntityGetLinks,
   attach: _pluginStorageEntityAttach,
-  version: '3.3.0-dev.3',
+  version: '3.4.1',
 );
 
 int _pluginStorageEntityEstimateSize(
@@ -15579,7 +15579,7 @@ extension PluginStorageEntityQueryProperty
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 const ArtworkDBSchema = Schema(
   name: r'ArtworkDB',
@@ -16182,7 +16182,7 @@ extension ArtworkDBQueryObject
     on QueryBuilder<ArtworkDB, ArtworkDB, QFilterCondition> {}
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 const ArtistSummaryDBSchema = Schema(
   name: r'ArtistSummaryDB',
@@ -16973,7 +16973,7 @@ extension ArtistSummaryDBQueryObject
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 const AlbumSummaryDBSchema = Schema(
   name: r'AlbumSummaryDB',
@@ -17895,7 +17895,7 @@ extension AlbumSummaryDBQueryObject
 }
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 const RemotePlaylistSummaryDBSchema = Schema(
   name: r'RemotePlaylistSummaryDB',
