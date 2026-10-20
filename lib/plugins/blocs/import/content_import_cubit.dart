@@ -16,6 +16,7 @@ import 'package:Bloomee/src/rust/api/plugin/models.dart';
 
 const int _kResolutionConcurrency = 5;
 const Duration _kPluginTimeout = Duration(seconds: 10);
+const Duration _kFetchTrackTimeout = Duration(minutes: 3);
 const double _kMinConfidence = 0.45;
 const int _kMaxCandidatesPerTrack = 5;
 
@@ -99,7 +100,7 @@ class ContentImportCubit extends Cubit<ContentImportState> {
               ContentImporterCommand.getCollectionInfo(url: url),
             ),
           )
-          .timeout(_kPluginTimeout);
+          .timeout(_kFetchTrackTimeout);
 
       if (response is PluginResponse_CollectionInfo) {
         emit(state.copyWith(
@@ -138,7 +139,7 @@ class ContentImportCubit extends Cubit<ContentImportState> {
               ContentImporterCommand.getTracks(url: url),
             ),
           )
-          .timeout(_kPluginTimeout);
+          .timeout(_kFetchTrackTimeout);
 
       if (response is PluginResponse_ImportTracks) {
         final entries = response.field0
