@@ -34,7 +34,9 @@ or the `KEY_STORE` (base64 keystore), `KEY_ALIAS`, `KEY_PASSWORD`, and
 use the debug key for build verification. The release workflow requires signing secrets.
 
 The manual **Build & Release** workflow builds Android on Ubuntu 24.04, Windows
-on Windows, and Linux on Ubuntu 24.04 in parallel. Each job caches Flutter/Pub
+on Windows Server 2022 with Visual Studio 2022, and Linux on Ubuntu 24.04 in parallel.
+The Windows image is pinned because the current audio and permission plugins use
+legacy coroutines rejected by Visual Studio 2026. Each job caches Flutter/Pub
 and its Cargokit Rust target directory; Android also caches Gradle dependencies
 and build outputs. Cold builds still compile native dependencies.
 

@@ -136,7 +136,8 @@ jobs:
 
   build-windows:
     name: Build Windows
-    runs-on: windows-latest
+    # These plugins use legacy coroutines that MSVC in VS 2026 rejects.
+    runs-on: windows-2022
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -155,7 +156,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: rust -> ../build/windows/x64/plugins/rust_lib_Bloomee/cargokit_build
-          key: windows-flutter-${{ env.FLUTTER_VERSION }}
+          key: windows-2022-vs2022-flutter-${{ env.FLUTTER_VERSION }}
           cache-workspace-crates: true
 
       - name: Install Dependencies
