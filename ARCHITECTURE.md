@@ -287,6 +287,33 @@ comparison on this Windows host, the tagged v3.0.4+202 engine fetched 63,832,064
 bytes; the bounded engine fetched 3,997,696 bytes. This reproduces excess buffering,
 not the historical reporter's Wi-Fi latency or a proven persistent socket leak.
 
+Stream resolution is separate from native media buffering. Playback allows a
+45-second resolution deadline because plugin HTTP calls have a 30-second timeout
+and can wait behind another call to the same plugin. `MediaResolverService` shares
+an in-flight extraction for the same track across preload and retries; settling
+either successfully or with an error removes it, so signed URLs are not kept as
+a permanent cache. Every queued playback load registers a new error-handling
+attempt. Switching loads or resetting playback cancels old retry timers.
+Regression checks include decoded playback advancing, extraction retries after a
+caller timeout, failed-extraction cleanup and retry/stop behavior.
+
+Native `media_kit` error streams include FFmpeg diagnostic log messages, so a
+TCP diagnostic alone must not initiate application recovery. The engine observes
+mpv's [`idle-active`](https://mpv.io/manual/stable/#properties-idle-active)
+property to confirm that the file was unloaded before reporting a native failure;
+premature EOF also follows the failure path. Paused and buffering players remain
+loaded. No application stall timer polls playback or guesses when to reload.
+Diagnostics from the standby player cannot fail the active track. Recovery uses
+the last played position, passes it as `Media.start` when opening the fresh URL,
+and retains that position if stream extraction fails again. Progress does not
+replenish the automatic retry budget. Manual pause cancels queued recovery and
+clears play intent; loading completion must respect that intent.
+
+Native regression checks interrupt an HTTP body and allow libmpv to reconnect,
+verify that TCP diagnostics during decoded playback cause no application error,
+exercise HTTP 403 failure and premature EOF, and verify resume position. These
+tests validate Windows libmpv here; Android device playback still needs testing.
+
 ---
 
 ## 9. Update & Changelog Flow

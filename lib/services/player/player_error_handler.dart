@@ -71,9 +71,13 @@ class PlayerErrorHandler {
   Function()? onStopPlayback;
   Function(String?)? onClearCachedSource;
 
-  /// Called strictly before the engine commands a play/open.
+  /// Called before each playback load, including stream resolution and retries.
   /// Generates a new sequence ID to deterministically isolate error bursts.
   void registerAttempt(String trackId) {
+    // A pending retry belongs to the previous load. Switching tracks or
+    // retrying explicitly must not let its timer restart the new selection.
+    _reconnectionTimer?.cancel();
+    _reconnectionTimer = null;
     _currentAttemptSequence++;
 
     if (_currentTrackId != trackId) {
@@ -97,6 +101,7 @@ class PlayerErrorHandler {
         msg.contains('timeout') ||
         msg.contains('unreachable') ||
         msg.contains('socket') ||
+        msg.contains('tcp:') ||
         msg.contains('abnormal eof') ||
         error is SocketException ||
         error is TimeoutException) {
@@ -223,12 +228,20 @@ class PlayerErrorHandler {
   void markTrackSuccess(String mediaId) {
     if (_currentTrackId == mediaId) {
       _currentTrackHadPlay = true;
-      _currentTrackRetries = 0;
+      // Progress proves this track played, but must not replenish its retry
+      // budget: intermittent resets otherwise reload the same song forever.
       _consecutiveTrackFailures = 0;
     }
   }
 
+  void cancelPendingRetry() {
+    _reconnectionTimer?.cancel();
+    _reconnectionTimer = null;
+  }
+
   void resetCircuitBreaker() {
+    _reconnectionTimer?.cancel();
+    _reconnectionTimer = null;
     _currentTrackId = null;
     _currentTrackRetries = 0;
     _consecutiveTrackFailures = 0;

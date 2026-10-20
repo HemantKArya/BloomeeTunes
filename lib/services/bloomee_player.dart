@@ -73,6 +73,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   // ── Concurrency tokens ─────────────────────────────────────────────────────
   CancelableCompleter<void>? _playCompleter;
+  bool _playRequested = false;
+  Duration _retryPosition = Duration.zero;
   CancelableOperation<ResolvedMediaSource>? _preResolveOp;
   CancelableOperation<(Track, ResolvedMediaSource)>? _currentResolveOp;
   bool _isAdvancing = false;
@@ -376,7 +378,13 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       log('Engine error: $error', name: 'BloomeeMusicPlayer');
       final track = _queueManager.currentTrack;
       if (track != null) {
-        _errorHandler.handleError(PlayerErrorType.playbackError, error, track);
+        if (engine.recoveryPosition > Duration.zero) {
+          _retryPosition = engine.recoveryPosition;
+        }
+        if (_playRequested) {
+          _errorHandler.handleError(
+              _errorHandler.categorizeError(error), error, track);
+        }
       }
     });
 
@@ -460,6 +468,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   @override
   Future<void> play() async {
     if (_isDisposed) return;
+    _playRequested = true;
     _errorHandler.resetCircuitBreaker();
     _shouldResumeAfterInterruption = false;
     final granted = await _activateAudioSession();
@@ -469,19 +478,24 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
     // Cold resume: engine has nothing loaded, but queue has a track
     // (happens after session restore). Resolve and play the current track.
-    if (engine.state == EngineState.idle) {
+    if (engine.state == EngineState.idle || engine.state == EngineState.error) {
       final track = _queueManager.currentTrack;
       if (track != null) {
-        await _enqueuePlayTrack(track, doPlay: true);
+        await _enqueuePlayTrack(track,
+            doPlay: true, initialPosition: _retryPosition);
         return;
       }
     }
+    final current = _queueManager.currentTrack;
+    if (current != null) _errorHandler.registerAttempt(current.id);
     await engine.play();
   }
 
   @override
   Future<void> pause() async {
     if (_isDisposed) return;
+    _playRequested = false;
+    _errorHandler.cancelPendingRetry();
     // Manual pause clears any pending auto-resume.
     _shouldResumeAfterInterruption = false;
     await engine.pause();
@@ -507,6 +521,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   @override
   Future<void> stop() async {
+    _playRequested = false;
+    _retryPosition = Duration.zero;
     _errorHandler.resetCircuitBreaker();
     _shouldResumeAfterInterruption = false;
     _playCompleter?.operation.cancel();
@@ -561,6 +577,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     Duration? initialPosition,
   }) {
     if (_isDisposed) return Future.value();
+    _playRequested = doPlay;
+    _retryPosition = initialPosition ?? Duration.zero;
 
     // Cancel any in-flight play operation — user changed track.
     final prev = _playCompleter;
@@ -571,6 +589,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _playCompleter = completer;
     prev?.operation.cancel();
 
+    _errorHandler.registerAttempt(track.id);
     _doPlay(track, completer, doPlay: doPlay, initialPosition: initialPosition);
     return completer.operation.valueOrCancellation().then((_) {});
   }
@@ -614,16 +633,19 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
       if (canUsePreloaded) {
         isOffline.add(_preloadedTrackOffline);
-        result = engine.crossfadeDuration > Duration.zero
+        result = engine.crossfadeDuration > Duration.zero && _playRequested
             ? await engine.crossfadeToPreloaded(engine.crossfadeDuration)
-            : await engine.activatePreloaded(autoPlay: doPlay);
+            : await engine.activatePreloaded(
+                autoPlay: doPlay && _playRequested);
         _clearPreloadedMarker();
       } else {
         await engine.stop(keepLoadingState: true);
         if (!alive()) return;
 
         _currentResolveOp = CancelableOperation.fromFuture(
-          _resolveWithFallback(track).timeout(const Duration(seconds: 15)),
+          // Plugin HTTP requests can take up to 30 seconds. Do not expire
+          // playback at 15 seconds while extraction is still running.
+          _resolveWithFallback(track).timeout(const Duration(seconds: 45)),
         );
         final resolved = await _currentResolveOp!.valueOrCancellation();
         if (resolved == null || !alive()) return;
@@ -635,7 +657,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         result = await engine.openDirect(
           resolved.$2.uri,
           httpHeaders: resolved.$2.headers,
-          autoPlay: doPlay,
+          // Complete loading and establish the resume point before deciding
+          // to play. Pause may arrive while the native open is awaiting I/O.
+          autoPlay: false,
+          initialPosition: initialPosition,
         );
       }
 
@@ -652,8 +677,17 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         return complete();
       }
 
-      if (initialPosition != null && initialPosition > Duration.zero) {
+      if (canUsePreloaded &&
+          initialPosition != null &&
+          initialPosition > Duration.zero) {
         await engine.seek(initialPosition);
+      }
+
+      if (!alive()) return;
+      if (!canUsePreloaded && doPlay && _playRequested) {
+        await engine.play();
+      } else if (!_playRequested) {
+        await engine.pause();
       }
 
       isResolving.add(false);
@@ -767,10 +801,10 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   Future<void> _retryCurrentTrack() async {
     final track = _queueManager.currentTrack;
-    if (track == null) return;
+    if (track == null || !_playRequested || _isDisposed) return;
     _errorHandler.clearError();
     await _enqueuePlayTrack(track,
-        doPlay: true, initialPosition: engine.position);
+        doPlay: true, initialPosition: _retryPosition);
   }
 
   // ─── Related Songs ────────────────────────────────────────────────────────
