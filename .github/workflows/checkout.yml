@@ -38,46 +38,28 @@ jobs:
       - name: Static Code Analysis
         run: flutter analyze --no-fatal-infos
 
+      - name: Configure Isar for Linux test isolates
+        shell: bash
+        run: |
+          ISAR_LIB_DIR="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from urllib.parse import unquote, urljoin, urlparse
+
+          config = Path('.dart_tool/package_config.json').resolve()
+          packages = json.loads(config.read_text())['packages']
+          package = next(p for p in packages if p['name'] == 'isar_community_flutter_libs')
+          root = Path(unquote(urlparse(urljoin(config.as_uri(), package['rootUri'])).path))
+          library_dir = root / 'linux'
+          if not (library_dir / 'libisar.so').is_file():
+              raise SystemExit('The locked Isar package is missing linux/libisar.so')
+          print(library_dir)
+          PY
+          )"
+          echo "LD_LIBRARY_PATH=$ISAR_LIB_DIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+
       - name: Run Flutter Tests
         run: flutter test --no-pub
-
-  android-build:
-    name: Build Android APK
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.47.7'
-          channel: stable
-          cache: true
-
-      - name: Setup Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust Dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: rust
-
-      - name: Select Build JDK
-        run: flutter config --jdk-dir="$JAVA_HOME"
-
-      - name: Install Dependencies
-        run: flutter pub get --enforce-lockfile
-
-      - name: Build Android APKs
-        run: flutter build apk --release --split-per-abi
-
 
   # ==========================================
   # JOB 2: RUST CHECKS (flutter_rust_bridge)

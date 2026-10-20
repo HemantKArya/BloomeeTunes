@@ -33,6 +33,17 @@ or the `KEY_STORE` (base64 keystore), `KEY_ALIAS`, `KEY_PASSWORD`, and
 `STORE_PASSWORD` GitHub secrets. Without a local `key.properties`, release builds
 use the debug key for build verification. The release workflow requires signing secrets.
 
+The manual **Build & Release** workflow builds Android on Ubuntu 24.04, Windows
+on Windows, and Linux on Ubuntu 24.04 in parallel. Each job caches Flutter/Pub
+and its Cargokit Rust target directory; Android also caches Gradle dependencies
+and build outputs. Cold builds still compile native dependencies.
+
+Android verifies all four signed APKs before uploading them. One publishing job
+waits for every platform, checks all seven release files, and creates the
+prerelease with the existing filenames and version/build-number scheme.
+`SECRET_KEY` remains supported for publishing; when absent, the workflow uses
+the built-in GitHub token with `contents: write`. APK builds remain manual.
+
 ## 1. Fork the repository
 
 Click the "Fork" button in the top-right corner of the repository's page on GitHub, and clone your forked repository to your local machine.
