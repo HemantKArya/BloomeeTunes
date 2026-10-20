@@ -95,6 +95,13 @@ class BackupSettings extends StatelessWidget {
                               onTap: () => BackupImportFlow.show(context)),
                           const SettingDivider(),
                           SettingNavTile(
+                              icon: Icons.manage_search,
+                              title: l10n.libraryRecoveryTitle,
+                              subtitle: l10n.libraryRecoverySubtitle,
+                              onTap: () =>
+                                  BackupImportFlow.recoverLibrary(context)),
+                          const SettingDivider(),
+                          SettingNavTile(
                               icon: Icons.history,
                               title: l10n.backupRecoveryCopies,
                               subtitle: l10n.backupLocationDetails,
@@ -157,8 +164,9 @@ class BackupSettings extends StatelessWidget {
                                             ],
                                           ));
                                   if (selected != null && context.mounted) {
-                                    await BackupImportFlow.show(
-                                        context, selected);
+                                    await BackupImportFlow.recoverLibrary(
+                                        context,
+                                        sourcePath: selected);
                                   }
                                 } catch (error) {
                                   SnackbarService.showMessage(

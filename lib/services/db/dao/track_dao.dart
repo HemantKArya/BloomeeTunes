@@ -95,6 +95,25 @@ class TrackDAO {
     return trackDB != null ? trackDBToTrack(trackDB) : null;
   }
 
+  /// Bounded bulk lookup for large offline libraries.
+  Future<Map<String, Track>> getTracksByMediaIds(
+      Iterable<String> mediaIds) async {
+    final isar = await _db;
+    final ids = mediaIds.toSet().toList();
+    final result = <String, Track>{};
+    for (var offset = 0; offset < ids.length; offset += 256) {
+      final rows = await isar.trackDBs
+          .filter()
+          .anyOf(ids.skip(offset).take(256),
+              (q, String id) => q.mediaIdEqualTo(id))
+          .findAll();
+      for (final row in rows) {
+        result[row.mediaId] = trackDBToTrack(row);
+      }
+    }
+    return result;
+  }
+
   /// Find a track by Isar internal [id].
   ///
   /// Returns a domain [Track] model, or null if not found.

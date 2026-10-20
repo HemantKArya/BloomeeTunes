@@ -62,6 +62,25 @@ class BackupCubit extends Cubit<BackupState> {
   Future<List<RecoveryCopy>> recoverySnapshots() =>
       repository.recoverySnapshots();
 
+  Future<List<LibraryRecoverySource>> libraryRecoverySources() =>
+      repository.libraryRecoverySources();
+
+  Future<LibraryRecoveryPlan> prepareLibraryRecovery(String path) async {
+    if (state.busy) {
+      throw StateError('Another backup operation is already open.');
+    }
+    emit(BackupState(busy: true, resetPending: _resetPending));
+    try {
+      return await repository.prepareLibraryRecovery(path);
+    } catch (_) {
+      await finish();
+      rethrow;
+    }
+  }
+
+  Future<Map<String, int>> recoverLibrary(LibraryRecoveryPlan plan) =>
+      repository.recoverLibrary(plan);
+
   Future<void> requestReset() async {
     if (state.busy) {
       throw StateError('Another backup operation is already open.');

@@ -3,7 +3,12 @@ import 'package:Bloomee/core/models/backup/backup_document.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:isar_community/isar.dart';
 import 'dart:isolate';
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:Bloomee/services/db/dao/download_dao.dart';
 import 'package:Bloomee/services/db/database_schemas.dart';
+import 'package:Bloomee/core/models/backup/recovery_copy.dart';
+import 'package:Bloomee/plugins/utils/media_id.dart';
 
 /// Portable snapshots and atomic imports. The live Isar instance is never closed.
 class BackupDAO {
@@ -11,6 +16,62 @@ class BackupDAO {
   final bool _background;
   const BackupDAO(this._db) : _background = true;
   const BackupDAO._worker(this._db) : _background = false;
+
+  /// Read a retained v3 database on a disposable copy. Legacy schema migration
+  /// is intentionally unsupported; the repository snapshots the live DB first.
+  static Future<LibraryRecoveryPlan> readRecoveryFile(
+          String path, String supportPath, String? documentsPath) =>
+      Isolate.run(() async {
+        final file = File(path);
+        final size = await file.length();
+        if (size == 0 || size > 256 * 1024 * 1024) {
+          throw const FormatException('Empty or oversized recovery database.');
+        }
+        final root = await Directory(p.join(supportPath, 'import_staging'))
+            .create(recursive: true);
+        final stage = await root.createTemp('snapshot_recovery_');
+        final name = 'recovery_${p.basename(stage.path)}';
+        Isar? connection;
+        try {
+          await file.copy(p.join(stage.path, '$name.isar'));
+          connection = await Isar.open(databaseSchemas,
+              directory: stage.path, name: name, inspector: false);
+          final plan = readLocalRecovery(connection);
+          if (plan.document.trackCount == 0 &&
+              plan.document.playlistCount == 0) {
+            throw const FormatException(
+                'No supported v3 library data found. Pre-v3 database migration is retired.');
+          }
+          final resolver = DownloadFileResolver(
+              supportPath: supportPath, documentsPath: documentsPath);
+          final downloads = <RecoveredDownload>[];
+          var unavailable = 0;
+          for (var offset = 0; offset < plan.downloads.length; offset += 32) {
+            final batch = plan.downloads.skip(offset).take(32).toList();
+            final resolved = await Future.wait(
+                batch.map((d) => resolver.resolve(d.filePath, d.fileName)));
+            for (var i = 0; i < batch.length; i++) {
+              final row = batch[i];
+              if (resolved[i] == null) unavailable++;
+              downloads.add(RecoveredDownload(
+                  mediaId: row.mediaId,
+                  fileName: row.fileName,
+                  filePath: resolved[i] == null
+                      ? row.filePath
+                      : p.dirname(resolved[i]!),
+                  lastDownloaded: row.lastDownloaded));
+            }
+          }
+          return LibraryRecoveryPlan(
+              document: plan.document,
+              downloads: downloads,
+              unavailableFiles: unavailable,
+              brokenEntries: plan.brokenEntries);
+        } finally {
+          if (connection != null) await connection.close();
+          await stage.delete(recursive: true);
+        }
+      });
 
   static Future<T> _onWorker<T>(String directory, String name,
           Future<T> Function(BackupDAO) operation) =>
@@ -34,9 +95,13 @@ class BackupDAO {
           String name,
           BackupDocument document,
           BackupSelection selection,
-          String? receiptKey) =>
-      _onWorker(directory, name,
-          (dao) => dao.apply(document, selection, receiptKey: receiptKey));
+          String? receiptKey,
+          List<RecoveredDownload> downloads) =>
+      _onWorker(
+          directory,
+          name,
+          (dao) => dao.apply(document, selection,
+              receiptKey: receiptKey, recoveredDownloads: downloads));
 
   static Future<void> validateInBackground(BackupDocument document) =>
       Isolate.run(() => validateEntities(document));
@@ -142,13 +207,23 @@ class BackupDAO {
 
   Future<Map<String, int>> apply(
       BackupDocument document, BackupSelection selection,
-      {String? receiptKey}) async {
+      {String? receiptKey,
+      List<RecoveredDownload> recoveredDownloads = const []}) async {
     final isar = await _db;
     if (_background) {
-      return _applyWorker(
-          isar.directory!, isar.name, document, selection, receiptKey);
+      return _applyWorker(isar.directory!, isar.name, document, selection,
+          receiptKey, recoveredDownloads);
     }
     validateEntities(document);
+    if (recoveredDownloads.isNotEmpty &&
+        (!selection.library || selection.mode != BackupImportMode.merge)) {
+      throw ArgumentError('Device recovery only supports a library merge.');
+    }
+    final documentIds =
+        document.rows('tracks').map((t) => t['mediaId']).toSet();
+    if (recoveredDownloads.any((d) => !documentIds.contains(d.mediaId))) {
+      throw const FormatException('Recovery download is missing its track.');
+    }
     if (selection.mode == BackupImportMode.replace &&
         !document.allowsReplacement) {
       throw const FormatException(
@@ -169,6 +244,7 @@ class BackupDAO {
           'addedEntries': 0,
           'addedHistory': 0,
           'addedSearches': 0,
+          'addedDownloads': 0,
           'changedSettings': 0
         };
       }
@@ -178,10 +254,12 @@ class BackupDAO {
       var addedHistory = 0;
       var addedSearches = 0;
       var changedSettings = 0;
+      var addedDownloads = 0;
       final wantsHistory = selection.history &&
           (document.has('history') || document.has('searchHistory'));
       final tracks = <String, TrackDB>{};
       final needed = <String>{
+        for (final d in recoveredDownloads) d.mediaId,
         if (selection.library)
           for (final p in document.rows('playlists'))
             if (!isDevicePlaylist(p['name'] as String))
@@ -354,6 +432,56 @@ class BackupDAO {
           }
         }
       }
+      for (final systemName in ['_DOWNLOADS', '_LOCAL_MUSIC']) {
+        final mappings = recoveredDownloads
+            .where((download) =>
+                isLocalMediaId(download.mediaId) ==
+                (systemName == '_LOCAL_MUSIC'))
+            .toList();
+        if (mappings.isEmpty) continue;
+        var downloadsPlaylist = isar.playlistDBs
+            .filter()
+            .nameEqualTo(systemName, caseSensitive: false)
+            .findFirstSync();
+        downloadsPlaylist ??= PlaylistDB(name: systemName);
+        downloadsPlaylist.id = isar.playlistDBs.putSync(downloadsPlaylist);
+        final entries = isar.playlistEntryDBs
+            .where()
+            .playlistIdEqualToAnyPosition(downloadsPlaylist.id)
+            .findAllSync();
+        final seen = <String>{};
+        var position = 0;
+        for (final entry in entries) {
+          entry.track.loadSync();
+          if (entry.track.value != null) seen.add(entry.track.value!.mediaId);
+          if (entry.position >= position) position = entry.position + 1;
+        }
+        for (final download in mappings) {
+          final existing = isar.downloadDBs
+              .filter()
+              .mediaIdEqualTo(download.mediaId)
+              .findFirstSync();
+          // A recovery merge never replaces a current download mapping.
+          if (existing == null) {
+            isar.downloadDBs.putSync(DownloadDB(
+                fileName: download.fileName,
+                filePath: download.filePath,
+                mediaId: download.mediaId,
+                lastDownloaded: download.lastDownloaded));
+            addedDownloads++;
+          }
+          if (!seen.add(download.mediaId)) continue;
+          final entry = PlaylistEntryDB(
+              playlistId: downloadsPlaylist.id, position: position++)
+            ..playlist.value = downloadsPlaylist
+            ..track.value = tracks[download.mediaId]!;
+          isar.playlistEntryDBs.putSync(entry);
+          entry.playlist.saveSync();
+          entry.track.saveSync();
+        }
+        downloadsPlaylist.updatedAt = DateTime.now();
+        isar.playlistDBs.putSync(downloadsPlaylist);
+      }
       if (receiptKey != null) {
         isar.appSettingsBoolDBs.putSync(
             AppSettingsBoolDB(settingName: receiptKey, settingValue: true));
@@ -364,9 +492,90 @@ class BackupDAO {
         'addedHistory': addedHistory,
         'addedSearches': addedSearches,
         'changedSettings': changedSettings,
+        'addedDownloads': addedDownloads,
         'addedEntries': addedEntries
       };
     });
+  }
+
+  /// Runs on an isolated staging copy. Broken links are reported, never
+  /// guessed; unreferenced metadata is kept in a separate recovered playlist.
+  static LibraryRecoveryPlan readLocalRecovery(Isar source) =>
+      source.txnSync(() {
+        final tracks = {
+          for (final t in source.trackDBs.where().findAllSync())
+            t.mediaId: _trackMap(t)
+              ..['title'] = t.title.trim().isEmpty ? t.mediaId : t.title
+        };
+        var broken = 0;
+        final playlists = <Map<String, dynamic>>[];
+        for (final playlist in source.playlistDBs.where().findAllSync()) {
+          if (isDevicePlaylist(playlist.name)) continue;
+          final ids = <String>{};
+          for (final entry in source.playlistEntryDBs
+              .where()
+              .playlistIdEqualToAnyPosition(playlist.id)
+              .findAllSync()) {
+            entry.track.loadSync();
+            final id = entry.track.value?.mediaId;
+            if (id == null) {
+              broken++;
+            } else {
+              ids.add(id);
+            }
+          }
+          playlists.add(_playlistMap(playlist)..['entries'] = ids.toList());
+        }
+        final downloads = <RecoveredDownload>[];
+        for (final row in source.downloadDBs.where().findAllSync()) {
+          tracks.putIfAbsent(
+              row.mediaId,
+              () => {
+                    'mediaId': row.mediaId,
+                    'title': row.fileName.isEmpty ? row.mediaId : row.fileName
+                  });
+          downloads.add(RecoveredDownload(
+              mediaId: row.mediaId,
+              fileName: row.fileName,
+              filePath: row.filePath,
+              lastDownloaded: row.lastDownloaded));
+        }
+        return recoveryPlan(tracks, playlists, downloads,
+            brokenEntries: broken);
+      });
+
+  static LibraryRecoveryPlan recoveryPlan(
+      Map<String, Map<String, dynamic>> tracks,
+      List<Map<String, dynamic>> playlists,
+      List<RecoveredDownload> downloads,
+      {int brokenEntries = 0}) {
+    final referenced = <String>{
+      for (final p in playlists) ...(p['entries'] as List).cast<String>(),
+      for (final d in downloads) d.mediaId
+    };
+    final orphanIds =
+        tracks.keys.where((id) => !referenced.contains(id)).toList();
+    if (orphanIds.isNotEmpty) {
+      var name = 'Recovered tracks';
+      var suffix = 1;
+      while (playlists.any(
+          (p) => (p['name'] as String).toLowerCase() == name.toLowerCase())) {
+        name = 'Recovered tracks (${suffix++})';
+      }
+      playlists
+          .add({'name': name, 'type': 'userPlaylist', 'entries': orphanIds});
+    }
+    return LibraryRecoveryPlan(
+        document: BackupDocument.fromMap({
+          'format': BackupDocument.format,
+          'schemaVersion': BackupDocument.version,
+          'kind': 'backup',
+          'sourceFormat': 'legacy',
+          'tracks': tracks.values.toList(),
+          'playlists': playlists
+        }),
+        downloads: downloads,
+        brokenEntries: brokenEntries);
   }
 
   static Map<String, dynamic>? _artMap(ArtworkDB? a) => a == null

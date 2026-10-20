@@ -2112,6 +2112,44 @@ class AppLocalizationsHi extends AppLocalizations {
   String get backupCancelReset => 'Cancel reset';
 
   @override
+  String get libraryRecoveryTitle => 'Recover missing library';
+
+  @override
+  String get libraryRecoverySubtitle =>
+      'Look for playlists and download records retained from earlier versions.';
+
+  @override
+  String get libraryRecoveryChooseSource =>
+      'Choose a retained database to scan. Your current library and original files will be preserved.';
+
+  @override
+  String get libraryRecoveryNoSources =>
+      'No retained databases were found. Audio files alone cannot restore original playlist membership.';
+
+  @override
+  String libraryRecoverySummary(
+      int tracks, int playlists, int downloads, int unavailable) {
+    return 'Found $tracks tracks, $playlists playlists and $downloads download records. $unavailable files are currently unavailable; their records will be preserved.';
+  }
+
+  @override
+  String libraryRecoveryWarnings(int broken) {
+    return '$broken broken playlist references could not be reconstructed from this copy.';
+  }
+
+  @override
+  String get libraryRecoveryMergeDetails =>
+      'Recovery adds missing tracks, playlist entries and download records. Existing playlists, file mappings and settings are preserved. A recovery copy is created first. Repeat this with another retained copy if it contains more of your library.';
+
+  @override
+  String get libraryRecoveryMerge => 'Merge recovered library';
+
+  @override
+  String libraryRecoveryComplete(int entries, int downloads) {
+    return 'Recovery complete: $entries playlist entries and $downloads download records added.';
+  }
+
+  @override
   String get backupStartupFailed => 'Bloomee could not start';
 
   @override

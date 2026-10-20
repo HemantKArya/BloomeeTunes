@@ -8,10 +8,129 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/blocs/current_playlist/cubit/current_playlist_cubit.dart';
 import 'dart:async';
+import 'package:Bloomee/blocs/downloader/cubit/downloader_cubit.dart';
+import 'package:Bloomee/core/models/backup/recovery_copy.dart';
+import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
 
 /// One presentation flow for Settings, Library, Open With, and Share.
 class BackupImportFlow {
   static final _queue = SerialExecutor();
+
+  static Future<void> recoverLibrary(BuildContext context,
+          {String? sourcePath}) =>
+      _queue.run(() async {
+        if (!context.mounted) return;
+        final cubit = context.read<BackupCubit>();
+        final l10n = AppLocalizations.of(context)!;
+        var acquired = false;
+        try {
+          final sources = await _progress(context, l10n.snackbarProcessingFile,
+              cubit.libraryRecoverySources);
+          if (!context.mounted) return;
+          final source = sourcePath != null
+              ? sources.firstWhere((s) => p.equals(s.path, sourcePath))
+              : await showDialog<LibraryRecoverySource>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                          title: Text(l10n.libraryRecoveryTitle),
+                          content: SizedBox(
+                              width: 480,
+                              child: SingleChildScrollView(
+                                  child:
+                                      Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                    Text(l10n.libraryRecoveryChooseSource),
+                                    if (sources.isEmpty)
+                                      Text(l10n.libraryRecoveryNoSources),
+                                    for (final source in sources)
+                                      ListTile(
+                                          title: Text(p.basename(source.path)),
+                                          subtitle: Text(
+                                              '${DateFormat.yMMMd().add_jm().format(source.modified)} · ${(source.bytes / (1024 * 1024)).toStringAsFixed(1)} MB\n${p.dirname(source.path)}'),
+                                          onTap: () =>
+                                              Navigator.pop(ctx, source)),
+                                  ]))),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: Text(l10n.buttonCancel))
+                          ]));
+          if (source == null || !context.mounted) return;
+          if (cubit.state.busy) {
+            throw StateError('Another backup operation is already open.');
+          }
+          acquired = true;
+          final plan = await _progress(context, l10n.snackbarProcessingFile,
+              () => cubit.prepareLibraryRecovery(source.path));
+          if (!context.mounted) return;
+          final accepted = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                      title: Text(l10n.libraryRecoveryTitle),
+                      content: SingleChildScrollView(
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text(l10n.libraryRecoverySummary(
+                                plan.document.trackCount,
+                                plan.document.playlistCount,
+                                plan.downloads.length,
+                                plan.unavailableFiles)),
+                            if (plan.brokenEntries > 0) ...[
+                              const SizedBox(height: 16),
+                              Text(l10n
+                                  .libraryRecoveryWarnings(plan.brokenEntries))
+                            ],
+                            const SizedBox(height: 16),
+                            Text(l10n.libraryRecoveryMergeDetails)
+                          ])),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: Text(l10n.buttonCancel)),
+                        FilledButton(
+                            onPressed: plan.document.trackCount == 0 &&
+                                    plan.document.playlistCount == 0
+                                ? null
+                                : () => Navigator.pop(ctx, true),
+                            child: Text(l10n.libraryRecoveryMerge))
+                      ]));
+          if (accepted != true || !context.mounted) return;
+          final result = await _progress(
+              context, l10n.storageRestoring, () => cubit.recoverLibrary(plan));
+          if (!context.mounted) return;
+          SnackbarService.showMessage(l10n.libraryRecoveryComplete(
+              result['addedEntries']!, result['addedDownloads']!));
+          try {
+            await context.read<DownloaderCubit>().refreshDownloadedSongs();
+            if (context.mounted) {
+              await context.read<CurrentPlaylistCubit>().refreshAfterImport();
+            }
+          } catch (_) {
+            SnackbarService.showMessage(l10n.backupRefreshFailed);
+          }
+        } catch (error) {
+          if (context.mounted) {
+            await showDialog<void>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                        title: Text(l10n.storageRestoreFailedTitle),
+                        content: SelectableText('$error'),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: Text(l10n.buttonOk))
+                        ]));
+          }
+        } finally {
+          if (acquired) await cubit.finish();
+        }
+      });
 
   static Future<void> show(BuildContext context, [String? path]) =>
       _queue.run(() async {

@@ -90,7 +90,9 @@ class DBProvider {
                   '7') ??
               7;
           if (days > 0) await HistoryDAO(db, trackDAO).purgeOldHistory(days);
-          await trackDAO.purgeOrphanTracks();
+          // Unlinked metadata may be the only surviving evidence of an older
+          // library with broken links. Automatic maintenance must not erase it
+          // before the user can inspect/recover the library.
           await CacheDAO(db).purgeExpiredCache();
           await SearchHistoryDAO(db).limitSearchHistory();
         });

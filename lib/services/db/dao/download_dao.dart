@@ -23,7 +23,10 @@ class DownloadDAO {
 
   static const downloadsPlaylistName = '_DOWNLOADS';
 
-  const DownloadDAO(this._db, this._trackDAO, this._playlistDAO);
+  final DownloadFileResolver _files;
+  DownloadDAO(this._db, this._trackDAO, this._playlistDAO,
+      {DownloadFileResolver? fileResolver})
+      : _files = fileResolver ?? DownloadFileResolver();
 
   // ── Write ──────────────────────────────────────────────────────────────────
 
@@ -118,36 +121,6 @@ class DownloadDAO {
     await isar.writeTxn(() => isar.downloadDBs.delete(record.id));
   }
 
-  /// Remove multiple download records in a single batch transaction.
-  Future<void> removeDownloadsBatch(List<String> mediaIds) async {
-    if (mediaIds.isEmpty) return;
-    final isar = await _db;
-
-    final records = <DownloadDB>[];
-    for (final mediaId in mediaIds) {
-      final record =
-          await isar.downloadDBs.filter().mediaIdEqualTo(mediaId).findFirst();
-      if (record != null) {
-        records.add(record);
-      }
-    }
-
-    if (records.isEmpty) return;
-
-    await isar.writeTxn(() async {
-      await isar.downloadDBs.deleteAll(records.map((r) => r.id).toList());
-    });
-
-    final downloadsPlaylist =
-        await _playlistDAO.getPlaylistByName(downloadsPlaylistName);
-    if (downloadsPlaylist != null) {
-      for (final mediaId in mediaIds) {
-        await _playlistDAO.removeTrackFromPlaylist(
-            downloadsPlaylist.id, mediaId);
-      }
-    }
-  }
-
   // ── Read ───────────────────────────────────────────────────────────────────
 
   /// Return the [DownloadDB] record for [mediaId], or null if not found or the
@@ -157,14 +130,34 @@ class DownloadDAO {
     final record =
         await isar.downloadDBs.filter().mediaIdEqualTo(mediaId).findFirst();
     if (record == null) return null;
-    final file = File('${record.filePath}/${record.fileName}');
-    if (!(await file.exists())) return null;
-    return record;
+    return _resolveRecord(isar, record);
+  }
+
+  Future<DownloadDB?> _resolveRecord(Isar isar, DownloadDB record) async {
+    final resolved = await _files.resolve(record.filePath, record.fileName);
+    if (resolved == null) return null;
+    final directory = p.dirname(resolved);
+    if (directory == record.filePath) return record;
+    // File checks yield. Do not resurrect a deleted row or overwrite a newer
+    // download that finished while we were checking the old path.
+    return isar.writeTxnSync(() {
+      final current = isar.downloadDBs.getSync(record.id);
+      if (current == null) return null;
+      if (current.filePath != record.filePath ||
+          current.fileName != record.fileName ||
+          current.mediaId != record.mediaId ||
+          current.lastDownloaded != record.lastDownloaded) {
+        return null;
+      }
+      current.filePath = directory;
+      isar.downloadDBs.putSync(current);
+      return current;
+    });
   }
 
   /// Return all [DownloadDB] records whose files still exist on disk.
   ///
-  /// Stale records (missing files) are cleaned up asynchronously.
+  /// Missing/inaccessible files never cause record or playlist deletion.
   Future<List<DownloadDB>> getValidDownloads() async {
     final isar = await _db;
     final all = await isar.downloadDBs.where().findAll();
@@ -178,26 +171,13 @@ class DownloadDAO {
     });
 
     final valid = <DownloadDB>[];
-    final stale = <DownloadDB>[];
-
-    final existences = await Future.wait(
-      all.map(
-          (record) => File('${record.filePath}/${record.fileName}').exists()),
-    );
-
-    for (var i = 0; i < all.length; i++) {
-      final record = all[i];
-      final exists = existences[i];
-      if (exists) {
-        valid.add(record);
-      } else {
-        stale.add(record);
-      }
-    }
-
-    // Clean up stale records in the background in a single batch.
-    if (stale.isNotEmpty) {
-      unawaited(removeDownloadsBatch(stale.map((s) => s.mediaId).toList()));
+    // Bound I/O fan-out for large offline libraries.
+    for (var offset = 0; offset < all.length; offset += 32) {
+      final resolved = await Future.wait(all
+          .skip(offset)
+          .take(32)
+          .map((record) => _resolveRecord(isar, record)));
+      valid.addAll(resolved.whereType<DownloadDB>());
     }
 
     return valid;
@@ -209,42 +189,45 @@ class DownloadDAO {
   /// Excludes locally scanned tracks (they have their own playlist).
   /// Falls back to a lightweight track if track metadata is missing.
   Future<List<Track>> getValidDownloadedTracks() async {
-    final downloads = await getValidDownloads();
+    final downloads = (await getValidDownloads())
+        .where((record) => !isLocalMediaId(record.mediaId))
+        .toList();
+    if (downloads.isEmpty) return [];
     final result = <Track>[];
+    final tracks =
+        await _trackDAO.getTracksByMediaIds(downloads.map((d) => d.mediaId));
     final runtimeArtworkCacheDir = await _runtimeArtworkCacheDir();
-
-    for (final record in downloads) {
-      if (isLocalMediaId(record.mediaId)) continue;
-
-      final track = await _trackDAO.getTrackByMediaId(record.mediaId);
-      if (track != null) {
-        final trackWithArtwork = await _resolveEmbeddedArtworkAtRuntime(
-          record,
-          track,
-          runtimeArtworkCacheDir: runtimeArtworkCacheDir,
-        );
-        result.add(trackWithArtwork);
-        continue;
-      }
-
-      // Fallback for legacy/missing rows; keep app stable.
-      result.add(
-        Track(
+    for (var offset = 0; offset < downloads.length; offset += 8) {
+      result.addAll(
+          await Future.wait(downloads.skip(offset).take(8).map((record) async {
+        final track = tracks[record.mediaId];
+        if (track != null && runtimeArtworkCacheDir != null) {
+          return _resolveEmbeddedArtworkAtRuntime(record, track,
+              runtimeArtworkCacheDir: runtimeArtworkCacheDir);
+        }
+        if (track != null) return track;
+        return Track(
           id: record.mediaId,
           title: record.fileName,
           artists: const [],
           thumbnail: const Artwork(url: '', layout: ImageLayout.square),
           isExplicit: false,
-        ),
-      );
+        );
+      })));
     }
 
     return result;
   }
 
-  Future<String> _runtimeArtworkCacheDir() async {
-    final tempDir = await getTemporaryDirectory();
-    return p.join(tempDir.path, 'bloomee_runtime_embedded_art');
+  Future<String?> _runtimeArtworkCacheDir() async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      return p.join(tempDir.path, 'bloomee_runtime_embedded_art');
+    } catch (error) {
+      log('Artwork cache unavailable; using persisted artwork',
+          error: error, name: 'DownloadDAO');
+      return null;
+    }
   }
 
   Future<Track> _resolveEmbeddedArtworkAtRuntime(
@@ -336,5 +319,83 @@ class DownloadDAO {
   Future<Stream<void>> watchDownloads() async {
     final isar = await _db;
     return isar.downloadDBs.watchLazy(fireImmediately: true);
+  }
+}
+
+/// Resolves exact paths and known app-container relocations. Never searches by
+/// basename: different songs can have the same filename.
+class DownloadFileResolver {
+  final String? supportPath;
+  final String? documentsPath;
+  Future<List<String?>>? _roots;
+  DownloadFileResolver({this.supportPath, this.documentsPath});
+
+  Future<List<String?>> _loadRoots() async {
+    try {
+      return [
+        supportPath ?? (await getApplicationSupportDirectory()).path,
+        documentsPath ?? (await getApplicationDocumentsDirectory()).path
+      ];
+    } catch (_) {
+      return [supportPath, documentsPath];
+    }
+  }
+
+  Future<String?> resolve(String directory, String name) async {
+    if (name.isEmpty || p.basename(name) != name) return null;
+    if (directory.startsWith('file:')) {
+      try {
+        directory = Uri.parse(directory).toFilePath();
+      } catch (_) {
+        return null;
+      }
+    }
+    final candidates = <String>{
+      p.join(directory, name),
+      if (p.basename(directory) == name) directory
+    };
+    for (final path in candidates) {
+      if (await _exists(path)) return path;
+    }
+    final roots = await (_roots ??= _loadRoots());
+    final normalized =
+        (p.basename(directory) == name ? p.dirname(directory) : directory)
+            .replaceAll('\\', '/');
+    // Restrict rebasing to known private app containers, including files saved
+    // directly at the container root. Shared/external folders never rebase to
+    // internal storage merely because they contain a folder called "files".
+    final android = RegExp(
+            r'^/data/(?:data|user(?:_de)?/\d+)/[^/]+/(files|app_flutter)(?:/|$)')
+        .firstMatch(normalized);
+    final apple = RegExp(
+            r'/Containers/Data/Application/[^/]+/(Documents|Library/Application Support)(?:/|$)')
+        .firstMatch(normalized);
+    final relocations = <(String, String?)>[
+      if (android != null)
+        (
+          normalized.substring(android.end),
+          android.group(1) == 'files' ? roots[0] : roots[1]
+        ),
+      if (apple != null)
+        (
+          normalized.substring(apple.end),
+          apple.group(1) == 'Documents' ? roots[1] : roots[0]
+        ),
+    ];
+    for (final (suffix, root) in relocations) {
+      if (root == null) continue;
+      final moved = p.normalize(p.join(root, suffix, name));
+      if (!p.isWithin(root, moved)) continue;
+      if (await _exists(moved)) return moved;
+    }
+    return null;
+  }
+
+  Future<bool> _exists(String path) async {
+    try {
+      return await File(path).exists();
+    } on FileSystemException {
+      return false;
+    }
   }
 }

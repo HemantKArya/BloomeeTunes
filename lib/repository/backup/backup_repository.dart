@@ -19,11 +19,15 @@ class BackupRepository {
   final BackupDAO dao;
   final Future<Isar> database;
   final String supportPath;
+  final String? documentsPath;
   final SerialExecutor _operations = SerialExecutor();
   final Random _random = Random.secure();
 
   BackupRepository(
-      {required this.dao, required this.database, required this.supportPath});
+      {required this.dao,
+      required this.database,
+      required this.supportPath,
+      this.documentsPath});
 
   String _id() =>
       '${DateTime.now().toUtc().microsecondsSinceEpoch}_${List.generate(16, (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0')).join()}';
@@ -31,6 +35,91 @@ class BackupRepository {
 
   Future<void> runMaintenance(Future<void> Function() maintenance) =>
       _operations.run(maintenance);
+
+  Future<List<LibraryRecoverySource>> libraryRecoverySources() =>
+      _operations.run(_libraryRecoverySources);
+
+  Future<List<LibraryRecoverySource>> _libraryRecoverySources() async {
+    final live = await database;
+    final paths = <String>{p.join(live.directory!, '${live.name}.isar')};
+    final roots = <String>{
+      supportPath,
+      if (documentsPath != null) documentsPath!
+    };
+    // Only retained v3 databases and snapshots are supported.
+    for (final root in roots) {
+      paths.addAll([
+        p.join(root, 'dbv3.isar'),
+        p.join(root, 'bloomee_backup_dbv3.isar'),
+        p.join(root, 'bloomeeBackup', 'bloomee_backup_dbv3.isar')
+      ]);
+    }
+    try {
+      final downloads = await getDownloadsDirectory();
+      if (downloads != null) {
+        paths.add(p.join(
+            downloads.path, 'bloomeeBackup', 'bloomee_backup_dbv3.isar'));
+      }
+    } catch (_) {/* This platform may not expose a Downloads directory. */}
+    final backups = Directory(snapshotDirectory);
+    if (await backups.exists()) {
+      await for (final entry in backups.list(followLinks: false)) {
+        if (entry is File && entry.path.endsWith('.isar')) {
+          paths.add(entry.path);
+        }
+      }
+    }
+    final sources = <LibraryRecoverySource>[];
+    for (final path in paths.map(p.normalize).toSet()) {
+      final stat = await File(path).stat();
+      if (stat.type == FileSystemEntityType.file && stat.size > 0) {
+        sources.add(LibraryRecoverySource(path, stat.modified, stat.size));
+      }
+    }
+    sources.sort((a, b) => b.modified.compareTo(a.modified));
+    return sources;
+  }
+
+  Future<LibraryRecoveryPlan> prepareLibraryRecovery(String path) =>
+      _operations.run(() async {
+        if (!(await _libraryRecoverySources())
+            .any((s) => p.equals(s.path, path))) {
+          throw const FormatException(
+              'Recovery source is no longer available.');
+        }
+        final live = await database;
+        final livePath = p.join(live.directory!, '${live.name}.isar');
+        if (!p.equals(livePath, path) &&
+            !await FileSystemEntity.identical(livePath, path)) {
+          return BackupDAO.readRecoveryFile(path, supportPath, documentsPath);
+        }
+        // Raw copying a live database is unsafe. Take an engine snapshot first.
+        final root = await Directory(p.join(supportPath, 'import_staging'))
+            .create(recursive: true);
+        final stage = await root.createTemp('snapshot_live_');
+        try {
+          final snapshot = p.join(stage.path, 'current.isar');
+          await live.copyToFile(snapshot);
+          return await BackupDAO.readRecoveryFile(
+              snapshot, supportPath, documentsPath);
+        } finally {
+          await stage.delete(recursive: true);
+        }
+      });
+
+  Future<Map<String, int>> recoverLibrary(LibraryRecoveryPlan plan) =>
+      _operations.run(() async {
+        if (await File(p.join(supportPath, 'reset_requested')).exists()) {
+          throw StateError(
+              'Cancel the scheduled reset before recovering data.');
+        }
+        await _snapshot('before_import');
+        final result = await dao.apply(plan.document,
+            const BackupSelection(history: false, settings: false),
+            recoveredDownloads: plan.downloads);
+        await _rotate('before_import', keep: 7);
+        return result;
+      });
 
   /// Called once during bootstrap, before imports can open staged databases.
   Future<void> cleanInterruptedWork() => _operations.run(() async {
@@ -56,7 +145,8 @@ class BackupRepository {
         if (await exports.exists()) {
           final cutoff = DateTime.now().subtract(const Duration(days: 7));
           await for (final entry in exports.list(followLinks: false)) {
-            if (entry is File && (await entry.lastModified()).isBefore(cutoff)) {
+            if (entry is File &&
+                (await entry.lastModified()).isBefore(cutoff)) {
               await entry.delete();
             }
           }

@@ -113,6 +113,11 @@ the DAO maps versioned JSON and commits selected data in one transaction using a
 connection. The live connection and watchers remain open. See
 [backup-and-import.md](docs/backup-and-import.md) for the format, restore policies,
 platform support, and validation matrix. Startup legacy migration/repair is removed.
+Explicit device-local library recovery stays within `BackupDAO` and the existing
+repository/cubit/UI flow. It inspects copies of retained v3 databases and reuses the
+protected atomic merge, including download mappings. Recovery models are grouped in
+`recovery_copy.dart`; file resolution belongs to `DownloadDAO`. Pre-v3 database
+schemas and migration runners remain removed.
 
 ### DAOs
 
@@ -261,6 +266,26 @@ Application-lifetime singletons registered in `ServiceLocator` (`get_it`).
 | `LyricsService` | Lyrics fetch and sync |
 | `SmartReplaceService` | Resolves dead/missing tracks using available plugins |
 | `CrossfadeService` | Audio crossfade transitions |
+
+`PlayerEngine` owns native buffering policy for both the active and standby
+players. Apply configuration before opening media: use at most 20 seconds of
+read-ahead, a four-MiB forward packet cache and one-MiB backward cache. Disable
+mpv disk caching: with disk caching enabled, the byte limits apply to packet
+metadata rather than the downloaded audio. These are buffering bounds, not a
+network transfer-rate limit. See the [mpv cache documentation](https://mpv.io/manual/stable/#cache).
+
+The chart carousel uses chart summaries and their thumbnails. Full chart contents
+are fetched when a chart is opened; loading home must not warm every chart's
+details in the background.
+
+`test/player_network_test.dart` exercises the bundled native player against a
+loopback HTTP server serving ten minutes of PCM audio. A paused preload must
+remain below a generous byte ceiling and close its transfer when cleared. Set
+`MPV_TEST_LIBRARY` on hosts without the Windows build's `libmpv-2.dll`; this test
+is explicitly skipped when no native library is available. In a three-second
+comparison on this Windows host, the tagged v3.0.4+202 engine fetched 63,832,064
+bytes; the bounded engine fetched 3,997,696 bytes. This reproduces excess buffering,
+not the historical reporter's Wi-Fi latency or a proven persistent socket leak.
 
 ---
 

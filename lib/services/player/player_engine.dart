@@ -123,6 +123,7 @@ class PlayerEngine {
       StreamController<String>.broadcast();
 
   late final List<StreamSubscription> _subs;
+  late final Future<void> _nativeConfiguration;
 
   bool _eqEnabled = false;
   final List<EqualizerBand> _eqBands = [
@@ -154,26 +155,40 @@ class PlayerEngine {
   PlayerEngine() {
     _playerA = Player(
         configuration: const PlayerConfiguration(
-            title: 'BloomeeTunes', bufferSize: 16 * 1024 * 1024));
+            title: 'BloomeeTunes', bufferSize: 4 * 1024 * 1024));
     _playerB = Player(
         configuration: const PlayerConfiguration(
-            title: 'BloomeeTunes', bufferSize: 16 * 1024 * 1024));
+            title: 'BloomeeTunes', bufferSize: 4 * 1024 * 1024));
 
-    _configureNativePlayer(_playerA);
-    _configureNativePlayer(_playerB);
+    _nativeConfiguration = Future.wait([
+      _configureNativePlayer(_playerA),
+      _configureNativePlayer(_playerB),
+    ]).then((_) {});
 
     _activePlayerSubject = BehaviorSubject.seeded(_playerA);
     _subs = _buildSubscriptions();
   }
 
-  void _configureNativePlayer(Player player) {
+  Future<void> _configureNativePlayer(Player player) async {
     if (player.platform is NativePlayer) {
       final native = player.platform as NativePlayer;
-      native.setProperty('stream-lavf-o',
-          'reconnect=1,reconnect_streamed=1,reconnect_delay_max=5');
-      native.setProperty('cache', 'yes');
-      native.setProperty('demuxer-max-bytes', '134217728'); // 128 MB
-      native.setProperty('network-timeout', '15');
+      try {
+        // media_kit enables disk caching by default. In that mode mpv's byte
+        // limit caps packet metadata, not downloaded audio. Bound both time
+        // and in-memory bytes, including the paused standby player.
+        await native.setProperty('cache-on-disk', 'no');
+        await native.setProperty('cache', 'auto');
+        await native.setProperty('cache-secs', '20');
+        await native.setProperty('demuxer-readahead-secs', '20');
+        await native.setProperty('demuxer-max-bytes', '${4 * 1024 * 1024}');
+        await native.setProperty('demuxer-max-back-bytes', '${1024 * 1024}');
+        await native.setProperty('network-timeout', '15');
+        await native.setProperty('stream-lavf-o',
+            'reconnect=1,reconnect_streamed=1,reconnect_delay_max=5');
+      } catch (error, stack) {
+        log('Could not configure native playback buffering',
+            name: 'PlayerEngine', error: error, stackTrace: stack);
+      }
     }
   }
 
@@ -326,6 +341,8 @@ class PlayerEngine {
     setLoadingState();
 
     try {
+      await _nativeConfiguration;
+      if (_disposed || _generation != gen) return EngineCanceled();
       await _active.setVolume(_userVolume * 100.0);
       await _active.open(Media(uri.toString(), httpHeaders: httpHeaders),
           play: autoPlay);
@@ -621,6 +638,8 @@ class PlayerEngine {
     }
 
     try {
+      await _nativeConfiguration;
+      if (_disposed) return false;
       await _standby.setVolume(0);
       await _standby.open(Media(uri.toString(), httpHeaders: httpHeaders),
           play: false);
@@ -797,6 +816,7 @@ class PlayerEngine {
       await sub.cancel();
     }
 
+    await _nativeConfiguration;
     await _activePlayerSubject.close();
     await Future.wait([_playerA.dispose(), _playerB.dispose()]);
     await _stateSubject.close();

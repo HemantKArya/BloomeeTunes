@@ -771,6 +771,25 @@
   "backupRecoveryBeforeImport": "Before an import",
   "backupRecoveryBeforeReset": "Before a reset",
   "backupCancelReset": "Cancel reset",
+  "libraryRecoveryTitle": "Recover missing library",
+  "libraryRecoverySubtitle": "Look for playlists and download records retained from earlier versions.",
+  "libraryRecoveryChooseSource": "Choose a retained database to scan. Your current library and original files will be preserved.",
+  "libraryRecoveryNoSources": "No retained databases were found. Audio files alone cannot restore original playlist membership.",
+  "libraryRecoverySummary": "Found {tracks} tracks, {playlists} playlists and {downloads} download records. {unavailable} files are currently unavailable; their records will be preserved.",
+  "@libraryRecoverySummary": { "placeholders": {
+    "tracks": {"type": "int"}, "playlists": {"type": "int"},
+    "downloads": {"type": "int"}, "unavailable": {"type": "int"}
+  } },
+  "libraryRecoveryWarnings": "{broken} broken playlist references could not be reconstructed from this copy.",
+  "@libraryRecoveryWarnings": { "placeholders": {
+    "broken": {"type": "int"}
+  } },
+  "libraryRecoveryMergeDetails": "Recovery adds missing tracks, playlist entries and download records. Existing playlists, file mappings and settings are preserved. A recovery copy is created first. Repeat this with another retained copy if it contains more of your library.",
+  "libraryRecoveryMerge": "Merge recovered library",
+  "libraryRecoveryComplete": "Recovery complete: {entries} playlist entries and {downloads} download records added.",
+  "@libraryRecoveryComplete": { "placeholders": {
+    "entries": {"type": "int"}, "downloads": {"type": "int"}
+  } },
   "backupStartupFailed": "Bloomee could not start",
   "backupStartupFailedDetails": "Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error."
 }

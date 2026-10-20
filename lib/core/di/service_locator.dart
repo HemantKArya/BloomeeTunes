@@ -55,7 +55,8 @@ class ServiceLocator {
     backupRepository = BackupRepository(
         dao: BackupDAO(DBProvider.db),
         database: DBProvider.db,
-        supportPath: DBProvider.appSuppDir);
+        supportPath: DBProvider.appSuppDir,
+        documentsPath: DBProvider.appDocDir);
 
     // ── Plugin system ──────────────────────────────────────────────────────
 

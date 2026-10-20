@@ -3751,6 +3751,61 @@ abstract class AppLocalizations {
   /// **'Cancel reset'**
   String get backupCancelReset;
 
+  /// No description provided for @libraryRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover missing library'**
+  String get libraryRecoveryTitle;
+
+  /// No description provided for @libraryRecoverySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for playlists and download records retained from earlier versions.'**
+  String get libraryRecoverySubtitle;
+
+  /// No description provided for @libraryRecoveryChooseSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a retained database to scan. Your current library and original files will be preserved.'**
+  String get libraryRecoveryChooseSource;
+
+  /// No description provided for @libraryRecoveryNoSources.
+  ///
+  /// In en, this message translates to:
+  /// **'No retained databases were found. Audio files alone cannot restore original playlist membership.'**
+  String get libraryRecoveryNoSources;
+
+  /// No description provided for @libraryRecoverySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {tracks} tracks, {playlists} playlists and {downloads} download records. {unavailable} files are currently unavailable; their records will be preserved.'**
+  String libraryRecoverySummary(
+      int tracks, int playlists, int downloads, int unavailable);
+
+  /// No description provided for @libraryRecoveryWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'{broken} broken playlist references could not be reconstructed from this copy.'**
+  String libraryRecoveryWarnings(int broken);
+
+  /// No description provided for @libraryRecoveryMergeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery adds missing tracks, playlist entries and download records. Existing playlists, file mappings and settings are preserved. A recovery copy is created first. Repeat this with another retained copy if it contains more of your library.'**
+  String get libraryRecoveryMergeDetails;
+
+  /// No description provided for @libraryRecoveryMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge recovered library'**
+  String get libraryRecoveryMerge;
+
+  /// No description provided for @libraryRecoveryComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery complete: {entries} playlist entries and {downloads} download records added.'**
+  String libraryRecoveryComplete(int entries, int downloads);
+
   /// No description provided for @backupStartupFailed.
   ///
   /// In en, this message translates to:
