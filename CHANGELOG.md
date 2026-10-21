@@ -1,6 +1,7 @@
 ## [3.1.0+205] - 2026-10-21
 
 ### Added
+- **New Languages**: Added Turkish, Portuguese, and French translations.
 - **Portable JSON Backups**: Save and share playlists, likes, saved collections, playback and search histories, and portable preferences.
 - **Import Preview and Options**: Preview backup contents before importing as new playlists, merging with existing data, or replacing selected sections. Older JSON backups can be imported as new playlists or merged.
 - **Library Recovery**: Recover missing playlists and download records from retained v3 databases and recovery copies through Storage settings or the empty Offline tab.
@@ -8,6 +9,8 @@
 - **Android Download Folder Selection**: Choose a download folder through the system picker with persistent access permissions.
 
 ### Changed
+- **Translations**: Completed existing translations, refined Spanish wording, and improved terminology and message context across languages.
+- **Localization Cleanup**: Removed 90 unused translation entries.
 - **Player Redesign**: Improved desktop space usage with larger artwork and a collapsible queue, and unified ambient artwork backgrounds across desktop, mobile, and lyrics views.
 - **Lyrics Experience**: Refined fullscreen lyrics, scrolling, timing adjustments, and shared playback progress styling.
 - **Backup File Handling**: Unified file import previews across Settings, Library, Android Open With and Share, and desktop file arguments.
@@ -17,6 +20,10 @@
 - **Cancelable Database Resets**: Schedule database resets for the next startup and cancel them before restarting.
 
 ### Fixed
+- Fixed the blank Portuguese language selection and mapped older regional preferences to the single Português option.
+- Corrected text encoding, plural counts, and missing song and plugin names in translated messages.
+- Fixed overflowing navigation labels on small screens and improved wrapping for longer translated controls.
+- Ensured setup screens and keyboard shortcut messages follow the selected language, and clarified backup import explanations.
 - Preserved download records and playlist membership when audio files are temporarily missing or inaccessible, with improved recovery of relocated files.
 - Improved playback interruption recovery and refreshed rejected stream URLs when servers return HTTP 401, 403, or 410.
 - Fixed local music scanning on Android 8.1 and improved playback, deletion, and recovery of files accessed through Android document URIs.
@@ -34,6 +41,7 @@
 - Removed automatic migration of pre-v3 databases. Library recovery supports retained v3 databases and recovery snapshots; it does not import pre-v3 databases.
 
 ### Developer Notes
+- Added regression tests for translation coverage, placeholders, text encoding, language switching, and translated layouts.
 - Upgraded Isar from a prerelease to stable 3.4.1 and updated compatible dependencies.
 - Run release builds in parallel, move Android release builds to Linux, cache dependencies and native build outputs, and publish release artifacts together.
 - Pin Windows release builds to Visual Studio 2022 for native plugin compatibility.
