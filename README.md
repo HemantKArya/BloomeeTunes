@@ -35,7 +35,7 @@
 > ⚠️ **SECURITY WARNING: BEWARE OF FAKE WEBSITES!** ⚠️    
 > Due to the app's popularity, several unofficial websites claim to be the "official" Bloomee site. The ONLY official websites maintained by me are:
 > 
-> - https://bloomeex.org
+> - https://tunes.bloomeex.org
 > - https://hemantkarya.github.io/BloomeeTunes/
 >
 > These two URLs are the only official and safe sites for Bloomee. Do not trust other websites claiming to be official — unofficial sites may distribute modified APKs or malware. I am **not responsible** for any damage, privacy loss, or issues caused by downloading the app from third-party sources.
