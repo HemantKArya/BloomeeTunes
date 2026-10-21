@@ -1,4 +1,4 @@
-## [Unreleased]
+## [3.1.0+205] - 2026-10-21
 
 ### Added
 - **Portable JSON Backups**: Save and share playlists, likes, saved collections, playback and search histories, and portable preferences.
@@ -13,6 +13,8 @@
 - **Backup File Handling**: Unified file import previews across Settings, Library, Android Open With and Share, and desktop file arguments.
 - **Content Imports**: Allow more time to fetch collection details and tracks, and retry the failed step while reusing requests already in progress.
 - **Playback Efficiency**: Reduced background network traffic by bounding audio buffering and removing bulk chart prefetching, and reduced player transition jank and unnecessary rendering.
+- **Discord Rich Presence**: Improved per-track artwork, album information, playback timing, and play/pause indicators.
+- **Cancelable Database Resets**: Schedule database resets for the next startup and cancel them before restarting.
 
 ### Fixed
 - Preserved download records and playlist membership when audio files are temporarily missing or inaccessible, with improved recovery of relocated files.
@@ -22,6 +24,20 @@
 - Fixed lyrics timestamp parsing, scrolling edge cases, cache failure handling, and requests completing after the lyrics view closes.
 - Prevented outdated content import results from affecting a new or canceled import.
 - Fixed Android build compatibility and icon dependency issues.
+- Show a clear startup error when initialization fails while preserving existing database files.
+- Clear saved queue state when the queue becomes empty and protect queued tracks from metadata cleanup.
+- Prevent older playlist loads from replacing the currently selected playlist and reuse pending page requests during Play All.
+- Let active desktop screens handle Escape and Backspace before closing the player.
+- Retry saving completed downloads to the library without downloading the files again.
+
+### Upgrade Notes
+- Removed automatic migration of pre-v3 databases. Library recovery supports retained v3 databases and recovery snapshots; it does not import pre-v3 databases.
+
+### Developer Notes
+- Upgraded Isar from a prerelease to stable 3.4.1 and updated compatible dependencies.
+- Run release builds in parallel, move Android release builds to Linux, cache dependencies and native build outputs, and publish release artifacts together.
+- Pin Windows release builds to Visual Studio 2022 for native plugin compatibility.
+- Expanded automated test coverage and configured Linux tests to find the Isar native library in worker isolates.
 
 ## [3.0.4] - 2026-05-29
 
