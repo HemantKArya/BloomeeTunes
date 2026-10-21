@@ -15,6 +15,7 @@ import 'app_localizations_ko.dart';
 import 'app_localizations_pt.dart';
 import 'app_localizations_tr.dart';
 import 'app_localizations_zh.dart';
+import 'app_localizations_it.dart';
 
 // ignore_for_file: type=lint
 
@@ -111,7 +112,8 @@ abstract class AppLocalizations {
     Locale('ko'),
     Locale('pt'),
     Locale('tr'),
-    Locale('zh')
+    Locale('zh'),
+    Locale('it')
   ];
 
   /// No description provided for @onboardingTitle.
@@ -3778,6 +3780,7 @@ class _AppLocalizationsDelegate
         'ja',
         'ko',
         'pt',
+        'it',
         'tr',
         'zh'
       ].contains(locale.languageCode);
@@ -3801,6 +3804,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsHi();
     case 'ja':
       return AppLocalizationsJa();
+    case 'it':
+      return AppLocalizationsIt();
     case 'ko':
       return AppLocalizationsKo();
     case 'pt':

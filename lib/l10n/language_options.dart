@@ -32,6 +32,8 @@ String languageLabelForCode(String code) {
       return 'Deutsch';
     case 'es':
       return 'Español';
+    case 'it'
+      return 'Italiano';
     case 'tr':
       return 'Türkçe';
     case 'pt':
