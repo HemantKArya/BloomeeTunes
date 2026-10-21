@@ -219,7 +219,7 @@ List<Version> _filterToInstalledRange(
 
 // 3. --- UI WIDGETS ---
 
-class ChangelogScreen extends StatelessWidget {
+class ChangelogScreen extends StatefulWidget {
   final String? changelogText;
   final bool showOlderVersions;
 
@@ -230,19 +230,50 @@ class ChangelogScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<ChangelogScreen> createState() => _ChangelogScreenState();
+}
+
+class _ChangelogScreenState extends State<ChangelogScreen> {
+  late Changelog _changelog;
+  late final Future<PackageInfo> _packageInfo;
+
+  @override
+  void initState() {
+    super.initState();
+    _changelog = parseChangelog(widget.changelogText);
+    final settings = context.read<SettingsCubit>();
+    _packageInfo = PackageInfo.fromPlatform().then((info) async {
+      if (mounted) {
+        await settings.putSettingStr(
+            SettingKeys.readChangelogs, 'v${info.version}');
+      }
+      return info;
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ChangelogScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.changelogText != widget.changelogText) {
+      _changelog = parseChangelog(widget.changelogText);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final changelog = parseChangelog(changelogText);
+    final changelog = _changelog;
+    final showOlderVersions = widget.showOlderVersions;
 
     // We need to possibly consult the installed package info when showOlderVersions is false.
     return Scaffold(
+      backgroundColor: kBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
             onPressed: () async {
-              await Navigator.of(context).maybePop();
-              Navigator.of(context).push(PageRouteBuilder(
+              Navigator.of(context).pushReplacement(PageRouteBuilder(
                 pageBuilder: (_, __, ___) => const About(),
                 transitionsBuilder: (_, animation, secondaryAnimation, child) {
                   final offsetAnimation = Tween<Offset>(
@@ -265,8 +296,11 @@ class ChangelogScreen extends StatelessWidget {
       ),
       body: FutureBuilder<PackageInfo?>(
         // Always attempt to load PackageInfo so badges & expansion ranges work in both modes.
-        future: PackageInfo.fromPlatform(),
+        future: _packageInfo,
         builder: (context, AsyncSnapshot<PackageInfo?> snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
           final installedLabel = snapshot.hasData && snapshot.data != null
               ? 'v${snapshot.data!.version}'
               : null; // only version part needed for matching
@@ -316,37 +350,27 @@ class ChangelogScreen extends StatelessWidget {
             }
           }
 
-          // Persist the fact that user viewed the changelog for the installed version.
-          // Schedule as a post-frame callback to avoid performing IO during build.
-          if (snapshot.connectionState == ConnectionState.done &&
-              installedLabel != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              // Saved value must be in the format "vX.Y.Z"
-              context
-                  .read<SettingsCubit>()
-                  .putSettingStr(SettingKeys.readChangelogs, installedLabel);
-            });
-          }
-
           if (versionsToShow.isEmpty && !showOlderVersions) {
             return Center(
                 child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.info_outline, size: 48, color: Colors.grey),
-                SizedBox(height: 16),
+                const Icon(Icons.info_outline, size: 48, color: Colors.grey),
+                const SizedBox(height: 16),
                 Text(AppLocalizations.of(context)!.changelogEmpty,
-                    style: TextStyle(fontSize: 16, fontFamily: 'Gilroy')),
+                    style: const TextStyle(fontSize: 16, fontFamily: 'Gilroy')),
               ],
             ));
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            itemCount: versionsToShow.length + 1, // Use the filtered list
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return Padding(
+          // Each change is a sliver child, so even a large expanded release
+          // only lays out the entries near the viewport.
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                sliver: SliverToBoxAdapter(
+                    child: Padding(
                   padding: const EdgeInsets.only(left: 6, right: 6, bottom: 16),
                   child: ShaderMask(
                     shaderCallback: (bounds) => const LinearGradient(
@@ -355,41 +379,119 @@ class ChangelogScreen extends StatelessWidget {
                       end: Alignment.bottomRight,
                     ).createShader(bounds),
                     child: Text(AppLocalizations.of(context)!.changelogTitle,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Gilroy',
                             color: Colors.white)),
                   ),
-                );
-              }
-              final versionIndex = index - 1;
-              // Determine the latest stable version (first non-unreleased in original changelog)
-              String? latestStable;
-              try {
-                latestStable = changelog.versions
-                    .firstWhere((v) =>
-                        _normalizeVersionLabel(v.versionNumber) != 'unreleased')
-                    .versionNumber;
-              } catch (_) {
-                latestStable = changelog.versions.isNotEmpty
-                    ? changelog.versions[0].versionNumber
-                    : null;
-              }
-
-              return VersionCard(
-                version: versionsToShow[versionIndex], // Use the filtered list
-                // The list index is now based on the filtered list's index
-                listIndex: versionIndex,
-                installedVersion: installedLabel,
-                latestStableVersion: latestStable,
-                forceExpanded: expandedIndices.contains(versionIndex),
-              );
-            },
+                )),
+              ),
+              for (var versionIndex = 0;
+                  versionIndex < versionsToShow.length;
+                  versionIndex++)
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  sliver: _ReleaseSliver(
+                    key: ValueKey(versionsToShow[versionIndex].versionNumber),
+                    version:
+                        versionsToShow[versionIndex], // Use the filtered list
+                    listIndex: versionIndex,
+                    installedVersion: installedLabel,
+                    latestStableVersion: latestStableNorm,
+                    forceExpanded: expandedIndices.contains(versionIndex),
+                  ),
+                ),
+              SliverToBoxAdapter(
+                  child: SizedBox(
+                      height: MediaQuery.paddingOf(context).bottom + 24)),
+            ],
           );
         },
       ),
     );
+  }
+}
+
+class _ReleaseSliver extends StatefulWidget {
+  final Version version;
+  final int listIndex;
+  final String? installedVersion;
+  final String? latestStableVersion;
+  final bool forceExpanded;
+
+  const _ReleaseSliver(
+      {super.key,
+      required this.version,
+      required this.listIndex,
+      this.installedVersion,
+      this.latestStableVersion,
+      required this.forceExpanded});
+
+  @override
+  State<_ReleaseSliver> createState() => _ReleaseSliverState();
+}
+
+class _ReleaseSliverState extends State<_ReleaseSliver> {
+  late bool _expanded;
+  late List<({ChangeCategory category, ChangeItem? item})> _entries;
+
+  @override
+  void initState() {
+    super.initState();
+    _expanded = widget.forceExpanded ||
+        widget.listIndex == 0 ||
+        _normalizeVersionLabel(widget.version.versionNumber) == 'unreleased';
+    _collectEntries();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ReleaseSliver oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.version != widget.version) _collectEntries();
+  }
+
+  void _collectEntries() {
+    _entries = [
+      for (final category in widget.version.categories) ...[
+        (category: category, item: null),
+        for (final item in category.changes) (category: category, item: item),
+      ],
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverMainAxisGroup(slivers: [
+      SliverToBoxAdapter(
+          child: VersionCard(
+        version: widget.version,
+        listIndex: widget.listIndex,
+        installedVersion: widget.installedVersion,
+        latestStableVersion: widget.latestStableVersion,
+        forceExpanded: widget.forceExpanded,
+        showChanges: false,
+        onExpansionChanged: (value) => setState(() => _expanded = value),
+      )),
+      if (_expanded)
+        SliverList.builder(
+            itemCount: _entries.length,
+            itemBuilder: (context, index) {
+              final entry = _entries[index];
+              if (entry.item == null) {
+                return CategorySection(
+                    category: ChangeCategory(entry.category.title, []));
+              }
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ChangeItemWidget(
+                    item: entry.item!,
+                    color: CategorySection._getEmojiForCategory(
+                            entry.category.title)
+                        .color),
+              );
+            }),
+    ]);
   }
 }
 
@@ -399,6 +501,8 @@ class VersionCard extends StatefulWidget {
   final String? installedVersion; // e.g. 'v2.11.6'
   final String? latestStableVersion; // e.g. '2.11.6'
   final bool forceExpanded;
+  final bool showChanges;
+  final ValueChanged<bool>? onExpansionChanged;
 
   const VersionCard({
     Key? key,
@@ -407,10 +511,12 @@ class VersionCard extends StatefulWidget {
     this.installedVersion,
     this.latestStableVersion,
     this.forceExpanded = false,
+    this.showChanges = true,
+    this.onExpansionChanged,
   }) : super(key: key);
 
   @override
-  _VersionCardState createState() => _VersionCardState();
+  State<VersionCard> createState() => _VersionCardState();
 }
 
 class _VersionCardState extends State<VersionCard> {
@@ -462,8 +568,8 @@ class _VersionCardState extends State<VersionCard> {
     final bool showCurrentBadge =
         installedNorm != null && installedNorm == thisNorm && !showLatestBadge;
 
-    const normalColor = Color(0xFF1C1C1E);
-    const highlightedColor = Color(0xFF2C2C2E);
+    const normalColor = Color(0xFF17121C);
+    const highlightedColor = Color(0xFF251B27);
 
     // Keep the existing 'LATEST' styling but only render when showLatestBadge is true
     final Widget latestMarker = showLatestBadge
@@ -478,7 +584,7 @@ class _VersionCardState extends State<VersionCard> {
               ),
             ),
             child: Text(AppLocalizations.of(context)!.changelogLatest,
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -488,7 +594,7 @@ class _VersionCardState extends State<VersionCard> {
         : const SizedBox.shrink();
 
     // New badges: CURRENT and UPDATE (if applicable)
-    Widget _badge(String text, Color bg, Color textColor) => Container(
+    Widget badge(String text, Color bg, Color textColor) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         margin: const EdgeInsets.only(left: 6),
         decoration: BoxDecoration(
@@ -504,11 +610,11 @@ class _VersionCardState extends State<VersionCard> {
                 letterSpacing: 0.3)));
 
     final currentBadge = showCurrentBadge
-        ? _badge(AppLocalizations.of(context)!.changelogCurrent,
+        ? badge(AppLocalizations.of(context)!.changelogCurrent,
             Colors.blueAccent.shade700, Colors.white)
         : const SizedBox.shrink();
     final updateBadge = showUpdateBadge
-        ? _badge(AppLocalizations.of(context)!.buttonUpdate,
+        ? badge(AppLocalizations.of(context)!.buttonUpdate,
             Colors.deepOrangeAccent.shade200, Colors.white)
         : const SizedBox.shrink();
 
@@ -523,8 +629,10 @@ class _VersionCardState extends State<VersionCard> {
         borderRadius: BorderRadius.circular(16.0),
         child: ExpansionTile(
           initiallyExpanded: _isExpanded,
-          onExpansionChanged: (isExpanding) =>
-              setState(() => _isExpanded = isExpanding),
+          onExpansionChanged: (isExpanding) {
+            setState(() => _isExpanded = isExpanding);
+            widget.onExpansionChanged?.call(isExpanding);
+          },
           backgroundColor: normalColor,
           shape: const Border(),
           collapsedShape: const Border(),
@@ -574,9 +682,11 @@ class _VersionCardState extends State<VersionCard> {
               ),
             ],
           ),
-          children: widget.version.categories
-              .map((category) => CategorySection(category: category))
-              .toList(),
+          children: !widget.showChanges
+              ? const []
+              : widget.version.categories
+                  .map((category) => CategorySection(category: category))
+                  .toList(),
         ),
       ),
     );
@@ -588,7 +698,7 @@ class CategorySection extends StatelessWidget {
 
   const CategorySection({Key? key, required this.category}) : super(key: key);
 
-  ({String emoji, Color color}) _getEmojiForCategory(String title) {
+  static ({String emoji, Color color}) _getEmojiForCategory(String title) {
     switch (title.toLowerCase()) {
       case 'added':
         return (emoji: '✨', color: Colors.lightGreenAccent.shade400);

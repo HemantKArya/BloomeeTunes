@@ -3,7 +3,6 @@ import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:ui';
 import 'dart:math';
 
 // Color palette
@@ -36,8 +35,15 @@ const Gradient kWaveformGradient = LinearGradient(
   end: Alignment.centerRight,
 );
 
-class About extends StatelessWidget {
+class About extends StatefulWidget {
   const About({super.key});
+
+  @override
+  State<About> createState() => _AboutState();
+}
+
+class _AboutState extends State<About> {
+  late final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
 
   @override
   Widget build(BuildContext context) {
@@ -66,26 +72,38 @@ class About extends StatelessWidget {
       body: Stack(
         alignment: Alignment.center,
         children: [
-          const ParticleBackground(),
-          const Positioned.fill(child: AnimatedWaveform()),
+          const Positioned.fill(
+              child: RepaintBoundary(child: ParticleBackground())),
+          const Positioned.fill(
+              child: RepaintBoundary(child: AnimatedWaveform())),
           Center(
             child: ConstrainedBox(
               constraints:
                   const BoxConstraints(maxWidth: 480), // Responsive constraint
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Spacer(),
-                    _buildInfoCard(context, l10n),
-                    const SizedBox(height: 50),
-                    _buildSupportSection(l10n),
-                    const Spacer(),
-                    // Footer moved to bottom of screen
-                    const SizedBox(height: 12),
-                    _buildFooter(l10n),
-                    const SizedBox(height: 12),
+              child: SafeArea(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Spacer(),
+                            RepaintBoundary(
+                                child: _buildInfoCard(context, l10n)),
+                            const SizedBox(height: 50),
+                            RepaintBoundary(child: _buildSupportSection(l10n)),
+                            const Spacer(),
+                            // Footer moved to bottom of screen
+                            const SizedBox(height: 12),
+                            RepaintBoundary(child: _buildFooter(l10n)),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -99,148 +117,145 @@ class About extends StatelessWidget {
   Widget _buildInfoCard(BuildContext context, AppLocalizations l10n) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(28.0),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 25.0, sigmaY: 25.0),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
-          decoration: BoxDecoration(
-            color: kCardBackgroundColor,
-            borderRadius: BorderRadius.circular(28.0),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xF22B1D2A), Color(0xF216121E)],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ShaderMask(
-                    blendMode: BlendMode.srcIn,
-                    shaderCallback: (bounds) => kTitleGradient.createShader(
-                      Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+          borderRadius: BorderRadius.circular(28.0),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: ShaderMask(
+                blendMode: BlendMode.srcIn,
+                shaderCallback: (bounds) => kTitleGradient.createShader(
+                  Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                ),
+                // Use Wrap so title + flower can wrap on narrow widths.
+                child: const Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  children: [
+                    Text(
+                      'BloomeeTunes',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Gilroy',
+                      ),
                     ),
-                    // Use Wrap so title + flower can wrap on narrow widths.
-                    child: const Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 6,
-                      children: [
-                        Text(
-                          'BloomeeTunes',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                          ),
+                    // Small animated flower
+                    GentleRotatingFlower(size: 28),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.aboutCraftingSubtitle,
+              style: const TextStyle(
+                  fontSize: 16,
+                  color: kSecondaryTextColor,
+                  fontFamily: 'Gilroy'),
+            ),
+            const SizedBox(height: 35),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: kHandleGradient,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFF88A6B).withValues(alpha: 0.5),
+                          blurRadius: 10,
                         ),
-                        // Small animated flower
-                        GentleRotatingFlower(size: 28),
                       ],
+                    ),
+                    child: const CircleAvatar(
+                        backgroundColor: Colors.transparent, radius: 10),
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Text(
+                      '@iamhemantindia',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: kPrimaryTextColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        fontFamily: 'Gilroy',
+                        shadows: [
+                          Shadow(
+                            color: const Color.fromARGB(255, 255, 246, 238)
+                                .withValues(alpha: 0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                l10n.aboutCraftingSubtitle,
-                style: const TextStyle(
-                    fontSize: 16,
-                    color: kSecondaryTextColor,
-                    fontFamily: 'Gilroy'),
-              ),
-              const SizedBox(height: 35),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: kHandleGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                const Color(0xFFF88A6B).withValues(alpha: 0.5),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: const CircleAvatar(
-                          backgroundColor: Colors.transparent, radius: 10),
-                    ),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        '@iamhemantindia',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: kPrimaryTextColor,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          fontFamily: 'Gilroy',
-                          shadows: [
-                            Shadow(
-                              color: const Color.fromARGB(255, 255, 246, 238)
-                                  .withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              offset: Offset(0, 0),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 35),
-              // Use Wrap to prevent overflow on small screens; center wrapped items
-              Wrap(
-                alignment: WrapAlignment.center,
-                runAlignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                runSpacing: 12.0, // Spacing when items wrap to the next line
-                spacing: 12.0, // Horizontal spacing
-                children: [
-                  // Maintainer opens GitHub account
-                  _InfoPill(
-                      icon: Icons.shield_outlined,
-                      text: 'Maintainer',
-                      tooltip: l10n.aboutFollowGitHub,
-                      onTap: () {
-                        launchUrl(Uri.parse('https://github.com/HemantKArya'),
-                            mode: LaunchMode.externalApplication);
-                      }),
-                  // Short label 'Email' opens mail composer
-                  _InfoPill(
-                      icon: FontAwesome.x_twitter_brand,
-                      text: 'Contact',
-                      tooltip: l10n.aboutSendInquiry,
-                      onTap: () {
-                        launchUrl(
-                          Uri.parse('https://x.com/iamhemantindia'),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }),
-                  // Short label 'Linkedin' opens Linkedin profile
-                  _InfoPill(
-                      icon: FontAwesome.linkedin_brand,
-                      text: 'Linkedin',
-                      tooltip: l10n.aboutCreativeHighlights,
-                      onTap: () {
-                        launchUrl(
-                            Uri.parse('https://linkedin.com/in/iamhemantindia'),
-                            mode: LaunchMode.externalApplication);
-                      }),
-                ],
-              )
-            ],
-          ),
+            ),
+            const SizedBox(height: 35),
+            // Use Wrap to prevent overflow on small screens; center wrapped items
+            Wrap(
+              alignment: WrapAlignment.center,
+              runAlignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: 12.0, // Spacing when items wrap to the next line
+              spacing: 12.0, // Horizontal spacing
+              children: [
+                // Maintainer opens GitHub account
+                _InfoPill(
+                    icon: Icons.shield_outlined,
+                    text: 'Maintainer',
+                    tooltip: l10n.aboutFollowGitHub,
+                    onTap: () {
+                      launchUrl(Uri.parse('https://github.com/HemantKArya'),
+                          mode: LaunchMode.externalApplication);
+                    }),
+                // Short label 'Email' opens mail composer
+                _InfoPill(
+                    icon: FontAwesome.x_twitter_brand,
+                    text: 'Contact',
+                    tooltip: l10n.aboutSendInquiry,
+                    onTap: () {
+                      launchUrl(
+                        Uri.parse('https://x.com/iamhemantindia'),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }),
+                // Short label 'Linkedin' opens Linkedin profile
+                _InfoPill(
+                    icon: FontAwesome.linkedin_brand,
+                    text: 'Linkedin',
+                    tooltip: l10n.aboutCreativeHighlights,
+                    onTap: () {
+                      launchUrl(
+                          Uri.parse('https://linkedin.com/in/iamhemantindia'),
+                          mode: LaunchMode.externalApplication);
+                    }),
+              ],
+            )
+          ],
         ),
       ),
     );
@@ -300,7 +315,8 @@ class About extends StatelessWidget {
                     const Icon(Icons.favorite,
                         color: kPrimaryTextColor, size: 20),
                     const SizedBox(width: 10),
-                    Text(
+                    Flexible(
+                        child: Text(
                       l10n.aboutTipButton,
                       style: const TextStyle(
                         color: kPrimaryTextColor,
@@ -308,7 +324,7 @@ class About extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         fontFamily: 'Gilroy',
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ),
@@ -330,8 +346,11 @@ class About extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 18,
+          runSpacing: 8,
           children: [
             InkWell(
               borderRadius: BorderRadius.circular(8),
@@ -354,9 +373,8 @@ class About extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 18),
             FutureBuilder<PackageInfo>(
-              future: PackageInfo.fromPlatform(),
+              future: _packageInfo,
               builder: (context, snapshot) {
                 final ver = snapshot.hasData
                     ? 'v${snapshot.data!.version}+${snapshot.data!.buildNumber}'
@@ -434,6 +452,16 @@ class _AnimatedWaveformState extends State<AnimatedWaveform>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -441,22 +469,19 @@ class _AnimatedWaveformState extends State<AnimatedWaveform>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return CustomPaint(
-            size: const Size(double.infinity, double.infinity),
-            painter: WaveformPainter(_controller.value),
-          );
-        });
+    return CustomPaint(
+      size: Size.infinite,
+      painter: WaveformPainter(_controller),
+    );
   }
 }
 
 class WaveformPainter extends CustomPainter {
-  final double time;
-  WaveformPainter(this.time);
+  final Animation<double> animation;
+  WaveformPainter(this.animation) : super(repaint: animation);
   @override
   void paint(Canvas canvas, Size size) {
+    final time = animation.value;
     final paint = Paint()
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round
@@ -469,7 +494,7 @@ class WaveformPainter extends CustomPainter {
         .createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
     final path = Path();
-    for (double x = -5; x <= size.width + 5; x++) {
+    for (double x = -5; x <= size.width + 5; x += 3) {
       final amp = size.height * 0.1;
       final y = size.height / 2 +
           (amp) * sin(x * 0.015 + time * 2 * pi) +
@@ -486,7 +511,7 @@ class WaveformPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant WaveformPainter oldDelegate) =>
-      time != oldDelegate.time;
+      animation != oldDelegate.animation;
 }
 
 class ParticleBackground extends StatefulWidget {
@@ -513,6 +538,7 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     _lastTickSeconds = DateTime.now().millisecondsSinceEpoch / 1000.0;
     _particles =
         List.generate(_numberOfParticles, (index) => _createParticle());
+    _controller.addListener(_tick);
   }
 
   Particle _createParticle() {
@@ -530,69 +556,79 @@ class _ParticleBackgroundState extends State<ParticleBackground>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  void _tick() {
+    // compute actual delta time (seconds) since last frame for smooth
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (now - _lastTickSeconds).clamp(0.0, 0.05);
+    _lastTickSeconds = now;
+
+    for (var p in _particles) {
+      // decrease lifespan by real time
+      p.lifespan -= dt;
+      // move according to velocity (velocity is per-second)
+      p.position = Offset(p.position.dx + p.velocity.dx * dt,
+          p.position.dy + p.velocity.dy * dt);
+
+      // when particle dies, respawn at bottom with new random life/velocity
+      if (p.lifespan <= 0) {
+        p.position =
+            Offset(_random.nextDouble(), 1.02 + _random.nextDouble() * 0.06);
+        p.lifespan = _random.nextDouble() * 8 + 4;
+        p.maxLifespan = p.lifespan;
+        // slight variation so new particle isn't identical
+        p.velocity = Offset((_random.nextDouble() - 0.5) * 0.01,
+            -(_random.nextDouble() * 0.02 + 0.002));
+      }
+
+      // wrap horizontally
+      if (p.position.dx < -0.1) p.position = Offset(1.1, p.position.dy);
+      if (p.position.dx > 1.1) p.position = Offset(-0.1, p.position.dy);
+      // if particle floats too far above, move it back to bottom to keep counts stable
+      if (p.position.dy < -0.2) {
+        p.position = Offset(p.position.dx, 1.02 + _random.nextDouble() * 0.06);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          // compute actual delta time (seconds) since last frame for smooth
-          final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
-          final dt = (now - _lastTickSeconds).clamp(0.0, 0.05);
-          _lastTickSeconds = now;
-
-          for (var p in _particles) {
-            // decrease lifespan by real time
-            p.lifespan -= dt;
-            // move according to velocity (velocity is per-second)
-            p.position = Offset(p.position.dx + p.velocity.dx * dt,
-                p.position.dy + p.velocity.dy * dt);
-
-            // when particle dies, respawn at bottom with new random life/velocity
-            if (p.lifespan <= 0) {
-              p.position = Offset(
-                  _random.nextDouble(), 1.02 + _random.nextDouble() * 0.06);
-              p.lifespan = _random.nextDouble() * 8 + 4;
-              p.maxLifespan = p.lifespan;
-              // slight variation so new particle isn't identical
-              p.velocity = Offset((_random.nextDouble() - 0.5) * 0.01,
-                  -(_random.nextDouble() * 0.02 + 0.002));
-            }
-
-            // wrap horizontally
-            if (p.position.dx < -0.1) p.position = Offset(1.1, p.position.dy);
-            if (p.position.dx > 1.1) p.position = Offset(-0.1, p.position.dy);
-            // if particle floats too far above, move it back to bottom to keep counts stable
-            if (p.position.dy < -0.2) {
-              p.position =
-                  Offset(p.position.dx, 1.02 + _random.nextDouble() * 0.06);
-            }
-          }
-          return CustomPaint(
-              size: Size.infinite, painter: ParticlePainter(_particles));
-        });
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          radius: 1.2,
+          colors: [Color(0x992A1726), Color(0x000B0710)],
+        ),
+      ),
+      child: RepaintBoundary(
+          child: CustomPaint(
+        size: Size.infinite,
+        painter: ParticlePainter(_particles, repaint: _controller),
+      )),
+    );
   }
 }
 
 class ParticlePainter extends CustomPainter {
   final List<Particle> particles;
-  ParticlePainter(this.particles);
+  ParticlePainter(this.particles, {Listenable? repaint})
+      : super(repaint: repaint);
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromCircle(
-        center: size.center(Offset.zero), radius: size.width * 0.9);
-    final bgPaint = Paint()
-      // Use a deeper radial tint with slightly higher opacity so edges stay dark
-      ..shader = RadialGradient(colors: [
-        const Color(0xFF2A1726).withValues(alpha: 0.6),
-        kBackgroundColor.withValues(alpha: 0)
-      ]).createShader(rect);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
-
     final paint = Paint();
     for (var p in particles) {
       final progress = 1.0 - (p.lifespan / p.maxLifespan);
@@ -652,6 +688,16 @@ class _GentleRotatingFlowerState extends State<GentleRotatingFlower>
       vsync: this,
       duration: const Duration(seconds: 8),
     )..repeat();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
   }
 
   @override
