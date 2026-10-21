@@ -12,7 +12,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get onboardingTitle => 'Bienvenido a Bloomee';
 
   @override
-  String get onboardingSubtitle => 'Configuremos tu idioma y región.';
+  String get onboardingSubtitle => 'Selecciona tu idioma y región.';
 
   @override
   String get continueButton => 'Continuar';
@@ -27,7 +27,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navSearch => 'Buscar';
 
   @override
-  String get navLocal => 'Local';
+  String get navLocal => 'En el dispositivo';
 
   @override
   String get navOffline => 'Sin conexión';
@@ -36,10 +36,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playerEnjoyingFrom => 'Escuchando desde';
 
   @override
-  String get playerQueue => 'Cola de reproducción';
-
-  @override
-  String get playerPlayWithMix => 'Reproducción automática';
+  String get playerPlayWithMix => 'Reproducir con mezcla automática';
 
   @override
   String get playerPlayNext => 'Reproducir a continuación';
@@ -55,13 +52,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playerLyricsNoPlugin =>
-      'No hay un proveedor de letras configurado. Ve a Ajustes → Plugins para instalar uno.';
+      'No hay un proveedor de letras configurado. Ve a Ajustes → Complementos para instalar uno.';
 
   @override
-  String get playerFullscreenLyrics => 'Letras a pantalla completa';
-
-  @override
-  String get localMusicTitle => 'Música local';
+  String get localMusicTitle => 'En el dispositivo';
 
   @override
   String get localMusicGrantPermission => 'Conceder permiso';
@@ -72,7 +66,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get localMusicStorageAccessDesc =>
-      'Por favor, concede permiso para escanear y reproducir los archivos de audio almacenados en tu dispositivo.';
+      'Permite el acceso para buscar y reproducir los archivos de audio de tu dispositivo.';
 
   @override
   String get localMusicAddFolder => 'Añadir carpeta de música';
@@ -87,17 +81,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get localMusicScanning =>
-      'Escaneando el dispositivo en busca de archivos...';
+      'Buscando archivos de audio en el dispositivo…';
 
   @override
-  String get localMusicEmpty => 'No se encontró música local';
-
-  @override
-  String get localMusicSearchEmpty =>
-      'No hay pistas que coincidan con tu búsqueda.';
-
-  @override
-  String get localMusicShuffle => 'Modo aleatorio';
+  String get localMusicShuffle => 'Aleatorio';
 
   @override
   String get localMusicPlayAll => 'Reproducir todo';
@@ -107,23 +94,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get localMusicRescanDevice => 'Volver a escanear dispositivo';
-
-  @override
-  String get localMusicRemoveFolder => 'Quitar carpeta';
-
-  @override
-  String get localMusicMusicFolders => 'Carpetas de música';
-
-  @override
-  String localMusicTrackCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count pistas',
-      one: '1 pista',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get buttonCancel => 'Cancelar';
@@ -141,9 +111,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buttonDownload => 'Descargar';
 
   @override
-  String get buttonShare => 'Compartir';
-
-  @override
   String get buttonLater => 'Más tarde';
 
   @override
@@ -157,7 +124,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String dialogDeleteTrackMessage(String title) {
-    return '¿Estás seguro de que quieres eliminar \"$title\" de tu dispositivo? Esta acción no se puede deshacer.';
+    return '¿Quieres eliminar «$title» del dispositivo? Esta acción no se puede deshacer.';
   }
 
   @override
@@ -166,14 +133,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dialogDontAskAgain => 'No volver a preguntar';
-
-  @override
-  String get dialogDeletePlugin => '¿Eliminar plugin?';
-
-  @override
-  String dialogDeletePluginMessage(String name) {
-    return '¿Estás seguro de que quieres eliminar \"$name\"? Esto borrará sus archivos de forma permanente.';
-  }
 
   @override
   String get dialogUpdateAvailable => 'Actualización disponible';
@@ -186,7 +145,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String dialogDownloadPlaylistMessage(int count, String title) {
-    return '¿Quieres descargar $count canciones de \"$title\"? Se añadirán a la cola de descarga.';
+    return '¿Quieres descargar las canciones de «$title»? Total: $count. Se añadirán a la cola de descargas.';
   }
 
   @override
@@ -214,7 +173,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playlistDelete => 'Eliminar lista';
 
   @override
-  String get playlistEmptyState => '¡Aún no hay canciones!';
+  String get playlistEmptyState => 'Aún no hay canciones';
 
   @override
   String get playlistAvailableOffline => 'Disponible sin conexión';
@@ -223,26 +182,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playlistShuffle => 'Aleatorio';
 
   @override
-  String get playlistMoreOptions => 'Más opciones';
-
-  @override
   String get playlistNoMatchSearch => 'Ninguna lista coincide con tu búsqueda';
 
   @override
-  String get playlistCreateNew => 'Crear nueva lista 😍';
+  String get playlistCreateNew => 'Crear lista de reproducción';
 
   @override
   String get playlistCreateFirstOne =>
-      'No tienes listas aún. ¡Crea una para empezar!';
+      'Aún no tienes listas de reproducción. Crea una para empezar.';
 
   @override
   String get addToPlaylistNoSongSelected => 'No hay canción seleccionada';
 
   @override
-  String get createPlaylistDialogBarrierLabel => 'Diálogo para crear lista';
+  String get createPlaylistDialogBarrierLabel =>
+      'Ventana para crear una lista de reproducción';
 
   @override
-  String get createPlaylistDialogNameHint => 'Vibras de verano';
+  String get createPlaylistDialogNameHint => 'Música de verano';
 
   @override
   String get createPlaylistDialogCreate => 'Crear';
@@ -270,10 +227,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsTitle => 'Ajustes';
 
   @override
-  String get settingsPlugins => 'Plugins';
+  String get settingsPlugins => 'Complementos';
 
   @override
-  String get settingsPluginsSubtitle => 'Instala, carga y gestiona plugins.';
+  String get settingsPluginsSubtitle =>
+      'Instala, activa y gestiona complementos.';
 
   @override
   String get settingsUpdates => 'Actualizaciones';
@@ -285,27 +243,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsDownloads => 'Descargas';
 
   @override
-  String get settingsDownloadsSubtitle => 'Ruta, calidad de descarga y más...';
+  String get settingsDownloadsSubtitle =>
+      'Carpeta de descargas, calidad de audio y otras opciones';
 
   @override
   String get settingsLocalTracks => 'Pistas locales';
 
   @override
-  String get settingsLocalTracksSubtitle => 'Escanear y gestionar carpetas.';
+  String get settingsLocalTracksSubtitle =>
+      'Búsqueda de archivos, carpetas y búsqueda automática';
 
   @override
   String get settingsPlayer => 'Ajustes del reproductor';
 
   @override
   String get settingsPlayerSubtitle =>
-      'Calidad de streaming, reproducción automática, etc.';
+      'Calidad de audio, reproducción automática y otras opciones';
 
   @override
-  String get settingsPluginDefaults => 'Plugins por defecto';
+  String get settingsPluginDefaults => 'Complementos predeterminados';
 
   @override
   String get settingsPluginDefaultsSubtitle =>
-      'Fuentes y prioridad de resolución.';
+      'Fuente de Descubrir y prioridad de las fuentes de contenido';
 
   @override
   String get settingsUIElements => 'Interfaz y servicios';
@@ -315,10 +275,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ajustes visuales, carrusel automático, etc.';
 
   @override
-  String get settingsLastFM => 'Ajustes de Last.FM';
+  String get settingsLastFM => 'Ajustes de Last.fm';
 
   @override
-  String get settingsLastFMSubtitle => 'Configuración de cuenta y scrobbling.';
+  String get settingsLastFMSubtitle =>
+      'Claves API y envío del historial de reproducción';
 
   @override
   String get settingsStorage => 'Almacenamiento';
@@ -341,7 +302,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Versión, desarrollador y más información.';
 
   @override
-  String get settingsScanning => 'Escaneando';
+  String get settingsScanning => 'Búsqueda de archivos';
 
   @override
   String get settingsMusicFolders => 'Carpetas de música';
@@ -353,16 +314,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsHistory => 'Historial';
 
   @override
-  String get settingsBackupRestore => 'Copia de seguridad';
+  String get settingsBackupRestore => 'Copia de seguridad y restauración';
 
   @override
   String get settingsAutomatic => 'Automático';
 
   @override
-  String get settingsDangerZone => 'Zona de peligro';
+  String get settingsDangerZone => 'Restablecimiento de datos';
 
   @override
-  String get settingsScrobbling => 'Scrobbling';
+  String get settingsScrobbling => 'Envío del historial de reproducción';
 
   @override
   String get settingsAuthentication => 'Autenticación';
@@ -371,79 +332,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsHomeScreen => 'Pantalla de inicio';
 
   @override
-  String get settingsChartVisibility => 'Visibilidad de listas';
-
-  @override
-  String get settingsLocation => 'Ubicación';
-
-  @override
-  String get pluginRepositoryTitle => 'Repositorios de plugins';
-
-  @override
-  String get pluginRepositorySubtitle =>
-      'Añade fuentes para explorar nuevos plugins.';
-
-  @override
-  String get pluginRepositoryAddAction => 'Añadir repositorio';
-
-  @override
-  String get pluginRepositoryAddTitle => 'Añadir repositorio';
-
-  @override
-  String get pluginRepositoryAddSubtitle =>
-      'Introduce la URL de un JSON válido.';
-
-  @override
-  String get pluginRepositoryEmpty => 'No hay repositorios aún.';
-
-  @override
-  String get pluginRepositoryUrlCopied => 'URL copiada al portapapeles';
-
-  @override
-  String get pluginRepositoryNoDescription => 'Sin descripción.';
-
-  @override
-  String get pluginRepositoryUnknownUpdate => 'Sin info de actualización';
-
-  @override
-  String pluginRepositoryPluginsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count plugins',
-      one: '1 plugin',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get pluginRepositoryErrorLoad => 'Fallo al cargar repositorios.';
-
-  @override
-  String get pluginRepositoryErrorInvalid =>
-      'URL o archivo de repositorio no válido.';
-
-  @override
-  String get pluginRepositoryErrorRemove => 'Fallo al eliminar el repositorio.';
-
-  @override
-  String pluginRepositoryError(String message) {
-    return 'Error: $message';
-  }
+  String get settingsChartVisibility => 'Visibilidad de listas de éxitos';
 
   @override
   String get dialogAddingToDownloadQueue => 'Añadiendo a la cola de descarga';
 
   @override
-  String get emptyNoInternet => '¡Sin conexión a internet!';
+  String get emptyNoInternet => 'Sin conexión a internet';
 
   @override
   String get emptyNoContentPlugin =>
-      'No hay plugins de contenido cargados. Instala uno en el Gestor de Plugins.';
+      'No hay fuentes de contenido activas. Activa un complemento en el gestor de complementos.';
 
   @override
   String get emptyRefreshingSource =>
-      'Actualizando fuente de descubrimiento... La anterior ya no está disponible.';
+      'Actualizando la fuente de Descubrir… La fuente anterior ya no está disponible.';
 
   @override
   String get emptyNoTracks => 'No hay pistas disponibles';
@@ -470,7 +373,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String snackbarAddedToLiked(String title) {
-    return '¡Añadido a tus Me gusta: $title!';
+    return '$title añadido a favoritos';
   }
 
   @override
@@ -484,72 +387,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get snackbarPlaylistQueued => 'Lista añadida a la cola de descarga';
-
-  @override
-  String get snackbarPlaylistUpdated => '¡Lista actualizada!';
-
-  @override
-  String get snackbarNoInternet => 'Sin conexión a internet.';
-
-  @override
-  String get snackbarImportFailed => '¡Error al importar!';
-
-  @override
-  String get snackbarImportCompleted => 'Importación completada';
-
-  @override
-  String get snackbarBackupFailed => '¡Error al crear la copia de seguridad!';
-
-  @override
-  String snackbarExportedTo(String path) {
-    return 'Exportado a: $path';
-  }
-
-  @override
-  String get snackbarMediaIdCopied => 'ID de medios copiado';
+  String get snackbarPlaylistUpdated => 'Lista de reproducción actualizada';
 
   @override
   String get snackbarLinkCopied => 'Enlace copiado';
 
   @override
-  String get snackbarNoLinkAvailable => 'No hay enlace disponible';
-
-  @override
   String get snackbarCouldNotOpenLink => 'No se pudo abrir el enlace';
-
-  @override
-  String snackbarPreparingDownload(String title) {
-    return 'Preparando descarga para $title...';
-  }
-
-  @override
-  String snackbarAlreadyDownloaded(String title) {
-    return '$title ya está descargado.';
-  }
-
-  @override
-  String snackbarAlreadyInQueue(String title) {
-    return '$title ya está en la cola.';
-  }
-
-  @override
-  String snackbarDownloaded(String title) {
-    return 'Descargado: $title';
-  }
-
-  @override
-  String get snackbarDownloadServiceUnavailable =>
-      'Error: El servicio de descarga no está disponible.';
 
   @override
   String snackbarSongsAddedToQueue(int count) {
     return 'Se añadieron $count canciones a la cola de descarga';
   }
-
-  @override
-  String get snackbarDeleteTrackFailDevice =>
-      'Error al eliminar la pista del almacenamiento del dispositivo.';
 
   @override
   String get searchHintExplore => '¿Qué quieres escuchar?';
@@ -558,32 +407,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get searchHintLibrary => 'Buscar en la biblioteca...';
 
   @override
-  String get searchHintOfflineMusic => 'Buscar en tus canciones...';
-
-  @override
   String get searchHintPlaylists => 'Buscar listas...';
 
   @override
   String get searchStartTyping => 'Empieza a escribir para buscar...';
 
   @override
-  String get searchNoSuggestions => '¡No se encontraron sugerencias!';
+  String get searchNoSuggestions => 'No se encontraron sugerencias';
 
   @override
   String get searchNoResults =>
-      '¡No hay resultados!\nPrueba con otra palabra clave o fuente.';
+      'No se encontraron resultados.\nPrueba con otro término u otra fuente.';
 
   @override
-  String get searchFailed => '¡Error en la búsqueda!';
+  String get searchFailed => 'Error en la búsqueda';
 
   @override
-  String get searchDiscover => 'Descubre música increíble...';
+  String get searchDiscover => 'Descubre nueva música';
 
   @override
-  String get searchSources => 'FUENTES';
+  String get searchSources => 'Fuentes';
 
   @override
-  String get searchNoPlugins => 'No hay plugins instalados';
+  String get searchNoPlugins => 'No hay complementos instalados';
 
   @override
   String get searchTracks => 'Canciones';
@@ -601,10 +447,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exploreDiscover => 'Descubrir';
 
   @override
-  String get exploreRecently => 'Reciente';
+  String get exploreRecently => 'Escuchado recientemente';
 
   @override
-  String get exploreLastFmPicks => 'Recomendaciones de Last.Fm';
+  String get exploreLastFmPicks => 'Recomendaciones de Last.fm';
 
   @override
   String get exploreFailedToLoad => 'Error al cargar las secciones de inicio.';
@@ -614,7 +460,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get libraryEmptyState =>
-      'Tu biblioteca se siente sola. ¡Añade música para alegrarla!';
+      'Tu biblioteca está vacía. Añade canciones y listas de reproducción para empezar.';
 
   @override
   String libraryIn(String playlistName) {
@@ -643,27 +489,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuDeleteTrack => 'Eliminar';
 
   @override
-  String get songInfoTitle => 'Título';
-
-  @override
-  String get songInfoArtist => 'Artista';
-
-  @override
-  String get songInfoAlbum => 'Álbum';
-
-  @override
-  String get songInfoMediaId => 'ID de medios';
-
-  @override
-  String get songInfoCopyId => 'Copiar ID';
-
-  @override
-  String get songInfoCopyLink => 'Copiar enlace';
-
-  @override
-  String get songInfoOpenBrowser => 'Abrir en navegador';
-
-  @override
   String get tooltipRemoveFromLibrary => 'Quitar de la biblioteca';
 
   @override
@@ -673,19 +498,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tooltipOpenOriginalLink => 'Abrir enlace original';
 
   @override
-  String get tooltipShuffle => 'Aleatorio';
-
-  @override
   String get tooltipAvailableOffline => 'Disponible sin conexión';
 
   @override
-  String get tooltipDownloadPlaylist => 'Descargar lista';
-
-  @override
   String get tooltipMoreOptions => 'Más opciones';
-
-  @override
-  String get tooltipInfo => 'Información';
 
   @override
   String get appuiTitle => 'Interfaz y servicios';
@@ -699,14 +515,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get appuiLastFmPicksSubtitle =>
-      'Sugerencias de Last.FM. Requiere inicio de sesión y reinicio.';
+      'Muestra recomendaciones de Last.fm. Debes iniciar sesión y reiniciar la aplicación.';
 
   @override
   String get appuiNoChartsAvailable =>
-      'No hay listas disponibles. Instala un plugin de listas.';
+      'No hay listas de éxitos disponibles. Activa un complemento de listas de éxitos.';
 
   @override
-  String get appuiLoginToLastFm => 'Inicia sesión en Last.FM primero.';
+  String get appuiLoginToLastFm => 'Inicia sesión en Last.fm primero.';
 
   @override
   String get appuiShowInCarousel => 'Mostrar en el carrusel de inicio.';
@@ -751,17 +567,17 @@ class AppLocalizationsEs extends AppLocalizations {
       'Restaurar la ruta de descarga predeterminada.';
 
   @override
-  String get lastfmTitle => 'Last.FM';
+  String get lastfmTitle => 'Last.fm';
 
   @override
-  String get lastfmScrobbleTracks => 'Hacer scrobbling';
+  String get lastfmScrobbleTracks => 'Enviar historial de reproducción';
 
   @override
   String get lastfmScrobbleTracksSubtitle =>
-      'Enviar pistas escuchadas a tu perfil de Last.FM.';
+      'Enviar pistas escuchadas a tu perfil de Last.fm.';
 
   @override
-  String get lastfmAuthFirst => 'Primero autentica la API de Last.FM.';
+  String get lastfmAuthFirst => 'Primero autentica la API de Last.fm.';
 
   @override
   String get lastfmAuthenticatedAs => 'Autenticado como';
@@ -774,19 +590,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get lastfmSteps =>
-      'Pasos para autenticar:\n1. Crea/abre una cuenta en last.fm\n2. Genera una API Key en last.fm/api/account/create\n3. Introduce tu API Key y Secret abajo\n4. Toca \"Iniciar Autenticación\" y aprueba en el navegador\n5. Toca \"Guardar Clave de Sesión\" para terminar';
+      'Pasos para autenticar:\n1. Crea una cuenta o inicia sesión en last.fm.\n2. Genera una clave API en last.fm/api/account/create.\n3. Introduce la clave API y la clave secreta abajo.\n4. Toca «1. Iniciar autorización» y confirma en el navegador.\n5. Toca «2. Obtener y guardar clave de sesión».';
 
   @override
-  String get lastfmApiKey => 'API Key';
+  String get lastfmApiKey => 'Clave API';
 
   @override
-  String get lastfmApiSecret => 'API Secret';
+  String get lastfmApiSecret => 'Clave secreta API';
 
   @override
-  String get lastfmStartAuth => '1. Iniciar Autenticación';
+  String get lastfmStartAuth => '1. Iniciar autorización';
 
   @override
-  String get lastfmGetSession => '2. Guardar Clave de Sesión';
+  String get lastfmGetSession => '2. Obtener y guardar clave de sesión';
 
   @override
   String get lastfmRemoveKeys => 'Eliminar claves';
@@ -829,14 +645,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playerSettingTitle => 'Ajustes del reproductor';
 
   @override
-  String get playerSettingStreamingHeader => 'Streaming';
+  String get playerSettingStreamingHeader => 'Audio en línea';
 
   @override
-  String get playerSettingStreamQuality => 'Calidad de streaming';
+  String get playerSettingStreamQuality => 'Calidad de audio en línea';
 
   @override
   String get playerSettingStreamQualitySubtitle =>
-      'Calidad de audio global para reproducción online.';
+      'Tasa de bits del audio para la reproducción en línea.';
 
   @override
   String get playerSettingQualityLow => 'Baja';
@@ -858,14 +674,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Añadir canciones similares cuando termine la cola.';
 
   @override
-  String get playerSettingAutoFallback => 'Búsqueda de respaldo automática';
+  String get playerSettingAutoFallback => 'Usar una fuente alternativa';
 
   @override
   String get playerSettingAutoFallbackSubtitle =>
-      'Si falla un plugin, intentar con otro compatible automáticamente.';
+      'Si un complemento no está disponible o no proporciona audio, prueba una fuente compatible solo para reproducir.';
 
   @override
-  String get playerSettingCrossfade => 'Crossfade (Fundido)';
+  String get playerSettingCrossfade => 'Fundido entre canciones';
 
   @override
   String get playerSettingCrossfadeOff => 'Desactivado';
@@ -875,7 +691,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String playerSettingCrossfadeBlend(int seconds) {
-    return 'Fundido de ${seconds}s entre canciones';
+    return 'Fundido de $seconds s entre canciones';
   }
 
   @override
@@ -894,29 +710,30 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ecualizador paramétrico de 10 bandas (vía FFmpeg).';
 
   @override
-  String get pluginDefaultsTitle => 'Plugins por defecto';
+  String get pluginDefaultsTitle => 'Complementos predeterminados';
 
   @override
-  String get pluginDefaultsDiscoverHeader => 'Fuente de descubrimiento';
+  String get pluginDefaultsDiscoverHeader => 'Fuente de Descubrir';
 
   @override
   String get pluginDefaultsNoResolver =>
-      'No hay cargado un plugin de resolución. Instala uno primero.';
+      'No hay fuentes de contenido activas. Activa un complemento para elegir una fuente de Descubrir.';
 
   @override
   String get pluginDefaultsAutomaticSubtitle =>
-      'Usar el primer plugin disponible.';
+      'Usa la primera fuente de contenido disponible.';
 
   @override
-  String get pluginDefaultsPriorityHeader => 'Prioridad de resolución';
+  String get pluginDefaultsPriorityHeader =>
+      'Prioridad de las fuentes de contenido';
 
   @override
   String get pluginDefaultsNoPriority =>
-      'No hay plugins cargados. La prioridad aparecerá aquí al instalarlos.';
+      'No hay fuentes de contenido activas. El orden de prioridad aparecerá aquí cuando se activen los complementos.';
 
   @override
   String get pluginDefaultsPriorityDesc =>
-      'Arrastra para reordenar. Los plugins superiores se intentarán primero.';
+      'Arrastra para reordenar. Las fuentes con mayor prioridad se prueban primero para encontrar versiones reproducibles de las canciones importadas o de las listas de éxitos.';
 
   @override
   String get pluginDefaultsLyricsHeader => 'Prioridad de letras';
@@ -926,7 +743,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pluginDefaultsLyricsDesc =>
-      'Arrastra para reordenar los proveedores de letras.';
+      'Arrastra para reordenar los proveedores de letras. Se prueba primero el que aparece al principio.';
 
   @override
   String get pluginDefaultsSuggestionsHeader => 'Sugerencias de búsqueda';
@@ -964,23 +781,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get storageBackupLocation => 'Ubicación de copia de seguridad';
-
-  @override
-  String get storageBackupLocationAndroid =>
-      'Directorio de Descargas / App-data';
-
-  @override
-  String get storageBackupLocationDownloads => 'Directorio de Descargas';
-
-  @override
-  String get storageCreateBackup => 'Crear copia de seguridad';
-
-  @override
-  String get storageCreateBackupSubtitle =>
-      'Guarda tus ajustes y datos en un archivo.';
-
-  @override
   String storageBackupCreatedAt(String path) {
     return 'Copia creada en $path';
   }
@@ -989,9 +789,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String storageBackupShareFailed(String error) {
     return 'Error al compartir copia: $error';
   }
-
-  @override
-  String get storageBackupFailed => '¡Error en la copia de seguridad!';
 
   @override
   String get storageRestoreBackup => 'Restaurar copia';
@@ -1004,10 +801,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get storageAutoBackup => 'Copia automática';
 
   @override
-  String get storageAutoBackupSubtitle =>
-      'Crear copias de seguridad automáticas periódicamente.';
-
-  @override
   String get storageAutoLyrics => 'Autoguardado de letras';
 
   @override
@@ -1018,118 +811,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get storageResetApp => 'Restablecer Bloomee';
 
   @override
-  String get storageResetAppSubtitle =>
-      'Elimina todos los datos y devuelve la app a su estado inicial.';
-
-  @override
   String get storageResetConfirmTitle => 'Confirmar restablecimiento';
-
-  @override
-  String get storageResetConfirmMessage =>
-      '¿Estás seguro de que quieres restablecer Bloomee? Esto borrará todos tus datos y no se puede deshacer.';
 
   @override
   String get storageResetButton => 'Restablecer';
 
   @override
-  String get storageResetSuccess => 'La aplicación ha sido restablecida.';
-
-  @override
-  String get storageLocationDialogTitle => 'Ubicación de copia';
-
-  @override
-  String get storageLocationAndroid =>
-      'Las copias se guardan en:\n\n1. Directorio de Descargas\n2. Android/data/ls.bloomee.musicplayer/data\n\nCopia el archivo desde cualquiera de esas rutas.';
-
-  @override
-  String get storageLocationOther =>
-      'Las copias se guardan en la carpeta de Descargas.';
-
-  @override
   String get storageRestoreOptionsTitle => 'Opciones de restauración';
-
-  @override
-  String get storageRestoreOptionsDesc =>
-      'Elige qué quieres restaurar. Desmarca lo que NO quieras importar.';
-
-  @override
-  String get storageRestoreSelectAll => 'Seleccionar todo';
-
-  @override
-  String get storageRestoreMediaItems =>
-      'Elementos multimedia (biblioteca, canciones)';
-
-  @override
-  String get storageRestoreSearchHistory => 'Historial de búsqueda';
 
   @override
   String get storageRestoreContinue => 'Continuar';
 
   @override
-  String get storageRestoreNoFile => 'No se seleccionó ningún archivo.';
-
-  @override
-  String get storageRestoreSaveFailed =>
-      'Error al guardar el archivo seleccionado.';
-
-  @override
   String get storageRestoreConfirmTitle => 'Confirmar restauración';
 
   @override
-  String get storageRestoreConfirmPrefix =>
-      'Esto sobrescribirá y fusionará tus datos actuales con los del archivo:';
-
-  @override
-  String get storageRestoreConfirmSuffix =>
-      '¿Estás seguro de que quieres proceder?';
-
-  @override
   String get storageRestoreYes => 'Sí, restaurar';
-
-  @override
-  String get storageRestoreNo => 'No';
 
   @override
   String get storageRestoring =>
       'Restaurando datos seleccionados…\nPor favor, espera.';
 
   @override
-  String get storageRestoreMediaBullet => '• Elementos multimedia';
-
-  @override
-  String get storageRestoreHistoryBullet => '• Historial de búsqueda';
-
-  @override
-  String get storageUnexpectedError =>
-      'Ocurrió un error inesperado durante la restauración.';
-
-  @override
-  String get storageRestoreCompleted => 'Restauración completada';
-
-  @override
   String get storageRestoreFailedTitle => 'Fallo en la restauración';
 
   @override
-  String get storageRestoreSuccessMessage =>
-      'Datos restaurados con éxito. Se recomienda reiniciar la aplicación.';
-
-  @override
-  String get storageRestoreFailedMessage =>
-      'La restauración falló con los siguientes errores:';
-
-  @override
-  String get storageRestoreUnknownError =>
-      'Error desconocido durante la restauración.';
-
-  @override
-  String get storageRestoreRestartHint =>
-      'Por favor, reinicia la app para asegurar la consistencia.';
-
-  @override
   String get updateSettingTitle => 'Actualizaciones';
-
-  @override
-  String get updateAppUpdatesHeader => 'Actualizaciones de la app';
 
   @override
   String get updateCheckForUpdates => 'Buscar actualizaciones';
@@ -1149,10 +856,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get updateCheckTitle => 'Búsqueda de actualizaciones';
 
   @override
-  String get updateUpToDate => '¡Bloomee🌸 está al día!';
+  String get updateUpToDate => 'Bloomee está actualizado';
 
   @override
-  String get updateViewPreRelease => 'Ver última Pre-Release';
+  String get updateViewPreRelease => 'Ver la última versión preliminar';
 
   @override
   String updateCurrentVersion(String curr, String build) {
@@ -1161,7 +868,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get updateNewVersionAvailable =>
-      '¡Hay una nueva versión de Bloomee🌸 disponible!';
+      'Hay una nueva versión de Bloomee disponible';
 
   @override
   String updateVersion(String ver, String build) {
@@ -1175,7 +882,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get updateChecking => 'Comprobando disponibilidad de versiones...';
 
   @override
-  String get timerTitle => 'Temporizador';
+  String get timerTitle => 'Temporizador de apagado';
 
   @override
   String get timerInterludeMessage => 'La música se detendrá en…';
@@ -1194,7 +901,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get timerFinishedMessage =>
-      'La música se ha detenido. ¡Que descanses! 🥰';
+      'El temporizador ha detenido la reproducción.';
 
   @override
   String get timerGotIt => 'Entendido';
@@ -1209,7 +916,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get notificationsTitle => 'Notificaciones';
 
   @override
-  String get notificationsEmpty => '¡No hay notificaciones aún!';
+  String get notificationsEmpty => 'Aún no hay notificaciones';
 
   @override
   String get recentsTitle => 'Historial';
@@ -1220,35 +927,29 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get playlistTypeAlbum => 'Álbum';
-
-  @override
-  String get playlistTypePlaylist => 'Lista';
-
-  @override
   String get playlistYou => 'Tú';
 
   @override
-  String get pluginManagerTitle => 'Plugins';
+  String get pluginManagerTitle => 'Complementos';
 
   @override
   String get pluginManagerEmpty =>
-      'No hay plugins instalados.\nToca + para añadir un archivo .bex.';
+      'No hay complementos instalados.\nToca + para añadir un archivo .bex.';
 
   @override
   String get pluginManagerFilterAll => 'Todos';
 
   @override
-  String get pluginManagerFilterContent => 'Contenido';
+  String get pluginManagerFilterContent => 'Fuentes de contenido';
 
   @override
-  String get pluginManagerFilterCharts => 'Listas/Éxitos';
+  String get pluginManagerFilterCharts => 'Proveedores de listas de éxitos';
 
   @override
-  String get pluginManagerFilterLyrics => 'Letras';
+  String get pluginManagerFilterLyrics => 'Proveedores de letras';
 
   @override
-  String get pluginManagerFilterSuggestions => 'Sugerencias';
+  String get pluginManagerFilterSuggestions => 'Proveedores de sugerencias';
 
   @override
   String get pluginManagerFilterImporters => 'Importadores';
@@ -1257,10 +958,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pluginManagerTooltipRefresh => 'Actualizar';
 
   @override
-  String get pluginManagerTooltipInstall => 'Instalar Plugin';
+  String get pluginManagerTooltipInstall => 'Instalar complemento';
 
   @override
-  String get pluginManagerNoMatch => 'Ningún plugin coincide con el filtro';
+  String get pluginManagerNoMatch =>
+      'Ningún complemento coincide con el filtro';
 
   @override
   String pluginManagerPickFailed(String error) {
@@ -1268,25 +970,25 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get pluginManagerInstalling => 'Instalando plugin...';
+  String get pluginManagerInstalling => 'Instalando complemento...';
 
   @override
-  String get pluginManagerTypeContentResolver => 'Contenido';
+  String get pluginManagerTypeContentResolver => 'Fuente de contenido';
 
   @override
-  String get pluginManagerTypeChartProvider => 'Listas/Éxitos';
+  String get pluginManagerTypeChartProvider => 'Proveedor de listas de éxitos';
 
   @override
-  String get pluginManagerTypeLyricsProvider => 'Letras';
+  String get pluginManagerTypeLyricsProvider => 'Proveedor de letras';
 
   @override
-  String get pluginManagerTypeSuggestionProvider => 'Sugerencias';
+  String get pluginManagerTypeSuggestionProvider => 'Sugerencias de búsqueda';
 
   @override
   String get pluginManagerTypeContentImporter => 'Importador';
 
   @override
-  String get pluginManagerDeleteTitle => '¿Eliminar plugin?';
+  String get pluginManagerDeleteTitle => '¿Eliminar complemento?';
 
   @override
   String pluginManagerDeleteMessage(String name) {
@@ -1300,10 +1002,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pluginManagerCancel => 'Cancelar';
 
   @override
-  String get pluginManagerEnablePlugin => 'Habilitar Plugin';
+  String get pluginManagerEnablePlugin => 'Activar complemento';
 
   @override
-  String get pluginManagerUnloadPlugin => 'Desactivar Plugin';
+  String get pluginManagerUnloadPlugin => 'Desactivar complemento';
 
   @override
   String get pluginManagerDeleting => 'Eliminando...';
@@ -1336,18 +1038,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pluginManagerDetailHomepage => 'Sitio web';
 
   @override
-  String get pluginManagerDowngradeTitle => '¿Instalar versión anterior?';
-
-  @override
-  String pluginManagerDowngradeMessage(String name) {
-    return 'Estás instalando una versión igual o anterior de \"$name\". ¿Continuar?';
-  }
-
-  @override
-  String get pluginManagerDowngradeAction => 'Instalar de todos modos';
-
-  @override
-  String get pluginManagerDeleteStorageTitle => '¿Borrar datos del plugin?';
+  String get pluginManagerDeleteStorageTitle =>
+      '¿Borrar datos del complemento?';
 
   @override
   String pluginManagerDeleteStorageMessage(String name) {
@@ -1374,7 +1066,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String smartReplaceSubtitle(String title) {
-    return 'Elige un reemplazo para \"$title\" y actualiza las referencias en tus listas.';
+    return 'Elige una versión reproducible de «$title» para actualizar sus referencias en las listas guardadas.';
   }
 
   @override
@@ -1385,7 +1077,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get smartReplaceNoMatchSubtitle =>
-      'Ninguno de los plugins cargados devolvió una coincidencia clara.';
+      'Ninguna de las fuentes de contenido activas encontró una coincidencia adecuada.';
 
   @override
   String get smartReplaceBestMatch => 'Mejor coincidencia';
@@ -1404,11 +1096,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String smartReplaceAppliedPlaylists(int count, String plural, String queue) {
-    return 'Reemplazado en $count lista$plural$queue.';
-  }
-
-  @override
   String get smartReplaceQueueUpdated => ' y se actualizó la cola';
 
   @override
@@ -1416,12 +1103,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String playerLiked(String title) {
-    return '¡Añadido a Me gusta!';
+    return '$title añadido a favoritos';
   }
 
   @override
   String playerUnliked(String title) {
-    return '¡Quitado de Me gusta!';
+    return '$title eliminado de favoritos';
   }
 
   @override
@@ -1464,7 +1151,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get albumViewLoadFailed => 'Fallo al cargar álbum';
 
   @override
-  String get aboutCraftingSubtitle => 'Creando sinfonías en código.';
+  String get aboutCraftingSubtitle => 'Desarrollado para la música.';
 
   @override
   String get aboutFollowGitHub => 'Síguelo en GitHub';
@@ -1476,14 +1163,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get aboutCreativeHighlights => 'Actualizaciones y contenido creativo';
 
   @override
-  String get aboutTipQuote =>
-      '¿Te gusta Bloomee? Tu apoyo ayuda a que siga creciendo. 🌸';
+  String get aboutTipQuote => '¿Te gusta Bloomee? Puedes apoyar su desarrollo.';
 
   @override
-  String get aboutTipButton => 'Quiero ayudar';
+  String get aboutTipButton => 'Apoyar el proyecto';
 
   @override
-  String get aboutTipDesc => 'Quiero que Bloomee siga mejorando.';
+  String get aboutTipDesc => 'Tu aportación ayuda a mejorar Bloomee.';
 
   @override
   String get aboutGitHub => 'GitHub';
@@ -1516,7 +1202,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get songInfoLabelMediaId => 'ID de medios';
 
   @override
-  String get songInfoLabelPluginId => 'ID de plugin';
+  String get songInfoLabelPluginId => 'ID de complemento';
+
+  @override
+  String get songInfoCopyId => 'Copiar ID';
+
+  @override
+  String get songInfoCopyLink => 'Copiar enlace';
+
+  @override
+  String get songInfoOpenBrowser => 'Abrir en navegador';
 
   @override
   String get songInfoIdCopied => 'ID de medios copiado';
@@ -1556,9 +1251,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eqTitle => 'Ecualizador';
 
   @override
-  String get eqResetTooltip => 'Restablecer';
-
-  @override
   String get chartNoItems => 'No hay elementos en esta lista';
 
   @override
@@ -1578,19 +1270,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chartNoResolver =>
-      'No hay cargado un plugin de resolución. Instala uno.';
+      'No hay fuentes de contenido activas. Instala un complemento para reproducir.';
 
   @override
   String get chartResolveFailed => 'No se encontró fuente directa. Buscando...';
 
   @override
-  String get chartNoResolverAdd => 'No hay plugins cargados.';
+  String get chartNoResolverAdd => 'No hay fuentes de contenido activas.';
 
   @override
   String get chartNoMatch => 'Sin coincidencias. Prueba a buscar manualmente.';
 
   @override
-  String get chartStatPeak => 'Pico';
+  String get chartStatPeak => 'Mejor posición';
 
   @override
   String get chartStatWeeks => 'Semanas';
@@ -1610,6 +1302,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get localMusicFolders => 'Carpetas de música';
 
   @override
+  String get localMusicRemoveFolder => 'Quitar carpeta';
+
+  @override
   String get localMusicCloseSearch => 'Cerrar búsqueda';
 
   @override
@@ -1622,11 +1317,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get localMusicNoSearchResults => 'Sin resultados para tu búsqueda.';
 
   @override
+  String localMusicTrackCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pistas',
+      one: '1 pista',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get importSongsTitle => 'Importar canciones';
 
   @override
   String get importNoPluginsLoaded =>
-      'No hay plugins importadores cargados.\nInstala uno para importar desde servicios externos.';
+      'No hay complementos importadores cargados.\nInstala uno para importar desde servicios externos.';
 
   @override
   String get importBloomeeFiles => 'Importar archivos Bloomee';
@@ -1671,23 +1377,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String importTrackCount(int count) {
-    return '$count pistas';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pistas',
+      one: '$count pista',
+    );
+    return '$_temp0';
   }
-
-  @override
-  String get importResolving => 'Buscando fuentes...';
 
   @override
   String importResolvingProgress(int done, int total) {
     return 'Resolviendo pistas: $done / $total';
-  }
-
-  @override
-  String get importReviewTitle => 'Revisión de importación';
-
-  @override
-  String importReviewSummary(int resolved, int failed, int total) {
-    return '$resolved resueltas, $failed fallidas de $total';
   }
 
   @override
@@ -1697,7 +1398,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String importTracksSaved(int count) {
-    return '¡$count pistas guardadas!';
+    return 'Pistas guardadas: $count';
   }
 
   @override
@@ -1719,27 +1420,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get importMatchOptions => 'Opciones de coincidencia';
 
   @override
-  String get importAutoMatched => 'Automática';
-
-  @override
-  String get importUserSelected => 'Seleccionada';
-
-  @override
   String get importSkipped => 'Omitida';
-
-  @override
-  String get importNoMatch => 'Sin coincidencia';
 
   @override
   String get importReorderTip => 'Mantén presionado para reordenar las listas';
 
   @override
   String get importErrorCannotHandleUrl =>
-      'Este plugin no soporta la URL proporcionada.';
+      'Este complemento no soporta la URL proporcionada.';
 
   @override
   String get importErrorUnexpectedResponse =>
-      'Respuesta inesperada del plugin.';
+      'Respuesta inesperada del complemento.';
 
   @override
   String importErrorFailedToCheck(String error) {
@@ -1768,55 +1460,70 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playlistUnpin => 'Desfijar';
 
   @override
-  String get snackbarImportingMedia => 'Importando elementos multimedia...';
-
-  @override
-  String get snackbarPlaylistSaved => '¡Lista guardada en la biblioteca!';
-
-  @override
   String get snackbarInvalidFileFormat => 'Formato de archivo no válido';
-
-  @override
-  String get snackbarMediaItemImported => 'Elemento multimedia importado';
-
-  @override
-  String get snackbarPlaylistImported => 'Lista importada';
-
-  @override
-  String get snackbarOpenImportForUrl =>
-      'Abre la pantalla de Importar en la Biblioteca para usar esta URL.';
 
   @override
   String get snackbarProcessingFile => 'Procesando archivo...';
 
   @override
-  String snackbarPreparingShare(String title) {
-    return 'Preparando \"$title\" para compartir';
-  }
-
-  @override
-  String snackbarPreparingExport(String title) {
-    return 'Preparando \"$title\" para exportar.';
-  }
-
-  @override
   String get pluginManagerTabInstalled => 'Instalados';
 
   @override
-  String get pluginManagerTabStore => 'Tienda de plugins';
+  String get pluginManagerTabStore => 'Tienda de complementos';
 
   @override
   String get pluginManagerSelectPackage => 'Selecciona paquete (.bex)';
 
   @override
   String get pluginManagerOutdatedManifest =>
-      'El plugin usa un manifiesto antiguo. Algunas funciones podrían fallar.';
+      'El complemento usa un manifiesto antiguo. Algunas funciones podrían fallar.';
 
   @override
   String get pluginManagerStatusActive => 'Activo';
 
   @override
   String get pluginManagerStatusInactive => 'Inactivo';
+
+  @override
+  String get pluginRepositoryAddTitle => 'Añadir repositorio';
+
+  @override
+  String get pluginRepositoryAddSubtitle =>
+      'Introduce el enlace de un archivo JSON válido de un repositorio de complementos.';
+
+  @override
+  String get pluginRepositoryAddAction => 'Añadir repositorio';
+
+  @override
+  String get pluginRepositoryTitle => 'Repositorios de complementos';
+
+  @override
+  String get pluginRepositorySubtitle =>
+      'Añade una fuente JSON para explorar complementos disponibles en línea.';
+
+  @override
+  String get pluginRepositoryEmpty => 'No hay repositorios aún.';
+
+  @override
+  String get pluginRepositoryUnknownUpdate =>
+      'Sin información de actualización';
+
+  @override
+  String get pluginRepositoryNoDescription => 'Sin descripción.';
+
+  @override
+  String get pluginRepositoryUrlCopied => 'URL copiada al portapapeles';
+
+  @override
+  String pluginRepositoryPluginsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count complementos',
+      one: '1 complemento',
+    );
+    return '$_temp0';
+  }
 
   @override
   String pluginRepositoryUpdatedOn(String date) {
@@ -1828,8 +1535,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count plugins disponibles',
-      one: '1 plugin disponible',
+      other: '$count complementos disponibles',
+      one: '1 complemento disponible',
     );
     return '$_temp0';
   }
@@ -1845,7 +1552,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pluginRepositoryActionRetry => 'Reintentar';
 
   @override
-  String get pluginRepositoryActionOutdated => 'Antiguo';
+  String get pluginRepositoryActionOutdated => 'Desactualizado';
 
   @override
   String get pluginRepositoryActionInstalled => 'Instalado';
@@ -1865,6 +1572,16 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get pluginRepositoryErrorLoad => 'Fallo al cargar repositorios.';
+
+  @override
+  String get pluginRepositoryErrorInvalid =>
+      'URL o archivo de repositorio no válido.';
+
+  @override
+  String get pluginRepositoryErrorRemove => 'Fallo al eliminar el repositorio.';
+
+  @override
   String smartReplaceAppliedPlaylistsSummary(int count, String queue) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1879,7 +1596,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get lyricsSearchFieldLabel => 'Buscar letras...';
 
   @override
-  String get lyricsSearchEmptyPrompt => 'Escribe una canción o artista.';
+  String get lyricsSearchEmptyPrompt =>
+      'Escribe el nombre de una canción o de un artista para encontrar letras.';
 
   @override
   String lyricsSearchNoResults(String query) {
@@ -1887,7 +1605,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get lyricsSearchApplied => 'Letras aplicadas con éxito';
+  String get lyricsSearchApplied => 'Letra aplicada';
 
   @override
   String get lyricsSearchFetchFailed => 'Fallo al obtener letras';
@@ -1908,11 +1626,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get lyricsSearchApplyAction => 'Aplicar letras';
 
   @override
-  String get lyricsSettingsSearchTitle => 'Buscar letras personalizadas';
+  String get lyricsSettingsSearchTitle => 'Buscar otra letra';
 
   @override
   String get lyricsSettingsSearchSubtitle =>
-      'Busca versiones alternativas online';
+      'Encuentra otras versiones en línea';
 
   @override
   String get lyricsSettingsSyncTitle => 'Ajustar sincronización';
@@ -1922,7 +1640,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Corrige letras adelantadas o atrasadas';
 
   @override
-  String get lyricsSettingsSaveTitle => 'Guardar para offline';
+  String get lyricsSettingsSaveTitle => 'Guardar sin conexión';
 
   @override
   String get lyricsSettingsSaveSubtitle =>
@@ -1933,7 +1651,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get lyricsSettingsDeleteSubtitle =>
-      'Elimina los datos de letras offline';
+      'Elimina la letra guardada sin conexión';
 
   @override
   String get lyricsSyncTapToReset => 'Toca para restablecer';
@@ -1951,9 +1669,6 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get upNextAutoPlay => 'Automático';
 
   @override
   String get tooltipCopyToClipboard => 'Copiar al portapapeles';
@@ -1982,22 +1697,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String updateAvailableBody(String ver, String build) {
-    return '¡Nueva versión de Bloomee🌸 disponible!\n\nVersión: $ver+$build';
+    return 'Hay una nueva versión de Bloomee disponible.\n\nVersión: $ver+$build';
   }
 
   @override
   String pluginSnackbarInstalled(String id) {
-    return 'Plugin \"$id\" instalado con éxito';
-  }
-
-  @override
-  String pluginSnackbarLoaded(String id) {
-    return 'Plugin \"$id\" cargado';
+    return 'Complemento \"$id\" instalado con éxito';
   }
 
   @override
   String pluginSnackbarDeleted(String id) {
-    return 'Plugin \"$id\" eliminado con éxito';
+    return 'Complemento \"$id\" eliminado con éxito';
   }
 
   @override
@@ -2005,179 +1715,388 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String pluginBootstrapProgress(int percent) {
-    return 'Configurando nuevo motor de plugins... $percent%';
+    return 'Configurando nuevo motor de complementos... $percent%';
   }
 
   @override
   String get pluginBootstrapHint => 'Esto solo sucede una vez.';
 
   @override
-  String get pluginBootstrapErrorTitle => 'Conexión lenta';
+  String get backupSave => 'Guardar copia de seguridad como JSON';
 
   @override
-  String get pluginBootstrapErrorBody =>
-      'No se instalaron algunos plugins. Puedes usar Bloomee, se reintentará en el próximo inicio.';
-
-  @override
-  String get pluginBootstrapContinue => 'Continuar de todos modos';
-
-  @override
-  String get backupBusy => 'Another backup operation is open. Finish it first.';
-
-  @override
-  String get backupSave => 'Save backup as JSON';
-
-  @override
-  String get backupShare => 'Share JSON backup';
+  String get backupShare => 'Compartir copia de seguridad JSON';
 
   @override
   String get backupPortableDetails =>
-      'Includes playlists, likes, saved collections, histories and portable preferences. Audio files, accounts and device folders are excluded.';
+      'Incluye listas, favoritos, colecciones guardadas, historiales y preferencias transferibles. No incluye archivos de audio, cuentas ni carpetas del dispositivo.';
 
   @override
-  String get backupHistories => 'Playback and search histories';
+  String get backupHistories => 'Historiales de reproducción y búsqueda';
 
   @override
-  String get backupPreferences => 'Portable preferences';
+  String get backupPreferences => 'Preferencias transferibles';
 
   @override
-  String get backupNewCopy => 'Import as new playlists';
+  String get backupNewCopy => 'Importar como listas nuevas';
 
   @override
-  String get backupMerge => 'Merge with existing data';
+  String get backupMerge => 'Combinar con los datos existentes';
 
   @override
-  String get backupReplace => 'Replace selected sections';
+  String get backupReplace => 'Reemplazar las secciones seleccionadas';
 
   @override
   String get backupMergeDetails =>
-      'Existing tracks, metadata and preferences are preserved. Missing tracks are appended in file order. Likes are merged.';
+      'Se conservan las pistas, los metadatos y las preferencias existentes. Las pistas que faltan se añaden en el orden del archivo. Los favoritos se combinan.';
 
   @override
   String get backupReplaceWarning =>
-      'This replaces the selected sections, including existing playlists and likes when library is selected. Unselected sections and device files are preserved. A private recovery snapshot is created first.';
+      'Se reemplazarán las secciones seleccionadas, incluidas las listas y los favoritos existentes si seleccionas la biblioteca. Se conservarán las secciones no seleccionadas y los archivos del dispositivo. Primero se creará una copia de recuperación privada.';
 
   @override
   String get backupAutoDetails =>
-      'Keeps seven private recovery snapshots. Checked when the app opens, at most once per 24 hours. Private snapshots are removed on uninstall.';
+      'Conserva siete copias de recuperación privadas. Se comprueba al abrir la aplicación, como máximo una vez cada 24 horas. Estas copias se eliminan al desinstalarla.';
 
   @override
   String get backupLocationDetails =>
-      'Choose a destination with Save backup. Private recovery snapshots are kept inside the app.';
+      'Elige un destino con «Guardar copia de seguridad». Las copias de recuperación privadas se guardan dentro de la aplicación.';
 
   @override
   String get backupResetDetails =>
-      'Reset all database data on the next app start. Downloaded audio files and installed plugin files remain on this device. A private recovery snapshot is created first.';
+      'Restablece todos los datos de la base de datos al iniciar de nuevo la aplicación. Los archivos de audio descargados y los archivos de complementos instalados permanecen en el dispositivo. Primero se creará una copia de recuperación privada.';
 
   @override
   String get backupResetPending =>
-      'Reset scheduled. Close and reopen Bloomee to complete it.';
+      'Restablecimiento programado. Cierra y vuelve a abrir Bloomee para completarlo.';
 
   @override
   String backupPreviewCounts(int playlists, int tracks) {
-    return '$playlists playlists and $tracks tracks';
+    return 'Listas: $playlists · Pistas: $tracks';
   }
 
   @override
   String backupImportResult(
       int playlists, int tracks, int history, int settings) {
-    return 'Import complete: $playlists playlists created, $tracks track entries added, $history history records added and $settings preferences applied.';
+    return 'Importación completada. Listas creadas: $playlists; entradas de pistas añadidas: $tracks; registros de historial añadidos: $history; preferencias aplicadas: $settings.';
   }
 
   @override
   String get backupRefreshFailed =>
-      'Data was imported. Close and reopen Bloomee to refresh all preferences.';
+      'Los datos se han importado. Cierra y vuelve a abrir Bloomee para actualizar todas las preferencias.';
 
   @override
-  String get backupRecoveryCopies => 'Recovery copies';
+  String get backupRecoveryCopies => 'Copias de recuperación';
 
   @override
-  String get backupNoRecoveryCopies => 'No recovery copies yet.';
+  String get backupNoRecoveryCopies => 'Aún no hay copias de recuperación.';
 
   @override
-  String get backupRecoveryAutomatic => 'Automatic backup';
+  String get backupRecoveryAutomatic => 'Copia de seguridad automática';
 
   @override
-  String get backupRecoveryBeforeImport => 'Before an import';
+  String get backupRecoveryBeforeImport => 'Antes de una importación';
 
   @override
-  String get backupRecoveryBeforeReset => 'Before a reset';
+  String get backupRecoveryBeforeReset => 'Antes de un restablecimiento';
 
   @override
-  String get backupCancelReset => 'Cancel reset';
+  String get backupCancelReset => 'Cancelar restablecimiento';
 
   @override
-  String get libraryRecoveryTitle => 'Recover missing library';
+  String get libraryRecoveryTitle => 'Recuperar biblioteca perdida';
 
   @override
   String get libraryRecoverySubtitle =>
-      'Look for playlists and download records retained from earlier versions.';
+      'Busca listas y registros de descargas conservados de versiones anteriores.';
 
   @override
   String get libraryRecoveryChooseSource =>
-      'Choose a retained database to scan. Your current library and original files will be preserved.';
+      'Elige una base de datos conservada para analizarla. Tu biblioteca actual y los archivos originales se conservarán.';
 
   @override
   String get libraryRecoveryNoSources =>
-      'No retained databases were found. Audio files alone cannot restore original playlist membership.';
+      'No se encontraron bases de datos conservadas. Los archivos de audio por sí solos no permiten recuperar las listas a las que pertenecían.';
 
   @override
   String libraryRecoverySummary(
       int tracks, int playlists, int downloads, int unavailable) {
-    return 'Found $tracks tracks, $playlists playlists and $downloads download records. $unavailable files are currently unavailable; their records will be preserved.';
+    return 'Se encontraron $tracks pistas, $playlists listas y $downloads registros de descargas. Archivos no disponibles actualmente: $unavailable; sus registros se conservarán.';
   }
 
   @override
   String libraryRecoveryWarnings(int broken) {
-    return '$broken broken playlist references could not be reconstructed from this copy.';
+    return 'Referencias de listas dañadas que no se pudieron reconstruir a partir de esta copia: $broken.';
   }
 
   @override
   String get libraryRecoveryMergeDetails =>
-      'Recovery adds missing tracks, playlist entries and download records. Existing playlists, file mappings and settings are preserved. A recovery copy is created first. Repeat this with another retained copy if it contains more of your library.';
+      'La recuperación añade las pistas, las entradas de listas y los registros de descargas que faltan. Se conservan las listas, las asociaciones de archivos y los ajustes existentes. Primero se crea una copia de recuperación. Repite el proceso con otra copia conservada si contiene más elementos de tu biblioteca.';
 
   @override
-  String get libraryRecoveryMerge => 'Merge recovered library';
+  String get libraryRecoveryMerge => 'Combinar biblioteca recuperada';
 
   @override
   String libraryRecoveryComplete(int entries, int downloads) {
-    return 'Recovery complete: $entries playlist entries and $downloads download records added.';
+    return 'Recuperación completada. Entradas de listas añadidas: $entries; registros de descargas añadidos: $downloads.';
   }
 
   @override
-  String get backupStartupFailed => 'Bloomee could not start';
+  String get backupStartupFailed => 'Bloomee no pudo iniciarse';
 
   @override
   String get backupStartupFailedDetails =>
-      'Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error.';
+      'El inicio se detuvo sin reparar ni reemplazar automáticamente tu base de datos. Cierra la aplicación y vuelve a intentarlo. Conserva los datos de la aplicación al informar de este error.';
 
   @override
-  String get lyricsTitle => 'Lyrics';
+  String get lyricsTitle => 'Letra';
 
   @override
-  String get lyricsEnterFullscreen => 'Fullscreen lyrics';
+  String get lyricsEnterFullscreen => 'Letra a pantalla completa';
 
   @override
-  String get lyricsExitFullscreen => 'Exit fullscreen';
+  String get lyricsExitFullscreen => 'Salir de pantalla completa';
 
   @override
-  String get lyricsFollowPlayback => 'Follow playback';
+  String get lyricsFollowPlayback => 'Seguir la reproducción';
 
   @override
-  String get lyricsTimingEarlier => 'Earlier';
+  String get lyricsTimingEarlier => 'Mostrar antes';
 
   @override
-  String get lyricsTimingLater => 'Later';
+  String get lyricsTimingLater => 'Mostrar después';
 
   @override
-  String get lyricsTimingSave => 'Save timing';
+  String get lyricsTimingSave => 'Guardar sincronización';
 
   @override
-  String get lyricsSaved => 'Lyrics saved.';
+  String get lyricsSaved => 'Letra guardada.';
 
   @override
-  String get lyricsSaveFailed => 'Could not save lyrics. Try again.';
+  String get lyricsSaveFailed =>
+      'No se pudo guardar la letra. Inténtalo de nuevo.';
 
   @override
-  String get lyricsDeleteFailed => 'Could not delete saved lyrics. Try again.';
+  String get lyricsDeleteFailed =>
+      'No se pudo eliminar la letra guardada. Inténtalo de nuevo.';
+
+  @override
+  String get artistTopSongs => 'Canciones populares';
+
+  @override
+  String get artistLoadFailed => 'No se pudo cargar el artista';
+
+  @override
+  String get artistNoTopSongs => 'No hay canciones populares disponibles';
+
+  @override
+  String get artistNoAlbums => 'No hay álbumes disponibles';
+
+  @override
+  String get snackbarOpeningArtistPage =>
+      'Abriendo la página original del artista.';
+
+  @override
+  String get snackbarOpeningPlaylistPage =>
+      'Abriendo la página original de la lista.';
+
+  @override
+  String get playlistSaveOrderFailed =>
+      'No se pudo guardar el orden de la lista. Inténtalo de nuevo.';
+
+  @override
+  String get playlistReorderTracksHint =>
+      'Mantén pulsado el control para reordenar las pistas';
+
+  @override
+  String get playlistTrackCountLabel => 'Número de pistas';
+
+  @override
+  String get playlistDescription => 'Descripción';
+
+  @override
+  String get playlistOriginalUrl => 'URL original';
+
+  @override
+  String get searchSearching => 'Buscando…';
+
+  @override
+  String get searchSuggestions => 'Sugerencias';
+
+  @override
+  String get searchTopResults => 'Resultados principales';
+
+  @override
+  String get changelogEmpty => 'No hay información de cambios disponible.';
+
+  @override
+  String get changelogTitle => 'Novedades';
+
+  @override
+  String get changelogLatest => 'Última';
+
+  @override
+  String get changelogNext => 'Próxima versión';
+
+  @override
+  String changelogVersion(String version) {
+    return 'Versión $version';
+  }
+
+  @override
+  String get pluginBootstrapIncomplete => 'Configuración incompleta';
+
+  @override
+  String get pluginBootstrapRetryBody =>
+      'No se pudieron instalar algunos complementos. Reinténtalo para completar la configuración.';
+
+  @override
+  String get pluginBootstrapInternetTitle => 'Se requiere conexión a internet';
+
+  @override
+  String get pluginBootstrapInternetBody =>
+      'Bloomee necesita conectarse a internet una vez para detectar tu país y configurar el motor de complementos.';
+
+  @override
+  String get buttonExit => 'Salir';
+
+  @override
+  String get eqSource => 'Origen del ecualizador';
+
+  @override
+  String get eqBuiltin => 'Ecualizador de la aplicación';
+
+  @override
+  String get eqBuiltinSubtitle => 'Ecualizador de 10 bandas';
+
+  @override
+  String get eqDevice => 'Ecualizador del dispositivo';
+
+  @override
+  String get eqDeviceSubtitle => 'Sistema / Dolby Atmos';
+
+  @override
+  String get eqDeviceHint =>
+      'El ecualizador de la aplicación está desactivado. Configura el ecualizador del dispositivo en sus ajustes de sonido.';
+
+  @override
+  String get eqPresets => 'Preajustes';
+
+  @override
+  String get eqCustomCurve => 'Curva personalizada';
+
+  @override
+  String get shortcutMuted => 'Silenciado';
+
+  @override
+  String get shortcutUnmuted => 'Sonido activado';
+
+  @override
+  String get shortcutShuffleOn => 'Reproducción aleatoria activada';
+
+  @override
+  String get shortcutShuffleOff => 'Reproducción aleatoria desactivada';
+
+  @override
+  String get shortcutRepeatOff => 'Repetición desactivada';
+
+  @override
+  String get shortcutLiked => 'Añadido a favoritos';
+
+  @override
+  String get shortcutUnliked => 'Eliminado de favoritos';
+
+  @override
+  String downloadFolderSelectFailed(String error) {
+    return 'No se pudo seleccionar la carpeta de descargas: $error';
+  }
+
+  @override
+  String get aboutVersionUnavailable => 'Versión no disponible';
+
+  @override
+  String get backupNewCopyDetails =>
+      'Crea listas independientes y combina los favoritos. Se conservan las listas existentes. También se importan los historiales y las preferencias seleccionados.';
+
+  @override
+  String get changelogCurrent => 'Actual';
+
+  @override
+  String get backupLibrary =>
+      'Biblioteca (listas, favoritos y colecciones guardadas)';
+
+  @override
+  String get eqPresetFlat => 'Plano';
+
+  @override
+  String get eqPresetAcoustic => 'Acústico';
+
+  @override
+  String get eqPresetBassBoost => 'Refuerzo de graves';
+
+  @override
+  String get eqPresetBassReducer => 'Reducción de graves';
+
+  @override
+  String get eqPresetClassical => 'Clásica';
+
+  @override
+  String get eqPresetDance => 'Dance';
+
+  @override
+  String get eqPresetDeep => 'Profundo';
+
+  @override
+  String get eqPresetEDM => 'EDM';
+
+  @override
+  String get eqPresetElectronic => 'Electrónica';
+
+  @override
+  String get eqPresetHipHop => 'Hip-hop';
+
+  @override
+  String get eqPresetJazz => 'Jazz';
+
+  @override
+  String get eqPresetLatin => 'Latina';
+
+  @override
+  String get eqPresetLive => 'En directo';
+
+  @override
+  String get eqPresetLounge => 'Lounge';
+
+  @override
+  String get eqPresetMetal => 'Metal';
+
+  @override
+  String get eqPresetPiano => 'Piano';
+
+  @override
+  String get eqPresetPop => 'Pop';
+
+  @override
+  String get eqPresetRB => 'R&B';
+
+  @override
+  String get eqPresetRock => 'Rock';
+
+  @override
+  String get eqPresetSmallSpeakers => 'Altavoces pequeños';
+
+  @override
+  String get eqPresetSpokenWord => 'Voz hablada';
+
+  @override
+  String get eqPresetTrebleBoost => 'Refuerzo de agudos';
+
+  @override
+  String get eqPresetTrebleReducer => 'Reducción de agudos';
+
+  @override
+  String get eqPresetVocalBooster => 'Refuerzo de voz';
+
+  @override
+  String get eqPresetCustom => 'Personalizado';
 }

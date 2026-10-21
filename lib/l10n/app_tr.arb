@@ -1,0 +1,1054 @@
+{
+  "@@locale": "tr",
+  "onboardingTitle": "Bloomee'ye hoş geldiniz",
+  "onboardingSubtitle": "Dilinizi ve bölgenizi seçin.",
+  "continueButton": "Devam",
+  "navHome": "Ana sayfa",
+  "navLibrary": "Kitaplık",
+  "navSearch": "Ara",
+  "navLocal": "Cihazdaki müzikler",
+  "navOffline": "Çevrimdışı",
+  "playerEnjoyingFrom": "Çalınan kaynak",
+  "playerPlayWithMix": "Otomatik karışımla çal",
+  "playerPlayNext": "Sıradaki olarak çal",
+  "playerAddToQueue": "Sıraya ekle",
+  "playerAddToFavorites": "Favorilere ekle",
+  "playerNoLyricsFound": "Şarkı sözü bulunamadı",
+  "playerLyricsNoPlugin": "Şarkı sözü sağlayıcısı ayarlanmamış. Yüklemek için Ayarlar → Eklentiler bölümüne gidin.",
+  "localMusicTitle": "Cihazdaki müzikler",
+  "localMusicGrantPermission": "İzin ver",
+  "localMusicStorageAccessRequired": "Depolama erişimi gerekli",
+  "localMusicStorageAccessDesc": "Cihazınızdaki ses dosyalarını taramak ve çalmak için erişim izni verin.",
+  "localMusicAddFolder": "Müzik klasörü ekle",
+  "localMusicScanNow": "Şimdi tara",
+  "localMusicScanFailed": "Tarama başarısız: {message}",
+  "@localMusicScanFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "localMusicScanning": "Cihazdaki ses dosyaları taranıyor…",
+  "localMusicShuffle": "Karıştır",
+  "localMusicPlayAll": "Tümünü çal",
+  "localMusicSearchHint": "Cihazdaki müziklerde ara…",
+  "localMusicRescanDevice": "Cihazı yeniden tara",
+  "buttonCancel": "İptal",
+  "buttonDelete": "Sil",
+  "buttonOk": "Tamam",
+  "buttonUpdate": "Güncelle",
+  "buttonDownload": "İndir",
+  "buttonLater": "Daha sonra",
+  "buttonInfo": "Bilgi",
+  "buttonMore": "Diğer",
+  "dialogDeleteTrack": "Parçayı sil",
+  "dialogDeleteTrackMessage": "“{title}” cihazınızdan silinsin mi? Bu işlem geri alınamaz.",
+  "@dialogDeleteTrackMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "dialogDeleteTrackLinkedPlaylists": "Bu parça şuralardan da kaldırılacak:",
+  "dialogDontAskAgain": "Bir daha sorma",
+  "dialogUpdateAvailable": "Güncelleme mevcut",
+  "dialogUpdateNow": "Şimdi güncelle",
+  "dialogDownloadPlaylist": "Çalma listesini indir",
+  "dialogDownloadPlaylistMessage": "“{title}” listesindeki {count} şarkı indirilsin mi? Şarkılar indirme sırasına eklenecek.",
+  "@dialogDownloadPlaylistMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "dialogDownloadAll": "Tümünü indir",
+  "playlistEdit": "Çalma listesini düzenle",
+  "playlistShareFile": "Dosyayı paylaş",
+  "playlistExportFile": "Dosyayı dışa aktar",
+  "playlistPlay": "Çal",
+  "playlistAddToQueue": "Çalma listesini sıraya ekle",
+  "playlistShare": "Çalma listesini paylaş",
+  "playlistDelete": "Çalma listesini sil",
+  "playlistEmptyState": "Henüz şarkı yok",
+  "playlistAvailableOffline": "Çevrimdışı kullanılabilir",
+  "playlistShuffle": "Karıştır",
+  "playlistNoMatchSearch": "Aramanızla eşleşen çalma listesi yok",
+  "playlistCreateNew": "Çalma listesi oluştur",
+  "playlistCreateFirstOne": "Henüz çalma listesi yok. Başlamak için bir tane oluşturun.",
+  "addToPlaylistNoSongSelected": "Şarkı seçilmedi",
+  "createPlaylistDialogBarrierLabel": "Çalma listesi oluşturma penceresi",
+  "createPlaylistDialogNameHint": "Yaz şarkıları",
+  "createPlaylistDialogCreate": "Oluştur",
+  "playlistSongCount": "{count} şarkı",
+  "@playlistSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistRemovedTrack": "{title}, {playlist} listesinden kaldırıldı",
+  "@playlistRemovedTrack": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "playlist": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistFailedToLoad": "Çalma listesi yüklenemedi",
+  "settingsTitle": "Ayarlar",
+  "settingsPlugins": "Eklentiler",
+  "settingsPluginsSubtitle": "Eklentileri yükleyin, etkinleştirin ve yönetin.",
+  "settingsUpdates": "Güncellemeler",
+  "settingsUpdatesSubtitle": "Yeni güncellemeleri denetleyin",
+  "settingsDownloads": "İndirilenler",
+  "settingsDownloadsSubtitle": "İndirme klasörü, ses kalitesi ve diğer seçenekler",
+  "settingsLocalTracks": "Cihazdaki parçalar",
+  "settingsLocalTracksSubtitle": "Müzik taraması, klasörler ve otomatik tarama ayarları",
+  "settingsPlayer": "Oynatıcı ayarları",
+  "settingsPlayerSubtitle": "Ses kalitesi, otomatik oynatma ve diğer seçenekler",
+  "settingsPluginDefaults": "Varsayılan eklentiler",
+  "settingsPluginDefaultsSubtitle": "Keşfet kaynağı ve kaynak çözümleyici önceliği",
+  "settingsUIElements": "Arayüz ve hizmetler",
+  "settingsUIElementsSubtitle": "Otomatik kaydırma ve arayüz ayarları",
+  "settingsLastFM": "Last.fm ayarları",
+  "settingsLastFMSubtitle": "API anahtarları ve dinleme geçmişi gönderimi",
+  "settingsStorage": "Depolama",
+  "settingsStorageSubtitle": "Yedekleme, önbellek, geçmiş ve geri yükleme",
+  "settingsLanguageCountry": "Dil ve ülke",
+  "settingsLanguageCountrySubtitle": "Dilinizi ve ülkenizi seçin.",
+  "settingsAbout": "Hakkında",
+  "settingsAboutSubtitle": "Uygulama, sürüm ve geliştirici bilgileri",
+  "settingsScanning": "Tarama",
+  "settingsMusicFolders": "Müzik klasörleri",
+  "settingsQuality": "Kalite",
+  "settingsHistory": "Geçmiş",
+  "settingsBackupRestore": "Yedekleme ve geri yükleme",
+  "settingsAutomatic": "Otomatik",
+  "settingsDangerZone": "Sıfırlama işlemleri",
+  "settingsScrobbling": "Dinleme geçmişi gönderimi",
+  "settingsAuthentication": "Kimlik doğrulama",
+  "settingsHomeScreen": "Ana ekran",
+  "settingsChartVisibility": "Liste görünürlüğü",
+  "dialogAddingToDownloadQueue": "İndirme sırasına ekleniyor",
+  "emptyNoInternet": "İnternet bağlantısı yok",
+  "emptyNoContentPlugin": "Etkin içerik çözümleyici yok. Eklenti yöneticisinden birini etkinleştirin.",
+  "emptyRefreshingSource": "Keşfet kaynağı yenileniyor… Önceki kaynak artık kullanılamıyor.",
+  "emptyNoTracks": "Kullanılabilir parça yok",
+  "emptyNoResults": "Eşleşme bulunamadı",
+  "snackbarDeletedTrack": "“{title}” silindi",
+  "@snackbarDeletedTrack": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarDeleteFailed": "“{title}” silinemedi",
+  "@snackbarDeleteFailed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarAddedToNextQueue": "Sıradaki olarak eklendi",
+  "snackbarAddedToQueue": "Sıraya eklendi",
+  "snackbarAddedToLiked": "{title} favorilere eklendi",
+  "@snackbarAddedToLiked": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarNowPlaying": "Çalınıyor: {name}",
+  "@snackbarNowPlaying": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarPlaylistAddedToQueue": "{name} sıraya eklendi",
+  "@snackbarPlaylistAddedToQueue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarPlaylistUpdated": "Çalma listesi güncellendi",
+  "snackbarLinkCopied": "Bağlantı kopyalandı",
+  "snackbarCouldNotOpenLink": "Bağlantı açılamadı",
+  "snackbarSongsAddedToQueue": "İndirme sırasına {count} şarkı eklendi",
+  "@snackbarSongsAddedToQueue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchHintExplore": "Ne dinlemek istersiniz?",
+  "searchHintLibrary": "Kitaplıkta ara…",
+  "searchHintPlaylists": "Çalma listelerinde ara…",
+  "searchStartTyping": "Aramak için yazmaya başlayın",
+  "searchNoSuggestions": "Öneri bulunamadı",
+  "searchNoResults": "Sonuç bulunamadı.\nBaşka bir sözcük veya kaynak deneyin.",
+  "searchFailed": "Arama başarısız",
+  "searchDiscover": "Yeni müzikler keşfedin",
+  "searchSources": "Kaynaklar",
+  "searchNoPlugins": "Yüklü eklenti yok",
+  "searchTracks": "Parçalar",
+  "searchAlbums": "Albümler",
+  "searchArtists": "Sanatçılar",
+  "searchPlaylists": "Çalma listeleri",
+  "exploreDiscover": "Keşfet",
+  "exploreRecently": "Son dinlenenler",
+  "exploreLastFmPicks": "Last.fm önerileri",
+  "exploreFailedToLoad": "Ana sayfa bölümleri yüklenemedi.",
+  "libraryTitle": "Kitaplık",
+  "libraryEmptyState": "Kitaplığınız henüz boş. Buraya şarkı ve çalma listesi ekleyebilirsiniz.",
+  "libraryIn": "{playlistName} listesinde",
+  "@libraryIn": {
+    "placeholders": {
+      "playlistName": {
+        "type": "String"
+      }
+    }
+  },
+  "menuAddToPlaylist": "Çalma listesine ekle",
+  "menuSmartReplace": "Eşleşen parçayla değiştir",
+  "menuShare": "Paylaş",
+  "menuAvailableOffline": "Çevrimdışı kullanılabilir",
+  "menuDownload": "İndir",
+  "menuOpenOriginalLink": "Orijinal bağlantıyı aç",
+  "menuDeleteTrack": "Sil",
+  "tooltipRemoveFromLibrary": "Kitaplıktan kaldır",
+  "tooltipSaveToLibrary": "Kitaplığa kaydet",
+  "tooltipOpenOriginalLink": "Orijinal bağlantıyı aç",
+  "tooltipAvailableOffline": "Çevrimdışı kullanılabilir",
+  "tooltipMoreOptions": "Diğer seçenekler",
+  "appuiTitle": "Arayüz ve hizmetler",
+  "appuiAutoSlideCharts": "Listeleri otomatik kaydır",
+  "appuiAutoSlideChartsSubtitle": "Ana ekrandaki listeleri otomatik kaydır.",
+  "appuiLastFmPicksSubtitle": "Last.fm önerilerini göster. Oturum açıp uygulamayı yeniden başlatmanız gerekir.",
+  "appuiNoChartsAvailable": "Kullanılabilir liste yok. Bir liste sağlayıcısı eklentisini etkinleştirin.",
+  "appuiLoginToLastFm": "Önce Last.fm hesabınıza giriş yapın.",
+  "appuiShowInCarousel": "Ana ekrandaki dönen bölümde göster.",
+  "countrySettingTitle": "Ülke ve dil",
+  "countrySettingAutoDetect": "Ülkeyi otomatik algıla",
+  "countrySettingAutoDetectSubtitle": "Uygulama açıldığında ülkenizi otomatik algıla.",
+  "countrySettingCountryLabel": "Ülke",
+  "countrySettingLanguageLabel": "Dil",
+  "countrySettingSystemDefault": "Sistem varsayılanı",
+  "downloadSettingTitle": "İndirilenler",
+  "downloadSettingQuality": "İndirme kalitesi",
+  "downloadSettingQualitySubtitle": "İndirilen tüm parçalar için tercih edilen ses kalitesi.",
+  "downloadSettingFolder": "İndirme klasörü",
+  "downloadSettingResetFolder": "İndirme klasörünü sıfırla",
+  "downloadSettingResetFolderSubtitle": "Varsayılan indirme konumunu geri yükle.",
+  "lastfmTitle": "Last.fm",
+  "lastfmScrobbleTracks": "Dinleme geçmişini gönder",
+  "lastfmScrobbleTracksSubtitle": "Dinlediğiniz parçaları Last.fm profilinize gönder.",
+  "lastfmAuthFirst": "Önce Last.fm API erişimini doğrulayın.",
+  "lastfmAuthenticatedAs": "Giriş yapılan hesap",
+  "lastfmAuthFailed": "Kimlik doğrulama başarısız:",
+  "lastfmNotAuthenticated": "Kimlik doğrulanmadı",
+  "lastfmSteps": "Kimlik doğrulama adımları:\n1. last.fm üzerinden hesap açın veya giriş yapın.\n2. last.fm/api/account/create adresinden bir API anahtarı oluşturun.\n3. API anahtarını ve gizli anahtarı aşağıya girin.\n4. “1. Yetkilendirmeyi başlat” düğmesine dokunup tarayıcıda onaylayın.\n5. “2. Oturum anahtarını al ve kaydet” düğmesine dokunun.",
+  "lastfmApiKey": "API anahtarı",
+  "lastfmApiSecret": "Gizli API anahtarı",
+  "lastfmStartAuth": "1. Yetkilendirmeyi başlat",
+  "lastfmGetSession": "2. Oturum anahtarını al ve kaydet",
+  "lastfmRemoveKeys": "Anahtarları kaldır",
+  "lastfmStartAuthFirst": "Önce yetkilendirmeyi başlatın, ardından tarayıcıda onaylayın.",
+  "localSettingTitle": "Cihazdaki parçalar",
+  "localSettingAutoScan": "Başlangıçta otomatik tara",
+  "localSettingAutoScanSubtitle": "Uygulama başladığında cihazdaki yeni parçaları otomatik tara.",
+  "localSettingLastScan": "Son tarama",
+  "localSettingNeverScanned": "Hiç taranmadı",
+  "localSettingScanInProgress": "Tarama sürüyor…",
+  "localSettingScanNowSubtitle": "Tüm kitaplığı şimdi tara.",
+  "localSettingNoFolders": "Henüz klasör eklenmedi. Taramak için bir klasör ekleyin.",
+  "localSettingAddFolder": "Klasör ekle",
+  "playerSettingTitle": "Oynatıcı ayarları",
+  "playerSettingStreamingHeader": "Çevrimiçi ses",
+  "playerSettingStreamQuality": "Çevrimiçi ses kalitesi",
+  "playerSettingStreamQualitySubtitle": "Çevrimiçi oynatmada kullanılan ses bit hızı.",
+  "playerSettingQualityLow": "Düşük",
+  "playerSettingQualityMedium": "Orta",
+  "playerSettingQualityHigh": "Yüksek",
+  "playerSettingPlaybackHeader": "Oynatma",
+  "playerSettingAutoPlay": "Otomatik oynatma",
+  "playerSettingAutoPlaySubtitle": "Sıra bittiğinde benzer şarkılar ekle.",
+  "playerSettingAutoFallback": "Alternatif kaynakla çal",
+  "playerSettingAutoFallbackSubtitle": "Eklenti eksikse veya ses akışı sağlamazsa yalnızca oynatma için uyumlu bir çözümleyici dene.",
+  "playerSettingCrossfade": "Parçalar arası geçiş",
+  "playerSettingCrossfadeOff": "Kapalı",
+  "playerSettingCrossfadeInstant": "Parçalar arası anında geçiş",
+  "playerSettingCrossfadeBlend": "Parçalar arasında {seconds} sn geçiş",
+  "@playerSettingCrossfadeBlend": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "playerSettingEqualizer": "Ekolayzır",
+  "playerSettingEqualizerActive": "Etkin",
+  "playerSettingEqualizerActivePreset": "Etkin — {preset}",
+  "@playerSettingEqualizerActivePreset": {
+    "placeholders": {
+      "preset": {
+        "type": "String"
+      }
+    }
+  },
+  "playerSettingEqualizerSubtitle": "FFmpeg ile 10 bantlı parametrik ekolayzır.",
+  "pluginDefaultsTitle": "Varsayılan eklentiler",
+  "pluginDefaultsDiscoverHeader": "Keşfet kaynağı",
+  "pluginDefaultsNoResolver": "Etkin içerik çözümleyici yok. Keşfet kaynağı seçmek için bir eklentiyi etkinleştirin.",
+  "pluginDefaultsAutomaticSubtitle": "Kullanılabilir ilk içerik çözümleyiciyi kullan.",
+  "pluginDefaultsPriorityHeader": "Çözümleyici önceliği",
+  "pluginDefaultsNoPriority": "Etkin içerik çözümleyici yok. Eklentiler etkinleştirildiğinde burada sıralayabilirsiniz.",
+  "pluginDefaultsPriorityDesc": "Sıralamak için sürükleyin. Listelerdeki veya içe aktarılan parçalar için çalınabilir eşleşme aranırken önceliği yüksek çözümleyiciler önce denenir.",
+  "pluginDefaultsLyricsHeader": "Şarkı sözü önceliği",
+  "pluginDefaultsLyricsNone": "Etkin şarkı sözü sağlayıcısı yok.",
+  "pluginDefaultsLyricsDesc": "Şarkı sözü sağlayıcılarını sürükleyerek sıralayın. İlk sağlayıcı önce denenir.",
+  "pluginDefaultsSuggestionsHeader": "Arama önerileri",
+  "pluginDefaultsSuggestionsNone": "Etkin öneri sağlayıcısı yok.",
+  "pluginDefaultsSuggestionsHistoryOnlyTitle": "Yok",
+  "pluginDefaultsSuggestionsHistoryOnlySubtitle": "Yalnızca arama geçmişini kullan.",
+  "storageSettingTitle": "Depolama",
+  "storageClearHistoryEvery": "Geçmişi temizleme aralığı",
+  "storageClearHistorySubtitle": "Seçilen süre sonunda dinleme geçmişini temizle.",
+  "storageDays": "{count} gün",
+  "@storageDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storageBackupCreatedAt": "Yedek kaydedildi: {path}",
+  "@storageBackupCreatedAt": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "storageBackupShareFailed": "Yedek paylaşılamadı: {error}",
+  "@storageBackupShareFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "storageRestoreBackup": "Yedeği geri yükle",
+  "storageRestoreBackupSubtitle": "Ayarlarınızı ve verilerinizi bir yedek dosyasından geri yükleyin.",
+  "storageAutoBackup": "Otomatik yedekleme",
+  "storageAutoLyrics": "Şarkı sözlerini otomatik kaydet",
+  "storageAutoLyricsSubtitle": "Şarkı çalarken sözlerini otomatik kaydet.",
+  "storageResetApp": "Bloomee'yi sıfırla",
+  "storageResetConfirmTitle": "Sıfırlamayı onayla",
+  "storageResetButton": "Sıfırla",
+  "storageRestoreOptionsTitle": "Geri yükleme seçenekleri",
+  "storageRestoreContinue": "Devam",
+  "storageRestoreConfirmTitle": "Geri yüklemeyi onayla",
+  "storageRestoreYes": "Evet, geri yükle",
+  "storageRestoring": "Seçilen veriler geri yükleniyor…\nİşlem tamamlanana kadar bekleyin.",
+  "storageRestoreFailedTitle": "Geri yükleme başarısız",
+  "updateSettingTitle": "Güncellemeler",
+  "updateCheckForUpdates": "Güncellemeleri denetle",
+  "updateCheckSubtitle": "Yeni bir Bloomee sürümü olup olmadığını denetleyin.",
+  "updateAutoNotify": "Güncellemeleri bildir",
+  "updateAutoNotifySubtitle": "Uygulama açıldığında yeni güncellemelerden haberdar ol.",
+  "updateCheckTitle": "Güncellemeleri denetle",
+  "updateUpToDate": "Bloomee güncel",
+  "updateViewPreRelease": "En son ön sürümü görüntüle",
+  "updateCurrentVersion": "Geçerli sürüm: {curr} + {build}",
+  "@updateCurrentVersion": {
+    "placeholders": {
+      "curr": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersionAvailable": "Yeni bir Bloomee sürümü mevcut",
+  "updateVersion": "Sürüm: {ver}+{build}",
+  "@updateVersion": {
+    "placeholders": {
+      "ver": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "updateDownloadNow": "Şimdi indir",
+  "updateChecking": "Güncellemeler denetleniyor…",
+  "timerTitle": "Uyku zamanlayıcısı",
+  "timerInterludeMessage": "Oynatma şu süre sonra duracak:",
+  "timerHours": "Saat",
+  "timerMinutes": "Dakika",
+  "timerSeconds": "Saniye",
+  "timerStop": "Zamanlayıcıyı durdur",
+  "timerFinishedMessage": "Uyku zamanlayıcısı oynatmayı durdurdu.",
+  "timerGotIt": "Tamam",
+  "timerSetTimeError": "Lütfen bir süre belirleyin",
+  "timerStart": "Zamanlayıcıyı başlat",
+  "notificationsTitle": "Bildirimler",
+  "notificationsEmpty": "Henüz bildirim yok",
+  "recentsTitle": "Geçmiş",
+  "playlistByCreator": "Hazırlayan: {creator}",
+  "@playlistByCreator": {
+    "placeholders": {
+      "creator": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistYou": "Siz",
+  "pluginManagerTitle": "Eklentiler",
+  "pluginManagerEmpty": "Yüklü eklenti yok.\n.bex dosyası eklemek için + düğmesine dokunun.",
+  "pluginManagerFilterAll": "Tümü",
+  "pluginManagerFilterContent": "İçerik çözümleyiciler",
+  "pluginManagerFilterCharts": "Liste sağlayıcıları",
+  "pluginManagerFilterLyrics": "Şarkı sözü sağlayıcıları",
+  "pluginManagerFilterSuggestions": "Öneri sağlayıcıları",
+  "pluginManagerFilterImporters": "İçerik içe aktarıcıları",
+  "pluginManagerTooltipRefresh": "Yenile",
+  "pluginManagerTooltipInstall": "Eklenti yükle",
+  "pluginManagerNoMatch": "Bu filtreyle eşleşen eklenti yok",
+  "pluginManagerPickFailed": "Dosya seçilemedi: {error}",
+  "@pluginManagerPickFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginManagerInstalling": "Eklenti yükleniyor…",
+  "pluginManagerTypeContentResolver": "İçerik çözümleyici",
+  "pluginManagerTypeChartProvider": "Liste sağlayıcısı",
+  "pluginManagerTypeLyricsProvider": "Şarkı sözü sağlayıcısı",
+  "pluginManagerTypeSuggestionProvider": "Arama önerileri",
+  "pluginManagerTypeContentImporter": "İçerik içe aktarıcısı",
+  "pluginManagerDeleteTitle": "Eklenti silinsin mi?",
+  "pluginManagerDeleteMessage": "“{name}” silinsin mi? Eklenti dosyaları kalıcı olarak silinecek.",
+  "@pluginManagerDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginManagerDeleteAction": "Sil",
+  "pluginManagerCancel": "İptal",
+  "pluginManagerEnablePlugin": "Eklentiyi etkinleştir",
+  "pluginManagerUnloadPlugin": "Eklentiyi devre dışı bırak",
+  "pluginManagerDeleting": "Siliniyor…",
+  "pluginManagerApiKeysTitle": "API anahtarları",
+  "pluginManagerApiKeysSaved": "API anahtarları kaydedildi",
+  "pluginManagerSave": "Kaydet",
+  "pluginManagerDetailVersion": "Sürüm",
+  "pluginManagerDetailType": "Tür",
+  "pluginManagerDetailPublisher": "Yayıncı",
+  "pluginManagerDetailLastUpdated": "Son güncelleme",
+  "pluginManagerDetailCreated": "Oluşturulma",
+  "pluginManagerDetailHomepage": "Web sitesi",
+  "pluginManagerDeleteStorageTitle": "Eklenti verileri silinsin mi?",
+  "pluginManagerDeleteStorageMessage": "“{name}” için kaydedilen API anahtarları ve ayarlar da silinsin mi?",
+  "@pluginManagerDeleteStorageMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginManagerDeleteStorageKeep": "Verileri koru",
+  "pluginManagerDeleteStorageRemove": "Verileri sil",
+  "segmentsSheetTitle": "Bölümler",
+  "segmentsSheetEmpty": "Kullanılabilir bölüm yok",
+  "segmentsSheetUntitled": "Adsız bölüm",
+  "smartReplaceTitle": "Eşleşen parçayla değiştir",
+  "smartReplaceSubtitle": "“{title}” için çalınabilir bir alternatif seçin ve kayıtlı çalma listelerindeki bağlantılarını güncelleyin.",
+  "@smartReplaceSubtitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "smartReplaceClose": "Kapat",
+  "smartReplaceNoMatch": "Alternatif bulunamadı",
+  "smartReplaceNoMatchSubtitle": "Etkin çözümleyici eklentileri yeterince yakın bir eşleşme bulamadı.",
+  "smartReplaceBestMatch": "En yakın eşleşme",
+  "smartReplaceSearchFailed": "Arama başarısız",
+  "smartReplaceApplyFailed": "Parça değiştirilemedi: {error}",
+  "@smartReplaceApplyFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "smartReplaceApplied": "Parça değiştirildi{queue}.",
+  "@smartReplaceApplied": {
+    "placeholders": {
+      "queue": {
+        "type": "String"
+      }
+    }
+  },
+  "smartReplaceQueueUpdated": " ve sıra güncellendi",
+  "playerUnknownQueue": "Bilinmiyor",
+  "playerLiked": "{title} favorilere eklendi",
+  "@playerLiked": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerUnliked": "{title} favorilerden kaldırıldı",
+  "@playerUnliked": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineNoDownloads": "İndirilen parça yok",
+  "offlineTitle": "Çevrimdışı",
+  "offlineSearchHint": "Şarkılarınızda ara…",
+  "offlineRefreshTooltip": "İndirilenleri yenile",
+  "offlineCloseSearch": "Aramayı kapat",
+  "offlineSearchTooltip": "Ara",
+  "offlineOpenFailed": "Bu çevrimdışı parça açılamadı. İndirilenleri yenilemeyi deneyin.",
+  "offlinePlayFailed": "Bu çevrimdışı şarkı çalınamadı. Lütfen yeniden deneyin.",
+  "albumViewTrackCount": "{count} parça",
+  "@albumViewTrackCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "albumViewLoadFailed": "Albüm yüklenemedi",
+  "aboutCraftingSubtitle": "Müzik için geliştirildi.",
+  "aboutFollowGitHub": "GitHub'da takip et",
+  "aboutSendInquiry": "İş için iletişime geç",
+  "aboutCreativeHighlights": "Güncellemeler ve projeler",
+  "aboutTipQuote": "Bloomee'yi beğeniyor musunuz? Geliştirmeye destek olabilirsiniz.",
+  "aboutTipButton": "Destek ol",
+  "aboutTipDesc": "Katkınız Bloomee'nin geliştirilmesine yardımcı olur.",
+  "aboutGitHub": "GitHub",
+  "songInfoSectionDetails": "Şarkı bilgileri",
+  "songInfoSectionTechnical": "Teknik bilgiler",
+  "songInfoSectionActions": "İşlemler",
+  "songInfoLabelTitle": "Başlık",
+  "songInfoLabelArtist": "Sanatçı",
+  "songInfoLabelAlbum": "Albüm",
+  "songInfoLabelDuration": "Süre",
+  "songInfoLabelSource": "Kaynak",
+  "songInfoLabelMediaId": "Medya kimliği",
+  "songInfoLabelPluginId": "Eklenti kimliği",
+  "songInfoCopyId": "Kimliği kopyala",
+  "songInfoCopyLink": "Bağlantıyı kopyala",
+  "songInfoOpenBrowser": "Tarayıcıda aç",
+  "songInfoIdCopied": "Medya kimliği kopyalandı",
+  "songInfoLinkCopied": "Bağlantı kopyalandı",
+  "songInfoNoLink": "Kullanılabilir bağlantı yok",
+  "songInfoOpenFailed": "Bağlantı açılamadı",
+  "songInfoUpdateMetadata": "Parça bilgilerini güncelle",
+  "songInfoMetadataUpdated": "Parça bilgileri güncellendi",
+  "songInfoMetadataUpdateFailed": "Parça bilgileri güncellenemedi",
+  "songInfoMetadataUnavailable": "Bu kaynak için parça bilgileri güncellenemiyor",
+  "songInfoSearchTitle": "Bu şarkıyı Bloomee'de ara",
+  "songInfoSearchArtist": "Bu sanatçıyı Bloomee'de ara",
+  "songInfoSearchAlbum": "Bu albümü Bloomee'de ara",
+  "eqTitle": "Ekolayzır",
+  "chartNoItems": "Bu listede öğe yok",
+  "chartLoadFailed": "Liste yüklenemedi",
+  "chartPlay": "Çal",
+  "chartResolving": "Eşleşme aranıyor",
+  "chartReady": "Hazır",
+  "chartAddToPlaylist": "Çalma listesine ekle",
+  "chartNoResolver": "Etkin içerik çözümleyici yok. Çalmak için bir eklenti yükleyin.",
+  "chartResolveFailed": "Eşleşme bulunamadı. Aramaya geçiliyor…",
+  "chartNoResolverAdd": "Etkin içerik çözümleyici yok.",
+  "chartNoMatch": "Eşleşme bulunamadı. Elle aramayı deneyin.",
+  "chartStatPeak": "En yüksek sıra",
+  "chartStatWeeks": "Hafta",
+  "chartStatChange": "Değişim",
+  "menuSharePreparing": "{title} paylaşım için hazırlanıyor.",
+  "@menuSharePreparing": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "menuOpenLinkFailed": "Bağlantı açılamadı",
+  "localMusicFolders": "Müzik klasörleri",
+  "localMusicRemoveFolder": "Klasörü kaldır",
+  "localMusicCloseSearch": "Aramayı kapat",
+  "localMusicOpenSearch": "Ara",
+  "localMusicNoMusicFound": "Cihazda müzik bulunamadı",
+  "localMusicNoSearchResults": "Aramanızla eşleşen parça bulunamadı.",
+  "localMusicTrackCount": "{count} parça",
+  "@localMusicTrackCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importSongsTitle": "Şarkı içe aktar",
+  "importNoPluginsLoaded": "Etkin içerik içe aktarıcısı yok.\nDiğer hizmetlerden çalma listesi almak için bir içe aktarma eklentisi yükleyin.",
+  "importBloomeeFiles": "Bloomee dosyalarını içe aktar",
+  "importM3UFiles": "M3U çalma listesini içe aktar",
+  "importM3UNameDialogTitle": "Çalma listesi adı",
+  "importM3UNameHint": "Bu çalma listesi için bir ad girin",
+  "importM3UNoTracks": "M3U dosyasında geçerli parça bulunamadı.",
+  "importNoteTitle": "Bilgi",
+  "importNoteMessage": "Yalnızca Bloomee'nin oluşturduğu dosyalar içe aktarılabilir.\nBaşka bir kaynaktan alınan dosyalar çalışmaz. Yine de devam edilsin mi?",
+  "importTitle": "İçe aktar",
+  "importCheckingUrl": "Bağlantı denetleniyor…",
+  "importFetchingTracks": "Parçalar alınıyor…",
+  "importSavingToLibrary": "Kitaplığa kaydediliyor…",
+  "importPasteUrlHint": "İçe aktarmak için çalma listesi veya albüm bağlantısı yapıştırın",
+  "importAction": "İçe aktar",
+  "importTrackCount": "{count} parça",
+  "@importTrackCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importResolvingProgress": "Parçalar eşleştiriliyor: {done} / {total}",
+  "@importResolvingProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "importSaveTracks": "{count} parçayı kaydet",
+  "@importSaveTracks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importTracksSaved": "{count} parça kaydedildi",
+  "@importTracksSaved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importDone": "Tamamlandı",
+  "importMore": "Başka içerik aktar",
+  "importUnknownError": "Bilinmeyen hata",
+  "importTryAgain": "Yeniden dene",
+  "importSkipTrack": "Bu parçayı atla",
+  "importMatchOptions": "Eşleşme seçenekleri",
+  "importSkipped": "Atlandı",
+  "importReorderTip": "Sıralamayı değiştirmek için bir çalma listesine basılı tutun",
+  "importErrorCannotHandleUrl": "Bu eklenti verilen bağlantıyı desteklemiyor.",
+  "importErrorUnexpectedResponse": "Eklentiden beklenmeyen yanıt alındı.",
+  "importErrorFailedToCheck": "Bağlantı denetlenemedi: {error}",
+  "@importErrorFailedToCheck": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorFailedToFetchInfo": "Koleksiyon bilgileri alınamadı: {error}",
+  "@importErrorFailedToFetchInfo": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorFailedToFetchTracks": "Parçalar alınamadı: {error}",
+  "@importErrorFailedToFetchTracks": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorFailedToSave": "Çalma listesi kaydedilemedi: {error}",
+  "@importErrorFailedToSave": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistPinToTop": "En üste sabitle",
+  "playlistUnpin": "Sabitlemeyi kaldır",
+  "snackbarInvalidFileFormat": "Geçersiz dosya biçimi",
+  "snackbarProcessingFile": "Dosya işleniyor…",
+  "pluginManagerTabInstalled": "Yüklü",
+  "pluginManagerTabStore": "Eklenti mağazası",
+  "pluginManagerSelectPackage": "Eklenti paketi seçin (.bex)",
+  "pluginManagerOutdatedManifest": "Eklenti eski bir bildirim biçimi kullanıyor. Bazı özellikler çalışmayabilir. Güncellemeyi deneyin.",
+  "pluginManagerStatusActive": "Etkin",
+  "pluginManagerStatusInactive": "Devre dışı",
+  "pluginRepositoryAddTitle": "Depo ekle",
+  "pluginRepositoryAddSubtitle": "Geçerli bir eklenti deposunun JSON dosyası bağlantısını girin.",
+  "pluginRepositoryAddAction": "Depo ekle",
+  "pluginRepositoryTitle": "Eklenti depoları",
+  "pluginRepositorySubtitle": "Eklentilere göz atmak için bir JSON kaynağı ekleyin.",
+  "pluginRepositoryEmpty": "Henüz depo eklenmedi.",
+  "pluginRepositoryUnknownUpdate": "Güncelleme bilgisi yok",
+  "pluginRepositoryNoDescription": "Açıklama belirtilmemiş.",
+  "pluginRepositoryUrlCopied": "Depo bağlantısı panoya kopyalandı",
+  "pluginRepositoryPluginsCount": "{count} eklenti",
+  "@pluginRepositoryPluginsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pluginRepositoryUpdatedOn": "Güncelleme: {date}",
+  "@pluginRepositoryUpdatedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginRepositoryAvailableCount": "{count} eklenti kullanılabilir",
+  "@pluginRepositoryAvailableCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pluginRepositoryOutdatedManifest": "Eski bildirim biçimi. Bazı özellikler çalışmayabilir.",
+  "pluginRepositoryUnknownPublisher": "Bilinmeyen yayıncı",
+  "pluginRepositoryActionRetry": "Yeniden dene",
+  "pluginRepositoryActionOutdated": "Eski sürüm",
+  "pluginRepositoryActionInstalled": "Yüklü",
+  "pluginRepositoryActionInstall": "Yükle",
+  "pluginRepositoryActionUnavailable": "Kullanılamıyor",
+  "pluginRepositoryInstallFailed": "Yükleme başarısız.",
+  "pluginRepositoryDownloadFailed": "{name} indirilemedi.",
+  "@pluginRepositoryDownloadFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginRepositoryErrorLoad": "Depolar yüklenemedi.",
+  "pluginRepositoryErrorInvalid": "Depo bağlantısı veya dosyası geçersiz.",
+  "pluginRepositoryErrorRemove": "Depo kaldırılamadı.",
+  "smartReplaceAppliedPlaylistsSummary": "{count} çalma listesinde değiştirildi{queue}.",
+  "@smartReplaceAppliedPlaylistsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "queue": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsSearchFieldLabel": "Şarkı sözü ara…",
+  "lyricsSearchEmptyPrompt": "Şarkı sözü bulmak için şarkı veya sanatçı adı yazın.",
+  "lyricsSearchNoResults": "“{query}” için şarkı sözü bulunamadı",
+  "@lyricsSearchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsSearchApplied": "Şarkı sözleri uygulandı",
+  "lyricsSearchFetchFailed": "Şarkı sözleri alınamadı",
+  "lyricsSearchPreview": "Önizleme",
+  "lyricsSearchPreviewTooltip": "Şarkı sözlerini önizle",
+  "lyricsSearchSynced": "Eşzamanlı",
+  "lyricsSearchPreviewLoadFailed": "Şarkı sözleri yüklenemedi.",
+  "lyricsSearchApplyAction": "Şarkı sözlerini uygula",
+  "lyricsSettingsSearchTitle": "Başka şarkı sözü ara",
+  "lyricsSettingsSearchSubtitle": "İnternette farklı sürümler bulun",
+  "lyricsSettingsSyncTitle": "Zamanlamayı ayarla",
+  "lyricsSettingsSyncSubtitle": "Erken veya geç görünen şarkı sözlerini düzeltin",
+  "lyricsSettingsSaveTitle": "Çevrimdışı kaydet",
+  "lyricsSettingsSaveSubtitle": "Bu şarkı sözlerini cihazınıza kaydedin",
+  "lyricsSettingsDeleteTitle": "Kayıtlı şarkı sözlerini sil",
+  "lyricsSettingsDeleteSubtitle": "Çevrimdışı şarkı sözü verilerini kaldırın",
+  "lyricsSyncTapToReset": "Sıfırlamak için dokunun",
+  "upNextTitle": "Sıradakiler",
+  "upNextItemsInQueue": "Sırada {count} öğe",
+  "@upNextItemsInQueue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tooltipCopyToClipboard": "Panoya kopyala",
+  "snackbarCopiedToClipboard": "Panoya kopyalandı",
+  "tooltipSongInfo": "Şarkı bilgileri",
+  "snackbarCannotDeletePlayingSong": "Çalınan şarkı silinemez",
+  "playerLoopOff": "Kapalı",
+  "playerLoopOne": "Birini tekrarla",
+  "playerLoopAll": "Tümünü tekrarla",
+  "snackbarOpeningAlbumPage": "Orijinal albüm sayfası açılıyor.",
+  "updateAvailableBody": "Yeni bir Bloomee sürümü mevcut.\n\nSürüm: {ver}+{build}",
+  "@updateAvailableBody": {
+    "placeholders": {
+      "ver": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginSnackbarInstalled": "“{id}” eklentisi yüklendi",
+  "@pluginSnackbarInstalled": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginSnackbarDeleted": "“{id}” eklentisi silindi",
+  "@pluginSnackbarDeleted": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginBootstrapTitle": "Bloomee hazırlanıyor",
+  "pluginBootstrapProgress": "Yeni eklenti altyapısı hazırlanıyor… %{percent}",
+  "@pluginBootstrapProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "pluginBootstrapHint": "Bu işlem yalnızca bir kez yapılır.",
+  "backupSave": "Yedeği JSON olarak kaydet",
+  "backupShare": "JSON yedeğini paylaş",
+  "backupPortableDetails": "Çalma listeleri, favoriler, kayıtlı koleksiyonlar, geçmişler ve taşınabilir tercihleri içerir. Ses dosyaları, hesaplar ve cihaz klasörleri dahil değildir.",
+  "backupHistories": "Dinleme ve arama geçmişleri",
+  "backupPreferences": "Taşınabilir tercihler",
+  "backupNewCopy": "Yeni çalma listeleri olarak içe aktar",
+  "backupMerge": "Mevcut verilerle birleştir",
+  "backupReplace": "Seçilen bölümleri değiştir",
+  "backupMergeDetails": "Mevcut parçalar, parça bilgileri ve tercihler korunur. Eksik parçalar dosyadaki sırayla sona eklenir. Favoriler birleştirilir.",
+  "backupReplaceWarning": "Seçilen bölümler değiştirilir. Kitaplık seçilirse mevcut çalma listeleri ve favoriler de değiştirilir. Seçilmeyen bölümler ve cihazdaki dosyalar korunur. Önce uygulamaya özel bir kurtarma kopyası oluşturulur.",
+  "backupAutoDetails": "Uygulamaya özel yedi kurtarma kopyası tutulur. Uygulama açıldığında denetlenir; en fazla 24 saatte bir kopya oluşturulur. Uygulama kaldırıldığında bu kopyalar silinir.",
+  "backupLocationDetails": "“Yedeği kaydet” seçeneğiyle bir konum belirleyin. Uygulamaya özel kurtarma kopyaları uygulamanın içinde tutulur.",
+  "backupResetDetails": "Uygulama bir sonraki açılışta tüm veritabanı verilerini sıfırlar. İndirilen ses dosyaları ve yüklü eklenti dosyaları cihazda kalır. Önce uygulamaya özel bir kurtarma kopyası oluşturulur.",
+  "backupResetPending": "Sıfırlama planlandı. Tamamlamak için Bloomee'yi kapatıp yeniden açın.",
+  "backupPreviewCounts": "Çalma listeleri: {playlists} · Parçalar: {tracks}",
+  "@backupPreviewCounts": {
+    "placeholders": {
+      "playlists": {
+        "type": "int"
+      },
+      "tracks": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImportResult": "İçe aktarma tamamlandı. Oluşturulan çalma listeleri: {playlists}; eklenen parça kayıtları: {tracks}; eklenen geçmiş kayıtları: {history}; uygulanan tercihler: {settings}.",
+  "@backupImportResult": {
+    "placeholders": {
+      "playlists": {
+        "type": "int"
+      },
+      "tracks": {
+        "type": "int"
+      },
+      "history": {
+        "type": "int"
+      },
+      "settings": {
+        "type": "int"
+      }
+    }
+  },
+  "backupRefreshFailed": "Veriler içe aktarıldı. Tüm tercihleri yenilemek için Bloomee'yi kapatıp yeniden açın.",
+  "backupRecoveryCopies": "Kurtarma kopyaları",
+  "backupNoRecoveryCopies": "Henüz kurtarma kopyası yok.",
+  "backupRecoveryAutomatic": "Otomatik yedek",
+  "backupRecoveryBeforeImport": "İçe aktarma öncesi",
+  "backupRecoveryBeforeReset": "Sıfırlama öncesi",
+  "backupCancelReset": "Sıfırlamayı iptal et",
+  "libraryRecoveryTitle": "Eksik kitaplığı kurtar",
+  "libraryRecoverySubtitle": "Önceki sürümlerden kalan çalma listelerini ve indirme kayıtlarını ara.",
+  "libraryRecoveryChooseSource": "Taranacak eski veritabanını seçin. Geçerli kitaplığınız ve orijinal dosyalarınız korunur.",
+  "libraryRecoveryNoSources": "Korunmuş veritabanı bulunamadı. Yalnızca ses dosyalarıyla parçaların eskiden hangi çalma listelerinde olduğu kurtarılamaz.",
+  "libraryRecoverySummary": "{tracks} parça, {playlists} çalma listesi ve {downloads} indirme kaydı bulundu. Şu anda {unavailable} dosya kullanılamıyor; kayıtları korunacak.",
+  "@libraryRecoverySummary": {
+    "placeholders": {
+      "tracks": {
+        "type": "int"
+      },
+      "playlists": {
+        "type": "int"
+      },
+      "downloads": {
+        "type": "int"
+      },
+      "unavailable": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryRecoveryWarnings": "Bu kopyadan kurtarılamayan bozuk çalma listesi başvuruları: {broken}.",
+  "@libraryRecoveryWarnings": {
+    "placeholders": {
+      "broken": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryRecoveryMergeDetails": "Kurtarma işlemi eksik parçaları, çalma listesi öğelerini ve indirme kayıtlarını ekler. Mevcut çalma listeleri, dosya eşlemeleri ve ayarlar korunur. Önce bir kurtarma kopyası oluşturulur. Başka bir eski kopyada kitaplığınızın daha fazla içeriği varsa işlemi o kopyayla tekrarlayın.",
+  "libraryRecoveryMerge": "Kurtarılan kitaplığı birleştir",
+  "libraryRecoveryComplete": "Kurtarma tamamlandı. Eklenen çalma listesi öğeleri: {entries}; indirme kayıtları: {downloads}.",
+  "@libraryRecoveryComplete": {
+    "placeholders": {
+      "entries": {
+        "type": "int"
+      },
+      "downloads": {
+        "type": "int"
+      }
+    }
+  },
+  "backupStartupFailed": "Bloomee başlatılamadı",
+  "backupStartupFailedDetails": "Veritabanınız otomatik onarılmadan veya değiştirilmeden başlatma durduruldu. Uygulamayı kapatıp yeniden deneyin. Bu hatayı bildirirken uygulama verilerini koruyun.",
+  "lyricsTitle": "Şarkı sözleri",
+  "lyricsEnterFullscreen": "Şarkı sözlerini tam ekranda göster",
+  "lyricsExitFullscreen": "Tam ekrandan çık",
+  "lyricsFollowPlayback": "Oynatmayı takip et",
+  "lyricsTimingEarlier": "Daha erken göster",
+  "lyricsTimingLater": "Daha geç göster",
+  "lyricsTimingSave": "Zamanlamayı kaydet",
+  "lyricsSaved": "Şarkı sözleri kaydedildi.",
+  "lyricsSaveFailed": "Şarkı sözleri kaydedilemedi. Yeniden deneyin.",
+  "lyricsDeleteFailed": "Kayıtlı şarkı sözleri silinemedi. Yeniden deneyin.",
+  "artistTopSongs": "Popüler şarkılar",
+  "artistLoadFailed": "Sanatçı yüklenemedi",
+  "artistNoTopSongs": "Popüler şarkı bulunamadı",
+  "artistNoAlbums": "Kullanılabilir albüm yok",
+  "snackbarOpeningArtistPage": "Orijinal sanatçı sayfası açılıyor.",
+  "snackbarOpeningPlaylistPage": "Orijinal çalma listesi sayfası açılıyor.",
+  "playlistSaveOrderFailed": "Çalma listesi sırası kaydedilemedi. Lütfen yeniden deneyin.",
+  "playlistReorderTracksHint": "Parçaları sıralamak için tutamacı basılı tutup sürükleyin",
+  "playlistTrackCountLabel": "Parça sayısı",
+  "playlistDescription": "Açıklama",
+  "playlistOriginalUrl": "Orijinal bağlantı",
+  "searchSearching": "Aranıyor…",
+  "searchSuggestions": "Öneriler",
+  "searchTopResults": "En iyi sonuçlar",
+  "changelogEmpty": "Değişiklik bilgisi bulunamadı.",
+  "changelogTitle": "Yenilikler",
+  "changelogLatest": "En son",
+  "changelogNext": "Sonraki sürüm",
+  "changelogVersion": "Sürüm {version}",
+  "@changelogVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginBootstrapIncomplete": "Kurulum tamamlanmadı",
+  "pluginBootstrapRetryBody": "Bazı eklentiler şu anda yüklenemedi. Kurulumu tamamlamak için yeniden deneyin.",
+  "pluginBootstrapInternetTitle": "İnternet bağlantısı gerekli",
+  "pluginBootstrapInternetBody": "Bloomee, ülkenizi algılamak ve eklenti altyapısını hazırlamak için ilk kurulumda internet bağlantısına ihtiyaç duyar.",
+  "buttonExit": "Çıkış",
+  "eqSource": "Ekolayzır kaynağı",
+  "eqBuiltin": "Uygulama ekolayzırı",
+  "eqBuiltinSubtitle": "10 bantlı ekolayzır",
+  "eqDevice": "Cihaz ekolayzırı",
+  "eqDeviceSubtitle": "Sistem / Dolby Atmos",
+  "eqDeviceHint": "Uygulama ekolayzırı devre dışı. Cihaz ekolayzırını cihazınızın ses ayarlarından yapılandırın.",
+  "eqPresets": "Ön ayarlar",
+  "eqCustomCurve": "Özel eğri",
+  "shortcutMuted": "Ses kapalı",
+  "shortcutUnmuted": "Ses açık",
+  "shortcutShuffleOn": "Karışık çalma açık",
+  "shortcutShuffleOff": "Karışık çalma kapalı",
+  "shortcutRepeatOff": "Tekrarlama kapalı",
+  "shortcutLiked": "Favorilere eklendi",
+  "shortcutUnliked": "Favorilerden kaldırıldı",
+  "downloadFolderSelectFailed": "İndirme klasörü seçilemedi: {error}",
+  "@downloadFolderSelectFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutVersionUnavailable": "Sürüm bilgisi alınamadı",
+  "backupNewCopyDetails": "Ayrı çalma listeleri oluşturur ve favorileri birleştirir. Mevcut çalma listeleri korunur. Seçilen geçmişler ve tercihler de içe aktarılır.",
+  "changelogCurrent": "Geçerli",
+  "backupLibrary": "Kitaplık (çalma listeleri, favoriler ve kayıtlı koleksiyonlar)",
+  "eqPresetFlat": "Düz",
+  "eqPresetAcoustic": "Akustik",
+  "eqPresetBassBoost": "Bas güçlendirme",
+  "eqPresetBassReducer": "Bas azaltma",
+  "eqPresetClassical": "Klasik",
+  "eqPresetDance": "Dans",
+  "eqPresetDeep": "Derin",
+  "eqPresetEDM": "EDM",
+  "eqPresetElectronic": "Elektronik",
+  "eqPresetHipHop": "Hip-hop",
+  "eqPresetJazz": "Caz",
+  "eqPresetLatin": "Latin",
+  "eqPresetLive": "Canlı",
+  "eqPresetLounge": "Lounge",
+  "eqPresetMetal": "Metal",
+  "eqPresetPiano": "Piyano",
+  "eqPresetPop": "Pop",
+  "eqPresetRB": "R&B",
+  "eqPresetRock": "Rock",
+  "eqPresetSmallSpeakers": "Küçük hoparlörler",
+  "eqPresetSpokenWord": "Konuşma",
+  "eqPresetTrebleBoost": "Tiz güçlendirme",
+  "eqPresetTrebleReducer": "Tiz azaltma",
+  "eqPresetVocalBooster": "Vokal güçlendirme",
+  "eqPresetCustom": "Özel"
+}

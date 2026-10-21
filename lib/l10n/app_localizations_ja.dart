@@ -36,9 +36,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get playerEnjoyingFrom => '再生中:';
 
   @override
-  String get playerQueue => '再生待ちリスト';
-
-  @override
   String get playerPlayWithMix => 'オートミックス再生';
 
   @override
@@ -56,9 +53,6 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get playerLyricsNoPlugin =>
       '歌詞プロバイダーが設定されていません。設定 → プラグイン からインストールしてください。';
-
-  @override
-  String get playerFullscreenLyrics => 'フルスクリーン歌詞';
 
   @override
   String get localMusicTitle => 'ローカル';
@@ -88,12 +82,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get localMusicScanning => 'オーディオファイルをスキャン中...';
 
   @override
-  String get localMusicEmpty => 'ローカル音楽が見つかりません';
-
-  @override
-  String get localMusicSearchEmpty => '検索条件に一致する曲が見つかりませんでした。';
-
-  @override
   String get localMusicShuffle => 'シャッフル再生';
 
   @override
@@ -104,17 +92,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get localMusicRescanDevice => 'デバイスを再スキャン';
-
-  @override
-  String get localMusicRemoveFolder => 'フォルダーを削除';
-
-  @override
-  String get localMusicMusicFolders => '音楽フォルダー';
-
-  @override
-  String localMusicTrackCount(int count) {
-    return '$count 曲';
-  }
 
   @override
   String get buttonCancel => 'キャンセル';
@@ -130,9 +107,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get buttonDownload => 'ダウンロード';
-
-  @override
-  String get buttonShare => '共有';
 
   @override
   String get buttonLater => '後で';
@@ -156,14 +130,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get dialogDontAskAgain => '今後表示しない';
-
-  @override
-  String get dialogDeletePlugin => 'プラグインを削除しますか？';
-
-  @override
-  String dialogDeletePluginMessage(String name) {
-    return '\"$name\" を削除してもよろしいですか？関連するファイルが完全に削除されます。';
-  }
 
   @override
   String get dialogUpdateAvailable => 'アップデートがあります';
@@ -211,9 +177,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get playlistShuffle => 'シャッフル';
-
-  @override
-  String get playlistMoreOptions => 'その他のオプション';
 
   @override
   String get playlistNoMatchSearch => '一致するプレイリストがありません';
@@ -352,55 +315,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsChartVisibility => 'チャートの表示';
 
   @override
-  String get settingsLocation => '場所';
-
-  @override
-  String get pluginRepositoryTitle => 'プラグインリポジトリ';
-
-  @override
-  String get pluginRepositorySubtitle => '外部ソースを追加してプラグインを検索します。';
-
-  @override
-  String get pluginRepositoryAddAction => 'リポジトリを追加';
-
-  @override
-  String get pluginRepositoryAddTitle => 'リポジトリを追加';
-
-  @override
-  String get pluginRepositoryAddSubtitle => 'プラグインリポジトリ JSON の URL を入力してください。';
-
-  @override
-  String get pluginRepositoryEmpty => 'リポジトリがありません。';
-
-  @override
-  String get pluginRepositoryUrlCopied => 'クリップボードにコピー済み';
-
-  @override
-  String get pluginRepositoryNoDescription => '説明なし。';
-
-  @override
-  String get pluginRepositoryUnknownUpdate => '不明な更新';
-
-  @override
-  String pluginRepositoryPluginsCount(int count) {
-    return '$count 個のプラグイン';
-  }
-
-  @override
-  String get pluginRepositoryErrorLoad => 'リポジトリを読み込めませんでした。';
-
-  @override
-  String get pluginRepositoryErrorInvalid => '無効なリポジトリ形式です。';
-
-  @override
-  String get pluginRepositoryErrorRemove => '削除に失敗しました。';
-
-  @override
-  String pluginRepositoryError(String message) {
-    return 'エラー: $message';
-  }
-
-  @override
   String get dialogAddingToDownloadQueue => 'ダウンロードキューに追加中';
 
   @override
@@ -450,62 +364,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get snackbarPlaylistQueued => 'プレイリストをダウンロードキューに追加しました';
-
-  @override
   String get snackbarPlaylistUpdated => 'プレイリストを更新しました！';
-
-  @override
-  String get snackbarNoInternet => '接続環境を確認してください。';
-
-  @override
-  String get snackbarImportFailed => 'インポートに失敗しました';
-
-  @override
-  String get snackbarImportCompleted => 'インポートが完了しました';
-
-  @override
-  String get snackbarBackupFailed => 'バックアップに失敗しました';
-
-  @override
-  String snackbarExportedTo(String path) {
-    return '保存先: $path';
-  }
-
-  @override
-  String get snackbarMediaIdCopied => 'メディアIDをコピーしました';
 
   @override
   String get snackbarLinkCopied => 'リンクをコピーしました';
 
   @override
-  String get snackbarNoLinkAvailable => '利用可能なリンクがありません';
-
-  @override
   String get snackbarCouldNotOpenLink => 'リンクを開けませんでした';
-
-  @override
-  String snackbarPreparingDownload(String title) {
-    return '$title のダウンロードを準備中...';
-  }
-
-  @override
-  String snackbarAlreadyDownloaded(String title) {
-    return '$title はすでにダウンロード済みです。';
-  }
-
-  @override
-  String snackbarAlreadyInQueue(String title) {
-    return '$title はすでにキューに入っています。';
-  }
-
-  @override
-  String snackbarDownloaded(String title) {
-    return '$title をダウンロードしました';
-  }
-
-  @override
-  String get snackbarDownloadServiceUnavailable => 'エラー: ダウンロードサービスを利用できません。';
 
   @override
   String snackbarSongsAddedToQueue(int count) {
@@ -513,16 +378,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get snackbarDeleteTrackFailDevice => 'ストレージからの削除に失敗しました。';
-
-  @override
   String get searchHintExplore => '何を聴きたいですか？';
 
   @override
   String get searchHintLibrary => 'ライブラリを検索...';
-
-  @override
-  String get searchHintOfflineMusic => '曲を検索...';
 
   @override
   String get searchHintPlaylists => 'プレイリストを検索...';
@@ -605,27 +464,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get menuDeleteTrack => '削除';
 
   @override
-  String get songInfoTitle => '曲名';
-
-  @override
-  String get songInfoArtist => 'アーティスト';
-
-  @override
-  String get songInfoAlbum => 'アルバム';
-
-  @override
-  String get songInfoMediaId => 'メディアID';
-
-  @override
-  String get songInfoCopyId => 'IDをコピー';
-
-  @override
-  String get songInfoCopyLink => 'リンクをコピー';
-
-  @override
-  String get songInfoOpenBrowser => 'ブラウザで開く';
-
-  @override
   String get tooltipRemoveFromLibrary => 'ライブラリから削除';
 
   @override
@@ -635,19 +473,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tooltipOpenOriginalLink => '元のリンクを開く';
 
   @override
-  String get tooltipShuffle => 'シャッフル';
-
-  @override
   String get tooltipAvailableOffline => 'オフライン再生可能';
 
   @override
-  String get tooltipDownloadPlaylist => 'プレイリストをダウンロード';
-
-  @override
   String get tooltipMoreOptions => 'その他のオプション';
-
-  @override
-  String get tooltipInfo => '曲情報';
 
   @override
   String get appuiTitle => 'UIとサービス';
@@ -898,21 +727,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storageBackupLocation => 'バックアップ場所';
-
-  @override
-  String get storageBackupLocationAndroid => 'ダウンロード / アプリデータディレクトリ';
-
-  @override
-  String get storageBackupLocationDownloads => 'ダウンロードディレクトリ';
-
-  @override
-  String get storageCreateBackup => 'バックアップを作成';
-
-  @override
-  String get storageCreateBackupSubtitle => '設定とデータをバックアップファイルに保存します。';
-
-  @override
   String storageBackupCreatedAt(String path) {
     return 'バックアップ作成先: $path';
   }
@@ -921,9 +735,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String storageBackupShareFailed(String error) {
     return '共有に失敗しました: $error';
   }
-
-  @override
-  String get storageBackupFailed => 'バックアップ失敗！';
 
   @override
   String get storageRestoreBackup => 'バックアップから復元';
@@ -935,9 +746,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storageAutoBackup => '自動バックアップ';
 
   @override
-  String get storageAutoBackupSubtitle => '定期的にバックアップを自動生成します。';
-
-  @override
   String get storageAutoLyrics => '歌詞を自動保存';
 
   @override
@@ -947,106 +755,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storageResetApp => 'アプリをリセット';
 
   @override
-  String get storageResetAppSubtitle => 'すべてのデータを削除し、初期状態に戻します。';
-
-  @override
   String get storageResetConfirmTitle => 'リセットの確認';
-
-  @override
-  String get storageResetConfirmMessage =>
-      '本当にリセットしますか？この操作は取り消しできず、すべてのデータが消去されます。';
 
   @override
   String get storageResetButton => 'リセット';
 
   @override
-  String get storageResetSuccess => 'アプリを初期状態に戻しました。';
-
-  @override
-  String get storageLocationDialogTitle => 'バックアップ場所';
-
-  @override
-  String get storageLocationAndroid =>
-      'バックアップは以下に保存されます:\n\n1. ダウンロードフォルダー\n2. Android/data/ls.bloomee.musicplayer/data\n\nここからファイルをコピーしてください。';
-
-  @override
-  String get storageLocationOther => 'バックアップはダウンロードフォルダーに保存されます。';
-
-  @override
   String get storageRestoreOptionsTitle => '復元オプション';
-
-  @override
-  String get storageRestoreOptionsDesc => '復元するデータを選択してください。不要な項目のチェックを外します。';
-
-  @override
-  String get storageRestoreSelectAll => 'すべて選択';
-
-  @override
-  String get storageRestoreMediaItems => 'メディア項目（曲、ライブラリなど）';
-
-  @override
-  String get storageRestoreSearchHistory => '検索履歴';
 
   @override
   String get storageRestoreContinue => '続行';
 
   @override
-  String get storageRestoreNoFile => 'ファイルが選択されていません。';
-
-  @override
-  String get storageRestoreSaveFailed => 'ファイルの保存に失敗しました。';
-
-  @override
   String get storageRestoreConfirmTitle => '復元の確認';
-
-  @override
-  String get storageRestoreConfirmPrefix => '現在のデータはバックアップの内容で統合または上書きされます:';
-
-  @override
-  String get storageRestoreConfirmSuffix => '現在のデータが変更されますが、よろしいですか？';
 
   @override
   String get storageRestoreYes => 'はい、復元します';
 
   @override
-  String get storageRestoreNo => 'いいえ';
-
-  @override
   String get storageRestoring => 'データを復元中…\n完了までしばらくお待ちください。';
-
-  @override
-  String get storageRestoreMediaBullet => '• メディア項目';
-
-  @override
-  String get storageRestoreHistoryBullet => '• 検索履歴';
-
-  @override
-  String get storageUnexpectedError => '復元中に予期しないエラーが発生しました。';
-
-  @override
-  String get storageRestoreCompleted => '復元完了';
 
   @override
   String get storageRestoreFailedTitle => '復元失敗';
 
   @override
-  String get storageRestoreSuccessMessage =>
-      'データの復元に成功しました。アプリを再起動して反映させてください。';
-
-  @override
-  String get storageRestoreFailedMessage => '復元中に以下のエラーが発生しました:';
-
-  @override
-  String get storageRestoreUnknownError => '不明なエラーが発生しました。';
-
-  @override
-  String get storageRestoreRestartHint => '安定させるためにアプリを再起動してください。';
-
-  @override
   String get updateSettingTitle => 'アップデート';
-
-  @override
-  String get updateAppUpdatesHeader => 'アプリのアップデート';
 
   @override
   String get updateCheckForUpdates => 'アップデートを確認';
@@ -1131,12 +864,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String playlistByCreator(String creator) {
     return '作成者: $creator';
   }
-
-  @override
-  String get playlistTypeAlbum => 'アルバム';
-
-  @override
-  String get playlistTypePlaylist => 'プレイリスト';
 
   @override
   String get playlistYou => 'あなた';
@@ -1248,17 +975,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pluginManagerDetailHomepage => 'ホームページ';
 
   @override
-  String get pluginManagerDowngradeTitle => 'ダウングレードしますか？';
-
-  @override
-  String pluginManagerDowngradeMessage(String name) {
-    return '現在より古い（または同じ）バージョンをインストールしようとしています。続行しますか？';
-  }
-
-  @override
-  String get pluginManagerDowngradeAction => 'そのままインストール';
-
-  @override
   String get pluginManagerDeleteStorageTitle => 'データを削除しますか？';
 
   @override
@@ -1312,11 +1028,6 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String smartReplaceApplied(String queue) {
     return '代替曲を適用しました$queue。';
-  }
-
-  @override
-  String smartReplaceAppliedPlaylists(int count, String plural, String queue) {
-    return '$count 個のプレイリストで曲を置換しました$queue。';
   }
 
   @override
@@ -1422,6 +1133,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get songInfoLabelPluginId => 'プラグインID';
 
   @override
+  String get songInfoCopyId => 'IDをコピー';
+
+  @override
+  String get songInfoCopyLink => 'リンクをコピー';
+
+  @override
+  String get songInfoOpenBrowser => 'ブラウザで開く';
+
+  @override
   String get songInfoIdCopied => 'メディアIDをコピーしました';
 
   @override
@@ -1456,9 +1176,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get eqTitle => 'イコライザー';
-
-  @override
-  String get eqResetTooltip => 'フラットにリセット';
 
   @override
   String get chartNoItems => 'チャートに項目がありません';
@@ -1511,6 +1228,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get localMusicFolders => '音楽フォルダー';
 
   @override
+  String get localMusicRemoveFolder => 'フォルダーを削除';
+
+  @override
   String get localMusicCloseSearch => '検索を閉じる';
 
   @override
@@ -1521,6 +1241,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get localMusicNoSearchResults => '一致するトラックが見つかりませんでした。';
+
+  @override
+  String localMusicTrackCount(int count) {
+    return '$count 曲';
+  }
 
   @override
   String get importSongsTitle => '曲をインポート';
@@ -1574,19 +1299,8 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get importResolving => '曲を特定中...';
-
-  @override
   String importResolvingProgress(int done, int total) {
     return '処理中: $done / $total';
-  }
-
-  @override
-  String get importReviewTitle => 'インポート結果';
-
-  @override
-  String importReviewSummary(int resolved, int failed, int total) {
-    return '$total 曲中 $resolved 曲成功、$failed 曲失敗';
   }
 
   @override
@@ -1618,16 +1332,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get importMatchOptions => '一致設定';
 
   @override
-  String get importAutoMatched => '自動一致';
-
-  @override
-  String get importUserSelected => '選択済み';
-
-  @override
   String get importSkipped => 'スキップ済み';
-
-  @override
-  String get importNoMatch => '一致なし';
 
   @override
   String get importReorderTip => '長押ししてプレイリストの順序を入れ替え';
@@ -1665,35 +1370,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get playlistUnpin => '固定を解除';
 
   @override
-  String get snackbarImportingMedia => 'メディアをインポート中...';
-
-  @override
-  String get snackbarPlaylistSaved => 'プレイリストをライブラリに保存しました！';
-
-  @override
   String get snackbarInvalidFileFormat => 'ファイル形式が正しくありません';
 
   @override
-  String get snackbarMediaItemImported => 'メディアをインポートしました';
-
-  @override
-  String get snackbarPlaylistImported => 'プレイリストをインポートしました';
-
-  @override
-  String get snackbarOpenImportForUrl => 'ライブラリの「インポート」からURLを指定して取り込んでください。';
-
-  @override
   String get snackbarProcessingFile => 'ファイルを処理中...';
-
-  @override
-  String snackbarPreparingShare(String title) {
-    return '$title の共有を準備中';
-  }
-
-  @override
-  String snackbarPreparingExport(String title) {
-    return '$title の書き出しを準備中...';
-  }
 
   @override
   String get pluginManagerTabInstalled => 'インストール済み';
@@ -1713,6 +1393,38 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pluginManagerStatusInactive => '無効';
+
+  @override
+  String get pluginRepositoryAddTitle => 'リポジトリを追加';
+
+  @override
+  String get pluginRepositoryAddSubtitle => 'プラグインリポジトリ JSON の URL を入力してください。';
+
+  @override
+  String get pluginRepositoryAddAction => 'リポジトリを追加';
+
+  @override
+  String get pluginRepositoryTitle => 'プラグインリポジトリ';
+
+  @override
+  String get pluginRepositorySubtitle => '外部ソースを追加してプラグインを検索します。';
+
+  @override
+  String get pluginRepositoryEmpty => 'リポジトリがありません。';
+
+  @override
+  String get pluginRepositoryUnknownUpdate => '不明な更新';
+
+  @override
+  String get pluginRepositoryNoDescription => '説明なし。';
+
+  @override
+  String get pluginRepositoryUrlCopied => 'クリップボードにコピー済み';
+
+  @override
+  String pluginRepositoryPluginsCount(int count) {
+    return '$count 個のプラグイン';
+  }
 
   @override
   String pluginRepositoryUpdatedOn(String date) {
@@ -1752,6 +1464,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String pluginRepositoryDownloadFailed(String name) {
     return '$name のダウンロードに失敗しました。';
   }
+
+  @override
+  String get pluginRepositoryErrorLoad => 'リポジトリを読み込めませんでした。';
+
+  @override
+  String get pluginRepositoryErrorInvalid => '無効なリポジトリ形式です。';
+
+  @override
+  String get pluginRepositoryErrorRemove => '削除に失敗しました。';
 
   @override
   String smartReplaceAppliedPlaylistsSummary(int count, String queue) {
@@ -1826,9 +1547,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get upNextAutoPlay => '自動再生';
-
-  @override
   String get tooltipCopyToClipboard => 'コピーする';
 
   @override
@@ -1863,11 +1581,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String pluginSnackbarLoaded(String id) {
-    return 'プラグイン \"$id\" を読み込みました';
-  }
-
-  @override
   String pluginSnackbarDeleted(String id) {
     return 'プラグイン \"$id\" を削除しました';
   }
@@ -1884,172 +1597,372 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pluginBootstrapHint => 'この処理は最初の1回のみです。';
 
   @override
-  String get pluginBootstrapErrorTitle => '接続に時間がかかっています';
+  String get backupSave => 'バックアップをJSONで保存';
 
   @override
-  String get pluginBootstrapErrorBody =>
-      '一部のプラグインをインストールできませんでした。アプリ自体は使用可能です。次回の起動時に再試行します。';
-
-  @override
-  String get pluginBootstrapContinue => 'そのまま続行';
-
-  @override
-  String get backupBusy => 'Another backup operation is open. Finish it first.';
-
-  @override
-  String get backupSave => 'Save backup as JSON';
-
-  @override
-  String get backupShare => 'Share JSON backup';
+  String get backupShare => 'JSONバックアップを共有';
 
   @override
   String get backupPortableDetails =>
-      'Includes playlists, likes, saved collections, histories and portable preferences. Audio files, accounts and device folders are excluded.';
+      'プレイリスト、お気に入り、保存済みコレクション、履歴、移行可能な設定が含まれます。音声ファイル、アカウント、端末のフォルダーは含まれません。';
 
   @override
-  String get backupHistories => 'Playback and search histories';
+  String get backupHistories => '再生履歴と検索履歴';
 
   @override
-  String get backupPreferences => 'Portable preferences';
+  String get backupPreferences => '移行可能な設定';
 
   @override
-  String get backupNewCopy => 'Import as new playlists';
+  String get backupNewCopy => '新しいプレイリストとして読み込む';
 
   @override
-  String get backupMerge => 'Merge with existing data';
+  String get backupMerge => '既存のデータに統合';
 
   @override
-  String get backupReplace => 'Replace selected sections';
+  String get backupReplace => '選択した項目を置き換える';
 
   @override
   String get backupMergeDetails =>
-      'Existing tracks, metadata and preferences are preserved. Missing tracks are appended in file order. Likes are merged.';
+      '既存の曲、メタデータ、設定は保持されます。不足している曲はファイル内の順序で末尾に追加されます。お気に入りは統合されます。';
 
   @override
   String get backupReplaceWarning =>
-      'This replaces the selected sections, including existing playlists and likes when library is selected. Unselected sections and device files are preserved. A private recovery snapshot is created first.';
+      '選択した項目が置き換えられます。ライブラリを選択した場合は、既存のプレイリストやお気に入りも対象です。未選択の項目と端末上のファイルは保持されます。最初に非公開の復元用コピーが作成されます。';
 
   @override
   String get backupAutoDetails =>
-      'Keeps seven private recovery snapshots. Checked when the app opens, at most once per 24 hours. Private snapshots are removed on uninstall.';
+      '非公開の復元用コピーを7個保持します。アプリ起動時に確認され、作成は24時間に1回までです。これらのコピーはアンインストール時に削除されます。';
 
   @override
   String get backupLocationDetails =>
-      'Choose a destination with Save backup. Private recovery snapshots are kept inside the app.';
+      '「バックアップを保存」で保存先を選択してください。非公開の復元用コピーはアプリ内に保持されます。';
 
   @override
   String get backupResetDetails =>
-      'Reset all database data on the next app start. Downloaded audio files and installed plugin files remain on this device. A private recovery snapshot is created first.';
+      '次回のアプリ起動時にデータベース内の全データをリセットします。ダウンロード済みの音声ファイルとインストール済みのプラグインファイルは端末に残ります。最初に非公開の復元用コピーが作成されます。';
 
   @override
-  String get backupResetPending =>
-      'Reset scheduled. Close and reopen Bloomee to complete it.';
+  String get backupResetPending => 'リセットを予約しました。Bloomeeを終了して再度開くと完了します。';
 
   @override
   String backupPreviewCounts(int playlists, int tracks) {
-    return '$playlists playlists and $tracks tracks';
+    return 'プレイリスト：$playlists件 · 曲：$tracks曲';
   }
 
   @override
   String backupImportResult(
       int playlists, int tracks, int history, int settings) {
-    return 'Import complete: $playlists playlists created, $tracks track entries added, $history history records added and $settings preferences applied.';
+    return '読み込み完了。作成したプレイリスト：$playlists件、追加した曲の項目：$tracks件、追加した履歴：$history件、適用した設定：$settings件。';
   }
 
   @override
   String get backupRefreshFailed =>
-      'Data was imported. Close and reopen Bloomee to refresh all preferences.';
+      'データを読み込みました。すべての設定を更新するには、Bloomeeを終了して再度開いてください。';
 
   @override
-  String get backupRecoveryCopies => 'Recovery copies';
+  String get backupRecoveryCopies => '復元用コピー';
 
   @override
-  String get backupNoRecoveryCopies => 'No recovery copies yet.';
+  String get backupNoRecoveryCopies => '復元用コピーはまだありません。';
 
   @override
-  String get backupRecoveryAutomatic => 'Automatic backup';
+  String get backupRecoveryAutomatic => '自動バックアップ';
 
   @override
-  String get backupRecoveryBeforeImport => 'Before an import';
+  String get backupRecoveryBeforeImport => '読み込み前';
 
   @override
-  String get backupRecoveryBeforeReset => 'Before a reset';
+  String get backupRecoveryBeforeReset => 'リセット前';
 
   @override
-  String get backupCancelReset => 'Cancel reset';
+  String get backupCancelReset => 'リセットを取り消す';
 
   @override
-  String get libraryRecoveryTitle => 'Recover missing library';
+  String get libraryRecoveryTitle => '見つからないライブラリを復元';
 
   @override
   String get libraryRecoverySubtitle =>
-      'Look for playlists and download records retained from earlier versions.';
+      '以前のバージョンから保持されているプレイリストとダウンロード記録を探します。';
 
   @override
   String get libraryRecoveryChooseSource =>
-      'Choose a retained database to scan. Your current library and original files will be preserved.';
+      'スキャンする保存済みデータベースを選択してください。現在のライブラリと元のファイルは保持されます。';
 
   @override
   String get libraryRecoveryNoSources =>
-      'No retained databases were found. Audio files alone cannot restore original playlist membership.';
+      '保存済みデータベースが見つかりませんでした。音声ファイルだけでは、元のプレイリストへの所属は復元できません。';
 
   @override
   String libraryRecoverySummary(
       int tracks, int playlists, int downloads, int unavailable) {
-    return 'Found $tracks tracks, $playlists playlists and $downloads download records. $unavailable files are currently unavailable; their records will be preserved.';
+    return '曲$tracks曲、プレイリスト$playlists件、ダウンロード記録$downloads件が見つかりました。現在利用できないファイルは$unavailable件です。これらの記録は保持されます。';
   }
 
   @override
   String libraryRecoveryWarnings(int broken) {
-    return '$broken broken playlist references could not be reconstructed from this copy.';
+    return 'このコピーから復元できなかった破損したプレイリスト参照：$broken件。';
   }
 
   @override
   String get libraryRecoveryMergeDetails =>
-      'Recovery adds missing tracks, playlist entries and download records. Existing playlists, file mappings and settings are preserved. A recovery copy is created first. Repeat this with another retained copy if it contains more of your library.';
+      '復元では、不足している曲、プレイリスト項目、ダウンロード記録を追加します。既存のプレイリスト、ファイルの関連付け、設定は保持されます。最初に復元用コピーを作成します。別の保存済みコピーにライブラリの他のデータが含まれている場合は、そのコピーでも繰り返してください。';
 
   @override
-  String get libraryRecoveryMerge => 'Merge recovered library';
+  String get libraryRecoveryMerge => '復元したライブラリを統合';
 
   @override
   String libraryRecoveryComplete(int entries, int downloads) {
-    return 'Recovery complete: $entries playlist entries and $downloads download records added.';
+    return '復元完了。追加したプレイリスト項目：$entries件、ダウンロード記録：$downloads件。';
   }
 
   @override
-  String get backupStartupFailed => 'Bloomee could not start';
+  String get backupStartupFailed => 'Bloomeeを起動できませんでした';
 
   @override
   String get backupStartupFailedDetails =>
-      'Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error.';
+      'データベースを自動修復・置換せずに起動を停止しました。アプリを終了して再試行してください。このエラーを報告する際はアプリのデータを保持してください。';
 
   @override
-  String get lyricsTitle => 'Lyrics';
+  String get lyricsTitle => '歌詞';
 
   @override
-  String get lyricsEnterFullscreen => 'Fullscreen lyrics';
+  String get lyricsEnterFullscreen => '歌詞を全画面表示';
 
   @override
-  String get lyricsExitFullscreen => 'Exit fullscreen';
+  String get lyricsExitFullscreen => '全画面表示を終了';
 
   @override
-  String get lyricsFollowPlayback => 'Follow playback';
+  String get lyricsFollowPlayback => '再生に合わせてスクロール';
 
   @override
-  String get lyricsTimingEarlier => 'Earlier';
+  String get lyricsTimingEarlier => '早く表示';
 
   @override
-  String get lyricsTimingLater => 'Later';
+  String get lyricsTimingLater => '遅く表示';
 
   @override
-  String get lyricsTimingSave => 'Save timing';
+  String get lyricsTimingSave => '表示タイミングを保存';
 
   @override
-  String get lyricsSaved => 'Lyrics saved.';
+  String get lyricsSaved => '歌詞を保存しました。';
 
   @override
-  String get lyricsSaveFailed => 'Could not save lyrics. Try again.';
+  String get lyricsSaveFailed => '歌詞を保存できませんでした。再試行してください。';
 
   @override
-  String get lyricsDeleteFailed => 'Could not delete saved lyrics. Try again.';
+  String get lyricsDeleteFailed => '保存した歌詞を削除できませんでした。再試行してください。';
+
+  @override
+  String get artistTopSongs => '人気の曲';
+
+  @override
+  String get artistLoadFailed => 'アーティストを読み込めませんでした';
+
+  @override
+  String get artistNoTopSongs => '人気の曲はありません';
+
+  @override
+  String get artistNoAlbums => 'アルバムはありません';
+
+  @override
+  String get snackbarOpeningArtistPage => 'アーティストの元のページを開きます。';
+
+  @override
+  String get snackbarOpeningPlaylistPage => 'プレイリストの元のページを開きます。';
+
+  @override
+  String get playlistSaveOrderFailed => 'プレイリストの順序を保存できませんでした。再試行してください。';
+
+  @override
+  String get playlistReorderTracksHint => 'ハンドルを長押しして曲順を変更';
+
+  @override
+  String get playlistTrackCountLabel => '曲数';
+
+  @override
+  String get playlistDescription => '説明';
+
+  @override
+  String get playlistOriginalUrl => '元のURL';
+
+  @override
+  String get searchSearching => '検索中…';
+
+  @override
+  String get searchSuggestions => '候補';
+
+  @override
+  String get searchTopResults => '上位の検索結果';
+
+  @override
+  String get changelogEmpty => '変更履歴はありません。';
+
+  @override
+  String get changelogTitle => '新機能と変更点';
+
+  @override
+  String get changelogLatest => '最新';
+
+  @override
+  String get changelogNext => '次のバージョン';
+
+  @override
+  String changelogVersion(String version) {
+    return 'バージョン $version';
+  }
+
+  @override
+  String get pluginBootstrapIncomplete => 'セットアップ未完了';
+
+  @override
+  String get pluginBootstrapRetryBody =>
+      '一部のプラグインをインストールできませんでした。再試行してセットアップを完了してください。';
+
+  @override
+  String get pluginBootstrapInternetTitle => 'インターネット接続が必要です';
+
+  @override
+  String get pluginBootstrapInternetBody =>
+      '国の検出とプラグインエンジンの設定のため、Bloomeeは初回にインターネット接続を必要とします。';
+
+  @override
+  String get buttonExit => '終了';
+
+  @override
+  String get eqSource => 'イコライザーの種類';
+
+  @override
+  String get eqBuiltin => 'アプリ内イコライザー';
+
+  @override
+  String get eqBuiltinSubtitle => '10バンドイコライザー';
+
+  @override
+  String get eqDevice => '端末のイコライザー';
+
+  @override
+  String get eqDeviceSubtitle => 'システム / Dolby Atmos';
+
+  @override
+  String get eqDeviceHint => 'アプリ内イコライザーは無効です。端末のサウンド設定でイコライザーを設定してください。';
+
+  @override
+  String get eqPresets => 'プリセット';
+
+  @override
+  String get eqCustomCurve => 'カスタムカーブ';
+
+  @override
+  String get shortcutMuted => 'ミュート';
+
+  @override
+  String get shortcutUnmuted => 'ミュート解除';
+
+  @override
+  String get shortcutShuffleOn => 'シャッフル オン';
+
+  @override
+  String get shortcutShuffleOff => 'シャッフル オフ';
+
+  @override
+  String get shortcutRepeatOff => 'リピート オフ';
+
+  @override
+  String get shortcutLiked => 'お気に入りに追加しました';
+
+  @override
+  String get shortcutUnliked => 'お気に入りから削除しました';
+
+  @override
+  String downloadFolderSelectFailed(String error) {
+    return 'ダウンロードフォルダーを選択できませんでした：$error';
+  }
+
+  @override
+  String get aboutVersionUnavailable => 'バージョンを取得できません';
+
+  @override
+  String get backupNewCopyDetails =>
+      '別のプレイリストを作成し、お気に入りを統合します。既存のプレイリストは保持されます。選択した履歴と設定も読み込みます。';
+
+  @override
+  String get changelogCurrent => '現在';
+
+  @override
+  String get backupLibrary => 'ライブラリ（プレイリスト、お気に入り、保存済みコレクション）';
+
+  @override
+  String get eqPresetFlat => 'フラット';
+
+  @override
+  String get eqPresetAcoustic => 'アコースティック';
+
+  @override
+  String get eqPresetBassBoost => '低音強調';
+
+  @override
+  String get eqPresetBassReducer => '低音低減';
+
+  @override
+  String get eqPresetClassical => 'クラシック';
+
+  @override
+  String get eqPresetDance => 'ダンス';
+
+  @override
+  String get eqPresetDeep => 'ディープ';
+
+  @override
+  String get eqPresetEDM => 'EDM';
+
+  @override
+  String get eqPresetElectronic => 'エレクトロニック';
+
+  @override
+  String get eqPresetHipHop => 'ヒップホップ';
+
+  @override
+  String get eqPresetJazz => 'ジャズ';
+
+  @override
+  String get eqPresetLatin => 'ラテン';
+
+  @override
+  String get eqPresetLive => 'ライブ';
+
+  @override
+  String get eqPresetLounge => 'ラウンジ';
+
+  @override
+  String get eqPresetMetal => 'メタル';
+
+  @override
+  String get eqPresetPiano => 'ピアノ';
+
+  @override
+  String get eqPresetPop => 'ポップ';
+
+  @override
+  String get eqPresetRB => 'R&B';
+
+  @override
+  String get eqPresetRock => 'ロック';
+
+  @override
+  String get eqPresetSmallSpeakers => '小型スピーカー';
+
+  @override
+  String get eqPresetSpokenWord => 'スピーチ';
+
+  @override
+  String get eqPresetTrebleBoost => '高音強調';
+
+  @override
+  String get eqPresetTrebleReducer => '高音低減';
+
+  @override
+  String get eqPresetVocalBooster => 'ボーカル強調';
+
+  @override
+  String get eqPresetCustom => 'カスタム';
 }

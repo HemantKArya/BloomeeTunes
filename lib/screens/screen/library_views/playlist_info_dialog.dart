@@ -103,13 +103,14 @@ Future<dynamic> showPlaylistInfo(
                       ),
                     ),
                     InfoTile(
-                      title: "Playlist Length",
+                      title:
+                          AppLocalizations.of(context)!.playlistTrackCountLabel,
                       subtitle: state.playlist.tracks.length.toString(),
                       icon: MingCute.playlist_2_line,
                       fg: fgColor,
                     ),
                     InfoTile(
-                      title: "Artists",
+                      title: AppLocalizations.of(context)!.searchArtists,
                       subtitle: state.playlist.artists != null
                           ? state.playlist.artists!
                               .map((a) => a.name)
@@ -120,7 +121,8 @@ Future<dynamic> showPlaylistInfo(
                     ),
                     state.playlist.description != null
                         ? InfoTile(
-                            title: "Description",
+                            title: AppLocalizations.of(context)!
+                                .playlistDescription,
                             subtitle: state.playlist.description!,
                             icon: MingCute.document_2_line,
                             fg: fgColor,
@@ -128,7 +130,8 @@ Future<dynamic> showPlaylistInfo(
                         : const SizedBox.shrink(),
                     state.playlist.updatedAt != null
                         ? InfoTile(
-                            title: "Last Updated",
+                            title: AppLocalizations.of(context)!
+                                .pluginManagerDetailLastUpdated,
                             subtitle:
                                 state.playlist.updatedAt?.toIso8601String() ??
                                     "",
@@ -138,7 +141,8 @@ Future<dynamic> showPlaylistInfo(
                         : const SizedBox.shrink(),
                     state.playlist.permaURL != null
                         ? InfoTile(
-                            title: "Original URL",
+                            title: AppLocalizations.of(context)!
+                                .playlistOriginalUrl,
                             subtitle: state.playlist.permaURL!,
                             icon: MingCute.external_link_line,
                             fg: fgColor,
@@ -146,7 +150,8 @@ Future<dynamic> showPlaylistInfo(
                               Clipboard.setData(ClipboardData(
                                   text: state.playlist.permaURL!));
                               SnackbarService.showMessage(
-                                  "URL Copied to Clipboard");
+                                  AppLocalizations.of(context)!
+                                      .snackbarLinkCopied);
                             },
                           )
                         : const SizedBox.shrink(),

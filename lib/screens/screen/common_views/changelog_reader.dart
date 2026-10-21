@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
 import 'package:flutter/material.dart';
@@ -328,13 +329,13 @@ class ChangelogScreen extends StatelessWidget {
           }
 
           if (versionsToShow.isEmpty && !showOlderVersions) {
-            return const Center(
+            return Center(
                 child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.info_outline, size: 48, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No changelog information available.',
+                Text(AppLocalizations.of(context)!.changelogEmpty,
                     style: TextStyle(fontSize: 16, fontFamily: 'Gilroy')),
               ],
             ));
@@ -353,7 +354,7 @@ class ChangelogScreen extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ).createShader(bounds),
-                    child: const Text("What's new",
+                    child: Text(AppLocalizations.of(context)!.changelogTitle,
                         style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
@@ -426,21 +427,7 @@ class _VersionCardState extends State<VersionCard> {
   String _formatDate(String dateString) {
     try {
       final date = DateTime.parse(dateString);
-      const monthNames = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ];
-      return "${date.day} ${monthNames[date.month - 1]} ${date.year}";
+      return MaterialLocalizations.of(context).formatMediumDate(date);
     } catch (e) {
       return dateString;
     }
@@ -490,7 +477,7 @@ class _VersionCardState extends State<VersionCard> {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: const Text("LATEST",
+            child: Text(AppLocalizations.of(context)!.changelogLatest,
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -517,10 +504,12 @@ class _VersionCardState extends State<VersionCard> {
                 letterSpacing: 0.3)));
 
     final currentBadge = showCurrentBadge
-        ? _badge('CURRENT', Colors.blueAccent.shade700, Colors.white)
+        ? _badge(AppLocalizations.of(context)!.changelogCurrent,
+            Colors.blueAccent.shade700, Colors.white)
         : const SizedBox.shrink();
     final updateBadge = showUpdateBadge
-        ? _badge('UPDATE', Colors.deepOrangeAccent.shade200, Colors.white)
+        ? _badge(AppLocalizations.of(context)!.buttonUpdate,
+            Colors.deepOrangeAccent.shade200, Colors.white)
         : const SizedBox.shrink();
 
     return Container(
@@ -550,8 +539,9 @@ class _VersionCardState extends State<VersionCard> {
                   children: [
                     Text(
                       isUnreleased
-                          ? 'Next Version'
-                          : 'Version ${widget.version.versionNumber}',
+                          ? AppLocalizations.of(context)!.changelogNext
+                          : AppLocalizations.of(context)!
+                              .changelogVersion(widget.version.versionNumber),
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,

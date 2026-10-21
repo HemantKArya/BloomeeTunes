@@ -249,25 +249,83 @@ class HorizontalNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return GNav(
-      gap: 7.0,
-      tabBackgroundColor: Default_Theme.accentColor2.withValues(alpha: 0.22),
-      color: Default_Theme.primaryColor2,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      activeColor: Default_Theme.accentColor2,
-      textStyle: Default_Theme.secondoryTextStyleMedium.merge(
-          const TextStyle(color: Default_Theme.accentColor2, fontSize: 18)),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
-      tabs: [
-        GButton(icon: MingCute.home_4_fill, text: l10n.navHome),
-        GButton(icon: MingCute.book_5_fill, text: l10n.navLibrary),
-        GButton(icon: MingCute.search_2_fill, text: l10n.navSearch),
-        GButton(icon: MingCute.music_2_fill, text: l10n.navLocal),
-        GButton(icon: MingCute.folder_download_fill, text: l10n.navOffline),
-      ],
-      selectedIndex: navigationShell.currentIndex,
-      onTabChange: navigationShell.goBranch,
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      final labels = [
+        l10n.navHome,
+        l10n.navLibrary,
+        l10n.navSearch,
+        l10n.navLocal,
+        l10n.navOffline,
+      ];
+      final textStyle = Default_Theme.secondoryTextStyleMedium.merge(
+          const TextStyle(color: Default_Theme.accentColor2, fontSize: 18));
+      final compact = constraints.maxWidth < 420 ||
+          labels.any((label) {
+            final painter = TextPainter(
+              text: TextSpan(text: label, style: textStyle),
+              textDirection: Directionality.of(context),
+              textScaler: MediaQuery.textScalerOf(context),
+            )..layout();
+            final fits =
+                painter.width + labels.length * 56 + 16 <= constraints.maxWidth;
+            painter.dispose();
+            return !fits;
+          });
+      const icons = [
+        MingCute.home_4_fill,
+        MingCute.book_5_fill,
+        MingCute.search_2_fill,
+        MingCute.music_2_fill,
+        MingCute.folder_download_fill,
+      ];
+      // Each icon keeps a 48px target. The selected label wraps in the
+      // remaining space instead of overflowing or reducing the text scale.
+      final labelWidth = (constraints.maxWidth - labels.length * 48 - 7)
+          .clamp(1.0, double.infinity);
+      return GNav(
+        gap: 7,
+        tabBackgroundColor: Default_Theme.accentColor2.withValues(alpha: 0.22),
+        color: Default_Theme.primaryColor2,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        activeColor: Default_Theme.accentColor2,
+        textStyle: textStyle,
+        padding:
+            EdgeInsets.symmetric(horizontal: compact ? 12 : 16, vertical: 12),
+        backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
+        tabs: List.generate(labels.length, (index) {
+          final selected = index == navigationShell.currentIndex;
+          return GButton(
+            icon: icons[index],
+            text: compact ? '' : labels[index],
+            semanticLabel: labels[index],
+            leading: compact
+                ? Tooltip(
+                    message: labels[index],
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(icons[index],
+                          size: 24,
+                          color: selected
+                              ? Default_Theme.accentColor2
+                              : Default_Theme.primaryColor2),
+                      if (selected) ...[
+                        const SizedBox(width: 7),
+                        SizedBox(
+                          width: labelWidth,
+                          child: Text(labels[index],
+                              style: Default_Theme.secondoryTextStyleMedium
+                                  .copyWith(
+                                      fontSize: 16,
+                                      color: Default_Theme.accentColor2)),
+                        ),
+                      ],
+                    ]),
+                  )
+                : null,
+          );
+        }),
+        selectedIndex: navigationShell.currentIndex,
+        onTabChange: navigationShell.goBranch,
+      );
+    });
   }
 }

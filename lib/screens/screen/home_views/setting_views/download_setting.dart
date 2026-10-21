@@ -94,7 +94,8 @@ class _DownloadSettingsState extends State<DownloadSettings> {
                         if (value != null) await settings.setDownPath(value);
                       } catch (error) {
                         SnackbarService.showMessage(
-                            'Could not select download folder: $error');
+                            AppLocalizations.of(context)!
+                                .downloadFolderSelectFailed(error.toString()));
                       }
                     },
                   ),

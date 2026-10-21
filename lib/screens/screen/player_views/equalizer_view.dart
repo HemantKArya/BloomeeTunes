@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/equalizer_labels.dart';
 import 'dart:async';
 
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
@@ -319,7 +320,7 @@ class _EqualizerViewState extends State<EqualizerView>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // FIX H-01: EQ Source selection — 'Built-in' or 'Device'
-                  _buildSectionHeader('EQ SOURCE'),
+                  _buildSectionHeader(AppLocalizations.of(context)!.eqSource),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
@@ -340,8 +341,10 @@ class _EqualizerViewState extends State<EqualizerView>
                             children: [
                               Expanded(
                                 child: _EqSourceOption(
-                                  label: 'Built-in EQ',
-                                  subtitle: '10-band in-app equalizer',
+                                  label:
+                                      AppLocalizations.of(context)!.eqBuiltin,
+                                  subtitle: AppLocalizations.of(context)!
+                                      .eqBuiltinSubtitle,
                                   isSelected:
                                       _eqSource == EqSourceValues.builtin,
                                   onTap: () =>
@@ -352,8 +355,9 @@ class _EqualizerViewState extends State<EqualizerView>
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _EqSourceOption(
-                                  label: 'Device EQ',
-                                  subtitle: 'System / Dolby Atmos',
+                                  label: AppLocalizations.of(context)!.eqDevice,
+                                  subtitle: AppLocalizations.of(context)!
+                                      .eqDeviceSubtitle,
                                   isSelected:
                                       _eqSource == EqSourceValues.device,
                                   onTap: () =>
@@ -379,7 +383,8 @@ class _EqualizerViewState extends State<EqualizerView>
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'In-app EQ is disabled. Configure your device EQ in:\nSettings → Sound & Vibration → Equalizer',
+                                      AppLocalizations.of(context)!
+                                          .eqDeviceHint,
                                       style: TextStyle(
                                           color: Colors.white
                                               .withValues(alpha: 0.7),
@@ -399,10 +404,12 @@ class _EqualizerViewState extends State<EqualizerView>
 
                   // Only show built-in EQ controls when in builtin mode
                   if (isBuiltinMode) ...[
-                    _buildSectionHeader('PRESETS'),
+                    _buildSectionHeader(
+                        AppLocalizations.of(context)!.eqPresets),
                     _buildPresetTabs(accent),
                     const SizedBox(height: 32),
-                    _buildSectionHeader('CUSTOM CURVE'),
+                    _buildSectionHeader(
+                        AppLocalizations.of(context)!.eqCustomCurve),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Container(
@@ -547,7 +554,8 @@ class _EqualizerViewState extends State<EqualizerView>
                           : Default_Theme.primaryColor1
                               .withValues(alpha: 0.05)),
                 ),
-                child: Text(name,
+                child: Text(
+                    equalizerPresetLabel(AppLocalizations.of(context)!, name),
                     style: TextStyle(
                         color: isActive
                             ? accent
@@ -619,14 +627,17 @@ class _EqSourceOption extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected
-                        ? accent
-                        : Colors.white.withValues(alpha: 0.8),
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? accent
+                          : Colors.white.withValues(alpha: 0.8),
+                      fontSize: 13,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
                   ),
                 ),
               ],

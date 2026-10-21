@@ -300,9 +300,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               .state
                               .loadedContentResolvers;
                           if (loadedResolvers.isEmpty) {
-                            return const SignBoardWidget(
-                              message:
-                                  'No content plugin loaded.\nLoad a Content Resolver in Plugin Manager.',
+                            return SignBoardWidget(
+                              message: AppLocalizations.of(context)!
+                                  .emptyNoContentPlugin,
                               icon: MingCute.plugin_2_line,
                             );
                           }
@@ -317,11 +317,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   .loadedPluginIds
                                   .contains(activePluginId) &&
                               !hasSections) {
-                            return const Padding(
+                            return Padding(
                               padding: EdgeInsets.symmetric(vertical: 16),
                               child: SignBoardWidget(
-                                message:
-                                    'Refreshing Discover source...\nThe previous source is no longer available.',
+                                message: AppLocalizations.of(context)!
+                                    .emptyRefreshingSource,
                                 icon: MingCute.warning_line,
                               ),
                             );
@@ -342,16 +342,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               builder: (context, connState) {
                                 if (connState ==
                                     ConnectivityState.disconnected) {
-                                  return const Padding(
+                                  return Padding(
                                     padding: EdgeInsets.symmetric(vertical: 16),
                                     child: SignBoardWidget(
-                                      message: 'No Internet Connection!',
+                                      message: AppLocalizations.of(context)!
+                                          .emptyNoInternet,
                                       icon: MingCute.wifi_off_line,
                                     ),
                                   );
                                 }
 
-                                return const Padding(
+                                return Padding(
                                   padding: EdgeInsets.symmetric(vertical: 40),
                                   child: Center(
                                     child: CircularProgressIndicator(
@@ -376,14 +377,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               child: SignBoardWidget(
                                 message: state.error ??
-                                    'Failed to load home sections.',
+                                    AppLocalizations.of(context)!
+                                        .exploreFailedToLoad,
                                 icon: MingCute.sweats_line,
                               ),
                             );
                           }
 
                           if (!hasSections) {
-                            return const Padding(
+                            return Padding(
                               padding: EdgeInsets.symmetric(vertical: 8),
                               child: SizedBox.shrink(),
                             );

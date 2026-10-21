@@ -49,9 +49,11 @@ class CountrySettings extends StatelessWidget {
             prev.autoGetCountry != curr.autoGetCountry ||
             prev.languageCode != curr.languageCode,
         builder: (context, state) {
+          final currentLanguageCode =
+              localeForLanguageCode(state.languageCode)?.toString() ?? '';
           final currentLanguageLabel = languageItems
               .firstWhere(
-                (item) => item.value == state.languageCode,
+                (item) => item.value == currentLanguageCode,
                 orElse: () => languageItems.first,
               )
               .label;
@@ -74,7 +76,7 @@ class CountrySettings extends StatelessWidget {
                     icon: MingCute.translate_2_line,
                     title: l10n.countrySettingLanguageLabel,
                     subtitle: currentLanguageLabel,
-                    value: state.languageCode,
+                    value: currentLanguageCode,
                     items: languageItems,
                     onChanged: (newValue) {
                       if (newValue != null) {

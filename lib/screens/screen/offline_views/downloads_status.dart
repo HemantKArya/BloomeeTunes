@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -12,7 +13,7 @@ class DownloadsView extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          'Downloads',
+          AppLocalizations.of(context)!.settingsDownloads,
           style: const TextStyle(
                   color: Default_Theme.primaryColor1,
                   fontSize: 20,
@@ -20,9 +21,10 @@ class DownloadsView extends StatelessWidget {
               .merge(Default_Theme.secondoryTextStyle),
         ),
       ),
-      body: const Center(
+      body: Center(
         child: SignBoardWidget(
-            message: "No Downloads Yet", icon: MingCute.download_2_fill),
+            message: AppLocalizations.of(context)!.offlineNoDownloads,
+            icon: MingCute.download_2_fill),
       ),
     );
   }

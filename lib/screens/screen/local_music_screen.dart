@@ -290,7 +290,10 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                       .read<BloomeePlayerCubit>()
                       .bloomeePlayer
                       .loadPlaylist(
-                        Playlist(tracks: displayedTracks, title: 'Local Music'),
+                        Playlist(
+                            tracks: displayedTracks,
+                            title:
+                                AppLocalizations.of(context)!.localMusicTitle),
                         doPlay: true,
                         shuffling: true,
                       ),
@@ -303,7 +306,10 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                       .read<BloomeePlayerCubit>()
                       .bloomeePlayer
                       .loadPlaylist(
-                        Playlist(tracks: displayedTracks, title: 'Local Music'),
+                        Playlist(
+                            tracks: displayedTracks,
+                            title:
+                                AppLocalizations.of(context)!.localMusicTitle),
                         doPlay: true,
                       ),
                 ),
@@ -384,7 +390,10 @@ class _LocalMusicScreenState extends State<LocalMusicScreen> {
                 showOptions: true,
                 onTap: () {
                   context.read<BloomeePlayerCubit>().bloomeePlayer.loadPlaylist(
-                        Playlist(tracks: displayedTracks, title: 'Local Music'),
+                        Playlist(
+                            tracks: displayedTracks,
+                            title:
+                                AppLocalizations.of(context)!.localMusicTitle),
                         idx: index,
                         doPlay: true,
                       );

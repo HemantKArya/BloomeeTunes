@@ -8,9 +8,12 @@ import 'package:intl/intl.dart' as intl;
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
 import 'app_localizations_hi.dart';
 import 'app_localizations_ja.dart';
 import 'app_localizations_ko.dart';
+import 'app_localizations_pt.dart';
+import 'app_localizations_tr.dart';
 import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
@@ -102,9 +105,12 @@ abstract class AppLocalizations {
     Locale('de'),
     Locale('en'),
     Locale('es'),
+    Locale('fr'),
     Locale('hi'),
     Locale('ja'),
     Locale('ko'),
+    Locale('pt'),
+    Locale('tr'),
     Locale('zh')
   ];
 
@@ -162,12 +168,6 @@ abstract class AppLocalizations {
   /// **'Enjoying From'**
   String get playerEnjoyingFrom;
 
-  /// No description provided for @playerQueue.
-  ///
-  /// In en, this message translates to:
-  /// **'Queue'**
-  String get playerQueue;
-
   /// No description provided for @playerPlayWithMix.
   ///
   /// In en, this message translates to:
@@ -203,12 +203,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No lyrics provider configured. Go to Settings → Plugins to install one.'**
   String get playerLyricsNoPlugin;
-
-  /// No description provided for @playerFullscreenLyrics.
-  ///
-  /// In en, this message translates to:
-  /// **'Fullscreen Lyrics'**
-  String get playerFullscreenLyrics;
 
   /// No description provided for @localMusicTitle.
   ///
@@ -258,18 +252,6 @@ abstract class AppLocalizations {
   /// **'Scanning device for audio files...'**
   String get localMusicScanning;
 
-  /// No description provided for @localMusicEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No local music found'**
-  String get localMusicEmpty;
-
-  /// No description provided for @localMusicSearchEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No tracks found matching your search.'**
-  String get localMusicSearchEmpty;
-
   /// No description provided for @localMusicShuffle.
   ///
   /// In en, this message translates to:
@@ -293,24 +275,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rescan Device'**
   String get localMusicRescanDevice;
-
-  /// No description provided for @localMusicRemoveFolder.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove folder'**
-  String get localMusicRemoveFolder;
-
-  /// No description provided for @localMusicMusicFolders.
-  ///
-  /// In en, this message translates to:
-  /// **'Music Folders'**
-  String get localMusicMusicFolders;
-
-  /// No description provided for @localMusicTrackCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 track} other{{count} tracks}}'**
-  String localMusicTrackCount(int count);
 
   /// No description provided for @buttonCancel.
   ///
@@ -341,12 +305,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download'**
   String get buttonDownload;
-
-  /// No description provided for @buttonShare.
-  ///
-  /// In en, this message translates to:
-  /// **'Share'**
-  String get buttonShare;
 
   /// No description provided for @buttonLater.
   ///
@@ -389,18 +347,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Don\'t ask me again'**
   String get dialogDontAskAgain;
-
-  /// No description provided for @dialogDeletePlugin.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Plugin?'**
-  String get dialogDeletePlugin;
-
-  /// No description provided for @dialogDeletePluginMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete \"{name}\"? This will permanently remove its files.'**
-  String dialogDeletePluginMessage(String name);
 
   /// No description provided for @dialogUpdateAvailable.
   ///
@@ -477,7 +423,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistEmptyState.
   ///
   /// In en, this message translates to:
-  /// **'No Songs Yet!'**
+  /// **'No songs yet'**
   String get playlistEmptyState;
 
   /// No description provided for @playlistAvailableOffline.
@@ -492,12 +438,6 @@ abstract class AppLocalizations {
   /// **'Shuffle'**
   String get playlistShuffle;
 
-  /// No description provided for @playlistMoreOptions.
-  ///
-  /// In en, this message translates to:
-  /// **'More Options'**
-  String get playlistMoreOptions;
-
   /// No description provided for @playlistNoMatchSearch.
   ///
   /// In en, this message translates to:
@@ -507,13 +447,13 @@ abstract class AppLocalizations {
   /// No description provided for @playlistCreateNew.
   ///
   /// In en, this message translates to:
-  /// **'Create New Playlist 😍'**
+  /// **'Create playlist'**
   String get playlistCreateNew;
 
   /// No description provided for @playlistCreateFirstOne.
   ///
   /// In en, this message translates to:
-  /// **'No playlists yet. Create one to get started!'**
+  /// **'No playlists yet. Create one to get started.'**
   String get playlistCreateFirstOne;
 
   /// No description provided for @addToPlaylistNoSongSelected.
@@ -762,96 +702,6 @@ abstract class AppLocalizations {
   /// **'Chart Visibility'**
   String get settingsChartVisibility;
 
-  /// No description provided for @settingsLocation.
-  ///
-  /// In en, this message translates to:
-  /// **'Location'**
-  String get settingsLocation;
-
-  /// No description provided for @pluginRepositoryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Plugin Repositories'**
-  String get pluginRepositoryTitle;
-
-  /// No description provided for @pluginRepositorySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a JSON source to browse remote plugins.'**
-  String get pluginRepositorySubtitle;
-
-  /// No description provided for @pluginRepositoryAddAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Repository'**
-  String get pluginRepositoryAddAction;
-
-  /// No description provided for @pluginRepositoryAddTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Repository'**
-  String get pluginRepositoryAddTitle;
-
-  /// No description provided for @pluginRepositoryAddSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the URL of a valid plugin repository JSON file.'**
-  String get pluginRepositoryAddSubtitle;
-
-  /// No description provided for @pluginRepositoryEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No repositories added yet.'**
-  String get pluginRepositoryEmpty;
-
-  /// No description provided for @pluginRepositoryUrlCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Repository URL copied to clipboard'**
-  String get pluginRepositoryUrlCopied;
-
-  /// No description provided for @pluginRepositoryNoDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'No description provided.'**
-  String get pluginRepositoryNoDescription;
-
-  /// No description provided for @pluginRepositoryUnknownUpdate.
-  ///
-  /// In en, this message translates to:
-  /// **'Unknown update'**
-  String get pluginRepositoryUnknownUpdate;
-
-  /// No description provided for @pluginRepositoryPluginsCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 plugin} other{{count} plugins}}'**
-  String pluginRepositoryPluginsCount(int count);
-
-  /// No description provided for @pluginRepositoryErrorLoad.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load repositories.'**
-  String get pluginRepositoryErrorLoad;
-
-  /// No description provided for @pluginRepositoryErrorInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid repository URL or repository file.'**
-  String get pluginRepositoryErrorInvalid;
-
-  /// No description provided for @pluginRepositoryErrorRemove.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to remove repository.'**
-  String get pluginRepositoryErrorRemove;
-
-  /// No description provided for @pluginRepositoryError.
-  ///
-  /// In en, this message translates to:
-  /// **'Error: {message}'**
-  String pluginRepositoryError(String message);
-
   /// No description provided for @dialogAddingToDownloadQueue.
   ///
   /// In en, this message translates to:
@@ -915,7 +765,7 @@ abstract class AppLocalizations {
   /// No description provided for @snackbarAddedToLiked.
   ///
   /// In en, this message translates to:
-  /// **'{title} is added to Liked!!'**
+  /// **'{title} added to favorites'**
   String snackbarAddedToLiked(String title);
 
   /// No description provided for @snackbarNowPlaying.
@@ -930,53 +780,11 @@ abstract class AppLocalizations {
   /// **'Added {name} to Queue'**
   String snackbarPlaylistAddedToQueue(String name);
 
-  /// No description provided for @snackbarPlaylistQueued.
-  ///
-  /// In en, this message translates to:
-  /// **'Playlist added to download queue'**
-  String get snackbarPlaylistQueued;
-
   /// No description provided for @snackbarPlaylistUpdated.
   ///
   /// In en, this message translates to:
-  /// **'Playlist Updated!'**
+  /// **'Playlist updated'**
   String get snackbarPlaylistUpdated;
-
-  /// No description provided for @snackbarNoInternet.
-  ///
-  /// In en, this message translates to:
-  /// **'No internet connection.'**
-  String get snackbarNoInternet;
-
-  /// No description provided for @snackbarImportFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Import Failed!'**
-  String get snackbarImportFailed;
-
-  /// No description provided for @snackbarImportCompleted.
-  ///
-  /// In en, this message translates to:
-  /// **'Import Completed'**
-  String get snackbarImportCompleted;
-
-  /// No description provided for @snackbarBackupFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup Failed!'**
-  String get snackbarBackupFailed;
-
-  /// No description provided for @snackbarExportedTo.
-  ///
-  /// In en, this message translates to:
-  /// **'Exported to: {path}'**
-  String snackbarExportedTo(String path);
-
-  /// No description provided for @snackbarMediaIdCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Media ID copied'**
-  String get snackbarMediaIdCopied;
 
   /// No description provided for @snackbarLinkCopied.
   ///
@@ -984,59 +792,17 @@ abstract class AppLocalizations {
   /// **'Link copied'**
   String get snackbarLinkCopied;
 
-  /// No description provided for @snackbarNoLinkAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'No link available'**
-  String get snackbarNoLinkAvailable;
-
   /// No description provided for @snackbarCouldNotOpenLink.
   ///
   /// In en, this message translates to:
   /// **'Could not open link'**
   String get snackbarCouldNotOpenLink;
 
-  /// No description provided for @snackbarPreparingDownload.
-  ///
-  /// In en, this message translates to:
-  /// **'Preparing download for {title}...'**
-  String snackbarPreparingDownload(String title);
-
-  /// No description provided for @snackbarAlreadyDownloaded.
-  ///
-  /// In en, this message translates to:
-  /// **'{title} is already downloaded.'**
-  String snackbarAlreadyDownloaded(String title);
-
-  /// No description provided for @snackbarAlreadyInQueue.
-  ///
-  /// In en, this message translates to:
-  /// **'{title} is already in the queue.'**
-  String snackbarAlreadyInQueue(String title);
-
-  /// No description provided for @snackbarDownloaded.
-  ///
-  /// In en, this message translates to:
-  /// **'Downloaded {title}'**
-  String snackbarDownloaded(String title);
-
-  /// No description provided for @snackbarDownloadServiceUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Error: Download service is unavailable.'**
-  String get snackbarDownloadServiceUnavailable;
-
   /// No description provided for @snackbarSongsAddedToQueue.
   ///
   /// In en, this message translates to:
   /// **'Added {count} songs to download queue'**
   String snackbarSongsAddedToQueue(int count);
-
-  /// No description provided for @snackbarDeleteTrackFailDevice.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to delete track from device storage.'**
-  String get snackbarDeleteTrackFailDevice;
 
   /// No description provided for @searchHintExplore.
   ///
@@ -1049,12 +815,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search library...'**
   String get searchHintLibrary;
-
-  /// No description provided for @searchHintOfflineMusic.
-  ///
-  /// In en, this message translates to:
-  /// **'Search your songs...'**
-  String get searchHintOfflineMusic;
 
   /// No description provided for @searchHintPlaylists.
   ///
@@ -1089,7 +849,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchDiscover.
   ///
   /// In en, this message translates to:
-  /// **'Discover amazing music...'**
+  /// **'Discover new music'**
   String get searchDiscover;
 
   /// No description provided for @searchSources.
@@ -1161,7 +921,7 @@ abstract class AppLocalizations {
   /// No description provided for @libraryEmptyState.
   ///
   /// In en, this message translates to:
-  /// **'Your library is feeling lonely. Add some tunes to brighten it up!'**
+  /// **'Your library is empty. Add songs and playlists to get started.'**
   String get libraryEmptyState;
 
   /// No description provided for @libraryIn.
@@ -1212,48 +972,6 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get menuDeleteTrack;
 
-  /// No description provided for @songInfoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Title'**
-  String get songInfoTitle;
-
-  /// No description provided for @songInfoArtist.
-  ///
-  /// In en, this message translates to:
-  /// **'Artist'**
-  String get songInfoArtist;
-
-  /// No description provided for @songInfoAlbum.
-  ///
-  /// In en, this message translates to:
-  /// **'Album'**
-  String get songInfoAlbum;
-
-  /// No description provided for @songInfoMediaId.
-  ///
-  /// In en, this message translates to:
-  /// **'Media ID'**
-  String get songInfoMediaId;
-
-  /// No description provided for @songInfoCopyId.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy ID'**
-  String get songInfoCopyId;
-
-  /// No description provided for @songInfoCopyLink.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy Link'**
-  String get songInfoCopyLink;
-
-  /// No description provided for @songInfoOpenBrowser.
-  ///
-  /// In en, this message translates to:
-  /// **'Open in browser'**
-  String get songInfoOpenBrowser;
-
   /// No description provided for @tooltipRemoveFromLibrary.
   ///
   /// In en, this message translates to:
@@ -1272,35 +990,17 @@ abstract class AppLocalizations {
   /// **'Open Original Link'**
   String get tooltipOpenOriginalLink;
 
-  /// No description provided for @tooltipShuffle.
-  ///
-  /// In en, this message translates to:
-  /// **'Shuffle'**
-  String get tooltipShuffle;
-
   /// No description provided for @tooltipAvailableOffline.
   ///
   /// In en, this message translates to:
   /// **'Available Offline'**
   String get tooltipAvailableOffline;
 
-  /// No description provided for @tooltipDownloadPlaylist.
-  ///
-  /// In en, this message translates to:
-  /// **'Download playlist'**
-  String get tooltipDownloadPlaylist;
-
   /// No description provided for @tooltipMoreOptions.
   ///
   /// In en, this message translates to:
   /// **'More Options'**
   String get tooltipMoreOptions;
-
-  /// No description provided for @tooltipInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Info'**
-  String get tooltipInfo;
 
   /// No description provided for @appuiTitle.
   ///
@@ -1782,36 +1482,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 Day} other{{count} Days}}'**
   String storageDays(int count);
 
-  /// No description provided for @storageBackupLocation.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup Location'**
-  String get storageBackupLocation;
-
-  /// No description provided for @storageBackupLocationAndroid.
-  ///
-  /// In en, this message translates to:
-  /// **'Downloads / app-data directory'**
-  String get storageBackupLocationAndroid;
-
-  /// No description provided for @storageBackupLocationDownloads.
-  ///
-  /// In en, this message translates to:
-  /// **'Downloads directory'**
-  String get storageBackupLocationDownloads;
-
-  /// No description provided for @storageCreateBackup.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Backup'**
-  String get storageCreateBackup;
-
-  /// No description provided for @storageCreateBackupSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Save your settings and data to a backup file.'**
-  String get storageCreateBackupSubtitle;
-
   /// No description provided for @storageBackupCreatedAt.
   ///
   /// In en, this message translates to:
@@ -1823,12 +1493,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to share backup: {error}'**
   String storageBackupShareFailed(String error);
-
-  /// No description provided for @storageBackupFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup Failed!'**
-  String get storageBackupFailed;
 
   /// No description provided for @storageRestoreBackup.
   ///
@@ -1848,12 +1512,6 @@ abstract class AppLocalizations {
   /// **'Auto Backup'**
   String get storageAutoBackup;
 
-  /// No description provided for @storageAutoBackupSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Periodically create a backup of your data automatically.'**
-  String get storageAutoBackupSubtitle;
-
   /// No description provided for @storageAutoLyrics.
   ///
   /// In en, this message translates to:
@@ -1872,23 +1530,11 @@ abstract class AppLocalizations {
   /// **'Reset Bloomee App'**
   String get storageResetApp;
 
-  /// No description provided for @storageResetAppSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete all data and restore the app to its default state.'**
-  String get storageResetAppSubtitle;
-
   /// No description provided for @storageResetConfirmTitle.
   ///
   /// In en, this message translates to:
   /// **'Confirm Reset'**
   String get storageResetConfirmTitle;
-
-  /// No description provided for @storageResetConfirmMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to reset Bloomee? This will delete all your data and cannot be undone.'**
-  String get storageResetConfirmMessage;
 
   /// No description provided for @storageResetButton.
   ///
@@ -1896,59 +1542,11 @@ abstract class AppLocalizations {
   /// **'Reset'**
   String get storageResetButton;
 
-  /// No description provided for @storageResetSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'App has been reset to its default state.'**
-  String get storageResetSuccess;
-
-  /// No description provided for @storageLocationDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup Location'**
-  String get storageLocationDialogTitle;
-
-  /// No description provided for @storageLocationAndroid.
-  ///
-  /// In en, this message translates to:
-  /// **'Backups are stored in:\n\n1. Downloads directory\n2. Android/data/ls.bloomee.musicplayer/data\n\nCopy the file from either location.'**
-  String get storageLocationAndroid;
-
-  /// No description provided for @storageLocationOther.
-  ///
-  /// In en, this message translates to:
-  /// **'Backups are stored in the Downloads directory. Copy the file from there.'**
-  String get storageLocationOther;
-
   /// No description provided for @storageRestoreOptionsTitle.
   ///
   /// In en, this message translates to:
   /// **'Restore Options'**
   String get storageRestoreOptionsTitle;
-
-  /// No description provided for @storageRestoreOptionsDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose which data you want to restore from the selected backup file. Unselect any items you do NOT want to be imported. By default all are selected.'**
-  String get storageRestoreOptionsDesc;
-
-  /// No description provided for @storageRestoreSelectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Select All'**
-  String get storageRestoreSelectAll;
-
-  /// No description provided for @storageRestoreMediaItems.
-  ///
-  /// In en, this message translates to:
-  /// **'Media items (songs, tracks, library entries)'**
-  String get storageRestoreMediaItems;
-
-  /// No description provided for @storageRestoreSearchHistory.
-  ///
-  /// In en, this message translates to:
-  /// **'Search history'**
-  String get storageRestoreSearchHistory;
 
   /// No description provided for @storageRestoreContinue.
   ///
@@ -1956,35 +1554,11 @@ abstract class AppLocalizations {
   /// **'Continue'**
   String get storageRestoreContinue;
 
-  /// No description provided for @storageRestoreNoFile.
-  ///
-  /// In en, this message translates to:
-  /// **'No file selected.'**
-  String get storageRestoreNoFile;
-
-  /// No description provided for @storageRestoreSaveFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to save the selected file.'**
-  String get storageRestoreSaveFailed;
-
   /// No description provided for @storageRestoreConfirmTitle.
   ///
   /// In en, this message translates to:
   /// **'Confirm Restore'**
   String get storageRestoreConfirmTitle;
-
-  /// No description provided for @storageRestoreConfirmPrefix.
-  ///
-  /// In en, this message translates to:
-  /// **'This will overwrite and merge the parts you selected in the app with data from the backup file:'**
-  String get storageRestoreConfirmPrefix;
-
-  /// No description provided for @storageRestoreConfirmSuffix.
-  ///
-  /// In en, this message translates to:
-  /// **'Your current data will be modified/merged. Are you sure you want to proceed?'**
-  String get storageRestoreConfirmSuffix;
 
   /// No description provided for @storageRestoreYes.
   ///
@@ -1992,41 +1566,11 @@ abstract class AppLocalizations {
   /// **'Yes, restore'**
   String get storageRestoreYes;
 
-  /// No description provided for @storageRestoreNo.
-  ///
-  /// In en, this message translates to:
-  /// **'No'**
-  String get storageRestoreNo;
-
   /// No description provided for @storageRestoring.
   ///
   /// In en, this message translates to:
   /// **'Restoring selected data…\nPlease wait until the operation completes.'**
   String get storageRestoring;
-
-  /// No description provided for @storageRestoreMediaBullet.
-  ///
-  /// In en, this message translates to:
-  /// **'• Media items'**
-  String get storageRestoreMediaBullet;
-
-  /// No description provided for @storageRestoreHistoryBullet.
-  ///
-  /// In en, this message translates to:
-  /// **'• Search history'**
-  String get storageRestoreHistoryBullet;
-
-  /// No description provided for @storageUnexpectedError.
-  ///
-  /// In en, this message translates to:
-  /// **'An unexpected error occurred while restoring.'**
-  String get storageUnexpectedError;
-
-  /// No description provided for @storageRestoreCompleted.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore Completed'**
-  String get storageRestoreCompleted;
 
   /// No description provided for @storageRestoreFailedTitle.
   ///
@@ -2034,41 +1578,11 @@ abstract class AppLocalizations {
   /// **'Restore Failed'**
   String get storageRestoreFailedTitle;
 
-  /// No description provided for @storageRestoreSuccessMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'The selected data was restored successfully. For best results, please restart the app now.'**
-  String get storageRestoreSuccessMessage;
-
-  /// No description provided for @storageRestoreFailedMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'The restore process failed with the following errors:'**
-  String get storageRestoreFailedMessage;
-
-  /// No description provided for @storageRestoreUnknownError.
-  ///
-  /// In en, this message translates to:
-  /// **'Unknown error occurred during restore.'**
-  String get storageRestoreUnknownError;
-
-  /// No description provided for @storageRestoreRestartHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Please restart the app for better consistency.'**
-  String get storageRestoreRestartHint;
-
   /// No description provided for @updateSettingTitle.
   ///
   /// In en, this message translates to:
   /// **'Updates'**
   String get updateSettingTitle;
-
-  /// No description provided for @updateAppUpdatesHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'App Updates'**
-  String get updateAppUpdatesHeader;
 
   /// No description provided for @updateCheckForUpdates.
   ///
@@ -2103,7 +1617,7 @@ abstract class AppLocalizations {
   /// No description provided for @updateUpToDate.
   ///
   /// In en, this message translates to:
-  /// **'Bloomee🌸 is up-to-date!!!'**
+  /// **'Bloomee is up to date'**
   String get updateUpToDate;
 
   /// No description provided for @updateViewPreRelease.
@@ -2121,7 +1635,7 @@ abstract class AppLocalizations {
   /// No description provided for @updateNewVersionAvailable.
   ///
   /// In en, this message translates to:
-  /// **'New Version of Bloomee🌸 is now available!!'**
+  /// **'A new version of Bloomee is available'**
   String get updateNewVersionAvailable;
 
   /// No description provided for @updateVersion.
@@ -2139,7 +1653,7 @@ abstract class AppLocalizations {
   /// No description provided for @updateChecking.
   ///
   /// In en, this message translates to:
-  /// **'Checking if newer version are available or not!'**
+  /// **'Checking for updates…'**
   String get updateChecking;
 
   /// No description provided for @timerTitle.
@@ -2151,7 +1665,7 @@ abstract class AppLocalizations {
   /// No description provided for @timerInterludeMessage.
   ///
   /// In en, this message translates to:
-  /// **'Preparing for a peaceful interlude in…'**
+  /// **'Playback will stop in…'**
   String get timerInterludeMessage;
 
   /// No description provided for @timerHours.
@@ -2181,7 +1695,7 @@ abstract class AppLocalizations {
   /// No description provided for @timerFinishedMessage.
   ///
   /// In en, this message translates to:
-  /// **'The tunes have rested. Sweet Dreams 🥰.'**
+  /// **'The sleep timer stopped playback.'**
   String get timerFinishedMessage;
 
   /// No description provided for @timerGotIt.
@@ -2225,18 +1739,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'by {creator}'**
   String playlistByCreator(String creator);
-
-  /// No description provided for @playlistTypeAlbum.
-  ///
-  /// In en, this message translates to:
-  /// **'Album'**
-  String get playlistTypeAlbum;
-
-  /// No description provided for @playlistTypePlaylist.
-  ///
-  /// In en, this message translates to:
-  /// **'Playlist'**
-  String get playlistTypePlaylist;
 
   /// No description provided for @playlistYou.
   ///
@@ -2448,24 +1950,6 @@ abstract class AppLocalizations {
   /// **'Homepage'**
   String get pluginManagerDetailHomepage;
 
-  /// No description provided for @pluginManagerDowngradeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Downgrade Plugin?'**
-  String get pluginManagerDowngradeTitle;
-
-  /// No description provided for @pluginManagerDowngradeMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'You are installing an older or equal version of \"{name}\". Continue?'**
-  String pluginManagerDowngradeMessage(String name);
-
-  /// No description provided for @pluginManagerDowngradeAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Install Anyway'**
-  String get pluginManagerDowngradeAction;
-
   /// No description provided for @pluginManagerDeleteStorageTitle.
   ///
   /// In en, this message translates to:
@@ -2562,12 +2046,6 @@ abstract class AppLocalizations {
   /// **'Applied replacement{queue}.'**
   String smartReplaceApplied(String queue);
 
-  /// No description provided for @smartReplaceAppliedPlaylists.
-  ///
-  /// In en, this message translates to:
-  /// **'Replaced in {count} playlist{plural}{queue}.'**
-  String smartReplaceAppliedPlaylists(int count, String plural, String queue);
-
   /// No description provided for @smartReplaceQueueUpdated.
   ///
   /// In en, this message translates to:
@@ -2583,13 +2061,13 @@ abstract class AppLocalizations {
   /// No description provided for @playerLiked.
   ///
   /// In en, this message translates to:
-  /// **'{title} Liked!!'**
+  /// **'{title} added to favorites'**
   String playerLiked(String title);
 
   /// No description provided for @playerUnliked.
   ///
   /// In en, this message translates to:
-  /// **'{title} Unliked!!'**
+  /// **'{title} removed from favorites'**
   String playerUnliked(String title);
 
   /// No description provided for @offlineNoDownloads.
@@ -2655,7 +2133,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutCraftingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Crafting symphonies in code.'**
+  /// **'Built for music.'**
   String get aboutCraftingSubtitle;
 
   /// No description provided for @aboutFollowGitHub.
@@ -2679,19 +2157,19 @@ abstract class AppLocalizations {
   /// No description provided for @aboutTipQuote.
   ///
   /// In en, this message translates to:
-  /// **'Enjoying Bloomee? A small tip keeps it blooming. 🌸'**
+  /// **'Enjoying Bloomee? You can support its development.'**
   String get aboutTipQuote;
 
   /// No description provided for @aboutTipButton.
   ///
   /// In en, this message translates to:
-  /// **'I\'ll help'**
+  /// **'Support the project'**
   String get aboutTipButton;
 
   /// No description provided for @aboutTipDesc.
   ///
   /// In en, this message translates to:
-  /// **'I want Bloomee to keep improving.'**
+  /// **'Your contribution helps improve Bloomee.'**
   String get aboutTipDesc;
 
   /// No description provided for @aboutGitHub.
@@ -2759,6 +2237,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plugin ID'**
   String get songInfoLabelPluginId;
+
+  /// No description provided for @songInfoCopyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy ID'**
+  String get songInfoCopyId;
+
+  /// No description provided for @songInfoCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Link'**
+  String get songInfoCopyLink;
+
+  /// No description provided for @songInfoOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get songInfoOpenBrowser;
 
   /// No description provided for @songInfoIdCopied.
   ///
@@ -2831,12 +2327,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equalizer'**
   String get eqTitle;
-
-  /// No description provided for @eqResetTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset to Flat'**
-  String get eqResetTooltip;
 
   /// No description provided for @chartNoItems.
   ///
@@ -2934,6 +2424,12 @@ abstract class AppLocalizations {
   /// **'Music Folders'**
   String get localMusicFolders;
 
+  /// No description provided for @localMusicRemoveFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove folder'**
+  String get localMusicRemoveFolder;
+
   /// No description provided for @localMusicCloseSearch.
   ///
   /// In en, this message translates to:
@@ -2957,6 +2453,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No tracks found matching your search.'**
   String get localMusicNoSearchResults;
+
+  /// No description provided for @localMusicTrackCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 track} other{{count} tracks}}'**
+  String localMusicTrackCount(int count);
 
   /// No description provided for @importSongsTitle.
   ///
@@ -3054,29 +2556,11 @@ abstract class AppLocalizations {
   /// **'{count} tracks'**
   String importTrackCount(int count);
 
-  /// No description provided for @importResolving.
-  ///
-  /// In en, this message translates to:
-  /// **'Resolving...'**
-  String get importResolving;
-
   /// No description provided for @importResolvingProgress.
   ///
   /// In en, this message translates to:
   /// **'Resolving tracks: {done} / {total}'**
   String importResolvingProgress(int done, int total);
-
-  /// No description provided for @importReviewTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Import Review'**
-  String get importReviewTitle;
-
-  /// No description provided for @importReviewSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'{resolved} resolved, {failed} failed out of {total}'**
-  String importReviewSummary(int resolved, int failed, int total);
 
   /// No description provided for @importSaveTracks.
   ///
@@ -3126,29 +2610,11 @@ abstract class AppLocalizations {
   /// **'Match options'**
   String get importMatchOptions;
 
-  /// No description provided for @importAutoMatched.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto-matched'**
-  String get importAutoMatched;
-
-  /// No description provided for @importUserSelected.
-  ///
-  /// In en, this message translates to:
-  /// **'Selected'**
-  String get importUserSelected;
-
   /// No description provided for @importSkipped.
   ///
   /// In en, this message translates to:
   /// **'Skipped'**
   String get importSkipped;
-
-  /// No description provided for @importNoMatch.
-  ///
-  /// In en, this message translates to:
-  /// **'No match found'**
-  String get importNoMatch;
 
   /// No description provided for @importReorderTip.
   ///
@@ -3204,59 +2670,17 @@ abstract class AppLocalizations {
   /// **'Unpin'**
   String get playlistUnpin;
 
-  /// No description provided for @snackbarImportingMedia.
-  ///
-  /// In en, this message translates to:
-  /// **'Importing MediaItems..'**
-  String get snackbarImportingMedia;
-
-  /// No description provided for @snackbarPlaylistSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'Playlist saved to library!'**
-  String get snackbarPlaylistSaved;
-
   /// No description provided for @snackbarInvalidFileFormat.
   ///
   /// In en, this message translates to:
   /// **'Invalid File Format'**
   String get snackbarInvalidFileFormat;
 
-  /// No description provided for @snackbarMediaItemImported.
-  ///
-  /// In en, this message translates to:
-  /// **'Media Item Imported'**
-  String get snackbarMediaItemImported;
-
-  /// No description provided for @snackbarPlaylistImported.
-  ///
-  /// In en, this message translates to:
-  /// **'Playlist Imported'**
-  String get snackbarPlaylistImported;
-
-  /// No description provided for @snackbarOpenImportForUrl.
-  ///
-  /// In en, this message translates to:
-  /// **'Open the Import screen in Library to import from this URL.'**
-  String get snackbarOpenImportForUrl;
-
   /// No description provided for @snackbarProcessingFile.
   ///
   /// In en, this message translates to:
   /// **'Processing File...'**
   String get snackbarProcessingFile;
-
-  /// No description provided for @snackbarPreparingShare.
-  ///
-  /// In en, this message translates to:
-  /// **'Preparing {title} for share'**
-  String snackbarPreparingShare(String title);
-
-  /// No description provided for @snackbarPreparingExport.
-  ///
-  /// In en, this message translates to:
-  /// **'Preparing {title} for export.'**
-  String snackbarPreparingExport(String title);
 
   /// No description provided for @pluginManagerTabInstalled.
   ///
@@ -3293,6 +2717,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inactive'**
   String get pluginManagerStatusInactive;
+
+  /// No description provided for @pluginRepositoryAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Repository'**
+  String get pluginRepositoryAddTitle;
+
+  /// No description provided for @pluginRepositoryAddSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the URL of a valid plugin repository JSON file.'**
+  String get pluginRepositoryAddSubtitle;
+
+  /// No description provided for @pluginRepositoryAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Repository'**
+  String get pluginRepositoryAddAction;
+
+  /// No description provided for @pluginRepositoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Repositories'**
+  String get pluginRepositoryTitle;
+
+  /// No description provided for @pluginRepositorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a JSON source to browse remote plugins.'**
+  String get pluginRepositorySubtitle;
+
+  /// No description provided for @pluginRepositoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No repositories added yet.'**
+  String get pluginRepositoryEmpty;
+
+  /// No description provided for @pluginRepositoryUnknownUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown update'**
+  String get pluginRepositoryUnknownUpdate;
+
+  /// No description provided for @pluginRepositoryNoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No description provided.'**
+  String get pluginRepositoryNoDescription;
+
+  /// No description provided for @pluginRepositoryUrlCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Repository URL copied to clipboard'**
+  String get pluginRepositoryUrlCopied;
+
+  /// No description provided for @pluginRepositoryPluginsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 plugin} other{{count} plugins}}'**
+  String pluginRepositoryPluginsCount(int count);
 
   /// No description provided for @pluginRepositoryUpdatedOn.
   ///
@@ -3359,6 +2843,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to download {name}.'**
   String pluginRepositoryDownloadFailed(String name);
+
+  /// No description provided for @pluginRepositoryErrorLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load repositories.'**
+  String get pluginRepositoryErrorLoad;
+
+  /// No description provided for @pluginRepositoryErrorInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid repository URL or repository file.'**
+  String get pluginRepositoryErrorInvalid;
+
+  /// No description provided for @pluginRepositoryErrorRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove repository.'**
+  String get pluginRepositoryErrorRemove;
 
   /// No description provided for @smartReplaceAppliedPlaylistsSummary.
   ///
@@ -3492,12 +2994,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 item in queue} other{{count} items in queue}}'**
   String upNextItemsInQueue(int count);
 
-  /// No description provided for @upNextAutoPlay.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto Play'**
-  String get upNextAutoPlay;
-
   /// No description provided for @tooltipCopyToClipboard.
   ///
   /// In en, this message translates to:
@@ -3549,7 +3045,7 @@ abstract class AppLocalizations {
   /// No description provided for @updateAvailableBody.
   ///
   /// In en, this message translates to:
-  /// **'New Version of Bloomee🌸 is now available!\n\nVersion: {ver}+{build}'**
+  /// **'A new version of Bloomee is available.\n\nVersion: {ver}+{build}'**
   String updateAvailableBody(String ver, String build);
 
   /// No description provided for @pluginSnackbarInstalled.
@@ -3557,12 +3053,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plugin \"{id}\" installed successfully'**
   String pluginSnackbarInstalled(String id);
-
-  /// No description provided for @pluginSnackbarLoaded.
-  ///
-  /// In en, this message translates to:
-  /// **'Plugin \"{id}\" loaded'**
-  String pluginSnackbarLoaded(String id);
 
   /// No description provided for @pluginSnackbarDeleted.
   ///
@@ -3587,30 +3077,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This only happens once.'**
   String get pluginBootstrapHint;
-
-  /// No description provided for @pluginBootstrapErrorTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Connection too slow'**
-  String get pluginBootstrapErrorTitle;
-
-  /// No description provided for @pluginBootstrapErrorBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Some plugins could not be installed. You can still use Bloomee — plugins will be retried on next launch.'**
-  String get pluginBootstrapErrorBody;
-
-  /// No description provided for @pluginBootstrapContinue.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue Anyway'**
-  String get pluginBootstrapContinue;
-
-  /// No description provided for @backupBusy.
-  ///
-  /// In en, this message translates to:
-  /// **'Another backup operation is open. Finish it first.'**
-  String get backupBusy;
 
   /// No description provided for @backupSave.
   ///
@@ -3877,6 +3343,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not delete saved lyrics. Try again.'**
   String get lyricsDeleteFailed;
+
+  /// No description provided for @artistTopSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Top songs'**
+  String get artistTopSongs;
+
+  /// No description provided for @artistLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load artist'**
+  String get artistLoadFailed;
+
+  /// No description provided for @artistNoTopSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'No top songs available'**
+  String get artistNoTopSongs;
+
+  /// No description provided for @artistNoAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'No albums available'**
+  String get artistNoAlbums;
+
+  /// No description provided for @snackbarOpeningArtistPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening original artist page.'**
+  String get snackbarOpeningArtistPage;
+
+  /// No description provided for @snackbarOpeningPlaylistPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening original playlist page.'**
+  String get snackbarOpeningPlaylistPage;
+
+  /// No description provided for @playlistSaveOrderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save playlist order. Please try again.'**
+  String get playlistSaveOrderFailed;
+
+  /// No description provided for @playlistReorderTracksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the handle to reorder tracks'**
+  String get playlistReorderTracksHint;
+
+  /// No description provided for @playlistTrackCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of tracks'**
+  String get playlistTrackCountLabel;
+
+  /// No description provided for @playlistDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get playlistDescription;
+
+  /// No description provided for @playlistOriginalUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Original URL'**
+  String get playlistOriginalUrl;
+
+  /// No description provided for @searchSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get searchSearching;
+
+  /// No description provided for @searchSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get searchSuggestions;
+
+  /// No description provided for @searchTopResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Top results'**
+  String get searchTopResults;
+
+  /// No description provided for @changelogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No changelog information available.'**
+  String get changelogEmpty;
+
+  /// No description provided for @changelogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get changelogTitle;
+
+  /// No description provided for @changelogLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get changelogLatest;
+
+  /// No description provided for @changelogNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next version'**
+  String get changelogNext;
+
+  /// No description provided for @changelogVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String changelogVersion(String version);
+
+  /// No description provided for @pluginBootstrapIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup incomplete'**
+  String get pluginBootstrapIncomplete;
+
+  /// No description provided for @pluginBootstrapRetryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Some plugins could not be installed right now. Retry to finish setup.'**
+  String get pluginBootstrapRetryBody;
+
+  /// No description provided for @pluginBootstrapInternetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet required'**
+  String get pluginBootstrapInternetTitle;
+
+  /// No description provided for @pluginBootstrapInternetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Bloomee needs an internet connection once to detect your country and set up the plugin engine.'**
+  String get pluginBootstrapInternetBody;
+
+  /// No description provided for @buttonExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get buttonExit;
+
+  /// No description provided for @eqSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Equalizer source'**
+  String get eqSource;
+
+  /// No description provided for @eqBuiltin.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app equalizer'**
+  String get eqBuiltin;
+
+  /// No description provided for @eqBuiltinSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'10-band equalizer'**
+  String get eqBuiltinSubtitle;
+
+  /// No description provided for @eqDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device equalizer'**
+  String get eqDevice;
+
+  /// No description provided for @eqDeviceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System / Dolby Atmos'**
+  String get eqDeviceSubtitle;
+
+  /// No description provided for @eqDeviceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The in-app equalizer is disabled. Configure your device equalizer in your device\'s sound settings.'**
+  String get eqDeviceHint;
+
+  /// No description provided for @eqPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get eqPresets;
+
+  /// No description provided for @eqCustomCurve.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom curve'**
+  String get eqCustomCurve;
+
+  /// No description provided for @shortcutMuted.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted'**
+  String get shortcutMuted;
+
+  /// No description provided for @shortcutUnmuted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmuted'**
+  String get shortcutUnmuted;
+
+  /// No description provided for @shortcutShuffleOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle on'**
+  String get shortcutShuffleOn;
+
+  /// No description provided for @shortcutShuffleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle off'**
+  String get shortcutShuffleOff;
+
+  /// No description provided for @shortcutRepeatOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat off'**
+  String get shortcutRepeatOff;
+
+  /// No description provided for @shortcutLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to favorites'**
+  String get shortcutLiked;
+
+  /// No description provided for @shortcutUnliked.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from favorites'**
+  String get shortcutUnliked;
+
+  /// No description provided for @downloadFolderSelectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not select download folder: {error}'**
+  String downloadFolderSelectFailed(String error);
+
+  /// No description provided for @aboutVersionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Version unavailable'**
+  String get aboutVersionUnavailable;
+
+  /// No description provided for @backupNewCopyDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Creates separate playlists and merges favorites. Existing playlists are preserved. Selected histories and preferences are also imported.'**
+  String get backupNewCopyDetails;
+
+  /// No description provided for @changelogCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get changelogCurrent;
+
+  /// No description provided for @backupLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Library (playlists, favorites and saved collections)'**
+  String get backupLibrary;
+
+  /// No description provided for @eqPresetFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat'**
+  String get eqPresetFlat;
+
+  /// No description provided for @eqPresetAcoustic.
+  ///
+  /// In en, this message translates to:
+  /// **'Acoustic'**
+  String get eqPresetAcoustic;
+
+  /// No description provided for @eqPresetBassBoost.
+  ///
+  /// In en, this message translates to:
+  /// **'Bass boost'**
+  String get eqPresetBassBoost;
+
+  /// No description provided for @eqPresetBassReducer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bass reduction'**
+  String get eqPresetBassReducer;
+
+  /// No description provided for @eqPresetClassical.
+  ///
+  /// In en, this message translates to:
+  /// **'Classical'**
+  String get eqPresetClassical;
+
+  /// No description provided for @eqPresetDance.
+  ///
+  /// In en, this message translates to:
+  /// **'Dance'**
+  String get eqPresetDance;
+
+  /// No description provided for @eqPresetDeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep'**
+  String get eqPresetDeep;
+
+  /// No description provided for @eqPresetEDM.
+  ///
+  /// In en, this message translates to:
+  /// **'EDM'**
+  String get eqPresetEDM;
+
+  /// No description provided for @eqPresetElectronic.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic'**
+  String get eqPresetElectronic;
+
+  /// No description provided for @eqPresetHipHop.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip-hop'**
+  String get eqPresetHipHop;
+
+  /// No description provided for @eqPresetJazz.
+  ///
+  /// In en, this message translates to:
+  /// **'Jazz'**
+  String get eqPresetJazz;
+
+  /// No description provided for @eqPresetLatin.
+  ///
+  /// In en, this message translates to:
+  /// **'Latin'**
+  String get eqPresetLatin;
+
+  /// No description provided for @eqPresetLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get eqPresetLive;
+
+  /// No description provided for @eqPresetLounge.
+  ///
+  /// In en, this message translates to:
+  /// **'Lounge'**
+  String get eqPresetLounge;
+
+  /// No description provided for @eqPresetMetal.
+  ///
+  /// In en, this message translates to:
+  /// **'Metal'**
+  String get eqPresetMetal;
+
+  /// No description provided for @eqPresetPiano.
+  ///
+  /// In en, this message translates to:
+  /// **'Piano'**
+  String get eqPresetPiano;
+
+  /// No description provided for @eqPresetPop.
+  ///
+  /// In en, this message translates to:
+  /// **'Pop'**
+  String get eqPresetPop;
+
+  /// No description provided for @eqPresetRB.
+  ///
+  /// In en, this message translates to:
+  /// **'R&B'**
+  String get eqPresetRB;
+
+  /// No description provided for @eqPresetRock.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock'**
+  String get eqPresetRock;
+
+  /// No description provided for @eqPresetSmallSpeakers.
+  ///
+  /// In en, this message translates to:
+  /// **'Small speakers'**
+  String get eqPresetSmallSpeakers;
+
+  /// No description provided for @eqPresetSpokenWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Spoken word'**
+  String get eqPresetSpokenWord;
+
+  /// No description provided for @eqPresetTrebleBoost.
+  ///
+  /// In en, this message translates to:
+  /// **'Treble boost'**
+  String get eqPresetTrebleBoost;
+
+  /// No description provided for @eqPresetTrebleReducer.
+  ///
+  /// In en, this message translates to:
+  /// **'Treble reduction'**
+  String get eqPresetTrebleReducer;
+
+  /// No description provided for @eqPresetVocalBooster.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocal boost'**
+  String get eqPresetVocalBooster;
+
+  /// No description provided for @eqPresetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get eqPresetCustom;
 }
 
 class _AppLocalizationsDelegate
@@ -3893,9 +3773,12 @@ class _AppLocalizationsDelegate
         'de',
         'en',
         'es',
+        'fr',
         'hi',
         'ja',
         'ko',
+        'pt',
+        'tr',
         'zh'
       ].contains(locale.languageCode);
 
@@ -3912,12 +3795,18 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'es':
       return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
     case 'hi':
       return AppLocalizationsHi();
     case 'ja':
       return AppLocalizationsJa();
     case 'ko':
       return AppLocalizationsKo();
+    case 'pt':
+      return AppLocalizationsPt();
+    case 'tr':
+      return AppLocalizationsTr();
     case 'zh':
       return AppLocalizationsZh();
   }

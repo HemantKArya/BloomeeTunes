@@ -1,4 +1,5 @@
 import 'package:Bloomee/l10n/app_localizations.dart';
+import 'package:flutter/widgets.dart';
 
 class LanguageOption {
   final String code;
@@ -22,7 +23,7 @@ List<LanguageOption> buildLanguageOptions() {
 }
 
 String languageLabelForCode(String code) {
-  switch (code.toLowerCase()) {
+  switch (code.replaceAll('-', '_').toLowerCase()) {
     case 'en':
       return 'English';
     case 'hi':
@@ -31,6 +32,13 @@ String languageLabelForCode(String code) {
       return 'Deutsch';
     case 'es':
       return 'Español';
+    case 'tr':
+      return 'Türkçe';
+    case 'pt':
+    case 'pt_br':
+      return 'Português';
+    case 'fr':
+      return 'Français';
     case 'ja':
       return '日本語';
     case 'ko':
@@ -40,4 +48,15 @@ String languageLabelForCode(String code) {
     default:
       return code.toUpperCase();
   }
+}
+
+/// An empty preference follows the system language. Older Portuguese regional
+/// preferences use the same `pt` option as the other supported languages.
+Locale? localeForLanguageCode(String code) {
+  final normalized = code.trim().replaceAll('-', '_');
+  if (normalized.isEmpty) return null;
+  final parts = normalized.split('_');
+  if (parts.first.toLowerCase() == 'pt') return const Locale('pt');
+  return Locale(parts.first.toLowerCase(),
+      parts.length > 1 ? parts[1].toUpperCase() : null);
 }

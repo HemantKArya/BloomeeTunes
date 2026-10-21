@@ -360,7 +360,7 @@ class About extends StatelessWidget {
               builder: (context, snapshot) {
                 final ver = snapshot.hasData
                     ? 'v${snapshot.data!.version}+${snapshot.data!.buildNumber}'
-                    : 'Not able to retrieve version';
+                    : AppLocalizations.of(context)!.aboutVersionUnavailable;
                 return Text(ver,
                     style: const TextStyle(
                         color: kSecondaryTextColor,

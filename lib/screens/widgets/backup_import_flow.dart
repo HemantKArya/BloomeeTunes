@@ -50,7 +50,7 @@ class BackupImportFlow {
                                       ListTile(
                                           title: Text(p.basename(source.path)),
                                           subtitle: Text(
-                                              '${DateFormat.yMMMd().add_jm().format(source.modified)} · ${(source.bytes / (1024 * 1024)).toStringAsFixed(1)} MB\n${p.dirname(source.path)}'),
+                                              '${DateFormat.yMMMd(l10n.localeName).add_jm().format(source.modified)} · ${(source.bytes / (1024 * 1024)).toStringAsFixed(1)} MB\n${p.dirname(source.path)}'),
                                           onTap: () =>
                                               Navigator.pop(ctx, source)),
                                   ]))),
@@ -296,7 +296,7 @@ class _PreviewState extends State<_Preview> {
               if (d.has('playlists'))
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.storageRestoreMediaItems),
+                  title: Text(l10n.backupLibrary),
                   value: library,
                   onChanged: (v) => setState(() => library = v!),
                 ),
@@ -317,6 +317,7 @@ class _PreviewState extends State<_Preview> {
               DropdownButton<BackupImportMode>(
                 value: mode,
                 isExpanded: true,
+                itemHeight: null,
                 items: [
                   DropdownMenuItem(
                       value: BackupImportMode.newCopy,
@@ -331,9 +332,11 @@ class _PreviewState extends State<_Preview> {
                 ],
                 onChanged: (v) => setState(() => mode = v!),
               ),
-              Text(mode == BackupImportMode.replace
-                  ? l10n.backupReplaceWarning
-                  : l10n.backupMergeDetails),
+              Text(switch (mode) {
+                BackupImportMode.newCopy => l10n.backupNewCopyDetails,
+                BackupImportMode.merge => l10n.backupMergeDetails,
+                BackupImportMode.replace => l10n.backupReplaceWarning,
+              }),
             ],
           ))),
       actions: [

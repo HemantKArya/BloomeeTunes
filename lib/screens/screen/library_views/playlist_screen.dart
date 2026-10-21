@@ -153,7 +153,8 @@ class _PlaylistViewState extends State<PlaylistView> {
           if (state.status == CurrentPlaylistLoadStatus.error) {
             return Center(
                 child: SignBoardWidget(
-                    message: state.errorMessage ?? 'Failed to load playlist',
+                    message: state.errorMessage ??
+                        AppLocalizations.of(context)!.playlistFailedToLoad,
                     icon: MingCute.alert_line));
           }
 

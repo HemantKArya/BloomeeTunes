@@ -56,7 +56,12 @@ Lyrics _document({int offset = 0, bool plain = false}) => Lyrics(
 
 void main() {
   Future<(TestMusicPlayer, _Lyrics)> mount(WidgetTester tester,
-      {int position = 0, int offset = 0, bool plain = false}) async {
+      {int position = 0,
+      int offset = 0,
+      bool plain = false,
+      Locale locale = const Locale('en'),
+      Size size = const Size(1280, 800),
+      double textScale = 1}) async {
     final player = TestMusicPlayer();
     (player.engine as TestPlayerEngine)
         .positions
@@ -66,7 +71,7 @@ void main() {
     final lyrics = _Lyrics(LyricsLoaded(
         _document(offset: offset, plain: plain), player.currentTrackInfo));
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.physicalSize = size;
     addTearDown(() async {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
@@ -82,6 +87,12 @@ void main() {
         BlocProvider<LyricsCubit>.value(value: lyrics),
       ],
       child: MaterialApp(
+        locale: locale,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         theme: AppTheme().defaultThemeData,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -95,6 +106,28 @@ void main() {
 
   Finder selectedLines() => find.byWidgetPredicate(
       (widget) => widget is Semantics && widget.properties.selected == true);
+
+  for (final locale in AppLocalizations.supportedLocales) {
+    testWidgets(
+        '${locale.toLanguageTag()} lyrics timing works on narrow screens',
+        (tester) async {
+      final (_, lyrics) = await mount(tester,
+          locale: locale, size: const Size(360, 800), textScale: 1.3);
+      final l10n = await AppLocalizations.delegate.load(locale);
+      await tester.tap(find.byTooltip(l10n.tooltipMoreOptions));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.lyricsSettingsSyncTitle));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text(l10n.lyricsTimingEarlier));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.lyricsTimingSave));
+      await tester.pumpAndSettle();
+      expect(lyrics.savedOffset, 50);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
 
   testWidgets(
       'lyrics fullscreen hides controls and Escape restores the same lyrics',

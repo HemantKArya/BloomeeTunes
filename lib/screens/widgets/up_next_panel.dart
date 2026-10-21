@@ -697,7 +697,7 @@ class _QueueItem extends StatelessWidget {
                   onTap: () => playerCubit.bloomeePlayer.skipToQueueItem(index),
                   song: songModel,
                   trailing: IconButton(
-                    tooltip: 'More options',
+                    tooltip: AppLocalizations.of(context)!.tooltipMoreOptions,
                     iconSize: 20,
                     splashRadius: 18,
                     padding: const EdgeInsets.all(6),

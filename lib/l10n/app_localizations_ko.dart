@@ -36,9 +36,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playerEnjoyingFrom => '재생 중인 소스';
 
   @override
-  String get playerQueue => '재생 대기열';
-
-  @override
   String get playerPlayWithMix => '자동 믹스 재생';
 
   @override
@@ -55,9 +52,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get playerLyricsNoPlugin => '설정된 가사 제공자가 없습니다. 설정 → 플러그인에서 설치해 주세요.';
-
-  @override
-  String get playerFullscreenLyrics => '가사 전체 화면';
 
   @override
   String get localMusicTitle => '로컬 음악';
@@ -87,12 +81,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get localMusicScanning => '오디오 파일을 찾는 중...';
 
   @override
-  String get localMusicEmpty => '로컬 음악이 없습니다';
-
-  @override
-  String get localMusicSearchEmpty => '검색 결과와 일치하는 트랙이 없습니다.';
-
-  @override
   String get localMusicShuffle => '셔플 재생';
 
   @override
@@ -103,17 +91,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get localMusicRescanDevice => '기기 다시 스캔';
-
-  @override
-  String get localMusicRemoveFolder => '폴더 제거';
-
-  @override
-  String get localMusicMusicFolders => '음악 폴더';
-
-  @override
-  String localMusicTrackCount(int count) {
-    return '곡 $count개';
-  }
 
   @override
   String get buttonCancel => '취소';
@@ -129,9 +106,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get buttonDownload => '다운로드';
-
-  @override
-  String get buttonShare => '공유';
 
   @override
   String get buttonLater => '나중에';
@@ -155,14 +129,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get dialogDontAskAgain => '다시 묻지 않음';
-
-  @override
-  String get dialogDeletePlugin => '플러그인 삭제';
-
-  @override
-  String dialogDeletePluginMessage(String name) {
-    return '\"$name\" 플러그인을 삭제하시겠습니까? 관련 파일이 영구적으로 제거됩니다.';
-  }
 
   @override
   String get dialogUpdateAvailable => '업데이트 가능';
@@ -210,9 +176,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get playlistShuffle => '셔플 재생';
-
-  @override
-  String get playlistMoreOptions => '추가 옵션';
 
   @override
   String get playlistNoMatchSearch => '일치하는 플레이리스트가 없습니다';
@@ -351,55 +314,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsChartVisibility => '차트 표시 설정';
 
   @override
-  String get settingsLocation => '위치';
-
-  @override
-  String get pluginRepositoryTitle => '플러-그인 저장소';
-
-  @override
-  String get pluginRepositorySubtitle => '원격 저장소를 추가하여 탐색하세요.';
-
-  @override
-  String get pluginRepositoryAddAction => '저장소 추가';
-
-  @override
-  String get pluginRepositoryAddTitle => '저장소 추가';
-
-  @override
-  String get pluginRepositoryAddSubtitle => '플러그인 저장소 JSON URL을 입력하세요.';
-
-  @override
-  String get pluginRepositoryEmpty => '추가된 저장소가 없습니다.';
-
-  @override
-  String get pluginRepositoryUrlCopied => '클립보드에 복사됨';
-
-  @override
-  String get pluginRepositoryNoDescription => '설명이 없습니다.';
-
-  @override
-  String get pluginRepositoryUnknownUpdate => '업데이트 정보 없음';
-
-  @override
-  String pluginRepositoryPluginsCount(int count) {
-    return '플러그인 $count개';
-  }
-
-  @override
-  String get pluginRepositoryErrorLoad => '저장소를 불러올 수 없습니다.';
-
-  @override
-  String get pluginRepositoryErrorInvalid => '잘못된 저장소 파일 형식입니다.';
-
-  @override
-  String get pluginRepositoryErrorRemove => '저장소 제거에 실패했습니다.';
-
-  @override
-  String pluginRepositoryError(String message) {
-    return '오류: $message';
-  }
-
-  @override
   String get dialogAddingToDownloadQueue => '다운로드 대기열에 추가 중';
 
   @override
@@ -449,62 +363,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get snackbarPlaylistQueued => '다운로드 대기열에 플레이리스트 추가됨';
-
-  @override
   String get snackbarPlaylistUpdated => '플레이리스트 업데이트 완료!';
-
-  @override
-  String get snackbarNoInternet => '인터넷 연결이 원활하지 않습니다.';
-
-  @override
-  String get snackbarImportFailed => '가져오기 실패!';
-
-  @override
-  String get snackbarImportCompleted => '가져오기 완료';
-
-  @override
-  String get snackbarBackupFailed => '백업 실패!';
-
-  @override
-  String snackbarExportedTo(String path) {
-    return '내보낸 경로: $path';
-  }
-
-  @override
-  String get snackbarMediaIdCopied => '미디어 ID 복사됨';
 
   @override
   String get snackbarLinkCopied => '링크 복사됨';
 
   @override
-  String get snackbarNoLinkAvailable => '사용 가능한 링크 없음';
-
-  @override
   String get snackbarCouldNotOpenLink => '링크를 열 수 없습니다';
-
-  @override
-  String snackbarPreparingDownload(String title) {
-    return '$title 다운로드 준비 중...';
-  }
-
-  @override
-  String snackbarAlreadyDownloaded(String title) {
-    return '$title 곡은 이미 다운로드되었습니다.';
-  }
-
-  @override
-  String snackbarAlreadyInQueue(String title) {
-    return '$title 곡은 이미 대기열에 있습니다.';
-  }
-
-  @override
-  String snackbarDownloaded(String title) {
-    return '$title 다운로드 완료';
-  }
-
-  @override
-  String get snackbarDownloadServiceUnavailable => '오류: 다운로드 서비스를 사용할 수 없습니다.';
 
   @override
   String snackbarSongsAddedToQueue(int count) {
@@ -512,16 +377,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get snackbarDeleteTrackFailDevice => '기기 저장공간에서 삭제하지 못했습니다.';
-
-  @override
   String get searchHintExplore => '어떤 음악을 듣고 싶으신가요?';
 
   @override
   String get searchHintLibrary => '보관함 검색...';
-
-  @override
-  String get searchHintOfflineMusic => '내 곡 검색...';
 
   @override
   String get searchHintPlaylists => '플레이리스트 검색...';
@@ -604,27 +463,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get menuDeleteTrack => '삭제';
 
   @override
-  String get songInfoTitle => '제목';
-
-  @override
-  String get songInfoArtist => '아티스트';
-
-  @override
-  String get songInfoAlbum => '앨범';
-
-  @override
-  String get songInfoMediaId => '미디어 ID';
-
-  @override
-  String get songInfoCopyId => 'ID 복사';
-
-  @override
-  String get songInfoCopyLink => '링크 복사';
-
-  @override
-  String get songInfoOpenBrowser => '브라우저에서 열기';
-
-  @override
   String get tooltipRemoveFromLibrary => '보관함에서 제거';
 
   @override
@@ -634,19 +472,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tooltipOpenOriginalLink => '원본 링크 열기';
 
   @override
-  String get tooltipShuffle => '셔플';
-
-  @override
   String get tooltipAvailableOffline => '오프라인 사용 가능';
 
   @override
-  String get tooltipDownloadPlaylist => '플레이리스트 다운로드';
-
-  @override
   String get tooltipMoreOptions => '추가 옵션';
-
-  @override
-  String get tooltipInfo => '정보';
 
   @override
   String get appuiTitle => 'UI 및 서비스';
@@ -899,21 +728,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get storageBackupLocation => '백업 위치';
-
-  @override
-  String get storageBackupLocationAndroid => '다운로드 / 앱 데이터 디렉토리';
-
-  @override
-  String get storageBackupLocationDownloads => '다운로드 디렉토리';
-
-  @override
-  String get storageCreateBackup => '백업 생성';
-
-  @override
-  String get storageCreateBackupSubtitle => '설정 및 데이터를 백업 파일로 저장합니다.';
-
-  @override
   String storageBackupCreatedAt(String path) {
     return '백업 생성 위치: $path';
   }
@@ -922,9 +736,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String storageBackupShareFailed(String error) {
     return '백업 공유 실패: $error';
   }
-
-  @override
-  String get storageBackupFailed => '백업 실패!';
 
   @override
   String get storageRestoreBackup => '백업 복구';
@@ -936,9 +747,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storageAutoBackup => '자동 백업';
 
   @override
-  String get storageAutoBackupSubtitle => '정기적으로 데이터 백업을 자동 생성합니다.';
-
-  @override
   String get storageAutoLyrics => '가사 자동 저장';
 
   @override
@@ -948,107 +756,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storageResetApp => '앱 초기화';
 
   @override
-  String get storageResetAppSubtitle => '모든 데이터를 삭제하고 초기 상태로 되돌립니다.';
-
-  @override
   String get storageResetConfirmTitle => '초기화 확인';
-
-  @override
-  String get storageResetConfirmMessage =>
-      '정말로 초기화하시겠습니까? 모든 데이터가 삭제되며 복구할 수 없습니다.';
 
   @override
   String get storageResetButton => '초기화';
 
   @override
-  String get storageResetSuccess => '앱이 초기 상태로 재설정되었습니다.';
-
-  @override
-  String get storageLocationDialogTitle => '백업 위치';
-
-  @override
-  String get storageLocationAndroid =>
-      '백업 파일은 다음 위치에 저장됩니다:\n\n1. 다운로드 폴더\n2. Android/data/ls.bloomee.musicplayer/data\n\n해당 위치에서 파일을 확인하세요.';
-
-  @override
-  String get storageLocationOther => '백업은 다운로드 폴더에 저장됩니다.';
-
-  @override
   String get storageRestoreOptionsTitle => '복구 옵션';
-
-  @override
-  String get storageRestoreOptionsDesc =>
-      '백업 파일에서 복원할 항목을 선택하세요. 제외할 항목은 선택을 해제해 주세요.';
-
-  @override
-  String get storageRestoreSelectAll => '모두 선택';
-
-  @override
-  String get storageRestoreMediaItems => '미디어 항목 (곡, 트랙, 보관함 데이터)';
-
-  @override
-  String get storageRestoreSearchHistory => '검색 기록';
 
   @override
   String get storageRestoreContinue => '계속';
 
   @override
-  String get storageRestoreNoFile => '선택된 파일이 없습니다.';
-
-  @override
-  String get storageRestoreSaveFailed => '선택한 파일을 저장하지 못했습니다.';
-
-  @override
   String get storageRestoreConfirmTitle => '복구 진행 확인';
-
-  @override
-  String get storageRestoreConfirmPrefix => '다음 선택 항목들이 백업 데이터로 병합 또는 교체됩니다:';
-
-  @override
-  String get storageRestoreConfirmSuffix => '현재 데이터가 수정됩니다. 계속하시겠습니까?';
 
   @override
   String get storageRestoreYes => '네, 복구합니다';
 
   @override
-  String get storageRestoreNo => '아니요';
-
-  @override
   String get storageRestoring => '데이터를 복구하는 중…\n잠시만 기다려 주세요.';
-
-  @override
-  String get storageRestoreMediaBullet => '• 미디어 항목';
-
-  @override
-  String get storageRestoreHistoryBullet => '• 검색 기록';
-
-  @override
-  String get storageUnexpectedError => '복구 중 예상치 못한 오류가 발생했습니다.';
-
-  @override
-  String get storageRestoreCompleted => '복구 완료';
 
   @override
   String get storageRestoreFailedTitle => '복구 실패';
 
   @override
-  String get storageRestoreSuccessMessage =>
-      '데이터가 성공적으로 복구되었습니다. 변경 사항을 적용하려면 앱을 재시작해 주세요.';
-
-  @override
-  String get storageRestoreFailedMessage => '복구 과정에서 다음 오류가 발생했습니다:';
-
-  @override
-  String get storageRestoreUnknownError => '알 수 없는 복구 오류 발생.';
-
-  @override
-  String get storageRestoreRestartHint => '안정적인 적용을 위해 앱을 재시작해 주세요.';
-
-  @override
   String get updateSettingTitle => '업데이트';
-
-  @override
-  String get updateAppUpdatesHeader => '앱 업데이트';
 
   @override
   String get updateCheckForUpdates => '업데이트 확인';
@@ -1133,12 +865,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String playlistByCreator(String creator) {
     return '$creator 작성';
   }
-
-  @override
-  String get playlistTypeAlbum => '앨범';
-
-  @override
-  String get playlistTypePlaylist => '플레이리스트';
 
   @override
   String get playlistYou => '사용자';
@@ -1250,17 +976,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get pluginManagerDetailHomepage => '홈페이지';
 
   @override
-  String get pluginManagerDowngradeTitle => '다운그레이드하시겠습니까?';
-
-  @override
-  String pluginManagerDowngradeMessage(String name) {
-    return '이미 설치된 버전보다 낮거나 같은 버전을 설치하려고 합니다. 계속하시겠습니까?';
-  }
-
-  @override
-  String get pluginManagerDowngradeAction => '무시하고 설치';
-
-  @override
   String get pluginManagerDeleteStorageTitle => '데이터도 삭제하시겠습니까?';
 
   @override
@@ -1314,11 +1029,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String smartReplaceApplied(String queue) {
     return '대체 곡이 적용되었습니다$queue.';
-  }
-
-  @override
-  String smartReplaceAppliedPlaylists(int count, String plural, String queue) {
-    return '$count개의 플레이리스트에서 교체됨$queue.';
   }
 
   @override
@@ -1424,6 +1134,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get songInfoLabelPluginId => '플러그인 ID';
 
   @override
+  String get songInfoCopyId => 'ID 복사';
+
+  @override
+  String get songInfoCopyLink => '링크 복사';
+
+  @override
+  String get songInfoOpenBrowser => '브라우저에서 열기';
+
+  @override
   String get songInfoIdCopied => '미디어 ID 복사됨';
 
   @override
@@ -1458,9 +1177,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get eqTitle => '이퀄라이저';
-
-  @override
-  String get eqResetTooltip => '플랫(기본값)으로 초기화';
 
   @override
   String get chartNoItems => '차트 데이터가 없습니다';
@@ -1513,6 +1229,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get localMusicFolders => '음악 폴더';
 
   @override
+  String get localMusicRemoveFolder => '폴더 제거';
+
+  @override
   String get localMusicCloseSearch => '검색 닫기';
 
   @override
@@ -1523,6 +1242,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get localMusicNoSearchResults => '검색 결과가 없습니다.';
+
+  @override
+  String localMusicTrackCount(int count) {
+    return '곡 $count개';
+  }
 
   @override
   String get importSongsTitle => '곡 가져오기';
@@ -1577,19 +1301,8 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get importResolving => '곡 매칭 중...';
-
-  @override
   String importResolvingProgress(int done, int total) {
     return '매칭 중: $done / $total';
-  }
-
-  @override
-  String get importReviewTitle => '가져오기 결과 검토';
-
-  @override
-  String importReviewSummary(int resolved, int failed, int total) {
-    return '총 $total곡 중 $resolved곡 성공, $failed곡 실패';
   }
 
   @override
@@ -1621,16 +1334,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get importMatchOptions => '매치 옵션';
 
   @override
-  String get importAutoMatched => '자동 매칭됨';
-
-  @override
-  String get importUserSelected => '선택됨';
-
-  @override
   String get importSkipped => '건너뜀';
-
-  @override
-  String get importNoMatch => '일치 항목 없음';
 
   @override
   String get importReorderTip => '길게 눌러 순서를 변경하세요';
@@ -1668,35 +1372,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playlistUnpin => '고정 해제';
 
   @override
-  String get snackbarImportingMedia => '미디어 항목 가져오는 중...';
-
-  @override
-  String get snackbarPlaylistSaved => '보관함에 저장 완료!';
-
-  @override
   String get snackbarInvalidFileFormat => '유효하지 않은 파일 형식';
 
   @override
-  String get snackbarMediaItemImported => '미디어 항목 가져오기 완료';
-
-  @override
-  String get snackbarPlaylistImported => '플레이리스트 가져오기 완료';
-
-  @override
-  String get snackbarOpenImportForUrl => '보관함의 \'가져오기\' 메뉴를 통해 URL을 추가하세요.';
-
-  @override
   String get snackbarProcessingFile => '파일 처리 중...';
-
-  @override
-  String snackbarPreparingShare(String title) {
-    return '$title 공유 준비 중';
-  }
-
-  @override
-  String snackbarPreparingExport(String title) {
-    return '$title 내보내기 준비 중...';
-  }
 
   @override
   String get pluginManagerTabInstalled => '설치됨';
@@ -1715,6 +1394,38 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get pluginManagerStatusInactive => '비활성';
+
+  @override
+  String get pluginRepositoryAddTitle => '저장소 추가';
+
+  @override
+  String get pluginRepositoryAddSubtitle => '플러그인 저장소 JSON URL을 입력하세요.';
+
+  @override
+  String get pluginRepositoryAddAction => '저장소 추가';
+
+  @override
+  String get pluginRepositoryTitle => '플러-그인 저장소';
+
+  @override
+  String get pluginRepositorySubtitle => '원격 저장소를 추가하여 탐색하세요.';
+
+  @override
+  String get pluginRepositoryEmpty => '추가된 저장소가 없습니다.';
+
+  @override
+  String get pluginRepositoryUnknownUpdate => '업데이트 정보 없음';
+
+  @override
+  String get pluginRepositoryNoDescription => '설명이 없습니다.';
+
+  @override
+  String get pluginRepositoryUrlCopied => '클립보드에 복사됨';
+
+  @override
+  String pluginRepositoryPluginsCount(int count) {
+    return '플러그인 $count개';
+  }
 
   @override
   String pluginRepositoryUpdatedOn(String date) {
@@ -1754,6 +1465,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String pluginRepositoryDownloadFailed(String name) {
     return '$name 다운로드 실패.';
   }
+
+  @override
+  String get pluginRepositoryErrorLoad => '저장소를 불러올 수 없습니다.';
+
+  @override
+  String get pluginRepositoryErrorInvalid => '잘못된 저장소 파일 형식입니다.';
+
+  @override
+  String get pluginRepositoryErrorRemove => '저장소 제거에 실패했습니다.';
 
   @override
   String smartReplaceAppliedPlaylistsSummary(int count, String queue) {
@@ -1828,9 +1548,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get upNextAutoPlay => '자동 재생';
-
-  @override
   String get tooltipCopyToClipboard => '클립보드에 복사';
 
   @override
@@ -1865,11 +1582,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String pluginSnackbarLoaded(String id) {
-    return '플러그인 \"$id\" 로드됨';
-  }
-
-  @override
   String pluginSnackbarDeleted(String id) {
     return '플러그인 \"$id\" 삭제됨';
   }
@@ -1886,172 +1598,371 @@ class AppLocalizationsKo extends AppLocalizations {
   String get pluginBootstrapHint => '이 과정은 처음 한 번만 진행됩니다.';
 
   @override
-  String get pluginBootstrapErrorTitle => '연결 지연';
+  String get backupSave => '백업을 JSON으로 저장';
 
   @override
-  String get pluginBootstrapErrorBody =>
-      '일부 플러그인 설치에 실패했습니다. 다음 실행 시 다시 시도합니다.';
-
-  @override
-  String get pluginBootstrapContinue => '무시하고 계속';
-
-  @override
-  String get backupBusy => 'Another backup operation is open. Finish it first.';
-
-  @override
-  String get backupSave => 'Save backup as JSON';
-
-  @override
-  String get backupShare => 'Share JSON backup';
+  String get backupShare => 'JSON 백업 공유';
 
   @override
   String get backupPortableDetails =>
-      'Includes playlists, likes, saved collections, histories and portable preferences. Audio files, accounts and device folders are excluded.';
+      '재생목록, 좋아요, 저장한 컬렉션, 기록 및 다른 기기로 옮길 수 있는 설정이 포함됩니다. 오디오 파일, 계정 및 기기 폴더는 제외됩니다.';
 
   @override
-  String get backupHistories => 'Playback and search histories';
+  String get backupHistories => '재생 및 검색 기록';
 
   @override
-  String get backupPreferences => 'Portable preferences';
+  String get backupPreferences => '다른 기기로 옮길 수 있는 설정';
 
   @override
-  String get backupNewCopy => 'Import as new playlists';
+  String get backupNewCopy => '새 재생목록으로 가져오기';
 
   @override
-  String get backupMerge => 'Merge with existing data';
+  String get backupMerge => '기존 데이터와 병합';
 
   @override
-  String get backupReplace => 'Replace selected sections';
+  String get backupReplace => '선택한 항목 바꾸기';
 
   @override
   String get backupMergeDetails =>
-      'Existing tracks, metadata and preferences are preserved. Missing tracks are appended in file order. Likes are merged.';
+      '기존 트랙, 메타데이터 및 설정은 유지됩니다. 누락된 트랙은 파일 순서대로 끝에 추가됩니다. 좋아요는 병합됩니다.';
 
   @override
   String get backupReplaceWarning =>
-      'This replaces the selected sections, including existing playlists and likes when library is selected. Unselected sections and device files are preserved. A private recovery snapshot is created first.';
+      '선택한 항목을 바꿉니다. 라이브러리를 선택하면 기존 재생목록과 좋아요도 바뀝니다. 선택하지 않은 항목과 기기 파일은 유지됩니다. 먼저 비공개 복구 사본이 생성됩니다.';
 
   @override
   String get backupAutoDetails =>
-      'Keeps seven private recovery snapshots. Checked when the app opens, at most once per 24 hours. Private snapshots are removed on uninstall.';
+      '비공개 복구 사본 7개를 보관합니다. 앱을 열 때 확인하며, 24시간에 최대 한 번 생성합니다. 앱을 삭제하면 이 사본도 삭제됩니다.';
 
   @override
   String get backupLocationDetails =>
-      'Choose a destination with Save backup. Private recovery snapshots are kept inside the app.';
+      '‘백업 저장’으로 저장 위치를 선택하세요. 비공개 복구 사본은 앱 내부에 보관됩니다.';
 
   @override
   String get backupResetDetails =>
-      'Reset all database data on the next app start. Downloaded audio files and installed plugin files remain on this device. A private recovery snapshot is created first.';
+      '다음 앱 시작 시 데이터베이스의 모든 데이터를 초기화합니다. 다운로드한 오디오 파일과 설치된 플러그인 파일은 기기에 남습니다. 먼저 비공개 복구 사본이 생성됩니다.';
 
   @override
-  String get backupResetPending =>
-      'Reset scheduled. Close and reopen Bloomee to complete it.';
+  String get backupResetPending => '초기화가 예약되었습니다. Bloomee를 닫았다가 다시 열면 완료됩니다.';
 
   @override
   String backupPreviewCounts(int playlists, int tracks) {
-    return '$playlists playlists and $tracks tracks';
+    return '재생목록: $playlists개 · 트랙: $tracks개';
   }
 
   @override
   String backupImportResult(
       int playlists, int tracks, int history, int settings) {
-    return 'Import complete: $playlists playlists created, $tracks track entries added, $history history records added and $settings preferences applied.';
+    return '가져오기 완료. 생성된 재생목록: $playlists개, 추가된 트랙 항목: $tracks개, 추가된 기록: $history개, 적용된 설정: $settings개.';
   }
 
   @override
   String get backupRefreshFailed =>
-      'Data was imported. Close and reopen Bloomee to refresh all preferences.';
+      '데이터를 가져왔습니다. 모든 설정을 새로 적용하려면 Bloomee를 닫았다가 다시 여세요.';
 
   @override
-  String get backupRecoveryCopies => 'Recovery copies';
+  String get backupRecoveryCopies => '복구 사본';
 
   @override
-  String get backupNoRecoveryCopies => 'No recovery copies yet.';
+  String get backupNoRecoveryCopies => '아직 복구 사본이 없습니다.';
 
   @override
-  String get backupRecoveryAutomatic => 'Automatic backup';
+  String get backupRecoveryAutomatic => '자동 백업';
 
   @override
-  String get backupRecoveryBeforeImport => 'Before an import';
+  String get backupRecoveryBeforeImport => '가져오기 전';
 
   @override
-  String get backupRecoveryBeforeReset => 'Before a reset';
+  String get backupRecoveryBeforeReset => '초기화 전';
 
   @override
-  String get backupCancelReset => 'Cancel reset';
+  String get backupCancelReset => '초기화 취소';
 
   @override
-  String get libraryRecoveryTitle => 'Recover missing library';
+  String get libraryRecoveryTitle => '사라진 라이브러리 복구';
 
   @override
-  String get libraryRecoverySubtitle =>
-      'Look for playlists and download records retained from earlier versions.';
+  String get libraryRecoverySubtitle => '이전 버전에서 보관된 재생목록과 다운로드 기록을 찾습니다.';
 
   @override
   String get libraryRecoveryChooseSource =>
-      'Choose a retained database to scan. Your current library and original files will be preserved.';
+      '검색할 보관된 데이터베이스를 선택하세요. 현재 라이브러리와 원본 파일은 유지됩니다.';
 
   @override
   String get libraryRecoveryNoSources =>
-      'No retained databases were found. Audio files alone cannot restore original playlist membership.';
+      '보관된 데이터베이스를 찾지 못했습니다. 오디오 파일만으로는 원래 어떤 재생목록에 속했는지 복구할 수 없습니다.';
 
   @override
   String libraryRecoverySummary(
       int tracks, int playlists, int downloads, int unavailable) {
-    return 'Found $tracks tracks, $playlists playlists and $downloads download records. $unavailable files are currently unavailable; their records will be preserved.';
+    return '트랙 $tracks개, 재생목록 $playlists개, 다운로드 기록 $downloads개를 찾았습니다. 현재 사용할 수 없는 파일은 $unavailable개이며, 해당 기록은 유지됩니다.';
   }
 
   @override
   String libraryRecoveryWarnings(int broken) {
-    return '$broken broken playlist references could not be reconstructed from this copy.';
+    return '이 사본에서 복구하지 못한 손상된 재생목록 참조: $broken개.';
   }
 
   @override
   String get libraryRecoveryMergeDetails =>
-      'Recovery adds missing tracks, playlist entries and download records. Existing playlists, file mappings and settings are preserved. A recovery copy is created first. Repeat this with another retained copy if it contains more of your library.';
+      '복구하면 누락된 트랙, 재생목록 항목 및 다운로드 기록이 추가됩니다. 기존 재생목록, 파일 연결 및 설정은 유지됩니다. 먼저 복구 사본이 생성됩니다. 다른 보관 사본에 라이브러리의 나머지 데이터가 있다면 해당 사본으로 반복하세요.';
 
   @override
-  String get libraryRecoveryMerge => 'Merge recovered library';
+  String get libraryRecoveryMerge => '복구한 라이브러리 병합';
 
   @override
   String libraryRecoveryComplete(int entries, int downloads) {
-    return 'Recovery complete: $entries playlist entries and $downloads download records added.';
+    return '복구 완료. 추가된 재생목록 항목: $entries개, 다운로드 기록: $downloads개.';
   }
 
   @override
-  String get backupStartupFailed => 'Bloomee could not start';
+  String get backupStartupFailed => 'Bloomee를 시작할 수 없습니다';
 
   @override
   String get backupStartupFailedDetails =>
-      'Startup stopped without automatically repairing or replacing your database. Close the app and retry. Keep your app data when reporting this error.';
+      '데이터베이스를 자동으로 복구하거나 바꾸지 않고 시작을 중단했습니다. 앱을 닫고 다시 시도하세요. 이 오류를 보고할 때 앱 데이터를 보관해 주세요.';
 
   @override
-  String get lyricsTitle => 'Lyrics';
+  String get lyricsTitle => '가사';
 
   @override
-  String get lyricsEnterFullscreen => 'Fullscreen lyrics';
+  String get lyricsEnterFullscreen => '가사 전체 화면';
 
   @override
-  String get lyricsExitFullscreen => 'Exit fullscreen';
+  String get lyricsExitFullscreen => '전체 화면 종료';
 
   @override
-  String get lyricsFollowPlayback => 'Follow playback';
+  String get lyricsFollowPlayback => '재생에 맞춰 스크롤';
 
   @override
-  String get lyricsTimingEarlier => 'Earlier';
+  String get lyricsTimingEarlier => '더 일찍 표시';
 
   @override
-  String get lyricsTimingLater => 'Later';
+  String get lyricsTimingLater => '더 늦게 표시';
 
   @override
-  String get lyricsTimingSave => 'Save timing';
+  String get lyricsTimingSave => '표시 시간 저장';
 
   @override
-  String get lyricsSaved => 'Lyrics saved.';
+  String get lyricsSaved => '가사를 저장했습니다.';
 
   @override
-  String get lyricsSaveFailed => 'Could not save lyrics. Try again.';
+  String get lyricsSaveFailed => '가사를 저장하지 못했습니다. 다시 시도하세요.';
 
   @override
-  String get lyricsDeleteFailed => 'Could not delete saved lyrics. Try again.';
+  String get lyricsDeleteFailed => '저장된 가사를 삭제하지 못했습니다. 다시 시도하세요.';
+
+  @override
+  String get artistTopSongs => '인기곡';
+
+  @override
+  String get artistLoadFailed => '아티스트를 불러오지 못했습니다';
+
+  @override
+  String get artistNoTopSongs => '인기곡이 없습니다';
+
+  @override
+  String get artistNoAlbums => '앨범이 없습니다';
+
+  @override
+  String get snackbarOpeningArtistPage => '아티스트의 원본 페이지를 엽니다.';
+
+  @override
+  String get snackbarOpeningPlaylistPage => '재생목록의 원본 페이지를 엽니다.';
+
+  @override
+  String get playlistSaveOrderFailed => '재생목록 순서를 저장하지 못했습니다. 다시 시도하세요.';
+
+  @override
+  String get playlistReorderTracksHint => '핸들을 길게 눌러 트랙 순서를 바꾸세요';
+
+  @override
+  String get playlistTrackCountLabel => '트랙 수';
+
+  @override
+  String get playlistDescription => '설명';
+
+  @override
+  String get playlistOriginalUrl => '원본 URL';
+
+  @override
+  String get searchSearching => '검색 중…';
+
+  @override
+  String get searchSuggestions => '추천';
+
+  @override
+  String get searchTopResults => '주요 결과';
+
+  @override
+  String get changelogEmpty => '변경 내역이 없습니다.';
+
+  @override
+  String get changelogTitle => '새로운 기능';
+
+  @override
+  String get changelogLatest => '최신';
+
+  @override
+  String get changelogNext => '다음 버전';
+
+  @override
+  String changelogVersion(String version) {
+    return '버전 $version';
+  }
+
+  @override
+  String get pluginBootstrapIncomplete => '설정이 완료되지 않았습니다';
+
+  @override
+  String get pluginBootstrapRetryBody =>
+      '일부 플러그인을 설치하지 못했습니다. 다시 시도하여 설정을 완료하세요.';
+
+  @override
+  String get pluginBootstrapInternetTitle => '인터넷 연결 필요';
+
+  @override
+  String get pluginBootstrapInternetBody =>
+      '국가를 감지하고 플러그인 엔진을 설정하려면 Bloomee에 한 번 인터넷 연결이 필요합니다.';
+
+  @override
+  String get buttonExit => '종료';
+
+  @override
+  String get eqSource => '이퀄라이저 소스';
+
+  @override
+  String get eqBuiltin => '앱 내 이퀄라이저';
+
+  @override
+  String get eqBuiltinSubtitle => '10밴드 이퀄라이저';
+
+  @override
+  String get eqDevice => '기기 이퀄라이저';
+
+  @override
+  String get eqDeviceSubtitle => '시스템 / Dolby Atmos';
+
+  @override
+  String get eqDeviceHint => '앱 내 이퀄라이저가 비활성화되었습니다. 기기의 소리 설정에서 이퀄라이저를 설정하세요.';
+
+  @override
+  String get eqPresets => '프리셋';
+
+  @override
+  String get eqCustomCurve => '사용자 지정 곡선';
+
+  @override
+  String get shortcutMuted => '음소거됨';
+
+  @override
+  String get shortcutUnmuted => '음소거 해제됨';
+
+  @override
+  String get shortcutShuffleOn => '셔플 켜짐';
+
+  @override
+  String get shortcutShuffleOff => '셔플 꺼짐';
+
+  @override
+  String get shortcutRepeatOff => '반복 꺼짐';
+
+  @override
+  String get shortcutLiked => '즐겨찾기에 추가됨';
+
+  @override
+  String get shortcutUnliked => '즐겨찾기에서 삭제됨';
+
+  @override
+  String downloadFolderSelectFailed(String error) {
+    return '다운로드 폴더를 선택하지 못했습니다: $error';
+  }
+
+  @override
+  String get aboutVersionUnavailable => '버전 정보를 가져올 수 없습니다';
+
+  @override
+  String get backupNewCopyDetails =>
+      '별도의 재생목록을 만들고 좋아요를 병합합니다. 기존 재생목록은 유지됩니다. 선택한 기록과 설정도 가져옵니다.';
+
+  @override
+  String get changelogCurrent => '현재';
+
+  @override
+  String get backupLibrary => '라이브러리 (재생목록, 좋아요 및 저장한 컬렉션)';
+
+  @override
+  String get eqPresetFlat => '플랫';
+
+  @override
+  String get eqPresetAcoustic => '어쿠스틱';
+
+  @override
+  String get eqPresetBassBoost => '저음 강화';
+
+  @override
+  String get eqPresetBassReducer => '저음 감소';
+
+  @override
+  String get eqPresetClassical => '클래식';
+
+  @override
+  String get eqPresetDance => '댄스';
+
+  @override
+  String get eqPresetDeep => '딥';
+
+  @override
+  String get eqPresetEDM => 'EDM';
+
+  @override
+  String get eqPresetElectronic => '일렉트로닉';
+
+  @override
+  String get eqPresetHipHop => '힙합';
+
+  @override
+  String get eqPresetJazz => '재즈';
+
+  @override
+  String get eqPresetLatin => '라틴';
+
+  @override
+  String get eqPresetLive => '라이브';
+
+  @override
+  String get eqPresetLounge => '라운지';
+
+  @override
+  String get eqPresetMetal => '메탈';
+
+  @override
+  String get eqPresetPiano => '피아노';
+
+  @override
+  String get eqPresetPop => '팝';
+
+  @override
+  String get eqPresetRB => 'R&B';
+
+  @override
+  String get eqPresetRock => '록';
+
+  @override
+  String get eqPresetSmallSpeakers => '소형 스피커';
+
+  @override
+  String get eqPresetSpokenWord => '음성';
+
+  @override
+  String get eqPresetTrebleBoost => '고음 강화';
+
+  @override
+  String get eqPresetTrebleReducer => '고음 감소';
+
+  @override
+  String get eqPresetVocalBooster => '보컬 강화';
+
+  @override
+  String get eqPresetCustom => '사용자 지정';
 }

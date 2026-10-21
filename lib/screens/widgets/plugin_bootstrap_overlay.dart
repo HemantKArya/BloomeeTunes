@@ -4,8 +4,10 @@ import 'dart:io' show Platform, exit;
 import 'dart:ui';
 
 import 'package:Bloomee/core/di/service_locator.dart';
+import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
+import 'package:Bloomee/l10n/language_options.dart';
 import 'package:Bloomee/plugins/services/plugin_repository_service.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
@@ -40,6 +42,7 @@ class _PluginBootstrapOverlayState extends State<PluginBootstrapOverlay>
   final ValueNotifier<int> _progress = ValueNotifier(0);
   int _runToken = 0;
   List<String> _errors = const [];
+  Locale? _locale;
 
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulse;
@@ -83,6 +86,11 @@ class _PluginBootstrapOverlayState extends State<PluginBootstrapOverlay>
     _progress.value = 0;
 
     final settingsDao = SettingsDAO(DBProvider.db);
+    final language = await settingsDao.getSettingStr(SettingKeys.languageCode);
+    if (!mounted || token != _runToken) return;
+    setState(() {
+      _locale = localeForLanguageCode(language ?? '');
+    });
     final repositoryService = PluginRepositoryService(settingsDao: settingsDao);
 
     final result = await PluginBootstrapService.run(
@@ -125,6 +133,18 @@ class _PluginBootstrapOverlayState extends State<PluginBootstrapOverlay>
 
   @override
   Widget build(BuildContext context) {
+    // Setup precedes the main MaterialApp, so it needs its own locale scope.
+    return MaterialApp(
+      locale: _locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: Default_Theme().defaultThemeData,
+      debugShowCheckedModeBanner: false,
+      home: Builder(builder: _buildOverlay),
+    );
+  }
+
+  Widget _buildOverlay(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
     return BackdropFilter(
@@ -134,31 +154,33 @@ class _PluginBootstrapOverlayState extends State<PluginBootstrapOverlay>
         child: Container(
           color: _bgBase,
           child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-              child: ValueListenableBuilder<_Phase>(
-                valueListenable: _phase,
-                builder: (context, phase, _) {
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
-                    child: phase == _Phase.noInternet
-                        ? _NoInternetBody(
-                            onRetry: _run,
-                            onExit: _exitApp,
-                          )
-                        : phase == _Phase.failed
-                            ? _ErrorBody(
-                                onRetry: _run,
-                                errors: _errors,
-                              )
-                            : _SpinnerBody(
-                                pulse: _pulse,
-                                progress: _progress,
-                                isDone: phase == _Phase.success,
-                                l10n: l10n,
-                              ),
-                  );
-                },
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                child: ValueListenableBuilder<_Phase>(
+                  valueListenable: _phase,
+                  builder: (context, phase, _) {
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      child: phase == _Phase.noInternet
+                          ? _NoInternetBody(
+                              onRetry: _run,
+                              onExit: _exitApp,
+                            )
+                          : phase == _Phase.failed
+                              ? _ErrorBody(
+                                  onRetry: _run,
+                                  errors: _errors,
+                                )
+                              : _SpinnerBody(
+                                  pulse: _pulse,
+                                  progress: _progress,
+                                  isDone: phase == _Phase.success,
+                                  l10n: l10n,
+                                ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -300,8 +322,8 @@ class _ErrorBody extends StatelessWidget {
               size: 48,
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Setup incomplete',
+            Text(
+              AppLocalizations.of(context)!.pluginBootstrapIncomplete,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
@@ -311,7 +333,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Some plugins could not be installed right now. Retry to finish setup cleanly.',
+              AppLocalizations.of(context)!.pluginBootstrapRetryBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.6),
@@ -341,8 +363,8 @@ class _ErrorBody extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Retry setup',
+                child: Text(
+                  AppLocalizations.of(context)!.pluginRepositoryActionRetry,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
@@ -396,8 +418,8 @@ class _NoInternetBody extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            const Text(
-              'Internet required',
+            Text(
+              AppLocalizations.of(context)!.pluginBootstrapInternetTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
@@ -407,7 +429,7 @@ class _NoInternetBody extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Bloomee needs an internet connection once to detect your country and set up the plugin engine.',
+              AppLocalizations.of(context)!.pluginBootstrapInternetBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.62),
@@ -431,7 +453,7 @@ class _NoInternetBody extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Exit'),
+                    child: Text(AppLocalizations.of(context)!.buttonExit),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -447,7 +469,8 @@ class _NoInternetBody extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Retry'),
+                    child: Text(AppLocalizations.of(context)!
+                        .pluginRepositoryActionRetry),
                   ),
                 ),
               ],

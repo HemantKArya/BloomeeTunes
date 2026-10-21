@@ -842,7 +842,9 @@ class _SuggestionsSliver extends StatelessWidget {
           final children = <Widget>[
             const SizedBox(height: 12),
             if (dbList.isNotEmpty) ...[
-              _buildSuggestionSectionHeader('Recent', MingCute.history_line),
+              _buildSuggestionSectionHeader(
+                  AppLocalizations.of(context)!.recentsTitle,
+                  MingCute.history_line),
               ...dbList.asMap().entries.map((e) => _SuggestionTile(
                     suggestion: e.value,
                     icon: MingCute.history_line,
@@ -871,7 +873,8 @@ class _SuggestionsSliver extends StatelessWidget {
             ],
             if (apiList.isNotEmpty) ...[
               _buildSuggestionSectionHeader(
-                  'Suggestions', MingCute.search_2_line),
+                  AppLocalizations.of(context)!.searchSuggestions,
+                  MingCute.search_2_line),
               ...apiList.asMap().entries.map((e) => _SuggestionTile(
                     suggestion: e.value,
                     icon: MingCute.search_line,
@@ -885,7 +888,8 @@ class _SuggestionsSliver extends StatelessWidget {
             ],
             if (entityList.isNotEmpty) ...[
               _buildSuggestionSectionHeader(
-                  'Top Results', MingCute.sparkles_2_line),
+                  AppLocalizations.of(context)!.searchTopResults,
+                  MingCute.sparkles_2_line),
               ...entityList.asMap().entries.map((e) => _EntitySuggestionTile(
                     entity: e.value,
                     globalIndex: e.key + dbList.length + apiList.length,
@@ -1275,11 +1279,14 @@ class _SliverSearchResults extends StatelessWidget {
                             strokeWidth: 2.2,
                             color: Default_Theme.accentColor2)),
                     const SizedBox(width: 10),
-                    Text('Searching...',
-                        style: Default_Theme.secondoryTextStyleMedium.copyWith(
-                            color: Default_Theme.primaryColor1
-                                .withValues(alpha: 0.78),
-                            fontSize: 12.5)),
+                    Expanded(
+                      child: Text(AppLocalizations.of(context)!.searchSearching,
+                          style: Default_Theme.secondoryTextStyleMedium
+                              .copyWith(
+                                  color: Default_Theme.primaryColor1
+                                      .withValues(alpha: 0.78),
+                                  fontSize: 12.5)),
+                    ),
                   ],
                 ),
               ),

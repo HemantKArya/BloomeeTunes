@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:ui';
 
@@ -250,7 +251,10 @@ class _ArtistViewState extends State<ArtistView> {
                       unselectedLabelStyle: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.w600)
                           .merge(Default_Theme.secondoryTextStyle),
-                      tabs: const [Tab(text: 'Top Songs'), Tab(text: 'Albums')],
+                      tabs: [
+                        Tab(text: AppLocalizations.of(context)!.artistTopSongs),
+                        Tab(text: AppLocalizations.of(context)!.searchAlbums)
+                      ],
                     ),
                   ),
                 ),
@@ -319,7 +323,7 @@ class _ArtistViewState extends State<ArtistView> {
         if (state.artistDetailStatus == DetailStatus.error) {
           return Center(
             child: Text(
-              state.error ?? 'Failed to load artist',
+              state.error ?? AppLocalizations.of(context)!.artistLoadFailed,
               style: const TextStyle(color: Default_Theme.primaryColor1),
             ),
           );
@@ -327,7 +331,7 @@ class _ArtistViewState extends State<ArtistView> {
 
         if (state.artistDetailStatus != DetailStatus.loaded &&
             state.artistDetailStatus != DetailStatus.loadingMore) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(color: Default_Theme.accentColor2),
           );
         }
@@ -349,9 +353,10 @@ class _ArtistViewState extends State<ArtistView> {
 
   Widget _buildTopTracksTab(List<Track> topTracks, String artistName) {
     if (topTracks.isEmpty) {
-      return const Center(
+      return Center(
           child: SignBoardWidget(
-              message: 'No top songs available', icon: MingCute.music_2_line));
+              message: AppLocalizations.of(context)!.artistNoTopSongs,
+              icon: MingCute.music_2_line));
     }
 
     return Builder(
@@ -402,9 +407,10 @@ class _ArtistViewState extends State<ArtistView> {
 
   Widget _buildAlbumsTab(List<AlbumSummary> albums, DetailStatus status) {
     if (albums.isEmpty) {
-      return const Center(
+      return Center(
           child: SignBoardWidget(
-              message: 'No albums available', icon: MingCute.album_line));
+              message: AppLocalizations.of(context)!.artistNoAlbums,
+              icon: MingCute.album_line));
     }
 
     return Builder(
@@ -436,7 +442,7 @@ class _ArtistViewState extends State<ArtistView> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       if (index == albums.length) {
-                        return const Center(
+                        return Center(
                             child: CircularProgressIndicator(
                                 color: Default_Theme.accentColor2));
                       }
@@ -652,13 +658,13 @@ class _ArtistHeaderContent extends StatelessWidget {
                   border:
                       Border.all(color: Default_Theme.accentColor2, width: 1.5),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(MingCute.play_fill,
                         size: 20, color: Default_Theme.accentColor2),
                     SizedBox(width: 8),
-                    Text('Play',
+                    Text(AppLocalizations.of(context)!.playlistPlay,
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -676,7 +682,9 @@ class _ArtistHeaderContent extends StatelessWidget {
               ? Default_Theme.accentColor2
               : Default_Theme.primaryColor1,
           isActive: isSaved,
-          tooltip: isSaved ? 'Remove from Library' : 'Save to Library',
+          tooltip: isSaved
+              ? AppLocalizations.of(context)!.tooltipRemoveFromLibrary
+              : AppLocalizations.of(context)!.tooltipSaveToLibrary,
           onTap: onToggleSave,
         ),
         if (url != null)
@@ -684,9 +692,10 @@ class _ArtistHeaderContent extends StatelessWidget {
             icon: MingCute.external_link_line,
             color: Default_Theme.primaryColor1,
             isActive: false,
-            tooltip: 'Open Original Link',
+            tooltip: AppLocalizations.of(context)!.tooltipOpenOriginalLink,
             onTap: () {
-              SnackbarService.showMessage('Opening original artist page.');
+              SnackbarService.showMessage(
+                  AppLocalizations.of(context)!.snackbarOpeningArtistPage);
               launchUrl(Uri.parse(url!), mode: LaunchMode.externalApplication);
             },
           ),

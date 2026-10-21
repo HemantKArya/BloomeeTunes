@@ -48,6 +48,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
+import 'package:Bloomee/l10n/language_options.dart';
 import 'package:Bloomee/blocs/add_to_playlist/cubit/add_to_playlist_cubit.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/plugins/blocs/import/content_import_cubit.dart';
@@ -445,48 +446,46 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           } else {
             return BlocBuilder<SettingsCubit, SettingsState>(
               builder: (context, settingsState) {
-                final locale = settingsState.languageCode.isEmpty
-                    ? null
-                    : Locale(settingsState.languageCode);
+                final locale =
+                    localeForLanguageCode(settingsState.languageCode);
 
                 return KeyboardShortcutsHandler(
-                  child: ShortcutIndicatorOverlay(
-                    child: MaterialApp.router(
-                      localizationsDelegates:
-                          AppLocalizations.localizationsDelegates,
-                      supportedLocales: AppLocalizations.supportedLocales,
-                      locale: locale,
-                      builder: (context, child) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted &&
-                              !_importReady.isCompleted &&
-                              GlobalRoutes.globalRouterKey.currentContext !=
-                                  null) {
-                            _importReady.complete();
-                          }
-                        });
-                        return ResponsiveBreakpoints.builder(
-                          breakpoints: [
-                            const Breakpoint(start: 0, end: 450, name: MOBILE),
-                            const Breakpoint(
-                                start: 451, end: 800, name: TABLET),
-                            const Breakpoint(
-                                start: 801, end: 1920, name: DESKTOP),
-                            const Breakpoint(
-                                start: 1921, end: double.infinity, name: '4K'),
-                          ],
+                  child: MaterialApp.router(
+                    localizationsDelegates:
+                        AppLocalizations.localizationsDelegates,
+                    supportedLocales: AppLocalizations.supportedLocales,
+                    locale: locale,
+                    builder: (context, child) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted &&
+                            !_importReady.isCompleted &&
+                            GlobalRoutes.globalRouterKey.currentContext !=
+                                null) {
+                          _importReady.complete();
+                        }
+                      });
+                      return ResponsiveBreakpoints.builder(
+                        breakpoints: [
+                          const Breakpoint(start: 0, end: 450, name: MOBILE),
+                          const Breakpoint(start: 451, end: 800, name: TABLET),
+                          const Breakpoint(
+                              start: 801, end: 1920, name: DESKTOP),
+                          const Breakpoint(
+                              start: 1921, end: double.infinity, name: '4K'),
+                        ],
+                        child: ShortcutIndicatorOverlay(
                           child: GlobalEventListener(
                             navigatorKey: GlobalRoutes.globalRouterKey,
                             child: child!,
                           ),
-                        );
-                      },
-                      scaffoldMessengerKey: SnackbarService.messengerKey,
-                      routerConfig: GlobalRoutes.globalRouter,
-                      theme: Default_Theme().defaultThemeData,
-                      scrollBehavior: CustomScrollBehavior(),
-                      debugShowCheckedModeBanner: false,
-                    ),
+                        ),
+                      );
+                    },
+                    scaffoldMessengerKey: SnackbarService.messengerKey,
+                    routerConfig: GlobalRoutes.globalRouter,
+                    theme: Default_Theme().defaultThemeData,
+                    scrollBehavior: CustomScrollBehavior(),
+                    debugShowCheckedModeBanner: false,
                   ),
                 );
               },

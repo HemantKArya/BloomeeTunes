@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 // Page for editing and reordering playlist items.
 import 'dart:ui';
 import 'package:Bloomee/core/models/exported.dart';
@@ -58,7 +59,7 @@ class _PlaylistEditViewState extends State<PlaylistEditView> {
                 foregroundColor: Default_Theme.primaryColor1,
                 backgroundColor: Default_Theme.themeColor,
                 title: Text(
-                  'Edit Playlist',
+                  AppLocalizations.of(context)!.playlistEdit,
                   style: Default_Theme.secondoryTextStyleMedium.merge(
                     const TextStyle(
                         fontSize: 16, color: Default_Theme.primaryColor1),
@@ -76,11 +77,14 @@ class _PlaylistEditViewState extends State<PlaylistEditView> {
                           try {
                             await playlistCubit.updatePlaylist(_localTracks);
                             if (!mounted) return;
-                            SnackbarService.showMessage('Playlist Updated!');
+                            SnackbarService.showMessage(
+                                AppLocalizations.of(context)!
+                                    .snackbarPlaylistUpdated);
                           } catch (_) {
                             if (!mounted) return;
                             SnackbarService.showMessage(
-                              'Unable to save playlist order. Please try again.',
+                              AppLocalizations.of(context)!
+                                  .playlistSaveOrderFailed,
                             );
                             return;
                           }
@@ -132,7 +136,8 @@ class _PlaylistEditViewState extends State<PlaylistEditView> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Hold the handle to reorder tracks',
+                            AppLocalizations.of(context)!
+                                .playlistReorderTracksHint,
                             style: Default_Theme.secondoryTextStyleMedium.merge(
                               TextStyle(
                                 fontSize: 12,
