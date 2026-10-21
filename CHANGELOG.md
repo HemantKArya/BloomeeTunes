@@ -16,10 +16,15 @@
 - **Backup File Handling**: Unified file import previews across Settings, Library, Android Open With and Share, and desktop file arguments.
 - **Content Imports**: Allow more time to fetch collection details and tracks, and retry the failed step while reusing requests already in progress.
 - **Playback Efficiency**: Reduced background network traffic by bounding audio buffering and removing bulk chart prefetching, and reduced player transition jank and unnecessary rendering.
+- **About and Release Notes**: Refined the warm gradient styling, reduced animation rebuilds, and loaded release-note entries on demand for more responsive pages after updates and first launch.
+- **Mobile Up Next**: Reduced rendering work when opening, closing, and scrolling the queue, including long queues, while preserving the panel's visual depth.
 - **Discord Rich Presence**: Improved per-track artwork, album information, playback timing, and play/pause indicators.
 - **Cancelable Database Resets**: Schedule database resets for the next startup and cancel them before restarting.
 
 ### Fixed
+- Fixed About page overflow on small screens and respected reduced-motion preferences for its background animations.
+- Prevented repeated version loading and changelog settings writes during page rebuilds.
+- Preserved duplicate songs in Up Next and corrected their playback, removal, and reorder indices.
 - Fixed the blank Portuguese language selection and mapped older regional preferences to the single Português option.
 - Corrected text encoding, plural counts, and missing song and plugin names in translated messages.
 - Fixed overflowing navigation labels on small screens and improved wrapping for longer translated controls.
