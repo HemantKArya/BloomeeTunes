@@ -278,9 +278,13 @@ class HorizontalNavBar extends StatelessWidget {
         MingCute.music_2_fill,
         MingCute.folder_download_fill,
       ];
-      // Each icon keeps a 48px target. The selected label wraps in the
-      // remaining space instead of overflowing or reducing the text scale.
-      final labelWidth = (constraints.maxWidth - labels.length * 48 - 7)
+      // Each icon keeps a 48px target. Cap the selected label at the
+      // remaining space, while letting short labels keep their natural width.
+      const selectedLabelEndPadding = 8.0;
+      final labelWidth = (constraints.maxWidth -
+              labels.length * 48 -
+              7 -
+              selectedLabelEndPadding)
           .clamp(1.0, double.infinity);
       return GNav(
         gap: 7,
@@ -309,14 +313,15 @@ class HorizontalNavBar extends StatelessWidget {
                               : Default_Theme.primaryColor2),
                       if (selected) ...[
                         const SizedBox(width: 7),
-                        SizedBox(
-                          width: labelWidth,
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: labelWidth),
                           child: Text(labels[index],
                               style: Default_Theme.secondoryTextStyleMedium
                                   .copyWith(
                                       fontSize: 16,
                                       color: Default_Theme.accentColor2)),
                         ),
+                        const SizedBox(width: selectedLabelEndPadding),
                       ],
                     ]),
                   )
