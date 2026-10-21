@@ -36,7 +36,7 @@ def log(msg=""):
     print(msg, flush=True)
 
 def find_pkg_manager():
-    for name in ("npm", "pnpm", "yarn"):
+    for name in ("npm", "pnpm", "yarn", "deno"):
         path = shutil.which(name)
         if path:
             return name, path
@@ -82,7 +82,10 @@ def optional_build(repo_root, pm_name, pm_exe):
         return False
 
     log(f"📦 Using package manager: {pm_name} ({pm_exe})")
-    if pm_name == "npm":
+    if pm_name == "deno":
+        install_cmd = [pm_exe, "install"]
+        build_cmd = [pm_exe, "task", "build"]
+    elif pm_name == "npm":
         install_cmd = [pm_exe, "ci"] if (src / "package-lock.json").exists() else [pm_exe, "install"]
         build_cmd = [pm_exe, "run", "build"]
     elif pm_name == "pnpm":
@@ -95,6 +98,9 @@ def optional_build(repo_root, pm_name, pm_exe):
     try:
         log("🔁 Installing dependencies (streaming output)...")
         run_stream(install_cmd, cwd=src)
+        if pm_name == "deno":
+            # Deno does not automatically run npm's prepare lifecycle script.
+            run_stream([pm_exe, "task", "prepare"], cwd=src)
         log("🔨 Building (streaming output)...")
         run_stream(build_cmd, cwd=src)
     except FileNotFoundError as e:
@@ -353,7 +359,7 @@ def _signal_handler(sig, frame):
 def find_or_build(repo_root: Path):
     pm_name, pm_exe = find_pkg_manager()
     if not pm_name:
-        log("❌ No package manager found on PATH (npm/pnpm/yarn). Install Node or pnpm/yarn.")
+        log("❌ No package manager found on PATH (npm/pnpm/yarn/deno). Install Node, pnpm, yarn, or Deno.")
         sys.exit(1)
     if not (repo_root / BUILD_DIR).exists():
         optional_build(repo_root, pm_name, pm_exe)
