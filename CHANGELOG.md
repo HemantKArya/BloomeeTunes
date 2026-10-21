@@ -1,4 +1,4 @@
-## [3.1.0+205] - 2026-10-21
+## [3.1.0+206] - 2026-10-21
 
 ### Added
 - **New Languages**: Added Turkish, Portuguese, and French translations.
