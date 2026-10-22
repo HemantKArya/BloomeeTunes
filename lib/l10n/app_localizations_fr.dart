@@ -1491,10 +1491,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'extension utilise une ancienne version du manifeste. Certaines fonctions peuvent ne pas fonctionner. Envisagez une mise à jour.';
 
   @override
-  String get pluginManagerStatusActive => 'Active';
+  String get pluginManagerStatusActive => 'Actif';
 
   @override
-  String get pluginManagerStatusInactive => 'Inactive';
+  String get pluginManagerStatusInactive => 'Inactif';
 
   @override
   String get pluginRepositoryAddTitle => 'Ajouter un dépôt';
