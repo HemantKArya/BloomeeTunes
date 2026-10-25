@@ -72,6 +72,7 @@
 | 🇫🇷 French | Français | ✅ Complete |
 | 🇵🇹 Portuguese | Português | ✅ Complete |
 | 🇹🇷 Turkish | Türkçe | ✅ Complete |
+| 🇸🇪 Swedish | Svenska | ✅ Complete |
 
 > 🟢 All translations are fully completed and maintained, Still if you feel any language needs more thought then please feel free to open the issue.
 ---

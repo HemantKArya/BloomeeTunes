@@ -170,13 +170,15 @@ void main() {
     expect(byCode['fr'], 'Français');
     expect(byCode['es'], 'Español');
     expect(byCode['pt'], 'Português');
+    expect(byCode['sv'], 'Svenska');
     expect(byCode.containsKey('pt_BR'), isFalse);
-    expect(options.length, 10);
+    expect(options.length, 11);
     expect(localeForLanguageCode('pt_BR'), const Locale('pt'));
     expect(localeForLanguageCode('pt-BR'), const Locale('pt'));
     expect(localeForLanguageCode('pt'), const Locale('pt'));
     expect(localeForLanguageCode(''), isNull);
     expect(localeForLanguageCode('tr'), const Locale('tr'));
     expect(localeForLanguageCode('fr'), const Locale('fr'));
+    expect(localeForLanguageCode('sv'), const Locale('sv'));
   });
 }
