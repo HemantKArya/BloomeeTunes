@@ -244,6 +244,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         ),
                       ),
                       BlocBuilder<SettingsCubit, SettingsState>(
+                        // The FutureBuilder below refetches on every rebuild,
+                        // so only rebuild when this setting changes.
+                        buildWhen: (prev, curr) =>
+                            prev.lFMPicks != curr.lFMPicks,
                         builder: (context, state) {
                           if (state.lFMPicks) {
                             return FutureBuilder(

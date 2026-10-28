@@ -21,8 +21,8 @@ import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 ///
 /// Uses Rust-generated model types directly — no converters.
 ///
-/// Search uses debounce (300ms) + switchMap pattern via [transformer]
-/// to cancel in-flight requests when the user types a new query.
+/// Search uses a switchMap transformer to cancel in-flight requests when a
+/// new search is dispatched.
 class ContentBloc extends Bloc<ContentEvent, ContentState> {
   final PluginService _pluginService;
   final PluginCacheRepository _cache = ServiceLocator.pluginCache;
@@ -50,14 +50,11 @@ class ContentBloc extends Bloc<ContentEvent, ContentState> {
     on<ClearHomeSections>(_onClearHomeSections);
   }
 
-  /// Debounce + switchMap for search events.
-  ///
-  /// - 300ms debounce: don't fire until user stops typing.
-  /// - switchMap: cancel previous search request when a new one arrives.
+  /// switchMap for search events: cancel the previous search request when a
+  /// new one arrives. No debounce: searches are only dispatched on explicit
+  /// actions (submit, filter or source tap), so a delay is pure latency.
   EventTransformer<SearchContent> _debounceSearchTransformer() {
-    return (events, mapper) => events
-        .debounceTime(const Duration(milliseconds: 300))
-        .switchMap(mapper);
+    return (events, mapper) => events.switchMap(mapper);
   }
 
   // ── Search ─────────────────────────────────────────────────────────────────

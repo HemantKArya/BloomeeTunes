@@ -38,6 +38,13 @@ class LibItemCard extends StatelessWidget {
     this.isPinned = false,
   }) : super(key: key);
 
+  Widget _cover() => LoadImageCached(
+        imageUrl: coverArt,
+        fallbackUrl: coverArt,
+        width: 70,
+        height: 70,
+      );
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -84,19 +91,9 @@ class LibItemCard extends StatelessWidget {
                   dimension: 70,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: switch (type) {
-                      LibItemTypes.userPlaylist => LoadImageCached(
-                          imageUrl: coverArt, fallbackUrl: coverArt.toString()),
-                      LibItemTypes.onlPlaylist => LoadImageCached(
-                          imageUrl: coverArt, fallbackUrl: coverArt.toString()),
-                      LibItemTypes.artist => ClipOval(
-                          child: LoadImageCached(
-                              imageUrl: coverArt,
-                              fallbackUrl: coverArt.toString()),
-                        ),
-                      LibItemTypes.album => LoadImageCached(
-                          imageUrl: coverArt, fallbackUrl: coverArt.toString()),
-                    },
+                    child: type == LibItemTypes.artist
+                        ? ClipOval(child: _cover())
+                        : _cover(),
                   ),
                 ),
               ),

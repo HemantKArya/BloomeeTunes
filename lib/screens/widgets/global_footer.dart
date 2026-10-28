@@ -64,8 +64,15 @@ class GlobalFooter extends StatelessWidget {
           child: Scaffold(
             backgroundColor: Default_Theme.themeColor,
             drawerScrimColor: Default_Theme.themeColor,
+            // The shell must not resize for the keyboard: its body holds every
+            // tab, so each keyboard frame would relayout all of them. The
+            // active tab handles insets itself (see ShellBranchContainer).
+            resizeToAvoidBottomInset: false,
+            // Tabs switch instantly. A fade/scale transition here wrapped the
+            // whole page in an offscreen layer for every frame of the switch,
+            // which measured at 25-115ms raster frames per tab change.
             body: isMobile
-                ? _AnimatedPageView(navigationShell: navigationShell)
+                ? navigationShell
                 : Row(
                     children: [
                       Padding(
@@ -73,8 +80,7 @@ class GlobalFooter extends StatelessWidget {
                         child: VerticalNavBar(navigationShell: navigationShell),
                       ),
                       Expanded(
-                        child:
-                            _AnimatedPageView(navigationShell: navigationShell),
+                        child: navigationShell,
                       ),
                     ],
                   ),
@@ -131,73 +137,6 @@ class GlobalFooter extends StatelessWidget {
     if (context.mounted) {
       await SystemNavigator.pop();
     }
-  }
-}
-
-class _AnimatedPageView extends StatefulWidget {
-  const _AnimatedPageView({required this.navigationShell});
-  final StatefulNavigationShell navigationShell;
-
-  @override
-  State<_AnimatedPageView> createState() => _AnimatedPageViewState();
-}
-
-class _AnimatedPageViewState extends State<_AnimatedPageView>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _animationController;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
-  int _previousIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _previousIndex = widget.navigationShell.currentIndex;
-
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 250),
-      vsync: this,
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.96, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
-
-    _animationController.forward();
-  }
-
-  @override
-  void didUpdateWidget(_AnimatedPageView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.navigationShell.currentIndex != _previousIndex) {
-      _previousIndex = widget.navigationShell.currentIndex;
-      _animationController.forward(from: 0.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: widget.navigationShell,
-      ),
-    );
   }
 }
 

@@ -764,26 +764,25 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
+    // Near-opaque fill rather than a BackdropFilter: a blur on a pinned
+    // header over scrolling content is recomputed on every scroll frame.
     return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+      child: Container(
+        color: Default_Theme.themeColor.withValues(alpha: 0.94),
+        alignment: Alignment.center,
         child: Container(
-          color: Default_Theme.themeColor.withValues(alpha: 0.2),
-          alignment: Alignment.center,
-          child: Container(
-            height: 44,
-            constraints: const BoxConstraints(maxWidth: 400),
-            margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            decoration: BoxDecoration(
+          height: 44,
+          constraints: const BoxConstraints(maxWidth: 400),
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          decoration: BoxDecoration(
+            color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
               color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Default_Theme.primaryColor1.withValues(alpha: 0.05),
-                width: 1,
-              ),
+              width: 1,
             ),
-            child: _tabBar,
           ),
+          child: _tabBar,
         ),
       ),
     );

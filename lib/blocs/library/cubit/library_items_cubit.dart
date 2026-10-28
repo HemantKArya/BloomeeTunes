@@ -39,12 +39,8 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
     return super.close();
   }
 
+  // The watcher fires immediately, which performs the initial fetch.
   Future<void> _initialize() async {
-    await _fetchPlaylists();
-    _setupWatchers();
-  }
-
-  Future<void> _setupWatchers() async {
     _playlistWatcher = (await _playlistDao.watchAllPlaylists()).listen((_) {
       _fetchPlaylists();
     });
@@ -58,25 +54,31 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
 
   /// Fetch all playlists (user + remote collections) and emit as domain items.
   Future<void> _fetchPlaylists() async {
+    // Watcher events can overlap; only the latest fetch may emit.
+    final generation = ++_fetchGeneration;
     try {
       final allPlaylists = await _playlistDao.getAllPlaylists();
       allPlaylists.removeWhere((p) => _systemPlaylists.contains(p.name));
       // Guard against orphan rows with an empty name.
       allPlaylists.removeWhere((p) => p.name.trim().isEmpty);
       final items = await _toItemProperties(allPlaylists);
+      if (isClosed || generation != _fetchGeneration) return;
       emit(state.copyWith(playlists: items));
     } catch (e) {
       log('Error fetching playlists: $e', name: 'LibraryItemsCubit');
+      if (isClosed || generation != _fetchGeneration) return;
       emit(const LibraryItemsError('Failed to load your playlists.'));
     }
   }
 
-  /// Convert DB rows to view-model items using only domain types.
-  Future<List<PlaylistItemProperties>> _toItemProperties(
-      List<PlaylistDB> dbs) async {
-    final items = <PlaylistItemProperties>[];
+  int _fetchGeneration = 0;
 
-    for (final p in dbs) {
+  /// Convert DB rows to view-model items using only domain types.
+  ///
+  /// Only a count and the first track are queried per playlist; loading full
+  /// track lists here made the first library open stall on large libraries.
+  Future<List<PlaylistItemProperties>> _toItemProperties(List<PlaylistDB> dbs) {
+    return Future.wait(dbs.map((p) async {
       // Map using the playlist mapper to get a domain Playlist.
       final domainPlaylist = playlistDBToPlaylist(p);
 
@@ -85,27 +87,23 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
           domainPlaylist.subtitle!.trim().isNotEmpty) {
         subtitle = domainPlaylist.subtitle!.trim();
       } else if (domainPlaylist.type == PlaylistType.userPlaylist) {
-        final trackCount = (await _playlistDao.getPlaylistTracks(p.id)).length;
+        final trackCount = await _playlistDao.getPlaylistTrackCount(p.id);
         subtitle = '$trackCount ${trackCount == 1 ? 'track' : 'tracks'}';
       }
 
       final coverUrl = await _resolveCoverUrl(p);
 
-      items.add(
-        PlaylistItemProperties(
-          playlistName: domainPlaylist.title,
-          storageKey: p.name,
-          subTitle: subtitle,
-          coverImgUrl: coverUrl,
-          type: domainPlaylist.type,
-          isPinned: p.isPinned,
-          sortOrder: p.sortOrder,
-          playlistId: p.id,
-        ),
+      return PlaylistItemProperties(
+        playlistName: domainPlaylist.title,
+        storageKey: p.name,
+        subTitle: subtitle,
+        coverImgUrl: coverUrl,
+        type: domainPlaylist.type,
+        isPinned: p.isPinned,
+        sortOrder: p.sortOrder,
+        playlistId: p.id,
       );
-    }
-
-    return items;
+    }));
   }
 
   /// Resolve a cover image URL: direct thumbnail for remote, first track for user.
@@ -128,11 +126,9 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
 
     // For user playlists, use first track's artwork.
     if (playlist.type == PlaylistTypeDB.userPlaylist) {
-      final tracks = await _playlistDao.getPlaylistTracks(playlist.id);
-      if (tracks.isNotEmpty) {
-        final trackUrl = tracks.first.thumbnail?.url;
-        if (trackUrl != null && trackUrl.isNotEmpty) return trackUrl;
-      }
+      final first = await _playlistDao.getFirstPlaylistTrack(playlist.id);
+      final trackUrl = first?.thumbnail?.url;
+      if (trackUrl != null && trackUrl.isNotEmpty) return trackUrl;
     }
 
     return null;

@@ -1,5 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -218,7 +218,9 @@ class _SearchScreenState extends State<SearchScreen> {
         },
         child: Scaffold(
           backgroundColor: Default_Theme.themeColor,
-          resizeToAvoidBottomInset: false,
+          // The shell no longer resizes for the keyboard (ShellBranchContainer
+          // passes this tab the uncovered part of the inset), so resize here.
+          resizeToAvoidBottomInset: true,
           body: Stack(
             children: [
               // Extracted Background Painter
@@ -344,81 +346,80 @@ class _FloatingSearchBarSliver extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       titleSpacing: 16,
       toolbarHeight: 70,
+      // The bar floats over scrolling results, so it uses a near-opaque fill
+      // instead of a BackdropFilter (which would re-blur every scroll frame).
       title: Focus(
         onKeyEvent: handleKeyEvent,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08), width: 1),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 16),
-                  _buildAnimatedSearchLeadingIcon(),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: textEditingController,
-                      focusNode: searchFocusNode,
-                      style: TextStyle(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Color.alphaBlend(Colors.white.withValues(alpha: 0.05),
+                      Default_Theme.themeColor)
+                  .withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08), width: 1),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 16),
+                _buildAnimatedSearchLeadingIcon(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: textEditingController,
+                    focusNode: searchFocusNode,
+                    style: TextStyle(
+                      color:
+                          Default_Theme.primaryColor1.withValues(alpha: 0.95),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    onChanged: onQueryChanged,
+                    onSubmitted: (val) {
+                      final hIndex = highlightedIndexNotifier.value;
+                      if (hIndex >= 0 &&
+                          hIndex < currentCombinedSuggestions.length) {
+                        final selected = currentCombinedSuggestions[hIndex];
+                        onSearchRequested(
+                            query: selected.query, filter: selected.filter);
+                      } else {
+                        onSearchRequested(
+                            query: val, filter: ContentSearchFilter.all);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      hintText: AppLocalizations.of(context)!.searchHintExplore,
+                      hintStyle: TextStyle(
                         color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.95),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      onChanged: onQueryChanged,
-                      onSubmitted: (val) {
-                        final hIndex = highlightedIndexNotifier.value;
-                        if (hIndex >= 0 &&
-                            hIndex < currentCombinedSuggestions.length) {
-                          final selected = currentCombinedSuggestions[hIndex];
-                          onSearchRequested(
-                              query: selected.query, filter: selected.filter);
-                        } else {
-                          onSearchRequested(
-                              query: val, filter: ContentSearchFilter.all);
-                        }
-                      },
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 14),
-                        hintText:
-                            AppLocalizations.of(context)!.searchHintExplore,
-                        hintStyle: TextStyle(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.35),
-                          fontSize: 15,
-                        ),
+                            Default_Theme.primaryColor1.withValues(alpha: 0.35),
+                        fontSize: 15,
                       ),
                     ),
                   ),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: textEditingController,
-                    builder: (context, value, child) {
-                      if (value.text.isNotEmpty) {
-                        return IconButton(
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          icon: Icon(MingCute.close_fill,
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.5),
-                              size: 18),
-                          onPressed: onClearRequested,
-                        );
-                      }
-                      return const SizedBox(width: 16);
-                    },
-                  )
-                ],
-              ),
+                ),
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: textEditingController,
+                  builder: (context, value, child) {
+                    if (value.text.isNotEmpty) {
+                      return IconButton(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        icon: Icon(MingCute.close_fill,
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.5),
+                            size: 18),
+                        onPressed: onClearRequested,
+                      );
+                    }
+                    return const SizedBox(width: 16);
+                  },
+                )
+              ],
             ),
           ),
         ),
@@ -567,89 +568,85 @@ class _PluginsGlassyBoxSliver extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Default_Theme.primaryColor2.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.05), width: 1),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: Default_Theme.primaryColor2.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.05), width: 1),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Icon(MingCute.plugin_2_line,
+                              size: 18, color: Default_Theme.accentColor2),
+                          const SizedBox(width: 8),
+                          Text(
+                            AppLocalizations.of(context)!.searchSources,
+                            style:
+                                Default_Theme.secondoryTextStyleMedium.copyWith(
+                              fontSize: 12,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.w800,
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (resolvers.isEmpty)
                       Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Text(
+                          AppLocalizations.of(context)!.searchNoPlugins,
+                          style: TextStyle(
+                              color: Default_Theme.primaryColor1
+                                  .withValues(alpha: 0.4),
+                              fontStyle: FontStyle.italic),
+                        ),
+                      )
+                    else
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Icon(MingCute.plugin_2_line,
-                                size: 18, color: Default_Theme.accentColor2),
-                            const SizedBox(width: 8),
-                            Text(
-                              AppLocalizations.of(context)!.searchSources,
-                              style: Default_Theme.secondoryTextStyleMedium
-                                  .copyWith(
-                                fontSize: 12,
-                                letterSpacing: 1.5,
-                                fontWeight: FontWeight.w800,
-                                color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
+                          children: resolvers
+                              .map((plugin) => Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: _PluginChip(
+                                      plugin: plugin,
+                                      activePluginNotifier:
+                                          activePluginNotifier,
+                                      onTap: () {
+                                        final id = plugin.manifest.id;
+                                        if (activePluginNotifier.value == id)
+                                          return;
+                                        activePluginNotifier.value = id;
+                                        contentBloc.add(SetActiveContentPlugin(
+                                            pluginId: id));
+                                        context
+                                            .read<SettingsCubit>()
+                                            .setSearchPluginId(id);
+                                        if (textEditingController
+                                            .text.isNotEmpty) onPluginChanged();
+                                      },
+                                    ),
+                                  ))
+                              .toList(),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      if (resolvers.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: Text(
-                            AppLocalizations.of(context)!.searchNoPlugins,
-                            style: TextStyle(
-                                color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.4),
-                                fontStyle: FontStyle.italic),
-                          ),
-                        )
-                      else
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            children: resolvers
-                                .map((plugin) => Padding(
-                                      padding: const EdgeInsets.only(right: 10),
-                                      child: _PluginChip(
-                                        plugin: plugin,
-                                        activePluginNotifier:
-                                            activePluginNotifier,
-                                        onTap: () {
-                                          final id = plugin.manifest.id;
-                                          if (activePluginNotifier.value == id)
-                                            return;
-                                          activePluginNotifier.value = id;
-                                          contentBloc.add(
-                                              SetActiveContentPlugin(
-                                                  pluginId: id));
-                                          context
-                                              .read<SettingsCubit>()
-                                              .setSearchPluginId(id);
-                                          if (textEditingController.text
-                                              .isNotEmpty) onPluginChanged();
-                                        },
-                                      ),
-                                    ))
-                                .toList(),
-                          ),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -856,21 +853,26 @@ class _SuggestionsSliver extends StatelessWidget {
                   )),
               const SizedBox(height: 12),
             ],
-            if (isPluginLoading) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(
-                    minHeight: 2,
-                    color: Default_Theme.accentColor2.withValues(alpha: 0.7),
-                    backgroundColor:
-                        Default_Theme.primaryColor1.withValues(alpha: 0.06),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
+            // Fixed-height slot so the bar appearing/disappearing doesn't
+            // shift the suggestions below it.
+            SizedBox(
+              height: 14,
+              child: isPluginLoading
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          minHeight: 2,
+                          color:
+                              Default_Theme.accentColor2.withValues(alpha: 0.7),
+                          backgroundColor: Default_Theme.primaryColor1
+                              .withValues(alpha: 0.06),
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
             if (apiList.isNotEmpty) ...[
               _buildSuggestionSectionHeader(
                   AppLocalizations.of(context)!.searchSuggestions,
@@ -1142,6 +1144,7 @@ class _EntitySuggestionTile extends StatelessWidget {
           imageUrl: url,
           width: 42,
           height: 42,
+          memCacheWidth: 128,
           fit: BoxFit.cover,
           errorWidget: (_, __, ___) => _placeholder());
     }
@@ -1321,21 +1324,36 @@ class _SliverSearchResults extends StatelessWidget {
         ],
         if (albums.isNotEmpty) ...[
           _sliverSectionHeader(AppLocalizations.of(context)!.searchAlbums),
-          _buildResponsiveGrid(albums
-              .map((a) => AlbumCard(album: a, pluginId: pluginId))
-              .toList()),
+          _buildResponsiveGrid(
+            itemCount: albums.length,
+            // 8px gap + fixed 44px text block under the square artwork.
+            fixedExtra: 52,
+            textExtra: 0,
+            itemBuilder: (context, i) =>
+                AlbumCard(album: albums[i], pluginId: pluginId),
+          ),
         ],
         if (artists.isNotEmpty) ...[
           _sliverSectionHeader(AppLocalizations.of(context)!.searchArtists),
-          _buildResponsiveGrid(artists
-              .map((a) => ArtistCard(artist: a, pluginId: pluginId))
-              .toList()),
+          _buildResponsiveGrid(
+            itemCount: artists.length,
+            // 10px top pad + 12px gap, then up to two 14px lines.
+            fixedExtra: 22,
+            textExtra: 40,
+            itemBuilder: (context, i) =>
+                ArtistCard(artist: artists[i], pluginId: pluginId),
+          ),
         ],
         if (playlists.isNotEmpty) ...[
           _sliverSectionHeader(AppLocalizations.of(context)!.searchPlaylists),
-          _buildResponsiveGrid(playlists
-              .map((p) => PlaylistCard(playlist: p, pluginId: pluginId))
-              .toList()),
+          _buildResponsiveGrid(
+            itemCount: playlists.length,
+            // 8px gap, then a two-line title and a one-line owner.
+            fixedExtra: 10,
+            textExtra: 52,
+            itemBuilder: (context, i) =>
+                PlaylistCard(playlist: playlists[i], pluginId: pluginId),
+          ),
         ],
         if (isLoadingMore)
           const SliverToBoxAdapter(
@@ -1365,16 +1383,45 @@ class _SliverSearchResults extends StatelessWidget {
     );
   }
 
-  Widget _buildResponsiveGrid(List<Widget> children) {
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverToBoxAdapter(
-        child: Wrap(
-            spacing: 20,
-            runSpacing: 28,
-            alignment: WrapAlignment.start,
-            children: children),
-      ),
+  /// Lazily-built grid of square-artwork cards. Each cell is as tall as it
+  /// is wide plus [fixedExtra] and [textExtra] (scaled with the text size).
+  Widget _buildResponsiveGrid({
+    required int itemCount,
+    required double fixedExtra,
+    required double textExtra,
+    required NullableIndexedWidgetBuilder itemBuilder,
+  }) {
+    const horizontalPadding = 16.0;
+    const spacing = 16.0;
+    const targetCellWidth = 170.0;
+
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.crossAxisExtent - horizontalPadding * 2;
+        final columns = ((width + spacing) / (targetCellWidth + spacing))
+            .ceil()
+            .clamp(2, 8);
+        final cellWidth = (width - spacing * (columns - 1)) / columns;
+        final textScaler = MediaQuery.textScalerOf(context);
+
+        return SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+              horizontalPadding, 0, horizontalPadding, 12),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: spacing,
+              mainAxisSpacing: 20,
+              mainAxisExtent:
+                  cellWidth + fixedExtra + textScaler.scale(textExtra),
+            ),
+            delegate: SliverChildBuilderDelegate(
+              itemBuilder,
+              childCount: itemCount,
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -1418,21 +1465,25 @@ class _NebulaBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ContentBloc, ContentState>(
-      bloc: contentBloc,
-      builder: (context, state) {
-        final colors = _getReactiveGradientColors(state);
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 1500),
-          curve: Curves.easeOutCubic,
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.75,
-          child: CustomPaint(
-              painter: NebulaPainter(
-                  color1: colors[0].withValues(alpha: 0.18),
-                  color2: colors[1].withValues(alpha: 0.18))),
-        );
-      },
+    return RepaintBoundary(
+      child: BlocBuilder<ContentBloc, ContentState>(
+        bloc: contentBloc,
+        // Only rebuild when the derived colors actually change, not on every
+        // search state tick (loading, paging, ...).
+        buildWhen: (prev, curr) => !listEquals(
+            _getReactiveGradientColors(prev), _getReactiveGradientColors(curr)),
+        builder: (context, state) {
+          final colors = _getReactiveGradientColors(state);
+          return SizedBox(
+            width: double.infinity,
+            height: MediaQuery.sizeOf(context).height * 0.75,
+            child: CustomPaint(
+                painter: NebulaPainter(
+                    color1: colors[0].withValues(alpha: 0.18),
+                    color2: colors[1].withValues(alpha: 0.18))),
+          );
+        },
+      ),
     );
   }
 }

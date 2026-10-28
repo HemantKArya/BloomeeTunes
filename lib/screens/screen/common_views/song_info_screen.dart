@@ -139,17 +139,23 @@ class _SongInfoScreenState extends State<SongInfoScreen> {
         fit: StackFit.expand,
         children: [
           // 1. Ambient Background
+          // Blur the image itself (cacheable) instead of a full-screen
+          // BackdropFilter, which re-blurs on every scroll frame.
           Positioned.fill(
-            child: LoadImageCached(
-              imageUrl: imageUrl,
-              fallbackUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
-              fit: BoxFit.cover,
+            child: RepaintBoundary(
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
+                child: LoadImageCached(
+                  imageUrl: imageUrl,
+                  fallbackUrl: song.thumbnail.urlLow ?? song.thumbnail.url,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
           ),
-          // 2. Heavy Blur + Darkening Gradient Overlay
+          // 2. Darkening Gradient Overlay
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
+            child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -550,20 +556,17 @@ class _GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Default_Theme.accentColor2.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Default_Theme.primaryColor2.withValues(alpha: 0.05),
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Default_Theme.accentColor2.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: Default_Theme.primaryColor2.withValues(alpha: 0.05),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: children,
-          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
         ),
       ),
     );

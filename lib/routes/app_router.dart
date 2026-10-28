@@ -2,6 +2,7 @@ import 'package:Bloomee/core/constants/route_paths.dart';
 import 'package:Bloomee/screens/widgets/global_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:Bloomee/routes/shell_branch_container.dart';
 import 'package:Bloomee/screens/screen/common_views/add_to_playlist_screen.dart';
 import 'package:Bloomee/screens/screen/explore_screen.dart';
 import 'package:Bloomee/screens/screen/library_screen.dart';
@@ -30,9 +31,14 @@ class AppRouter {
         name: RoutePaths.addToPlaylistScreen,
         builder: (context, state) => const AddToPlaylistScreen(),
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
           builder: (context, state, navigationShell) =>
               GlobalFooter(navigationShell: navigationShell),
+          navigatorContainerBuilder: (context, navigationShell, children) =>
+              ShellBranchContainer(
+                currentIndex: navigationShell.currentIndex,
+                children: children,
+              ),
           branches: [
             StatefulShellBranch(routes: [
               GoRoute(

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -104,246 +102,225 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
         constraints: BoxConstraints(
           maxHeight: maxHeight,
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Default_Theme.themeColor.withValues(alpha: 0.96),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.05),
+        // An opaque surface instead of a BackdropFilter: the blur was hidden
+        // behind a 96% fill yet re-ran every frame of the open/drag animation.
+        child: Material(
+          color: Default_Theme.themeColor,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+          ),
+          child: Column(
+            // FIX: Ensure it only takes needed height so top taps can dismiss
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _Header(
+                onClose: () => Navigator.pop(context),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                child: SongCardWidget(
+                  song: song,
+                  showOptions: false,
+                  showCopyBtn: true,
+                  showInfoBtn: true,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.30),
-                    blurRadius: 24,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
               ),
-              child: Column(
-                // FIX: Ensure it only takes needed height so top taps can dismiss
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _Header(
-                    onClose: () => Navigator.pop(context),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-                    child: SongCardWidget(
-                      song: song,
-                      showOptions: false,
-                      showCopyBtn: true,
-                      showInfoBtn: true,
-                    ),
-                  ),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (showSinglePlay ||
-                              showPlayNext ||
-                              showAddToQueue) ...[
-                            _ActionRow(
-                              children: [
-                                if (showSinglePlay)
-                                  _ActionButton(
-                                    icon: MingCute.play_circle_fill,
-                                    label: l10n.playerPlayWithMix,
-                                    accent:
-                                        Theme.of(context).colorScheme.primary,
-                                    onTap: (ctx) {
-                                      ctx
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .updateQueueTracks([song],
-                                              doPlay: true);
-                                      Navigator.pop(ctx);
-                                      SnackbarService.showMessage(
-                                          l10n.snackbarNowPlaying(song.title));
-                                    },
-                                  ),
-                                if (showPlayNext)
-                                  _ActionButton(
-                                    icon: MingCute.square_arrow_right_line,
-                                    label: l10n.playerPlayNext,
-                                    accent:
-                                        Theme.of(context).colorScheme.tertiary,
-                                    onTap: (ctx) {
-                                      ctx
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .addPlayNextTrack(song);
-                                      Navigator.pop(ctx);
-                                      SnackbarService.showMessage(
-                                          l10n.snackbarAddedToNextQueue);
-                                    },
-                                  ),
-                                if (showAddToQueue)
-                                  _ActionButton(
-                                    icon: MingCute.playlist_2_line,
-                                    label: l10n.playerAddToQueue,
-                                    accent:
-                                        Theme.of(context).colorScheme.secondary,
-                                    onTap: (ctx) {
-                                      ctx
-                                          .read<BloomeePlayerCubit>()
-                                          .bloomeePlayer
-                                          .addQueueTracks([song]);
-                                      Navigator.pop(ctx);
-                                      SnackbarService.showMessage(
-                                          l10n.snackbarAddedToQueue);
-                                    },
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                          ],
-                          _CompactTile(
-                            icon: MingCute.heart_line,
-                            title: l10n.playerAddToFavorites,
-                            onTap: (ctx) {
-                              ctx
-                                  .read<LibraryItemsCubit>()
-                                  .setTrackLiked(song, true);
-                              Navigator.pop(ctx);
-                              SnackbarService.showMessage(
-                                  l10n.snackbarAddedToLiked(song.title));
-                            },
-                          ),
-                          _CompactTile(
-                            icon: MingCute.add_circle_line,
-                            title: l10n.menuAddToPlaylist,
-                            onTap: (ctx) {
-                              final router = GoRouter.of(ctx);
-                              ctx.read<AddToPlaylistCubit>().setTrack(song);
-                              Navigator.pop(ctx);
-                              router.pushNamed(RoutePaths.addToPlaylistScreen);
-                            },
-                          ),
-                          _CompactTile(
-                            icon: MingCute.search_2_line,
-                            title: l10n.menuSmartReplace,
-                            onTap: (ctx) {
-                              Navigator.pop(ctx);
-                              showSmartReplaceDialog(parentContext, song);
-                            },
-                          ),
-
-                          // FIX: Moved Metadata Refresh here to blend flawlessly into the UI
-                          _CompactTile(
-                            icon: MingCute.refresh_3_line,
-                            title: l10n.songInfoUpdateMetadata,
-                            onTap: (ctx) async {
-                              final player =
-                                  ctx.read<BloomeePlayerCubit>().bloomeePlayer;
-                              Navigator.pop(ctx);
-
-                              final result =
-                                  await SongMetadataRefreshService.refreshTrack(
-                                song,
-                                player: player,
-                              );
-
-                              if (result.isSuccess) {
-                                SnackbarService.showMessage(
-                                    l10n.songInfoMetadataUpdated);
-                              } else if (result.status ==
-                                      SongMetadataRefreshStatus
-                                          .pluginUnavailable ||
-                                  result.status ==
-                                      SongMetadataRefreshStatus
-                                          .invalidMediaId) {
-                                SnackbarService.showMessage(
-                                    l10n.songInfoMetadataUnavailable);
-                              } else {
-                                SnackbarService.showMessage(
-                                    l10n.songInfoMetadataUpdateFailed);
-                              }
-                            },
-                          ),
-
-                          const SizedBox(height: 8),
-                          BlocBuilder<DownloaderCubit, DownloaderState>(
-                            builder: (ctx, state) {
-                              final isDownloaded = ctx
-                                  .read<DownloaderCubit>()
-                                  .isDownloaded(song.id);
-                              return _CompactTile(
-                                icon: isDownloaded
-                                    ? Icons.offline_pin_rounded
-                                    : MingCute.download_2_line,
-                                title: isDownloaded
-                                    ? l10n.menuAvailableOffline
-                                    : l10n.menuDownload,
-                                iconColor: isDownloaded ? Colors.green : null,
-                                onTap: (sheetCtx) {
-                                  if (!isDownloaded) {
-                                    sheetCtx
-                                        .read<DownloaderCubit>()
-                                        .downloadSong(song);
-                                  }
-                                  Navigator.pop(sheetCtx);
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (showSinglePlay || showPlayNext || showAddToQueue) ...[
+                        _ActionRow(
+                          children: [
+                            if (showSinglePlay)
+                              _ActionButton(
+                                icon: MingCute.play_circle_fill,
+                                label: l10n.playerPlayWithMix,
+                                accent: Theme.of(context).colorScheme.primary,
+                                onTap: (ctx) {
+                                  ctx
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .updateQueueTracks([song], doPlay: true);
+                                  Navigator.pop(ctx);
+                                  SnackbarService.showMessage(
+                                      l10n.snackbarNowPlaying(song.title));
                                 },
-                              );
-                            },
-                          ),
-                          _CompactTile(
-                            icon: MingCute.share_forward_line,
-                            title: l10n.menuShare,
-                            onTap: (ctx) {
-                              Navigator.pop(ctx);
-                              SnackbarService.showMessage(
-                                  l10n.menuSharePreparing(song.title));
-                              if (song.url?.isNotEmpty ?? false) {
-                                SharePlus.instance.share(
-                                  ShareParams(
-                                      text: song.url!, subject: song.title),
-                                );
-                              }
-                            },
-                          ),
-                          _CompactTile(
-                            icon: MingCute.external_link_line,
-                            title: l10n.menuOpenOriginalLink,
-                            onTap: (ctx) async {
-                              Navigator.pop(ctx);
-                              if (song.url?.isEmpty ?? true) return;
-                              try {
-                                await launchUrl(
-                                  Uri.parse(song.url!),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              } catch (_) {
-                                SnackbarService.showMessage(
-                                    l10n.menuOpenLinkFailed);
-                              }
-                            },
-                          ),
-                          if (showDelete) ...[
-                            const SizedBox(height: 8),
-                            _CompactTile(
-                              icon: MingCute.delete_2_line,
-                              title: l10n.menuDeleteTrack,
-                              iconColor: Theme.of(context).colorScheme.error,
-                              titleColor: Theme.of(context).colorScheme.error,
-                              onTap: (ctx) {
-                                Navigator.pop(ctx);
-                                onDelete?.call();
-                              },
-                            ),
+                              ),
+                            if (showPlayNext)
+                              _ActionButton(
+                                icon: MingCute.square_arrow_right_line,
+                                label: l10n.playerPlayNext,
+                                accent: Theme.of(context).colorScheme.tertiary,
+                                onTap: (ctx) {
+                                  ctx
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .addPlayNextTrack(song);
+                                  Navigator.pop(ctx);
+                                  SnackbarService.showMessage(
+                                      l10n.snackbarAddedToNextQueue);
+                                },
+                              ),
+                            if (showAddToQueue)
+                              _ActionButton(
+                                icon: MingCute.playlist_2_line,
+                                label: l10n.playerAddToQueue,
+                                accent: Theme.of(context).colorScheme.secondary,
+                                onTap: (ctx) {
+                                  ctx
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .addQueueTracks([song]);
+                                  Navigator.pop(ctx);
+                                  SnackbarService.showMessage(
+                                      l10n.snackbarAddedToQueue);
+                                },
+                              ),
                           ],
-                        ],
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      _CompactTile(
+                        icon: MingCute.heart_line,
+                        title: l10n.playerAddToFavorites,
+                        onTap: (ctx) {
+                          ctx
+                              .read<LibraryItemsCubit>()
+                              .setTrackLiked(song, true);
+                          Navigator.pop(ctx);
+                          SnackbarService.showMessage(
+                              l10n.snackbarAddedToLiked(song.title));
+                        },
                       ),
-                    ),
+                      _CompactTile(
+                        icon: MingCute.add_circle_line,
+                        title: l10n.menuAddToPlaylist,
+                        onTap: (ctx) {
+                          final router = GoRouter.of(ctx);
+                          ctx.read<AddToPlaylistCubit>().setTrack(song);
+                          Navigator.pop(ctx);
+                          router.pushNamed(RoutePaths.addToPlaylistScreen);
+                        },
+                      ),
+                      _CompactTile(
+                        icon: MingCute.search_2_line,
+                        title: l10n.menuSmartReplace,
+                        onTap: (ctx) {
+                          Navigator.pop(ctx);
+                          showSmartReplaceDialog(parentContext, song);
+                        },
+                      ),
+
+                      // FIX: Moved Metadata Refresh here to blend flawlessly into the UI
+                      _CompactTile(
+                        icon: MingCute.refresh_3_line,
+                        title: l10n.songInfoUpdateMetadata,
+                        onTap: (ctx) async {
+                          final player =
+                              ctx.read<BloomeePlayerCubit>().bloomeePlayer;
+                          Navigator.pop(ctx);
+
+                          final result =
+                              await SongMetadataRefreshService.refreshTrack(
+                            song,
+                            player: player,
+                          );
+
+                          if (result.isSuccess) {
+                            SnackbarService.showMessage(
+                                l10n.songInfoMetadataUpdated);
+                          } else if (result.status ==
+                                  SongMetadataRefreshStatus.pluginUnavailable ||
+                              result.status ==
+                                  SongMetadataRefreshStatus.invalidMediaId) {
+                            SnackbarService.showMessage(
+                                l10n.songInfoMetadataUnavailable);
+                          } else {
+                            SnackbarService.showMessage(
+                                l10n.songInfoMetadataUpdateFailed);
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 8),
+                      BlocBuilder<DownloaderCubit, DownloaderState>(
+                        builder: (ctx, state) {
+                          final isDownloaded =
+                              ctx.read<DownloaderCubit>().isDownloaded(song.id);
+                          return _CompactTile(
+                            icon: isDownloaded
+                                ? Icons.offline_pin_rounded
+                                : MingCute.download_2_line,
+                            title: isDownloaded
+                                ? l10n.menuAvailableOffline
+                                : l10n.menuDownload,
+                            iconColor: isDownloaded ? Colors.green : null,
+                            onTap: (sheetCtx) {
+                              if (!isDownloaded) {
+                                sheetCtx
+                                    .read<DownloaderCubit>()
+                                    .downloadSong(song);
+                              }
+                              Navigator.pop(sheetCtx);
+                            },
+                          );
+                        },
+                      ),
+                      _CompactTile(
+                        icon: MingCute.share_forward_line,
+                        title: l10n.menuShare,
+                        onTap: (ctx) {
+                          Navigator.pop(ctx);
+                          SnackbarService.showMessage(
+                              l10n.menuSharePreparing(song.title));
+                          if (song.url?.isNotEmpty ?? false) {
+                            SharePlus.instance.share(
+                              ShareParams(text: song.url!, subject: song.title),
+                            );
+                          }
+                        },
+                      ),
+                      _CompactTile(
+                        icon: MingCute.external_link_line,
+                        title: l10n.menuOpenOriginalLink,
+                        onTap: (ctx) async {
+                          Navigator.pop(ctx);
+                          if (song.url?.isEmpty ?? true) return;
+                          try {
+                            await launchUrl(
+                              Uri.parse(song.url!),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } catch (_) {
+                            SnackbarService.showMessage(
+                                l10n.menuOpenLinkFailed);
+                          }
+                        },
+                      ),
+                      if (showDelete) ...[
+                        const SizedBox(height: 8),
+                        _CompactTile(
+                          icon: MingCute.delete_2_line,
+                          title: l10n.menuDeleteTrack,
+                          iconColor: Theme.of(context).colorScheme.error,
+                          titleColor: Theme.of(context).colorScheme.error,
+                          onTap: (ctx) {
+                            Navigator.pop(ctx);
+                            onDelete?.call();
+                          },
+                        ),
+                      ],
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

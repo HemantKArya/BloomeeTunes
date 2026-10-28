@@ -43,9 +43,18 @@ File? _resolveLocalImageFile(String? url) {
 
   if (path == null || path.isEmpty) return null;
 
+  // This runs during build, so avoid hitting the disk on every rebuild.
+  // Only hits are cached: a missing file may appear later (e.g. a finished
+  // download), and a deleted one falls back via Image.file's errorBuilder.
+  if (_existingLocalPaths.contains(path)) return File(path);
   final file = File(path);
-  return file.existsSync() ? file : null;
+  if (!file.existsSync()) return null;
+  if (_existingLocalPaths.length >= 2000) _existingLocalPaths.clear();
+  _existingLocalPaths.add(path);
+  return file;
 }
+
+final Set<String> _existingLocalPaths = <String>{};
 
 Widget _placeholderImage(String placeholderPath, BoxFit fit) {
   return Image(
@@ -166,7 +175,7 @@ class _LoadImageCachedState extends State<LoadImageCached> {
   /// for efficient memory usage while maintaining sharpness.
   int? get _memCacheWidth {
     if (widget.width == null) return 500; // sensible default
-    final dpr = MediaQuery.of(context).devicePixelRatio;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
     return (widget.width! * dpr).ceil().clamp(100, 1500);
   }
 

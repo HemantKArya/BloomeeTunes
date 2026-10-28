@@ -367,6 +367,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             playlistDao: playlistDao,
             libraryDao: LibraryDAO(DBProvider.db),
           ),
+          // Preload so the first Library tab open renders instantly.
+          lazy: false,
         ),
         BlocProvider(
           create: (context) => ContentImportCubit(),
@@ -445,6 +447,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             );
           } else {
             return BlocBuilder<SettingsCubit, SettingsState>(
+              // Only the locale is read here; rebuilding the whole app on
+              // every settings write (e.g. picking a search plugin) stutters.
+              buildWhen: (prev, curr) => prev.languageCode != curr.languageCode,
               builder: (context, settingsState) {
                 final locale =
                     localeForLanguageCode(settingsState.languageCode);

@@ -497,18 +497,22 @@ class _EditorialHeroMasthead extends StatelessWidget {
             // Background image
             if (imgUrl.isNotEmpty)
               Positioned.fill(
-                child: LoadImageCached(
-                  imageUrl: imgUrl,
-                  fallbackUrl: imgUrl,
-                  fit: BoxFit.cover,
+                // Blur the image itself (cacheable) instead of a
+                // BackdropFilter, which re-blurs on every scroll frame.
+                child: RepaintBoundary(
+                  child: ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
+                    child: LoadImageCached(
+                      imageUrl: imgUrl,
+                      fallbackUrl: imgUrl,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ),
-            // Heavy blur overlay
+            // Darkening overlay
             Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
-                child: Container(color: Colors.black.withValues(alpha: 0.35)),
-              ),
+              child: Container(color: Colors.black.withValues(alpha: 0.35)),
             ),
             // Gradient fade to theme color
             Positioned.fill(

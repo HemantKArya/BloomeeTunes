@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:ui';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/lyrics/lyrics_cubit.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
@@ -593,72 +592,68 @@ class _LyricsPreviewModalState extends State<_LyricsPreviewModal> {
           // Glassy Header
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
-                decoration: BoxDecoration(
-                  color: Default_Theme.primaryColor1.withValues(alpha: 0.02),
-                  border: Border(
-                      bottom: BorderSide(
-                          color: Default_Theme.primaryColor1
-                              .withValues(alpha: 0.08))),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color:
-                            Default_Theme.primaryColor1.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
+              decoration: BoxDecoration(
+                color: Default_Theme.primaryColor1.withValues(alpha: 0.02),
+                border: Border(
+                    bottom: BorderSide(
+                        color: Default_Theme.primaryColor1
+                            .withValues(alpha: 0.08))),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Default_Theme.primaryColor1.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.lyricsSearchPreview,
-                                style: TextStyle(
-                                  color: Default_Theme.accentColor2
-                                      .withValues(alpha: 0.8),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.2,
-                                ),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.lyricsSearchPreview,
+                              style: TextStyle(
+                                color: Default_Theme.accentColor2
+                                    .withValues(alpha: 0.8),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.2,
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                widget.match.title,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.95),
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.2,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.match.title,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.95),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.2,
                               ),
-                            ],
-                          ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: Icon(MingCute.close_fill,
-                              color: Default_Theme.primaryColor1
-                                  .withValues(alpha: 0.6),
-                              size: 24),
-                          onPressed: () => Navigator.pop(context),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      IconButton(
+                        icon: Icon(MingCute.close_fill,
+                            color: Default_Theme.primaryColor1
+                                .withValues(alpha: 0.6),
+                            size: 24),
+                        onPressed: () => Navigator.pop(context),
+                      )
+                    ],
+                  ),
+                ],
               ),
             ),
           ),

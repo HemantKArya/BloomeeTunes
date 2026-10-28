@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
 import 'package:flutter/material.dart';
@@ -97,36 +96,33 @@ class BloomeeDialogSurface extends StatelessWidget {
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-          child: Container(
-            constraints: BoxConstraints(maxWidth: maxW),
-            decoration: BoxDecoration(
-              color: _kDialogBg.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _kDialogBorder, width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 32,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _header(),
-                if (body != null)
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                      child: body!,
-                    ),
+        child: Container(
+          constraints: BoxConstraints(maxWidth: maxW),
+          decoration: BoxDecoration(
+            color: _kDialogBg,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _kDialogBorder, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 32,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _header(),
+              if (body != null)
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                    child: body!,
                   ),
-                if (actions != null && actions!.isNotEmpty) _actionBar(context),
-              ],
-            ),
+                ),
+              if (actions != null && actions!.isNotEmpty) _actionBar(context),
+            ],
           ),
         ),
       ),

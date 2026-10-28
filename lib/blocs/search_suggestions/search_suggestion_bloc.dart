@@ -43,9 +43,17 @@ class SearchSuggestionBloc
         );
         if (_isDisposed || emit.isDone || version != _fetchVersion) return;
 
+        // Keep the previous plugin suggestions on screen while the new ones
+        // load, so the list doesn't collapse and re-expand on every keystroke.
+        final previous = state;
         emit(SearchSuggestionLoaded(
-          const [],
+          previous is SearchSuggestionLoaded
+              ? _dedupePluginQueries(previous.suggestionList, pastSearches)
+              : const [],
           pastSearches,
+          entitySuggestionList: previous is SearchSuggestionLoaded
+              ? previous.entitySuggestionList
+              : const [],
           isPluginLoading: true,
         ));
 
@@ -122,10 +130,12 @@ class SearchSuggestionBloc
         );
       }
 
-      final response = await _pluginService.execute(
-        pluginId: pluginId,
-        request: request,
-      ).timeout(const Duration(seconds: 5));
+      final response = await _pluginService
+          .execute(
+            pluginId: pluginId,
+            request: request,
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (response is PluginResponse_Suggestions) {
         final queries = <String>[];

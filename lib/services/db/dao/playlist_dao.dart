@@ -256,6 +256,18 @@ class PlaylistDAO {
     return isar.playlistEntryDBs.filter().playlistIdEqualTo(playlistId).count();
   }
 
+  /// Return the first track (by position) of [playlistId], or null if empty.
+  Future<TrackDB?> getFirstPlaylistTrack(int playlistId) async {
+    final isar = await _db;
+    final entry = await isar.playlistEntryDBs
+        .where()
+        .playlistIdEqualToAnyPosition(playlistId)
+        .findFirst();
+    if (entry == null) return null;
+    await entry.track.load();
+    return entry.track.value;
+  }
+
   /// Return an ordered page of tracks for [playlistId].
   ///
   /// [offset] and [limit] are zero-based and bounded by Isar query paging.
