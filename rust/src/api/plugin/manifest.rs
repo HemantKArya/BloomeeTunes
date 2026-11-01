@@ -367,7 +367,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_manifest_with_invalid_version() {
+    fn parses_future_manifest_for_inspection() {
         let json = r#"{
             "manifest_version": "2.0",
             "id": "com.example.plugin",
@@ -379,7 +379,10 @@ mod tests {
         }"#;
 
         let manifest: Manifest = serde_json::from_str(json).expect("manifest should parse");
-        assert!(manifest.validate().is_err());
+        assert_eq!(manifest.manifest_version, 2);
+        // Structural validation intentionally permits inspecting future
+        // manifests. plugin_unpacker checks host compatibility at installation.
+        manifest.validate().expect("future manifest should be inspectable");
     }
 
     #[test]

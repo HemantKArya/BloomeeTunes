@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:Bloomee/services/download/download_storage.dart';
 
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
 import 'package:Bloomee/services/plugin/plugin_service.dart';
@@ -102,6 +103,10 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   }
 
   Future<Directory> _getDownloadDirectory() async {
+    final saved = await _settingsDao.getSettingStr(SettingKeys.downPathSetting);
+    if (saved != null && saved.isNotEmpty) {
+      return DownloadStorage.prepareDirectory(saved);
+    }
     if (Platform.isAndroid || Platform.isIOS) {
       final directory = (await getDownloadsDirectory()) ??
           await getApplicationDocumentsDirectory();
@@ -164,6 +169,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   }
 
   void _emitUpdatedState() {
+    if (isClosed) return;
     emit(DownloaderTasksUpdated(
       List.from(_activeDownloads),
       List.from(_downloadedSongs),
@@ -258,7 +264,7 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       final fileName = snapshot.fileName.isNotEmpty
           ? snapshot.fileName
           : path.basename(filePath);
-      final downloadDirectory = path.dirname(filePath);
+      final downloadDirectory = await DownloadStorage.publish(filePath);
 
       await _downloadRepo.saveDownload(
         fileName: fileName,
@@ -267,6 +273,12 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         track: snapshot.track,
       );
       await _downloadService.acknowledgePersisted(snapshot.taskId);
+      try {
+        await DownloadStorage.cleanStaging(filePath);
+      } catch (error) {
+        log('Could not clean download staging: $error',
+            name: 'DownloaderCubit');
+      }
       SnackbarService.showMessage('Downloaded ${snapshot.track.title}');
       await _loadDownloadedSongs();
     } catch (error, stackTrace) {
@@ -276,6 +288,18 @@ class DownloaderCubit extends Cubit<DownloaderState> {
         error: error,
         stackTrace: stackTrace,
       );
+      final index = _activeDownloads
+          .indexWhere((item) => item.task.taskId == snapshot.taskId);
+      if (index >= 0) {
+        _activeDownloads[index] = DownloadProgress(
+          task: _activeDownloads[index].task,
+          status: DownloadStatus(
+              state: DownloadState.failed,
+              progress: 1,
+              message: 'Could not save download: $error'),
+        );
+        _emitUpdatedState();
+      }
       SnackbarService.showMessage(
         'Downloaded file is ready, but saving it to the library failed.',
       );
@@ -365,15 +389,13 @@ class DownloaderCubit extends Cubit<DownloaderState> {
   Future<bool> _isAlreadyDownloaded(Track song) async {
     final dbRecord = await _downloadRepo.getDownload(song.id);
     if (dbRecord != null) {
-      final file = File(path.join(dbRecord.filePath, dbRecord.fileName));
-      if (await file.exists()) {
+      if (await DownloadStorage.exists(dbRecord.filePath, dbRecord.fileName)) {
         log("${song.title} is already downloaded and file exists.",
             name: "DownloaderCubit");
         return true;
       } else {
-        log("Stale DB record found for ${song.title}. Removing.",
+        log("Downloaded file unavailable for ${song.title}.",
             name: "DownloaderCubit");
-        await _downloadRepo.removeDownload(song.id);
         return false;
       }
     }
@@ -424,13 +446,12 @@ class DownloaderCubit extends Cubit<DownloaderState> {
       return;
     }
 
-    final directory = await _getDownloadDirectory();
-
     if (showSnackbar) {
       SnackbarService.showMessage("Preparing download for ${song.title}...");
     }
 
     try {
+      final directory = await _getDownloadDirectory();
       final storedQuality = await _settingsDao.getSettingStr(
         SettingKeys.downQuality,
         defaultValue: 'Medium',
@@ -467,6 +488,13 @@ class DownloaderCubit extends Cubit<DownloaderState> {
 
   Future<void> resumeDownload(String taskId) async {
     await _ensureDownloadServiceReady();
+    final snapshot = (await _downloadService.getSnapshots())
+        .where((item) => item.taskId == taskId)
+        .firstOrNull;
+    if (snapshot?.state == DownloadTaskState.completedPendingAck) {
+      await _persistCompletedSnapshot(snapshot!);
+      return;
+    }
     await _downloadService.resume(taskId);
   }
 

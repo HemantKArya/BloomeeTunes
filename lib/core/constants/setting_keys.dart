@@ -45,7 +45,6 @@ class SettingKeys {
   static const String downQuality = "downloadQuality";
 
   // ── Backup ──────────────────────────────────────────────────────────────────
-  static const String backupPath = "backupPath";
   static const String autoBackup = "autoBackup";
 
   /// ISO 8601 UTC timestamp of the most recent completed backup.

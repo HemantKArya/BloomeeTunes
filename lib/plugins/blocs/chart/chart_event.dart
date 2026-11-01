@@ -26,18 +26,6 @@ class ForceRefreshChartDetails extends ChartEvent {
   });
 }
 
-/// Silently prefetch chart details for a set of visible charts.
-///
-/// Runs in the background — no state emissions. Only fills the cache.
-class PrefetchAllChartDetails extends ChartEvent {
-  final String pluginId;
-  final Set<String> chartIds;
-  const PrefetchAllChartDetails({
-    required this.pluginId,
-    required this.chartIds,
-  });
-}
-
 /// Set the active chart provider plugin.
 class SetActiveChartPlugin extends ChartEvent {
   final String pluginId;

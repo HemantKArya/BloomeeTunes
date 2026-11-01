@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/equalizer_labels.dart';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
@@ -119,8 +120,8 @@ class PlayerSettings extends StatelessWidget {
                     icon: Icons.equalizer_rounded,
                     title: l10n.playerSettingEqualizer,
                     subtitle: state.eqEnabled
-                        ? l10n
-                            .playerSettingEqualizerActivePreset(state.eqPreset)
+                        ? l10n.playerSettingEqualizerActivePreset(
+                            equalizerPresetLabel(l10n, state.eqPreset))
                         : l10n.playerSettingEqualizerSubtitle,
                     badge: state.eqEnabled
                         ? l10n.playerSettingEqualizerActive

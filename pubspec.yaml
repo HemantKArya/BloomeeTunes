@@ -3,13 +3,10 @@ description: An Open source Free Music Player.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 3.0.4+0
+version: 3.1.0+0
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
-
-# isar version for community fork of isar (temporary)
-# isar_version: &isar_version 3.3.0-dev.3 
 
 dependencies:
   flutter:
@@ -20,7 +17,8 @@ dependencies:
 
   device_info_plus: ^12.1.0
   equatable: ^2.0.7
-  icons_plus: ^5.0.0
+  icons_plus:
+    path: packages/icons_plus
   cached_network_image: ^3.4.1
   flutter_bloc: ^9.1.1
   bloc: ^9.0.0
@@ -37,9 +35,9 @@ dependencies:
   easy_debounce: ^2.0.3
 
   isar_community: 
-    version: ^3.3.0-dev.3
+    version: ^3.4.1
   isar_community_flutter_libs: # contains Isar Core
-    version: ^3.3.0-dev.3
+    version: ^3.4.1
 
   path_provider: ^2.1.0
   path: ^1.9.0
@@ -47,19 +45,17 @@ dependencies:
   html_unescape: ^2.0.0
   marquee: ^2.2.3
   string_similarity: ^2.0.0
-  package_info_plus: ^9.0.0
+  package_info_plus: ^9.0.1
   url_launcher: ^6.3.2
   badges: ^3.1.2
   flutter_displaymode: ^0.6.0
   country_codes: ^3.3.0
   connectivity_plus: ^7.0.0
-  share_plus: ^12.0.0
+  share_plus: ^12.0.2
   file_picker: ^10.3.3
   fuzzywuzzy: ^1.2.0
   numberpicker: ^2.1.2
   permission_handler: ^12.0.1
-  share_handler: ^0.0.25
-  sliding_up_panel: ^2.0.0+1
   responsive_framework: ^1.5.1
   scrollable_positioned_list: ^0.3.8
   crypto: ^3.0.5
@@ -69,8 +65,8 @@ dependencies:
 
 
   # audio service dependencies
-  audio_service: ^0.18.18
-  audio_session: ^0.2.3
+  audio_service: ^0.18.19
+  audio_session: ^0.2.4
   media_kit: ^1.2.6 
   media_kit_libs_audio: ^1.0.7 
   audio_service_mpris: ^0.2.0
@@ -93,7 +89,7 @@ dev_dependencies:
   flutter_lints: ^2.0.3
 
   isar_community_generator: 
-    version: ^3.3.0-dev.3
+    version: ^3.4.1
     
   build_runner: ^2.7.1
   flutter_launcher_icons: ^0.14.4

@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
@@ -70,7 +71,7 @@ class PluginSelectorBar extends StatelessWidget {
               if (showAllOption && index == 0) {
                 final isActive = activePluginId == null;
                 return _PluginChip(
-                  label: 'All',
+                  label: AppLocalizations.of(context)!.pluginManagerFilterAll,
                   isActive: isActive,
                   onTap: onAllSelected ?? () {},
                 );

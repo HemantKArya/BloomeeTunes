@@ -53,18 +53,19 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
         ? CountryInfoService.defaultCountryCode
         : storedCountry;
 
-    final supportedCodes = AppLocalizations.supportedLocales
-        .map((locale) => locale.languageCode)
-        .toSet();
+    final supportedCodes =
+        buildLanguageOptions().map((option) => option.code).toSet();
     final normalizedLang =
-        lang.isEmpty || supportedCodes.contains(lang) ? lang : '';
+        supportedCodes.contains(localeForLanguageCode(lang)?.toString())
+            ? localeForLanguageCode(lang)!.toString()
+            : '';
 
     if (!mounted) return;
     setState(() {
       _selectedLang = normalizedLang;
       _selectedCountry = country;
       _autoDetectCountry = auto;
-      _currentLocale = normalizedLang.isEmpty ? null : Locale(normalizedLang);
+      _currentLocale = localeForLanguageCode(normalizedLang);
     });
 
     // Improve first guess quickly without network delay.
@@ -96,7 +97,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
     if (val == null) return;
     setState(() {
       _selectedLang = val;
-      _currentLocale = val.isEmpty ? null : Locale(val);
+      _currentLocale = localeForLanguageCode(val);
     });
     _settingsDao.putSettingStr(SettingKeys.languageCode, val);
   }

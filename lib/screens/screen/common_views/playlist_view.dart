@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'dart:ui';
 
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
@@ -300,12 +301,13 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                   ),
                 )
               else if (status == DetailStatus.loaded)
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.only(top: 80, bottom: 120),
+                    padding: const EdgeInsets.only(top: 80, bottom: 120),
                     child: Center(
                         child: SignBoardWidget(
-                            message: 'No tracks available',
+                            message:
+                                AppLocalizations.of(context)!.emptyNoTracks,
                             icon: MingCute.music_2_line)),
                   ),
                 )
@@ -315,7 +317,8 @@ class _OnlPlaylistViewState extends State<OnlPlaylistView> {
                     padding: const EdgeInsets.only(top: 80, bottom: 120),
                     child: Center(
                       child: Text(
-                        state.error ?? 'Failed to load playlist',
+                        state.error ??
+                            AppLocalizations.of(context)!.playlistFailedToLoad,
                         style: TextStyle(
                                 color: Default_Theme.primaryColor1
                                     .withValues(alpha: 0.5))
@@ -523,16 +526,19 @@ class _PlaylistHeaderContent extends StatelessWidget {
           icon:
               isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
           isActive: isSaved,
-          tooltip: isSaved ? 'Remove from Library' : 'Save to Library',
+          tooltip: isSaved
+              ? AppLocalizations.of(context)!.tooltipRemoveFromLibrary
+              : AppLocalizations.of(context)!.tooltipSaveToLibrary,
           onTap: onToggleSave,
         ),
         if (url != null)
           _PremiumCircularButton(
             icon: MingCute.external_link_line,
             isActive: false,
-            tooltip: 'Open Original Link',
+            tooltip: AppLocalizations.of(context)!.tooltipOpenOriginalLink,
             onTap: () {
-              SnackbarService.showMessage('Opening original playlist page.');
+              SnackbarService.showMessage(
+                  AppLocalizations.of(context)!.snackbarOpeningPlaylistPage);
               launchUrl(Uri.parse(url!), mode: LaunchMode.externalApplication);
             },
           ),
@@ -563,14 +569,14 @@ class _PremiumPlayButton extends StatelessWidget {
             color: Default_Theme.accentColor2.withValues(alpha: 0.1),
             border: Border.all(color: Default_Theme.accentColor2, width: 1.5),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(MingCute.play_fill,
                   size: 20, color: Default_Theme.accentColor2),
               SizedBox(width: 8),
-              Text('Play',
+              Text(AppLocalizations.of(context)!.playlistPlay,
                   style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,

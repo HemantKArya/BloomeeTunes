@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'dart:ui';
 import 'package:Bloomee/services/shortcut_indicator_service.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -250,13 +251,17 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
 
       case ShortcutIndicatorType.mute:
         final isMuted = widget.state.isMuted ?? false;
-        label = isMuted ? 'Muted' : 'Unmuted';
+        label = isMuted
+            ? AppLocalizations.of(context)!.shortcutMuted
+            : AppLocalizations.of(context)!.shortcutUnmuted;
         if (!isMuted) labelColor = Default_Theme.accentColor2;
         break;
 
       case ShortcutIndicatorType.shuffle:
         final isOn = widget.state.isShuffleOn ?? false;
-        label = isOn ? 'Shuffle On' : 'Shuffle Off';
+        label = isOn
+            ? AppLocalizations.of(context)!.shortcutShuffleOn
+            : AppLocalizations.of(context)!.shortcutShuffleOff;
         if (isOn) labelColor = Default_Theme.accentColor2;
         break;
 
@@ -264,14 +269,14 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
         final mode = widget.state.loopMode ?? LoopMode.off;
         switch (mode) {
           case LoopMode.off:
-            label = 'Repeat Off';
+            label = AppLocalizations.of(context)!.shortcutRepeatOff;
             break;
           case LoopMode.one:
-            label = 'Repeat One';
+            label = AppLocalizations.of(context)!.playerLoopOne;
             labelColor = Default_Theme.accentColor2;
             break;
           case LoopMode.all:
-            label = 'Repeat All';
+            label = AppLocalizations.of(context)!.playerLoopAll;
             labelColor = Default_Theme.accentColor2;
             break;
         }
@@ -279,7 +284,9 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
 
       case ShortcutIndicatorType.like:
         final isLiked = widget.state.isLiked ?? false;
-        label = isLiked ? 'Liked' : 'Unliked';
+        label = isLiked
+            ? AppLocalizations.of(context)!.shortcutLiked
+            : AppLocalizations.of(context)!.shortcutUnliked;
         if (isLiked) labelColor = Default_Theme.accentColor2;
         break;
     }
@@ -289,6 +296,7 @@ class _ShortcutIndicatorState extends State<_ShortcutIndicator>
       child: Text(
         label,
         key: ValueKey<String>(label),
+        textAlign: TextAlign.center,
         style: Default_Theme.secondoryTextStyleMedium.copyWith(
           fontSize: 15,
           fontWeight: FontWeight.w700,

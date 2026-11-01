@@ -8,7 +8,6 @@ class SettingsState extends Equatable {
   final String downPath;
   final String downQuality;
   final String strmQuality;
-  final String backupPath;
   final bool autoBackup;
   final String historyClearTime;
   final bool autoGetCountry;
@@ -42,7 +41,6 @@ class SettingsState extends Equatable {
     required this.downPath,
     required this.downQuality,
     required this.strmQuality,
-    required this.backupPath,
     required this.autoBackup,
     required this.historyClearTime,
     required this.autoGetCountry,
@@ -73,7 +71,6 @@ class SettingsState extends Equatable {
     String? downPath,
     String? downQuality,
     String? strmQuality,
-    String? backupPath,
     bool? autoBackup,
     String? historyClearTime,
     bool? autoGetCountry,
@@ -103,7 +100,6 @@ class SettingsState extends Equatable {
       downPath: downPath ?? this.downPath,
       downQuality: downQuality ?? this.downQuality,
       strmQuality: strmQuality ?? this.strmQuality,
-      backupPath: backupPath ?? this.backupPath,
       autoBackup: autoBackup ?? this.autoBackup,
       historyClearTime: historyClearTime ?? this.historyClearTime,
       autoGetCountry: autoGetCountry ?? this.autoGetCountry,
@@ -143,7 +139,6 @@ class SettingsState extends Equatable {
         downPath,
         downQuality,
         strmQuality,
-        backupPath,
         autoBackup,
         historyClearTime,
         autoGetCountry,
@@ -177,7 +172,6 @@ class SettingsInitial extends SettingsState {
           downPath: "",
           downQuality: "Medium",
           strmQuality: "High",
-          backupPath: "",
           autoBackup: true,
           historyClearTime: "30",
           autoGetCountry: true,

@@ -62,6 +62,7 @@ analysis_benchmark.json
 .pub-cache/
 .pub/
 build/
+/untranslated-messages.json
 flutter_*.png
 linked_*.ds
 unlinked.ds
@@ -70,6 +71,7 @@ unlinked_spec.ds
 # Android related
 **/android/**/gradle-wrapper.jar
 .gradle/
+.kotlin/
 **/android/captures/
 **/android/gradlew
 **/android/gradlew.bat

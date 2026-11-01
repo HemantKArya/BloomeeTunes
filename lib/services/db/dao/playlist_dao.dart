@@ -5,6 +5,7 @@ import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/global_db.dart';
 import 'package:Bloomee/services/db/mappers/media_item_mapper.dart';
+import 'package:Bloomee/services/db/mappers/playlist_mapper.dart';
 import 'package:isar_community/isar.dart';
 
 /// DAO for playlist CRUD and position-based track ordering.
@@ -36,25 +37,19 @@ class PlaylistDAO {
   }) async {
     if (name.trim().isEmpty) return null;
     final isar = await _db;
-
-    final existing =
-        isar.playlistDBs.filter().nameEqualTo(name).findFirstSync();
-    if (existing != null) {
-      log('Playlist "$name" already exists (id: ${existing.id})',
-          name: 'PlaylistDAO');
-      return existing.id;
-    }
-
-    final playlist = PlaylistDB(
-      name: name,
-      subtitle: subtitle,
-      description: description,
-      thumbnail: thumbnail,
-      type: PlaylistTypeDB.userPlaylist,
-    );
-    final id = await isar.writeTxn(() => isar.playlistDBs.put(playlist));
-    log('Created playlist "$name" (id: $id)', name: 'PlaylistDAO');
-    return id;
+    return isar.writeTxnSync(() {
+      final existing = isar.playlistDBs
+          .filter()
+          .nameEqualTo(name, caseSensitive: false)
+          .findFirstSync();
+      if (existing != null) return existing.id;
+      return isar.playlistDBs.putSync(PlaylistDB(
+          name: name,
+          thumbnail: thumbnail,
+          description: description,
+          subtitle: subtitle,
+          type: PlaylistTypeDB.userPlaylist));
+    });
   }
 
   /// Insert or replace any [PlaylistDB] row (upsert by id).
@@ -67,8 +62,24 @@ class PlaylistDAO {
   /// Find a playlist by its case-insensitive [name] (unique index).
   Future<PlaylistDB?> getPlaylistByName(String name) async {
     final isar = await _db;
-    return isar.playlistDBs.filter().nameEqualTo(name).findFirst();
+    return isar.playlistDBs
+        .filter()
+        .nameEqualTo(name, caseSensitive: false)
+        .findFirst();
   }
+
+  Future<(int, Playlist)?> getPlaylistHeader(String name) async {
+    final row = await getPlaylistByName(name);
+    return row == null
+        ? null
+        : (row.id, playlistDBToPlaylist(row).copyWith(tracks: const []));
+  }
+
+  Future<List<Track>> loadTracksPage(int playlistId,
+          {required int offset, required int limit}) async =>
+      (await getPlaylistTracksPage(playlistId, offset: offset, limit: limit))
+          .map(trackDBToTrack)
+          .toList(growable: false);
 
   /// Find a playlist by Isar internal [id].
   Future<PlaylistDB?> getPlaylistById(int id) async {
@@ -108,7 +119,7 @@ class PlaylistDAO {
           .deleteAll();
       await isar.playlistDBs.delete(playlistId);
     });
-    _trackDAO.purgeOrphanTracks();
+    await _trackDAO.purgeOrphanTracks();
     log('Deleted playlist id=$playlistId', name: 'PlaylistDAO');
   }
 
@@ -145,56 +156,8 @@ class PlaylistDAO {
   /// (deduplication). Returns the new entry id, or null if already present.
   Future<int?> addTrackToPlaylist(int playlistId, Track track) async {
     final isar = await _db;
-    final trackId = await _trackDAO.upsertTrack(track);
-
-    return isar.writeTxn(() async {
-      final playlist = await isar.playlistDBs.get(playlistId);
-      if (playlist == null) {
-        log('addTrackToPlaylist: playlist $playlistId not found',
-            name: 'PlaylistDAO');
-        return null;
-      }
-
-      // Dedup check.
-      final existingEntry = await isar.playlistEntryDBs
-          .filter()
-          .playlistIdEqualTo(playlistId)
-          .and()
-          .track((q) => q.idEqualTo(trackId))
-          .findFirst();
-      if (existingEntry != null) {
-        log('Track ${track.id} already in playlist $playlistId',
-            name: 'PlaylistDAO');
-        return null;
-      }
-
-      // Compute next position.
-      final maxPosEntry = await isar.playlistEntryDBs
-          .filter()
-          .playlistIdEqualTo(playlistId)
-          .sortByPositionDesc()
-          .findFirst();
-      final nextPos = (maxPosEntry?.position ?? -1) + 1;
-
-      final trackObj = await isar.trackDBs.get(trackId);
-      if (trackObj == null) {
-        log('addTrackToPlaylist: track ${track.id} not found after upsert',
-            name: 'PlaylistDAO');
-        return null;
-      }
-
-      final entry = PlaylistEntryDB(playlistId: playlistId, position: nextPos)
-        ..playlist.value = playlist
-        ..track.value = trackObj;
-
-      final entryId = await isar.playlistEntryDBs.put(entry);
-      await entry.playlist.save();
-      await entry.track.save();
-
-      playlist.updatedAt = DateTime.now();
-      await isar.playlistDBs.put(playlist);
-      return entryId;
-    });
+    return isar
+        .writeTxnSync(() => addTrackInTransaction(isar, playlistId, track));
   }
 
   /// Convenience: Add track to playlist by name instead of ID.
@@ -212,97 +175,22 @@ class PlaylistDAO {
   ///
   /// Accepts domain [Track] models. Deduplicates automatically.
   Future<void> addTracksToPlaylist(int playlistId, List<Track> tracks) async {
-    if (tracks.isEmpty) return;
     final isar = await _db;
-    final trackIds = await _trackDAO.upsertTracks(tracks);
-
-    await isar.writeTxn(() async {
-      final playlist = await isar.playlistDBs.get(playlistId);
-      if (playlist == null) return;
-
-      final maxPosEntry = await isar.playlistEntryDBs
-          .filter()
-          .playlistIdEqualTo(playlistId)
-          .sortByPositionDesc()
-          .findFirst();
-      int nextPos = (maxPosEntry?.position ?? -1) + 1;
-
-      final existingEntries = await isar.playlistEntryDBs
-          .filter()
-          .playlistIdEqualTo(playlistId)
-          .findAll();
-      await Future.wait(existingEntries.map((e) => e.track.load()));
-      final existingTrackIds =
-          existingEntries.map((e) => e.track.value?.id).toSet();
-
-      final newEntries = <PlaylistEntryDB>[];
-      for (final trackId in trackIds) {
-        if (existingTrackIds.contains(trackId)) continue;
-        final trackObj = await isar.trackDBs.get(trackId);
-        if (trackObj == null) continue;
-        final entry =
-            PlaylistEntryDB(playlistId: playlistId, position: nextPos++)
-              ..playlist.value = playlist
-              ..track.value = trackObj;
-        newEntries.add(entry);
-      }
-
-      if (newEntries.isEmpty) return;
-      await isar.playlistEntryDBs.putAll(newEntries);
-      for (final e in newEntries) {
-        await e.playlist.save();
-        await e.track.save();
-      }
-
-      playlist.updatedAt = DateTime.now();
-      await isar.playlistDBs.put(playlist);
+    isar.writeTxnSync(() {
+      addTracksInTransaction(isar, playlistId, tracks);
     });
   }
 
   /// Replace the full ordered contents of [playlistId] with [tracks].
   Future<void> setPlaylistTracks(int playlistId, List<Track> tracks) async {
     final isar = await _db;
-    final seenIds = <String>{};
-    final orderedUniqueTracks =
-        tracks.where((track) => seenIds.add(track.id)).toList(growable: false);
-    final trackIds = await _trackDAO.upsertTracks(orderedUniqueTracks);
-
-    await isar.writeTxn(() async {
-      final playlist = await isar.playlistDBs.get(playlistId);
-      if (playlist == null) return;
-
-      final existingEntries = await isar.playlistEntryDBs
+    isar.writeTxnSync(() {
+      if (isar.playlistDBs.getSync(playlistId) == null) return;
+      isar.playlistEntryDBs
           .filter()
           .playlistIdEqualTo(playlistId)
-          .findAll();
-      if (existingEntries.isNotEmpty) {
-        await isar.playlistEntryDBs
-            .deleteAll(existingEntries.map((entry) => entry.id).toList());
-      }
-
-      final newEntries = <PlaylistEntryDB>[];
-      for (int index = 0; index < trackIds.length; index++) {
-        final trackObj = await isar.trackDBs.get(trackIds[index]);
-        if (trackObj == null) continue;
-        final entry = PlaylistEntryDB(
-          playlistId: playlistId,
-          position: index,
-        )
-          ..playlist.value = playlist
-          ..track.value = trackObj;
-        newEntries.add(entry);
-      }
-
-      if (newEntries.isNotEmpty) {
-        await isar.playlistEntryDBs.putAll(newEntries);
-        for (final entry in newEntries) {
-          await entry.playlist.save();
-          await entry.track.save();
-        }
-      }
-
-      playlist.updatedAt = DateTime.now();
-      await isar.playlistDBs.put(playlist);
+          .deleteAllSync();
+      addTracksInTransaction(isar, playlistId, tracks);
     });
   }
 
@@ -359,19 +247,6 @@ class PlaylistDAO {
         .findAll();
     await Future.wait(entries.map((e) => e.track.load()));
 
-    final brokenEntryIds = entries
-        .where((e) => e.track.value == null)
-        .map((e) => e.id)
-        .toList(growable: false);
-
-    if (brokenEntryIds.isNotEmpty) {
-      await isar.writeTxn(() async {
-        await isar.playlistEntryDBs.deleteAll(brokenEntryIds);
-      });
-      log('Removed ${brokenEntryIds.length} broken playlist entries from playlist $playlistId',
-          name: 'PlaylistDAO');
-    }
-
     return entries.map((e) => e.track.value).whereType<TrackDB>().toList();
   }
 
@@ -400,68 +275,7 @@ class PlaylistDAO {
 
     await Future.wait(entries.map((e) => e.track.load()));
 
-    final brokenEntryIds = entries
-        .where((e) => e.track.value == null)
-        .map((e) => e.id)
-        .toList(growable: false);
-
-    if (brokenEntryIds.isNotEmpty) {
-      await isar.writeTxn(() async {
-        await isar.playlistEntryDBs.deleteAll(brokenEntryIds);
-      });
-      log(
-        'Removed ${brokenEntryIds.length} broken playlist entries from playlist $playlistId',
-        name: 'PlaylistDAO',
-      );
-    }
-
     return entries.map((e) => e.track.value).whereType<TrackDB>().toList();
-  }
-
-  /// Remove broken playlist-entry rows (missing track link or playlistId).
-  /// Also deletes user playlists with an empty name (no tracks, no identity).
-  ///
-  /// Returns number of deleted rows.
-  Future<int> purgeBrokenPlaylistEntries() async {
-    final isar = await _db;
-    final entries = await isar.playlistEntryDBs.where().findAll();
-    await Future.wait(entries.map((e) => e.track.load()));
-
-    final brokenIds = entries
-        .where((e) => e.track.value == null || e.playlistId == null)
-        .map((e) => e.id)
-        .toList(growable: false);
-
-    int deleted = 0;
-    if (brokenIds.isNotEmpty) {
-      deleted = await isar.writeTxn(() async {
-        return isar.playlistEntryDBs.deleteAll(brokenIds);
-      });
-      log('Purged $deleted broken playlist entries', name: 'PlaylistDAO');
-    }
-
-    // Also remove user playlists with an empty name (cleanliness guard).
-    final emptyNamedPlaylists = await isar.playlistDBs
-        .filter()
-        .nameEqualTo('')
-        .typeEqualTo(PlaylistTypeDB.userPlaylist)
-        .findAll();
-    if (emptyNamedPlaylists.isNotEmpty) {
-      final ids = emptyNamedPlaylists.map((p) => p.id).toList();
-      // Remove their entries first, then the playlist rows.
-      await isar.writeTxn(() async {
-        for (final id in ids) {
-          await isar.playlistEntryDBs
-              .filter()
-              .playlistIdEqualTo(id)
-              .deleteAll();
-          await isar.playlistDBs.delete(id);
-        }
-      });
-      log('Purged ${ids.length} empty-named playlists', name: 'PlaylistDAO');
-    }
-
-    return deleted;
   }
 
   /// Return all entries of [playlistId] in position order (with links loaded).
@@ -563,6 +377,11 @@ class PlaylistDAO {
 
       // Index entries by their current position for O(1) lookup.
       final byPos = {for (final e in entries) e.position: e};
+      if (newOrder.toSet().length != entries.length ||
+          !newOrder.every(byPos.containsKey)) {
+        throw ArgumentError(
+            'Track order must contain every existing position exactly once.');
+      }
 
       for (int newPos = 0; newPos < newOrder.length; newPos++) {
         byPos[newOrder[newPos]]!.position = newPos;
@@ -597,8 +416,10 @@ class PlaylistDAO {
   /// Returns true if [mediaId] is in the "Liked" playlist.
   Future<bool> isTrackLiked(String mediaId) async {
     final isar = await _db;
-    final liked =
-        isar.playlistDBs.filter().nameEqualTo(likedPlaylist).findFirstSync();
+    final liked = isar.playlistDBs
+        .filter()
+        .nameEqualTo(likedPlaylist, caseSensitive: false)
+        .findFirstSync();
     if (liked == null) return false;
     final track =
         await isar.trackDBs.filter().mediaIdEqualTo(mediaId).findFirst();
@@ -703,11 +524,61 @@ class PlaylistDAO {
   Future<int> ensurePlaylist(String name,
       {PlaylistTypeDB type = PlaylistTypeDB.userPlaylist}) async {
     final isar = await _db;
-    final existing =
-        isar.playlistDBs.filter().nameEqualTo(name).findFirstSync();
-    if (existing != null) return existing.id;
-    final playlist = PlaylistDB(name: name, type: type);
-    return isar.writeTxn(() => isar.playlistDBs.put(playlist));
+    return isar.writeTxnSync(
+        () => ensurePlaylistInTransaction(isar, name, type: type));
+  }
+
+  int ensurePlaylistInTransaction(Isar isar, String name,
+      {PlaylistTypeDB type = PlaylistTypeDB.userPlaylist}) {
+    if (name.trim().isEmpty) {
+      throw ArgumentError('Playlist name must not be empty.');
+    }
+    final existing = isar.playlistDBs
+        .filter()
+        .nameEqualTo(name, caseSensitive: false)
+        .findFirstSync();
+    return existing?.id ??
+        isar.playlistDBs.putSync(PlaylistDB(name: name, type: type));
+  }
+
+  /// Atomic track upsert, duplicate check, position assignment and link creation.
+  int? addTrackInTransaction(Isar isar, int playlistId, Track track) {
+    final added = addTracksInTransaction(isar, playlistId, [track]);
+    return added.isEmpty ? null : added.single;
+  }
+
+  List<int> addTracksInTransaction(
+      Isar isar, int playlistId, List<Track> tracks) {
+    final playlist = isar.playlistDBs.getSync(playlistId);
+    if (playlist == null) return [];
+    final existing = isar.playlistEntryDBs
+        .where()
+        .playlistIdEqualToAnyPosition(playlistId)
+        .findAllSync();
+    final seen = <int>{};
+    var position = 0;
+    for (final entry in existing) {
+      entry.track.loadSync();
+      if (entry.track.value != null) seen.add(entry.track.value!.id);
+      if (entry.position >= position) position = entry.position + 1;
+    }
+    final added = <int>[];
+    for (final track in tracks) {
+      final trackId = _trackDAO.upsertTrackInTransaction(isar, track);
+      if (!seen.add(trackId)) continue;
+      final entry =
+          PlaylistEntryDB(playlistId: playlistId, position: position++)
+            ..playlist.value = playlist
+            ..track.value = isar.trackDBs.getSync(trackId);
+      added.add(isar.playlistEntryDBs.putSync(entry));
+      entry.playlist.saveSync();
+      entry.track.saveSync();
+    }
+    if (added.isNotEmpty) {
+      playlist.updatedAt = DateTime.now();
+      isar.playlistDBs.putSync(playlist);
+    }
+    return added;
   }
 
   /// Update (or set) the thumbnail URL for a playlist.

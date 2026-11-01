@@ -14,6 +14,13 @@ analyzer:
     # Vendored FRB/cargokit helper package has its own pubspec and dependency graph.
     # Root-level flutter analyze should not traverse it.
     - rust_builder/cargokit/build_tool/**
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   # The lint rules applied to this project can be customized in the

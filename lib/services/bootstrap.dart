@@ -28,10 +28,16 @@ Future<void> bootstrapApp() async {
   // Open DB and schedule maintenance.
   await DBProvider.init(
       appSupportPath: appSuppPath, appDocumentsPath: appDocPath);
-  DBProvider.scheduleMaintenance();
 
   // DI wiring (registers singletons).
   await ServiceLocator.setup();
+  await DBProvider.scheduleMaintenance(
+      runMaintenance: ServiceLocator.backupRepository.runMaintenance);
+  try {
+    await ServiceLocator.backupRepository.cleanInterruptedWork();
+  } catch (error) {
+    log('Backup staging cleanup skipped', error: error, name: 'Bootstrap');
+  }
 
   // Ensure hosted repositories are persisted in settings (idempotent).
   // Missing URLs are added, existing ones are left untouched.

@@ -113,6 +113,13 @@ pub fn download_task_blocking(
 
     let status = response.status();
     if !status.is_success() && status.as_u16() != 206 {
+        // A signed URL can be revoked before its advertised expiry. Retry
+        // through the provider rather than reusing the rejected cached URL.
+        if matches!(status.as_u16(), 401 | 403 | 410) {
+            if let Ok(mut guard) = task.lock() {
+                guard.persisted.selected_stream = None;
+            }
+        }
         return Err(format!("Server responded with {status}"));
     }
 
@@ -470,6 +477,49 @@ fn combine_warnings(first: Option<String>, second: Option<String>) -> Option<Str
         (None, None) => None,
         (Some(warning), None) | (None, Some(warning)) => Some(warning),
         (Some(first), Some(second)) => Some(format!("{first}; {second}")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::downloader::types::PersistedDownloadTask;
+    use std::net::TcpListener;
+
+    #[test]
+    fn rejected_signed_urls_are_invalidated_but_server_errors_keep_the_stream() {
+        for status in [401, 403, 410, 500] {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let url = format!("http://{}/audio", listener.local_addr().unwrap());
+            let server = std::thread::spawn(move || {
+                let (mut socket, _) = listener.accept().unwrap();
+                socket.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+                let mut request = [0u8; 4096];
+                socket.read(&mut request).unwrap();
+                write!(socket, "HTTP/1.1 {status} Rejected\r\nContent-Length: 0\r\nConnection: close\r\n\r\n").unwrap();
+            });
+            let persisted: PersistedDownloadTask = serde_json::from_value(serde_json::json!({
+                "task_id": "test", "track": {
+                    "id": "provider::track", "title": "Track", "artists": [],
+                    "thumbnail": {"url": "", "layout": "Square"}, "is_explicit": false
+                },
+                "download_dir": "", "preferred_quality": "Medium",
+                "file_name": "test.mp3", "target_path": "test.mp3", "temp_path": "",
+                "state": "Downloading", "progress": 0.0, "bytes_downloaded": 0,
+                "total_bytes": null, "message": null, "last_error": null,
+                "retry_attempt": 0, "selected_stream": {
+                    "url": url, "quality": "Medium", "format": "mp3",
+                    "headers": null, "expires_at": null
+                }
+            })).unwrap();
+            let stream = persisted.selected_stream.clone().unwrap();
+            let task = Arc::new(Mutex::new(ManagedTask::from_persisted(persisted)));
+            let client = Client::builder().no_proxy().timeout(Duration::from_secs(5)).build().unwrap();
+            let result = download_task_blocking(&task, &stream, &client, |_| {});
+            assert!(result.err().unwrap().contains(&status.to_string()));
+            assert_eq!(task.lock().unwrap().persisted.selected_stream.is_none(), status != 500);
+            server.join().unwrap();
+        }
     }
 }
 

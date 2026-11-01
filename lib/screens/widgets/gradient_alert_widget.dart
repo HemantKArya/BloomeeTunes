@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class GradientPreset {
@@ -170,7 +171,7 @@ class _GradientDialogState extends State<GradientDialog> {
                 borderRadius: BorderRadius.circular(12.0)),
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
           ),
-          child: const Text('OK'),
+          child: Text(AppLocalizations.of(context)!.buttonOk),
         ),
       ];
     }

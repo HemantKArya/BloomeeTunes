@@ -6,7 +6,9 @@ import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/core/adapters/track_adapter.dart';
 import 'package:Bloomee/screens/screen/home_views/timer_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/player_setting.dart';
-import 'package:Bloomee/screens/widgets/gradient_progress_bar.dart';
+import 'package:Bloomee/screens/widgets/player_progress_bar.dart';
+import 'package:Bloomee/screens/widgets/desktop_player_layout.dart';
+import 'package:Bloomee/screens/widgets/artwork_ambient_background.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:Bloomee/screens/widgets/volume_slider.dart';
@@ -24,8 +26,6 @@ import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/utils/load_image.dart';
-import 'package:Bloomee/utils/pallete_generator.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../blocs/media_player/bloomee_player_cubit.dart';
 import '../../blocs/mini_player/mini_player_cubit.dart';
@@ -38,28 +38,27 @@ class AudioPlayerView extends StatefulWidget {
   State<AudioPlayerView> createState() => _AudioPlayerViewState();
 }
 
-class _AudioPlayerViewState extends State<AudioPlayerView>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _AudioPlayerViewState extends State<AudioPlayerView> {
   final UpNextPanelController _upNextPanelController = UpNextPanelController();
+  bool _desktopQueueOpen = true;
+  late final PlayerOverlayCubit _overlayCubit;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _overlayCubit = context.read<PlayerOverlayCubit>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<PlayerOverlayCubit>().registerUpNextPanelCollapse(
-              () => _upNextPanelController.collapse(),
-            );
+        _overlayCubit.registerUpNextPanelCollapse(
+          () => _upNextPanelController.collapse(),
+        );
       }
     });
   }
 
   @override
   void dispose() {
-    context.read<PlayerOverlayCubit>().unregisterUpNextPanelCollapse();
-    _tabController.dispose();
+    _overlayCubit.unregisterUpNextPanelCollapse();
     super.dispose();
   }
 
@@ -68,144 +67,198 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
     final l10n = AppLocalizations.of(context)!;
     final bloomeePlayerCubit = context.read<BloomeePlayerCubit>();
     final musicPlayer = bloomeePlayerCubit.bloomeePlayer;
-    final isMobile = ResponsiveBreakpoints.of(context).smallerOrEqualTo(TABLET);
+    final isMobile = MediaQuery.sizeOf(context).width <= 800;
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 12, 4, 9),
-      resizeToAvoidBottomInset: false,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Default_Theme.primaryColor1,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
-          onPressed: () {
-            if (!_upNextPanelController.collapse()) {
-              context.read<PlayerOverlayCubit>().hidePlayer();
-            }
-          },
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              final mi = musicPlayer.mediaItem.valueOrNull;
-              if (mi != null) {
-                showSegmentsSheet(
-                  context,
-                  trackId: mi.id,
-                  trackDuration: mi.duration ?? Duration.zero,
-                  onSeek: (pos) => musicPlayer.seek(pos),
-                );
-              }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned.fill(
+          child: StreamBuilder<MediaItem?>(
+            stream: musicPlayer.mediaItem,
+            initialData: musicPlayer.mediaItem.valueOrNull,
+            builder: (context, snapshot) {
+              final track = snapshot.data == null
+                  ? musicPlayer.currentTrackInfo
+                  : mediaItemToTrack(snapshot.data!);
+              return ArtworkAmbientBackground(
+                imageUrl: track.thumbnail.urlHigh ?? track.thumbnail.url,
+                fallbackUrl: track.thumbnail.urlLow ?? track.thumbnail.url,
+              );
             },
-            icon: const Icon(MingCute.list_check_3_line,
-                size: 22, color: Default_Theme.primaryColor1),
           ),
-          IconButton(
-            onPressed: () =>
-                showMoreBottomSheet(context, musicPlayer.currentMedia),
-            icon: const Icon(MingCute.more_2_fill,
-                size: 25, color: Default_Theme.primaryColor1),
-          )
-        ],
-        title: Column(
-          children: [
-            Text(
-              l10n.playerEnjoyingFrom,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Default_Theme.primaryColor1,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ).merge(Default_Theme.secondoryTextStyle),
-            ),
-            StreamBuilder<String>(
-              stream: musicPlayer.queueTitle,
-              builder: (context, snapshot) {
-                return Text(
-                  snapshot.data ?? l10n.playerUnknownQueue,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Default_Theme.primaryColor2,
-                    fontSize: 12,
-                  ).merge(Default_Theme.secondoryTextStyle),
-                );
+        ),
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          resizeToAvoidBottomInset: false,
+          extendBodyBehindAppBar: isMobile,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            foregroundColor: Default_Theme.primaryColor1,
+            centerTitle: true,
+            leading: IconButton(
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
+              onPressed: () {
+                if (!isMobile || !_upNextPanelController.collapse()) {
+                  context.read<PlayerOverlayCubit>().hidePlayer();
+                }
               },
             ),
-          ],
-        ),
-      ),
-      body: AnimatedSwitcher(
-        duration: const Duration(seconds: 1),
-        child: isMobile
-            ? LayoutBuilder(
-                builder: (context, constraints) {
-                  return Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      Positioned.fill(
-                        child: _PlayerUI(
-                          musicPlayer: musicPlayer,
-                          tabController: _tabController,
-                        ),
-                      ),
-                      UpNextPanel(
-                        peekHeight: 60.0,
-                        parentHeight: constraints.maxHeight,
-                        controller: _upNextPanelController,
-                      ),
-                    ],
-                  );
+            actions: [
+              if (!isMobile)
+                IconButton(
+                  tooltip: l10n.upNextTitle,
+                  onPressed: () =>
+                      setState(() => _desktopQueueOpen = !_desktopQueueOpen),
+                  icon: const Icon(Icons.queue_music_rounded,
+                      size: 22, color: Default_Theme.primaryColor1),
+                ),
+              IconButton(
+                onPressed: () {
+                  final mi = musicPlayer.mediaItem.valueOrNull;
+                  if (mi != null) {
+                    showSegmentsSheet(
+                      context,
+                      trackId: mi.id,
+                      trackDuration: mi.duration ?? Duration.zero,
+                      onSeek: (pos) => musicPlayer.seek(pos),
+                    );
+                  }
                 },
+                icon: const Icon(MingCute.list_check_3_line,
+                    size: 22, color: Default_Theme.primaryColor1),
+              ),
+              IconButton(
+                onPressed: () =>
+                    showMoreBottomSheet(context, musicPlayer.currentMedia),
+                icon: const Icon(MingCute.more_2_fill,
+                    size: 25, color: Default_Theme.primaryColor1),
               )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minWidth: 400,
-                      maxWidth: MediaQuery.of(context).size.width * 0.60,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: _PlayerUI(
-                        musicPlayer: musicPlayer,
-                        tabController: _tabController,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.8,
-                        child: UpNextPanel(
-                          peekHeight: 60,
-                          parentHeight:
-                              MediaQuery.of(context).size.height * 0.8,
-                          isDesktopMode: true,
+            ],
+            title: Column(
+              children: [
+                Text(
+                  l10n.playerEnjoyingFrom,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Default_Theme.primaryColor1,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ).merge(Default_Theme.secondoryTextStyle),
+                ),
+                StreamBuilder<String>(
+                  stream: musicPlayer.queueTitle,
+                  builder: (context, snapshot) {
+                    return Text(
+                      snapshot.data ?? l10n.playerUnknownQueue,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Default_Theme.primaryColor2,
+                        fontSize: 12,
+                      ).merge(Default_Theme.secondoryTextStyle),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          body: isMobile
+              ? LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        Positioned.fill(
+                          child: _PlayerUI(
+                            musicPlayer: musicPlayer,
+                          ),
+                        ),
+                        UpNextPanel(
+                          peekHeight: 60.0,
+                          parentHeight: constraints.maxHeight,
                           controller: _upNextPanelController,
                         ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-      ),
+                      ],
+                    );
+                  },
+                )
+              : SafeArea(
+                  top: false,
+                  child: Stack(
+                    children: [
+                      LayoutBuilder(builder: (context, constraints) {
+                        final wide = constraints.maxWidth >= 1240;
+                        final queueWidth = wide
+                            ? 420.0
+                            : constraints.maxWidth >= 1100
+                                ? 370.0
+                                : 320.0;
+                        return Padding(
+                          padding: EdgeInsets.fromLTRB(
+                              wide ? 48 : 28, 8, wide ? 28 : 20, 24),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: DesktopPlayerLayout(
+                                  artwork: const CoverImageVolSlider(),
+                                  controls: PlayerCtrlWidgets(
+                                      musicPlayer: musicPlayer),
+                                ),
+                              ),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 280),
+                                curve: Curves.easeInOutCubic,
+                                width: _desktopQueueOpen ? (wide ? 36 : 24) : 0,
+                              ),
+                              ClipRect(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 280),
+                                  curve: Curves.easeInOutCubic,
+                                  width: _desktopQueueOpen ? queueWidth : 0,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Visibility(
+                                        visible: _desktopQueueOpen,
+                                        maintainState: true,
+                                        child: OverflowBox(
+                                          alignment: Alignment.centerRight,
+                                          minWidth: queueWidth,
+                                          maxWidth: queueWidth,
+                                          child: UpNextPanel(
+                                            peekHeight: 60,
+                                            parentHeight:
+                                                constraints.maxHeight - 32,
+                                            isDesktopMode: true,
+                                            onDesktopCollapse: () => setState(
+                                                () =>
+                                                    _desktopQueueOpen = false),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }
 
 class _PlayerUI extends StatelessWidget {
   final BloomeeMusicPlayer musicPlayer;
-  final TabController tabController;
 
   const _PlayerUI({
     required this.musicPlayer,
-    required this.tabController,
   });
 
   @override
@@ -213,18 +266,6 @@ class _PlayerUI extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Positioned.fill(
-          child: AnimatedBuilder(
-            animation: tabController.animation!,
-            builder: (context, child) {
-              return Opacity(
-                opacity: (1 - tabController.animation!.value),
-                child: child,
-              );
-            },
-            child: const RepaintBoundary(child: AmbientImgShadowWidget()),
-          ),
-        ),
         SafeArea(
           bottom: false,
           child: Column(
@@ -301,7 +342,7 @@ class PlayerCtrlWidgets extends StatelessWidget {
       children: [
         const _SongInfoRow(),
         const SizedBox(height: 15),
-        const _PlayerProgressBar(),
+        const PlayerProgressBar(),
         const SizedBox(height: 25),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 450),
@@ -383,6 +424,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
   void initState() {
     super.initState();
     final player = context.read<BloomeePlayerCubit>().bloomeePlayer;
+    _lastTrackId = player.mediaItem.valueOrNull?.id;
     _mediaSub = player.mediaItem.listen((mi) {
       if (mi?.id != _lastTrackId) {
         _lastTrackId = mi?.id;
@@ -402,9 +444,13 @@ class _DownloadButtonState extends State<_DownloadButton> {
       final info = await context
           .read<DownloaderCubit>()
           .getDownloadInfo(mediaItemToTrack(mi));
-      if (mounted) setState(() => _isDownloaded = info != null);
+      if (mounted && _lastTrackId == mi.id) {
+        setState(() => _isDownloaded = info != null);
+      }
     } catch (_) {
-      if (mounted) setState(() => _isDownloaded = false);
+      if (mounted && _lastTrackId == mi.id) {
+        setState(() => _isDownloaded = false);
+      }
     }
   }
 
@@ -449,6 +495,7 @@ class _LikeButtonState extends State<_LikeButton> {
   void initState() {
     super.initState();
     final player = context.read<BloomeePlayerCubit>().bloomeePlayer;
+    _lastTrackId = player.mediaItem.valueOrNull?.id;
     _mediaSub = player.mediaItem.listen((mi) {
       if (mi?.id != _lastTrackId) {
         _lastTrackId = mi?.id;
@@ -467,9 +514,13 @@ class _LikeButtonState extends State<_LikeButton> {
       final liked = await context
           .read<LibraryItemsCubit>()
           .isTrackLiked(mediaItemToTrack(mi));
-      if (mounted) setState(() => _isLiked = liked);
+      if (mounted && _lastTrackId == mi.id) {
+        setState(() => _isLiked = liked);
+      }
     } catch (_) {
-      if (mounted) setState(() => _isLiked = false);
+      if (mounted && _lastTrackId == mi.id) {
+        setState(() => _isLiked = false);
+      }
     }
   }
 
@@ -515,46 +566,6 @@ class _LikeButtonState extends State<_LikeButton> {
   }
 }
 
-class _PlayerProgressBar extends StatelessWidget {
-  const _PlayerProgressBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final playerCubit = context.read<BloomeePlayerCubit>();
-    return RepaintBoundary(
-      child: StreamBuilder<ProgressBarStreams>(
-        stream: playerCubit.progressStreams,
-        builder: (context, snapshot) {
-          final data = snapshot.data;
-          return GradientProgressBar.fromAccentColors(
-            progress: data?.position ?? Duration.zero,
-            total: data?.duration ?? Duration.zero,
-            buffered: data?.buffered ?? Duration.zero,
-            onSeek: playerCubit.bloomeePlayer.seek,
-            isPlaying: data?.isPlaying ?? false,
-            activeAccentColor: Default_Theme.accentColor1,
-            inactiveAccentColor: Default_Theme.accentColor2,
-            activeGradientStyle: GradientStyle.lightAndBreezy,
-            inactiveGradientStyle: GradientStyle.warmAndRich,
-            trackHeight: 6.0,
-            thumbRadius: 8.0,
-            timeLabelPadding: 5,
-            timeLabelStyle: Default_Theme.secondoryTextStyle.merge(TextStyle(
-              fontSize: 15,
-              color: Default_Theme.primaryColor1.withValues(alpha: 0.7),
-            )),
-            timeLabelLocation: TimeLabelLocation.above,
-            inactiveTrackColor:
-                Default_Theme.primaryColor2.withValues(alpha: 0.1),
-            animationDuration: const Duration(milliseconds: 200),
-            animationCurve: Curves.easeOutCubic,
-          );
-        },
-      ),
-    );
-  }
-}
-
 class _PlayerControlsRow extends StatelessWidget {
   final BloomeeMusicPlayer musicPlayer;
   const _PlayerControlsRow({required this.musicPlayer});
@@ -594,11 +605,8 @@ class _PlayerControlsRow extends StatelessWidget {
             icon: const Icon(MingCute.align_center_line,
                 color: Default_Theme.primaryColor1, size: 24),
             onPressed: () {
-              Navigator.of(context).push(PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const FullscreenLyricsView(),
-                transitionsBuilder: (_, a, __, c) =>
-                    FadeTransition(opacity: a, child: c),
-                transitionDuration: const Duration(milliseconds: 300),
+              Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => const FullscreenLyricsView(),
               ));
             },
           ),
@@ -775,80 +783,6 @@ class _PlayPauseButton extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// FIX M-06: Replaced async palette fetch inside build() with a proper
-/// lifecycle-based approach using a stream subscription.
-/// The fetch only triggers when the artUri CHANGES, not on every rebuild.
-class AmbientImgShadowWidget extends StatefulWidget {
-  const AmbientImgShadowWidget({super.key});
-
-  @override
-  State<AmbientImgShadowWidget> createState() => _AmbientImgShadowWidgetState();
-}
-
-class _AmbientImgShadowWidgetState extends State<AmbientImgShadowWidget> {
-  Color? _cachedColor;
-  String? _lastArtUri;
-  StreamSubscription? _mediaSub;
-  bool _fetchingPalette = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final player = context.read<BloomeePlayerCubit>().bloomeePlayer;
-    _mediaSub = player.mediaItem.listen((mi) {
-      final artUri = mi?.artUri?.toString();
-      if (artUri != _lastArtUri) {
-        _lastArtUri = artUri;
-        _fetchPalette(artUri);
-      }
-    });
-    // Initial fetch
-    final current = player.mediaItem.valueOrNull;
-    _lastArtUri = current?.artUri?.toString();
-    _fetchPalette(_lastArtUri);
-  }
-
-  Future<void> _fetchPalette(String? artUri) async {
-    if (artUri == null || artUri.isEmpty || _fetchingPalette) return;
-    _fetchingPalette = true;
-    try {
-      final palette = await getPalleteFromImage(artUri);
-      if (mounted) {
-        setState(() => _cachedColor = palette.dominantColor?.color);
-      }
-    } catch (_) {
-    } finally {
-      _fetchingPalette = false;
-    }
-  }
-
-  @override
-  void dispose() {
-    _mediaSub?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            colors: [
-              (_cachedColor ?? const Color.fromARGB(255, 163, 44, 115))
-                  .withValues(alpha: 0.35),
-              Colors.transparent,
-            ],
-            center: Alignment.center,
-            radius: 0.70,
-          ),
-        ),
-      ),
     );
   }
 }

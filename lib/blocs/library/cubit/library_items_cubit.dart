@@ -40,7 +40,6 @@ class LibraryItemsCubit extends Cubit<LibraryItemsState> {
   }
 
   Future<void> _initialize() async {
-    await _playlistDao.purgeBrokenPlaylistEntries();
     await _fetchPlaylists();
     _setupWatchers();
   }

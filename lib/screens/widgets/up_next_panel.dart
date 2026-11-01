@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/adapters/track_adapter.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
@@ -26,7 +25,6 @@ class _UpNextStyles {
   );
   static const panelBorderRadius =
       BorderRadius.vertical(top: Radius.circular(25));
-  static const desktopBorderRadius = BorderRadius.all(Radius.circular(25));
 }
 
 class UpNextPanelController {
@@ -71,6 +69,7 @@ class UpNextPanel extends StatefulWidget {
     this.startExpanded = false,
     this.canBeHidden = false,
     this.controller,
+    this.onDesktopCollapse,
   });
 
   final double peekHeight;
@@ -79,6 +78,7 @@ class UpNextPanel extends StatefulWidget {
   final bool startExpanded;
   final bool canBeHidden;
   final UpNextPanelController? controller;
+  final VoidCallback? onDesktopCollapse;
 
   @override
   State<UpNextPanel> createState() => _UpNextPanelState();
@@ -159,6 +159,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
   }
 
   void _toggleSheet() {
+    if (!_sheetController.isAttached) return;
     if (_sheetController.size < _minSheetSize + 0.1) {
       _sheetController.animateTo(_maxSheetSize,
           duration: const Duration(milliseconds: 300),
@@ -169,6 +170,7 @@ class _UpNextPanelState extends State<UpNextPanel> {
   }
 
   void _collapseSheet() {
+    if (!_sheetController.isAttached) return;
     _sheetController.animateTo(_minSheetSize,
         duration: const Duration(milliseconds: 300), curve: Curves.easeOutExpo);
   }
@@ -176,7 +178,10 @@ class _UpNextPanelState extends State<UpNextPanel> {
   @override
   Widget build(BuildContext context) {
     if (widget.isDesktopMode) {
-      return _DesktopLayout(playerCubit: _playerCubit);
+      return _DesktopLayout(
+        playerCubit: _playerCubit,
+        onCollapse: widget.onDesktopCollapse,
+      );
     }
 
     return MediaQuery.removeViewInsets(
@@ -196,9 +201,6 @@ class _UpNextPanelState extends State<UpNextPanel> {
             onHeaderTap: _toggleSheet,
             scrollController: scrollController,
             playerCubit: _playerCubit,
-            sheetController: _sheetController,
-            minSize: _minSheetSize,
-            maxSize: _maxSheetSize,
           );
         },
       ),
@@ -212,9 +214,6 @@ class _PanelContent extends StatelessWidget {
   final VoidCallback onHeaderTap;
   final ScrollController scrollController;
   final BloomeePlayerCubit playerCubit;
-  final DraggableScrollableController sheetController;
-  final double minSize;
-  final double maxSize;
 
   const _PanelContent({
     required this.peekHeight,
@@ -222,9 +221,6 @@ class _PanelContent extends StatelessWidget {
     required this.onHeaderTap,
     required this.scrollController,
     required this.playerCubit,
-    required this.sheetController,
-    required this.minSize,
-    required this.maxSize,
   });
 
   @override
@@ -234,66 +230,50 @@ class _PanelContent extends StatelessWidget {
         color: Colors.transparent,
         child: ClipRRect(
           borderRadius: _UpNextStyles.panelBorderRadius,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.85),
-                borderRadius: _UpNextStyles.panelBorderRadius,
-                border: Border(
-                    top: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        width: 0.5)),
+          child: Container(
+            decoration: BoxDecoration(
+              // A tinted gradient keeps depth without filtering the moving
+              // player behind the sheet on every drag and scroll frame.
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF20202A), Color(0xFF0E1018)],
               ),
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: onHeaderTap,
-                    behavior: HitTestBehavior.opaque,
-                    child: SizedBox(
-                      height: peekHeight - 0.5,
-                      child: _CompactHeader(isExpanded: isExpanded),
+              borderRadius: _UpNextStyles.panelBorderRadius,
+              border: Border(
+                  top: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.1), width: 0.5)),
+            ),
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: onHeaderTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: SizedBox(
+                    height: peekHeight - 0.5,
+                    child: _CompactHeader(isExpanded: isExpanded),
+                  ),
+                ),
+                Expanded(
+                  child: RepaintBoundary(
+                    child: CustomScrollView(
+                      controller: scrollController,
+                      physics: const ClampingScrollPhysics(),
+                      slivers: [
+                        SliverToBoxAdapter(
+                            child: _QueueInfoRow(playerCubit: playerCubit)),
+                        _SongListSliver(
+                            playerCubit: playerCubit,
+                            scrollController: scrollController),
+                        SliverToBoxAdapter(
+                            child: SizedBox(
+                                height:
+                                    MediaQuery.paddingOf(context).bottom + 20)),
+                      ],
                     ),
                   ),
-                  Expanded(
-                    child: AnimatedBuilder(
-                      animation: sheetController,
-                      builder: (context, child) {
-                        final currentSize = sheetController.isAttached
-                            ? sheetController.size
-                            : minSize;
-                        final progress =
-                            ((currentSize - minSize) / (maxSize - minSize))
-                                .clamp(0.0, 1.0);
-                        final opacity = progress < 0.15
-                            ? 0.0
-                            : ((progress - 0.15) / 0.35).clamp(0.0, 1.0);
-
-                        return IgnorePointer(
-                          ignoring: opacity == 0.0,
-                          child: Opacity(opacity: opacity, child: child),
-                        );
-                      },
-                      child: CustomScrollView(
-                        controller: scrollController,
-                        physics: const ClampingScrollPhysics(),
-                        slivers: [
-                          SliverToBoxAdapter(
-                              child: _QueueInfoRow(playerCubit: playerCubit)),
-                          _SongListSliver(
-                              playerCubit: playerCubit,
-                              scrollController: scrollController),
-                          SliverToBoxAdapter(
-                              child: SizedBox(
-                                  height:
-                                      MediaQuery.of(context).padding.bottom +
-                                          20)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -344,13 +324,19 @@ class _QueueInfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          StreamBuilder<List<MediaItem>>(
-            stream: playerCubit.bloomeePlayer.queue,
-            builder: (context, snapshot) {
-              return Text(l10n.upNextItemsInQueue(snapshot.data?.length ?? 0),
-                  style: _UpNextStyles.queueCountStyle);
-            },
+          Expanded(
+            child: StreamBuilder<List<MediaItem>>(
+              stream: playerCubit.bloomeePlayer.queue,
+              initialData: playerCubit.bloomeePlayer.queue.valueOrNull,
+              builder: (context, snapshot) {
+                return Text(l10n.upNextItemsInQueue(snapshot.data?.length ?? 0),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _UpNextStyles.queueCountStyle);
+              },
+            ),
           ),
+          const SizedBox(width: 8),
           _ClearQueueButton(playerCubit: playerCubit),
         ],
       ),
@@ -404,28 +390,55 @@ class _ClearQueueButton extends StatelessWidget {
 
 class _DesktopLayout extends StatelessWidget {
   final BloomeePlayerCubit playerCubit;
-  const _DesktopLayout({required this.playerCubit});
+  final VoidCallback? onCollapse;
+  const _DesktopLayout({required this.playerCubit, this.onCollapse});
 
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
       child: ClipRRect(
-        borderRadius: _UpNextStyles.desktopBorderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
+        borderRadius: BorderRadius.circular(20),
+        // The ambient artwork behind this panel is already blurred. Tinting
+        // it gives the same glass surface without re-sampling the moving
+        // window (including the library underneath) on every transition frame.
+        child: Material(
+          color: const Color(0x9910141C),
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.7),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1), width: 0.5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.045),
+                  Colors.black.withValues(alpha: 0.12),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                const _CompactHeader(isExpanded: true),
-                _QueueInfoRow(playerCubit: playerCubit),
-                Expanded(child: _DesktopSongList(playerCubit: playerCubit)),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
+              child: Column(
+                children: [
+                  Tooltip(
+                    message:
+                        MaterialLocalizations.of(context).closeButtonTooltip,
+                    child: InkWell(
+                      onTap: onCollapse,
+                      borderRadius: BorderRadius.circular(12),
+                      child: const SizedBox(
+                        height: 44,
+                        child: _CompactHeader(isExpanded: true),
+                      ),
+                    ),
+                  ),
+                  _QueueInfoRow(playerCubit: playerCubit),
+                  const SizedBox(height: 4),
+                  Expanded(child: _DesktopSongList(playerCubit: playerCubit)),
+                ],
+              ),
             ),
           ),
         ),
@@ -445,6 +458,7 @@ class _DesktopSongList extends StatefulWidget {
 class _DesktopSongListState extends State<_DesktopSongList> {
   final ScrollController _scrollController = ScrollController();
   String? _lastPlayingId;
+  bool _hasPositionedCurrentSong = false;
   static const double _itemHeight = 70.0;
 
   @override
@@ -466,15 +480,23 @@ class _DesktopSongListState extends State<_DesktopSongList> {
     final clampedOffset =
         targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
 
-    _scrollController.animateTo(clampedOffset,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic);
+    if (!_hasPositionedCurrentSong) {
+      // Do not run a second animation (and decode every intermediate sleeve)
+      // while the full player is opening at a song deep in a long queue.
+      _hasPositionedCurrentSong = true;
+      _scrollController.jumpTo(clampedOffset);
+    } else {
+      _scrollController.animateTo(clampedOffset,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<MediaItem>>(
       stream: widget.playerCubit.bloomeePlayer.queue,
+      initialData: widget.playerCubit.bloomeePlayer.queue.valueOrNull,
       builder: (context, queueSnapshot) {
         if (!queueSnapshot.hasData) {
           return const Center(
@@ -485,6 +507,7 @@ class _DesktopSongListState extends State<_DesktopSongList> {
 
         return StreamBuilder<MediaItem?>(
           stream: widget.playerCubit.bloomeePlayer.mediaItem,
+          initialData: widget.playerCubit.bloomeePlayer.mediaItem.valueOrNull,
           builder: (context, mediaSnapshot) {
             final currentId = mediaSnapshot.data?.id;
             if (currentId != null && currentId != _lastPlayingId) {
@@ -496,26 +519,21 @@ class _DesktopSongListState extends State<_DesktopSongList> {
               });
             }
 
-            // Defensive deduplication: identical IDs would assign the same
-            // GlobalKey to two ReorderableListView items, causing Flutter's
-            // semantics traversal to recurse infinitely.
-            final seenIds = <String>{};
-            final uniqueQueue =
-                queue.where((m) => seenIds.add(m.id)).toList(growable: false);
-
             return ReorderableListView.builder(
               scrollController: _scrollController,
               physics: const BouncingScrollPhysics(),
-              itemCount: uniqueQueue.length,
+              itemCount: queue.length,
+              itemExtent: _itemHeight,
               onReorder: widget.playerCubit.bloomeePlayer.moveQueueItem,
               buildDefaultDragHandles: false,
               itemBuilder: (context, index) {
                 return _QueueItem(
-                  key: ValueKey('desktop_${uniqueQueue[index].id}'),
-                  mediaItem: uniqueQueue[index],
+                  key: ValueKey('desktop_${queue[index].id}_$index'),
+                  mediaItem: queue[index],
                   index: index,
                   playerCubit: widget.playerCubit,
                   isDesktop: true,
+                  isPlaying: queue[index].id == currentId,
                 );
               },
             );
@@ -538,6 +556,7 @@ class _SongListSliver extends StatefulWidget {
 
 class _SongListSliverState extends State<_SongListSliver> {
   String? _lastPlayingId;
+  bool _hasPositionedCurrentSong = false;
   static const double _itemHeight = 70.0;
   static const double _headerOffset = 60.0;
 
@@ -557,15 +576,23 @@ class _SongListSliverState extends State<_SongListSliver> {
     final clampedOffset = targetOffset.clamp(
         0.0, widget.scrollController.position.maxScrollExtent);
 
-    widget.scrollController.animateTo(clampedOffset,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic);
+    if (!_hasPositionedCurrentSong) {
+      // Opening a deep queue must not animate through (and decode) every
+      // intervening thumbnail while the sheet is also moving.
+      _hasPositionedCurrentSong = true;
+      widget.scrollController.jumpTo(clampedOffset);
+    } else {
+      widget.scrollController.animateTo(clampedOffset,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<MediaItem>>(
       stream: widget.playerCubit.bloomeePlayer.queue,
+      initialData: widget.playerCubit.bloomeePlayer.queue.valueOrNull,
       builder: (context, queueSnapshot) {
         if (!queueSnapshot.hasData) {
           return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -574,30 +601,28 @@ class _SongListSliverState extends State<_SongListSliver> {
 
         return StreamBuilder<MediaItem?>(
           stream: widget.playerCubit.bloomeePlayer.mediaItem,
+          initialData: widget.playerCubit.bloomeePlayer.mediaItem.valueOrNull,
           builder: (context, mediaSnapshot) {
             final currentId = mediaSnapshot.data?.id;
             if (currentId != null && currentId != _lastPlayingId) {
               _lastPlayingId = currentId;
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                _scrollToCurrentSong(queue, currentId);
+                if (mounted) _scrollToCurrentSong(queue, currentId);
               });
             }
 
-            // Defensive deduplication — same reason as the desktop list above.
-            final seenIds = <String>{};
-            final uniqueQueue =
-                queue.where((m) => seenIds.add(m.id)).toList(growable: false);
-
             return SliverReorderableList(
-              itemCount: uniqueQueue.length,
+              itemCount: queue.length,
+              itemExtent: _itemHeight,
               onReorder: widget.playerCubit.bloomeePlayer.moveQueueItem,
               itemBuilder: (context, index) {
                 return _QueueItem(
-                  key: ValueKey('mobile_${uniqueQueue[index].id}'),
-                  mediaItem: uniqueQueue[index],
+                  key: ValueKey('mobile_${queue[index].id}_$index'),
+                  mediaItem: queue[index],
                   index: index,
                   playerCubit: widget.playerCubit,
                   isDesktop: false,
+                  isPlaying: queue[index].id == currentId,
                 );
               },
             );
@@ -613,6 +638,7 @@ class _QueueItem extends StatelessWidget {
   final int index;
   final BloomeePlayerCubit playerCubit;
   final bool isDesktop;
+  final bool isPlaying;
 
   const _QueueItem({
     super.key,
@@ -620,6 +646,7 @@ class _QueueItem extends StatelessWidget {
     required this.index,
     required this.playerCubit,
     required this.isDesktop,
+    required this.isPlaying,
   });
 
   @override
@@ -646,10 +673,11 @@ class _QueueItem extends StatelessWidget {
               Expanded(
                 child: SongCardWidget(
                   showOptions: false,
+                  isCurrentTrack: isPlaying,
                   onTap: () => playerCubit.bloomeePlayer.skipToQueueItem(index),
                   song: songModel,
                   trailing: IconButton(
-                    tooltip: 'More options',
+                    tooltip: AppLocalizations.of(context)!.tooltipMoreOptions,
                     iconSize: 20,
                     splashRadius: 18,
                     padding: const EdgeInsets.all(6),

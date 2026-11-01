@@ -103,9 +103,21 @@ lib/
 ### DBProvider
 
 - **Location**: `lib/services/db/db_provider.dart`
-- Owns the Isar instance lifecycle, DB path, maintenance, backup/restore.
+- Owns the canonical Isar instance lifecycle, DB path, ordinary maintenance, and explicitly requested reset at bootstrap. It never replaces the live connection during import.
 - Access: `await DBProvider.db` → `Isar`.
 - Initialised once in `bootstrap.dart` via `await DBProvider.init()`.
+
+Backup UI flows through `BackupCubit` → `BackupRepository` → `BackupDAO`.
+`BackupFiles` owns platform document transport. The repository serializes backup operations;
+the DAO maps versioned JSON and commits selected data in one transaction using a worker
+connection. The live connection and watchers remain open. See
+[backup-and-import.md](docs/backup-and-import.md) for the format, restore policies,
+platform support, and validation matrix. Startup legacy migration/repair is removed.
+Explicit device-local library recovery stays within `BackupDAO` and the existing
+repository/cubit/UI flow. It inspects copies of retained v3 databases and reuses the
+protected atomic merge, including download mappings. Recovery models are grouped in
+`recovery_copy.dart`; file resolution belongs to `DownloadDAO`. Pre-v3 database
+schemas and migration runners remain removed.
 
 ### DAOs
 
@@ -254,6 +266,53 @@ Application-lifetime singletons registered in `ServiceLocator` (`get_it`).
 | `LyricsService` | Lyrics fetch and sync |
 | `SmartReplaceService` | Resolves dead/missing tracks using available plugins |
 | `CrossfadeService` | Audio crossfade transitions |
+
+`PlayerEngine` owns native buffering policy for both the active and standby
+players. Apply configuration before opening media: use at most 20 seconds of
+read-ahead, a four-MiB forward packet cache and one-MiB backward cache. Disable
+mpv disk caching: with disk caching enabled, the byte limits apply to packet
+metadata rather than the downloaded audio. These are buffering bounds, not a
+network transfer-rate limit. See the [mpv cache documentation](https://mpv.io/manual/stable/#cache).
+
+The chart carousel uses chart summaries and their thumbnails. Full chart contents
+are fetched when a chart is opened; loading home must not warm every chart's
+details in the background.
+
+`test/player_network_test.dart` exercises the bundled native player against a
+loopback HTTP server serving ten minutes of PCM audio. A paused preload must
+remain below a generous byte ceiling and close its transfer when cleared. Set
+`MPV_TEST_LIBRARY` on hosts without the Windows build's `libmpv-2.dll`; this test
+is explicitly skipped when no native library is available. In a three-second
+comparison on this Windows host, the tagged v3.0.4+202 engine fetched 63,832,064
+bytes; the bounded engine fetched 3,997,696 bytes. This reproduces excess buffering,
+not the historical reporter's Wi-Fi latency or a proven persistent socket leak.
+
+Stream resolution is separate from native media buffering. Playback allows a
+45-second resolution deadline because plugin HTTP calls have a 30-second timeout
+and can wait behind another call to the same plugin. `MediaResolverService` shares
+an in-flight extraction for the same track across preload and retries; settling
+either successfully or with an error removes it, so signed URLs are not kept as
+a permanent cache. Every queued playback load registers a new error-handling
+attempt. Switching loads or resetting playback cancels old retry timers.
+Regression checks include decoded playback advancing, extraction retries after a
+caller timeout, failed-extraction cleanup and retry/stop behavior.
+
+Native `media_kit` error streams include FFmpeg diagnostic log messages, so a
+TCP diagnostic alone must not initiate application recovery. The engine observes
+mpv's [`idle-active`](https://mpv.io/manual/stable/#properties-idle-active)
+property to confirm that the file was unloaded before reporting a native failure;
+premature EOF also follows the failure path. Paused and buffering players remain
+loaded. No application stall timer polls playback or guesses when to reload.
+Diagnostics from the standby player cannot fail the active track. Recovery uses
+the last played position, passes it as `Media.start` when opening the fresh URL,
+and retains that position if stream extraction fails again. Progress does not
+replenish the automatic retry budget. Manual pause cancels queued recovery and
+clears play intent; loading completion must respect that intent.
+
+Native regression checks interrupt an HTTP body and allow libmpv to reconnect,
+verify that TCP diagnostics during decoded playback cause no application error,
+exercise HTTP 403 failure and premature EOF, and verify resume position. These
+tests validate Windows libmpv here; Android device playback still needs testing.
 
 ---
 

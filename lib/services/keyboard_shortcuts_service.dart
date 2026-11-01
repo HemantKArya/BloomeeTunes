@@ -207,6 +207,10 @@ class _KeyboardShortcutsHandlerState extends State<KeyboardShortcutsHandler> {
 
     if (key == LogicalKeyboardKey.escape ||
         key == LogicalKeyboardKey.backspace) {
+      // Routes above the player own Escape (including lyrics focus mode).
+      if (GlobalRoutes.globalRouterKey.currentState?.canPop() ?? false) {
+        return false;
+      }
       final playerOverlayCubit = context.read<PlayerOverlayCubit>();
       if (playerOverlayCubit.state) {
         if (playerOverlayCubit.collapseUpNextPanel()) {

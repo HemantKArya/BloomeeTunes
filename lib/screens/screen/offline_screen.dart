@@ -7,6 +7,7 @@ import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/screens/widgets/downloading_item.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
+import 'package:Bloomee/screens/widgets/backup_import_flow.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:flutter/material.dart';
@@ -83,10 +84,18 @@ class _OfflineScreenState extends State<OfflineScreen> {
                 if (state.downloads.isEmpty && state.downloaded.isEmpty)
                   SliverFillRemaining(
                     child: Center(
-                      child: SignBoardWidget(
-                        message: l10n.offlineNoDownloads,
-                        icon: FontAwesome.download_solid,
-                      ),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        SignBoardWidget(
+                          message: l10n.offlineNoDownloads,
+                          icon: FontAwesome.download_solid,
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton.icon(
+                            onPressed: () =>
+                                BackupImportFlow.recoverLibrary(context),
+                            icon: const Icon(Icons.manage_search),
+                            label: Text(l10n.libraryRecoveryTitle)),
+                      ]),
                     ),
                   )
                 else

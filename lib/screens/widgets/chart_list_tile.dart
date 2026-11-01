@@ -1,3 +1,4 @@
+import 'package:Bloomee/l10n/app_localizations.dart';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -144,7 +145,7 @@ class ChartListTile extends StatelessWidget {
                   onPressed: onTap,
                   icon: MingCute.play_fill,
                   status: playStatus,
-                  tooltip: 'Play',
+                  tooltip: AppLocalizations.of(context)!.chartPlay,
                   backgroundColor: Colors.white.withValues(alpha: 0.04),
                   foregroundColor: Colors.white.withValues(alpha: 0.7),
                 ),
@@ -153,7 +154,7 @@ class ChartListTile extends StatelessWidget {
                   onPressed: onAddTap,
                   icon: MingCute.add_line,
                   status: addStatus,
-                  tooltip: 'Add to playlist',
+                  tooltip: AppLocalizations.of(context)!.chartAddToPlaylist,
                   backgroundColor: Colors.white.withValues(alpha: 0.04),
                   foregroundColor: Colors.white.withValues(alpha: 0.7),
                 ),

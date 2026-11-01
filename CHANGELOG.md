@@ -1,3 +1,56 @@
+## [3.1.0+207] - 2026-10-21
+
+### Added
+- **New Languages**: Added Turkish, Portuguese, and French translations.
+- **Portable JSON Backups**: Save and share playlists, likes, saved collections, playback and search histories, and portable preferences.
+- **Import Preview and Options**: Preview backup contents before importing as new playlists, merging with existing data, or replacing selected sections. Older JSON backups can be imported as new playlists or merged.
+- **Library Recovery**: Recover missing playlists and download records from retained v3 databases and recovery copies through Storage settings or the empty Offline tab.
+- **Recovery Copies**: Browse private recovery snapshots, with automatic daily checks and protection copies before imports and database resets.
+- **Android Download Folder Selection**: Choose a download folder through the system picker with persistent access permissions.
+
+### Changed
+- **Translations**: Completed existing translations, refined Spanish wording, and improved terminology and message context across languages.
+- **Localization Cleanup**: Removed 90 unused translation entries.
+- **Player Redesign**: Improved desktop space usage with larger artwork and a collapsible queue, and unified ambient artwork backgrounds across desktop, mobile, and lyrics views.
+- **Lyrics Experience**: Refined fullscreen lyrics, scrolling, timing adjustments, and shared playback progress styling.
+- **Backup File Handling**: Unified file import previews across Settings, Library, Android Open With and Share, and desktop file arguments.
+- **Content Imports**: Allow more time to fetch collection details and tracks, and retry the failed step while reusing requests already in progress.
+- **Playback Efficiency**: Reduced background network traffic by bounding audio buffering and removing bulk chart prefetching, and reduced player transition jank and unnecessary rendering.
+- **About and Release Notes**: Refined the warm gradient styling, reduced animation rebuilds, and loaded release-note entries on demand for more responsive pages after updates and first launch.
+- **Mobile Up Next**: Reduced rendering work when opening, closing, and scrolling the queue, including long queues, while preserving the panel's visual depth.
+- **Discord Rich Presence**: Improved per-track artwork, album information, playback timing, and play/pause indicators.
+- **Cancelable Database Resets**: Schedule database resets for the next startup and cancel them before restarting.
+
+### Fixed
+- Fixed About page overflow on small screens and respected reduced-motion preferences for its background animations.
+- Prevented repeated version loading and changelog settings writes during page rebuilds.
+- Preserved duplicate songs in Up Next and corrected their playback, removal, and reorder indices.
+- Fixed the blank Portuguese language selection and mapped older regional preferences to the single Português option.
+- Corrected text encoding, plural counts, and missing song and plugin names in translated messages.
+- Fixed overflowing navigation labels on small screens and improved wrapping for longer translated controls.
+- Ensured setup screens and keyboard shortcut messages follow the selected language, and clarified backup import explanations.
+- Preserved download records and playlist membership when audio files are temporarily missing or inaccessible, with improved recovery of relocated files.
+- Improved playback interruption recovery and refreshed rejected stream URLs when servers return HTTP 401, 403, or 410.
+- Fixed local music scanning on Android 8.1 and improved playback, deletion, and recovery of files accessed through Android document URIs.
+- Improved plugin setup verification and restored providers after failed plugin updates.
+- Fixed lyrics timestamp parsing, scrolling edge cases, cache failure handling, and requests completing after the lyrics view closes.
+- Prevented outdated content import results from affecting a new or canceled import.
+- Fixed Android build compatibility and icon dependency issues.
+- Show a clear startup error when initialization fails while preserving existing database files.
+- Clear saved queue state when the queue becomes empty and protect queued tracks from metadata cleanup.
+- Prevent older playlist loads from replacing the currently selected playlist and reuse pending page requests during Play All.
+- Let active desktop screens handle Escape and Backspace before closing the player.
+- Retry saving completed downloads to the library without downloading the files again.
+
+### Upgrade Notes
+- Removed automatic migration of pre-v3 databases. Library recovery supports retained v3 databases and recovery snapshots; it does not import pre-v3 databases.
+
+### Developer Notes
+- Added regression tests for translation coverage, placeholders, text encoding, language switching, and translated layouts.
+- Upgraded Isar from a prerelease to stable 3.4.1 and updated compatible dependencies.
+- Run release builds in parallel, move Android release builds to Linux, cache dependencies and native build outputs, and publish release artifacts together.
+- Pin Windows release builds to Visual Studio 2022 for native plugin compatibility.
+- Expanded automated test coverage and configured Linux tests to find the Isar native library in worker isolates.
 
 ## [3.0.4] - 2026-05-29
 

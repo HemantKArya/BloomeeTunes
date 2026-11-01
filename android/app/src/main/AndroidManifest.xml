@@ -19,7 +19,7 @@
         android:icon="@mipmap/ic_launcher">
 
         <activity
-            android:name="com.ryanheise.audioservice.AudioServiceActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
@@ -30,6 +30,7 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
             
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -43,31 +44,35 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/*" />
-            </intent-filter>
-            <intent-filter>
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/*" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="text/json" />
+                <data android:mimeType="application/octet-stream" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.intent.action.OPEN_DOCUMENT" />
-                <action android:name="android.intent.action.GET_CONTENT" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:mimeType="application/json" />
-                <data android:scheme="file" />
                 <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="text/json" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="text/plain" />
+                <data android:pathPattern=".*\\.json" />
+                <data android:pathPattern=".*\\.isar" />
+                <data android:pathPattern=".*\\.db" />
             </intent-filter>
             
-            <meta-data
-                android:name="android.service.chooser.chooser_target_service"
-                android:value="androidx.sharetarget.ChooserTargetServiceCompat" />
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/share_targets" />
         </activity>
 
         <service android:name="com.ryanheise.audioservice.AudioService"
@@ -93,6 +98,14 @@
     </application>
 
     <queries>
+        <intent>
+            <action android:name="android.intent.action.CREATE_DOCUMENT" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:mimeType="*/*" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />

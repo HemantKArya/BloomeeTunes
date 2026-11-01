@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:media_kit/media_kit.dart';
@@ -104,6 +104,11 @@ class PlayerEngine {
   double _playerAVolume = 100.0;
   double _playerBVolume = 100.0;
   bool _hasMedia = false;
+  final Map<Player, String> _nativeDiagnostics = {};
+  Duration _lastPlaybackPosition = Duration.zero;
+
+  /// Native EOF can reset the reported position before notifying completion.
+  Duration get recoveryPosition => _lastPlaybackPosition;
 
   final BehaviorSubject<EngineState> _stateSubject =
       BehaviorSubject.seeded(EngineState.idle);
@@ -123,6 +128,7 @@ class PlayerEngine {
       StreamController<String>.broadcast();
 
   late final List<StreamSubscription> _subs;
+  late final Future<void> _nativeConfiguration;
 
   bool _eqEnabled = false;
   final List<EqualizerBand> _eqBands = [
@@ -151,39 +157,59 @@ class PlayerEngine {
   Stream<List<double>> get equalizerBandGainsStream =>
       _eqBandGainsSubject.stream;
 
-  PlayerEngine() {
-    _playerA = Player(
-        configuration: const PlayerConfiguration(
-            title: 'BloomeeTunes', bufferSize: 16 * 1024 * 1024));
-    _playerB = Player(
-        configuration: const PlayerConfiguration(
-            title: 'BloomeeTunes', bufferSize: 16 * 1024 * 1024));
+  PlayerEngine({Player? playerA, Player? playerB}) {
+    _playerA = playerA ??
+        Player(
+            configuration: const PlayerConfiguration(
+                title: 'BloomeeTunes', bufferSize: 4 * 1024 * 1024));
+    _playerB = playerB ??
+        Player(
+            configuration: const PlayerConfiguration(
+                title: 'BloomeeTunes', bufferSize: 4 * 1024 * 1024));
 
-    _configureNativePlayer(_playerA);
-    _configureNativePlayer(_playerB);
+    _nativeConfiguration = Future.wait([
+      _configureNativePlayer(_playerA),
+      _configureNativePlayer(_playerB),
+    ]).then((_) {});
 
     _activePlayerSubject = BehaviorSubject.seeded(_playerA);
     _subs = _buildSubscriptions();
   }
 
-  void _configureNativePlayer(Player player) {
+  Future<void> _configureNativePlayer(Player player) async {
     if (player.platform is NativePlayer) {
       final native = player.platform as NativePlayer;
-      native.setProperty('stream-lavf-o',
-          'reconnect=1,reconnect_streamed=1,reconnect_delay_max=5');
-      native.setProperty('cache', 'yes');
-      native.setProperty('demuxer-max-bytes', '134217728'); // 128 MB
-      native.setProperty('network-timeout', '15');
+      await native.observeProperty('idle-active', (value) async {
+        if (value == 'yes') _handleNativeIdle(player);
+      });
+      try {
+        // media_kit enables disk caching by default. In that mode mpv's byte
+        // limit caps packet metadata, not downloaded audio. Bound both time
+        // and in-memory bytes, including the paused standby player.
+        await native.setProperty('cache-on-disk', 'no');
+        await native.setProperty('cache', 'auto');
+        await native.setProperty('cache-secs', '20');
+        await native.setProperty('demuxer-readahead-secs', '20');
+        await native.setProperty('demuxer-max-bytes', '${4 * 1024 * 1024}');
+        await native.setProperty('demuxer-max-back-bytes', '${1024 * 1024}');
+        await native.setProperty('network-timeout', '15');
+        await native.setProperty('stream-lavf-o',
+            'reconnect=1,reconnect_streamed=1,reconnect_delay_max=5');
+      } catch (error, stack) {
+        log('Could not configure native playback buffering',
+            name: 'PlayerEngine', error: error, stackTrace: stack);
+      }
     }
   }
 
   List<StreamSubscription> _buildSubscriptions() {
     return [
       _activePlayerSubject.switchMap((p) => p.stream.playing).listen((playing) {
-        _playingSubject.add(playing);
+        _playingSubject.add(playing && state != EngineState.error);
         _deriveState();
       }),
       _activePlayerSubject.switchMap((p) => p.stream.position).listen((pos) {
+        if (pos > Duration.zero) _lastPlaybackPosition = pos;
         _positionSubject.add(pos);
         _checkCrossfadeTrigger(pos);
       }),
@@ -201,7 +227,7 @@ class PlayerEngine {
           .switchMap((p) => p.stream.completed)
           .listen((completed) {
         if (completed && _hasMedia && !_disposed && !_crossfadeTriggered) {
-          final pos = _positionSubject.value;
+          final pos = recoveryPosition;
           final dur = _durationSubject.value;
           if (dur > Duration.zero && (dur - pos) > const Duration(seconds: 2)) {
             log('Abnormal EOF detected (pos: $pos, dur: $dur). Routing to error handler.',
@@ -216,13 +242,43 @@ class PlayerEngine {
       _activePlayerSubject.switchMap((p) => p.stream.volume).listen((v) {
         if (!_isTransitioning) _volumeSubject.add((v / 100.0).clamp(0.0, 1.0));
       }),
-      _activePlayerSubject.switchMap((p) => p.stream.error).listen((error) {
-        log('Engine error: $error', name: 'PlayerEngine');
-        _triggerEngineFailure(error);
+      _playerA.stream.error.listen((error) {
+        unawaited(_handlePlayerDiagnostic(_playerA, error));
+      }),
+      _playerB.stream.error.listen((error) {
+        unawaited(_handlePlayerDiagnostic(_playerB, error));
       }),
       _playerA.stream.volume.listen((v) => _playerAVolume = v),
       _playerB.stream.volume.listen((v) => _playerBVolume = v),
     ];
+  }
+
+  Future<void> _handlePlayerDiagnostic(Player player, String error) async {
+    if (_disposed) return;
+    log('Native diagnostic: $error', name: 'PlayerEngine');
+    final native = player.platform;
+    if (native is! NativePlayer) {
+      if (player == _active) _triggerEngineFailure(error);
+      return;
+    }
+    _nativeDiagnostics[player] = error;
+    final generation = _generation;
+    // Native error streams contain log messages, not terminal playback events.
+    // Only an unloaded player or premature EOF authorizes an application retry.
+    final idle = await native.getProperty('idle-active');
+    if (!_disposed && generation == _generation && idle == 'yes') {
+      _handleNativeIdle(player);
+    }
+  }
+
+  void _handleNativeIdle(Player player) {
+    final diagnostic = _nativeDiagnostics[player];
+    if (_disposed || diagnostic == null) return;
+    if (player == _active && _hasMedia) {
+      _triggerEngineFailure(diagnostic);
+    } else if (player == _standby) {
+      _standbyPreloaded = false;
+    }
   }
 
   void _checkCrossfadeTrigger(Duration pos) {
@@ -240,6 +296,7 @@ class PlayerEngine {
   }
 
   void _triggerEngineFailure(String error) {
+    if (_disposed || state == EngineState.error) return;
     _hasMedia = false;
     _suppressIdleUntilMediaLoads = false;
     _playingSubject.add(false);
@@ -250,12 +307,17 @@ class PlayerEngine {
   void _swapActivePlayer() {
     _aIsActive = !_aIsActive;
     final p = _active;
+    _lastPlaybackPosition = p.state.position;
     _playingSubject.add(p.state.playing);
     _positionSubject.add(p.state.position);
     _durationSubject.add(p.state.duration);
     _bufferedSubject.add(p.state.buffer);
     _activePlayerSubject.add(p);
     _deriveState();
+    final diagnostic = _nativeDiagnostics[p];
+    if (diagnostic != null) {
+      unawaited(_handlePlayerDiagnostic(p, diagnostic));
+    }
   }
 
   void _handleCompletion() {
@@ -267,7 +329,9 @@ class PlayerEngine {
   void _deriveState() {
     if (_disposed) return;
     if (!_hasMedia) {
-      if (!_suppressIdleUntilMediaLoads) _stateSubject.add(EngineState.idle);
+      if (!_suppressIdleUntilMediaLoads && state != EngineState.error) {
+        _stateSubject.add(EngineState.idle);
+      }
       return;
     }
     _suppressIdleUntilMediaLoads = false;
@@ -310,9 +374,13 @@ class PlayerEngine {
   }
 
   Future<EngineResult> openDirect(Uri uri,
-      {Map<String, String>? httpHeaders, bool autoPlay = true}) async {
+      {Map<String, String>? httpHeaders,
+      bool autoPlay = true,
+      Duration? initialPosition}) async {
     if (_disposed) return EngineFailure('Engine disposed');
+    _lastPlaybackPosition = initialPosition ?? Duration.zero;
     final gen = ++_generation;
+    _nativeDiagnostics.remove(_active);
 
     _oldPlayerFader.cancel();
     _newPlayerFader.cancel();
@@ -326,8 +394,12 @@ class PlayerEngine {
     setLoadingState();
 
     try {
+      await _nativeConfiguration;
+      if (_disposed || _generation != gen) return EngineCanceled();
       await _active.setVolume(_userVolume * 100.0);
-      await _active.open(Media(uri.toString(), httpHeaders: httpHeaders),
+      await _active.open(
+          Media(uri.toString(),
+              httpHeaders: httpHeaders, start: initialPosition),
           play: autoPlay);
       if (_disposed || _generation != gen) return EngineCanceled();
 
@@ -525,7 +597,9 @@ class PlayerEngine {
 
   Future<void> stop({bool keepLoadingState = false}) async {
     if (_disposed) return;
+    _lastPlaybackPosition = Duration.zero;
     ++_generation;
+    _nativeDiagnostics.clear();
 
     _oldPlayerFader.cancel();
     _newPlayerFader.cancel();
@@ -576,6 +650,7 @@ class PlayerEngine {
     final clamped = Duration(
         milliseconds:
             position.inMilliseconds.clamp(0, actualDuration.inMilliseconds));
+    _lastPlaybackPosition = clamped;
     await _active.seek(clamped);
   }
 
@@ -621,6 +696,9 @@ class PlayerEngine {
     }
 
     try {
+      await _nativeConfiguration;
+      if (_disposed) return false;
+      _nativeDiagnostics.remove(_standby);
       await _standby.setVolume(0);
       await _standby.open(Media(uri.toString(), httpHeaders: httpHeaders),
           play: false);
@@ -797,6 +875,7 @@ class PlayerEngine {
       await sub.cancel();
     }
 
+    await _nativeConfiguration;
     await _activePlayerSubject.close();
     await Future.wait([_playerA.dispose(), _playerB.dispose()]);
     await _stateSubject.close();

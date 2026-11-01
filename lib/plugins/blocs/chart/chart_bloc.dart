@@ -30,7 +30,6 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
     on<LoadCharts>(_onLoadCharts);
     on<LoadChartDetails>(_onLoadChartDetails);
     on<ForceRefreshChartDetails>(_onForceRefreshChartDetails);
-    on<PrefetchAllChartDetails>(_onPrefetchAllChartDetails);
     on<SetActiveChartPlugin>(_onSetActivePlugin);
     on<ClearCharts>(_onClearCharts);
   }
@@ -300,75 +299,6 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
         chartDetailStatus: ChartStatus.error,
         error: 'Failed to refresh chart: $e',
       ));
-    }
-  }
-
-  // ── Prefetch All Chart Details (silent background) ─────────────────────────
-
-  Future<void> _onPrefetchAllChartDetails(
-    PrefetchAllChartDetails event,
-    Emitter<ChartState> emit,
-  ) async {
-    // No state emissions — purely a cache-warming operation.
-    for (final chartId in event.chartIds) {
-      if (isClosed) break;
-
-      final cacheKey = 'chart_cache::${event.pluginId}::$chartId';
-      try {
-        final cached = await _cache.getCachedWithStaleness<List<ChartItem>>(
-          key: cacheKey,
-          type: CacheType.chart,
-          decode: decodeChartItemsCacheAsync,
-          stalenessThreshold: const Duration(hours: 8),
-        );
-
-        // Skip charts that are already fresh in cache.
-        if (cached.value != null && !cached.isStale) continue;
-
-        if (isClosed) break;
-
-        final localId = localIdOf(chartId) ?? chartId;
-        final response = await _pluginService.execute(
-          pluginId: event.pluginId,
-          request: PluginRequest.chartProvider(
-            ChartProviderCommand.getChartDetails(id: localId),
-          ),
-        );
-
-        response.when(
-          chartDetails: (items) {
-            _cache.put(
-              key: cacheKey,
-              value: items,
-              type: CacheType.chart,
-              blob: encodeChartItemsCache(items),
-            );
-          },
-          trackDetails: (_) {},
-          search: (_) {},
-          albumDetails: (_) {},
-          artistDetails: (_) {},
-          playlistDetails: (_) {},
-          streams: (_) {},
-          moreTracks: (_) {},
-          moreAlbums: (_) {},
-          homeSections: (_) {},
-          loadMoreItems: (_) {},
-          charts: (_) {},
-          segments: (_) {},
-          lyricsResult: (_) {},
-          lyricsSearchResults: (_) {},
-          lyricsById: (_, __) {},
-          suggestions: (_) {},
-          canHandle: (_) {},
-          collectionInfo: (_) {},
-          importTracks: (_) {},
-          ack: () {},
-        );
-      } catch (e) {
-        log('Prefetch failed for chart $chartId: $e', name: 'ChartBloc');
-        // Continue with next chart on failure.
-      }
     }
   }
 

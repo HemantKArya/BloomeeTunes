@@ -103,6 +103,30 @@ class PluginBootstrapService {
     required SettingsDAO settingsDao,
     required void Function(PluginBootstrapProgress progress) onProgress,
   }) async {
+    try {
+      await pluginService.initialize();
+      return await _run(
+        pluginService: pluginService,
+        repositoryService: repositoryService,
+        settingsDao: settingsDao,
+        onProgress: onProgress,
+      );
+    } catch (error, stack) {
+      log('Plugin setup failed',
+          error: error, stackTrace: stack, name: 'PluginBootstrap');
+      return PluginBootstrapResult(
+          success: false,
+          errors: ['Plugin setup failed: $error'],
+          failureReason: PluginBootstrapFailureReason.setupFailed);
+    }
+  }
+
+  static Future<PluginBootstrapResult> _run({
+    required PluginService pluginService,
+    required PluginRepositoryService repositoryService,
+    required SettingsDAO settingsDao,
+    required void Function(PluginBootstrapProgress progress) onProgress,
+  }) async {
     final errors = <String>[];
 
     onProgress(const PluginBootstrapProgress(8));
@@ -170,7 +194,20 @@ class PluginBootstrapService {
             ((processedPlugins * 55) ~/
                 (totalPlugins == 0 ? 1 : totalPlugins))));
 
-        if (installedIds.contains(plugin.id)) {
+        final local =
+            available.where((p) => p.manifest.id == plugin.id).firstOrNull;
+        if (local != null) {
+          // Discovery proves the files exist, not that the plugin can run.
+          // A previous partial setup may have installed it without loading it.
+          if (!pluginService.getLoadedPlugins().contains(plugin.id)) {
+            try {
+              await pluginService.loadPlugin(
+                  pluginId: plugin.id, pluginType: local.pluginType);
+            } catch (error) {
+              errors.add('Could not load "${plugin.name}": $error');
+            }
+          }
+          bootstrapTargetIds.add(plugin.id);
           processedPlugins++;
           continue;
         }
@@ -432,10 +469,9 @@ class PluginBootstrapService {
           continue;
         }
 
+        final currentlyLoaded =
+            pluginService.getLoadedPlugins().contains(pluginId);
         try {
-          // Check if plugin is currently loaded RIGHT NOW (not from snapshot)
-          // — auto-load may have loaded it since the snapshot was taken.
-          final currentlyLoaded = pluginService.getLoadedPlugins().contains(pluginId);
           if (currentlyLoaded) {
             try {
               await pluginService.unloadPlugin(
@@ -460,20 +496,6 @@ class PluginBootstrapService {
             shouldLoad: false,
           );
 
-          // Reload plugin only if it was previously loaded.
-          if (currentlyLoaded) {
-            try {
-              await pluginService.loadPlugin(
-                pluginId: pluginId,
-                pluginType: local.pluginType,
-              );
-              log('Reloaded $pluginId after update', name: 'PluginBootstrap');
-            } catch (e) {
-              log('Failed to reload $pluginId after update: $e',
-                  name: 'PluginBootstrap');
-            }
-          }
-
           // Add to auto-load list if updated.
           final loadStateService = PluginLoadStateService(settingsDao);
           await loadStateService.addAutoLoadPluginIds(<String>[pluginId]);
@@ -481,6 +503,18 @@ class PluginBootstrapService {
           continue;
         } catch (e) {
           log('Auto-update failed for $pluginId: $e', name: 'PluginBootstrap');
+        } finally {
+          // A failed network update must not leave a working provider unloaded.
+          if (currentlyLoaded &&
+              !pluginService.getLoadedPlugins().contains(pluginId)) {
+            try {
+              await pluginService.loadPlugin(
+                  pluginId: pluginId, pluginType: local.pluginType);
+            } catch (error) {
+              log('Could not reload $pluginId after update: $error',
+                  name: 'PluginBootstrap');
+            }
+          }
         }
       }
 

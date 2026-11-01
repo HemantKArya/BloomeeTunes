@@ -457,25 +457,11 @@ class QueueManager {
   /// Called from [BloomeeMusicPlayer] via a throttled listener on
   /// [tracksStream], and eagerly in [onTaskRemoved] as a last-chance save.
   Future<void> persistQueueState() async {
-    final tracks = _queue.value;
-    if (tracks.isEmpty) return;
     try {
-      // Ensure all tracks exist in TrackDAO (ephemeral tracks from search
-      // results or intent handling might not have been saved yet).
-      final trackDao = TrackDAO(DBProvider.db);
-      await trackDao.upsertTracks(tracks);
-
-      final dao = SettingsDAO(DBProvider.db);
-      final queueData = {
-        'v': 2, // v2: ID-only persistence
-        'trackIds': tracks.map((t) => t.id).toList(),
-        'currentIndex': _currentIndex,
-        'queueTitle': queueTitle.value,
-      };
-      await dao.putSettingStr(
-          SettingKeys.lastQueueState, jsonEncode(queueData));
-    } catch (e) {
-      log('Failed to persist queue: $e', name: 'QueueManager');
+      await TrackDAO(DBProvider.db).persistQueueState(_queue.value,
+          currentIndex: _currentIndex, title: queueTitle.value);
+    } catch (error) {
+      log('Failed to persist queue: $error', name: 'QueueManager');
     }
   }
 
@@ -508,9 +494,8 @@ class QueueManager {
       }
       if (tracks.isEmpty) return false;
 
-      final idx = (data['currentIndex'] as int?)
-              ?.clamp(0, tracks.length - 1) ??
-          0;
+      final idx =
+          (data['currentIndex'] as int?)?.clamp(0, tracks.length - 1) ?? 0;
       _isRestoring = true;
       loadTracks(tracks, idx: idx, playlistName: data['queueTitle'] ?? 'Queue');
       _isRestoring = false;
