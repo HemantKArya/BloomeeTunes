@@ -1965,4 +1965,88 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get eqPresetCustom => 'カスタム';
+
+  @override
+  String get lastfmStatusSection => 'スクロブルの状態';
+
+  @override
+  String get lastfmStatusSynced => 'すべて同期済み';
+
+  @override
+  String get lastfmStatusSending => '送信中…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のスクロブルが待機中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => 'オフライン · まもなく再試行します';
+
+  @override
+  String get lastfmStatusAuthPaused => '一時停止中 · 再度サインインしてください';
+
+  @override
+  String get lastfmStatusOff => 'スクロブルはオフです';
+
+  @override
+  String get lastfmStatQueued => '待機中';
+
+  @override
+  String get lastfmStatLastSent => '最後の送信';
+
+  @override
+  String get lastfmNever => 'なし';
+
+  @override
+  String get lastfmJustNow => 'たった今';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return '$n分前';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return '$n時間前';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return '$n日前';
+  }
+
+  @override
+  String get lastfmLastTrack => '最後のスクロブル';
+
+  @override
+  String get lastfmErrorNetwork =>
+      'Last.fm に接続できませんでした。スクロブルは保存されており、自動的に送信されます。';
+
+  @override
+  String get lastfmErrorAuth => 'Last.fm のセッションが無効になりました。キーを削除して、もう一度認証してください。';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last.fm が$count件のスクロブルを拒否したため、破棄されました。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => '今すぐ同期';
+
+  @override
+  String get lastfmClearQueue => 'キューを消去';
+
+  @override
+  String get lastfmQueueCleared => 'スクロブルのキューを消去しました';
 }

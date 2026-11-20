@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:Bloomee/blocs/lastdotfm/lastdotfm_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
-import 'package:Bloomee/repository/LastFM/lastfmapi.dart';
+import 'package:Bloomee/services/scrobble/lastfm_api.dart';
 import 'package:Bloomee/core/constants/cache_keys.dart';
+import 'package:Bloomee/services/scrobble/scrobble_status.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
@@ -112,18 +114,38 @@ class _LastDotFMState extends State<LastDotFM> {
                     subtitle: l10n.lastfmScrobbleTracksSubtitle,
                     value: settingsState.lastFMScrobble,
                     onChanged: (value) {
-                      context.read<SettingsCubit>().setLastFMScrobble(value);
+                      final settings = context.read<SettingsCubit>();
+                      settings.setLastFMScrobble(value);
                       if (value && LastFmAPI.initialized == false) {
                         SnackbarService.showMessage(l10n.lastfmAuthFirst);
                         Future.delayed(const Duration(milliseconds: 500), () {
-                          context
-                              .read<SettingsCubit>()
-                              .setLastFMScrobble(false);
+                          settings.setLastFMScrobble(false);
                         });
                       }
                     },
                   ),
                 ],
+              ),
+
+              // Live scrobble status (only when signed in)
+              BlocBuilder<LastdotfmCubit, LastdotfmState>(
+                buildWhen: (p, c) =>
+                    (p is LastdotfmIntialized) != (c is LastdotfmIntialized),
+                builder: (context, st) {
+                  if (st is! LastdotfmIntialized) return const SizedBox();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SettingSectionHeader(label: l10n.lastfmStatusSection),
+                        _ScrobbleStatusCard(
+                          enabled: settingsState.lastFMScrobble,
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 28),
@@ -251,6 +273,181 @@ class _LastDotFMState extends State<LastDotFM> {
           );
         },
       ),
+    );
+  }
+}
+
+// --- Scrobble status ---------------------------------------------------------
+
+class _ScrobbleStatusCard extends StatefulWidget {
+  final bool enabled;
+  const _ScrobbleStatusCard({required this.enabled});
+
+  @override
+  State<_ScrobbleStatusCard> createState() => _ScrobbleStatusCardState();
+}
+
+class _ScrobbleStatusCardState extends State<_ScrobbleStatusCard> {
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    // Keeps the relative time fresh without rebuilding the whole screen.
+    _tick = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  String _ago(AppLocalizations l10n, DateTime t) {
+    final d = DateTime.now().difference(t);
+    if (d.inMinutes < 1) return l10n.lastfmJustNow;
+    if (d.inHours < 1) return l10n.lastfmMinutesAgo(d.inMinutes);
+    if (d.inDays < 1) return l10n.lastfmHoursAgo(d.inHours);
+    return l10n.lastfmDaysAgo(d.inDays);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cubit = context.read<LastdotfmCubit>();
+    final muted = Default_Theme.primaryColor2.withValues(alpha: 0.5);
+
+    return ValueListenableBuilder<ScrobbleStatus>(
+      valueListenable: cubit.scrobbleStatus,
+      builder: (context, s, _) {
+        Color tone = Default_Theme.primaryColor2;
+        final String title;
+        if (!widget.enabled) {
+          tone = muted;
+          title = l10n.lastfmStatusOff;
+        } else if (s.phase == ScrobblePhase.authPaused) {
+          tone = Colors.redAccent;
+          title = l10n.lastfmStatusAuthPaused;
+        } else if (s.phase == ScrobblePhase.retrying) {
+          tone = Colors.amber;
+          title = l10n.lastfmStatusRetrying;
+        } else if (s.phase == ScrobblePhase.sending) {
+          title = l10n.lastfmStatusSending;
+        } else if (s.pending > 0) {
+          title = l10n.lastfmStatusQueued(s.pending);
+        } else {
+          title = l10n.lastfmStatusSynced;
+        }
+
+        final String? detail = switch (s.issue) {
+          ScrobbleIssue.network => l10n.lastfmErrorNetwork,
+          ScrobbleIssue.auth => l10n.lastfmErrorAuth,
+          ScrobbleIssue.rejected => l10n.lastfmErrorRejected(s.rejectedCount),
+          null => s.lastTrack,
+        };
+        final sentAt = s.lastSuccessAt;
+        final showActions = s.pending > 0 || s.phase == ScrobblePhase.retrying;
+
+        return SettingCard(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: Default_Theme.secondoryTextStyleMedium
+                              .copyWith(
+                            color: tone,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      if (sentAt != null)
+                        Text(
+                          '${l10n.lastfmStatLastSent} · ${_ago(l10n, sentAt)}',
+                          style: Default_Theme.secondoryTextStyle.copyWith(
+                            color: muted.withValues(alpha: 0.4),
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (detail != null) ...[
+                    const SizedBox(height: 6),
+                    Padding(
+                      padding: EdgeInsets.zero,
+                      child: Text(
+                        detail,
+                        maxLines: s.issue == null ? 1 : 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: Default_Theme.secondoryTextStyle.copyWith(
+                          color: muted,
+                          fontSize: 12.5,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (showActions) ...[
+              const SettingDivider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                child: Row(
+                  children: [
+                    _TextAction(
+                      label: l10n.lastfmSyncNow,
+                      color: Default_Theme.accentColor2,
+                      onTap: cubit.syncNow,
+                    ),
+                    _TextAction(
+                      label: l10n.lastfmClearQueue,
+                      color: muted,
+                      onTap: () async {
+                        await cubit.clearScrobbleQueue();
+                        SnackbarService.showMessage(l10n.lastfmQueueCleared);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _TextAction extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  const _TextAction(
+      {required this.label, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+      ),
+      child: Text(label),
     );
   }
 }

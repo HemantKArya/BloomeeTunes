@@ -3757,6 +3757,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Custom'**
   String get eqPresetCustom;
+
+  /// No description provided for @lastfmStatusSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrobble status'**
+  String get lastfmStatusSection;
+
+  /// No description provided for @lastfmStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'All caught up'**
+  String get lastfmStatusSynced;
+
+  /// No description provided for @lastfmStatusSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get lastfmStatusSending;
+
+  /// No description provided for @lastfmStatusQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 scrobble waiting} other{{count} scrobbles waiting}}'**
+  String lastfmStatusQueued(int count);
+
+  /// No description provided for @lastfmStatusRetrying.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline · will retry shortly'**
+  String get lastfmStatusRetrying;
+
+  /// No description provided for @lastfmStatusAuthPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused · sign in again'**
+  String get lastfmStatusAuthPaused;
+
+  /// No description provided for @lastfmStatusOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrobbling is turned off'**
+  String get lastfmStatusOff;
+
+  /// No description provided for @lastfmStatQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get lastfmStatQueued;
+
+  /// No description provided for @lastfmStatLastSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sent'**
+  String get lastfmStatLastSent;
+
+  /// No description provided for @lastfmNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get lastfmNever;
+
+  /// No description provided for @lastfmJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get lastfmJustNow;
+
+  /// No description provided for @lastfmMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}m ago'**
+  String lastfmMinutesAgo(int n);
+
+  /// No description provided for @lastfmHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}h ago'**
+  String lastfmHoursAgo(int n);
+
+  /// No description provided for @lastfmDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}d ago'**
+  String lastfmDaysAgo(int n);
+
+  /// No description provided for @lastfmLastTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Last scrobbled'**
+  String get lastfmLastTrack;
+
+  /// No description provided for @lastfmErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach Last.fm. Your scrobbles are safe and will be sent automatically.'**
+  String get lastfmErrorNetwork;
+
+  /// No description provided for @lastfmErrorAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Last.fm session is no longer valid. Remove the keys and authenticate again.'**
+  String get lastfmErrorAuth;
+
+  /// No description provided for @lastfmErrorRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Last.fm rejected 1 scrobble and it was discarded.} other{Last.fm rejected {count} scrobbles and they were discarded.}}'**
+  String lastfmErrorRejected(int count);
+
+  /// No description provided for @lastfmSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get lastfmSyncNow;
+
+  /// No description provided for @lastfmClearQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear queue'**
+  String get lastfmClearQueue;
+
+  /// No description provided for @lastfmQueueCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrobble queue cleared'**
+  String get lastfmQueueCleared;
 }
 
 class _AppLocalizationsDelegate

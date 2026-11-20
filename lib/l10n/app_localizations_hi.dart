@@ -2088,4 +2088,91 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get eqPresetCustom => 'कस्टम';
+
+  @override
+  String get lastfmStatusSection => 'स्क्रॉबल स्थिति';
+
+  @override
+  String get lastfmStatusSynced => 'सब कुछ अप टू डेट है';
+
+  @override
+  String get lastfmStatusSending => 'भेजा जा रहा है…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count स्क्रॉबल प्रतीक्षा में',
+      one: '1 स्क्रॉबल प्रतीक्षा में',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => 'ऑफ़लाइन · जल्द ही दोबारा कोशिश होगी';
+
+  @override
+  String get lastfmStatusAuthPaused => 'रुका हुआ · फिर से साइन इन करें';
+
+  @override
+  String get lastfmStatusOff => 'स्क्रॉबलिंग बंद है';
+
+  @override
+  String get lastfmStatQueued => 'कतार में';
+
+  @override
+  String get lastfmStatLastSent => 'अंतिम बार भेजा';
+
+  @override
+  String get lastfmNever => 'कभी नहीं';
+
+  @override
+  String get lastfmJustNow => 'अभी';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return '$n मिनट पहले';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return '$n घंटे पहले';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return '$n दिन पहले';
+  }
+
+  @override
+  String get lastfmLastTrack => 'अंतिम स्क्रॉबल';
+
+  @override
+  String get lastfmErrorNetwork =>
+      'Last.fm तक नहीं पहुँचा जा सका। आपके स्क्रॉबल सुरक्षित हैं और अपने आप भेजे जाएँगे।';
+
+  @override
+  String get lastfmErrorAuth =>
+      'आपका Last.fm सेशन अब मान्य नहीं है। कुंजियाँ हटाएँ और फिर से प्रमाणित करें।';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last.fm ने $count स्क्रॉबल अस्वीकार किए और उन्हें हटा दिया गया।',
+      one: 'Last.fm ने 1 स्क्रॉबल अस्वीकार किया और उसे हटा दिया गया।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => 'अभी सिंक करें';
+
+  @override
+  String get lastfmClearQueue => 'कतार साफ़ करें';
+
+  @override
+  String get lastfmQueueCleared => 'स्क्रॉबल कतार साफ़ की गई';
 }

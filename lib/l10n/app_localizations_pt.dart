@@ -2105,4 +2105,91 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get eqPresetCustom => 'Personalizado';
+
+  @override
+  String get lastfmStatusSection => 'Estado do scrobbling';
+
+  @override
+  String get lastfmStatusSynced => 'Tudo em dia';
+
+  @override
+  String get lastfmStatusSending => 'A enviar…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count scrobbles em espera',
+      one: '1 scrobble em espera',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => 'Sem ligação · nova tentativa em breve';
+
+  @override
+  String get lastfmStatusAuthPaused => 'Em pausa · inicie sessão novamente';
+
+  @override
+  String get lastfmStatusOff => 'O scrobbling está desativado';
+
+  @override
+  String get lastfmStatQueued => 'Em fila';
+
+  @override
+  String get lastfmStatLastSent => 'Último envio';
+
+  @override
+  String get lastfmNever => 'Nunca';
+
+  @override
+  String get lastfmJustNow => 'Agora mesmo';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return 'há $n min';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return 'há $n h';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return 'há $n d';
+  }
+
+  @override
+  String get lastfmLastTrack => 'Último scrobble';
+
+  @override
+  String get lastfmErrorNetwork =>
+      'Não foi possível contactar o Last.fm. Os seus scrobbles estão seguros e serão enviados automaticamente.';
+
+  @override
+  String get lastfmErrorAuth =>
+      'A sua sessão do Last.fm já não é válida. Remova as chaves e autentique-se novamente.';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'O Last.fm rejeitou $count scrobbles e foram descartados.',
+      one: 'O Last.fm rejeitou 1 scrobble e foi descartado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => 'Sincronizar agora';
+
+  @override
+  String get lastfmClearQueue => 'Limpar fila';
+
+  @override
+  String get lastfmQueueCleared => 'Fila de scrobbles limpa';
 }

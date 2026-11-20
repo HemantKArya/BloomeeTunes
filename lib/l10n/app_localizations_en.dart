@@ -2073,4 +2073,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eqPresetCustom => 'Custom';
+
+  @override
+  String get lastfmStatusSection => 'Scrobble status';
+
+  @override
+  String get lastfmStatusSynced => 'All caught up';
+
+  @override
+  String get lastfmStatusSending => 'Sending…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count scrobbles waiting',
+      one: '1 scrobble waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => 'Offline · will retry shortly';
+
+  @override
+  String get lastfmStatusAuthPaused => 'Paused · sign in again';
+
+  @override
+  String get lastfmStatusOff => 'Scrobbling is turned off';
+
+  @override
+  String get lastfmStatQueued => 'Queued';
+
+  @override
+  String get lastfmStatLastSent => 'Last sent';
+
+  @override
+  String get lastfmNever => 'Never';
+
+  @override
+  String get lastfmJustNow => 'Just now';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return '${n}m ago';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return '${n}h ago';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return '${n}d ago';
+  }
+
+  @override
+  String get lastfmLastTrack => 'Last scrobbled';
+
+  @override
+  String get lastfmErrorNetwork =>
+      'Couldn\'t reach Last.fm. Your scrobbles are safe and will be sent automatically.';
+
+  @override
+  String get lastfmErrorAuth =>
+      'Your Last.fm session is no longer valid. Remove the keys and authenticate again.';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last.fm rejected $count scrobbles and they were discarded.',
+      one: 'Last.fm rejected 1 scrobble and it was discarded.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => 'Sync now';
+
+  @override
+  String get lastfmClearQueue => 'Clear queue';
+
+  @override
+  String get lastfmQueueCleared => 'Scrobble queue cleared';
 }

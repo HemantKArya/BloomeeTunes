@@ -1965,4 +1965,88 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get eqPresetCustom => '사용자 지정';
+
+  @override
+  String get lastfmStatusSection => '스크로블 상태';
+
+  @override
+  String get lastfmStatusSynced => '모두 최신 상태';
+
+  @override
+  String get lastfmStatusSending => '전송 중…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '스크로블 $count개 대기 중',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => '오프라인 · 곧 다시 시도합니다';
+
+  @override
+  String get lastfmStatusAuthPaused => '일시 중지됨 · 다시 로그인하세요';
+
+  @override
+  String get lastfmStatusOff => '스크로블이 꺼져 있습니다';
+
+  @override
+  String get lastfmStatQueued => '대기 중';
+
+  @override
+  String get lastfmStatLastSent => '마지막 전송';
+
+  @override
+  String get lastfmNever => '없음';
+
+  @override
+  String get lastfmJustNow => '방금';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return '$n분 전';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return '$n시간 전';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return '$n일 전';
+  }
+
+  @override
+  String get lastfmLastTrack => '마지막 스크로블';
+
+  @override
+  String get lastfmErrorNetwork =>
+      'Last.fm에 연결할 수 없습니다. 스크로블은 안전하게 보관되며 자동으로 전송됩니다.';
+
+  @override
+  String get lastfmErrorAuth => 'Last.fm 세션이 더 이상 유효하지 않습니다. 키를 삭제하고 다시 인증하세요.';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last.fm이 스크로블 $count개를 거부하여 삭제되었습니다.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => '지금 동기화';
+
+  @override
+  String get lastfmClearQueue => '대기열 비우기';
+
+  @override
+  String get lastfmQueueCleared => '스크로블 대기열을 비웠습니다';
 }

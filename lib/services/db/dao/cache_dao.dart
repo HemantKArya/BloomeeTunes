@@ -70,6 +70,32 @@ class CacheDAO {
         () => isar.cacheEntryDBs.filter().keyEqualTo(key).deleteAll());
   }
 
+  /// Returns `(key, value)` pairs whose key starts with [prefix], ordered by
+  /// key. Intended for simple persistent queues (one row per item).
+  Future<List<({String key, String value})>> getCacheByPrefix(
+    String prefix, {
+    int? limit,
+  }) async {
+    final isar = await _db;
+    final q = isar.cacheEntryDBs
+        .filter()
+        .keyStartsWith(prefix)
+        .sortByKey();
+    final rows = limit == null ? await q.findAll() : await q.limit(limit).findAll();
+    return rows.map((e) => (key: e.key, value: e.value)).toList();
+  }
+
+  /// Delete many cache entries by exact key in a single transaction.
+  Future<void> removeCacheKeys(List<String> keys) async {
+    if (keys.isEmpty) return;
+    final isar = await _db;
+    await isar.writeTxn(() async {
+      for (final k in keys) {
+        await isar.cacheEntryDBs.filter().keyEqualTo(k).deleteAll();
+      }
+    });
+  }
+
   /// Delete all entries whose TTL has passed.
   ///
   /// Returns the number of entries deleted.

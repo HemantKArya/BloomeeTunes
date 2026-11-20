@@ -2099,4 +2099,91 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get eqPresetCustom => 'Personalizado';
+
+  @override
+  String get lastfmStatusSection => 'Estado de scrobbling';
+
+  @override
+  String get lastfmStatusSynced => 'Todo al día';
+
+  @override
+  String get lastfmStatusSending => 'Enviando…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count scrobbles en espera',
+      one: '1 scrobble en espera',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => 'Sin conexión · se reintentará pronto';
+
+  @override
+  String get lastfmStatusAuthPaused => 'En pausa · inicia sesión de nuevo';
+
+  @override
+  String get lastfmStatusOff => 'El scrobbling está desactivado';
+
+  @override
+  String get lastfmStatQueued => 'En cola';
+
+  @override
+  String get lastfmStatLastSent => 'Último envío';
+
+  @override
+  String get lastfmNever => 'Nunca';
+
+  @override
+  String get lastfmJustNow => 'Ahora mismo';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return 'hace $n min';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return 'hace $n h';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return 'hace $n d';
+  }
+
+  @override
+  String get lastfmLastTrack => 'Último scrobble';
+
+  @override
+  String get lastfmErrorNetwork =>
+      'No se pudo contactar con Last.fm. Tus scrobbles están a salvo y se enviarán automáticamente.';
+
+  @override
+  String get lastfmErrorAuth =>
+      'Tu sesión de Last.fm ya no es válida. Elimina las claves y autentícate de nuevo.';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last.fm rechazó $count scrobbles y se descartaron.',
+      one: 'Last.fm rechazó 1 scrobble y se descartó.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => 'Sincronizar ahora';
+
+  @override
+  String get lastfmClearQueue => 'Vaciar cola';
+
+  @override
+  String get lastfmQueueCleared => 'Cola de scrobbles vaciada';
 }

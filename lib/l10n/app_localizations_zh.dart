@@ -1956,4 +1956,87 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get eqPresetCustom => '自定义';
+
+  @override
+  String get lastfmStatusSection => 'Scrobble 状态';
+
+  @override
+  String get lastfmStatusSynced => '已全部同步';
+
+  @override
+  String get lastfmStatusSending => '正在发送…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条 Scrobble 等待发送',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => '离线 · 稍后重试';
+
+  @override
+  String get lastfmStatusAuthPaused => '已暂停 · 请重新登录';
+
+  @override
+  String get lastfmStatusOff => 'Scrobble 已关闭';
+
+  @override
+  String get lastfmStatQueued => '排队中';
+
+  @override
+  String get lastfmStatLastSent => '上次发送';
+
+  @override
+  String get lastfmNever => '从未';
+
+  @override
+  String get lastfmJustNow => '刚刚';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return '$n 分钟前';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return '$n 小时前';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return '$n 天前';
+  }
+
+  @override
+  String get lastfmLastTrack => '最近一次 Scrobble';
+
+  @override
+  String get lastfmErrorNetwork => '无法连接到 Last.fm。你的 Scrobble 已安全保存，将自动发送。';
+
+  @override
+  String get lastfmErrorAuth => '你的 Last.fm 会话已失效。请移除密钥并重新认证。';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last.fm 拒绝了 $count 条 Scrobble，已被丢弃。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => '立即同步';
+
+  @override
+  String get lastfmClearQueue => '清空队列';
+
+  @override
+  String get lastfmQueueCleared => '已清空 Scrobble 队列';
 }

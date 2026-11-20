@@ -2036,4 +2036,91 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get eqPresetCustom => 'Özel';
+
+  @override
+  String get lastfmStatusSection => 'Scrobble durumu';
+
+  @override
+  String get lastfmStatusSynced => 'Her şey güncel';
+
+  @override
+  String get lastfmStatusSending => 'Gönderiliyor…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count scrobble bekliyor',
+      one: '1 scrobble bekliyor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => 'Çevrimdışı · birazdan tekrar denenecek';
+
+  @override
+  String get lastfmStatusAuthPaused => 'Duraklatıldı · tekrar giriş yapın';
+
+  @override
+  String get lastfmStatusOff => 'Scrobble kapalı';
+
+  @override
+  String get lastfmStatQueued => 'Kuyrukta';
+
+  @override
+  String get lastfmStatLastSent => 'Son gönderim';
+
+  @override
+  String get lastfmNever => 'Hiç';
+
+  @override
+  String get lastfmJustNow => 'Az önce';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return '$n dk önce';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return '$n sa önce';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return '$n g önce';
+  }
+
+  @override
+  String get lastfmLastTrack => 'Son scrobble';
+
+  @override
+  String get lastfmErrorNetwork =>
+      'Last.fm\'e ulaşılamadı. Scrobble\'larınız güvende ve otomatik olarak gönderilecek.';
+
+  @override
+  String get lastfmErrorAuth =>
+      'Last.fm oturumunuz artık geçerli değil. Anahtarları kaldırıp yeniden kimlik doğrulayın.';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last.fm $count scrobble\'ı reddetti ve silindi.',
+      one: 'Last.fm 1 scrobble\'ı reddetti ve silindi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => 'Şimdi senkronize et';
+
+  @override
+  String get lastfmClearQueue => 'Kuyruğu temizle';
+
+  @override
+  String get lastfmQueueCleared => 'Scrobble kuyruğu temizlendi';
 }

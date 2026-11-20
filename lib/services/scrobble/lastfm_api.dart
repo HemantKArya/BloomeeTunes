@@ -72,13 +72,30 @@ class ScrobbleTrack {
       ScrobbleTrack.fromMap(source as Map<String, dynamic>);
 }
 
+/// Outcome of a `track.scrobble` batch submission.
+enum ScrobbleOutcome {
+  /// Batch was accepted (individual tracks may still have been ignored).
+  success,
+
+  /// Temporary problem (network, 5xx, rate-limit). Keep entries and retry.
+  retryable,
+
+  /// Session/credentials are invalid. Keep entries, stop until re-auth.
+  authFailed,
+
+  /// Batch is permanently rejected. Entries should be dropped so they don't
+  /// block the queue forever.
+  rejected,
+}
+
 class LastFmAPI {
   static String? apiKey;
   static String? apiSecret;
   static String? sessionKey;
   static String? username;
   static bool initialized = false;
-  static const String apiUrl = 'http://ws.audioscrobbler.com/2.0/';
+  static const String apiUrl = 'https://ws.audioscrobbler.com/2.0/';
+  static const Duration _timeout = Duration(seconds: 20);
   static const String userStation = "https://www.last.fm/player/station/user/";
   static const Map<String, String> userStationEndpoints = {
     "recommended": "/recommended",
@@ -166,55 +183,87 @@ class LastFmAPI {
     params['format'] = 'json';
 
     try {
-      await http.post(Uri.parse(apiUrl), body: params);
+      await http.post(Uri.parse(apiUrl), body: params).timeout(_timeout);
     } catch (e) {
       log('updateNowPlaying failed: $e', name: 'LastFM API');
     }
   }
 
-  static Future<bool> scrobble(List<ScrobbleTrack> tracks) async {
+  /// Submits up to 50 tracks. Never throws; the result tells the caller
+  /// whether to keep, retry or drop the entries.
+  static Future<ScrobbleOutcome> scrobble(List<ScrobbleTrack> tracks) async {
     if (apiKey == null || apiSecret == null || sessionKey == null) {
-      throw Exception("LastFM API not initialized.");
+      return ScrobbleOutcome.authFailed;
     }
-    if (tracks.length > 50) {
-      throw Exception("Cannot scrobble more than 50 tracks at once.");
-    }
+    if (tracks.isEmpty) return ScrobbleOutcome.success;
+    if (tracks.length > 50) return ScrobbleOutcome.rejected;
 
-    Map<String, String> params = {
+    final params = <String, String>{
       'method': 'track.scrobble',
       'api_key': apiKey!,
       'sk': sessionKey!,
     };
-
     for (int i = 0; i < tracks.length; i++) {
       params.addAll(tracks[i].toParams(i));
     }
-
     params['api_sig'] = generateApiSig(params, apiSecret!);
     params['format'] = 'json';
-    final response = await http.post(Uri.parse(apiUrl), body: params);
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> data = jsonDecode(response.body);
-      if (data.containsKey('scrobbles')) {
-        Map<String, dynamic> scrobblesInfo = data['scrobbles'];
-        final accepted = scrobblesInfo['@attr']['accepted'];
-        final ignored = scrobblesInfo['@attr']['ignored'];
+    try {
+      final response = await http
+          .post(Uri.parse(apiUrl), body: params)
+          .timeout(_timeout);
 
-        log('Accepted Scrobbles: $accepted, Ignored Scrobbles: $ignored',
+      Map<String, dynamic>? data;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) data = decoded;
+      } catch (_) {}
+
+      if (response.statusCode == 200 && data != null) {
+        if (data.containsKey('error')) {
+          return _classifyError(data['error'], data['message']);
+        }
+        final attr = (data['scrobbles'] as Map?)?['@attr'] as Map?;
+        log('Accepted: ${attr?['accepted']}, ignored: ${attr?['ignored']}',
             name: 'LastFM API');
-        return true;
-      } else {
-        String errorMessage = data['message'] ?? 'Unknown Error';
-        log('Error: Response status not ok - $errorMessage',
-            name: 'LastFM API');
+        return ScrobbleOutcome.success;
       }
-    } else {
-      log('HTTP Error: ${response.statusCode} - ${response.body}',
-          name: 'LastFM API');
+      if (data != null && data.containsKey('error')) {
+        return _classifyError(data['error'], data['message']);
+      }
+      log('HTTP ${response.statusCode}: ${response.body}', name: 'LastFM API');
+      // 5xx / 429 are transient; other 4xx will never succeed.
+      final code = response.statusCode;
+      return (code >= 500 || code == 429)
+          ? ScrobbleOutcome.retryable
+          : ScrobbleOutcome.rejected;
+    } catch (e) {
+      // Timeout, DNS failure, offline, ...
+      log('Scrobble request failed: $e', name: 'LastFM API');
+      return ScrobbleOutcome.retryable;
     }
+  }
 
-    return false;
+  static ScrobbleOutcome _classifyError(dynamic code, dynamic message) {
+    final c = code is int ? code : int.tryParse('$code') ?? -1;
+    log('API error $c: $message', name: 'LastFM API');
+    switch (c) {
+      case 4: // invalid auth
+      case 9: // invalid session key
+      case 10: // invalid api key
+      case 14: // unauthorized token
+      case 15: // token expired
+      case 26: // suspended api key
+        return ScrobbleOutcome.authFailed;
+      case 8: // operation failed
+      case 11: // service offline
+      case 16: // temporary error
+      case 29: // rate limit
+        return ScrobbleOutcome.retryable;
+      default:
+        return ScrobbleOutcome.rejected;
+    }
   }
 
   static Future<String> fetchRequestToken() async {
@@ -231,7 +280,7 @@ class LastFmAPI {
 
     try {
       final response =
-          await http.get(Uri.http('ws.audioscrobbler.com', '/2.0/', params));
+          await http.get(Uri.https('ws.audioscrobbler.com', '/2.0/', params));
       Map<String, dynamic> responseData = jsonDecode(response.body);
 
       if (responseData.containsKey('token')) {
@@ -249,7 +298,7 @@ class LastFmAPI {
     if (apiKey == null) {
       throw Exception("LastFM API not initialized.");
     }
-    return 'http://www.last.fm/api/auth/?api_key=$apiKey&token=$token';
+    return 'https://www.last.fm/api/auth/?api_key=$apiKey&token=$token';
   }
 
   static Future<Map<String, String>> fetchSessionKey(String token) async {

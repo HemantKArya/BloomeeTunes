@@ -2093,4 +2093,91 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get eqPresetCustom => 'Benutzerdefiniert';
+
+  @override
+  String get lastfmStatusSection => 'Scrobble-Status';
+
+  @override
+  String get lastfmStatusSynced => 'Alles auf dem neuesten Stand';
+
+  @override
+  String get lastfmStatusSending => 'Wird gesendet…';
+
+  @override
+  String lastfmStatusQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Scrobbles warten',
+      one: '1 Scrobble wartet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmStatusRetrying => 'Offline · neuer Versuch gleich';
+
+  @override
+  String get lastfmStatusAuthPaused => 'Pausiert · erneut anmelden';
+
+  @override
+  String get lastfmStatusOff => 'Scrobbling ist ausgeschaltet';
+
+  @override
+  String get lastfmStatQueued => 'In Warteschlange';
+
+  @override
+  String get lastfmStatLastSent => 'Zuletzt gesendet';
+
+  @override
+  String get lastfmNever => 'Nie';
+
+  @override
+  String get lastfmJustNow => 'Gerade eben';
+
+  @override
+  String lastfmMinutesAgo(int n) {
+    return 'vor $n Min.';
+  }
+
+  @override
+  String lastfmHoursAgo(int n) {
+    return 'vor $n Std.';
+  }
+
+  @override
+  String lastfmDaysAgo(int n) {
+    return 'vor $n T.';
+  }
+
+  @override
+  String get lastfmLastTrack => 'Zuletzt gescrobbelt';
+
+  @override
+  String get lastfmErrorNetwork =>
+      'Last.fm ist nicht erreichbar. Deine Scrobbles sind sicher und werden automatisch gesendet.';
+
+  @override
+  String get lastfmErrorAuth =>
+      'Deine Last.fm-Sitzung ist nicht mehr gültig. Entferne die Schlüssel und authentifiziere dich erneut.';
+
+  @override
+  String lastfmErrorRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Last.fm hat $count Scrobbles abgelehnt und sie wurden verworfen.',
+      one: 'Last.fm hat 1 Scrobble abgelehnt und es wurde verworfen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastfmSyncNow => 'Jetzt synchronisieren';
+
+  @override
+  String get lastfmClearQueue => 'Warteschlange leeren';
+
+  @override
+  String get lastfmQueueCleared => 'Scrobble-Warteschlange geleert';
 }
