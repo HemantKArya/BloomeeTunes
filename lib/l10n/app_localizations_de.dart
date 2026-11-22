@@ -2319,4 +2319,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => 'Songtitel';
+
+  @override
+  String get libraryReorderHint => 'Zum Sortieren ziehen';
+
+  @override
+  String get libraryReorderHintPinned =>
+      'Zum Sortieren ziehen. Angeheftete bleiben oben.';
 }

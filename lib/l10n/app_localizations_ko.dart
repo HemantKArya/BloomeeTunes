@@ -2177,4 +2177,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => '곡 제목';
+
+  @override
+  String get libraryReorderHint => '드래그하여 순서 변경';
+
+  @override
+  String get libraryReorderHintPinned => '드래그하여 순서 변경. 고정된 항목은 맨 위에 유지됩니다.';
 }

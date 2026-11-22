@@ -807,5 +807,7 @@
   "discordStatusTextSubtitle": "What friends see next to your name.",
   "discordStatusTextApp": "App name",
   "discordStatusTextArtist": "Artist",
-  "discordStatusTextSong": "Song title"
+  "discordStatusTextSong": "Song title",
+  "libraryReorderHint": "Drag to reorder",
+  "libraryReorderHintPinned": "Drag to reorder. Pinned items stay on top."
 }

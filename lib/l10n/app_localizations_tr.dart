@@ -2259,4 +2259,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => 'Şarkı adı';
+
+  @override
+  String get libraryReorderHint => 'Sıralamak için sürükleyin';
+
+  @override
+  String get libraryReorderHintPinned =>
+      'Sıralamak için sürükleyin. Sabitlenenler üstte kalır.';
 }

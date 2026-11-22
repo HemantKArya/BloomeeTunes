@@ -2297,4 +2297,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => 'Song title';
+
+  @override
+  String get libraryReorderHint => 'Drag to reorder';
+
+  @override
+  String get libraryReorderHintPinned =>
+      'Drag to reorder. Pinned items stay on top.';
 }

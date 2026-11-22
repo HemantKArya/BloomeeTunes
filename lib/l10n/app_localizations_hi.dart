@@ -2310,4 +2310,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => 'गाने का नाम';
+
+  @override
+  String get libraryReorderHint => 'क्रम बदलने के लिए खींचें';
+
+  @override
+  String get libraryReorderHintPinned =>
+      'क्रम बदलने के लिए खींचें। पिन किए गए आइटम ऊपर रहते हैं।';
 }

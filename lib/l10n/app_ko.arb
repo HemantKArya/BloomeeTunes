@@ -769,5 +769,7 @@
   "discordStatusTextSubtitle": "친구들이 이름 옆에서 보게 되는 내용입니다.",
   "discordStatusTextApp": "앱 이름",
   "discordStatusTextArtist": "아티스트",
-  "discordStatusTextSong": "곡 제목"
+  "discordStatusTextSong": "곡 제목",
+  "libraryReorderHint": "드래그하여 순서 변경",
+  "libraryReorderHintPinned": "드래그하여 순서 변경. 고정된 항목은 맨 위에 유지됩니다."
 }

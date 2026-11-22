@@ -769,5 +769,7 @@
   "discordStatusTextSubtitle": "Lo que tus amigos ven junto a tu nombre.",
   "discordStatusTextApp": "Nombre de la app",
   "discordStatusTextArtist": "Artista",
-  "discordStatusTextSong": "Título de la canción"
+  "discordStatusTextSong": "Título de la canción",
+  "libraryReorderHint": "Arrastra para reordenar",
+  "libraryReorderHintPinned": "Arrastra para reordenar. Los fijados se quedan arriba."
 }

@@ -1112,5 +1112,7 @@
   "discordStatusTextSubtitle": "Arkadaşlarının adının yanında göreceği şey.",
   "discordStatusTextApp": "Uygulama adı",
   "discordStatusTextArtist": "Sanatçı",
-  "discordStatusTextSong": "Şarkı adı"
+  "discordStatusTextSong": "Şarkı adı",
+  "libraryReorderHint": "Sıralamak için sürükleyin",
+  "libraryReorderHintPinned": "Sıralamak için sürükleyin. Sabitlenenler üstte kalır."
 }

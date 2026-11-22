@@ -12,7 +12,9 @@ import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/plugins/utils/media_id.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:Bloomee/blocs/library/cubit/library_items_cubit.dart';
@@ -53,6 +55,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
   bool _isReordering = false;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _reorderFocusNode = FocusNode(debugLabel: 'libraryReorder');
 
   @override
   void initState() {
@@ -65,6 +68,7 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _reorderFocusNode.dispose();
     _searchQuery.dispose();
     super.dispose();
   }
@@ -77,8 +81,21 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
     context.read<LibrarySearchCubit>().search(query, itemsState);
   }
 
+  void _enterReorder() {
+    if (_isReordering) return;
+    HapticFeedback.mediumImpact();
+    setState(() => _isReordering = true);
+    _reorderFocusNode.requestFocus();
+  }
+
+  void _exitReorder() {
+    if (!_isReordering) return;
+    setState(() => _isReordering = false);
+  }
+
   void _openSearch() {
     setState(() {
+      _isReordering = false;
       _isSearching = true;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -102,6 +119,26 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
 
   @override
   Widget build(BuildContext context) {
+    // While reordering, Back and Esc leave the mode instead of the screen.
+    return PopScope(
+      canPop: !_isReordering,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _exitReorder();
+      },
+      child: CallbackShortcuts(
+        bindings: {
+          if (_isReordering)
+            const SingleActivator(LogicalKeyboardKey.escape): _exitReorder,
+        },
+        child: Focus(
+          focusNode: _reorderFocusNode,
+          child: _buildScaffold(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       backgroundColor: Default_Theme.themeColor,
       body: SafeArea(
@@ -192,83 +229,16 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
                       if (filteredSongs.isNotEmpty)
                         _buildSongSearchResults(context, filteredSongs),
                       if (filteredPlaylists.isNotEmpty) ...[
-                        if (_isReordering && !isSearching)
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.035),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: Default_Theme.accentColor2
-                                        .withValues(alpha: 0.22),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 28,
-                                      height: 28,
-                                      decoration: BoxDecoration(
-                                        color: Default_Theme.accentColor2
-                                            .withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Icon(
-                                        Icons.drag_indicator_rounded,
-                                        color: Default_Theme.accentColor2
-                                            .withValues(alpha: 0.95),
-                                        size: 16,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!
-                                            .importReorderTip,
-                                        style: Default_Theme.secondoryTextStyle
-                                            .merge(TextStyle(
-                                          color: Default_Theme.primaryColor2
-                                              .withValues(alpha: 0.72),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        )),
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          setState(() => _isReordering = false),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor:
-                                            Default_Theme.accentColor2,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 6),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      child: Text(
-                                        AppLocalizations.of(context)!
-                                            .importDone,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                        SliverToBoxAdapter(
+                          child: _ReorderHint(
+                            visible: _isReordering && !isSearching,
+                            hasPinned: filteredPlaylists.any((p) => p.isPinned),
                           ),
+                        ),
                         _ListOfPlaylists(
                           playlists: filteredPlaylists,
                           isReorderable: _isReordering && !isSearching,
-                          onEnterReorder: isSearching
-                              ? null
-                              : () => setState(() => _isReordering = true),
+                          onEnterReorder: isSearching ? null : _enterReorder,
                         ),
                       ],
                     ],
@@ -407,51 +377,146 @@ class _LibraryScreenViewState extends State<_LibraryScreenView> {
             ),
           ),
           const Spacer(),
-          IconButton(
-            padding: const EdgeInsets.all(8),
-            onPressed: () {
-              if (_isSearching) {
-                _closeSearch();
-              } else {
-                _openSearch();
-              }
-            },
-            icon: Icon(
-              _isSearching ? MingCute.close_fill : MingCute.search_line,
-              size: 24,
-              color: _isSearching
-                  ? Default_Theme.accentColor2
-                  : Default_Theme.primaryColor1,
-            ),
-          ),
-          IconButton(
-            padding: const EdgeInsets.all(8),
-            onPressed: () => createPlaylistDialog(context),
-            icon: const Icon(MingCute.add_fill,
-                size: 25, color: Default_Theme.primaryColor1),
-          ),
-          IconButton(
-            padding: const EdgeInsets.all(8),
-            onPressed: () {
-              final importPhase =
-                  context.read<ContentImportCubit>().state.phase;
-              final isOngoing = importPhase != ImportPhase.idle &&
-                  importPhase != ImportPhase.done &&
-                  importPhase != ImportPhase.error;
-              if (isOngoing) {
-                final pluginId =
-                    context.read<ContentImportCubit>().state.pluginId ?? '';
-                context.pushNamed(RoutePaths.importProcess,
-                    queryParameters: {'pluginId': pluginId});
-              } else {
-                context.pushNamed(RoutePaths.importMediaFromPlatforms);
-              }
-            },
-            icon: const Icon(FontAwesome.file_import_solid,
-                size: 22, color: Default_Theme.primaryColor1),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, anim) =>
+                FadeTransition(opacity: anim, child: child),
+            child: _isReordering
+                ? _DoneButton(
+                    key: const ValueKey('done'),
+                    onPressed: _exitReorder,
+                  )
+                : _headerActions(context),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _headerActions(BuildContext context) {
+    return Row(
+      key: const ValueKey('actions'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          padding: const EdgeInsets.all(8),
+          onPressed: () {
+            if (_isSearching) {
+              _closeSearch();
+            } else {
+              _openSearch();
+            }
+          },
+          icon: Icon(
+            _isSearching ? MingCute.close_fill : MingCute.search_line,
+            size: 24,
+            color: _isSearching
+                ? Default_Theme.accentColor2
+                : Default_Theme.primaryColor1,
+          ),
+        ),
+        IconButton(
+          padding: const EdgeInsets.all(8),
+          onPressed: () => createPlaylistDialog(context),
+          icon: const Icon(MingCute.add_fill,
+              size: 25, color: Default_Theme.primaryColor1),
+        ),
+        IconButton(
+          padding: const EdgeInsets.all(8),
+          onPressed: () {
+            final importPhase = context.read<ContentImportCubit>().state.phase;
+            final isOngoing = importPhase != ImportPhase.idle &&
+                importPhase != ImportPhase.done &&
+                importPhase != ImportPhase.error;
+            if (isOngoing) {
+              final pluginId =
+                  context.read<ContentImportCubit>().state.pluginId ?? '';
+              context.pushNamed(RoutePaths.importProcess,
+                  queryParameters: {'pluginId': pluginId});
+            } else {
+              context.pushNamed(RoutePaths.importMediaFromPlatforms);
+            }
+          },
+          icon: const Icon(FontAwesome.file_import_solid,
+              size: 22, color: Default_Theme.primaryColor1),
+        ),
+      ],
+    );
+  }
+}
+
+/// Header action shown in place of search/add/import while reordering.
+class _DoneButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  const _DoneButton({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: Default_Theme.primaryColor1,
+          foregroundColor: Default_Theme.themeColor,
+          minimumSize: const Size(0, 34),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          shape: const StadiumBorder(),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          textStyle: Default_Theme.secondoryTextStyle.merge(const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          )),
+        ),
+        child: Text(AppLocalizations.of(context)!.importDone),
+      ),
+    );
+  }
+}
+
+/// One quiet line under the header explaining the mode; no card, no colour.
+class _ReorderHint extends StatelessWidget {
+  final bool visible;
+  final bool hasPinned;
+  const _ReorderHint({required this.visible, required this.hasPinned});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: !visible
+          ? const SizedBox(width: double.infinity)
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.swap_vert_rounded,
+                    size: 16,
+                    color: Default_Theme.primaryColor2.withValues(alpha: 0.45),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      hasPinned
+                          ? l10n.libraryReorderHintPinned
+                          : l10n.libraryReorderHint,
+                      style: Default_Theme.secondoryTextStyle.merge(TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color:
+                            Default_Theme.primaryColor2.withValues(alpha: 0.55),
+                      )),
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -551,9 +616,7 @@ class _ListOfPlaylists extends StatelessWidget {
     return LibItemCard(
       onTap: isReorderable ? null : () => _openLibraryItem(context, playlist),
       onSecondaryTap: isReorderable ? null : openMenu,
-      onLongPress: isReorderable
-          ? null
-          : () => onEnterReorder != null ? onEnterReorder!() : openMenu,
+      onLongPress: isReorderable ? null : (onEnterReorder ?? openMenu),
       onMenuTap: isReorderable ? null : openMenu,
       showMenuButton: !isReorderable,
       title: playlist.playlistName,
@@ -578,77 +641,85 @@ class _ListOfPlaylists extends StatelessWidget {
       );
     }
 
+    // Mouse: drag anywhere on the row straight away. Touch: long-press the
+    // row (so scrolling still works) or drag the handle immediately.
+    final pointerIsMouse = switch (defaultTargetPlatform) {
+      TargetPlatform.windows ||
+      TargetPlatform.linux ||
+      TargetPlatform.macOS =>
+        true,
+      _ => false,
+    };
+    final pinnedCount = playlists.where((p) => p.isPinned).length;
+
     return SliverReorderableList(
       itemBuilder: (context, index) {
-        return KeyedSubtree(
-          key: ValueKey(playlists[index].playlistId),
-          child: Stack(
-            children: [
-              IgnorePointer(
-                ignoring: true,
-                child: _buildTile(context, playlists[index]),
-              ),
-              Positioned(
-                right: 14,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: ReorderableDragStartListener(
-                    index: index,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color:
-                            Default_Theme.accentColor2.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Default_Theme.accentColor2
-                              .withValues(alpha: 0.20),
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.drag_handle_rounded,
-                        color:
-                            Default_Theme.accentColor2.withValues(alpha: 0.90),
-                        size: 18,
-                      ),
-                    ),
-                  ),
+        final body = AbsorbPointer(
+          child: _buildTile(context, playlists[index]),
+        );
+        final row = Row(
+          children: [
+            Expanded(
+              child: pointerIsMouse
+                  ? ReorderableDragStartListener(index: index, child: body)
+                  : ReorderableDelayedDragStartListener(
+                      index: index, child: body),
+            ),
+            ReorderableDragStartListener(
+              index: index,
+              child: SizedBox(
+                width: 48,
+                height: 80,
+                child: Icon(
+                  Icons.drag_handle_rounded,
+                  size: 22,
+                  color: Default_Theme.primaryColor1.withValues(alpha: 0.45),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+          ],
+        );
+        return KeyedSubtree(
+          key: ValueKey(playlists[index].playlistId),
+          child: pointerIsMouse
+              ? MouseRegion(cursor: SystemMouseCursors.grab, child: row)
+              : row,
         );
       },
       itemExtent: 80,
       itemCount: playlists.length,
       proxyDecorator: _proxyDecorator,
       onReorder: (oldIndex, newIndex) {
-        context.read<LibraryItemsCubit>().reorderLibrary(oldIndex, newIndex);
+        // Pinned items always sort first, so keep each item in its group;
+        // a drop across the boundary would be undone on the next load.
+        final pinned = playlists[oldIndex].isPinned;
+        final target = pinned
+            ? newIndex.clamp(0, pinnedCount)
+            : newIndex.clamp(pinnedCount, playlists.length);
+        context.read<LibraryItemsCubit>().reorderLibrary(oldIndex, target);
       },
     );
   }
 }
 
+// Same raised surface as the theme's surfaceContainerHighest.
+const _liftedSurface = Color(0xFF1A111B);
+
+/// The lifted row: a slightly raised surface with a soft neutral shadow.
 Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
   return AnimatedBuilder(
     animation: animation,
     builder: (BuildContext context, Widget? child) {
-      final double animValue = Curves.easeInOut.transform(animation.value);
-      final double elevation = lerpDouble(0, 6, animValue)!;
-      return Material(
-        elevation: elevation,
-        color: Default_Theme.themeColor,
-        borderRadius: BorderRadius.circular(12),
-        shadowColor: Default_Theme.accentColor2.withValues(alpha: 0.25),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Default_Theme.accentColor2.withValues(alpha: 0.20),
-            ),
-          ),
+      final t = Curves.easeOutCubic.transform(animation.value);
+      return Transform.scale(
+        scale: lerpDouble(1, 1.02, t)!,
+        child: Material(
+          elevation: lerpDouble(0, 10, t)!,
+          color: Color.lerp(Default_Theme.themeColor, _liftedSurface, t),
+          shadowColor: Colors.black,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
           child: child,
         ),
       );

@@ -2177,4 +2177,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => '曲名';
+
+  @override
+  String get libraryReorderHint => 'ドラッグして並べ替え';
+
+  @override
+  String get libraryReorderHintPinned => 'ドラッグして並べ替え。ピン留めした項目は上に固定されます。';
 }

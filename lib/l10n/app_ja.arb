@@ -769,5 +769,7 @@
   "discordStatusTextSubtitle": "名前の横にフレンドから見える内容。",
   "discordStatusTextApp": "アプリ名",
   "discordStatusTextArtist": "アーティスト",
-  "discordStatusTextSong": "曲名"
+  "discordStatusTextSong": "曲名",
+  "libraryReorderHint": "ドラッグして並べ替え",
+  "libraryReorderHintPinned": "ドラッグして並べ替え。ピン留めした項目は上に固定されます。"
 }

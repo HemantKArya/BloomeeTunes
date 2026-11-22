@@ -769,5 +769,7 @@
   "discordStatusTextSubtitle": "Was Freunde neben deinem Namen sehen.",
   "discordStatusTextApp": "App-Name",
   "discordStatusTextArtist": "Künstler",
-  "discordStatusTextSong": "Songtitel"
+  "discordStatusTextSong": "Songtitel",
+  "libraryReorderHint": "Zum Sortieren ziehen",
+  "libraryReorderHintPinned": "Zum Sortieren ziehen. Angeheftete bleiben oben."
 }

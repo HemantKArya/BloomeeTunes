@@ -2342,4 +2342,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => 'Titre du morceau';
+
+  @override
+  String get libraryReorderHint => 'Faites glisser pour réorganiser';
+
+  @override
+  String get libraryReorderHintPinned =>
+      'Faites glisser pour réorganiser. Les éléments épinglés restent en haut.';
 }

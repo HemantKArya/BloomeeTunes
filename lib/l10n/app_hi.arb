@@ -769,5 +769,7 @@
   "discordStatusTextSubtitle": "दोस्त आपके नाम के पास क्या देखेंगे।",
   "discordStatusTextApp": "ऐप का नाम",
   "discordStatusTextArtist": "कलाकार",
-  "discordStatusTextSong": "गाने का नाम"
+  "discordStatusTextSong": "गाने का नाम",
+  "libraryReorderHint": "क्रम बदलने के लिए खींचें",
+  "libraryReorderHintPinned": "क्रम बदलने के लिए खींचें। पिन किए गए आइटम ऊपर रहते हैं।"
 }

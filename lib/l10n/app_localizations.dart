@@ -4129,6 +4129,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Song title'**
   String get discordStatusTextSong;
+
+  /// No description provided for @libraryReorderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get libraryReorderHint;
+
+  /// No description provided for @libraryReorderHintPinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder. Pinned items stay on top.'**
+  String get libraryReorderHintPinned;
 }
 
 class _AppLocalizationsDelegate

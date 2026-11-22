@@ -2167,4 +2167,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => '歌曲名';
+
+  @override
+  String get libraryReorderHint => '拖动以重新排序';
+
+  @override
+  String get libraryReorderHintPinned => '拖动以重新排序。已置顶的项目保持在最上方。';
 }

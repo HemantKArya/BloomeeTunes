@@ -2329,4 +2329,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get discordStatusTextSong => 'Título da música';
+
+  @override
+  String get libraryReorderHint => 'Arraste para reordenar';
+
+  @override
+  String get libraryReorderHintPinned =>
+      'Arraste para reordenar. Itens fixados ficam no topo.';
 }
