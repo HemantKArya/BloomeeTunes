@@ -3,13 +3,36 @@ import 'package:Bloomee/screens/widgets/player_overlay_wrapper.dart';
 import 'package:Bloomee/screens/widgets/mini_player_widget.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:responsive_framework/responsive_framework.dart';
+
+/// Whether to show the bottom navigation bar (true) or the side rail (false).
+///
+/// Follows Android/Material guidance instead of a raw width cut-off:
+/// - Phones and phablets (shortest side < 600dp, the `sw600dp` qualifier)
+///   always get the bottom bar, in portrait AND landscape, and regardless of
+///   a large "display size"/font-scale setting or foldable cover screens.
+/// - Tablets (shortest side >= 600dp) get the rail.
+/// - Desktop windows have no fixed device class, so they follow width:
+///   below 600dp (Material "compact") they get the bottom bar.
+bool _useBottomNav(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.windows:
+    case TargetPlatform.linux:
+    case TargetPlatform.macOS:
+      return size.width < 600;
+    case TargetPlatform.android:
+    case TargetPlatform.iOS:
+    case TargetPlatform.fuchsia:
+      return size.shortestSide < 600;
+  }
+}
 
 class GlobalFooter extends StatelessWidget {
   const GlobalFooter({super.key, required this.navigationShell});
@@ -17,7 +40,7 @@ class GlobalFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    final isMobile = _useBottomNav(context);
 
     return PlayerOverlayWrapper(
       child: BackButtonListener(

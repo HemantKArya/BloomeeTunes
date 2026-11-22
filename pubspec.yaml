@@ -70,7 +70,7 @@ dependencies:
   media_kit: ^1.2.6 
   media_kit_libs_audio: ^1.0.7 
   audio_service_mpris: ^0.2.0
-  audio_service_win: ^0.0.4
+  audio_service_win: ^0.0.6
   rust_lib_Bloomee:
     path: rust_builder
   flutter_rust_bridge: 2.12.0

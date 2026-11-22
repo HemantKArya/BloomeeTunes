@@ -77,10 +77,10 @@ packages:
     dependency: "direct main"
     description:
       name: audio_service_win
-      sha256: d50fa7cddc18fdce22a618e77e6d175346d49f68bd7e897d740699ebe156a950
+      sha256: "5ff7a383bdf09628348fd5d7db2970a29d4810839c90dae824d0f7b34946eb26"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.4"
+    version: "0.0.6"
   audio_session:
     dependency: "direct main"
     description:

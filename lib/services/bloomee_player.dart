@@ -25,6 +25,7 @@ import 'package:Bloomee/services/discord_service.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:async/async.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -392,14 +393,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       queue.add(tracks.map(trackToMediaItem).toList());
       // Don't persist during restore — we'd just write back what we read.
       if (_queueManager.isRestoring) return;
-      // Throttle persistence writes — queue mutations can fire in rapid bursts
-      // (e.g. batch-loading a 50-track playlist). 2s throttle coalesces them
-      // into a single DB write while still capturing the final state.
-      EasyThrottle.throttle(
-        'persist_queue',
-        const Duration(seconds: 2),
-        () => unawaited(_queueManager.persistQueueState()),
-      );
+      _schedulePersist();
     });
 
     // M-11: Related songs check fires every 15s, but only if actively playing.
@@ -408,6 +402,21 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _relatedSongTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       if (!_isDisposed && engine.playing) _checkRelatedSongs();
     });
+  }
+
+  /// Persists queue + current index shortly after the last change.
+  ///
+  /// Trailing debounce (not a leading throttle): bursts of queue edits and
+  /// rapid track changes collapse into one write that captures the FINAL
+  /// state. Must also run on index-only changes (auto-advance, skips), which
+  /// do not emit on tracksStream.
+  void _schedulePersist() {
+    if (_isDisposed || _queueManager.isRestoring) return;
+    EasyDebounce.debounce(
+      'persist_queue',
+      const Duration(seconds: 1),
+      () => unawaited(_queueManager.persistQueueState()),
+    );
   }
 
   // ─── Playback State Broadcast ─────────────────────────────────────────────
@@ -579,6 +588,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (_isDisposed) return Future.value();
     _playRequested = doPlay;
     _retryPosition = initialPosition ?? Duration.zero;
+    // Every track change (skip, auto-advance, jump) funnels through here.
+    _schedulePersist();
 
     // Cancel any in-flight play operation — user changed track.
     final prev = _playCompleter;
