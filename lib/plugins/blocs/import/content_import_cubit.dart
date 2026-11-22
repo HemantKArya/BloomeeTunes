@@ -15,6 +15,8 @@ import 'package:Bloomee/src/rust/api/plugin/types.dart';
 import 'package:Bloomee/src/rust/api/plugin/models.dart';
 
 const int _kResolutionConcurrency = 5;
+const Duration _kPluginTimeout = Duration(seconds: 10);
+const Duration _kFetchTrackTimeout = Duration(minutes: 3);
 const double _kMinConfidence = 0.45;
 const int _kMaxCandidatesPerTrack = 5;
 
@@ -114,16 +116,24 @@ class ContentImportCubit extends Cubit<ContentImportState> {
       ));
       return;
     }
-    if (!_isCurrent(operationId)) return;
+  }
 
-    switch (command) {
-      case ContentImporterCommand_CanHandleUrl(:final url):
-        if (response is PluginResponse_CanHandle && response.field0) {
-          await _runImportStep(pluginId,
-              ContentImporterCommand.getCollectionInfo(url: url), operationId);
-          return;
-        }
-        _retryCommand = null;
+  // ── Step 2: Fetch Collection Info ────────────────────────────────────────
+
+  Future<void> _fetchCollectionInfo(String pluginId, String url) async {
+    emit(state.copyWith(phase: ImportPhase.fetchingInfo));
+
+    try {
+      final response = await _pluginService
+          .execute(
+            pluginId: pluginId,
+            request: PluginRequest.contentImporter(
+              ContentImporterCommand.getCollectionInfo(url: url),
+            ),
+          )
+          .timeout(_kFetchTrackTimeout);
+
+      if (response is PluginResponse_CollectionInfo) {
         emit(state.copyWith(
           phase: ImportPhase.error,
           error: 'This plugin cannot handle the provided URL.',
@@ -145,14 +155,19 @@ class ContentImportCubit extends Cubit<ContentImportState> {
             tracks: List.unmodifiable(
               response.field0.map((t) => ImportTrackEntry(sourceTrack: t)),
             ),
-            phase: ImportPhase.resolving,
-          ));
-          await _resolveTracks(operationId);
-          if (_isCurrent(operationId) && state.phase != ImportPhase.error) {
-            _retryCommand = null;
-          }
-          return;
-        }
+          )
+          .timeout(_kFetchTrackTimeout);
+
+      if (response is PluginResponse_ImportTracks) {
+        final entries = response.field0
+            .map((t) => ImportTrackEntry(sourceTrack: t))
+            .toList();
+        emit(state.copyWith(
+          tracks: List.unmodifiable(entries),
+          phase: ImportPhase.resolving,
+        ));
+        await _resolveTracks();
+      } else {
         emit(state.copyWith(
           phase: ImportPhase.error,
           error: 'Unexpected response when fetching tracks.',
