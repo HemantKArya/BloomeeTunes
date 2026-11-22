@@ -85,7 +85,7 @@ void main() {
     queueController.jumpTo(150);
     await tester.pumpAndSettle();
     final queueOffset = queueController.offset;
-    await tester.tap(find.text('Up Next'));
+    await tester.tap(find.byTooltip('Close'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(tester.getSize(find.byType(CoverImageVolSlider)).width,

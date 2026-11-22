@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
+import 'package:Bloomee/utils/artwork_glow_color.dart';
 import 'package:Bloomee/core/adapters/track_adapter.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
@@ -396,52 +398,329 @@ class _DesktopLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        // The ambient artwork behind this panel is already blurred. Tinting
-        // it gives the same glass surface without re-sampling the moving
-        // window (including the library underneath) on every transition frame.
+      child: _GlassQueueSurface(
+        playerCubit: playerCubit,
         child: Material(
-          color: const Color(0x9910141C),
-          borderRadius: BorderRadius.circular(20),
-          clipBehavior: Clip.antiAlias,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0.045),
-                  Colors.black.withValues(alpha: 0.12),
-                ],
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
-              child: Column(
-                children: [
-                  Tooltip(
-                    message:
-                        MaterialLocalizations.of(context).closeButtonTooltip,
-                    child: InkWell(
-                      onTap: onCollapse,
-                      borderRadius: BorderRadius.circular(12),
-                      child: const SizedBox(
-                        height: 44,
-                        child: _CompactHeader(isExpanded: true),
-                      ),
-                    ),
-                  ),
-                  _QueueInfoRow(playerCubit: playerCubit),
-                  const SizedBox(height: 4),
-                  Expanded(child: _DesktopSongList(playerCubit: playerCubit)),
-                ],
+          type: MaterialType.transparency,
+          child: Column(
+            children: [
+              _DesktopHeader(playerCubit: playerCubit, onCollapse: onCollapse),
+              const _HairlineDivider(),
+              Expanded(child: _DesktopSongList(playerCubit: playerCubit)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Dark, see-through glass with a rim light tinted by the current cover.
+///
+/// The ambient artwork behind the panel is already a pre-blurred texture, so
+/// a translucent tint reads as frosted glass without a BackdropFilter (which
+/// would re-blur the window on every scroll and transition frame). The light
+/// is painted on its own layer and only repaints when the cover changes.
+class _GlassQueueSurface extends StatefulWidget {
+  final BloomeePlayerCubit playerCubit;
+  final Widget child;
+  const _GlassQueueSurface({required this.playerCubit, required this.child});
+
+  static const radius = 22.0;
+
+  @override
+  State<_GlassQueueSurface> createState() => _GlassQueueSurfaceState();
+}
+
+class _GlassQueueSurfaceState extends State<_GlassQueueSurface> {
+  static const _neutralLight = Color(0xFFDDE4F0);
+  StreamSubscription<String>? _artSub;
+  Color _light = _neutralLight;
+  String _artUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _artSub = widget.playerCubit.bloomeePlayer.mediaItem
+        .map((item) {
+          if (item == null) return '';
+          final thumb = mediaItemToTrack(item).thumbnail;
+          return thumb.urlLow ?? thumb.url;
+        })
+        .distinct()
+        .listen(_onArtwork);
+  }
+
+  void _onArtwork(String url) {
+    _artUrl = url;
+    final cached = ArtworkGlowColor.cached(url);
+    if (cached != null) {
+      _setLight(cached);
+      return;
+    }
+    ArtworkGlowColor.resolve(url).then((color) {
+      if (mounted && url == _artUrl) _setLight(color ?? _neutralLight);
+    });
+  }
+
+  void _setLight(Color color) {
+    if (color != _light) setState(() => _light = color);
+  }
+
+  @override
+  void dispose() {
+    _artSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(_GlassQueueSurface.radius),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const ColoredBox(color: Color(0x6107090E)),
+          RepaintBoundary(
+            child: TweenAnimationBuilder<Color?>(
+              tween: ColorTween(end: _light),
+              duration: reduceMotion
+                  ? Duration.zero
+                  : const Duration(milliseconds: 700),
+              curve: Curves.easeOutCubic,
+              builder: (context, color, _) => CustomPaint(
+                painter: _GlassLightPainter(color ?? _neutralLight),
               ),
             ),
           ),
+          widget.child,
+        ],
+      ),
+    );
+  }
+}
+
+class _GlassLightPainter extends CustomPainter {
+  final Color light;
+  const _GlassLightPainter(this.light);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final rect = Offset.zero & size;
+    final shortest = size.shortestSide;
+
+    // Light spilling in from the top-left corner.
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            light.withValues(alpha: 0.20),
+            light.withValues(alpha: 0.06),
+            light.withValues(alpha: 0),
+          ],
+          stops: const [0, 0.45, 1],
+        ).createShader(
+            Rect.fromCircle(center: Offset.zero, radius: shortest * 0.95)),
+    );
+
+    // A faint counter-reflection in the opposite corner.
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [light.withValues(alpha: 0.07), light.withValues(alpha: 0)],
+        ).createShader(
+            Rect.fromCircle(center: rect.bottomRight, radius: shortest * 0.7)),
+    );
+
+    // Soft top sheen, like the upper face of a glass pane.
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, 140),
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withValues(alpha: 0.05),
+            Colors.white.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromLTWH(0, 0, size.width, 140)),
+    );
+
+    final rim = RRect.fromRectAndRadius(
+      rect.deflate(0.5),
+      const Radius.circular(_GlassQueueSurface.radius - 0.5),
+    );
+
+    // Edge: lit at the top-left, fading to a hairline, catching a little
+    // light again at the bottom-right.
+    canvas.drawRRect(
+      rim,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            light.withValues(alpha: 0.75),
+            light.withValues(alpha: 0.22),
+            Colors.white.withValues(alpha: 0.07),
+            Colors.white.withValues(alpha: 0.05),
+            light.withValues(alpha: 0.25),
+          ],
+          stops: const [0, 0.16, 0.38, 0.82, 1],
+        ).createShader(rect),
+    );
+
+    // Specular hot spot on the corner itself.
+    canvas.drawRRect(
+      rim,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..shader = RadialGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.85),
+            light.withValues(alpha: 0.55),
+            light.withValues(alpha: 0),
+          ],
+          stops: const [0, 0.3, 1],
+        ).createShader(Rect.fromCircle(
+            center: const Offset(_GlassQueueSurface.radius * 0.6,
+                _GlassQueueSurface.radius * 0.6),
+            radius: 120)),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_GlassLightPainter oldDelegate) =>
+      oldDelegate.light != light;
+}
+
+class _DesktopHeader extends StatelessWidget {
+  final BloomeePlayerCubit playerCubit;
+  final VoidCallback? onCollapse;
+  const _DesktopHeader({required this.playerCubit, this.onCollapse});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 10, 14),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.upNextTitle,
+                  maxLines: 1,
+                  style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                StreamBuilder<int>(
+                  stream: playerCubit.bloomeePlayer.queue
+                      .map((q) => q.length)
+                      .distinct(),
+                  initialData:
+                      playerCubit.bloomeePlayer.queue.valueOrNull?.length ?? 0,
+                  builder: (context, snapshot) => Text(
+                    l10n.upNextItemsInQueue(snapshot.data ?? 0),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _GlassPillButton(
+            icon: Icons.playlist_remove_rounded,
+            label: 'Clear',
+            onTap: playerCubit.bloomeePlayer.clearQueue,
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+            onPressed: onCollapse,
+            iconSize: 20,
+            splashRadius: 18,
+            color: Colors.white.withValues(alpha: 0.6),
+            icon: const Icon(Icons.close_rounded),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlassPillButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _GlassPillButton(
+      {required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = Colors.white.withValues(alpha: 0.78);
+    return Material(
+      color: Colors.white.withValues(alpha: 0.06),
+      shape: StadiumBorder(
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.10))),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: Colors.white.withValues(alpha: 0.06),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: fg),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: fg),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _HairlineDivider extends StatelessWidget {
+  const _HairlineDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [
+          Colors.white.withValues(alpha: 0),
+          Colors.white.withValues(alpha: 0.09),
+          Colors.white.withValues(alpha: 0),
+        ]),
       ),
     );
   }
@@ -460,6 +739,13 @@ class _DesktopSongListState extends State<_DesktopSongList> {
   String? _lastPlayingId;
   bool _hasPositionedCurrentSong = false;
   static const double _itemHeight = 70.0;
+
+  /// Only the playing id matters to the list; metadata refreshes of the same
+  /// song (duration, artwork) must not rebuild every visible row.
+  late final Stream<String?> _currentId = widget
+      .playerCubit.bloomeePlayer.mediaItem
+      .map((item) => item?.id)
+      .distinct();
 
   @override
   void dispose() {
@@ -505,11 +791,12 @@ class _DesktopSongListState extends State<_DesktopSongList> {
         }
         final queue = queueSnapshot.data!;
 
-        return StreamBuilder<MediaItem?>(
-          stream: widget.playerCubit.bloomeePlayer.mediaItem,
-          initialData: widget.playerCubit.bloomeePlayer.mediaItem.valueOrNull,
-          builder: (context, mediaSnapshot) {
-            final currentId = mediaSnapshot.data?.id;
+        return StreamBuilder<String?>(
+          stream: _currentId,
+          initialData:
+              widget.playerCubit.bloomeePlayer.mediaItem.valueOrNull?.id,
+          builder: (context, idSnapshot) {
+            final currentId = idSnapshot.data;
             if (currentId != null && currentId != _lastPlayingId) {
               _lastPlayingId = currentId;
               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -521,7 +808,7 @@ class _DesktopSongListState extends State<_DesktopSongList> {
 
             return ReorderableListView.builder(
               scrollController: _scrollController,
-              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(6, 6, 4, 12),
               itemCount: queue.length,
               itemExtent: _itemHeight,
               onReorder: widget.playerCubit.bloomeePlayer.moveQueueItem,
