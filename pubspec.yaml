@@ -40,6 +40,7 @@ dependencies:
     version: ^3.4.1
 
   path_provider: ^2.1.0
+  ffi: ^2.1.0
   path: ^1.9.0
   modal_bottom_sheet: ^3.0.0
   html_unescape: ^2.0.0
@@ -93,6 +94,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   freezed: ^3.2.3
+  msix: ^3.18.0
   
 
 flutter_launcher_icons:
@@ -184,3 +186,19 @@ flutter:
       fonts:
         - asset: assets/fonts/fontawesome-free-6.4.0-desktop/otfs/Font Awesome 6 Free-Solid-900.otf
 
+
+# Microsoft Store package (MSIX). Build with: dart run msix:create
+# Identity values come from Partner Center > Product identity; the version is
+# taken from `version:` above as MAJOR.MINOR.PATCH.0 (the Store requires the
+# fourth part to be 0).
+msix_config:
+  display_name: Bloomee🌸
+  publisher_display_name: BloomeeX
+  identity_name: BloomeeX.BloomeeTunes
+  publisher: CN=D8C27799-3849-4699-88A1-CF0F0D632062
+  logo_path: assets/icons/bloomee_new_logo_c.png
+  capabilities: internetClient
+  languages: en-us, de-de, es-es, fr-fr, hi-in, ja-jp, ko-kr, pt-br, tr-tr, zh-cn
+  architecture: x64
+  # The Store re-signs the package, so no certificate is needed here.
+  store: true

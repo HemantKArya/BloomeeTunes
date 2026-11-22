@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/core/utils/app_distribution.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:http/http.dart' as http;
@@ -216,31 +217,44 @@ Future<Map<String, dynamic>> githubUpdate(
 Future<Map<String, dynamic>> getAppUpdates() async {
   // Try GitHub first, then SourceForge, produce an `updates` map and attach changelogs.
   Map<String, dynamic> updates;
-  try {
-    updates = await githubUpdate();
-  } catch (e) {
-    log('GitHub check failed, trying SourceForge: $e', name: 'UpdaterTools');
+  if (AppDistribution.updatesManagedExternally) {
+    // Store installs update through the Store; never point at other builds.
+    final packageInfo = await PackageInfo.fromPlatform();
+    updates = {
+      'results': false,
+      'currVer': packageInfo.version,
+      'currBuild': packageInfo.buildNumber,
+      'newVer': packageInfo.version,
+      'newBuild': packageInfo.buildNumber,
+      'source': 'store',
+    };
+  } else {
     try {
-      updates = await sourceforgeUpdate();
-    } catch (e2) {
-      log('SourceForge check failed: $e2', name: 'UpdaterTools');
-      // Final fallback: return structured failure map with current info
+      updates = await githubUpdate();
+    } catch (e) {
+      log('GitHub check failed, trying SourceForge: $e', name: 'UpdaterTools');
       try {
-        final packageInfo = await PackageInfo.fromPlatform();
-        updates = {
-          'results': false,
-          'error': 'Failed to check remote releases',
-          'currVer': packageInfo.version,
-          'currBuild': packageInfo.buildNumber,
-          'source': 'none',
-        };
-      } catch (e3) {
-        updates = {
-          'results': false,
-          'error':
-              'Failed to check remote releases and failed to read local package info',
-          'source': 'none',
-        };
+        updates = await sourceforgeUpdate();
+      } catch (e2) {
+        log('SourceForge check failed: $e2', name: 'UpdaterTools');
+        // Final fallback: return structured failure map with current info
+        try {
+          final packageInfo = await PackageInfo.fromPlatform();
+          updates = {
+            'results': false,
+            'error': 'Failed to check remote releases',
+            'currVer': packageInfo.version,
+            'currBuild': packageInfo.buildNumber,
+            'source': 'none',
+          };
+        } catch (e3) {
+          updates = {
+            'results': false,
+            'error':
+                'Failed to check remote releases and failed to read local package info',
+            'source': 'none',
+          };
+        }
       }
     }
   }

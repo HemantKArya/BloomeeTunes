@@ -173,6 +173,23 @@ jobs:
       - name: Build Windows App
         run: flutter build windows --release --build-number $env:GITHUB_RUN_NUMBER
 
+      # Unsigned Store package (Partner Center signs it). Built from the
+      # Release folder above, before the exe is renamed for the zip.
+      - name: Package Microsoft Store MSIX
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          dart run msix:create --build-windows false --output-path dist --output-name "bloomee_tunes_store_v$env:VERSION"
+
+      - name: Upload Microsoft Store MSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: Store-Windows
+          path: dist/*.msix
+          if-no-files-found: error
+          compression-level: 0
+          overwrite: true
+
       - name: Package Windows App
         shell: pwsh
         run: |

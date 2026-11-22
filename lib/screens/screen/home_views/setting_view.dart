@@ -8,6 +8,7 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.
 import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/lastfm_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/discord_setting.dart';
+import 'package:Bloomee/core/utils/app_distribution.dart';
 import 'package:Bloomee/services/discord_service.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/player_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/updates_setting.dart';
@@ -70,14 +71,16 @@ class SettingsView extends StatelessWidget {
                     onTap: () =>
                         _navigate(context, const PluginDefaultsSettings()),
                   ),
-                  _SettingsTile(
-                    title: AppLocalizations.of(context)!.settingsUpdates,
-                    subtitle:
-                        AppLocalizations.of(context)!.settingsUpdatesSubtitle,
-                    icon: MingCute.download_3_fill,
-                    iconColor: Default_Theme.accentColor2,
-                    onTap: () => _navigate(context, const UpdatesSettings()),
-                  ),
+                  // Store installs are updated by the Store.
+                  if (!AppDistribution.updatesManagedExternally)
+                    _SettingsTile(
+                      title: AppLocalizations.of(context)!.settingsUpdates,
+                      subtitle:
+                          AppLocalizations.of(context)!.settingsUpdatesSubtitle,
+                      icon: MingCute.download_3_fill,
+                      iconColor: Default_Theme.accentColor2,
+                      onTap: () => _navigate(context, const UpdatesSettings()),
+                    ),
                 ],
               ),
 
