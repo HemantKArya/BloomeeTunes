@@ -2123,4 +2123,140 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get lastfmQueueCleared => 'Scrobble kuyruğu temizlendi';
+
+  @override
+  String get settingsDiscord => 'Discord';
+
+  @override
+  String get settingsDiscordSubtitle => 'Rich Presence: ne dinlediğini göster.';
+
+  @override
+  String get discordTitle => 'Discord';
+
+  @override
+  String get discordEnable => 'Discord\'da göster';
+
+  @override
+  String get discordEnableSubtitle =>
+      'Çalan şarkıyı Discord profilinde paylaş.';
+
+  @override
+  String get discordStatusIdle => 'Paylaşmaya hazır';
+
+  @override
+  String get discordStatusConnecting => 'Discord\'a bağlanıyor…';
+
+  @override
+  String discordStatusConnected(String name) {
+    return '$name olarak bağlı';
+  }
+
+  @override
+  String get discordStatusConnectedNoUser => 'Discord\'a bağlı';
+
+  @override
+  String get discordStatusNotFound => 'Discord çalışmıyor';
+
+  @override
+  String get discordStatusError => 'Discord bağlantıyı reddetti';
+
+  @override
+  String get discordReconnect => 'Yeniden bağlan';
+
+  @override
+  String get discordSectionPreview => 'Önizleme';
+
+  @override
+  String get discordSectionCard => 'Görünüm';
+
+  @override
+  String get discordSectionPrivacy => 'Gizlilik';
+
+  @override
+  String get discordPreviewEmpty => 'Kartını görmek için bir şarkı çal.';
+
+  @override
+  String get discordKindListening => 'Bloomee dinliyor';
+
+  @override
+  String get discordWhenPaused => 'Duraklatınca';
+
+  @override
+  String get discordPausedKeep => 'Göstermeye devam et';
+
+  @override
+  String get discordPausedHideLater => '5 dakika sonra gizle';
+
+  @override
+  String get discordPausedHide => 'Hemen gizle';
+
+  @override
+  String get discordShowArtwork => 'Albüm kapağı';
+
+  @override
+  String get discordShowArtworkSubtitle => 'Oynat veya duraklat rozetli kapak.';
+
+  @override
+  String get discordShowProgress => 'Zaman çubuğu';
+
+  @override
+  String get discordShowProgressSubtitle =>
+      'İleri sarmaları izleyen canlı ilerleme çubuğu.';
+
+  @override
+  String get discordShowLinks => 'Tıklanabilir bağlantılar';
+
+  @override
+  String get discordShowLinksSubtitle =>
+      'Şarkı, sanatçı ve albüm kendi sayfalarını açar.';
+
+  @override
+  String get discordShareLocal => 'Yerel dosyaları paylaş';
+
+  @override
+  String get discordShareLocalSubtitle =>
+      'Yerel kitaplığındaki şarkıları da yayınla.';
+
+  @override
+  String get discordFooter =>
+      'Bu bilgisayarda Discord masaüstü uygulaması açık olmalı. Değişiklikler hemen uygulanır; Discord yaklaşık 4 saniyede bir güncelleme kabul eder.';
+
+  @override
+  String discordStatusRetry(int seconds) {
+    return '$seconds sn sonra yeniden denenecek';
+  }
+
+  @override
+  String get discordStatusIdleDetail => 'Müzik çalınca otomatik bağlanır.';
+
+  @override
+  String get discordPausedKeepSubtitle =>
+      'Zaman çubuğu olmadan duraklatma rozeti gösterir.';
+
+  @override
+  String get discordPausedHideLaterSubtitle =>
+      'Kısa duraklamalarda kart kalır, uzunlarda kalkar.';
+
+  @override
+  String get discordPausedHideSubtitle => 'Duraklattığın anda kalkar.';
+
+  @override
+  String get discordPreviewCaption =>
+      'Arkadaşların seni Discord\'da böyle görür.';
+
+  @override
+  String get discordStatusText => 'Durum metni';
+
+  @override
+  String get discordStatusTextSubtitle =>
+      'Arkadaşlarının adının yanında göreceği şey.';
+
+  @override
+  String get discordStatusTextApp => 'Uygulama adı';
+
+  @override
+  String get discordStatusTextArtist => 'Sanatçı';
+
+  @override
+  String get discordStatusTextSong => 'Şarkı adı';
 }

@@ -2049,4 +2049,132 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get lastfmQueueCleared => 'スクロブルのキューを消去しました';
+
+  @override
+  String get settingsDiscord => 'Discord';
+
+  @override
+  String get settingsDiscordSubtitle => 'Rich Presence：聴いている曲を表示します。';
+
+  @override
+  String get discordTitle => 'Discord';
+
+  @override
+  String get discordEnable => 'Discord に表示';
+
+  @override
+  String get discordEnableSubtitle => '再生中の曲を Discord プロフィールで共有します。';
+
+  @override
+  String get discordStatusIdle => '共有の準備完了';
+
+  @override
+  String get discordStatusConnecting => 'Discord に接続中…';
+
+  @override
+  String discordStatusConnected(String name) {
+    return '$name として接続中';
+  }
+
+  @override
+  String get discordStatusConnectedNoUser => 'Discord に接続済み';
+
+  @override
+  String get discordStatusNotFound => 'Discord が起動していません';
+
+  @override
+  String get discordStatusError => 'Discord が接続を拒否しました';
+
+  @override
+  String get discordReconnect => '再接続';
+
+  @override
+  String get discordSectionPreview => 'プレビュー';
+
+  @override
+  String get discordSectionCard => '外観';
+
+  @override
+  String get discordSectionPrivacy => 'プライバシー';
+
+  @override
+  String get discordPreviewEmpty => '曲を再生するとカードをプレビューできます。';
+
+  @override
+  String get discordKindListening => 'Bloomee を聴いています';
+
+  @override
+  String get discordWhenPaused => '一時停止中';
+
+  @override
+  String get discordPausedKeep => '表示を続ける';
+
+  @override
+  String get discordPausedHideLater => '5 分後に非表示';
+
+  @override
+  String get discordPausedHide => 'すぐに非表示';
+
+  @override
+  String get discordShowArtwork => 'アルバムアート';
+
+  @override
+  String get discordShowArtworkSubtitle => '再生／一時停止バッジ付きのジャケット。';
+
+  @override
+  String get discordShowProgress => 'タイムバー';
+
+  @override
+  String get discordShowProgressSubtitle => 'シークに追従するリアルタイムの進行バー。';
+
+  @override
+  String get discordShowLinks => 'クリックできるリンク';
+
+  @override
+  String get discordShowLinksSubtitle => '曲・アーティスト・アルバムのページを開きます。';
+
+  @override
+  String get discordShareLocal => 'ローカルファイルを共有';
+
+  @override
+  String get discordShareLocalSubtitle => 'ローカルライブラリの曲も表示します。';
+
+  @override
+  String get discordFooter =>
+      'このコンピューターで Discord デスクトップアプリが起動している必要があります。変更はすぐに反映されます。Discord の更新はおよそ 4 秒に 1 回までです。';
+
+  @override
+  String discordStatusRetry(int seconds) {
+    return '$seconds 秒後に再試行';
+  }
+
+  @override
+  String get discordStatusIdleDetail => '音楽を再生すると自動で接続します。';
+
+  @override
+  String get discordPausedKeepSubtitle => 'タイムバーなしで一時停止バッジを表示します。';
+
+  @override
+  String get discordPausedHideLaterSubtitle => '短い一時停止では残り、長いと消えます。';
+
+  @override
+  String get discordPausedHideSubtitle => '一時停止するとすぐに消えます。';
+
+  @override
+  String get discordPreviewCaption => 'Discord でフレンドに見える表示です。';
+
+  @override
+  String get discordStatusText => 'ステータス表示';
+
+  @override
+  String get discordStatusTextSubtitle => '名前の横にフレンドから見える内容。';
+
+  @override
+  String get discordStatusTextApp => 'アプリ名';
+
+  @override
+  String get discordStatusTextArtist => 'アーティスト';
+
+  @override
+  String get discordStatusTextSong => '曲名';
 }

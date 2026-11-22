@@ -3883,6 +3883,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scrobble queue cleared'**
   String get lastfmQueueCleared;
+
+  /// No description provided for @settingsDiscord.
+  ///
+  /// In en, this message translates to:
+  /// **'Discord'**
+  String get settingsDiscord;
+
+  /// No description provided for @settingsDiscordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rich Presence: show what you\'re listening to.'**
+  String get settingsDiscordSubtitle;
+
+  /// No description provided for @discordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discord'**
+  String get discordTitle;
+
+  /// No description provided for @discordEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on Discord'**
+  String get discordEnable;
+
+  /// No description provided for @discordEnableSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the song you\'re playing on your Discord profile.'**
+  String get discordEnableSubtitle;
+
+  /// No description provided for @discordStatusIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to share'**
+  String get discordStatusIdle;
+
+  /// No description provided for @discordStatusConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to Discord…'**
+  String get discordStatusConnecting;
+
+  /// No description provided for @discordStatusConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected as {name}'**
+  String discordStatusConnected(String name);
+
+  /// No description provided for @discordStatusConnectedNoUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to Discord'**
+  String get discordStatusConnectedNoUser;
+
+  /// No description provided for @discordStatusNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Discord isn\'t running'**
+  String get discordStatusNotFound;
+
+  /// No description provided for @discordStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Discord refused the connection'**
+  String get discordStatusError;
+
+  /// No description provided for @discordReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get discordReconnect;
+
+  /// No description provided for @discordSectionPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get discordSectionPreview;
+
+  /// No description provided for @discordSectionCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get discordSectionCard;
+
+  /// No description provided for @discordSectionPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get discordSectionPrivacy;
+
+  /// No description provided for @discordPreviewEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a song to preview your card.'**
+  String get discordPreviewEmpty;
+
+  /// No description provided for @discordKindListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening to Bloomee'**
+  String get discordKindListening;
+
+  /// No description provided for @discordWhenPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'When paused'**
+  String get discordWhenPaused;
+
+  /// No description provided for @discordPausedKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep showing'**
+  String get discordPausedKeep;
+
+  /// No description provided for @discordPausedHideLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide after 5 minutes'**
+  String get discordPausedHideLater;
+
+  /// No description provided for @discordPausedHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide right away'**
+  String get discordPausedHide;
+
+  /// No description provided for @discordShowArtwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Album artwork'**
+  String get discordShowArtwork;
+
+  /// No description provided for @discordShowArtworkSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover art with a play or pause badge.'**
+  String get discordShowArtworkSubtitle;
+
+  /// No description provided for @discordShowProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Time bar'**
+  String get discordShowProgress;
+
+  /// No description provided for @discordShowProgressSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live progress bar that follows seeks.'**
+  String get discordShowProgressSubtitle;
+
+  /// No description provided for @discordShowLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Clickable links'**
+  String get discordShowLinks;
+
+  /// No description provided for @discordShowLinksSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Song, artist and album open their pages.'**
+  String get discordShowLinksSubtitle;
+
+  /// No description provided for @discordShareLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Share local files'**
+  String get discordShareLocal;
+
+  /// No description provided for @discordShareLocalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Also publish songs from your local library.'**
+  String get discordShareLocalSubtitle;
+
+  /// No description provided for @discordFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs the Discord desktop app running on this computer. Changes apply instantly; Discord accepts about one update every 4 seconds.'**
+  String get discordFooter;
+
+  /// No description provided for @discordStatusRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrying in {seconds}s'**
+  String discordStatusRetry(int seconds);
+
+  /// No description provided for @discordStatusIdleDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Connects automatically when music plays.'**
+  String get discordStatusIdleDetail;
+
+  /// No description provided for @discordPausedKeepSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows a paused badge without the time bar.'**
+  String get discordPausedKeepSubtitle;
+
+  /// No description provided for @discordPausedHideLaterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Short pauses keep your card, long ones clear it.'**
+  String get discordPausedHideLaterSubtitle;
+
+  /// No description provided for @discordPausedHideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clears the moment you pause.'**
+  String get discordPausedHideSubtitle;
+
+  /// No description provided for @discordPreviewCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'How friends see you on Discord.'**
+  String get discordPreviewCaption;
+
+  /// No description provided for @discordStatusText.
+  ///
+  /// In en, this message translates to:
+  /// **'Status text'**
+  String get discordStatusText;
+
+  /// No description provided for @discordStatusTextSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What friends see next to your name.'**
+  String get discordStatusTextSubtitle;
+
+  /// No description provided for @discordStatusTextApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App name'**
+  String get discordStatusTextApp;
+
+  /// No description provided for @discordStatusTextArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get discordStatusTextArtist;
+
+  /// No description provided for @discordStatusTextSong.
+  ///
+  /// In en, this message translates to:
+  /// **'Song title'**
+  String get discordStatusTextSong;
 }
 
 class _AppLocalizationsDelegate

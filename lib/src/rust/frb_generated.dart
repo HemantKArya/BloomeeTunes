@@ -4,6 +4,7 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/bridge.dart';
+import 'api/discord.dart';
 import 'api/downloader.dart';
 import 'api/downloader/types.dart';
 import 'api/local_music.dart';
@@ -81,7 +82,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 1806068831;
+  int get rustContentHash => 1247186383;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -250,6 +251,16 @@ abstract class RustLibApi extends BaseApi {
 
   Future<PluginManager> crateApiBridgeCreatePluginManager(
       {required String pluginsDir});
+
+  void crateApiDiscordDiscordReconnect();
+
+  void crateApiDiscordDiscordSetActivity({DiscordActivity? activity});
+
+  void crateApiDiscordDiscordStart({required String clientId});
+
+  Stream<DiscordStatus> crateApiDiscordDiscordStatusStream();
+
+  void crateApiDiscordDiscordStop();
 
   Future<String> crateApiBridgeEnqueueDownloadTask(
       {required DownloadManager manager,
@@ -1630,6 +1641,126 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  void crateApiDiscordDiscordReconnect() {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 45)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiDiscordDiscordReconnectConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiDiscordDiscordReconnectConstMeta =>
+      const TaskConstMeta(
+        debugName: "discord_reconnect",
+        argNames: [],
+      );
+
+  @override
+  void crateApiDiscordDiscordSetActivity({DiscordActivity? activity}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_opt_box_autoadd_discord_activity(activity, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 46)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiDiscordDiscordSetActivityConstMeta,
+      argValues: [activity],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiDiscordDiscordSetActivityConstMeta =>
+      const TaskConstMeta(
+        debugName: "discord_set_activity",
+        argNames: ["activity"],
+      );
+
+  @override
+  void crateApiDiscordDiscordStart({required String clientId}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(clientId, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 47)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiDiscordDiscordStartConstMeta,
+      argValues: [clientId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiDiscordDiscordStartConstMeta =>
+      const TaskConstMeta(
+        debugName: "discord_start",
+        argNames: ["clientId"],
+      );
+
+  @override
+  Stream<DiscordStatus> crateApiDiscordDiscordStatusStream() {
+    final sink = RustStreamSink<DiscordStatus>();
+    unawaited(handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_StreamSink_discord_status_Sse(sink, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 48, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiDiscordDiscordStatusStreamConstMeta,
+      argValues: [sink],
+      apiImpl: this,
+    )));
+    return sink.stream;
+  }
+
+  TaskConstMeta get kCrateApiDiscordDiscordStatusStreamConstMeta =>
+      const TaskConstMeta(
+        debugName: "discord_status_stream",
+        argNames: ["sink"],
+      );
+
+  @override
+  void crateApiDiscordDiscordStop() {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiDiscordDiscordStopConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiDiscordDiscordStopConstMeta => const TaskConstMeta(
+        debugName: "discord_stop",
+        argNames: [],
+      );
+
+  @override
   Future<String> crateApiBridgeEnqueueDownloadTask(
       {required DownloadManager manager,
       required EnqueueDownloadRequest request}) {
@@ -1640,7 +1771,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             manager, serializer);
         sse_encode_box_autoadd_enqueue_download_request(request, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 45, port: port_);
+            funcId: 50, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -1667,7 +1798,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 46, port: port_);
+            funcId: 51, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData:
@@ -1695,7 +1826,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDownloadManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 47, port: port_);
+            funcId: 52, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_download_task_snapshot,
@@ -1720,7 +1851,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(url, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 48, port: port_);
+            funcId: 53, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_metadata_result,
@@ -1746,7 +1877,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 54)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -1777,7 +1908,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(pluginId, serializer);
         sse_encode_plugin_type(pluginType, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 50, port: port_);
+            funcId: 55, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData:
@@ -1804,7 +1935,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 51, port: port_);
+            funcId: 56, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -1828,7 +1959,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(name, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 57)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -1858,7 +1989,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(pluginId, serializer);
         sse_encode_box_autoadd_plugin_request(request, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 53, port: port_);
+            funcId: 58, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_plugin_response,
@@ -1882,7 +2013,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 54, port: port_);
+            funcId: 59, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1910,7 +2041,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             manager, serializer);
         sse_encode_StreamSink_download_manager_event_Sse(sink, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 55, port: port_);
+            funcId: 60, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1940,7 +2071,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             manager, serializer);
         sse_encode_StreamSink_plugin_manager_event_Sse(sink, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 56, port: port_);
+            funcId: 61, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -1968,7 +2099,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(packedFilePath, serializer);
         sse_encode_String(tempDir, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 57, port: port_);
+            funcId: 62, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_manifest,
@@ -2005,7 +2136,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 58, port: port_);
+            funcId: 63, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_plugin_install_result,
@@ -2050,7 +2181,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(pluginId, serializer);
         sse_encode_plugin_type(pluginType, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 59, port: port_);
+            funcId: 64, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -2081,7 +2212,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(pluginId, serializer);
         sse_encode_plugin_type(pluginType, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 60, port: port_);
+            funcId: 65, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2108,7 +2239,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             manager, serializer);
         sse_encode_String(taskId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 61, port: port_);
+            funcId: 66, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -2136,7 +2267,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             manager, serializer);
         sse_encode_String(pluginId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 62, port: port_);
+            funcId: 67, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2167,7 +2298,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(pluginId, serializer);
         sse_encode_String(key, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 63, port: port_);
+            funcId: 68, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_String,
@@ -2200,7 +2331,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(key, serializer);
         sse_encode_String(value, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 64, port: port_);
+            funcId: 69, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2233,7 +2364,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(key, serializer);
         sse_encode_String(value, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 65, port: port_);
+            funcId: 70, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -2259,7 +2390,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_plugin_type(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 66, port: port_);
+            funcId: 71, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2285,7 +2416,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(s, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 67, port: port_);
+            funcId: 72, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_box_autoadd_plugin_type,
@@ -2311,7 +2442,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_plugin_type(that, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 68, port: port_);
+            funcId: 73, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2338,7 +2469,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(filePath, serializer);
         sse_encode_String(coverCacheDir, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 69, port: port_);
+            funcId: 74, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_local_track_meta,
@@ -2365,7 +2496,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 70, port: port_);
+            funcId: 75, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2392,7 +2523,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDownloadManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 71, port: port_);
+            funcId: 76, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_download_task_snapshot,
@@ -2420,7 +2551,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             manager, serializer);
         sse_encode_String(taskId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 72, port: port_);
+            funcId: 77, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -2447,7 +2578,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_list_String(directories, serializer);
         sse_encode_String(coverCacheDir, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 73, port: port_);
+            funcId: 78, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_local_track_meta,
@@ -2472,7 +2603,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(directory, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 74, port: port_);
+            funcId: 79, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -2498,7 +2629,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPluginManager(
             manager, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 75, port: port_);
+            funcId: 80, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2529,7 +2660,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(pluginId, serializer);
         sse_encode_plugin_type(pluginType, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 76, port: port_);
+            funcId: 81, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2670,6 +2801,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return PluginManagerImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  RustStreamSink<DiscordStatus> dco_decode_StreamSink_discord_status_Sse(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
   }
 
   @protected
@@ -2842,6 +2980,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_content_resolver_command(raw);
+  }
+
+  @protected
+  DiscordActivity dco_decode_box_autoadd_discord_activity(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_discord_activity(raw);
+  }
+
+  @protected
+  DiscordProgress dco_decode_box_autoadd_discord_progress(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_discord_progress(raw);
+  }
+
+  @protected
+  DiscordUser dco_decode_box_autoadd_discord_user(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_discord_user(raw);
   }
 
   @protected
@@ -3133,6 +3289,99 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  DiscordActivity dco_decode_discord_activity(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 13)
+      throw Exception('unexpected arr length: expect 13 but see ${arr.length}');
+    return DiscordActivity(
+      kind: dco_decode_discord_activity_kind(arr[0]),
+      statusDisplay: dco_decode_discord_status_display(arr[1]),
+      details: dco_decode_String(arr[2]),
+      detailsUrl: dco_decode_opt_String(arr[3]),
+      state: dco_decode_opt_String(arr[4]),
+      stateUrl: dco_decode_opt_String(arr[5]),
+      largeImage: dco_decode_opt_String(arr[6]),
+      largeText: dco_decode_opt_String(arr[7]),
+      largeUrl: dco_decode_opt_String(arr[8]),
+      smallImage: dco_decode_opt_String(arr[9]),
+      smallText: dco_decode_opt_String(arr[10]),
+      progress: dco_decode_opt_box_autoadd_discord_progress(arr[11]),
+      buttons: dco_decode_list_discord_button(arr[12]),
+    );
+  }
+
+  @protected
+  DiscordActivityKind dco_decode_discord_activity_kind(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DiscordActivityKind.values[raw as int];
+  }
+
+  @protected
+  DiscordButton dco_decode_discord_button(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return DiscordButton(
+      label: dco_decode_String(arr[0]),
+      url: dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
+  DiscordConnectionState dco_decode_discord_connection_state(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DiscordConnectionState.values[raw as int];
+  }
+
+  @protected
+  DiscordProgress dco_decode_discord_progress(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return DiscordProgress(
+      positionMs: dco_decode_u_32(arr[0]),
+      durationMs: dco_decode_opt_box_autoadd_u_32(arr[1]),
+    );
+  }
+
+  @protected
+  DiscordStatus dco_decode_discord_status(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return DiscordStatus(
+      state: dco_decode_discord_connection_state(arr[0]),
+      user: dco_decode_opt_box_autoadd_discord_user(arr[1]),
+      message: dco_decode_opt_String(arr[2]),
+      retryInSecs: dco_decode_opt_box_autoadd_u_32(arr[3]),
+    );
+  }
+
+  @protected
+  DiscordStatusDisplay dco_decode_discord_status_display(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DiscordStatusDisplay.values[raw as int];
+  }
+
+  @protected
+  DiscordUser dco_decode_discord_user(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return DiscordUser(
+      id: dco_decode_String(arr[0]),
+      username: dco_decode_String(arr[1]),
+      displayName: dco_decode_opt_String(arr[2]),
+      avatarUrl: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
   DownloadManagerEvent dco_decode_download_manager_event(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     switch (raw[0]) {
@@ -3329,6 +3578,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<ChartSummary> dco_decode_list_chart_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_chart_summary).toList();
+  }
+
+  @protected
+  List<DiscordButton> dco_decode_list_discord_button(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_discord_button).toList();
   }
 
   @protected
@@ -3637,6 +3892,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Artwork? dco_decode_opt_box_autoadd_artwork(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_artwork(raw);
+  }
+
+  @protected
+  DiscordActivity? dco_decode_opt_box_autoadd_discord_activity(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_discord_activity(raw);
+  }
+
+  @protected
+  DiscordProgress? dco_decode_opt_box_autoadd_discord_progress(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_discord_progress(raw);
+  }
+
+  @protected
+  DiscordUser? dco_decode_opt_box_autoadd_discord_user(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_discord_user(raw);
   }
 
   @protected
@@ -4366,6 +4639,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  RustStreamSink<DiscordStatus> sse_decode_StreamSink_discord_status_Sse(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
   RustStreamSink<DownloadManagerEvent>
       sse_decode_StreamSink_download_manager_event_Sse(
           SseDeserializer deserializer) {
@@ -4532,6 +4812,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_content_resolver_command(deserializer));
+  }
+
+  @protected
+  DiscordActivity sse_decode_box_autoadd_discord_activity(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_discord_activity(deserializer));
+  }
+
+  @protected
+  DiscordProgress sse_decode_box_autoadd_discord_progress(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_discord_progress(deserializer));
+  }
+
+  @protected
+  DiscordUser sse_decode_box_autoadd_discord_user(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_discord_user(deserializer));
   }
 
   @protected
@@ -4839,6 +5140,108 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  DiscordActivity sse_decode_discord_activity(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_kind = sse_decode_discord_activity_kind(deserializer);
+    var var_statusDisplay = sse_decode_discord_status_display(deserializer);
+    var var_details = sse_decode_String(deserializer);
+    var var_detailsUrl = sse_decode_opt_String(deserializer);
+    var var_state = sse_decode_opt_String(deserializer);
+    var var_stateUrl = sse_decode_opt_String(deserializer);
+    var var_largeImage = sse_decode_opt_String(deserializer);
+    var var_largeText = sse_decode_opt_String(deserializer);
+    var var_largeUrl = sse_decode_opt_String(deserializer);
+    var var_smallImage = sse_decode_opt_String(deserializer);
+    var var_smallText = sse_decode_opt_String(deserializer);
+    var var_progress =
+        sse_decode_opt_box_autoadd_discord_progress(deserializer);
+    var var_buttons = sse_decode_list_discord_button(deserializer);
+    return DiscordActivity(
+        kind: var_kind,
+        statusDisplay: var_statusDisplay,
+        details: var_details,
+        detailsUrl: var_detailsUrl,
+        state: var_state,
+        stateUrl: var_stateUrl,
+        largeImage: var_largeImage,
+        largeText: var_largeText,
+        largeUrl: var_largeUrl,
+        smallImage: var_smallImage,
+        smallText: var_smallText,
+        progress: var_progress,
+        buttons: var_buttons);
+  }
+
+  @protected
+  DiscordActivityKind sse_decode_discord_activity_kind(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return DiscordActivityKind.values[inner];
+  }
+
+  @protected
+  DiscordButton sse_decode_discord_button(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_label = sse_decode_String(deserializer);
+    var var_url = sse_decode_String(deserializer);
+    return DiscordButton(label: var_label, url: var_url);
+  }
+
+  @protected
+  DiscordConnectionState sse_decode_discord_connection_state(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return DiscordConnectionState.values[inner];
+  }
+
+  @protected
+  DiscordProgress sse_decode_discord_progress(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_positionMs = sse_decode_u_32(deserializer);
+    var var_durationMs = sse_decode_opt_box_autoadd_u_32(deserializer);
+    return DiscordProgress(
+        positionMs: var_positionMs, durationMs: var_durationMs);
+  }
+
+  @protected
+  DiscordStatus sse_decode_discord_status(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_state = sse_decode_discord_connection_state(deserializer);
+    var var_user = sse_decode_opt_box_autoadd_discord_user(deserializer);
+    var var_message = sse_decode_opt_String(deserializer);
+    var var_retryInSecs = sse_decode_opt_box_autoadd_u_32(deserializer);
+    return DiscordStatus(
+        state: var_state,
+        user: var_user,
+        message: var_message,
+        retryInSecs: var_retryInSecs);
+  }
+
+  @protected
+  DiscordStatusDisplay sse_decode_discord_status_display(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return DiscordStatusDisplay.values[inner];
+  }
+
+  @protected
+  DiscordUser sse_decode_discord_user(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_username = sse_decode_String(deserializer);
+    var var_displayName = sse_decode_opt_String(deserializer);
+    var var_avatarUrl = sse_decode_opt_String(deserializer);
+    return DiscordUser(
+        id: var_id,
+        username: var_username,
+        displayName: var_displayName,
+        avatarUrl: var_avatarUrl);
+  }
+
+  @protected
   DownloadManagerEvent sse_decode_download_manager_event(
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -5095,6 +5498,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <ChartSummary>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_chart_summary(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<DiscordButton> sse_decode_list_discord_button(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <DiscordButton>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_discord_button(deserializer));
     }
     return ans_;
   }
@@ -5520,6 +5936,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_artwork(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  DiscordActivity? sse_decode_opt_box_autoadd_discord_activity(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_discord_activity(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  DiscordProgress? sse_decode_opt_box_autoadd_discord_progress(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_discord_progress(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  DiscordUser? sse_decode_opt_box_autoadd_discord_user(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_discord_user(deserializer));
     } else {
       return null;
     }
@@ -6275,6 +6727,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_StreamSink_discord_status_Sse(
+      RustStreamSink<DiscordStatus> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+        self.setupAndSerialize(
+            codec: SseCodec(
+          decodeSuccessData: sse_decode_discord_status,
+          decodeErrorData: sse_decode_AnyhowException,
+        )),
+        serializer);
+  }
+
+  @protected
   void sse_encode_StreamSink_download_manager_event_Sse(
       RustStreamSink<DownloadManagerEvent> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -6423,6 +6888,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ContentResolverCommand self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_content_resolver_command(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_discord_activity(
+      DiscordActivity self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_discord_activity(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_discord_progress(
+      DiscordProgress self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_discord_progress(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_discord_user(
+      DiscordUser self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_discord_user(self, serializer);
   }
 
   @protected
@@ -6717,6 +7203,79 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_discord_activity(
+      DiscordActivity self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_discord_activity_kind(self.kind, serializer);
+    sse_encode_discord_status_display(self.statusDisplay, serializer);
+    sse_encode_String(self.details, serializer);
+    sse_encode_opt_String(self.detailsUrl, serializer);
+    sse_encode_opt_String(self.state, serializer);
+    sse_encode_opt_String(self.stateUrl, serializer);
+    sse_encode_opt_String(self.largeImage, serializer);
+    sse_encode_opt_String(self.largeText, serializer);
+    sse_encode_opt_String(self.largeUrl, serializer);
+    sse_encode_opt_String(self.smallImage, serializer);
+    sse_encode_opt_String(self.smallText, serializer);
+    sse_encode_opt_box_autoadd_discord_progress(self.progress, serializer);
+    sse_encode_list_discord_button(self.buttons, serializer);
+  }
+
+  @protected
+  void sse_encode_discord_activity_kind(
+      DiscordActivityKind self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_discord_button(DiscordButton self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.label, serializer);
+    sse_encode_String(self.url, serializer);
+  }
+
+  @protected
+  void sse_encode_discord_connection_state(
+      DiscordConnectionState self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_discord_progress(
+      DiscordProgress self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.positionMs, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.durationMs, serializer);
+  }
+
+  @protected
+  void sse_encode_discord_status(DiscordStatus self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_discord_connection_state(self.state, serializer);
+    sse_encode_opt_box_autoadd_discord_user(self.user, serializer);
+    sse_encode_opt_String(self.message, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.retryInSecs, serializer);
+  }
+
+  @protected
+  void sse_encode_discord_status_display(
+      DiscordStatusDisplay self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_discord_user(DiscordUser self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.username, serializer);
+    sse_encode_opt_String(self.displayName, serializer);
+    sse_encode_opt_String(self.avatarUrl, serializer);
+  }
+
+  @protected
   void sse_encode_download_manager_event(
       DownloadManagerEvent self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -6908,6 +7467,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_chart_summary(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_discord_button(
+      List<DiscordButton> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_discord_button(item, serializer);
     }
   }
 
@@ -7236,6 +7805,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_artwork(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_discord_activity(
+      DiscordActivity? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_discord_activity(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_discord_progress(
+      DiscordProgress? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_discord_progress(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_discord_user(
+      DiscordUser? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_discord_user(self, serializer);
     }
   }
 
@@ -7942,50 +8544,44 @@ class PluginManagerImpl extends RustOpaque implements PluginManager {
       .crateApiPluginPluginPluginManagerAutoAccessorSetPluginsDir(
           that: this, pluginsDir: pluginsDir);
 
-  /// Get available plugins (scanned from directory)
   Future<List<PluginInfo>> getAvailablePlugins() =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerGetAvailablePlugins(
         that: this,
       );
 
-  /// Get list of loaded plugin IDs
+  /// FIX M-02: No longer uses block_on — uses std::sync::RwLock directly.
   Future<List<String>> getLoadedPlugins() =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerGetLoadedPlugins(
         that: this,
       );
 
-  /// Initialize the event stream from Dart.
-  /// Call this ONCE after creating the manager.
-  /// The sink is held forever and used for all event emissions.
   Stream<PluginManagerEvent> initEventStream() =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerInitEventStream(
         that: this,
       );
 
-  /// Check if a plugin is loaded
+  /// FIX M-02: is_plugin_loaded is now a fully async function that only
+  /// acquires the std RwLock for the map lookup, then the tokio Mutex for
+  /// type verification. No block_on involved.
   Future<bool> isPluginLoaded(
           {required String pluginId, required PluginType pluginType}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerIsPluginLoaded(
           that: this, pluginId: pluginId, pluginType: pluginType);
 
-  /// Alias for is_plugin_loaded (API compatibility)
   Future<bool> isPluginLoadedById(
           {required String pluginId, required PluginType pluginType}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerIsPluginLoadedById(
           that: this, pluginId: pluginId, pluginType: pluginType);
 
-  /// Load a plugin by ID with event emission
   Future<void> loadPlugin({required PluginInfo pluginInfo}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerLoadPlugin(
           that: this, pluginInfo: pluginInfo);
 
-  /// Load a plugin by ID (looks up from available plugins)
   Future<void> loadPluginById(
           {required String pluginId, required PluginType pluginType}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerLoadPluginById(
           that: this, pluginId: pluginId, pluginType: pluginType);
 
-  /// Load plugin from an explicit path (for install-then-load flow)
   Future<void> loadPluginFromPath(
           {required String pluginId,
           required PluginType pluginType,
@@ -7996,34 +8592,28 @@ class PluginManagerImpl extends RustOpaque implements PluginManager {
           pluginType: pluginType,
           pluginPath: pluginPath);
 
-  /// Refresh available plugins and emit event
   Future<void> refreshAvailablePlugins() => RustLib.instance.api
           .crateApiPluginPluginPluginManagerRefreshAvailablePlugins(
         that: this,
       );
 
-  /// Gracefully shutdown manager-owned state.
   Future<void> shutdown() =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerShutdown(
         that: this,
       );
 
-  /// Clear all storage for a plugin
   Future<void> storageClear({required String pluginId}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerStorageClear(
           that: this, pluginId: pluginId);
 
-  /// Delete a storage value
   Future<bool> storageDelete({required String pluginId, required String key}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerStorageDelete(
           that: this, pluginId: pluginId, key: key);
 
-  /// Get a storage value (instant in-memory read)
   Future<String?> storageGet({required String pluginId, required String key}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerStorageGet(
           that: this, pluginId: pluginId, key: key);
 
-  /// Preload a storage value from Dart (startup sync, no event emitted)
   Future<void> storagePreload(
           {required String pluginId,
           required String key,
@@ -8031,7 +8621,6 @@ class PluginManagerImpl extends RustOpaque implements PluginManager {
       RustLib.instance.api.crateApiPluginPluginPluginManagerStoragePreload(
           that: this, pluginId: pluginId, key: key, value: value);
 
-  /// Set a storage value (instant in-memory, emits event for Dart persistence)
   Future<bool> storageSet(
           {required String pluginId,
           required String key,
@@ -8039,13 +8628,11 @@ class PluginManagerImpl extends RustOpaque implements PluginManager {
       RustLib.instance.api.crateApiPluginPluginPluginManagerStorageSet(
           that: this, pluginId: pluginId, key: key, value: value);
 
-  /// Unload a plugin with event emission
   Future<void> unloadPlugin(
           {required String pluginId, required PluginType pluginType}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerUnloadPlugin(
           that: this, pluginId: pluginId, pluginType: pluginType);
 
-  /// Alias for unload_plugin (API compatibility)
   Future<void> unloadPluginById(
           {required String pluginId, required PluginType pluginType}) =>
       RustLib.instance.api.crateApiPluginPluginPluginManagerUnloadPluginById(

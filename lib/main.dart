@@ -142,7 +142,7 @@ Future<void> main(List<String> arguments) async {
     await bootstrapApp();
     unawaited(setHighRefreshRate());
     await setupPlayerCubit();
-    DiscordService.initialize();
+    unawaited(DiscordService.initialize());
     runApp(MyApp(initialFiles: arguments));
   } catch (error, stack) {
     debugPrint('Application startup failed: $error\n$stack');

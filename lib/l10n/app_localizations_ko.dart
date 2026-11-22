@@ -2049,4 +2049,132 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get lastfmQueueCleared => '스크로블 대기열을 비웠습니다';
+
+  @override
+  String get settingsDiscord => 'Discord';
+
+  @override
+  String get settingsDiscordSubtitle => 'Rich Presence: 듣고 있는 음악을 보여 줍니다.';
+
+  @override
+  String get discordTitle => 'Discord';
+
+  @override
+  String get discordEnable => 'Discord에 표시';
+
+  @override
+  String get discordEnableSubtitle => '재생 중인 곡을 Discord 프로필에 공유합니다.';
+
+  @override
+  String get discordStatusIdle => '공유 준비 완료';
+
+  @override
+  String get discordStatusConnecting => 'Discord에 연결 중…';
+
+  @override
+  String discordStatusConnected(String name) {
+    return '$name(으)로 연결됨';
+  }
+
+  @override
+  String get discordStatusConnectedNoUser => 'Discord에 연결됨';
+
+  @override
+  String get discordStatusNotFound => 'Discord가 실행 중이 아닙니다';
+
+  @override
+  String get discordStatusError => 'Discord가 연결을 거부했습니다';
+
+  @override
+  String get discordReconnect => '다시 연결';
+
+  @override
+  String get discordSectionPreview => '미리 보기';
+
+  @override
+  String get discordSectionCard => '모양';
+
+  @override
+  String get discordSectionPrivacy => '개인정보';
+
+  @override
+  String get discordPreviewEmpty => '곡을 재생하면 카드를 미리 볼 수 있습니다.';
+
+  @override
+  String get discordKindListening => 'Bloomee 듣는 중';
+
+  @override
+  String get discordWhenPaused => '일시정지 시';
+
+  @override
+  String get discordPausedKeep => '계속 표시';
+
+  @override
+  String get discordPausedHideLater => '5분 후 숨기기';
+
+  @override
+  String get discordPausedHide => '바로 숨기기';
+
+  @override
+  String get discordShowArtwork => '앨범 아트';
+
+  @override
+  String get discordShowArtworkSubtitle => '재생 또는 일시정지 배지가 있는 커버입니다.';
+
+  @override
+  String get discordShowProgress => '타임 바';
+
+  @override
+  String get discordShowProgressSubtitle => '탐색을 따라가는 실시간 진행 바입니다.';
+
+  @override
+  String get discordShowLinks => '클릭 가능한 링크';
+
+  @override
+  String get discordShowLinksSubtitle => '곡, 아티스트, 앨범이 각 페이지를 엽니다.';
+
+  @override
+  String get discordShareLocal => '로컬 파일 공유';
+
+  @override
+  String get discordShareLocalSubtitle => '로컬 보관함의 곡도 표시합니다.';
+
+  @override
+  String get discordFooter =>
+      '이 컴퓨터에서 Discord 데스크톱 앱이 실행 중이어야 합니다. 변경 사항은 즉시 적용되며, Discord는 약 4초마다 한 번씩 업데이트를 받습니다.';
+
+  @override
+  String discordStatusRetry(int seconds) {
+    return '$seconds초 후 다시 시도';
+  }
+
+  @override
+  String get discordStatusIdleDetail => '음악을 재생하면 자동으로 연결됩니다.';
+
+  @override
+  String get discordPausedKeepSubtitle => '타임 바 없이 일시정지 배지를 표시합니다.';
+
+  @override
+  String get discordPausedHideLaterSubtitle => '잠깐 멈추면 유지되고, 오래 멈추면 사라집니다.';
+
+  @override
+  String get discordPausedHideSubtitle => '일시정지하면 바로 사라집니다.';
+
+  @override
+  String get discordPreviewCaption => 'Discord에서 친구들에게 보이는 모습입니다.';
+
+  @override
+  String get discordStatusText => '상태 텍스트';
+
+  @override
+  String get discordStatusTextSubtitle => '친구들이 이름 옆에서 보게 되는 내용입니다.';
+
+  @override
+  String get discordStatusTextApp => '앱 이름';
+
+  @override
+  String get discordStatusTextArtist => '아티스트';
+
+  @override
+  String get discordStatusTextSong => '곡 제목';
 }

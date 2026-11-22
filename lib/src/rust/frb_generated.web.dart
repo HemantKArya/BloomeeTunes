@@ -7,6 +7,7 @@
 // ignore_for_file: argument_type_not_assignable
 
 import 'api/bridge.dart';
+import 'api/discord.dart';
 import 'api/downloader.dart';
 import 'api/downloader/types.dart';
 import 'api/local_music.dart';
@@ -105,6 +106,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
+  RustStreamSink<DiscordStatus> dco_decode_StreamSink_discord_status_Sse(
+      dynamic raw);
+
+  @protected
   RustStreamSink<DownloadManagerEvent>
       dco_decode_StreamSink_download_manager_event_Sse(dynamic raw);
 
@@ -170,6 +175,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ContentResolverCommand dco_decode_box_autoadd_content_resolver_command(
       dynamic raw);
+
+  @protected
+  DiscordActivity dco_decode_box_autoadd_discord_activity(dynamic raw);
+
+  @protected
+  DiscordProgress dco_decode_box_autoadd_discord_progress(dynamic raw);
+
+  @protected
+  DiscordUser dco_decode_box_autoadd_discord_user(dynamic raw);
 
   @protected
   DownloadTaskSnapshot dco_decode_box_autoadd_download_task_snapshot(
@@ -268,6 +282,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ContentSearchFilter dco_decode_content_search_filter(dynamic raw);
 
   @protected
+  DiscordActivity dco_decode_discord_activity(dynamic raw);
+
+  @protected
+  DiscordActivityKind dco_decode_discord_activity_kind(dynamic raw);
+
+  @protected
+  DiscordButton dco_decode_discord_button(dynamic raw);
+
+  @protected
+  DiscordConnectionState dco_decode_discord_connection_state(dynamic raw);
+
+  @protected
+  DiscordProgress dco_decode_discord_progress(dynamic raw);
+
+  @protected
+  DiscordStatus dco_decode_discord_status(dynamic raw);
+
+  @protected
+  DiscordStatusDisplay dco_decode_discord_status_display(dynamic raw);
+
+  @protected
+  DiscordUser dco_decode_discord_user(dynamic raw);
+
+  @protected
   DownloadManagerEvent dco_decode_download_manager_event(dynamic raw);
 
   @protected
@@ -325,6 +363,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ChartSummary> dco_decode_list_chart_summary(dynamic raw);
+
+  @protected
+  List<DiscordButton> dco_decode_list_discord_button(dynamic raw);
 
   @protected
   List<DownloadTaskSnapshot> dco_decode_list_download_task_snapshot(
@@ -419,6 +460,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Artwork? dco_decode_opt_box_autoadd_artwork(dynamic raw);
+
+  @protected
+  DiscordActivity? dco_decode_opt_box_autoadd_discord_activity(dynamic raw);
+
+  @protected
+  DiscordProgress? dco_decode_opt_box_autoadd_discord_progress(dynamic raw);
+
+  @protected
+  DiscordUser? dco_decode_opt_box_autoadd_discord_user(dynamic raw);
 
   @protected
   Lyrics? dco_decode_opt_box_autoadd_lyrics(dynamic raw);
@@ -613,6 +663,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
+  RustStreamSink<DiscordStatus> sse_decode_StreamSink_discord_status_Sse(
+      SseDeserializer deserializer);
+
+  @protected
   RustStreamSink<DownloadManagerEvent>
       sse_decode_StreamSink_download_manager_event_Sse(
           SseDeserializer deserializer);
@@ -678,6 +732,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ContentResolverCommand sse_decode_box_autoadd_content_resolver_command(
       SseDeserializer deserializer);
+
+  @protected
+  DiscordActivity sse_decode_box_autoadd_discord_activity(
+      SseDeserializer deserializer);
+
+  @protected
+  DiscordProgress sse_decode_box_autoadd_discord_progress(
+      SseDeserializer deserializer);
+
+  @protected
+  DiscordUser sse_decode_box_autoadd_discord_user(SseDeserializer deserializer);
 
   @protected
   DownloadTaskSnapshot sse_decode_box_autoadd_download_task_snapshot(
@@ -790,6 +855,33 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  DiscordActivity sse_decode_discord_activity(SseDeserializer deserializer);
+
+  @protected
+  DiscordActivityKind sse_decode_discord_activity_kind(
+      SseDeserializer deserializer);
+
+  @protected
+  DiscordButton sse_decode_discord_button(SseDeserializer deserializer);
+
+  @protected
+  DiscordConnectionState sse_decode_discord_connection_state(
+      SseDeserializer deserializer);
+
+  @protected
+  DiscordProgress sse_decode_discord_progress(SseDeserializer deserializer);
+
+  @protected
+  DiscordStatus sse_decode_discord_status(SseDeserializer deserializer);
+
+  @protected
+  DiscordStatusDisplay sse_decode_discord_status_display(
+      SseDeserializer deserializer);
+
+  @protected
+  DiscordUser sse_decode_discord_user(SseDeserializer deserializer);
+
+  @protected
   DownloadManagerEvent sse_decode_download_manager_event(
       SseDeserializer deserializer);
 
@@ -855,6 +947,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ChartSummary> sse_decode_list_chart_summary(
+      SseDeserializer deserializer);
+
+  @protected
+  List<DiscordButton> sse_decode_list_discord_button(
       SseDeserializer deserializer);
 
   @protected
@@ -957,6 +1053,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Artwork? sse_decode_opt_box_autoadd_artwork(SseDeserializer deserializer);
+
+  @protected
+  DiscordActivity? sse_decode_opt_box_autoadd_discord_activity(
+      SseDeserializer deserializer);
+
+  @protected
+  DiscordProgress? sse_decode_opt_box_autoadd_discord_progress(
+      SseDeserializer deserializer);
+
+  @protected
+  DiscordUser? sse_decode_opt_box_autoadd_discord_user(
+      SseDeserializer deserializer);
 
   @protected
   Lyrics? sse_decode_opt_box_autoadd_lyrics(SseDeserializer deserializer);
@@ -1163,6 +1271,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           PluginManager self, SseSerializer serializer);
 
   @protected
+  void sse_encode_StreamSink_discord_status_Sse(
+      RustStreamSink<DiscordStatus> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_StreamSink_download_manager_event_Sse(
       RustStreamSink<DownloadManagerEvent> self, SseSerializer serializer);
 
@@ -1226,6 +1338,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_content_resolver_command(
       ContentResolverCommand self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_discord_activity(
+      DiscordActivity self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_discord_progress(
+      DiscordProgress self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_discord_user(
+      DiscordUser self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_download_task_snapshot(
@@ -1340,6 +1464,35 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ContentSearchFilter self, SseSerializer serializer);
 
   @protected
+  void sse_encode_discord_activity(
+      DiscordActivity self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_discord_activity_kind(
+      DiscordActivityKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_discord_button(DiscordButton self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_discord_connection_state(
+      DiscordConnectionState self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_discord_progress(
+      DiscordProgress self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_discord_status(DiscordStatus self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_discord_status_display(
+      DiscordStatusDisplay self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_discord_user(DiscordUser self, SseSerializer serializer);
+
+  @protected
   void sse_encode_download_manager_event(
       DownloadManagerEvent self, SseSerializer serializer);
 
@@ -1410,6 +1563,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_chart_summary(
       List<ChartSummary> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_discord_button(
+      List<DiscordButton> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_download_task_snapshot(
@@ -1522,6 +1679,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_artwork(
       Artwork? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_discord_activity(
+      DiscordActivity? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_discord_progress(
+      DiscordProgress? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_discord_user(
+      DiscordUser? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_lyrics(

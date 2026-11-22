@@ -2175,4 +2175,139 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get lastfmQueueCleared => 'स्क्रॉबल कतार साफ़ की गई';
+
+  @override
+  String get settingsDiscord => 'Discord';
+
+  @override
+  String get settingsDiscordSubtitle =>
+      'Rich Presence: दिखाएँ कि आप क्या सुन रहे हैं।';
+
+  @override
+  String get discordTitle => 'Discord';
+
+  @override
+  String get discordEnable => 'Discord पर दिखाएँ';
+
+  @override
+  String get discordEnableSubtitle =>
+      'चल रहा गाना अपनी Discord प्रोफ़ाइल पर साझा करें।';
+
+  @override
+  String get discordStatusIdle => 'साझा करने के लिए तैयार';
+
+  @override
+  String get discordStatusConnecting => 'Discord से कनेक्ट हो रहा है…';
+
+  @override
+  String discordStatusConnected(String name) {
+    return '$name के रूप में कनेक्टेड';
+  }
+
+  @override
+  String get discordStatusConnectedNoUser => 'Discord से कनेक्टेड';
+
+  @override
+  String get discordStatusNotFound => 'Discord नहीं चल रहा';
+
+  @override
+  String get discordStatusError => 'Discord ने कनेक्शन अस्वीकार किया';
+
+  @override
+  String get discordReconnect => 'फिर से कनेक्ट करें';
+
+  @override
+  String get discordSectionPreview => 'पूर्वावलोकन';
+
+  @override
+  String get discordSectionCard => 'रूप';
+
+  @override
+  String get discordSectionPrivacy => 'गोपनीयता';
+
+  @override
+  String get discordPreviewEmpty => 'अपना कार्ड देखने के लिए कोई गाना चलाएँ।';
+
+  @override
+  String get discordKindListening => 'Bloomee सुन रहे हैं';
+
+  @override
+  String get discordWhenPaused => 'रोकने पर';
+
+  @override
+  String get discordPausedKeep => 'दिखाते रहें';
+
+  @override
+  String get discordPausedHideLater => '5 मिनट बाद छिपाएँ';
+
+  @override
+  String get discordPausedHide => 'तुरंत छिपाएँ';
+
+  @override
+  String get discordShowArtwork => 'एल्बम कवर';
+
+  @override
+  String get discordShowArtworkSubtitle => 'प्ले या पॉज़ बैज के साथ कवर।';
+
+  @override
+  String get discordShowProgress => 'समय पट्टी';
+
+  @override
+  String get discordShowProgressSubtitle =>
+      'लाइव प्रगति पट्टी जो सीक के साथ चलती है।';
+
+  @override
+  String get discordShowLinks => 'क्लिक करने योग्य लिंक';
+
+  @override
+  String get discordShowLinksSubtitle =>
+      'गाना, कलाकार और एल्बम अपने पेज खोलते हैं।';
+
+  @override
+  String get discordShareLocal => 'लोकल फ़ाइलें साझा करें';
+
+  @override
+  String get discordShareLocalSubtitle =>
+      'अपनी लोकल लाइब्रेरी के गाने भी दिखाएँ।';
+
+  @override
+  String get discordFooter =>
+      'इस कंप्यूटर पर Discord डेस्कटॉप ऐप चालू होना चाहिए। बदलाव तुरंत लागू होते हैं; Discord लगभग हर 4 सेकंड में एक अपडेट स्वीकार करता है।';
+
+  @override
+  String discordStatusRetry(int seconds) {
+    return '$seconds सेकंड में फिर कोशिश';
+  }
+
+  @override
+  String get discordStatusIdleDetail => 'संगीत चलते ही अपने आप कनेक्ट होगा।';
+
+  @override
+  String get discordPausedKeepSubtitle =>
+      'टाइम बार के बिना पॉज़ बैज दिखाता है।';
+
+  @override
+  String get discordPausedHideLaterSubtitle =>
+      'छोटे विराम में कार्ड रहता है, लंबे में हट जाता है।';
+
+  @override
+  String get discordPausedHideSubtitle => 'रोकते ही हट जाता है।';
+
+  @override
+  String get discordPreviewCaption => 'Discord पर दोस्त आपको ऐसे देखते हैं।';
+
+  @override
+  String get discordStatusText => 'स्टेटस टेक्स्ट';
+
+  @override
+  String get discordStatusTextSubtitle => 'दोस्त आपके नाम के पास क्या देखेंगे।';
+
+  @override
+  String get discordStatusTextApp => 'ऐप का नाम';
+
+  @override
+  String get discordStatusTextArtist => 'कलाकार';
+
+  @override
+  String get discordStatusTextSong => 'गाने का नाम';
 }

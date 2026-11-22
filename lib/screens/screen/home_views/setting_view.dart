@@ -7,6 +7,8 @@ import 'package:Bloomee/screens/screen/home_views/setting_views/storage_setting.
 import 'package:Bloomee/screens/screen/home_views/setting_views/country_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/download_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/lastfm_setting.dart';
+import 'package:Bloomee/screens/screen/home_views/setting_views/discord_setting.dart';
+import 'package:Bloomee/services/discord_service.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/player_setting.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/updates_setting.dart';
 import 'package:Bloomee/screens/screen/plugin_manager_screen.dart';
@@ -145,6 +147,15 @@ class SettingsView extends StatelessWidget {
                     iconColor: Default_Theme.accentColor2,
                     onTap: () => _navigate(context, const LastDotFM()),
                   ),
+                  if (DiscordService.isSupported)
+                    _SettingsTile(
+                      title: AppLocalizations.of(context)!.settingsDiscord,
+                      subtitle:
+                          AppLocalizations.of(context)!.settingsDiscordSubtitle,
+                      icon: MingCute.discord_fill,
+                      iconColor: Default_Theme.accentColor2,
+                      onTap: () => _navigate(context, const DiscordSettings()),
+                    ),
                 ],
               ),
 

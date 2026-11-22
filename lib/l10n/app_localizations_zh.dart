@@ -2039,4 +2039,132 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get lastfmQueueCleared => '已清空 Scrobble 队列';
+
+  @override
+  String get settingsDiscord => 'Discord';
+
+  @override
+  String get settingsDiscordSubtitle => 'Rich Presence：显示你正在听的音乐。';
+
+  @override
+  String get discordTitle => 'Discord';
+
+  @override
+  String get discordEnable => '在 Discord 上显示';
+
+  @override
+  String get discordEnableSubtitle => '在你的 Discord 个人资料中分享正在播放的歌曲。';
+
+  @override
+  String get discordStatusIdle => '随时可分享';
+
+  @override
+  String get discordStatusConnecting => '正在连接 Discord…';
+
+  @override
+  String discordStatusConnected(String name) {
+    return '已连接：$name';
+  }
+
+  @override
+  String get discordStatusConnectedNoUser => '已连接到 Discord';
+
+  @override
+  String get discordStatusNotFound => 'Discord 未运行';
+
+  @override
+  String get discordStatusError => 'Discord 拒绝了连接';
+
+  @override
+  String get discordReconnect => '重新连接';
+
+  @override
+  String get discordSectionPreview => '预览';
+
+  @override
+  String get discordSectionCard => '外观';
+
+  @override
+  String get discordSectionPrivacy => '隐私';
+
+  @override
+  String get discordPreviewEmpty => '播放一首歌即可预览你的卡片。';
+
+  @override
+  String get discordKindListening => '正在收听 Bloomee';
+
+  @override
+  String get discordWhenPaused => '暂停时';
+
+  @override
+  String get discordPausedKeep => '继续显示';
+
+  @override
+  String get discordPausedHideLater => '5 分钟后隐藏';
+
+  @override
+  String get discordPausedHide => '立即隐藏';
+
+  @override
+  String get discordShowArtwork => '专辑封面';
+
+  @override
+  String get discordShowArtworkSubtitle => '带播放或暂停标记的封面。';
+
+  @override
+  String get discordShowProgress => '时间条';
+
+  @override
+  String get discordShowProgressSubtitle => '跟随拖动进度的实时进度条。';
+
+  @override
+  String get discordShowLinks => '可点击链接';
+
+  @override
+  String get discordShowLinksSubtitle => '歌曲、艺人和专辑可打开对应页面。';
+
+  @override
+  String get discordShareLocal => '分享本地文件';
+
+  @override
+  String get discordShareLocalSubtitle => '同时显示本地曲库中的歌曲。';
+
+  @override
+  String get discordFooter =>
+      '需要在这台电脑上运行 Discord 桌面版。更改立即生效；Discord 大约每 4 秒接受一次更新。';
+
+  @override
+  String discordStatusRetry(int seconds) {
+    return '$seconds 秒后重试';
+  }
+
+  @override
+  String get discordStatusIdleDetail => '播放音乐时自动连接。';
+
+  @override
+  String get discordPausedKeepSubtitle => '显示暂停标记，不显示时间条。';
+
+  @override
+  String get discordPausedHideLaterSubtitle => '短暂暂停保留卡片，长时间暂停则清除。';
+
+  @override
+  String get discordPausedHideSubtitle => '一暂停就清除。';
+
+  @override
+  String get discordPreviewCaption => '好友在 Discord 上看到的样子。';
+
+  @override
+  String get discordStatusText => '状态文字';
+
+  @override
+  String get discordStatusTextSubtitle => '好友在你名字旁看到的内容。';
+
+  @override
+  String get discordStatusTextApp => '应用名称';
+
+  @override
+  String get discordStatusTextArtist => '艺人';
+
+  @override
+  String get discordStatusTextSong => '歌曲名';
 }

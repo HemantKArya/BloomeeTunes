@@ -59,7 +59,6 @@ dependencies:
   responsive_framework: ^1.5.1
   scrollable_positioned_list: ^0.3.8
   crypto: ^3.0.5
-  dart_discord_rpc: ^0.0.2
   mime: ^2.0.0
   photo_manager: ^3.9.0
 
@@ -79,8 +78,6 @@ dependencies:
 
   
 
-dependency_overrides:
-  ffi: ^1.1.2  # Override to make dart_discord_rpc work
 
 
 dev_dependencies:

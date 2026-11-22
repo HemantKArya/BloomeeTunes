@@ -41,7 +41,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1806068831;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1247186383;
 
 // Section: executor
 
@@ -2419,6 +2419,171 @@ fn wire__crate__api__bridge__create_plugin_manager_impl(
         },
     )
 }
+fn wire__crate__api__discord__discord_reconnect_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "discord_reconnect",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok({
+                    crate::api::discord::discord_reconnect();
+                })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__discord__discord_set_activity_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "discord_set_activity",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_activity =
+                <Option<crate::api::discord::DiscordActivity>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok({
+                    crate::api::discord::discord_set_activity(api_activity);
+                })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__discord__discord_start_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "discord_start",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_client_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok({
+                    crate::api::discord::discord_start(api_client_id);
+                })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__discord__discord_status_stream_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "discord_status_stream",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_sink = <StreamSink<
+                crate::api::discord::DiscordStatus,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::discord::discord_status_stream(api_sink);
+                    })?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__discord__discord_stop_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "discord_stop",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok({
+                    crate::api::discord::discord_stop();
+                })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__bridge__enqueue_download_task_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -4486,6 +4651,16 @@ impl SseDecode
 }
 
 impl SseDecode
+    for StreamSink<crate::api::discord::DiscordStatus, flutter_rust_bridge::for_generated::SseCodec>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return StreamSink::deserialize(inner);
+    }
+}
+
+impl SseDecode
     for StreamSink<
         crate::api::downloader::types::DownloadManagerEvent,
         flutter_rust_bridge::for_generated::SseCodec,
@@ -4837,6 +5012,139 @@ impl SseDecode for crate::api::plugin::commands::ContentSearchFilter {
     }
 }
 
+impl SseDecode for crate::api::discord::DiscordActivity {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_kind = <crate::api::discord::DiscordActivityKind>::sse_decode(deserializer);
+        let mut var_statusDisplay =
+            <crate::api::discord::DiscordStatusDisplay>::sse_decode(deserializer);
+        let mut var_details = <String>::sse_decode(deserializer);
+        let mut var_detailsUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_state = <Option<String>>::sse_decode(deserializer);
+        let mut var_stateUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_largeImage = <Option<String>>::sse_decode(deserializer);
+        let mut var_largeText = <Option<String>>::sse_decode(deserializer);
+        let mut var_largeUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_smallImage = <Option<String>>::sse_decode(deserializer);
+        let mut var_smallText = <Option<String>>::sse_decode(deserializer);
+        let mut var_progress =
+            <Option<crate::api::discord::DiscordProgress>>::sse_decode(deserializer);
+        let mut var_buttons = <Vec<crate::api::discord::DiscordButton>>::sse_decode(deserializer);
+        return crate::api::discord::DiscordActivity {
+            kind: var_kind,
+            status_display: var_statusDisplay,
+            details: var_details,
+            details_url: var_detailsUrl,
+            state: var_state,
+            state_url: var_stateUrl,
+            large_image: var_largeImage,
+            large_text: var_largeText,
+            large_url: var_largeUrl,
+            small_image: var_smallImage,
+            small_text: var_smallText,
+            progress: var_progress,
+            buttons: var_buttons,
+        };
+    }
+}
+
+impl SseDecode for crate::api::discord::DiscordActivityKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::discord::DiscordActivityKind::Listening,
+            1 => crate::api::discord::DiscordActivityKind::Playing,
+            2 => crate::api::discord::DiscordActivityKind::Watching,
+            _ => unreachable!("Invalid variant for DiscordActivityKind: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::discord::DiscordButton {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_label = <String>::sse_decode(deserializer);
+        let mut var_url = <String>::sse_decode(deserializer);
+        return crate::api::discord::DiscordButton {
+            label: var_label,
+            url: var_url,
+        };
+    }
+}
+
+impl SseDecode for crate::api::discord::DiscordConnectionState {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::discord::DiscordConnectionState::Idle,
+            1 => crate::api::discord::DiscordConnectionState::Connecting,
+            2 => crate::api::discord::DiscordConnectionState::Connected,
+            3 => crate::api::discord::DiscordConnectionState::NotFound,
+            4 => crate::api::discord::DiscordConnectionState::Error,
+            _ => unreachable!("Invalid variant for DiscordConnectionState: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::discord::DiscordProgress {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_positionMs = <u32>::sse_decode(deserializer);
+        let mut var_durationMs = <Option<u32>>::sse_decode(deserializer);
+        return crate::api::discord::DiscordProgress {
+            position_ms: var_positionMs,
+            duration_ms: var_durationMs,
+        };
+    }
+}
+
+impl SseDecode for crate::api::discord::DiscordStatus {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_state = <crate::api::discord::DiscordConnectionState>::sse_decode(deserializer);
+        let mut var_user = <Option<crate::api::discord::DiscordUser>>::sse_decode(deserializer);
+        let mut var_message = <Option<String>>::sse_decode(deserializer);
+        let mut var_retryInSecs = <Option<u32>>::sse_decode(deserializer);
+        return crate::api::discord::DiscordStatus {
+            state: var_state,
+            user: var_user,
+            message: var_message,
+            retry_in_secs: var_retryInSecs,
+        };
+    }
+}
+
+impl SseDecode for crate::api::discord::DiscordStatusDisplay {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::discord::DiscordStatusDisplay::AppName,
+            1 => crate::api::discord::DiscordStatusDisplay::State,
+            2 => crate::api::discord::DiscordStatusDisplay::Details,
+            _ => unreachable!("Invalid variant for DiscordStatusDisplay: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::discord::DiscordUser {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_username = <String>::sse_decode(deserializer);
+        let mut var_displayName = <Option<String>>::sse_decode(deserializer);
+        let mut var_avatarUrl = <Option<String>>::sse_decode(deserializer);
+        return crate::api::discord::DiscordUser {
+            id: var_id,
+            username: var_username,
+            display_name: var_displayName,
+            avatar_url: var_avatarUrl,
+        };
+    }
+}
+
 impl SseDecode for crate::api::downloader::types::DownloadManagerEvent {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5147,6 +5455,20 @@ impl SseDecode for Vec<crate::api::plugin::models::ChartSummary> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::plugin::models::ChartSummary>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::discord::DiscordButton> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::discord::DiscordButton>::sse_decode(
                 deserializer,
             ));
         }
@@ -5649,6 +5971,43 @@ impl SseDecode for Option<crate::api::plugin::models::Artwork> {
             return Some(<crate::api::plugin::models::Artwork>::sse_decode(
                 deserializer,
             ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::discord::DiscordActivity> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::discord::DiscordActivity>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::discord::DiscordProgress> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::discord::DiscordProgress>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::discord::DiscordUser> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::discord::DiscordUser>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -6700,101 +7059,104 @@ fn pde_ffi_dispatcher_primary_impl(
         44 => {
             wire__crate__api__bridge__create_plugin_manager_impl(port, ptr, rust_vec_len, data_len)
         }
-        45 => {
+        48 => {
+            wire__crate__api__discord__discord_status_stream_impl(port, ptr, rust_vec_len, data_len)
+        }
+        50 => {
             wire__crate__api__bridge__enqueue_download_task_impl(port, ptr, rust_vec_len, data_len)
         }
-        46 => {
+        51 => {
             wire__crate__api__bridge__get_available_plugins_impl(port, ptr, rust_vec_len, data_len)
         }
-        47 => wire__crate__api__bridge__get_download_task_snapshots_impl(
+        52 => wire__crate__api__bridge__get_download_task_snapshots_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        48 => wire__crate__api__bridge__get_filename_url_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__bridge__get_plugin_info_impl(port, ptr, rust_vec_len, data_len),
-        51 => wire__crate__api__bridge__get_plugins_dir_impl(port, ptr, rust_vec_len, data_len),
-        53 => {
+        53 => wire__crate__api__bridge__get_filename_url_impl(port, ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__bridge__get_plugin_info_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__bridge__get_plugins_dir_impl(port, ptr, rust_vec_len, data_len),
+        58 => {
             wire__crate__api__bridge__handle_plugin_request_impl(port, ptr, rust_vec_len, data_len)
         }
-        54 => wire__crate__api__bridge__init_app_impl(port, ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__bridge__init_download_event_stream_impl(
+        59 => wire__crate__api__bridge__init_app_impl(port, ptr, rust_vec_len, data_len),
+        60 => wire__crate__api__bridge__init_download_event_stream_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        56 => wire__crate__api__bridge__init_plugin_event_stream_impl(
+        61 => wire__crate__api__bridge__init_plugin_event_stream_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => {
+        62 => {
             wire__crate__api__bridge__inspect_packed_plugin_impl(port, ptr, rust_vec_len, data_len)
         }
-        58 => {
+        63 => {
             wire__crate__api__bridge__install_packed_plugin_impl(port, ptr, rust_vec_len, data_len)
         }
-        59 => wire__crate__api__bridge__is_plugin_loaded_impl(port, ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__bridge__load_plugin_impl(port, ptr, rust_vec_len, data_len),
-        61 => wire__crate__api__bridge__pause_download_task_impl(port, ptr, rust_vec_len, data_len),
-        62 => {
+        64 => wire__crate__api__bridge__is_plugin_loaded_impl(port, ptr, rust_vec_len, data_len),
+        65 => wire__crate__api__bridge__load_plugin_impl(port, ptr, rust_vec_len, data_len),
+        66 => wire__crate__api__bridge__pause_download_task_impl(port, ptr, rust_vec_len, data_len),
+        67 => {
             wire__crate__api__bridge__plugin_storage_clear_impl(port, ptr, rust_vec_len, data_len)
         }
-        63 => wire__crate__api__bridge__plugin_storage_get_impl(port, ptr, rust_vec_len, data_len),
-        64 => {
+        68 => wire__crate__api__bridge__plugin_storage_get_impl(port, ptr, rust_vec_len, data_len),
+        69 => {
             wire__crate__api__bridge__plugin_storage_preload_impl(port, ptr, rust_vec_len, data_len)
         }
-        65 => wire__crate__api__bridge__plugin_storage_set_impl(port, ptr, rust_vec_len, data_len),
-        66 => wire__crate__api__plugin__types__plugin_type_description_impl(
+        70 => wire__crate__api__bridge__plugin_storage_set_impl(port, ptr, rust_vec_len, data_len),
+        71 => wire__crate__api__plugin__types__plugin_type_description_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        67 => wire__crate__api__plugin__types__plugin_type_from_string_impl(
+        72 => wire__crate__api__plugin__types__plugin_type_from_string_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        68 => wire__crate__api__plugin__types__plugin_type_type_string_impl(
+        73 => wire__crate__api__plugin__types__plugin_type_type_string_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        69 => wire__crate__api__local_music__read_audio_metadata_impl(
+        74 => wire__crate__api__local_music__read_audio_metadata_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        70 => wire__crate__api__bridge__refresh_available_plugins_impl(
+        75 => wire__crate__api__bridge__refresh_available_plugins_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        71 => {
+        76 => {
             wire__crate__api__bridge__restore_download_tasks_impl(port, ptr, rust_vec_len, data_len)
         }
-        72 => {
+        77 => {
             wire__crate__api__bridge__resume_download_task_impl(port, ptr, rust_vec_len, data_len)
         }
-        73 => {
+        78 => {
             wire__crate__api__local_music__scan_audio_files_impl(port, ptr, rust_vec_len, data_len)
         }
-        74 => wire__crate__api__bridge__scan_bex_files_impl(port, ptr, rust_vec_len, data_len),
-        75 => wire__crate__api__bridge__shutdown_plugin_manager_impl(
+        79 => wire__crate__api__bridge__scan_bex_files_impl(port, ptr, rust_vec_len, data_len),
+        80 => wire__crate__api__bridge__shutdown_plugin_manager_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        76 => wire__crate__api__bridge__unload_plugin_impl(port, ptr, rust_vec_len, data_len),
+        81 => wire__crate__api__bridge__unload_plugin_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -6857,8 +7219,12 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        49 => wire__crate__api__bridge__get_loaded_plugins_impl(ptr, rust_vec_len, data_len),
-        52 => wire__crate__api__bridge__greet_impl(ptr, rust_vec_len, data_len),
+        45 => wire__crate__api__discord__discord_reconnect_impl(ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__discord__discord_set_activity_impl(ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__discord__discord_start_impl(ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__discord__discord_stop_impl(ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__bridge__get_loaded_plugins_impl(ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__bridge__greet_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -7289,6 +7655,194 @@ impl
 {
     fn into_into_dart(self) -> FrbWrapper<crate::api::plugin::commands::ContentSearchFilter> {
         self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::discord::DiscordActivity {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.kind.into_into_dart().into_dart(),
+            self.status_display.into_into_dart().into_dart(),
+            self.details.into_into_dart().into_dart(),
+            self.details_url.into_into_dart().into_dart(),
+            self.state.into_into_dart().into_dart(),
+            self.state_url.into_into_dart().into_dart(),
+            self.large_image.into_into_dart().into_dart(),
+            self.large_text.into_into_dart().into_dart(),
+            self.large_url.into_into_dart().into_dart(),
+            self.small_image.into_into_dart().into_dart(),
+            self.small_text.into_into_dart().into_dart(),
+            self.progress.into_into_dart().into_dart(),
+            self.buttons.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::discord::DiscordActivity
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::discord::DiscordActivity>
+    for crate::api::discord::DiscordActivity
+{
+    fn into_into_dart(self) -> crate::api::discord::DiscordActivity {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::discord::DiscordActivityKind {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Listening => 0.into_dart(),
+            Self::Playing => 1.into_dart(),
+            Self::Watching => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::discord::DiscordActivityKind
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::discord::DiscordActivityKind>
+    for crate::api::discord::DiscordActivityKind
+{
+    fn into_into_dart(self) -> crate::api::discord::DiscordActivityKind {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::discord::DiscordButton {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.label.into_into_dart().into_dart(),
+            self.url.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::discord::DiscordButton
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::discord::DiscordButton>
+    for crate::api::discord::DiscordButton
+{
+    fn into_into_dart(self) -> crate::api::discord::DiscordButton {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::discord::DiscordConnectionState {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Idle => 0.into_dart(),
+            Self::Connecting => 1.into_dart(),
+            Self::Connected => 2.into_dart(),
+            Self::NotFound => 3.into_dart(),
+            Self::Error => 4.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::discord::DiscordConnectionState
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::discord::DiscordConnectionState>
+    for crate::api::discord::DiscordConnectionState
+{
+    fn into_into_dart(self) -> crate::api::discord::DiscordConnectionState {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::discord::DiscordProgress {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.position_ms.into_into_dart().into_dart(),
+            self.duration_ms.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::discord::DiscordProgress
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::discord::DiscordProgress>
+    for crate::api::discord::DiscordProgress
+{
+    fn into_into_dart(self) -> crate::api::discord::DiscordProgress {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::discord::DiscordStatus {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.state.into_into_dart().into_dart(),
+            self.user.into_into_dart().into_dart(),
+            self.message.into_into_dart().into_dart(),
+            self.retry_in_secs.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::discord::DiscordStatus
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::discord::DiscordStatus>
+    for crate::api::discord::DiscordStatus
+{
+    fn into_into_dart(self) -> crate::api::discord::DiscordStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::discord::DiscordStatusDisplay {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::AppName => 0.into_dart(),
+            Self::State => 1.into_dart(),
+            Self::Details => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::discord::DiscordStatusDisplay
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::discord::DiscordStatusDisplay>
+    for crate::api::discord::DiscordStatusDisplay
+{
+    fn into_into_dart(self) -> crate::api::discord::DiscordStatusDisplay {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::discord::DiscordUser {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.username.into_into_dart().into_dart(),
+            self.display_name.into_into_dart().into_dart(),
+            self.avatar_url.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::discord::DiscordUser
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::discord::DiscordUser>
+    for crate::api::discord::DiscordUser
+{
+    fn into_into_dart(self) -> crate::api::discord::DiscordUser {
+        self
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -8699,6 +9253,15 @@ impl SseEncode
 }
 
 impl SseEncode
+    for StreamSink<crate::api::discord::DiscordStatus, flutter_rust_bridge::for_generated::SseCodec>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        unimplemented!("")
+    }
+}
+
+impl SseEncode
     for StreamSink<
         crate::api::downloader::types::DownloadManagerEvent,
         flutter_rust_bridge::for_generated::SseCodec,
@@ -8978,6 +9541,114 @@ impl SseEncode for crate::api::plugin::commands::ContentSearchFilter {
     }
 }
 
+impl SseEncode for crate::api::discord::DiscordActivity {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::discord::DiscordActivityKind>::sse_encode(self.kind, serializer);
+        <crate::api::discord::DiscordStatusDisplay>::sse_encode(self.status_display, serializer);
+        <String>::sse_encode(self.details, serializer);
+        <Option<String>>::sse_encode(self.details_url, serializer);
+        <Option<String>>::sse_encode(self.state, serializer);
+        <Option<String>>::sse_encode(self.state_url, serializer);
+        <Option<String>>::sse_encode(self.large_image, serializer);
+        <Option<String>>::sse_encode(self.large_text, serializer);
+        <Option<String>>::sse_encode(self.large_url, serializer);
+        <Option<String>>::sse_encode(self.small_image, serializer);
+        <Option<String>>::sse_encode(self.small_text, serializer);
+        <Option<crate::api::discord::DiscordProgress>>::sse_encode(self.progress, serializer);
+        <Vec<crate::api::discord::DiscordButton>>::sse_encode(self.buttons, serializer);
+    }
+}
+
+impl SseEncode for crate::api::discord::DiscordActivityKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::discord::DiscordActivityKind::Listening => 0,
+                crate::api::discord::DiscordActivityKind::Playing => 1,
+                crate::api::discord::DiscordActivityKind::Watching => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::discord::DiscordButton {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.label, serializer);
+        <String>::sse_encode(self.url, serializer);
+    }
+}
+
+impl SseEncode for crate::api::discord::DiscordConnectionState {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::discord::DiscordConnectionState::Idle => 0,
+                crate::api::discord::DiscordConnectionState::Connecting => 1,
+                crate::api::discord::DiscordConnectionState::Connected => 2,
+                crate::api::discord::DiscordConnectionState::NotFound => 3,
+                crate::api::discord::DiscordConnectionState::Error => 4,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::discord::DiscordProgress {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.position_ms, serializer);
+        <Option<u32>>::sse_encode(self.duration_ms, serializer);
+    }
+}
+
+impl SseEncode for crate::api::discord::DiscordStatus {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::discord::DiscordConnectionState>::sse_encode(self.state, serializer);
+        <Option<crate::api::discord::DiscordUser>>::sse_encode(self.user, serializer);
+        <Option<String>>::sse_encode(self.message, serializer);
+        <Option<u32>>::sse_encode(self.retry_in_secs, serializer);
+    }
+}
+
+impl SseEncode for crate::api::discord::DiscordStatusDisplay {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::discord::DiscordStatusDisplay::AppName => 0,
+                crate::api::discord::DiscordStatusDisplay::State => 1,
+                crate::api::discord::DiscordStatusDisplay::Details => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::discord::DiscordUser {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.username, serializer);
+        <Option<String>>::sse_encode(self.display_name, serializer);
+        <Option<String>>::sse_encode(self.avatar_url, serializer);
+    }
+}
+
 impl SseEncode for crate::api::downloader::types::DownloadManagerEvent {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -9238,6 +9909,16 @@ impl SseEncode for Vec<crate::api::plugin::models::ChartSummary> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::plugin::models::ChartSummary>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::discord::DiscordButton> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::discord::DiscordButton>::sse_encode(item, serializer);
         }
     }
 }
@@ -9594,6 +10275,36 @@ impl SseEncode for Option<crate::api::plugin::models::Artwork> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::plugin::models::Artwork>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::discord::DiscordActivity> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::discord::DiscordActivity>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::discord::DiscordProgress> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::discord::DiscordProgress>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::discord::DiscordUser> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::discord::DiscordUser>::sse_encode(value, serializer);
         }
     }
 }

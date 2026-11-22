@@ -69,6 +69,10 @@ class SettingKeys {
   // ── Lyrics ──────────────────────────────────────────────────────────────────
   static const String autoSaveLyrics = "autoSaveLyrics";
 
+  // ── Discord ─────────────────────────────────────────────────────────────────
+  /// JSON-encoded DiscordPresenceSettings (desktop Rich Presence).
+  static const String discordPresence = "discordPresence";
+
   // ── Onboarding / changelogs ─────────────────────────────────────────────────
   /// Tracks the last changelog version the user has read.
   /// Value format: e.g. "v2.11.6+171".

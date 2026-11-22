@@ -2192,4 +2192,141 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get lastfmQueueCleared => 'Fila de scrobbles limpa';
+
+  @override
+  String get settingsDiscord => 'Discord';
+
+  @override
+  String get settingsDiscordSubtitle =>
+      'Rich Presence: mostre o que você está ouvindo.';
+
+  @override
+  String get discordTitle => 'Discord';
+
+  @override
+  String get discordEnable => 'Mostrar no Discord';
+
+  @override
+  String get discordEnableSubtitle =>
+      'Compartilhe a música atual no seu perfil do Discord.';
+
+  @override
+  String get discordStatusIdle => 'Pronto para compartilhar';
+
+  @override
+  String get discordStatusConnecting => 'Conectando ao Discord…';
+
+  @override
+  String discordStatusConnected(String name) {
+    return 'Conectado como $name';
+  }
+
+  @override
+  String get discordStatusConnectedNoUser => 'Conectado ao Discord';
+
+  @override
+  String get discordStatusNotFound => 'O Discord não está aberto';
+
+  @override
+  String get discordStatusError => 'O Discord recusou a conexão';
+
+  @override
+  String get discordReconnect => 'Reconectar';
+
+  @override
+  String get discordSectionPreview => 'Prévia';
+
+  @override
+  String get discordSectionCard => 'Aparência';
+
+  @override
+  String get discordSectionPrivacy => 'Privacidade';
+
+  @override
+  String get discordPreviewEmpty => 'Toque uma música para ver seu cartão.';
+
+  @override
+  String get discordKindListening => 'Ouvindo Bloomee';
+
+  @override
+  String get discordWhenPaused => 'Ao pausar';
+
+  @override
+  String get discordPausedKeep => 'Continuar mostrando';
+
+  @override
+  String get discordPausedHideLater => 'Ocultar após 5 minutos';
+
+  @override
+  String get discordPausedHide => 'Ocultar na hora';
+
+  @override
+  String get discordShowArtwork => 'Capa do álbum';
+
+  @override
+  String get discordShowArtworkSubtitle => 'Capa com selo de tocar ou pausar.';
+
+  @override
+  String get discordShowProgress => 'Barra de tempo';
+
+  @override
+  String get discordShowProgressSubtitle =>
+      'Barra de progresso ao vivo que acompanha os avanços.';
+
+  @override
+  String get discordShowLinks => 'Links clicáveis';
+
+  @override
+  String get discordShowLinksSubtitle =>
+      'Música, artista e álbum abrem suas páginas.';
+
+  @override
+  String get discordShareLocal => 'Compartilhar arquivos locais';
+
+  @override
+  String get discordShareLocalSubtitle =>
+      'Também publica músicas da sua biblioteca local.';
+
+  @override
+  String get discordFooter =>
+      'O app do Discord para desktop precisa estar aberto neste computador. As mudanças valem na hora; o Discord aceita cerca de uma atualização a cada 4 segundos.';
+
+  @override
+  String discordStatusRetry(int seconds) {
+    return 'Tentando de novo em $seconds s';
+  }
+
+  @override
+  String get discordStatusIdleDetail =>
+      'Conecta sozinho quando a música tocar.';
+
+  @override
+  String get discordPausedKeepSubtitle =>
+      'Mostra um selo de pausa sem a barra de tempo.';
+
+  @override
+  String get discordPausedHideLaterSubtitle =>
+      'Pausas curtas mantêm o cartão; longas o removem.';
+
+  @override
+  String get discordPausedHideSubtitle => 'Some assim que você pausa.';
+
+  @override
+  String get discordPreviewCaption => 'Como seus amigos veem você no Discord.';
+
+  @override
+  String get discordStatusText => 'Texto de status';
+
+  @override
+  String get discordStatusTextSubtitle =>
+      'O que os amigos veem ao lado do seu nome.';
+
+  @override
+  String get discordStatusTextApp => 'Nome do app';
+
+  @override
+  String get discordStatusTextArtist => 'Artista';
+
+  @override
+  String get discordStatusTextSong => 'Título da música';
 }
