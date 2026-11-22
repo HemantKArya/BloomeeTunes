@@ -1,3 +1,36 @@
+## [3.1.1] - 2026-11-23
+
+### Added
+- **Custom Desktop Title Bar**: A new title bar with round minimize, maximize, and close buttons looks the same on Windows, Linux, and macOS, while keeping native snapping, resizing, window animations, and the taskbar.
+- **Close Button Options**: Choose whether closing the window keeps music playing in the system tray (menu bar on macOS), minimizes the window, or quits Bloomee, in Settings > Window & Tray.
+- **System Tray Controls**: The tray icon shows the current song and offers Play/Pause, Next, Previous, Show/Hide, and Quit. On Windows, clicking it brings Bloomee back.
+- **Microsoft Store Package**: Bloomee can now be packaged for the Microsoft Store. Store installs are updated by the Store and skip the in-app update check.
+- **Last.fm Scrobble Queue**: Scrobbles are saved while offline and sent automatically later, with sync status, a pending count, Sync Now, and Clear Queue in Last.fm settings.
+- **Windows Media Controls**: The Windows media overlay now shows the song's position and cover art and can seek.
+
+### Changed
+- **Discord Rich Presence**: Rebuilt on a dedicated background connection with live connection status, your Discord account, a presence preview, and options for artwork, progress, links, local files, and paused behavior.
+- **Up Next on Desktop**: The queue panel takes a soft glow from the current artwork. Queue rows show actions only on hover, use one subtle hover highlight, and lift neutrally while dragging.
+- **Queue Reordering**: Moving or removing songs no longer reloads every row and its artwork. On mobile, long-press a song to drag it or swipe it away to remove it.
+- **Library Reordering**: Reorder mode now shows a short hint, a Done button, and neutral drag handles. Back or Escape exits it, and pinned playlists stay grouped.
+- **Playlist Play Button**: Playing a playlist that is already queued resumes it instead of restarting it, and adding a whole playlist to the queue skips songs already queued.
+- **Navigation Layout**: Phones always use the bottom navigation bar, tablets use the side rail, and desktop windows switch by width.
+- **Search and Sheets**: Faster search, lyrics search, and option sheets with less rendering work.
+- **Window Name**: The window and Start menu now show Bloomee🌸.
+
+### Fixed
+- Fixed the full player's progress bar freezing at the start of a song after opening the player.
+- Fixed songs being skipped silently when their stream stopped early.
+- Fixed playback errors from a preloaded song being blamed on the wrong track.
+- Fixed queue changes made in quick succession sometimes not being saved.
+- Opening Bloomee again while it is running, including from the tray, now brings the existing window back instead of starting a second copy.
+- Tray and window menus on Windows now use the dark theme.
+
+### Developer Notes
+- Added window_manager 0.5.2, tray_manager 0.5.3, and msix. Linux builds now need libayatana-appindicator3-dev.
+- Release builds also produce an unsigned Microsoft Store MSIX as a separate artifact.
+- Added tests for the desktop title bar, close options, scrobble queue, and playback session tracking.
+
 ## [3.1.0+207] - 2026-10-21
 
 ### Added
