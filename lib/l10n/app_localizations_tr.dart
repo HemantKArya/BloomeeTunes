@@ -2269,4 +2269,97 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => 'Kuyruktan kaldır';
+
+  @override
+  String get windowMinimize => 'Simge durumuna küçült';
+
+  @override
+  String get windowMaximize => 'Ekranı kapla';
+
+  @override
+  String get windowRestore => 'Önceki boyut';
+
+  @override
+  String get windowClose => 'Kapat';
+
+  @override
+  String get settingsWindow => 'Pencere ve tepsi';
+
+  @override
+  String get settingsWindowSubtitle =>
+      'Kapat düğmesi, tepsi simgesi ve arka planda çalma';
+
+  @override
+  String get windowCloseSection => 'Pencereyi kapattığınızda';
+
+  @override
+  String get windowCloseTray => 'Sistem tepsisinde çalmaya devam et';
+
+  @override
+  String get windowCloseTrayMac => 'Menü çubuğunda çalmaya devam et';
+
+  @override
+  String get windowCloseTraySubtitle =>
+      'Pencereyi gizler, müzik çalmaya devam eder. En az kaynağı kullanır.';
+
+  @override
+  String get windowCloseMinimize => 'Pencereyi simge durumuna küçült';
+
+  @override
+  String get windowCloseMinimizeSubtitle =>
+      'Pencere görev çubuğuna küçültülür, çalmaya devam eder.';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac =>
+      'Pencere Dock\'a küçültülür, çalmaya devam eder.';
+
+  @override
+  String get windowCloseQuit => 'Bloomee\'den çık';
+
+  @override
+  String get windowCloseQuitSubtitle =>
+      'Çalmayı durdurur ve uygulamayı tamamen kapatır.';
+
+  @override
+  String get windowTrayUnavailable =>
+      'Sistem tepsisi yok, bu yüzden kapatınca pencere küçültülür.';
+
+  @override
+  String get windowTrayMenuSection => 'Tepsi menüsü';
+
+  @override
+  String get windowTrayFootnote =>
+      'Bloomee\'ye dönmek için tepsi simgesine tıklayın, çalma kontrolleri için sağ tıklayın.';
+
+  @override
+  String get windowTrayFootnoteMac =>
+      'Çalma kontrolleri veya Bloomee\'ye dönmek için menü çubuğu simgesine tıklayın.';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      'Çalma kontrolleri için tepsi simgesinin menüsünü açın. GNOME\'da AppIndicator uzantısı gerekir.';
+
+  @override
+  String get trayNothingPlaying => 'Çalan bir şey yok';
+
+  @override
+  String get trayPlay => 'Çal';
+
+  @override
+  String get trayPause => 'Duraklat';
+
+  @override
+  String get trayNext => 'Sonraki';
+
+  @override
+  String get trayPrevious => 'Önceki';
+
+  @override
+  String get trayShowWindow => 'Bloomee\'yi göster';
+
+  @override
+  String get trayHideWindow => 'Bloomee\'yi gizle';
+
+  @override
+  String get trayQuit => 'Bloomee\'den çık';
 }

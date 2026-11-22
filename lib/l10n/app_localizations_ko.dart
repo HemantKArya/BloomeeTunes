@@ -2186,4 +2186,92 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => '대기열에서 제거';
+
+  @override
+  String get windowMinimize => '최소화';
+
+  @override
+  String get windowMaximize => '최대화';
+
+  @override
+  String get windowRestore => '이전 크기로 복원';
+
+  @override
+  String get windowClose => '닫기';
+
+  @override
+  String get settingsWindow => '창 및 트레이';
+
+  @override
+  String get settingsWindowSubtitle => '닫기 버튼, 트레이 아이콘 및 백그라운드 재생';
+
+  @override
+  String get windowCloseSection => '창을 닫을 때';
+
+  @override
+  String get windowCloseTray => '시스템 트레이에서 계속 재생';
+
+  @override
+  String get windowCloseTrayMac => '메뉴 막대에서 계속 재생';
+
+  @override
+  String get windowCloseTraySubtitle =>
+      '창을 숨기고 음악은 계속 재생됩니다. 리소스를 가장 적게 사용합니다.';
+
+  @override
+  String get windowCloseMinimize => '창 최소화';
+
+  @override
+  String get windowCloseMinimizeSubtitle => '창을 작업 표시줄로 최소화한 채 계속 재생합니다.';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac => '창을 Dock으로 최소화한 채 계속 재생합니다.';
+
+  @override
+  String get windowCloseQuit => 'Bloomee 종료';
+
+  @override
+  String get windowCloseQuitSubtitle => '재생을 멈추고 앱을 완전히 종료합니다.';
+
+  @override
+  String get windowTrayUnavailable => '시스템 트레이를 사용할 수 없어 닫으면 창이 최소화됩니다.';
+
+  @override
+  String get windowTrayMenuSection => '트레이 메뉴';
+
+  @override
+  String get windowTrayFootnote =>
+      '트레이 아이콘을 클릭하면 Bloomee로 돌아가고, 마우스 오른쪽 버튼으로 재생을 제어할 수 있습니다.';
+
+  @override
+  String get windowTrayFootnoteMac =>
+      '메뉴 막대 아이콘을 클릭해 재생을 제어하거나 Bloomee로 돌아갈 수 있습니다.';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      '트레이 아이콘 메뉴에서 재생을 제어할 수 있습니다. GNOME에서는 AppIndicator 확장이 필요합니다.';
+
+  @override
+  String get trayNothingPlaying => '재생 중인 항목 없음';
+
+  @override
+  String get trayPlay => '재생';
+
+  @override
+  String get trayPause => '일시정지';
+
+  @override
+  String get trayNext => '다음';
+
+  @override
+  String get trayPrevious => '이전';
+
+  @override
+  String get trayShowWindow => 'Bloomee 표시';
+
+  @override
+  String get trayHideWindow => 'Bloomee 숨기기';
+
+  @override
+  String get trayQuit => 'Bloomee 종료';
 }

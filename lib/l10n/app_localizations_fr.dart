@@ -2352,4 +2352,99 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => 'Retirer de la file d\'attente';
+
+  @override
+  String get windowMinimize => 'Réduire';
+
+  @override
+  String get windowMaximize => 'Agrandir';
+
+  @override
+  String get windowRestore => 'Niveau inférieur';
+
+  @override
+  String get windowClose => 'Fermer';
+
+  @override
+  String get settingsWindow => 'Fenêtre et zone de notification';
+
+  @override
+  String get settingsWindowSubtitle =>
+      'Bouton Fermer, icône de notification et lecture en arrière-plan';
+
+  @override
+  String get windowCloseSection => 'À la fermeture de la fenêtre';
+
+  @override
+  String get windowCloseTray =>
+      'Continuer la lecture dans la zone de notification';
+
+  @override
+  String get windowCloseTrayMac =>
+      'Continuer la lecture dans la barre des menus';
+
+  @override
+  String get windowCloseTraySubtitle =>
+      'Masque la fenêtre et la musique continue. Utilise le moins de ressources.';
+
+  @override
+  String get windowCloseMinimize => 'Réduire la fenêtre';
+
+  @override
+  String get windowCloseMinimizeSubtitle =>
+      'La lecture continue, fenêtre réduite dans la barre des tâches.';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac =>
+      'La lecture continue, fenêtre réduite dans le Dock.';
+
+  @override
+  String get windowCloseQuit => 'Quitter Bloomee';
+
+  @override
+  String get windowCloseQuitSubtitle =>
+      'Arrête la lecture et ferme complètement l\'application.';
+
+  @override
+  String get windowTrayUnavailable =>
+      'Aucune zone de notification n\'est disponible : la fenêtre est réduite à la place.';
+
+  @override
+  String get windowTrayMenuSection => 'Menu de la zone de notification';
+
+  @override
+  String get windowTrayFootnote =>
+      'Cliquez sur l\'icône pour rouvrir Bloomee, ou faites un clic droit pour les commandes de lecture.';
+
+  @override
+  String get windowTrayFootnoteMac =>
+      'Cliquez sur l\'icône de la barre des menus pour les commandes ou pour rouvrir Bloomee.';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      'Ouvrez le menu de l\'icône pour les commandes de lecture. Sous GNOME, l\'extension AppIndicator est nécessaire.';
+
+  @override
+  String get trayNothingPlaying => 'Aucune lecture';
+
+  @override
+  String get trayPlay => 'Lecture';
+
+  @override
+  String get trayPause => 'Pause';
+
+  @override
+  String get trayNext => 'Suivant';
+
+  @override
+  String get trayPrevious => 'Précédent';
+
+  @override
+  String get trayShowWindow => 'Afficher Bloomee';
+
+  @override
+  String get trayHideWindow => 'Masquer Bloomee';
+
+  @override
+  String get trayQuit => 'Quitter Bloomee';
 }

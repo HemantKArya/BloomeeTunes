@@ -2186,4 +2186,91 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => 'キューから削除';
+
+  @override
+  String get windowMinimize => '最小化';
+
+  @override
+  String get windowMaximize => '最大化';
+
+  @override
+  String get windowRestore => '元に戻す (縮小)';
+
+  @override
+  String get windowClose => '閉じる';
+
+  @override
+  String get settingsWindow => 'ウィンドウとトレイ';
+
+  @override
+  String get settingsWindowSubtitle => '閉じるボタン、トレイアイコン、バックグラウンド再生';
+
+  @override
+  String get windowCloseSection => 'ウィンドウを閉じたとき';
+
+  @override
+  String get windowCloseTray => 'システムトレイで再生を続ける';
+
+  @override
+  String get windowCloseTrayMac => 'メニューバーで再生を続ける';
+
+  @override
+  String get windowCloseTraySubtitle =>
+      'ウィンドウを隠して音楽を再生し続けます。リソースの使用が最も少なくなります。';
+
+  @override
+  String get windowCloseMinimize => 'ウィンドウを最小化';
+
+  @override
+  String get windowCloseMinimizeSubtitle => 'ウィンドウをタスクバーに最小化して再生を続けます。';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac => 'ウィンドウをDockに最小化して再生を続けます。';
+
+  @override
+  String get windowCloseQuit => 'Bloomeeを終了';
+
+  @override
+  String get windowCloseQuitSubtitle => '再生を停止し、アプリを完全に終了します。';
+
+  @override
+  String get windowTrayUnavailable => 'システムトレイが使えないため、閉じるとウィンドウが最小化されます。';
+
+  @override
+  String get windowTrayMenuSection => 'トレイメニュー';
+
+  @override
+  String get windowTrayFootnote => 'トレイアイコンをクリックするとBloomeeに戻り、右クリックで再生操作ができます。';
+
+  @override
+  String get windowTrayFootnoteMac =>
+      'メニューバーのアイコンをクリックすると、再生操作やBloomeeへの復帰ができます。';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      'トレイアイコンのメニューから再生を操作できます。GNOMEではAppIndicator拡張機能が必要です。';
+
+  @override
+  String get trayNothingPlaying => '再生していません';
+
+  @override
+  String get trayPlay => '再生';
+
+  @override
+  String get trayPause => '一時停止';
+
+  @override
+  String get trayNext => '次へ';
+
+  @override
+  String get trayPrevious => '前へ';
+
+  @override
+  String get trayShowWindow => 'Bloomeeを表示';
+
+  @override
+  String get trayHideWindow => 'Bloomeeを隠す';
+
+  @override
+  String get trayQuit => 'Bloomeeを終了';
 }

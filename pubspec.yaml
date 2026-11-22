@@ -76,6 +76,8 @@ dependencies:
   flutter_rust_bridge: 2.12.0
   freezed_annotation: ^3.1.0
   async: ^2.12.0
+  window_manager: 0.5.2
+  tray_manager: 0.5.3
 
   
 
@@ -123,6 +125,8 @@ flutter:
     - assets/icons/bloomee_new_logo_c.png
     - assets/icons/lazy_loading.png
     - assets/icons/BloomeeLogoFG.png
+    - assets/icons/BloomeeLogo4.png
+    - assets/tray/
     
   fonts:
     - family: Unageo

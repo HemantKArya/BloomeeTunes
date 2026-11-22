@@ -2176,4 +2176,89 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => '从队列中移除';
+
+  @override
+  String get windowMinimize => '最小化';
+
+  @override
+  String get windowMaximize => '最大化';
+
+  @override
+  String get windowRestore => '向下还原';
+
+  @override
+  String get windowClose => '关闭';
+
+  @override
+  String get settingsWindow => '窗口与托盘';
+
+  @override
+  String get settingsWindowSubtitle => '关闭按钮、托盘图标和后台播放';
+
+  @override
+  String get windowCloseSection => '关闭窗口时';
+
+  @override
+  String get windowCloseTray => '在系统托盘中继续播放';
+
+  @override
+  String get windowCloseTrayMac => '在菜单栏中继续播放';
+
+  @override
+  String get windowCloseTraySubtitle => '隐藏窗口，音乐继续播放。占用资源最少。';
+
+  @override
+  String get windowCloseMinimize => '最小化窗口';
+
+  @override
+  String get windowCloseMinimizeSubtitle => '窗口最小化到任务栏，继续播放。';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac => '窗口最小化到程序坞，继续播放。';
+
+  @override
+  String get windowCloseQuit => '退出 Bloomee';
+
+  @override
+  String get windowCloseQuitSubtitle => '停止播放并完全关闭应用。';
+
+  @override
+  String get windowTrayUnavailable => '没有可用的系统托盘，关闭时将改为最小化窗口。';
+
+  @override
+  String get windowTrayMenuSection => '托盘菜单';
+
+  @override
+  String get windowTrayFootnote => '单击托盘图标返回 Bloomee，右键单击可控制播放。';
+
+  @override
+  String get windowTrayFootnoteMac => '单击菜单栏图标可控制播放或返回 Bloomee。';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      '打开托盘图标菜单可控制播放。在 GNOME 中，托盘图标需要 AppIndicator 扩展。';
+
+  @override
+  String get trayNothingPlaying => '未在播放';
+
+  @override
+  String get trayPlay => '播放';
+
+  @override
+  String get trayPause => '暂停';
+
+  @override
+  String get trayNext => '下一首';
+
+  @override
+  String get trayPrevious => '上一首';
+
+  @override
+  String get trayShowWindow => '显示 Bloomee';
+
+  @override
+  String get trayHideWindow => '隐藏 Bloomee';
+
+  @override
+  String get trayQuit => '退出 Bloomee';
 }

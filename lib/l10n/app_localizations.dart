@@ -4147,6 +4147,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove from queue'**
   String get tooltipRemoveFromQueue;
+
+  /// No description provided for @windowMinimize.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize'**
+  String get windowMinimize;
+
+  /// No description provided for @windowMaximize.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximize'**
+  String get windowMaximize;
+
+  /// No description provided for @windowRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Down'**
+  String get windowRestore;
+
+  /// No description provided for @windowClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get windowClose;
+
+  /// No description provided for @settingsWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Window & Tray'**
+  String get settingsWindow;
+
+  /// No description provided for @settingsWindowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Close button, tray icon and background playback'**
+  String get settingsWindowSubtitle;
+
+  /// No description provided for @windowCloseSection.
+  ///
+  /// In en, this message translates to:
+  /// **'When you close the window'**
+  String get windowCloseSection;
+
+  /// No description provided for @windowCloseTray.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep playing in the system tray'**
+  String get windowCloseTray;
+
+  /// No description provided for @windowCloseTrayMac.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep playing in the menu bar'**
+  String get windowCloseTrayMac;
+
+  /// No description provided for @windowCloseTraySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hides the window and keeps the music going. Uses the fewest resources.'**
+  String get windowCloseTraySubtitle;
+
+  /// No description provided for @windowCloseMinimize.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize the window'**
+  String get windowCloseMinimize;
+
+  /// No description provided for @windowCloseMinimizeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps playing with the window minimized to the taskbar.'**
+  String get windowCloseMinimizeSubtitle;
+
+  /// No description provided for @windowCloseMinimizeSubtitleMac.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps playing with the window minimized to the Dock.'**
+  String get windowCloseMinimizeSubtitleMac;
+
+  /// No description provided for @windowCloseQuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit Bloomee'**
+  String get windowCloseQuit;
+
+  /// No description provided for @windowCloseQuitSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stops playback and closes the app completely.'**
+  String get windowCloseQuitSubtitle;
+
+  /// No description provided for @windowTrayUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No system tray is available, so closing minimizes the window instead.'**
+  String get windowTrayUnavailable;
+
+  /// No description provided for @windowTrayMenuSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Tray menu'**
+  String get windowTrayMenuSection;
+
+  /// No description provided for @windowTrayFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'Click the tray icon to bring Bloomee back, or right-click it for playback controls.'**
+  String get windowTrayFootnote;
+
+  /// No description provided for @windowTrayFootnoteMac.
+  ///
+  /// In en, this message translates to:
+  /// **'Click the menu bar icon for playback controls or to bring Bloomee back.'**
+  String get windowTrayFootnoteMac;
+
+  /// No description provided for @windowTrayFootnoteLinux.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the tray icon\'s menu for playback controls. On GNOME, tray icons need the AppIndicator extension.'**
+  String get windowTrayFootnoteLinux;
+
+  /// No description provided for @trayNothingPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing playing'**
+  String get trayNothingPlaying;
+
+  /// No description provided for @trayPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get trayPlay;
+
+  /// No description provided for @trayPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get trayPause;
+
+  /// No description provided for @trayNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get trayNext;
+
+  /// No description provided for @trayPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get trayPrevious;
+
+  /// No description provided for @trayShowWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Bloomee'**
+  String get trayShowWindow;
+
+  /// No description provided for @trayHideWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Bloomee'**
+  String get trayHideWindow;
+
+  /// No description provided for @trayQuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit Bloomee'**
+  String get trayQuit;
 }
 
 class _AppLocalizationsDelegate

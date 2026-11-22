@@ -2320,4 +2320,97 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => 'कतार से हटाएँ';
+
+  @override
+  String get windowMinimize => 'छोटा करें';
+
+  @override
+  String get windowMaximize => 'बड़ा करें';
+
+  @override
+  String get windowRestore => 'पुनर्स्थापित करें';
+
+  @override
+  String get windowClose => 'बंद करें';
+
+  @override
+  String get settingsWindow => 'विंडो और ट्रे';
+
+  @override
+  String get settingsWindowSubtitle =>
+      'बंद करें बटन, ट्रे आइकन और बैकग्राउंड प्लेबैक';
+
+  @override
+  String get windowCloseSection => 'विंडो बंद करने पर';
+
+  @override
+  String get windowCloseTray => 'सिस्टम ट्रे में चलाते रहें';
+
+  @override
+  String get windowCloseTrayMac => 'मेन्यू बार में चलाते रहें';
+
+  @override
+  String get windowCloseTraySubtitle =>
+      'विंडो छिप जाती है और संगीत चलता रहता है। सबसे कम संसाधन लेता है।';
+
+  @override
+  String get windowCloseMinimize => 'विंडो छोटी करें';
+
+  @override
+  String get windowCloseMinimizeSubtitle =>
+      'विंडो टास्कबार में छोटी रहती है और संगीत चलता रहता है।';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac =>
+      'विंडो डॉक में छोटी रहती है और संगीत चलता रहता है।';
+
+  @override
+  String get windowCloseQuit => 'Bloomee बंद करें';
+
+  @override
+  String get windowCloseQuitSubtitle =>
+      'प्लेबैक रोककर ऐप को पूरी तरह बंद कर देता है।';
+
+  @override
+  String get windowTrayUnavailable =>
+      'कोई सिस्टम ट्रे उपलब्ध नहीं है, इसलिए बंद करने पर विंडो छोटी हो जाएगी।';
+
+  @override
+  String get windowTrayMenuSection => 'ट्रे मेन्यू';
+
+  @override
+  String get windowTrayFootnote =>
+      'Bloomee वापस लाने के लिए ट्रे आइकन पर क्लिक करें, या प्लेबैक कंट्रोल के लिए राइट-क्लिक करें।';
+
+  @override
+  String get windowTrayFootnoteMac =>
+      'प्लेबैक कंट्रोल या Bloomee वापस लाने के लिए मेन्यू बार आइकन पर क्लिक करें।';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      'प्लेबैक कंट्रोल के लिए ट्रे आइकन का मेन्यू खोलें। GNOME पर ट्रे आइकन के लिए AppIndicator एक्सटेंशन चाहिए।';
+
+  @override
+  String get trayNothingPlaying => 'कुछ नहीं चल रहा';
+
+  @override
+  String get trayPlay => 'चलाएँ';
+
+  @override
+  String get trayPause => 'रोकें';
+
+  @override
+  String get trayNext => 'अगला';
+
+  @override
+  String get trayPrevious => 'पिछला';
+
+  @override
+  String get trayShowWindow => 'Bloomee दिखाएँ';
+
+  @override
+  String get trayHideWindow => 'Bloomee छिपाएँ';
+
+  @override
+  String get trayQuit => 'Bloomee बंद करें';
 }

@@ -72,6 +72,7 @@ class SettingKeys {
   // ── Discord ─────────────────────────────────────────────────────────────────
   /// JSON-encoded DiscordPresenceSettings (desktop Rich Presence).
   static const String discordPresence = "discordPresence";
+  static const String desktopCloseAction = "desktopCloseAction";
 
   // ── Onboarding / changelogs ─────────────────────────────────────────────────
   /// Tracks the last changelog version the user has read.

@@ -2307,4 +2307,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => 'Remove from queue';
+
+  @override
+  String get windowMinimize => 'Minimize';
+
+  @override
+  String get windowMaximize => 'Maximize';
+
+  @override
+  String get windowRestore => 'Restore Down';
+
+  @override
+  String get windowClose => 'Close';
+
+  @override
+  String get settingsWindow => 'Window & Tray';
+
+  @override
+  String get settingsWindowSubtitle =>
+      'Close button, tray icon and background playback';
+
+  @override
+  String get windowCloseSection => 'When you close the window';
+
+  @override
+  String get windowCloseTray => 'Keep playing in the system tray';
+
+  @override
+  String get windowCloseTrayMac => 'Keep playing in the menu bar';
+
+  @override
+  String get windowCloseTraySubtitle =>
+      'Hides the window and keeps the music going. Uses the fewest resources.';
+
+  @override
+  String get windowCloseMinimize => 'Minimize the window';
+
+  @override
+  String get windowCloseMinimizeSubtitle =>
+      'Keeps playing with the window minimized to the taskbar.';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac =>
+      'Keeps playing with the window minimized to the Dock.';
+
+  @override
+  String get windowCloseQuit => 'Quit Bloomee';
+
+  @override
+  String get windowCloseQuitSubtitle =>
+      'Stops playback and closes the app completely.';
+
+  @override
+  String get windowTrayUnavailable =>
+      'No system tray is available, so closing minimizes the window instead.';
+
+  @override
+  String get windowTrayMenuSection => 'Tray menu';
+
+  @override
+  String get windowTrayFootnote =>
+      'Click the tray icon to bring Bloomee back, or right-click it for playback controls.';
+
+  @override
+  String get windowTrayFootnoteMac =>
+      'Click the menu bar icon for playback controls or to bring Bloomee back.';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      'Open the tray icon\'s menu for playback controls. On GNOME, tray icons need the AppIndicator extension.';
+
+  @override
+  String get trayNothingPlaying => 'Nothing playing';
+
+  @override
+  String get trayPlay => 'Play';
+
+  @override
+  String get trayPause => 'Pause';
+
+  @override
+  String get trayNext => 'Next';
+
+  @override
+  String get trayPrevious => 'Previous';
+
+  @override
+  String get trayShowWindow => 'Show Bloomee';
+
+  @override
+  String get trayHideWindow => 'Hide Bloomee';
+
+  @override
+  String get trayQuit => 'Quit Bloomee';
 }

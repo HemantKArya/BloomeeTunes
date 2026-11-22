@@ -2329,4 +2329,97 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => 'Aus der Warteschlange entfernen';
+
+  @override
+  String get windowMinimize => 'Minimieren';
+
+  @override
+  String get windowMaximize => 'Maximieren';
+
+  @override
+  String get windowRestore => 'Verkleinern';
+
+  @override
+  String get windowClose => 'Schließen';
+
+  @override
+  String get settingsWindow => 'Fenster & Infobereich';
+
+  @override
+  String get settingsWindowSubtitle =>
+      'Schließen-Taste, Symbol im Infobereich und Wiedergabe im Hintergrund';
+
+  @override
+  String get windowCloseSection => 'Beim Schließen des Fensters';
+
+  @override
+  String get windowCloseTray => 'Im Infobereich weiterspielen';
+
+  @override
+  String get windowCloseTrayMac => 'In der Menüleiste weiterspielen';
+
+  @override
+  String get windowCloseTraySubtitle =>
+      'Blendet das Fenster aus, die Musik läuft weiter. Verbraucht am wenigsten Ressourcen.';
+
+  @override
+  String get windowCloseMinimize => 'Fenster minimieren';
+
+  @override
+  String get windowCloseMinimizeSubtitle =>
+      'Spielt weiter, das Fenster wird in die Taskleiste minimiert.';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac =>
+      'Spielt weiter, das Fenster wird ins Dock minimiert.';
+
+  @override
+  String get windowCloseQuit => 'Bloomee beenden';
+
+  @override
+  String get windowCloseQuitSubtitle =>
+      'Beendet die Wiedergabe und schließt die App vollständig.';
+
+  @override
+  String get windowTrayUnavailable =>
+      'Kein Infobereich verfügbar, daher wird das Fenster stattdessen minimiert.';
+
+  @override
+  String get windowTrayMenuSection => 'Menü im Infobereich';
+
+  @override
+  String get windowTrayFootnote =>
+      'Klicke auf das Symbol im Infobereich, um Bloomee zurückzuholen, oder klicke mit der rechten Maustaste für die Wiedergabesteuerung.';
+
+  @override
+  String get windowTrayFootnoteMac =>
+      'Klicke auf das Symbol in der Menüleiste für die Wiedergabesteuerung oder um Bloomee zurückzuholen.';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      'Öffne das Menü des Symbols für die Wiedergabesteuerung. Unter GNOME ist dafür die Erweiterung AppIndicator nötig.';
+
+  @override
+  String get trayNothingPlaying => 'Keine Wiedergabe';
+
+  @override
+  String get trayPlay => 'Wiedergabe';
+
+  @override
+  String get trayPause => 'Pause';
+
+  @override
+  String get trayNext => 'Weiter';
+
+  @override
+  String get trayPrevious => 'Zurück';
+
+  @override
+  String get trayShowWindow => 'Bloomee anzeigen';
+
+  @override
+  String get trayHideWindow => 'Bloomee ausblenden';
+
+  @override
+  String get trayQuit => 'Bloomee beenden';
 }

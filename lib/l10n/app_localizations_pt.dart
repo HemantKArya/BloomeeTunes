@@ -2339,4 +2339,97 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tooltipRemoveFromQueue => 'Remover da fila';
+
+  @override
+  String get windowMinimize => 'Minimizar';
+
+  @override
+  String get windowMaximize => 'Maximizar';
+
+  @override
+  String get windowRestore => 'Restaurar';
+
+  @override
+  String get windowClose => 'Fechar';
+
+  @override
+  String get settingsWindow => 'Janela e bandeja';
+
+  @override
+  String get settingsWindowSubtitle =>
+      'Botão fechar, ícone da bandeja e reprodução em segundo plano';
+
+  @override
+  String get windowCloseSection => 'Ao fechar a janela';
+
+  @override
+  String get windowCloseTray => 'Continuar tocando na bandeja do sistema';
+
+  @override
+  String get windowCloseTrayMac => 'Continuar tocando na barra de menus';
+
+  @override
+  String get windowCloseTraySubtitle =>
+      'Oculta a janela e a música continua. Usa o mínimo de recursos.';
+
+  @override
+  String get windowCloseMinimize => 'Minimizar a janela';
+
+  @override
+  String get windowCloseMinimizeSubtitle =>
+      'Continua tocando com a janela minimizada na barra de tarefas.';
+
+  @override
+  String get windowCloseMinimizeSubtitleMac =>
+      'Continua tocando com a janela minimizada no Dock.';
+
+  @override
+  String get windowCloseQuit => 'Sair do Bloomee';
+
+  @override
+  String get windowCloseQuitSubtitle =>
+      'Para a reprodução e fecha o app por completo.';
+
+  @override
+  String get windowTrayUnavailable =>
+      'Nenhuma bandeja do sistema disponível, então fechar minimiza a janela.';
+
+  @override
+  String get windowTrayMenuSection => 'Menu da bandeja';
+
+  @override
+  String get windowTrayFootnote =>
+      'Clique no ícone da bandeja para voltar ao Bloomee, ou clique com o botão direito para os controles.';
+
+  @override
+  String get windowTrayFootnoteMac =>
+      'Clique no ícone da barra de menus para os controles ou para voltar ao Bloomee.';
+
+  @override
+  String get windowTrayFootnoteLinux =>
+      'Abra o menu do ícone da bandeja para os controles. No GNOME, é preciso a extensão AppIndicator.';
+
+  @override
+  String get trayNothingPlaying => 'Nada tocando';
+
+  @override
+  String get trayPlay => 'Tocar';
+
+  @override
+  String get trayPause => 'Pausar';
+
+  @override
+  String get trayNext => 'Próxima';
+
+  @override
+  String get trayPrevious => 'Anterior';
+
+  @override
+  String get trayShowWindow => 'Mostrar Bloomee';
+
+  @override
+  String get trayHideWindow => 'Ocultar Bloomee';
+
+  @override
+  String get trayQuit => 'Sair do Bloomee';
 }

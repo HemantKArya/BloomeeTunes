@@ -58,7 +58,9 @@ import 'package:media_kit/media_kit.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'blocs/media_player/bloomee_player_cubit.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:Bloomee/services/desktop_window.dart';
 import 'package:Bloomee/services/discord_service.dart';
+import 'package:Bloomee/screens/widgets/window_frame.dart';
 import 'package:Bloomee/screens/widgets/onboarding_overlay.dart';
 import 'package:Bloomee/screens/widgets/plugin_bootstrap_overlay.dart';
 import 'package:Bloomee/services/onboarding_service.dart';
@@ -137,16 +139,18 @@ Future<void> setupPlayerCubit() async {
 Future<void> main(List<String> arguments) async {
   WidgetsFlutterBinding.ensureInitialized();
   GestureBinding.instance.resamplingEnabled = true;
+  await DesktopWindow.initialize();
   try {
     MediaKit.ensureInitialized();
     await bootstrapApp();
     unawaited(setHighRefreshRate());
     await setupPlayerCubit();
     unawaited(DiscordService.initialize());
-    runApp(MyApp(initialFiles: arguments));
+    unawaited(DesktopWindow.attach());
+    runApp(WindowFrame(child: MyApp(initialFiles: arguments)));
   } catch (error, stack) {
     debugPrint('Application startup failed: $error\n$stack');
-    runApp(StartupFailureApp(details: '$error'));
+    runApp(WindowFrame(child: StartupFailureApp(details: '$error')));
   }
 }
 
@@ -453,6 +457,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               builder: (context, settingsState) {
                 final locale =
                     localeForLanguageCode(settingsState.languageCode);
+                DesktopWindow.locale = locale;
 
                 return KeyboardShortcutsHandler(
                   child: MaterialApp.router(
