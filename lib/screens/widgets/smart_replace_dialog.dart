@@ -168,6 +168,8 @@ class _SmartReplaceDialogState extends State<_SmartReplaceDialog> {
           updatedQueue,
           startIndex: player.currentQueueIndex,
           doPlay: player.currentTrackInfo.id == widget.track.id,
+          // Same queue with one track swapped: still the same playlist.
+          title: player.queueTitle.value,
         );
       }
 

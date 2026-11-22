@@ -104,8 +104,17 @@ class PlayerEngine {
   double _playerAVolume = 100.0;
   double _playerBVolume = 100.0;
   bool _hasMedia = false;
+
+  /// Last native error message per player. media_kit also reports errors mpv
+  /// recovers from (e.g. a reconnected `tcp:` read), so a diagnostic only
+  /// means "failed" if the player then unloads (idle) on its own.
   final Map<Player, String> _nativeDiagnostics = {};
   Duration _lastPlaybackPosition = Duration.zero;
+
+  /// A switch to the preloaded track is in flight. Until the players are
+  /// swapped, positions from the outgoing player must not become the
+  /// recovery position: a failure now belongs to the incoming track.
+  bool _switchingTrack = false;
 
   /// Native EOF can reset the reported position before notifying completion.
   Duration get recoveryPosition => _lastPlaybackPosition;
@@ -209,7 +218,9 @@ class PlayerEngine {
         _deriveState();
       }),
       _activePlayerSubject.switchMap((p) => p.stream.position).listen((pos) {
-        if (pos > Duration.zero) _lastPlaybackPosition = pos;
+        if (pos > Duration.zero && !_switchingTrack) {
+          _lastPlaybackPosition = pos;
+        }
         _positionSubject.add(pos);
         _checkCrossfadeTrigger(pos);
       }),
@@ -229,7 +240,12 @@ class PlayerEngine {
         if (completed && _hasMedia && !_disposed && !_crossfadeTriggered) {
           final pos = recoveryPosition;
           final dur = _durationSubject.value;
-          if (dur > Duration.zero && (dur - pos) > const Duration(seconds: 2)) {
+          final endedEarly =
+              dur > Duration.zero && (dur - pos) > const Duration(seconds: 2);
+          // Unknown duration and nothing played: the stream died, it did not
+          // finish. Treating it as a completion silently skipped the track.
+          final endedUnplayed = dur <= Duration.zero && pos <= Duration.zero;
+          if (endedEarly || endedUnplayed) {
             log('Abnormal EOF detected (pos: $pos, dur: $dur). Routing to error handler.',
                 name: 'PlayerEngine');
             _triggerEngineFailure(
@@ -304,8 +320,24 @@ class PlayerEngine {
     _errorController.add(error);
   }
 
+  /// Stops [player] on purpose. The resulting idle state is our own doing,
+  /// so diagnostics from its earlier playback must not turn it into a load
+  /// failure (of whichever track is current by then).
+  Future<void> _stopPlayer(Player player) {
+    _nativeDiagnostics.remove(player);
+    return player.stop().catchError((_) {});
+  }
+
+  /// Starts a switch to another track: from here on, a failure belongs to
+  /// the incoming track, which has not played anything yet.
+  void _beginTrackSwitch() {
+    _switchingTrack = true;
+    _lastPlaybackPosition = Duration.zero;
+  }
+
   void _swapActivePlayer() {
     _aIsActive = !_aIsActive;
+    _switchingTrack = false;
     final p = _active;
     _lastPlaybackPosition = p.state.position;
     _playingSubject.add(p.state.playing);
@@ -378,6 +410,7 @@ class PlayerEngine {
       bool autoPlay = true,
       Duration? initialPosition}) async {
     if (_disposed) return EngineFailure('Engine disposed');
+    _switchingTrack = false;
     _lastPlaybackPosition = initialPosition ?? Duration.zero;
     final gen = ++_generation;
     _nativeDiagnostics.remove(_active);
@@ -437,13 +470,16 @@ class PlayerEngine {
     _crossfadeTriggered = false;
 
     setLoadingState();
+    _beginTrackSwitch();
     final oldPlayer = _active;
     final newPlayer = _standby;
     final nextUri = _preloadedNextUri!;
     final nextHeaders = _preloadedNextHeaders;
 
     try {
-      oldPlayer.stop().catchError((_) {});
+      // Not awaited: the new track starts without waiting for the old one to
+      // unload. Its idle notification may arrive before the swap below.
+      _stopPlayer(oldPlayer);
       if (_generation != gen || _disposed) return EngineCanceled();
 
       await newPlayer.setVolume(_userVolume * 100.0);
@@ -474,7 +510,8 @@ class PlayerEngine {
       return EngineSuccess();
     } catch (e) {
       if (_generation != gen) return EngineCanceled();
-      newPlayer.stop().catchError((_) {});
+      _switchingTrack = false;
+      _stopPlayer(newPlayer);
       _standbyPreloaded = false;
       _triggerEngineFailure(e.toString());
       return EngineFailure(e);
@@ -505,6 +542,7 @@ class PlayerEngine {
     _crossfadeTriggered = false;
 
     setLoadingState();
+    _beginTrackSwitch();
 
     final oldPlayer = _active;
     final newPlayer = _standby;
@@ -525,7 +563,7 @@ class PlayerEngine {
       }
 
       if (_generation != gen || _disposed) {
-        newPlayer.stop().catchError((_) {});
+        _stopPlayer(newPlayer);
         return EngineCanceled();
       }
 
@@ -544,7 +582,7 @@ class PlayerEngine {
         if (!_disposed) {
           _oldPlayerFader.cancel();
           _newPlayerFader.cancel();
-          await oldPlayer.stop().catchError((_) {});
+          await _stopPlayer(oldPlayer);
           await oldPlayer.setVolume(_userVolume * 100.0).catchError((_) {});
           await newPlayer.setVolume(_userVolume * 100.0).catchError((_) {});
           _isTransitioning = false;
@@ -562,6 +600,7 @@ class PlayerEngine {
       return EngineSuccess();
     } catch (e) {
       if (_generation != gen) return EngineCanceled();
+      _switchingTrack = false;
       _oldPlayerFader.cancel();
       _newPlayerFader.cancel();
       _fadeCleanupTimer?.cancel();
@@ -576,7 +615,7 @@ class PlayerEngine {
     if (_disposed) return;
     final player = _active;
     if (!player.state.playing) {
-      player.stop().catchError((_) {});
+      _stopPlayer(player);
       return;
     }
     _isTransitioning = true;
@@ -588,7 +627,7 @@ class PlayerEngine {
     _fadeOutCleanupTimer = Timer(duration, () {
       if (!_disposed) {
         _oldPlayerFader.cancel();
-        player.stop().catchError((_) {});
+        _stopPlayer(player);
         player.setVolume(_userVolume * 100.0).catchError((_) {});
         _isTransitioning = false;
       }
@@ -597,6 +636,7 @@ class PlayerEngine {
 
   Future<void> stop({bool keepLoadingState = false}) async {
     if (_disposed) return;
+    _switchingTrack = false;
     _lastPlaybackPosition = Duration.zero;
     ++_generation;
     _nativeDiagnostics.clear();
@@ -724,11 +764,7 @@ class PlayerEngine {
     _standbyPreloaded = false;
     _pendingPreloadUri = null;
     _pendingPreloadHeaders = null;
-    if (!_isTransitioning) {
-      try {
-        await _standby.stop();
-      } catch (_) {}
-    }
+    if (!_isTransitioning) await _stopPlayer(_standby);
   }
 
   bool get isPreloaded => _standbyPreloaded || _pendingPreloadUri != null;

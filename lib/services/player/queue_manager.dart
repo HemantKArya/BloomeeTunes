@@ -391,6 +391,8 @@ class QueueManager {
   /// Clear all tracks from the queue, keeping only the currently playing
   /// track so playback does not stop abruptly.
   void clearQueue() {
+    // Only the current song remains: this is no longer the playlist.
+    queueTitle.add('Queue');
     final current = currentTrack;
     if (current == null) {
       _queue.add([]);
@@ -404,10 +406,15 @@ class QueueManager {
   }
 
   /// Replace the entire queue with new tracks.
-  void updateQueue(List<Track> tracks, {int startIndex = 0}) {
+  ///
+  /// The queue is no longer a playlist unless [title] says it still is (e.g.
+  /// the same playlist with one track swapped). A stale playlist title made
+  /// that playlist's play button resume this unrelated queue.
+  void updateQueue(List<Track> tracks, {int startIndex = 0, String? title}) {
     final seenIds = <String>{};
     final deduped =
         tracks.where((t) => seenIds.add(t.id)).toList(growable: false);
+    queueTitle.add(title ?? 'Queue');
     _queue.add(deduped);
     _currentIndex =
         startIndex.clamp(0, deduped.isEmpty ? 0 : deduped.length - 1);

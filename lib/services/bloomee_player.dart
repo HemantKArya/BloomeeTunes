@@ -27,7 +27,12 @@ import 'package:audio_session/audio_session.dart';
 import 'package:async/async.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:easy_debounce/easy_throttle.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:rxdart/rxdart.dart';
+
+/// What a playlist's play button does (see
+/// [BloomeeMusicPlayer.playOrResumePlaylist]).
+enum PlaylistPlayAction { resume, resyncAndResume, load }
 
 /// BloomeeTunes main audio player.
 ///
@@ -1047,6 +1052,74 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
+  /// Whether the queue is currently playing from the playlist [title].
+  bool isQueueFromPlaylist(String title) {
+    final current = _queueManager.currentTrack;
+    return current != null && _queueManager.queueTitle.value == title;
+  }
+
+  /// The library's play button for a playlist: "locked" to that playlist.
+  ///
+  /// * The playlist is already the queue (its song is current and all of its
+  ///   songs are queued): resume. Never reloads or restarts.
+  /// * Its song is current but the queue has drifted (songs removed, queue
+  ///   cleared, playlist edited since): rebuild the queue from the playlist
+  ///   around the current song, then resume it without restarting.
+  /// * Anything else (empty queue, another playlist, single songs): replace
+  ///   the queue with the playlist and play it from the start.
+  Future<void> playOrResumePlaylist(Playlist playlist) async {
+    final current = _queueManager.currentTrack;
+    switch (decidePlaylistPlay(
+      queueTitle: _queueManager.queueTitle.value,
+      currentTrackId: current?.id,
+      queuedTrackIds: _queueManager.tracks.map((t) => t.id),
+      playlist: playlist,
+    )) {
+      case PlaylistPlayAction.resume:
+        await play();
+      case PlaylistPlayAction.resyncAndResume:
+        final idx = playlist.tracks.indexWhere((t) => t.id == current!.id);
+        // doPlay: false keeps the engine on the current song; only the queue
+        // around it is rebuilt.
+        await loadPlaylist(playlist, idx: idx, doPlay: false);
+        await play();
+      case PlaylistPlayAction.load:
+        await loadPlaylist(playlist, doPlay: true);
+    }
+  }
+
+  @visibleForTesting
+  static PlaylistPlayAction decidePlaylistPlay({
+    required String queueTitle,
+    required String? currentTrackId,
+    required Iterable<String> queuedTrackIds,
+    required Playlist playlist,
+  }) {
+    if (playlist.tracks.isEmpty) return PlaylistPlayAction.load;
+    final playlistIds = {for (final t in playlist.tracks) t.id};
+    final ownsCurrent = queueTitle == playlist.title &&
+        currentTrackId != null &&
+        playlistIds.contains(currentTrackId);
+    if (!ownsCurrent) return PlaylistPlayAction.load;
+    return queuedTrackIds.toSet().containsAll(playlistIds)
+        ? PlaylistPlayAction.resume
+        : PlaylistPlayAction.resyncAndResume;
+  }
+
+  /// "Add to queue" for a whole playlist.
+  ///
+  /// With nothing queued, the playlist becomes the queue (not started), so
+  /// its play button then resumes it instead of loading it again. Otherwise
+  /// its songs are appended in one step, skipping ones already queued.
+  Future<void> addPlaylistToQueue(Playlist playlist) async {
+    if (playlist.tracks.isEmpty) return;
+    if (_queueManager.tracks.isEmpty) {
+      await loadPlaylist(playlist, doPlay: false);
+    } else {
+      _queueManager.addTracks(playlist.tracks, atLast: true);
+    }
+  }
+
   @override
   Future<void> addQueueItem(MediaItem mi) async =>
       _queueManager.addTrack(mediaItemToTrack(mi));
@@ -1065,8 +1138,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       _queueManager.addTracks(tracks, atLast: atLast);
 
   Future<void> updateQueueTracks(List<Track> tracks,
-      {bool doPlay = false, int startIndex = 0}) async {
-    _queueManager.updateQueue(tracks, startIndex: startIndex);
+      {bool doPlay = false, int startIndex = 0, String? title}) async {
+    _queueManager.updateQueue(tracks, startIndex: startIndex, title: title);
     if (doPlay) {
       final t = _queueManager.currentTrack;
       if (t != null) await _enqueuePlayTrack(t, doPlay: true);

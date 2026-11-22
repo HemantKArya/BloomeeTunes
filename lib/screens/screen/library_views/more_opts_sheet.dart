@@ -144,9 +144,9 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                     final list = await libraryCubit
                                         .getPlaylistTracks(title);
                                     if (list != null && list.isNotEmpty) {
-                                      playerCubit.bloomeePlayer.loadPlaylist(
-                                          Playlist(tracks: list, title: title),
-                                          doPlay: true);
+                                      playerCubit.bloomeePlayer
+                                          .playOrResumePlaylist(Playlist(
+                                              tracks: list, title: title));
                                       SnackbarService.showMessage(
                                           l10n.snackbarNowPlaying(title));
                                     }
@@ -164,7 +164,8 @@ class _PlaylistOptionsSheet extends StatelessWidget {
                                         .getPlaylistTracks(title);
                                     if (list != null && list.isNotEmpty) {
                                       playerCubit.bloomeePlayer
-                                          .addQueueTracks(list);
+                                          .addPlaylistToQueue(Playlist(
+                                              tracks: list, title: title));
                                       SnackbarService.showMessage(l10n
                                           .snackbarPlaylistAddedToQueue(title));
                                     }
