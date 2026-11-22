@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:Bloomee/services/bloomee_player.dart';
 import 'package:bloc/bloc.dart';
 import 'package:rxdart/rxdart.dart';
@@ -19,7 +21,13 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
   }
 
   void _setupProgressStreams() {
-    progressStreams = Rx.combineLatest4(
+    // Must stay connected for the cubit's lifetime. Do NOT use
+    // shareValueSeeded()/refCount(): the mini player and the full player hand
+    // the stream over in the same frame (see PlayerViewActivity), so the
+    // listener count briefly hits zero, and refCount() then cancels the source
+    // and closes the subject for good. Every later listener only gets the
+    // last cached value: the progress bar freezes while audio keeps playing.
+    final connectable = Rx.combineLatest4(
       Rx.defer(() => bloomeePlayer.engine.positionStream, reusable: true),
       Rx.defer(() => bloomeePlayer.engine.durationStream, reusable: true),
       Rx.defer(() => bloomeePlayer.engine.bufferedStream, reusable: true),
@@ -31,7 +39,7 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
         buffered: buffered,
         isPlaying: playing,
       ),
-    ).shareValueSeeded(
+    ).publishValueSeeded(
       ProgressBarStreams(
         position: Duration.zero,
         duration: Duration.zero,
@@ -39,13 +47,18 @@ class BloomeePlayerCubit extends Cubit<BloomeePlayerState> {
         isPlaying: false,
       ),
     );
+    _progressConnection = connectable.connect();
+    progressStreams = connectable;
   }
 
+  StreamSubscription<ProgressBarStreams>? _progressConnection;
+
   @override
-  Future<void> close() {
+  Future<void> close() async {
     // Intentionally does NOT stop the player.
     // The AudioService foreground service manages its own lifecycle via
     // onTaskRemoved() / onNotificationDeleted().
+    await _progressConnection?.cancel();
     return super.close();
   }
 }
