@@ -2317,4 +2317,7 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get libraryReorderHintPinned =>
       'क्रम बदलने के लिए खींचें। पिन किए गए आइटम ऊपर रहते हैं।';
+
+  @override
+  String get tooltipRemoveFromQueue => 'कतार से हटाएँ';
 }

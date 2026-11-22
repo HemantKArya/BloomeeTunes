@@ -2331,4 +2331,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get libraryReorderHintPinned =>
       'Arrastra para reordenar. Los fijados se quedan arriba.';
+
+  @override
+  String get tooltipRemoveFromQueue => 'Quitar de la cola';
 }

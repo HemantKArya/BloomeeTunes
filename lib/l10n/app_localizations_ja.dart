@@ -2183,4 +2183,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get libraryReorderHintPinned => 'ドラッグして並べ替え。ピン留めした項目は上に固定されます。';
+
+  @override
+  String get tooltipRemoveFromQueue => 'キューから削除';
 }

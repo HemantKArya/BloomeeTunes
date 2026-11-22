@@ -771,5 +771,6 @@
   "discordStatusTextArtist": "아티스트",
   "discordStatusTextSong": "곡 제목",
   "libraryReorderHint": "드래그하여 순서 변경",
-  "libraryReorderHintPinned": "드래그하여 순서 변경. 고정된 항목은 맨 위에 유지됩니다."
+  "libraryReorderHintPinned": "드래그하여 순서 변경. 고정된 항목은 맨 위에 유지됩니다.",
+  "tooltipRemoveFromQueue": "대기열에서 제거"
 }

@@ -771,5 +771,6 @@
   "discordStatusTextArtist": "Artista",
   "discordStatusTextSong": "Título de la canción",
   "libraryReorderHint": "Arrastra para reordenar",
-  "libraryReorderHintPinned": "Arrastra para reordenar. Los fijados se quedan arriba."
+  "libraryReorderHintPinned": "Arrastra para reordenar. Los fijados se quedan arriba.",
+  "tooltipRemoveFromQueue": "Quitar de la cola"
 }

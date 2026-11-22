@@ -771,5 +771,6 @@
   "discordStatusTextArtist": "艺人",
   "discordStatusTextSong": "歌曲名",
   "libraryReorderHint": "拖动以重新排序",
-  "libraryReorderHintPinned": "拖动以重新排序。已置顶的项目保持在最上方。"
+  "libraryReorderHintPinned": "拖动以重新排序。已置顶的项目保持在最上方。",
+  "tooltipRemoveFromQueue": "从队列中移除"
 }

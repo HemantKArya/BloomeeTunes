@@ -2304,4 +2304,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get libraryReorderHintPinned =>
       'Drag to reorder. Pinned items stay on top.';
+
+  @override
+  String get tooltipRemoveFromQueue => 'Remove from queue';
 }

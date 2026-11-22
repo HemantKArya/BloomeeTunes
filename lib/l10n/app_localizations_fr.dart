@@ -2349,4 +2349,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get libraryReorderHintPinned =>
       'Faites glisser pour réorganiser. Les éléments épinglés restent en haut.';
+
+  @override
+  String get tooltipRemoveFromQueue => 'Retirer de la file d\'attente';
 }

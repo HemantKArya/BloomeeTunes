@@ -2173,4 +2173,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get libraryReorderHintPinned => '拖动以重新排序。已置顶的项目保持在最上方。';
+
+  @override
+  String get tooltipRemoveFromQueue => '从队列中移除';
 }

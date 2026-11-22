@@ -809,5 +809,6 @@
   "discordStatusTextArtist": "Artist",
   "discordStatusTextSong": "Song title",
   "libraryReorderHint": "Drag to reorder",
-  "libraryReorderHintPinned": "Drag to reorder. Pinned items stay on top."
+  "libraryReorderHintPinned": "Drag to reorder. Pinned items stay on top.",
+  "tooltipRemoveFromQueue": "Remove from queue"
 }

@@ -4141,6 +4141,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drag to reorder. Pinned items stay on top.'**
   String get libraryReorderHintPinned;
+
+  /// No description provided for @tooltipRemoveFromQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from queue'**
+  String get tooltipRemoveFromQueue;
 }
 
 class _AppLocalizationsDelegate

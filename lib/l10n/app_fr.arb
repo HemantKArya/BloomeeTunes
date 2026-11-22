@@ -1114,5 +1114,6 @@
   "discordStatusTextArtist": "Artiste",
   "discordStatusTextSong": "Titre du morceau",
   "libraryReorderHint": "Faites glisser pour réorganiser",
-  "libraryReorderHintPinned": "Faites glisser pour réorganiser. Les éléments épinglés restent en haut."
+  "libraryReorderHintPinned": "Faites glisser pour réorganiser. Les éléments épinglés restent en haut.",
+  "tooltipRemoveFromQueue": "Retirer de la file d'attente"
 }

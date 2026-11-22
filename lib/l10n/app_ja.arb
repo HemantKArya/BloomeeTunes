@@ -771,5 +771,6 @@
   "discordStatusTextArtist": "アーティスト",
   "discordStatusTextSong": "曲名",
   "libraryReorderHint": "ドラッグして並べ替え",
-  "libraryReorderHintPinned": "ドラッグして並べ替え。ピン留めした項目は上に固定されます。"
+  "libraryReorderHintPinned": "ドラッグして並べ替え。ピン留めした項目は上に固定されます。",
+  "tooltipRemoveFromQueue": "キューから削除"
 }

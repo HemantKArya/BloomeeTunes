@@ -8,8 +8,11 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:icons_plus/icons_plus.dart';
+import 'package:Bloomee/core/models/exported.dart' hide MediaItem;
+import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
+import 'package:Bloomee/utils/load_image.dart';
 
-import 'song_tile.dart';
 import 'more_bottom_sheet.dart';
 
 class _UpNextStyles {
@@ -806,16 +809,18 @@ class _DesktopSongListState extends State<_DesktopSongList> {
               });
             }
 
+            final keys = _queueKeys(queue);
             return ReorderableListView.builder(
               scrollController: _scrollController,
-              padding: const EdgeInsets.fromLTRB(6, 6, 4, 12),
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 12),
               itemCount: queue.length,
               itemExtent: _itemHeight,
               onReorder: widget.playerCubit.bloomeePlayer.moveQueueItem,
               buildDefaultDragHandles: false,
+              proxyDecorator: _queueProxyDecorator,
               itemBuilder: (context, index) {
                 return _QueueItem(
-                  key: ValueKey('desktop_${queue[index].id}_$index'),
+                  key: keys[index],
                   mediaItem: queue[index],
                   index: index,
                   playerCubit: widget.playerCubit,
@@ -898,13 +903,15 @@ class _SongListSliverState extends State<_SongListSliver> {
               });
             }
 
+            final keys = _queueKeys(queue);
             return SliverReorderableList(
               itemCount: queue.length,
               itemExtent: _itemHeight,
               onReorder: widget.playerCubit.bloomeePlayer.moveQueueItem,
+              proxyDecorator: _queueProxyDecorator,
               itemBuilder: (context, index) {
                 return _QueueItem(
-                  key: ValueKey('mobile_${queue[index].id}_$index'),
+                  key: keys[index],
                   mediaItem: queue[index],
                   index: index,
                   playerCubit: widget.playerCubit,
@@ -920,7 +927,51 @@ class _SongListSliverState extends State<_SongListSliver> {
   }
 }
 
-class _QueueItem extends StatelessWidget {
+/// Keys that survive reorders and removals: the track id plus which copy of
+/// it this is. Index-based keys remounted every row (and re-decoded every
+/// thumbnail) on each move.
+List<Key> _queueKeys(List<MediaItem> queue) {
+  final seen = <String, int>{};
+  return [
+    for (final item in queue)
+      ValueKey(
+          '${item.id}#${seen.update(item.id, (n) => n + 1, ifAbsent: () => 0)}'),
+  ];
+}
+
+// Same raised surface as the theme's surfaceContainerHighest.
+const _liftedSurface = Color(0xFF1A111B);
+
+/// The row being dragged: lifted onto a slightly lighter surface with a
+/// soft neutral shadow, no accent outline.
+Widget _queueProxyDecorator(
+    Widget child, int index, Animation<double> animation) {
+  return AnimatedBuilder(
+    animation: animation,
+    builder: (context, child) {
+      final t = Curves.easeOutCubic.transform(animation.value);
+      return Transform.scale(
+        scale: 1 + 0.02 * t,
+        child: Material(
+          elevation: 10 * t,
+          color: Color.lerp(Colors.transparent, _liftedSurface, t),
+          shadowColor: Colors.black,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
+          child: child,
+        ),
+      );
+    },
+    child: child,
+  );
+}
+
+/// One queue row.
+///
+/// Desktop: one soft hover fill for the whole row; remove / more / drag
+/// handle fade in on hover only, and the row can be dragged from anywhere.
+/// Touch: long-press anywhere to drag, swipe right to remove.
+class _QueueItem extends StatefulWidget {
   final MediaItem mediaItem;
   final int index;
   final BloomeePlayerCubit playerCubit;
@@ -937,74 +988,260 @@ class _QueueItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final songModel = mediaItemToTrack(mediaItem);
+  State<_QueueItem> createState() => _QueueItemState();
+}
 
-    Widget content = Dismissible(
-      key: ValueKey('dismiss_${mediaItem.id}'),
-      direction: DismissDirection.startToEnd,
-      background: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 20),
-        color: Colors.red.withValues(alpha: 0.8),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      onDismissed: (_) => playerCubit.bloomeePlayer.removeQueueItemAt(index),
-      child: Material(
-        color: Colors.transparent,
-        child: Padding(
-          // FIX: Removed the massive 24px Android padding gap. Just a slim 8px edge.
-          padding: EdgeInsets.only(right: isDesktop ? 8.0 : 0.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: SongCardWidget(
-                  showOptions: false,
-                  isCurrentTrack: isPlaying,
-                  onTap: () => playerCubit.bloomeePlayer.skipToQueueItem(index),
-                  song: songModel,
-                  trailing: IconButton(
-                    tooltip: AppLocalizations.of(context)!.tooltipMoreOptions,
-                    iconSize: 20,
-                    splashRadius: 18,
-                    padding: const EdgeInsets.all(6),
-                    constraints: const BoxConstraints(
-                      minWidth: 36,
-                      minHeight: 36,
-                    ),
-                    color: Default_Theme.primaryColor2.withValues(alpha: 0.65),
-                    icon: const Icon(Icons.more_horiz_rounded),
-                    onPressed: () => showMoreBottomSheet(
-                      context,
-                      songModel,
-                      showAddToQueue: false,
-                      showPlayNext: false,
-                      showSinglePlay: true,
+class _QueueItemState extends State<_QueueItem> {
+  bool _hovered = false;
+
+  void _setHovered(bool value) {
+    if (_hovered != value) setState(() => _hovered = value);
+  }
+
+  void _openOptions(Track track) => showMoreBottomSheet(
+        context,
+        track,
+        showAddToQueue: false,
+        showPlayNext: false,
+        showSinglePlay: true,
+      );
+
+  void _remove() =>
+      widget.playerCubit.bloomeePlayer.removeQueueItemAt(widget.index);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final track = mediaItemToTrack(widget.mediaItem);
+    final playing = widget.isPlaying;
+    final desktop = widget.isDesktop;
+    final showActions = !desktop || _hovered;
+
+    final fill = playing
+        ? Default_Theme.accentColor2.withValues(alpha: _hovered ? 0.11 : 0.08)
+        : _hovered
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.transparent;
+
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: fill,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () =>
+              widget.playerCubit.bloomeePlayer.skipToQueueItem(widget.index),
+          onSecondaryTap: () => _openOptions(track),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 4, 0),
+            child: Row(
+              children: [
+                _QueueArtwork(track: track, playing: playing),
+                const SizedBox(width: 12),
+                Expanded(child: _QueueText(track: track, playing: playing)),
+                const SizedBox(width: 4),
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 120),
+                  opacity: showActions ? 1 : 0,
+                  child: IgnorePointer(
+                    ignoring: !showActions,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (desktop)
+                          _QueueAction(
+                            icon: Icons.close_rounded,
+                            tooltip: l10n.tooltipRemoveFromQueue,
+                            onTap: _remove,
+                          ),
+                        _QueueAction(
+                          icon: Icons.more_horiz_rounded,
+                          tooltip: l10n.tooltipMoreOptions,
+                          onTap: () => _openOptions(track),
+                        ),
+                        // Visual cue only: the whole row is the drag
+                        // source (nested drag listeners fight each other).
+                        if (desktop)
+                          MouseRegion(
+                            cursor: SystemMouseCursors.grab,
+                            child: SizedBox(
+                              width: 32,
+                              height: 40,
+                              child: Icon(
+                                Icons.drag_handle_rounded,
+                                size: 20,
+                                color: Default_Theme.primaryColor2
+                                    .withValues(alpha: 0.45),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              if (isDesktop)
-                ReorderableDragStartListener(
-                  index: index,
-                  child: Padding(
-                    // FIX: Slimmer horizontal padding limits the width entirely while maintaining grabability
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                    child: Icon(Icons.drag_handle_rounded,
-                        color:
-                            Default_Theme.primaryColor2.withValues(alpha: 0.4),
-                        size: 20),
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
 
-    return isDesktop
-        ? content
-        : ReorderableDelayedDragStartListener(index: index, child: content);
+    if (desktop) {
+      return MouseRegion(
+        onEnter: (_) => _setHovered(true),
+        onExit: (_) => _setHovered(false),
+        child: ReorderableDragStartListener(index: widget.index, child: row),
+      );
+    }
+
+    return ReorderableDelayedDragStartListener(
+      index: widget.index,
+      child: Dismissible(
+        key: ValueKey('dismiss_${widget.key}'),
+        direction: DismissDirection.startToEnd,
+        onDismissed: (_) => _remove(),
+        background: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 20),
+            decoration: BoxDecoration(
+              color: Default_Theme.accentColor2.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.remove_circle_outline_rounded,
+              size: 20,
+              color: Default_Theme.accentColor2.withValues(alpha: 0.9),
+            ),
+          ),
+        ),
+        child: row,
+      ),
+    );
+  }
+}
+
+class _QueueArtwork extends StatelessWidget {
+  final Track track;
+  final bool playing;
+  const _QueueArtwork({required this.track, required this.playing});
+
+  @override
+  Widget build(BuildContext context) {
+    final url = track.thumbnail.urlLow ?? track.thumbnail.url;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox.square(
+        dimension: 48,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            LoadImageCached(
+              imageUrl: url,
+              fallbackUrl: url,
+              fit: BoxFit.cover,
+              width: 48,
+              height: 48,
+            ),
+            if (playing)
+              ColoredBox(
+                color: Colors.black.withValues(alpha: 0.45),
+                child: const Icon(
+                  FontAwesome.chart_simple_solid,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QueueText extends StatelessWidget {
+  final Track track;
+  final bool playing;
+  const _QueueText({required this.track, required this.playing});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          track.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Default_Theme.secondoryTextStyle.merge(TextStyle(
+            color: playing
+                ? Default_Theme.accentColor2
+                : Default_Theme.primaryColor1.withValues(alpha: 0.9),
+            fontSize: 14.5,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.1,
+          )),
+        ),
+        const SizedBox(height: 3),
+        TrackMetadataLinks(
+          track: track,
+          style: Default_Theme.secondoryTextStyle.merge(TextStyle(
+            color: Default_Theme.primaryColor2.withValues(alpha: 0.55),
+            fontSize: 12.5,
+            fontWeight: FontWeight.w500,
+          )),
+        ),
+      ],
+    );
+  }
+}
+
+/// Small icon button: the icon brightens on hover; no circular splash.
+class _QueueAction extends StatefulWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  const _QueueAction(
+      {required this.icon, required this.tooltip, required this.onTap});
+
+  @override
+  State<_QueueAction> createState() => _QueueActionState();
+}
+
+class _QueueActionState extends State<_QueueAction> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: widget.tooltip,
+      waitDuration: const Duration(milliseconds: 500),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: SizedBox(
+            width: 34,
+            height: 40,
+            child: Icon(
+              widget.icon,
+              size: 19,
+              color: Default_Theme.primaryColor2
+                  .withValues(alpha: _hovered ? 0.95 : 0.55),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

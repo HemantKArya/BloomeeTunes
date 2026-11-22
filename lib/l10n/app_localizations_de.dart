@@ -2326,4 +2326,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get libraryReorderHintPinned =>
       'Zum Sortieren ziehen. Angeheftete bleiben oben.';
+
+  @override
+  String get tooltipRemoveFromQueue => 'Aus der Warteschlange entfernen';
 }

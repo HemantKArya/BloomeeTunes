@@ -2183,4 +2183,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get libraryReorderHintPinned => '드래그하여 순서 변경. 고정된 항목은 맨 위에 유지됩니다.';
+
+  @override
+  String get tooltipRemoveFromQueue => '대기열에서 제거';
 }

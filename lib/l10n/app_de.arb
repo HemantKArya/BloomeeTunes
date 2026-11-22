@@ -771,5 +771,6 @@
   "discordStatusTextArtist": "Künstler",
   "discordStatusTextSong": "Songtitel",
   "libraryReorderHint": "Zum Sortieren ziehen",
-  "libraryReorderHintPinned": "Zum Sortieren ziehen. Angeheftete bleiben oben."
+  "libraryReorderHintPinned": "Zum Sortieren ziehen. Angeheftete bleiben oben.",
+  "tooltipRemoveFromQueue": "Aus der Warteschlange entfernen"
 }

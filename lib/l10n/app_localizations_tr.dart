@@ -2266,4 +2266,7 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get libraryReorderHintPinned =>
       'Sıralamak için sürükleyin. Sabitlenenler üstte kalır.';
+
+  @override
+  String get tooltipRemoveFromQueue => 'Kuyruktan kaldır';
 }

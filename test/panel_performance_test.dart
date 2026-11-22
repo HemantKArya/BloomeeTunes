@@ -4,7 +4,6 @@ import 'package:Bloomee/core/theme/app_theme.dart';
 import 'package:Bloomee/l10n/app_localizations.dart';
 import 'package:Bloomee/screens/screen/common_views/changelog_reader.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
-import 'package:Bloomee/screens/widgets/song_tile.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -150,7 +149,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller.isExpanded, isTrue);
     expect(find.text('Song 500'), findsOneWidget);
-    expect(find.byType(SongCardWidget).evaluate().length, lessThan(30));
+    expect(_queueRows.evaluate().length, lessThan(30));
     await tester.fling(
         find.byType(CustomScrollView), const Offset(0, -600), 1800);
     await tester.pumpAndSettle();
@@ -161,7 +160,7 @@ void main() {
     scroll.jumpTo(0);
     await tester.pumpAndSettle();
     expect(find.text('Song 0'), findsNWidgets(2));
-    final second = find.byType(SongCardWidget).at(1);
+    final second = _queueRows.at(1);
     await tester.tap(second);
     await tester.pump();
     expect(player.selected, 1);
@@ -171,3 +170,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 }
+
+/// Queue rows are private to up_next_panel.dart; match them by type name.
+final _queueRows = find.byWidgetPredicate(
+    (w) => w.runtimeType.toString() == '_QueueItem',
+    description: 'queue row');

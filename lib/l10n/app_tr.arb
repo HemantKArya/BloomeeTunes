@@ -1114,5 +1114,6 @@
   "discordStatusTextArtist": "Sanatçı",
   "discordStatusTextSong": "Şarkı adı",
   "libraryReorderHint": "Sıralamak için sürükleyin",
-  "libraryReorderHintPinned": "Sıralamak için sürükleyin. Sabitlenenler üstte kalır."
+  "libraryReorderHintPinned": "Sıralamak için sürükleyin. Sabitlenenler üstte kalır.",
+  "tooltipRemoveFromQueue": "Kuyruktan kaldır"
 }
