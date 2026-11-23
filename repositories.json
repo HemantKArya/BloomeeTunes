@@ -1,0 +1,10 @@
+{
+    "repositories": [
+        {
+        "id": 1,
+        "name": "bloom-factory",
+        "url": "https://github.com/kojima-ui/bloom-factory/releases/latest/download/bex-factory.json",
+        "install": true
+    }
+]
+}

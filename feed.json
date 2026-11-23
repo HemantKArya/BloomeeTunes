@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "prexa-windows-2026-11",
+      "kind": "app",
+      "home": true,
+      "platforms": ["windows"],
+      "title": {
+        "en": "Meet Prexa for Windows",
+        "hi": "Windows के लिए Prexa से मिलिए"
+      },
+      "body": {
+        "en": "Our new media player for music, video and live TV, with an equalizer, subtitles and plugins. Free on the Microsoft Store.",
+        "hi": "संगीत, वीडियो और लाइव टीवी के लिए हमारा नया मीडिया प्लेयर, इक्वलाइज़र, सबटाइटल और प्लगइन के साथ। Microsoft Store पर उपलब्ध।"
+      },
+      "icon": "https://prexa.bloomeex.org/images/prexa.png",
+      "image": "https://prexa.bloomeex.org/images/music.webp",
+      "action": {
+        "label": { "en": "Get Prexa", "hi": "Prexa पाएँ" },
+        "url": {
+          "windows": "ms-windows-store://pdp/?productid=9NQFS9DD099B",
+          "default": "https://apps.microsoft.com/detail/9NQFS9DD099B"
+        }
+      }
+    }
+  ]
+}
