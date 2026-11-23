@@ -17,6 +17,8 @@
 
  **Bloomee** is an experimental, open-source music player designed to give you absolute freedom over your audio. Seamlessly mix your **local device music** with an infinite universe of streams powered by a secure, **Rust-backed plugin system**. No ads, no interruptions—just your tunes, your way. 🌼🎵
 
+**[🌐 Website](https://tunes.bloomeex.org)** · **[📥 Download](https://github.com/HemantKArya/BloomeeTunes/releases/latest)** · **[🌸 More from Bloomeex](https://bloomeex.org)**
+
 </div>
 
 <div align="center">

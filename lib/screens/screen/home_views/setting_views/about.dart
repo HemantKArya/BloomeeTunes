@@ -223,6 +223,15 @@ class _AboutState extends State<About> {
               runSpacing: 12.0, // Spacing when items wrap to the next line
               spacing: 12.0, // Horizontal spacing
               children: [
+                // Parent site for all Bloomeex apps
+                _InfoPill(
+                    icon: Icons.language,
+                    text: 'Bloomeex',
+                    tooltip: 'bloomeex.org',
+                    onTap: () {
+                      launchUrl(Uri.parse('https://bloomeex.org'),
+                          mode: LaunchMode.externalApplication);
+                    }),
                 // Maintainer opens GitHub account
                 _InfoPill(
                     icon: Icons.shield_outlined,
