@@ -1,9 +1,9 @@
 name: Bloomee
-description: An Open source Free Music Player.
+description: A Cross-Platform Music Player. Bloomee is a music player that supports local music playback, online music streaming, and more. It is designed to be fast, lightweight, and easy to use.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 3.1.1+0
+version: 3.1.2+0
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
