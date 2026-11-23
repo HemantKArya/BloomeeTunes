@@ -47,7 +47,7 @@ class UpdatesSettings extends StatelessWidget {
       ),
       body: ListView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: settingsPagePadding(context),
         children: [
           // Store installs are updated by the Store.
           if (!AppDistribution.updatesManagedExternally) ...[
@@ -74,8 +74,9 @@ class UpdatesSettings extends StatelessWidget {
                     title: l10n.updateAutoNotify,
                     subtitle: l10n.updateAutoNotifySubtitle,
                     value: state.autoUpdateNotify,
-                    onChanged: (value) =>
-                        context.read<SettingsCubit>().setAutoUpdateNotify(value),
+                    onChanged: (value) => context
+                        .read<SettingsCubit>()
+                        .setAutoUpdateNotify(value),
                   ),
                 ],
               ),

@@ -38,7 +38,7 @@ class BackupSettings extends StatelessWidget {
                 child: AbsorbPointer(
                     absorbing: operation.busy,
                     child: ListView(
-                      padding: const EdgeInsets.all(16),
+                      padding: settingsPagePadding(context, minHorizontal: 16),
                       children: [
                         SettingSectionHeader(label: l10n.settingsHistory),
                         SettingCard(children: [

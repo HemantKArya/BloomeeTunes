@@ -67,7 +67,8 @@ class CountrySettings extends StatelessWidget {
               .key;
 
           return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding:
+                settingsPagePadding(context, minHorizontal: 16, vertical: 8),
             children: [
               SettingSectionHeader(label: l10n.settingsLanguageCountry),
               SettingCard(

@@ -187,125 +187,132 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
         ],
       ),
       body: SafeArea(
-        child: BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
-          builder: (context, addToPlaylistState) {
-            final mediaItem = addToPlaylistState.track;
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: BlocBuilder<AddToPlaylistCubit, AddToPlaylistState>(
+              builder: (context, addToPlaylistState) {
+                final mediaItem = addToPlaylistState.track;
 
-            if (isTrackNull(mediaItem)) {
-              return Center(
-                child: SignBoardWidget(
-                  message: l10n.addToPlaylistNoSongSelected,
-                  icon: MingCute.music_2_line,
-                ),
-              );
-            }
+                if (isTrackNull(mediaItem)) {
+                  return Center(
+                    child: SignBoardWidget(
+                      message: l10n.addToPlaylistNoSongSelected,
+                      icon: MingCute.music_2_line,
+                    ),
+                  );
+                }
 
-            return Column(
-              children: [
-                _SongInfoCard(mediaItem: mediaItem),
-                BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-                  builder: (context, libraryState) {
-                    return ValueListenableBuilder<Set<String>>(
-                      valueListenable: _songInPlaylists,
-                      builder: (context, songPlaylists, _) {
-                        final playlists = libraryState.playlists
-                            .where((p) =>
-                                songPlaylists.contains(p.playlistName) &&
-                                p.playlistName != "recently_played" &&
-                                p.playlistName !=
-                                    SettingKeys.downloadPlaylist &&
-                                p.playlistName !=
-                                    SettingKeys.localMusicPlaylist)
-                            .toList()
-                          ..sort((a, b) => a.playlistName
-                              .toLowerCase()
-                              .compareTo(b.playlistName.toLowerCase()));
+                return Column(
+                  children: [
+                    _SongInfoCard(mediaItem: mediaItem),
+                    BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+                      builder: (context, libraryState) {
+                        return ValueListenableBuilder<Set<String>>(
+                          valueListenable: _songInPlaylists,
+                          builder: (context, songPlaylists, _) {
+                            final playlists = libraryState.playlists
+                                .where((p) =>
+                                    songPlaylists.contains(p.playlistName) &&
+                                    p.playlistName != "recently_played" &&
+                                    p.playlistName !=
+                                        SettingKeys.downloadPlaylist &&
+                                    p.playlistName !=
+                                        SettingKeys.localMusicPlaylist)
+                                .toList()
+                              ..sort((a, b) => a.playlistName
+                                  .toLowerCase()
+                                  .compareTo(b.playlistName.toLowerCase()));
 
-                        return _AnimatedAvatarSection(playlists: playlists);
-                      },
-                    );
-                  },
-                ),
-                _SearchBar(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  searchQuery: _searchQuery,
-                ),
-                Expanded(
-                  child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
-                    builder: (context, libraryState) {
-                      if (libraryState is LibraryItemsLoading) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Default_Theme.accentColor2,
-                          ),
+                            return _AnimatedAvatarSection(playlists: playlists);
+                          },
                         );
-                      }
-
-                      return ValueListenableBuilder<String>(
-                        valueListenable: _searchQuery,
-                        builder: (context, query, _) {
-                          final filteredPlaylists = _filterPlaylists(
-                            libraryState.playlists,
-                            query,
-                          );
-
-                          if (filteredPlaylists.isEmpty) {
-                            return Center(
-                              child: SignBoardWidget(
-                                message: query.isEmpty
-                                    ? l10n.playlistCreateFirstOne
-                                    : l10n.playlistNoMatchSearch,
-                                icon: query.isEmpty
-                                    ? MingCute.playlist_line
-                                    : MingCute.search_line,
+                      },
+                    ),
+                    _SearchBar(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      searchQuery: _searchQuery,
+                    ),
+                    Expanded(
+                      child: BlocBuilder<LibraryItemsCubit, LibraryItemsState>(
+                        builder: (context, libraryState) {
+                          if (libraryState is LibraryItemsLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Default_Theme.accentColor2,
                               ),
                             );
                           }
 
-                          return ValueListenableBuilder<Set<String>>(
-                            valueListenable: _songInPlaylists,
-                            builder: (context, songPlaylists, _) {
-                              return ValueListenableBuilder<Set<String>>(
-                                valueListenable: _pendingPlaylistOps,
-                                builder: (context, pendingPlaylists, _) {
-                                  return ListView.builder(
-                                    padding: const EdgeInsets.only(
-                                      left: 16,
-                                      right: 16,
-                                      bottom: 100,
-                                    ),
-                                    physics: const BouncingScrollPhysics(),
-                                    itemCount: filteredPlaylists.length + 1,
-                                    itemBuilder: (context, index) {
-                                      if (index == 0) {
-                                        return _CreatePlaylistTile(
-                                          onTap: () =>
-                                              createPlaylistDialog(context),
-                                        );
-                                      }
+                          return ValueListenableBuilder<String>(
+                            valueListenable: _searchQuery,
+                            builder: (context, query, _) {
+                              final filteredPlaylists = _filterPlaylists(
+                                libraryState.playlists,
+                                query,
+                              );
 
-                                      final playlist =
-                                          filteredPlaylists[index - 1];
-                                      final isInPlaylist = songPlaylists
-                                          .contains(playlist.playlistName);
-                                      final isPending = pendingPlaylists
-                                          .contains(playlist.playlistName);
-                                      return AnimatedListItem(
-                                        key: ValueKey(playlist.playlistName),
-                                        index: index,
-                                        child: _PlaylistTile(
-                                          playlist: playlist,
-                                          isInPlaylist: isInPlaylist,
-                                          isPending: isPending,
-                                          onTap: isPending
-                                              ? null
-                                              : () => _toggleSongInPlaylist(
-                                                    context,
-                                                    mediaItem,
-                                                    playlist,
-                                                  ),
+                              if (filteredPlaylists.isEmpty) {
+                                return Center(
+                                  child: SignBoardWidget(
+                                    message: query.isEmpty
+                                        ? l10n.playlistCreateFirstOne
+                                        : l10n.playlistNoMatchSearch,
+                                    icon: query.isEmpty
+                                        ? MingCute.playlist_line
+                                        : MingCute.search_line,
+                                  ),
+                                );
+                              }
+
+                              return ValueListenableBuilder<Set<String>>(
+                                valueListenable: _songInPlaylists,
+                                builder: (context, songPlaylists, _) {
+                                  return ValueListenableBuilder<Set<String>>(
+                                    valueListenable: _pendingPlaylistOps,
+                                    builder: (context, pendingPlaylists, _) {
+                                      return ListView.builder(
+                                        padding: const EdgeInsets.only(
+                                          left: 16,
+                                          right: 16,
+                                          bottom: 100,
                                         ),
+                                        physics: const BouncingScrollPhysics(),
+                                        itemCount: filteredPlaylists.length + 1,
+                                        itemBuilder: (context, index) {
+                                          if (index == 0) {
+                                            return _CreatePlaylistTile(
+                                              onTap: () =>
+                                                  createPlaylistDialog(context),
+                                            );
+                                          }
+
+                                          final playlist =
+                                              filteredPlaylists[index - 1];
+                                          final isInPlaylist = songPlaylists
+                                              .contains(playlist.playlistName);
+                                          final isPending = pendingPlaylists
+                                              .contains(playlist.playlistName);
+                                          return AnimatedListItem(
+                                            key:
+                                                ValueKey(playlist.playlistName),
+                                            index: index,
+                                            child: _PlaylistTile(
+                                              playlist: playlist,
+                                              isInPlaylist: isInPlaylist,
+                                              isPending: isPending,
+                                              onTap: isPending
+                                                  ? null
+                                                  : () => _toggleSongInPlaylist(
+                                                        context,
+                                                        mediaItem,
+                                                        playlist,
+                                                      ),
+                                            ),
+                                          );
+                                        },
                                       );
                                     },
                                   );
@@ -314,13 +321,13 @@ class _AddToPlaylistScreenState extends State<AddToPlaylistScreen> {
                             },
                           );
                         },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
         ),
       ),
       // FAB removed — Create New Playlist is now inline in the list

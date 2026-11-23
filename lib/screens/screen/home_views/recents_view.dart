@@ -46,36 +46,41 @@ class HistoryView extends StatelessWidget {
                 .merge(Default_Theme.secondoryTextStyle),
           ),
         ),
-        body: BlocBuilder<HistoryCubit, HistoryState>(
-          builder: (context, state) {
-            return (state is HistoryInitial)
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : ListView.builder(
-                    itemCount: state.tracks.length,
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      return SongCardWidget(
-                        song: state.tracks[index],
-                        onTap: () {
-                          context
-                              .read<BloomeePlayerCubit>()
-                              .bloomeePlayer
-                              .loadPlaylist(
-                                  Playlist(
-                                      tracks: state.tracks, title: 'History'),
-                                  idx: index,
-                                  doPlay: true);
-                        },
-                        onOptionsTap: () =>
-                            showMoreBottomSheet(context, state.tracks[index]),
-                      );
-                    },
-                  );
-          },
-        ),
+        body: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: BlocBuilder<HistoryCubit, HistoryState>(
+                  builder: (context, state) {
+                    return (state is HistoryInitial)
+                        ? const Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : ListView.builder(
+                            itemCount: state.tracks.length,
+                            shrinkWrap: true,
+                            physics: const BouncingScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              return SongCardWidget(
+                                song: state.tracks[index],
+                                onTap: () {
+                                  context
+                                      .read<BloomeePlayerCubit>()
+                                      .bloomeePlayer
+                                      .loadPlaylist(
+                                          Playlist(
+                                              tracks: state.tracks,
+                                              title: 'History'),
+                                          idx: index,
+                                          doPlay: true);
+                                },
+                                onOptionsTap: () => showMoreBottomSheet(
+                                    context, state.tracks[index]),
+                              );
+                            },
+                          );
+                  },
+                ))),
       ),
     );
   }

@@ -50,120 +50,129 @@ class _PlaylistEditViewState extends State<PlaylistEditView> {
 
         return Scaffold(
           backgroundColor: Default_Theme.themeColor,
-          body: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                floating: true,
-                centerTitle: true,
-                surfaceTintColor: Default_Theme.themeColor,
-                foregroundColor: Default_Theme.primaryColor1,
-                backgroundColor: Default_Theme.themeColor,
-                title: Text(
-                  AppLocalizations.of(context)!.playlistEdit,
-                  style: Default_Theme.secondoryTextStyleMedium.merge(
-                    const TextStyle(
-                        fontSize: 16, color: Default_Theme.primaryColor1),
-                  ),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: IconButton(
-                      onPressed: () async {
-                        final playlistCubit =
-                            context.read<CurrentPlaylistCubit>();
-                        final navigator = Navigator.of(context);
-                        if (_localTracks.isNotEmpty) {
-                          try {
-                            await playlistCubit.updatePlaylist(_localTracks);
-                            if (!mounted) return;
-                            SnackbarService.showMessage(
-                                AppLocalizations.of(context)!
-                                    .snackbarPlaylistUpdated);
-                          } catch (_) {
-                            if (!mounted) return;
-                            SnackbarService.showMessage(
-                              AppLocalizations.of(context)!
-                                  .playlistSaveOrderFailed,
-                            );
-                            return;
-                          }
-                        }
-                        if (!mounted) return;
-                        navigator.pop();
-                      },
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      icon: const Icon(
-                        MingCute.check_fill,
-                        color: Default_Theme.accentColor2,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // Hint bar
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.035),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color:
-                            Default_Theme.accentColor2.withValues(alpha: 0.22),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: Default_Theme.accentColor2
-                                .withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.drag_indicator_rounded,
-                            size: 16,
-                            color: Default_Theme.accentColor2
-                                .withValues(alpha: 0.95),
+          body: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverAppBar(
+                        floating: true,
+                        centerTitle: true,
+                        surfaceTintColor: Default_Theme.themeColor,
+                        foregroundColor: Default_Theme.primaryColor1,
+                        backgroundColor: Default_Theme.themeColor,
+                        title: Text(
+                          AppLocalizations.of(context)!.playlistEdit,
+                          style: Default_Theme.secondoryTextStyleMedium.merge(
+                            const TextStyle(
+                                fontSize: 16,
+                                color: Default_Theme.primaryColor1),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            AppLocalizations.of(context)!
-                                .playlistReorderTracksHint,
-                            style: Default_Theme.secondoryTextStyleMedium.merge(
-                              TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Default_Theme.primaryColor1
-                                    .withValues(alpha: 0.6),
+                        actions: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: IconButton(
+                              onPressed: () async {
+                                final playlistCubit =
+                                    context.read<CurrentPlaylistCubit>();
+                                final navigator = Navigator.of(context);
+                                if (_localTracks.isNotEmpty) {
+                                  try {
+                                    await playlistCubit
+                                        .updatePlaylist(_localTracks);
+                                    if (!mounted) return;
+                                    SnackbarService.showMessage(
+                                        AppLocalizations.of(context)!
+                                            .snackbarPlaylistUpdated);
+                                  } catch (_) {
+                                    if (!mounted) return;
+                                    SnackbarService.showMessage(
+                                      AppLocalizations.of(context)!
+                                          .playlistSaveOrderFailed,
+                                    );
+                                    return;
+                                  }
+                                }
+                                if (!mounted) return;
+                                navigator.pop();
+                              },
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              icon: const Icon(
+                                MingCute.check_fill,
+                                color: Default_Theme.accentColor2,
                               ),
                             ),
                           ),
+                        ],
+                      ),
+                      // Hint bar
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.035),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Default_Theme.accentColor2
+                                    .withValues(alpha: 0.22),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: Default_Theme.accentColor2
+                                        .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.drag_indicator_rounded,
+                                    size: 16,
+                                    color: Default_Theme.accentColor2
+                                        .withValues(alpha: 0.95),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(context)!
+                                        .playlistReorderTracksHint,
+                                    style: Default_Theme
+                                        .secondoryTextStyleMedium
+                                        .merge(
+                                      TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: Default_Theme.primaryColor1
+                                            .withValues(alpha: 0.6),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Reorderable list
-              SliverPlaylistItems(
-                initialTracks: _localTracks,
-                onTracksReordered: _onTracksReordered,
-              ),
-              SliverToBoxAdapter(
-                child: SizedBox(
-                    height: MediaQuery.of(context).padding.bottom + 24),
-              ),
-            ],
-          ),
+                      ),
+                      // Reorderable list
+                      SliverPlaylistItems(
+                        initialTracks: _localTracks,
+                        onTracksReordered: _onTracksReordered,
+                      ),
+                      SliverToBoxAdapter(
+                        child: SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 24),
+                      ),
+                    ],
+                  ))),
         );
       },
     );

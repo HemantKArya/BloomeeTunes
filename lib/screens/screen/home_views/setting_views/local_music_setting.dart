@@ -114,7 +114,7 @@ class _LocalMusicSettingsState extends State<LocalMusicSettings> {
       ),
       body: ListView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: settingsPagePadding(context),
         children: [
           SettingSectionHeader(label: l10n.settingsScanning),
           SettingCard(

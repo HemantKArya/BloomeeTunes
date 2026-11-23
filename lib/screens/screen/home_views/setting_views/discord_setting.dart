@@ -98,7 +98,8 @@ class _Options extends StatelessWidget {
   final DiscordPresenceSettings settings;
   const _Options({required this.settings, super.key});
 
-  void _set(DiscordPresenceSettings next) => DiscordService.updateSettings(next);
+  void _set(DiscordPresenceSettings next) =>
+      DiscordService.updateSettings(next);
 
   @override
   Widget build(BuildContext context) {
@@ -282,9 +283,8 @@ class _ConnectionTile extends StatelessWidget {
             ),
         };
         final isError = state == DiscordConnectionState.error;
-        final avatar = state == DiscordConnectionState.connected
-            ? user?.avatarUrl
-            : null;
+        final avatar =
+            state == DiscordConnectionState.connected ? user?.avatarUrl : null;
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
@@ -653,8 +653,8 @@ class _PreviewArt extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: Default_Theme.themeColor, width: 3),
               ),
-              child: const Icon(MingCute.play_fill,
-                  size: 10, color: Colors.white),
+              child:
+                  const Icon(MingCute.play_fill, size: 10, color: Colors.white),
             ),
           ),
         ],
@@ -700,8 +700,8 @@ class _PreviewProgress extends StatelessWidget {
                 minHeight: 4,
                 backgroundColor:
                     Default_Theme.primaryColor2.withValues(alpha: 0.08),
-                valueColor: const AlwaysStoppedAnimation(
-                    Default_Theme.primaryColor2),
+                valueColor:
+                    const AlwaysStoppedAnimation(Default_Theme.primaryColor2),
               ),
             ),
           ),

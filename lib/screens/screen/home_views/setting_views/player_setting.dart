@@ -58,7 +58,7 @@ class PlayerSettings extends StatelessWidget {
         builder: (context, state) {
           return ListView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: settingsPagePadding(context),
             children: [
               // ─── Streaming Quality ─────────────────────────────────────
               SettingSectionHeader(label: l10n.playerSettingStreamingHeader),

@@ -102,7 +102,7 @@ class _LastDotFMState extends State<LastDotFM> {
         builder: (context, settingsState) {
           return ListView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: settingsPagePadding(context),
             children: [
               // Scrobbling
               SettingSectionHeader(label: l10n.settingsScrobbling),
@@ -362,8 +362,8 @@ class _ScrobbleStatusCardState extends State<_ScrobbleStatusCard> {
                       Expanded(
                         child: Text(
                           title,
-                          style: Default_Theme.secondoryTextStyleMedium
-                              .copyWith(
+                          style:
+                              Default_Theme.secondoryTextStyleMedium.copyWith(
                             color: tone,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,

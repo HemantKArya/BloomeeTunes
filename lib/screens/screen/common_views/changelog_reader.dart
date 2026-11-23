@@ -294,121 +294,138 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ));
             }),
       ),
-      body: FutureBuilder<PackageInfo?>(
-        // Always attempt to load PackageInfo so badges & expansion ranges work in both modes.
-        future: _packageInfo,
-        builder: (context, AsyncSnapshot<PackageInfo?> snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final installedLabel = snapshot.hasData && snapshot.data != null
-              ? 'v${snapshot.data!.version}'
-              : null; // only version part needed for matching
+      body: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: FutureBuilder<PackageInfo?>(
+                // Always attempt to load PackageInfo so badges & expansion ranges work in both modes.
+                future: _packageInfo,
+                builder: (context, AsyncSnapshot<PackageInfo?> snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final installedLabel =
+                      snapshot.hasData && snapshot.data != null
+                          ? 'v${snapshot.data!.version}'
+                          : null; // only version part needed for matching
 
-          final List<Version> versionsToShow = showOlderVersions
-              ? changelog.versions
-              : _filterToInstalledRange(
-                  List<Version>.from(changelog.versions), installedLabel);
+                  final List<Version> versionsToShow = showOlderVersions
+                      ? changelog.versions
+                      : _filterToInstalledRange(
+                          List<Version>.from(changelog.versions),
+                          installedLabel);
 
-          // Compute which indices to expand by default: range from installed -> latestStable (inclusive)
-          final String? installedNorm = installedLabel != null
-              ? _normalizeVersionLabel(installedLabel)
-              : null;
-          String? latestStableNorm;
-          try {
-            latestStableNorm = _normalizeVersionLabel(changelog.versions
-                .firstWhere((v) =>
-                    _normalizeVersionLabel(v.versionNumber) != 'unreleased')
-                .versionNumber);
-          } catch (_) {
-            latestStableNorm = changelog.versions.isNotEmpty
-                ? _normalizeVersionLabel(changelog.versions[0].versionNumber)
-                : null;
-          }
+                  // Compute which indices to expand by default: range from installed -> latestStable (inclusive)
+                  final String? installedNorm = installedLabel != null
+                      ? _normalizeVersionLabel(installedLabel)
+                      : null;
+                  String? latestStableNorm;
+                  try {
+                    latestStableNorm = _normalizeVersionLabel(changelog.versions
+                        .firstWhere((v) =>
+                            _normalizeVersionLabel(v.versionNumber) !=
+                            'unreleased')
+                        .versionNumber);
+                  } catch (_) {
+                    latestStableNorm = changelog.versions.isNotEmpty
+                        ? _normalizeVersionLabel(
+                            changelog.versions[0].versionNumber)
+                        : null;
+                  }
 
-          int installedIndexInView = -1;
-          int latestIndexInView = -1;
-          if (installedNorm != null) {
-            installedIndexInView = versionsToShow.indexWhere((v) =>
-                _normalizeVersionLabel(v.versionNumber) == installedNorm);
-          }
-          if (latestStableNorm != null) {
-            latestIndexInView = versionsToShow.indexWhere((v) =>
-                _normalizeVersionLabel(v.versionNumber) == latestStableNorm);
-          }
+                  int installedIndexInView = -1;
+                  int latestIndexInView = -1;
+                  if (installedNorm != null) {
+                    installedIndexInView = versionsToShow.indexWhere((v) =>
+                        _normalizeVersionLabel(v.versionNumber) ==
+                        installedNorm);
+                  }
+                  if (latestStableNorm != null) {
+                    latestIndexInView = versionsToShow.indexWhere((v) =>
+                        _normalizeVersionLabel(v.versionNumber) ==
+                        latestStableNorm);
+                  }
 
-          final Set<int> expandedIndices = {};
-          if (installedIndexInView != -1 && latestIndexInView != -1) {
-            final start = installedIndexInView < latestIndexInView
-                ? installedIndexInView
-                : latestIndexInView;
-            final end = installedIndexInView > latestIndexInView
-                ? installedIndexInView
-                : latestIndexInView;
-            for (int i = start; i <= end; i++) {
-              expandedIndices.add(i);
-            }
-          }
+                  final Set<int> expandedIndices = {};
+                  if (installedIndexInView != -1 && latestIndexInView != -1) {
+                    final start = installedIndexInView < latestIndexInView
+                        ? installedIndexInView
+                        : latestIndexInView;
+                    final end = installedIndexInView > latestIndexInView
+                        ? installedIndexInView
+                        : latestIndexInView;
+                    for (int i = start; i <= end; i++) {
+                      expandedIndices.add(i);
+                    }
+                  }
 
-          if (versionsToShow.isEmpty && !showOlderVersions) {
-            return Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.info_outline, size: 48, color: Colors.grey),
-                const SizedBox(height: 16),
-                Text(AppLocalizations.of(context)!.changelogEmpty,
-                    style: const TextStyle(fontSize: 16, fontFamily: 'Gilroy')),
-              ],
-            ));
-          }
+                  if (versionsToShow.isEmpty && !showOlderVersions) {
+                    return Center(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.info_outline,
+                            size: 48, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        Text(AppLocalizations.of(context)!.changelogEmpty,
+                            style: const TextStyle(
+                                fontSize: 16, fontFamily: 'Gilroy')),
+                      ],
+                    ));
+                  }
 
-          // Each change is a sliver child, so even a large expanded release
-          // only lays out the entries near the viewport.
-          return CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                sliver: SliverToBoxAdapter(
-                    child: Padding(
-                  padding: const EdgeInsets.only(left: 6, right: 6, bottom: 16),
-                  child: ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: [Color(0xFFFFA751), Color(0xFFFF4B4B)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ).createShader(bounds),
-                    child: Text(AppLocalizations.of(context)!.changelogTitle,
-                        style: const TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Gilroy',
-                            color: Colors.white)),
-                  ),
-                )),
-              ),
-              for (var versionIndex = 0;
-                  versionIndex < versionsToShow.length;
-                  versionIndex++)
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  sliver: _ReleaseSliver(
-                    key: ValueKey(versionsToShow[versionIndex].versionNumber),
-                    version:
-                        versionsToShow[versionIndex], // Use the filtered list
-                    listIndex: versionIndex,
-                    installedVersion: installedLabel,
-                    latestStableVersion: latestStableNorm,
-                    forceExpanded: expandedIndices.contains(versionIndex),
-                  ),
-                ),
-              SliverToBoxAdapter(
-                  child: SizedBox(
-                      height: MediaQuery.paddingOf(context).bottom + 24)),
-            ],
-          );
-        },
-      ),
+                  // Each change is a sliver child, so even a large expanded release
+                  // only lays out the entries near the viewport.
+                  return CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        sliver: SliverToBoxAdapter(
+                            child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 6, right: 6, bottom: 16),
+                          child: ShaderMask(
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [Color(0xFFFFA751), Color(0xFFFF4B4B)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ).createShader(bounds),
+                            child: Text(
+                                AppLocalizations.of(context)!.changelogTitle,
+                                style: const TextStyle(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Gilroy',
+                                    color: Colors.white)),
+                          ),
+                        )),
+                      ),
+                      for (var versionIndex = 0;
+                          versionIndex < versionsToShow.length;
+                          versionIndex++)
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          sliver: _ReleaseSliver(
+                            key: ValueKey(
+                                versionsToShow[versionIndex].versionNumber),
+                            version: versionsToShow[
+                                versionIndex], // Use the filtered list
+                            listIndex: versionIndex,
+                            installedVersion: installedLabel,
+                            latestStableVersion: latestStableNorm,
+                            forceExpanded:
+                                expandedIndices.contains(versionIndex),
+                          ),
+                        ),
+                      SliverToBoxAdapter(
+                          child: SizedBox(
+                              height:
+                                  MediaQuery.paddingOf(context).bottom + 24)),
+                    ],
+                  );
+                },
+              ))),
     );
   }
 }

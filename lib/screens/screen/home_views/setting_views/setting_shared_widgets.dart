@@ -987,3 +987,20 @@ class _DropdownOption<T> extends StatelessWidget {
     );
   }
 }
+
+/// Max width of settings content on wide screens (desktop / tablet).
+const double kSettingsContentMaxWidth = 640;
+
+/// Page padding that keeps list content within [kSettingsContentMaxWidth],
+/// centered, on wide screens. Falls back to [minHorizontal] on phones.
+EdgeInsets settingsPagePadding(
+  BuildContext context, {
+  double minHorizontal = 20,
+  double vertical = 16,
+}) {
+  final width = MediaQuery.sizeOf(context).width;
+  final side = ((width - kSettingsContentMaxWidth) / 2)
+      .clamp(minHorizontal, double.infinity)
+      .toDouble();
+  return EdgeInsets.symmetric(horizontal: side, vertical: vertical);
+}

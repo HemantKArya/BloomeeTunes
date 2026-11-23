@@ -57,7 +57,7 @@ class _DownloadSettingsState extends State<DownloadSettings> {
         builder: (context, state) {
           return ListView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: settingsPagePadding(context),
             children: [
               SettingSectionHeader(label: l10n.settingsQuality),
               SettingCard(
