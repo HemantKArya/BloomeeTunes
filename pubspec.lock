@@ -527,14 +527,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  fuzzywuzzy:
-    dependency: "direct main"
-    description:
-      name: fuzzywuzzy
-      sha256: "3004379ffd6e7f476a0c2091f38f16588dc45f67de7adf7c41aa85dec06b432c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.0"
   get_it:
     dependency: transitive
     description:
@@ -1343,14 +1335,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
-  string_similarity:
-    dependency: "direct main"
-    description:
-      name: string_similarity
-      sha256: b4b73ec3af3e4203504b136dfbcdbca29edea4eb373684811b76ded9f40a54b9
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.1"
   sync_http:
     dependency: transitive
     description:

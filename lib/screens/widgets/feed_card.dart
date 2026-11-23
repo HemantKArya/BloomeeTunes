@@ -29,7 +29,9 @@ class FeedStyle {
       };
 
   factory FeedStyle.update(AppLocalizations l10n) => FeedStyle(
-      MingCute.download_3_fill, Default_Theme.accentColor1, l10n.feedKindUpdate);
+      MingCute.download_3_fill,
+      Default_Theme.accentColor1,
+      l10n.feedKindUpdate);
 }
 
 /// Opens an entry's link outside the app and counts the entry as seen.
@@ -47,6 +49,7 @@ class FeedCard extends StatelessWidget {
   final String title;
   final String? body;
   final String? image;
+  final String? icon;
   final String? actionLabel;
   final VoidCallback? onAction;
 
@@ -63,6 +66,7 @@ class FeedCard extends StatelessWidget {
     required this.title,
     this.body,
     this.image,
+    this.icon,
     this.actionLabel,
     this.onAction,
     this.external = true,
@@ -84,6 +88,7 @@ class FeedCard extends StatelessWidget {
       title: item.title.resolve(locale),
       body: item.body?.resolve(locale),
       image: item.image,
+      icon: item.icon,
       actionLabel:
           hasLink ? item.actionLabel?.resolve(locale) ?? l10n.feedOpen : null,
       onAction: hasLink ? () => openFeedAction(context, item) : null,
@@ -116,7 +121,7 @@ class FeedCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              FeedIcon(style: style, size: 26),
+              FeedIcon(style: style, size: 26, url: icon),
               const SizedBox(width: 10),
               Expanded(
                 child: Row(
@@ -259,51 +264,63 @@ class _HomeCardBody extends StatelessWidget {
         border: Border.all(color: style.color.withValues(alpha: 0.22)),
       ),
       padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FeedIcon(style: style, size: 36),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  item.title.resolve(locale),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Default_Theme.secondoryTextStyleMedium.copyWith(
-                    color: Default_Theme.primaryColor1,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (body != null)
-                  Text(
-                    body,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Default_Theme.secondoryTextStyle.copyWith(
-                      color: Default_Theme.primaryColor2.withValues(alpha: 0.65),
-                      fontSize: 13,
-                      height: 1.3,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (hasLink) ...[
-            const SizedBox(width: 8),
-            FeedActionButton(
-              label: item.actionLabel?.resolve(locale) ?? l10n.feedOpen,
-              color: style.color,
-              onTap: () => openFeedAction(context, item),
+          if (item.image != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 8, bottom: 10),
+              child: _FeedImage(url: item.image!, aspect: 3),
             ),
           ],
-          _SmallIconButton(
-            icon: MingCute.close_line,
-            tooltip: l10n.feedDismiss,
-            onTap: () => cubit.closeHomeCard(item),
+          Row(
+            children: [
+              FeedIcon(style: style, size: 36, url: item.icon),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.title.resolve(locale),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                        color: Default_Theme.primaryColor1,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (body != null)
+                      Text(
+                        body,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Default_Theme.secondoryTextStyle.copyWith(
+                          color: Default_Theme.primaryColor2
+                              .withValues(alpha: 0.65),
+                          fontSize: 13,
+                          height: 1.3,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (hasLink) ...[
+                const SizedBox(width: 8),
+                FeedActionButton(
+                  label: item.actionLabel?.resolve(locale) ?? l10n.feedOpen,
+                  color: style.color,
+                  onTap: () => openFeedAction(context, item),
+                ),
+              ],
+              _SmallIconButton(
+                icon: MingCute.close_line,
+                tooltip: l10n.feedDismiss,
+                onTap: () => cubit.closeHomeCard(item),
+              ),
+            ],
           ),
         ],
       ),
@@ -311,13 +328,16 @@ class _HomeCardBody extends StatelessWidget {
   }
 }
 
+/// The kind icon, or the entry's own logo when it has one. A logo that
+/// cannot load leaves the kind icon in place.
 class FeedIcon extends StatelessWidget {
   final FeedStyle style;
   final double size;
-  const FeedIcon({super.key, required this.style, required this.size});
+  final String? url;
+  const FeedIcon(
+      {super.key, required this.style, required this.size, this.url});
 
-  @override
-  Widget build(BuildContext context) => Container(
+  Widget _kind() => Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
@@ -326,6 +346,25 @@ class FeedIcon extends StatelessWidget {
         ),
         child: Icon(style.icon, color: style.color, size: size * 0.55),
       );
+
+  @override
+  Widget build(BuildContext context) {
+    final logo = url;
+    if (logo == null) return _kind();
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size * 0.24),
+      child: CachedNetworkImage(
+        imageUrl: logo,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        memCacheWidth: (size * 3).round(),
+        fadeInDuration: const Duration(milliseconds: 180),
+        placeholder: (_, __) => _kind(),
+        errorWidget: (_, __, ___) => _kind(),
+      ),
+    );
+  }
 }
 
 class FeedActionButton extends StatelessWidget {
@@ -426,7 +465,8 @@ class _SmallIconButton extends StatelessWidget {
 
 class _FeedImage extends StatelessWidget {
   final String url;
-  const _FeedImage({required this.url});
+  final double aspect;
+  const _FeedImage({required this.url, this.aspect = 2});
 
   @override
   Widget build(BuildContext context) => ClipRRect(
@@ -436,11 +476,11 @@ class _FeedImage extends StatelessWidget {
           fadeInDuration: const Duration(milliseconds: 180),
           memCacheWidth: 1000,
           imageBuilder: (_, image) => AspectRatio(
-            aspectRatio: 2,
+            aspectRatio: aspect,
             child: Image(image: image, fit: BoxFit.cover),
           ),
           placeholder: (_, __) => AspectRatio(
-            aspectRatio: 2,
+            aspectRatio: aspect,
             child: ColoredBox(
                 color: Default_Theme.primaryColor1.withValues(alpha: 0.05)),
           ),

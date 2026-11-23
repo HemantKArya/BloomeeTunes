@@ -58,8 +58,14 @@ class TrackDAO {
   }
 
   /// Queue references and their tracks must become durable together.
+  ///
+  /// [upsertTracks] false skips re-writing the track rows: pass it when only
+  /// the index or title changed since the last save, so a skip in a long
+  /// queue does not rewrite every track on the UI isolate.
   Future<void> persistQueueState(List<Track> tracks,
-      {required int currentIndex, required String title}) async {
+      {required int currentIndex,
+      required String title,
+      bool upsertTracks = true}) async {
     final isar = await _db;
     isar.writeTxnSync(() {
       if (tracks.isEmpty) {
@@ -69,8 +75,10 @@ class TrackDAO {
             .deleteAllSync();
         return;
       }
-      for (final track in tracks) {
-        upsertTrackInTransaction(isar, track);
+      if (upsertTracks) {
+        for (final track in tracks) {
+          upsertTrackInTransaction(isar, track);
+        }
       }
       isar.appSettingsStrDBs.putSync(AppSettingsStrDB(
           settingName: SettingKeys.lastQueueState,

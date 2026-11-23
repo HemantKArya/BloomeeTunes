@@ -10,20 +10,11 @@ use crate::api::plugin::models::{
 use crate::api::plugin::traits::Plugin;
 use crate::api::plugin::types::{PluginAdapter, PluginType};
 use crate::api::plugin::wasm_runtime::{HostPluginStore, SharedWasmEngine};
-use once_cell::sync::Lazy;
+use crate::utils::http;
 use std::any::Any;
 use std::collections::HashMap;
 
 use bindgen::exports_chart_api;
-
-/// Global HTTP client that lives for the entire program lifetime
-static HTTP_CLIENT: Lazy<reqwest::blocking::Client> = Lazy::new(|| {
-    reqwest::blocking::Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-        .timeout(std::time::Duration::from_secs(30))
-        .build()
-        .unwrap_or_else(|_| reqwest::blocking::Client::new())
-});
 
 /// ChartProviderHostImpl provides HTTP and utility host functions for chart provider plugins
 #[flutter_rust_bridge::frb(opaque)]
@@ -62,38 +53,17 @@ impl bindgen::UtilsHost for ChartProviderHostImpl {
             bindgen::HttpMethod::Patch => reqwest::Method::PATCH,
             bindgen::HttpMethod::Options => reqwest::Method::OPTIONS,
         };
-
-        let mut req = HTTP_CLIENT.request(method, &url);
-
-        if let Some(timeout) = options.timeout_seconds {
-            let capped_timeout = timeout.min(30);
-            req = req.timeout(std::time::Duration::from_secs(capped_timeout as u64));
-        }
-
-        if let Some(headers) = options.headers {
-            for (k, v) in headers {
-                req = req.header(k, v);
-            }
-        }
-
-        if let Some(body) = options.body {
-            req = req.body(body);
-        }
-
-        let resp = req.send().map_err(|e| e.to_string())?;
-
-        let status = resp.status().as_u16();
-        let headers: Vec<(String, String)> = resp
-            .headers()
-            .iter()
-            .map(|(k, v)| (k.as_str().to_string(), v.to_str().unwrap_or("").to_string()))
-            .collect();
-        let body_bytes = resp.bytes().map_err(|e| e.to_string())?.to_vec();
-
+        let response = http::send_blocking(http::Request {
+            method,
+            url,
+            headers: options.headers.unwrap_or_default(),
+            body: options.body,
+            timeout_seconds: options.timeout_seconds,
+        })?;
         Ok(bindgen::HttpResponse {
-            status,
-            headers,
-            body: body_bytes,
+            status: response.status,
+            headers: response.headers,
+            body: response.body,
         })
     }
 

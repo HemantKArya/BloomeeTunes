@@ -2,6 +2,14 @@
 """
 Deploy ghpage/build -> ghpage (force) using git worktree + local build.
 
+    python deploy_page.py                 # full site deploy
+    python deploy_page.py --feed          # publish only ghpage/feed.json
+    python deploy_page.py --feed --dry-run
+
+--feed adds one normal commit (no force push, no rebuild) to the ghpage branch
+that changes only feed.json. ghpage/feed.json is git-ignored in the app repo
+(like repositories.json); the ghpage branch holds the live copy.
+
 Improvements:
  - Creates orphan temp branch from current HEAD and pushes it to origin/ghpage.
  - Robust cleanup: handles 'branch used by worktree' and 'worktree remove prompts'
@@ -18,6 +26,7 @@ import tempfile
 import time
 import sys
 import os
+import argparse
 import signal
 import platform
 from datetime import datetime
@@ -29,6 +38,12 @@ BRANCH = "ghpage"
 REMOTE = "origin"
 RETRY_DELAYS = [1, 2, 2, 4, 4, 6, 8, 10]  # backoff sequence
 # ----------------------------
+
+# The console on Windows can't print the emoji in the log lines.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 _temp_worktree = None
 _temp_branch = None
@@ -324,17 +339,37 @@ def copy_app_files_into_build(repo_root: Path):
 
     for name in APP_FILES:
         src = (repo_root / BUILD_SOURCE / name).resolve()
-        if not src.exists():
-            log(f"ℹ️ ghpage/{name} not found — skipping.")
-            continue
+        if src.exists():
+            text = src.read_text(encoding="utf-8")
+        else:
+            # These files are git-ignored in the app repo and live on the
+            # ghpage branch. This deploy replaces that branch, so carry the
+            # live copy over instead of dropping it.
+            text = live_copy(repo_root, name)
+            if text is None:
+                log(f"ℹ️ ghpage/{name} not found locally or on {BRANCH} — skipping.")
+                continue
+            log(f"ℹ️ ghpage/{name} not found locally — keeping the live copy from {BRANCH}.")
         try:
-            data = json.loads(src.read_text(encoding="utf-8"))
+            data = json.loads(text)
         except ValueError as e:
             raise RuntimeError(f"ghpage/{name} is not valid JSON: {e}") from e
         if name == "feed.json":
             check_feed(data)
-        shutil.copy2(src, build_dir / name)
+        (build_dir / name).write_text(text, encoding="utf-8")
         log(f"📄 Copied {name}")
+
+
+def live_copy(repo_root: Path, name: str):
+    """The file as currently published on the ghpage branch, or None."""
+    try:
+        subprocess.run(["git", "fetch", REMOTE, BRANCH], cwd=str(repo_root),
+                       check=True, capture_output=True)
+        out = subprocess.run(["git", "show", f"FETCH_HEAD:{name}"],
+                             cwd=str(repo_root), check=True, capture_output=True)
+        return out.stdout.decode("utf-8")
+    except Exception:
+        return None
 
 
 def check_feed(data):
@@ -368,6 +403,56 @@ def commit_and_push(wt: Path):
         run_stream(["git", "commit", "-m", f"Deploy {datetime.utcnow().isoformat()}"], cwd=wt)
     run_stream(["git", "push", "--force", REMOTE, f"HEAD:refs/heads/{BRANCH}"], cwd=wt)
 
+def publish_feed_only(repo_root: Path, dry_run: bool = False) -> int:
+    """Validate ghpage/feed.json and push just that file to the ghpage branch."""
+    src = repo_root / BUILD_SOURCE / "feed.json"
+    if not src.exists():
+        log(f"❌ {BUILD_SOURCE / 'feed.json'} not found. Create it first (see docs/announcements.md).")
+        return 1
+    try:
+        check_feed(json.loads(src.read_text(encoding="utf-8")))
+    except (ValueError, RuntimeError) as e:
+        log(f"❌ Not published, feed.json is invalid: {e}")
+        return 1
+
+    def git(*args, cwd, check=True):
+        return subprocess.run(["git", *args], cwd=str(cwd), check=check,
+                              text=True, capture_output=True, encoding="utf-8")
+
+    log(f"Fetching {REMOTE}/{BRANCH} ...")
+    try:
+        git("fetch", REMOTE, BRANCH, cwd=repo_root)
+    except subprocess.CalledProcessError as e:
+        log(f"❌ Fetch failed: {e.stderr}")
+        return 1
+
+    wt = Path(tempfile.mkdtemp(prefix="feed_publish_"))
+    try:
+        # FETCH_HEAD: the remote may not track this branch locally.
+        git("worktree", "add", "--detach", str(wt), "FETCH_HEAD", cwd=repo_root)
+        shutil.copy2(src, wt / "feed.json")
+        git("add", "feed.json", cwd=wt)
+        if git("diff", "--cached", "--quiet", cwd=wt, check=False).returncode == 0:
+            log("ℹ️ Live feed.json is already identical. Nothing to publish.")
+            return 0
+        log(git("diff", "--cached", "--stat", cwd=wt).stdout.strip())
+        if dry_run:
+            log("Dry run: nothing pushed.")
+            return 0
+        git("commit", "-m", "Update feed.json", cwd=wt)
+        push = git("push", REMOTE, f"HEAD:refs/heads/{BRANCH}", cwd=wt, check=False)
+        if push.returncode != 0:
+            log(f"❌ Push failed (was {BRANCH} updated meanwhile? re-run): {push.stderr}")
+            return 1
+        log("✅ Feed published. GitHub Pages updates in about a minute:")
+        log("   https://hemantkarya.github.io/BloomeeTunes/feed.json")
+        return 0
+    finally:
+        git("worktree", "remove", "--force", str(wt), cwd=repo_root, check=False)
+        shutil.rmtree(wt, ignore_errors=True)
+        git("worktree", "prune", cwd=repo_root, check=False)
+
+
 def _signal_handler(sig, frame):
     log(f"\n⚠️ Caught signal {sig}. Attempting cleanup...")
     global _temp_worktree, _temp_branch
@@ -392,6 +477,19 @@ def find_or_build(repo_root: Path):
 
 def main():
     global _temp_worktree, _temp_branch
+    ap = argparse.ArgumentParser(description="Deploy the project site to the ghpage branch.")
+    ap.add_argument("--feed", action="store_true",
+                    help="publish only ghpage/feed.json (no rebuild, no force push)")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="with --feed: validate and show the change, push nothing")
+    args = ap.parse_args()
+    if args.dry_run and not args.feed:
+        ap.error("--dry-run only applies to --feed")
+
+    if args.feed:
+        ensure_git()
+        return publish_feed_only(get_repo_root(), args.dry_run)
+
     signal.signal(signal.SIGINT, _signal_handler)
     try:
         signal.signal(signal.SIGTERM, _signal_handler)

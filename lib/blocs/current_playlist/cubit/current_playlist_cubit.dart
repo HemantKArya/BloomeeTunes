@@ -1,7 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
+
 import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/core/models/media_playlist_model.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
+import 'package:Bloomee/services/meta_resolver/smart_track_replacement_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -30,7 +33,12 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     required PlaylistDAO playlistDao,
   })  : _playlist = playlist,
         _playlistDao = playlistDao,
-        super(const CurrentPlaylistInitial());
+        super(const CurrentPlaylistInitial()) {
+    _replacementSub =
+        SmartTrackReplacementService.applied.listen(_applyReplacement);
+  }
+
+  late final StreamSubscription<TrackReplacement> _replacementSub;
 
   /// Load a playlist by [playlistName] and emit the loaded state.
   ///
@@ -273,17 +281,33 @@ class CurrentPlaylistCubit extends Cubit<CurrentPlaylistState> {
     await openPlaylist(_playlist!.title);
   }
 
-  /// Optimistically replaces [original] with [replacement] in the current
-  /// playlist state without re-querying the DB.  Call this after a smart-
-  /// replace operation when the DB has already been updated elsewhere, so the
-  /// UI reflects the change instantly.
-  void replaceTrack(Track original, Track replacement) {
-    if (_playlist == null) return;
-    final updated = state.playlist.tracks
-        .map((t) => t.id == original.id ? replacement : t)
-        .toList(growable: false);
+  /// Mirrors a Smart Replace already written to the DB: [original] becomes
+  /// [replacement] in place, or is dropped if [replacement] is already in
+  /// the playlist (as the DB did).
+  void _applyReplacement(TrackReplacement r) {
+    final key = _openedStorageKey;
+    if (_playlist == null || key == null || !r.playlists.contains(key)) return;
+    final tracks = state.playlist.tracks;
+    final at = tracks.indexWhere((t) => t.id == r.original.id);
+    if (at == -1) return;
+
+    final updated = [...tracks];
+    var total = state.totalTracks;
+    if (tracks.any((t) => t.id == r.replacement.id)) {
+      updated.removeAt(at);
+      _loadedCount = updated.length;
+      total = (total - 1).clamp(0, 1 << 30);
+    } else {
+      updated[at] = r.replacement;
+    }
     _playlist = _playlist!.copyWith(tracks: updated);
-    emit(state.copyWith(playlist: _playlist));
+    emit(state.copyWith(playlist: _playlist, totalTracks: total));
+  }
+
+  @override
+  Future<void> close() async {
+    await _replacementSub.cancel();
+    return super.close();
   }
 
   /// Returns the name of the currently loaded playlist, or null if none.

@@ -1053,7 +1053,7 @@ class _QueueItemState extends State<_QueueItem> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (desktop)
+                        if (desktop && !playing)
                           _QueueAction(
                             icon: Icons.close_rounded,
                             tooltip: l10n.tooltipRemoveFromQueue,
@@ -1103,7 +1103,9 @@ class _QueueItemState extends State<_QueueItem> {
       index: widget.index,
       child: Dismissible(
         key: ValueKey('dismiss_${widget.key}'),
-        direction: DismissDirection.startToEnd,
+        // The playing track cannot be removed (skip it instead).
+        direction:
+            playing ? DismissDirection.none : DismissDirection.startToEnd,
         onDismissed: (_) => _remove(),
         background: Padding(
           padding: const EdgeInsets.symmetric(vertical: 2),

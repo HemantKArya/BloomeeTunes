@@ -22,30 +22,24 @@ class RelatedSongsManager {
   bool _isFetching = false;
   bool _isExhausted = false;
 
-  // Callbacks
-  Function(List<Track> items, {bool atLast})? onAddQueueItems;
+  /// Appends tracks to the queue (skipping ones already queued).
+  void Function(List<Track> items)? onAddQueueItems;
 
   RelatedSongsManager(this._pluginService);
 
+  /// Tops the queue up with radio tracks for [currentMedia] when it is about
+  /// to run out. [remaining] counts the tracks after the current one; it is
+  /// read again after each fetch because the queue can change meanwhile.
   Future<void> checkForRelatedSongs({
     required Track currentMedia,
-    required List<Track> queue,
-    required int currentPlayingIdx,
+    required int Function() remaining,
     required LoopMode loopMode,
   }) async {
-    log("Checking for related songs: ${queue.isNotEmpty && (queue.length - currentPlayingIdx) < 2}",
-        name: "RelatedSongsManager");
+    if (loopMode == LoopMode.all || remaining() > 0) return;
 
     final autoPlay =
         await SettingsDAO(DBProvider.db).getSettingBool(SettingKeys.autoPlay);
     if (autoPlay != null && !autoPlay) return;
-
-    final shouldQueueMore = queue.isNotEmpty &&
-        (queue.length - currentPlayingIdx) < 2 &&
-        loopMode != LoopMode.all;
-    if (!shouldQueueMore) {
-      return;
-    }
 
     final parts = tryParseMediaId(currentMedia.id);
     if (parts == null) {
@@ -66,29 +60,17 @@ class RelatedSongsManager {
     if (relatedSongs.value.isEmpty) {
       await _fetchNextRadioPage();
     }
-
-    await loadRelatedSongs(
-        queue: queue, currentPlayingIdx: currentPlayingIdx, loopMode: loopMode);
+    _appendBuffered(remaining);
 
     if (relatedSongs.value.isEmpty) {
       await _fetchNextRadioPage();
-      await loadRelatedSongs(
-        queue: queue,
-        currentPlayingIdx: currentPlayingIdx,
-        loopMode: loopMode,
-      );
+      _appendBuffered(remaining);
     }
   }
 
-  Future<void> loadRelatedSongs({
-    required List<Track> queue,
-    required int currentPlayingIdx,
-    required LoopMode loopMode,
-  }) async {
-    if (relatedSongs.value.isNotEmpty &&
-        (queue.length - currentPlayingIdx) < 3 &&
-        loopMode != LoopMode.all) {
-      onAddQueueItems?.call(relatedSongs.value, atLast: true);
+  void _appendBuffered(int Function() remaining) {
+    if (relatedSongs.value.isNotEmpty && remaining() < 2) {
+      onAddQueueItems?.call(relatedSongs.value);
       relatedSongs.add([]);
     }
   }

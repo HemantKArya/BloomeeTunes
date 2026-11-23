@@ -166,7 +166,7 @@ void main() {
 
   testWidgets('render ghpage/feed.json', (tester) async {
     await render(tester, 'feed', 'ghpage/feed.json');
-  });
+  }, skip: !File('ghpage/feed.json').existsSync());
 
   testWidgets('render every kind of entry', (tester) async {
     final file = File('${out.path}/gallery.json')

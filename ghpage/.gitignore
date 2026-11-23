@@ -8,6 +8,7 @@ build
 /.svelte-kit
 /build
 /repositories.json
+/feed.json
 
 # OS
 .DS_Store

@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:Bloomee/blocs/media_player/bloomee_player_cubit.dart';
 import 'package:Bloomee/core/theme/app_theme.dart';
-import 'package:Bloomee/blocs/current_playlist/cubit/current_playlist_cubit.dart';
 import 'package:Bloomee/screens/widgets/bloomee_ui_kit/bloomee_dialog.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/meta_resolver/smart_track_replacement_service.dart';
@@ -35,9 +36,8 @@ class _SmartReplaceDialogState extends State<_SmartReplaceDialog> {
   @override
   void initState() {
     super.initState();
-    _service = SmartTrackReplacementService.create(
-      context.read<BloomeePlayerCubit>().bloomeePlayer.pluginService,
-    );
+    _service =
+        context.read<BloomeePlayerCubit>().bloomeePlayer.smartReplacement;
     _future = _service.searchCandidates(widget.track);
   }
 
@@ -109,9 +109,7 @@ class _SmartReplaceDialogState extends State<_SmartReplaceDialog> {
                       : '$artistNames • ${candidate.pluginName}',
                   imageUrl: thumbUrl,
                   selected: index == 0,
-                  onTap: isApplying
-                      ? null
-                      : () => _applyReplacement(context, candidate),
+                  onTap: isApplying ? null : () => _applyReplacement(candidate),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -143,7 +141,6 @@ class _SmartReplaceDialogState extends State<_SmartReplaceDialog> {
   }
 
   Future<void> _applyReplacement(
-    BuildContext context,
     SmartTrackReplacementCandidate candidate,
   ) async {
     final l10n = AppLocalizations.of(context)!;
@@ -151,43 +148,22 @@ class _SmartReplaceDialogState extends State<_SmartReplaceDialog> {
     final player = context.read<BloomeePlayerCubit>().bloomeePlayer;
 
     try {
-      final applyResult = await _service.applyReplacement(
-        originalTrack: widget.track,
+      // Open playlist screens update from SmartTrackReplacementService.applied.
+      final applied = await _service.applyReplacement(
+        original: widget.track,
         replacement: candidate.track,
       );
 
-      final queueTracks = player.queueTracks;
       final queueContainsOriginal =
-          queueTracks.any((track) => track.id == widget.track.id);
-      if (queueContainsOriginal) {
-        final updatedQueue = queueTracks
-            .map((track) =>
-                track.id == widget.track.id ? candidate.track : track)
-            .toList(growable: false);
-        await player.updateQueueTracks(
-          updatedQueue,
-          startIndex: player.currentQueueIndex,
-          doPlay: player.currentTrackInfo.id == widget.track.id,
-          // Same queue with one track swapped: still the same playlist.
-          title: player.queueTitle.value,
-        );
-      }
+          player.queueTracks.any((track) => track.id == widget.track.id);
+      // In place: order, shuffle and playlist title stay as they are. Not
+      // awaited: if the original is current, that waits for the new load.
+      unawaited(
+          player.replaceTrackInQueue(candidate.track, original: widget.track));
 
       if (!mounted) return;
 
-      // If the currently open playlist was affected, update it in-place so
-      // the playlist screen reflects the change without requiring a reload.
-      try {
-        final playlistCubit = context.read<CurrentPlaylistCubit>();
-        if (applyResult.updatedPlaylists
-            .contains(playlistCubit.currentPlaylistName)) {
-          playlistCubit.replaceTrack(widget.track, candidate.track);
-        }
-      } catch (_) {
-        // CurrentPlaylistCubit not in scope (not called from playlist screen).
-      }
-
-      final playlistCount = applyResult.updatedPlaylists.length;
+      final playlistCount = applied.playlists.length;
       final queueSuffix =
           queueContainsOriginal ? l10n.smartReplaceQueueUpdated : '';
       final playlistMessage = playlistCount == 0

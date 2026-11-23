@@ -176,7 +176,7 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                                   ctx
                                       .read<BloomeePlayerCubit>()
                                       .bloomeePlayer
-                                      .addQueueTracks([song]);
+                                      .addQueueTrack(song);
                                   Navigator.pop(ctx);
                                   SnackbarService.showMessage(
                                       l10n.snackbarAddedToQueue);

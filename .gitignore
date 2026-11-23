@@ -21,6 +21,7 @@
 merge_code.py
 merge_dart.py
 merge_rust.py
+docs/announcements.md
 
 # Visual Studio Code related
 .classpath

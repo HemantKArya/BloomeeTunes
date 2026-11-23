@@ -73,6 +73,9 @@ class FeedItem {
   final FeedText title;
   final FeedText? body;
   final String? image;
+
+  /// A small logo shown beside the entry, in place of the kind icon.
+  final String? icon;
   final FeedText? actionLabel;
 
   /// A link, or links per audience: platform names, "store" and "default".
@@ -101,6 +104,7 @@ class FeedItem {
     this.kind = FeedKind.announcement,
     this.body,
     this.image,
+    this.icon,
     this.actionLabel,
     this.actionUrls = const {},
     this.start,
@@ -140,6 +144,7 @@ class FeedItem {
     }
 
     final image = json['image'];
+    final icon = json['icon'];
     final platforms = json['platforms'];
     return FeedItem(
       id: id.trim(),
@@ -147,6 +152,7 @@ class FeedItem {
       title: title,
       body: FeedText.parse(json['body']),
       image: image is String && image.startsWith('https://') ? image : null,
+      icon: icon is String && icon.startsWith('https://') ? icon : null,
       actionLabel: label,
       actionUrls: urls,
       start: _date(json['start']),

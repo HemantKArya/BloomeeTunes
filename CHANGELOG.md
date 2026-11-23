@@ -20,6 +20,8 @@
 - **Search and Sheets**: Faster search, lyrics search, and option sheets with less rendering work.
 - **Window Name**: The window and Start menu now show Bloomee🌸.
 - **Update Checks**: Bloomee checks for updates once per launch instead of up to three times, and the update dialog appears once per new version instead of on every launch.
+- **Plugin Requests**: Home sections, search, charts and suggestions load faster. All plugins and downloads now share one compressed network connection pool, and Bloomee runs on fewer background threads.
+- **Track Matching**: Matching songs across plugins for charts, imports and replacements now runs in native code, about five times faster, with the same results.
 
 ### Fixed
 - Fixed the full player's progress bar freezing at the start of a song after opening the player.
@@ -36,7 +38,10 @@
 - Added window_manager 0.5.2, tray_manager 0.5.3, and msix. Linux builds now need libayatana-appindicator3-dev.
 - Release builds also produce an unsigned Microsoft Store MSIX as a separate artifact.
 - Added tests for the desktop title bar, close options, scrobble queue, and playback session tracking.
-- Announcements are published from `ghpage/feed.json` by `deploy_page.py`, which rejects an invalid feed. See docs/announcements.md. Preview with `flutter run --dart-define=BLOOMEE_FEED=ghpage/feed.json`, or render `test/feed_preview_test.dart` to PNG.
+- Rust: one shared async `reqwest` client (gzip, zstd) replaces six blocking clients; the bridge runs on a custom handler with 2 to 4 workers and at most 16 blocking threads; downloads are async. Removed the unused `host_funcs` module.
+- Track matching moved to `rust/src/api/matching.rs`; `fuzzywuzzy` and the unused `string_similarity` were removed. `test/track_matching_test.dart` checks it against the previous Dart scores (`rust/tests/fixtures/match_scores.json`) when the native library is built.
+- Plugin benchmark: `cargo test --release --lib bench -- --ignored --nocapture --test-threads 1` in rust/.
+- Announcements are published from the git-ignored `ghpage/feed.json` straight to the `ghpage` branch by `deploy_page.py --feed`, which rejects an invalid feed. See docs/announcements.md. Preview with `flutter run --dart-define=BLOOMEE_FEED=ghpage/feed.json`, or render `test/feed_preview_test.dart` to PNG.
 
 ## [3.1.0+207] - 2026-10-21
 

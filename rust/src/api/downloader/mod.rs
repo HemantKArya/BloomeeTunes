@@ -26,7 +26,6 @@ use std::path::Path;
 use std::sync::{Arc, Mutex, RwLock};
 use std::sync::atomic::Ordering;
 
-use reqwest::blocking::Client;
 use tokio::runtime::Handle;
 use tokio::sync::Semaphore;
 use tokio::time::{sleep, Duration};
@@ -37,7 +36,7 @@ use crate::frb_generated::StreamSink;
 use types::{EventHub, ManagedTask, PersistedDownloadTask, TransferOutcome};
 use utils::{atomic_write, generate_task_id, normalize_quality, remove_if_exists};
 use resolver::resolve_stream;
-use transfer::{download_task_blocking, ProgressUpdate};
+use transfer::{download_task, ProgressUpdate};
 
 // ── DownloadManager ───────────────────────────────────────────────────────────
 
@@ -57,12 +56,6 @@ pub struct DownloadManager {
     manifest_path: String,
     /// Limits the number of concurrently downloading tasks.
     semaphore: Arc<Semaphore>,
-    /// Shared HTTP client — reusing the connection pool across downloads.
-    /// Wrapped in `Option` so `Drop` can take ownership of the `Arc<Client>`
-    /// and move it to a non-async thread for safe destruction (the blocking
-    /// client owns an internal tokio runtime that panics on drop inside an
-    /// async context).
-    http_client: Option<Arc<Client>>,
     runtime_handle: Handle,
 }
 
@@ -89,18 +82,6 @@ impl DownloadManager {
             .to_string_lossy()
             .into_owned();
 
-        // reqwest::blocking::Client creates an internal tokio runtime.
-        // Building it inside an async context causes "Cannot drop a runtime
-        // in a context where blocking is not allowed" panics when it is
-        // eventually dropped.  Build it on a blocking thread instead.
-        let http_client = tokio::task::spawn_blocking(|| {
-            Client::builder()
-                .build()
-                .map_err(|e| format!("Failed to build HTTP client: {e}"))
-        })
-        .await
-        .map_err(|e| format!("HTTP client builder thread panicked: {e}"))??;
-
         let runtime_handle = Handle::current();
 
         Ok(Self {
@@ -111,7 +92,6 @@ impl DownloadManager {
             temp_dir,
             manifest_path,
             semaphore: Arc::new(Semaphore::new(max_concurrent_tasks.max(1) as usize)),
-            http_client: Some(Arc::new(http_client)),
             runtime_handle,
         })
     }
@@ -407,27 +387,15 @@ impl DownloadManager {
             }
 
             let manager = self.clone();
-            let task_arc = task.clone();
-            let stream_clone = stream.clone();
-            // Own the task_id so the 'static closure can borrow it.
             let tid = task_id.clone();
-
-            let transfer_result = tokio::task::spawn_blocking(move || {
-                let client = manager
-                    .http_client
-                    .as_ref()
-                    .expect("http_client is None — DownloadManager already dropped");
-                download_task_blocking(
-                    &task_arc,
-                    &stream_clone,
-                    client,
-                    |update| manager.handle_progress_update(&tid, update),
-                )
-            })
-            .await;
+            let transfer_result =
+                download_task(task.clone(), stream.clone(), move |update| {
+                    manager.handle_progress_update(&tid, update)
+                })
+                .await;
 
             match transfer_result {
-                Ok(Ok(TransferOutcome::Completed)) => {
+                Ok(TransferOutcome::Completed) => {
                     // Progress callback already updated in-memory state.
                     // Persist once and emit the completion event.
                     self.persist_manifest();
@@ -436,25 +404,21 @@ impl DownloadManager {
                     }
                     return;
                 }
-                Ok(Ok(TransferOutcome::Paused)) => {
+                Ok(TransferOutcome::Paused) => {
                     self.persist_manifest();
                     return;
                 }
-                Ok(Ok(TransferOutcome::Cancelled)) => {
+                Ok(TransferOutcome::Cancelled) => {
                     self.remove_task(&task_id);
                     return;
                 }
-                Ok(Err(e)) => {
+                Err(e) => {
                     if attempt < Self::MAX_RETRIES {
                         self.update_retrying(&task_id, attempt + 1, e);
                         sleep(Duration::from_secs(1u64 << (attempt + 1))).await;
                         continue;
                     }
                     self.fail_task(&task_id, e);
-                    return;
-                }
-                Err(e) => {
-                    self.fail_task(&task_id, format!("Worker thread panicked: {e}"));
                     return;
                 }
             }
@@ -597,28 +561,3 @@ impl DownloadManager {
         }
     }
 }
-
-/// Safety net: `reqwest::blocking::Client` owns an internal tokio runtime.
-/// When FRB drops the opaque `DownloadManager` it does so from an async
-/// worker thread.  Dropping the runtime inside another runtime panics with
-/// "Cannot drop a runtime in a context where blocking is not allowed."
-///
-/// If we hold the last `Arc` reference to the client **and** we are inside
-/// a tokio context, move it to a plain OS thread for destruction.
-impl Drop for DownloadManager {
-    fn drop(&mut self) {
-        if let Some(client) = self.http_client.take() {
-            // Only the last Arc holder actually drops the inner Client.
-            // If there are other clones alive, `drop(client)` just decrements
-            // the reference count — no inner runtime is touched.
-            if Arc::strong_count(&client) == 1 && Handle::try_current().is_ok() {
-                // We are the last owner *and* inside an async context.
-                // Move destruction off the async runtime.
-                std::thread::spawn(move || drop(client));
-            }
-            // else: either there are other clones (no inner drop) or we are
-            // not in an async context (safe to drop normally — implicit).
-        }
-    }
-}
-

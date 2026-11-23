@@ -8,6 +8,7 @@ import 'api/discord.dart';
 import 'api/downloader.dart';
 import 'api/downloader/types.dart';
 import 'api/local_music.dart';
+import 'api/matching.dart';
 import 'api/plugin/commands.dart';
 import 'api/plugin/events.dart';
 import 'api/plugin/manifest.dart';
@@ -209,6 +210,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
+  MatchTrack dco_decode_box_autoadd_match_track(dynamic raw);
+
+  @protected
   PagedAlbums dco_decode_box_autoadd_paged_albums(dynamic raw);
 
   @protected
@@ -385,7 +389,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<LyricsToken> dco_decode_list_lyrics_token(dynamic raw);
 
   @protected
+  List<MatchTrack> dco_decode_list_match_track(dynamic raw);
+
+  @protected
   List<MediaItem> dco_decode_list_media_item(dynamic raw);
+
+  @protected
+  Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -438,6 +448,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Manifest dco_decode_manifest(dynamic raw);
+
+  @protected
+  MatchTrack dco_decode_match_track(dynamic raw);
 
   @protected
   MediaItem dco_decode_media_item(dynamic raw);
@@ -770,6 +783,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  MatchTrack sse_decode_box_autoadd_match_track(SseDeserializer deserializer);
+
+  @protected
   PagedAlbums sse_decode_box_autoadd_paged_albums(SseDeserializer deserializer);
 
   @protected
@@ -973,7 +989,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<LyricsToken> sse_decode_list_lyrics_token(SseDeserializer deserializer);
 
   @protected
+  List<MatchTrack> sse_decode_list_match_track(SseDeserializer deserializer);
+
+  @protected
   List<MediaItem> sse_decode_list_media_item(SseDeserializer deserializer);
+
+  @protected
+  Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -1030,6 +1052,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Manifest sse_decode_manifest(SseDeserializer deserializer);
+
+  @protected
+  MatchTrack sse_decode_match_track(SseDeserializer deserializer);
 
   @protected
   MediaItem sse_decode_media_item(SseDeserializer deserializer);
@@ -1377,6 +1402,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       LyricsProviderCommand self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_match_track(
+      MatchTrack self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_paged_albums(
       PagedAlbums self, SseSerializer serializer);
 
@@ -1591,8 +1620,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       List<LyricsToken> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_match_track(
+      List<MatchTrack> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_media_item(
       List<MediaItem> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_prim_f_64_strict(
+      Float64List self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -1654,6 +1691,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_manifest(Manifest self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_match_track(MatchTrack self, SseSerializer serializer);
 
   @protected
   void sse_encode_media_item(MediaItem self, SseSerializer serializer);

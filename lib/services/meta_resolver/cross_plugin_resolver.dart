@@ -1,14 +1,7 @@
 // cross_plugin_resolver.dart
 //
-// Single shared module that consolidates all cross-plugin resolution logic:
-//   - Text normalization & simplification
-//   - Fuzzy text similarity (blended, token-overlap)
-//   - Artist similarity (bidirectional best-match)
-//   - Duration similarity (absolute + relative)
-//   - Version-tag detection & penalty
-//   - Track scoring (full & fast-path)
-//   - Query building
-//   - Plugin search execution (parallel/sequential, timeout, early-exit)
+// Cross-plugin resolution: query building and plugin search here; text
+// normalisation and all similarity scoring run in Rust (api/matching.rs).
 //
 // Consumed by:
 //   - ChartItemResolver          (chart resolution with multi-phase + corroboration)
@@ -17,48 +10,11 @@
 
 import 'dart:async';
 import 'dart:developer';
-import 'dart:math' as math;
 
 import 'package:Bloomee/services/plugin/plugin_service.dart';
+import 'package:Bloomee/src/rust/api/matching.dart' as matching;
 import 'package:Bloomee/src/rust/api/plugin/commands.dart';
 import 'package:Bloomee/src/rust/api/plugin/models.dart';
-import 'package:fuzzywuzzy/fuzzywuzzy.dart' as fw;
-
-// ══════════════════════════════════════════════════════════════════════════════
-// Pre-compiled RegExp constants
-// ══════════════════════════════════════════════════════════════════════════════
-
-final RegExp _kBrackets = RegExp(r'[$$$$\(\){}]');
-final RegExp _kAsciiPunct = RegExp(r'[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]');
-final RegExp _kMultiSpace = RegExp(r'\s+');
-final RegExp _kParenthetical = RegExp(r'\(.*?\)');
-final RegExp _kFeatSuffix = RegExp(r'\b(?:feat|ft|featuring)\b.*$');
-final RegExp _kVersionWords =
-    RegExp(r'\b(?:remaster(?:ed)?|version|edit|mix|remix)\b');
-final RegExp _kEditionWords =
-    RegExp(r'\b(?:single|album|deluxe|edition|bonus)\b');
-
-final Map<String, List<RegExp>> _kVersionTagPatterns = {
-  'live': [
-    RegExp(r'\blive\b'),
-    RegExp(r'\blive at\b'),
-    RegExp(r'\blive from\b'),
-    RegExp(r'\blive in\b'),
-  ],
-  'acoustic': [RegExp(r'\bacoustic\b')],
-  'karaoke': [RegExp(r'\bkaraoke\b')],
-  'instrumental': [RegExp(r'\binstrumental\b')],
-  'remix': [RegExp(r'\bremix\b'), RegExp(r'\bmixed\b'), RegExp(r'\brmx\b')],
-  'remaster': [RegExp(r'\bremaster\b'), RegExp(r'\bremastered\b')],
-  'clean': [RegExp(r'\bclean\b')],
-  'explicit': [RegExp(r'\bexplicit\b')],
-  'demo': [RegExp(r'\bdemo\b')],
-  'cover': [RegExp(r'\bcover\b')],
-  'radio': [RegExp(r'\bradio edit\b'), RegExp(r'\bradio version\b')],
-  'extended': [RegExp(r'\bextended\b')],
-  'unplugged': [RegExp(r'\bunplugged\b')],
-  'stripped': [RegExp(r'\bstripped\b')],
-};
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Public data types
@@ -108,7 +64,21 @@ class TrackMatchTarget {
 
   String get primaryArtist => artistNames.isNotEmpty ? artistNames.first : '';
   String get allArtists => artistNames.join(' ');
+
+  matching.MatchTrack get _match => matching.MatchTrack(
+        title: title,
+        artists: artistNames,
+        album: albumTitle,
+        durationMs: durationMs,
+      );
 }
+
+matching.MatchTrack _matchOf(Track track) => matching.MatchTrack(
+      title: track.title,
+      artists: [for (final a in track.artists) a.name],
+      album: track.album?.title,
+      durationMs: track.durationMs,
+    );
 
 /// A candidate track returned by resolution, annotated with confidence.
 class ScoredTrackCandidate {
@@ -317,311 +287,47 @@ class CrossPluginResolver {
   // ────────────────────────────────────────────────────────────────────────
 
   /// Score [candidate] against [target], returning confidence in [0.0, 1.0].
-  double scoreTrack(TrackMatchTarget target, Track candidate) {
-    final targetTitleNorm = normalized(target.title);
-    final candTitleNorm = normalized(candidate.title);
-    final targetArtKey = _artistKeyFromNames(target.artistNames);
-    final candArtKey = artistKeyFromSummaries(candidate.artists);
+  double scoreTrack(TrackMatchTarget target, Track candidate) =>
+      matching.scoreTracks(target: target._match, candidates: [_matchOf(candidate)])
+          .first;
 
-    // Fast path: exact normalized title + sorted artist key match.
-    if (targetTitleNorm.isNotEmpty &&
-        targetTitleNorm == candTitleNorm &&
-        targetArtKey.isNotEmpty &&
-        targetArtKey == candArtKey) {
-      final dur = durationSimilarity(target.durationMs, candidate.durationMs);
-      return (0.92 + dur * 0.08).clamp(0.0, 1.0);
-    }
+  /// Scores many candidates in one call.
+  List<double> scoreTracks(TrackMatchTarget target, List<Track> candidates) =>
+      matching.scoreTracks(
+        target: target._match,
+        candidates: [for (final c in candidates) _matchOf(c)],
+      );
 
-    final titleScore = blendedTextSimilarity(target.title, candidate.title);
-    final simplifiedTitleScore = blendedTextSimilarity(
-      simplifyTitle(target.title),
-      simplifyTitle(candidate.title),
-    );
+  /// True when title and artist match exactly or near-exactly.
+  bool isStrongMatch(TrackMatchTarget target, Track candidate) =>
+      matching.isStrongMatch(target: target._match, candidate: _matchOf(candidate));
 
-    final candArtistNames = candidate.artists
-        .map((a) => a.name.trim())
-        .where((n) => n.isNotEmpty)
-        .toList(growable: false);
-    final artistScore =
-        artistNamesSimilarity(target.artistNames, candArtistNames);
+  double blendedTextSimilarity(String? left, String? right) =>
+      matching.textSimilarity(left: left ?? '', right: right ?? '');
 
-    final dur = durationSimilarity(target.durationMs, candidate.durationMs);
+  /// Bidirectional best-match similarity of two artist name lists.
+  double artistNamesSimilarity(List<String> leftNames, List<String> rightNames) =>
+      matching.artistSimilarity(left: leftNames, right: rightNames);
 
-    final targetAlbum = target.albumTitle?.trim() ?? '';
-    final candAlbum = candidate.album?.title.trim() ?? '';
-    final hasAlbum = targetAlbum.isNotEmpty && candAlbum.isNotEmpty;
-    final albumScore =
-        hasAlbum ? blendedTextSimilarity(targetAlbum, candAlbum) : 0.0;
-
-    final vPenalty = versionPenalty(
-      target.title,
-      target.albumTitle,
-      candidate.title,
-      candidate.album?.title,
-    );
-
-    // Adaptive weights.
-    final wTitle = hasAlbum ? 0.32 : 0.36;
-    final wSimplified = hasAlbum ? 0.12 : 0.14;
-    final wArtist = hasAlbum ? 0.28 : 0.32;
-    final wAlbum = hasAlbum ? 0.10 : 0.00;
-    const wDuration = 0.13;
-
-    var score = titleScore * wTitle +
-        simplifiedTitleScore * wSimplified +
-        artistScore * wArtist +
-        albumScore * wAlbum +
-        dur * wDuration;
-
-    // Exact-match bonuses (guarded against empty strings).
-    if (targetTitleNorm.isNotEmpty && targetTitleNorm == candTitleNorm) {
-      score += 0.06;
-    }
-    final tSimple = simplifyTitle(target.title);
-    final cSimple = simplifyTitle(candidate.title);
-    if (tSimple.isNotEmpty && cSimple.isNotEmpty && tSimple == cSimple) {
-      score += 0.04;
-    }
-    if (targetArtKey.isNotEmpty && targetArtKey == candArtKey) {
-      score += 0.05;
-    }
-
-    score -= vPenalty;
-    return score.clamp(0.0, 1.0);
-  }
-
-  /// Lightweight check: returns true when title and artist match exactly
-  /// or near-exactly (useful for ChartItemResolver.isStrongTrackMatch).
-  bool isStrongMatch(TrackMatchTarget target, Track candidate) {
-    final tNorm = normalized(target.title);
-    final cNorm = normalized(candidate.title);
-    final tSimple = simplifyTitle(target.title);
-    final cSimple = simplifyTitle(candidate.title);
-
-    final titleMatch =
-        (tNorm.isNotEmpty && cNorm.isNotEmpty && tNorm == cNorm) ||
-            (tSimple.isNotEmpty && cSimple.isNotEmpty && tSimple == cSimple);
-    if (!titleMatch) return false;
-
-    if (target.artistNames.isEmpty) return true;
-    final candNames = candidate.artists
-        .map((a) => a.name.trim())
-        .where((n) => n.isNotEmpty)
-        .toList(growable: false);
-    if (candNames.isEmpty) return true;
-
-    return artistNamesSimilarity(target.artistNames, candNames) >= 0.7;
-  }
-
-  // ────────────────────────────────────────────────────────────────────────
-  // Text similarity
-  // ────────────────────────────────────────────────────────────────────────
-
-  double blendedTextSimilarity(String? left, String? right) {
-    final l = normalized(left);
-    final r = normalized(right);
-    if (l.isEmpty || r.isEmpty) return 0;
-    if (l == r) return 1.0;
-
-    final direct = fw.ratio(l, r) / 100;
-    final partial = fw.partialRatio(l, r) / 100;
-    final sorted = fw.tokenSortRatio(l, r) / 100;
-    final overlap = tokenOverlap(l, r);
-
-    return (direct * 0.35 + partial * 0.20 + sorted * 0.25 + overlap * 0.20)
-        .clamp(0.0, 1.0);
-  }
-
-  double tokenOverlap(String left, String right) {
-    final lt = left.split(' ').where((t) => t.isNotEmpty).toSet();
-    final rt = right.split(' ').where((t) => t.isNotEmpty).toSet();
-    if (lt.isEmpty || rt.isEmpty) return 0;
-    final i = lt.intersection(rt).length;
-    if (i == 0) return 0;
-    final p = i / rt.length;
-    final r = i / lt.length;
-    return (2 * p * r) / (p + r);
-  }
-
-  // ────────────────────────────────────────────────────────────────────────
-  // Artist similarity
-  // ────────────────────────────────────────────────────────────────────────
-
-  /// Compare two lists of artist *names* (strings). Bidirectional matching
-  /// prevents penalizing extra artists on either side unfairly.
-  double artistNamesSimilarity(
-    List<String> leftNames,
-    List<String> rightNames,
-  ) {
-    final ln =
-        leftNames.where((n) => n.trim().isNotEmpty).toList(growable: false);
-    final rn =
-        rightNames.where((n) => n.trim().isNotEmpty).toList(growable: false);
-
-    if (ln.isEmpty && rn.isEmpty) return 0;
-    if (ln.isEmpty || rn.isEmpty) {
-      return blendedTextSimilarity(ln.join(' '), rn.join(' '));
-    }
-
-    double fwd = 0;
-    for (final n in ln) {
-      var best = 0.0;
-      for (final o in rn) {
-        best = math.max(best, blendedTextSimilarity(n, o));
-      }
-      fwd += best;
-    }
-
-    double rev = 0;
-    for (final n in rn) {
-      var best = 0.0;
-      for (final o in ln) {
-        best = math.max(best, blendedTextSimilarity(n, o));
-      }
-      rev += best;
-    }
-
-    final combined = blendedTextSimilarity(ln.join(' '), rn.join(' '));
-    final primaryBonus =
-        blendedTextSimilarity(ln.first, rn.first) > 0.85 ? 0.05 : 0.0;
-
-    return ((fwd / ln.length) * 0.35 +
-            (rev / rn.length) * 0.30 +
-            combined * 0.25 +
-            primaryBonus)
-        .clamp(0.0, 1.0);
-  }
-
-  /// Convenience: compare two [ArtistSummary] lists.
   double artistSummarySimilarity(
     List<ArtistSummary> left,
     List<ArtistSummary> right,
-  ) {
-    return artistNamesSimilarity(
-      left.map((a) => a.name.trim()).where((n) => n.isNotEmpty).toList(),
-      right.map((a) => a.name.trim()).where((n) => n.isNotEmpty).toList(),
-    );
-  }
+  ) =>
+      artistNamesSimilarity(
+        [for (final a in left) a.name],
+        [for (final a in right) a.name],
+      );
 
-  // ────────────────────────────────────────────────────────────────────────
-  // Duration similarity
-  // ────────────────────────────────────────────────────────────────────────
+  double durationSimilarity(BigInt? left, BigInt? right) =>
+      matching.durationSimilarity(left: left, right: right);
 
-  /// Compare two durations using blended absolute + relative thresholds.
-  double durationSimilarity(BigInt? left, BigInt? right) {
-    if (left == null || right == null) return 0.35;
-    final lMs = left.toDouble();
-    final rMs = right.toDouble();
-    if (lMs <= 0 || rMs <= 0) return 0.35;
+  /// Lowercase, ASCII punctuation removed, whitespace collapsed; non-ASCII
+  /// letters are kept so international titles survive.
+  String normalized(String? value) => matching.normalizeText(value: value ?? '');
 
-    final diff = (lMs - rMs).abs();
-    final maxMs = math.max(lMs, rMs);
-    final relErr = diff / maxMs;
-
-    final double absScore;
-    if (diff <= 1500) {
-      absScore = 1.00;
-    } else if (diff <= 3000) {
-      absScore = 0.85;
-    } else if (diff <= 5000) {
-      absScore = 0.55;
-    } else if (diff <= 10000) {
-      absScore = 0.25;
-    } else if (diff <= 20000) {
-      absScore = 0.08;
-    } else {
-      absScore = 0.00;
-    }
-
-    final double relScore;
-    if (relErr <= 0.02) {
-      relScore = 1.00;
-    } else if (relErr <= 0.05) {
-      relScore = 0.85;
-    } else if (relErr <= 0.10) {
-      relScore = 0.55;
-    } else if (relErr <= 0.20) {
-      relScore = 0.25;
-    } else if (relErr <= 0.35) {
-      relScore = 0.08;
-    } else {
-      relScore = 0.00;
-    }
-
-    return (absScore * 0.50 + relScore * 0.50).clamp(0.0, 1.0);
-  }
-
-  // ────────────────────────────────────────────────────────────────────────
-  // Version tags & penalty
-  // ────────────────────────────────────────────────────────────────────────
-
-  Set<String> versionTags(String value) {
-    if (value.isEmpty) return const {};
-    final norm = value
-        .toLowerCase()
-        .replaceAll(_kBrackets, ' ')
-        .replaceAll(_kAsciiPunct, ' ')
-        .replaceAll(_kMultiSpace, ' ')
-        .trim();
-    if (norm.isEmpty) return const {};
-
-    final tags = <String>{};
-    for (final entry in _kVersionTagPatterns.entries) {
-      if (entry.value.any((p) => p.hasMatch(norm))) tags.add(entry.key);
-    }
-    return tags;
-  }
-
-  /// Asymmetric version penalty: missing target tags hurt more than extra
-  /// candidate tags.
-  double versionPenalty(
-    String? targetTitle,
-    String? targetAlbum,
-    String? candidateTitle,
-    String? candidateAlbum,
-  ) {
-    final tt = versionTags(joinNonEmpty([targetTitle, targetAlbum]));
-    final ct = versionTags(joinNonEmpty([candidateTitle, candidateAlbum]));
-    if (tt.isEmpty && ct.isEmpty) return 0;
-    final missing = tt.difference(ct).length;
-    final extra = ct.difference(tt).length;
-    return (missing * 0.08 + extra * 0.04).clamp(0.0, 0.25);
-  }
-
-  // ────────────────────────────────────────────────────────────────────────
-  // Text normalization
-  // ────────────────────────────────────────────────────────────────────────
-
-  /// Normalize for comparison: lowercase, strip brackets/ASCII punctuation,
-  /// collapse whitespace. Preserves non-ASCII characters so international
-  /// titles survive.
-  String normalized(String? value) {
-    if (value == null || value.trim().isEmpty) return '';
-    return value
-        .toLowerCase()
-        .replaceAll(_kBrackets, ' ')
-        .replaceAll('&', ' and ')
-        .replaceAll(_kAsciiPunct, ' ')
-        .replaceAll(_kMultiSpace, ' ')
-        .trim();
-  }
-
-  /// Aggressive title simplification: strip parenthetical content *first*
-  /// (before lowercasing), then remove feat/version/edition markers.
-  String simplifyTitle(String? value) {
-    if (value == null || value.trim().isEmpty) return '';
-    return value
-        .trim()
-        .replaceAll(_kParenthetical, ' ')
-        .toLowerCase()
-        .replaceAll(_kFeatSuffix, '')
-        .replaceAll(_kVersionWords, ' ')
-        .replaceAll(_kEditionWords, ' ')
-        .replaceAll(_kAsciiPunct, ' ')
-        .replaceAll('&', ' and ')
-        .replaceAll(_kMultiSpace, ' ')
-        .trim();
-  }
+  /// [normalized] plus parentheticals, "feat." credits and version/edition
+  /// words removed.
+  String simplifyTitle(String? value) => matching.simplifyTitle(value: value ?? '');
 
   // ────────────────────────────────────────────────────────────────────────
   // Artist helpers
@@ -745,17 +451,16 @@ class CrossPluginResolver {
 
         switch (response) {
           case PluginResponse_Search(:final field0):
-            final items =
-                field0.items.take(maxResultsPerQuery).toList(growable: false);
-            for (final item in items) {
-              final track = switch (item) {
-                MediaItem_Track(:final field0) => field0,
-                _ => null,
-              };
-              if (track == null) continue;
-              if (excludeTrackIds.contains(track.id)) continue;
-
-              final confidence = scoreTrack(target, track);
+            final tracks = [
+              for (final item in field0.items.take(maxResultsPerQuery))
+                if (item case MediaItem_Track(:final field0))
+                  if (!excludeTrackIds.contains(field0.id)) field0,
+            ];
+            if (tracks.isEmpty) continue;
+            final scores = scoreTracks(target, tracks);
+            for (var i = 0; i < tracks.length; i++) {
+              final track = tracks[i];
+              final confidence = scores[i];
               if (confidence < minConfidence) continue;
               if (confidence > bestThisPlugin) bestThisPlugin = confidence;
 

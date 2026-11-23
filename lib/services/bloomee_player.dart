@@ -9,7 +9,6 @@ import 'package:Bloomee/core/constants/sentinel_values.dart';
 import 'package:Bloomee/core/constants/setting_keys.dart';
 import 'package:Bloomee/core/di/service_locator.dart';
 import 'package:Bloomee/plugins/utils/media_id.dart';
-import 'package:Bloomee/plugins/errors/plugin_exceptions.dart';
 import 'package:Bloomee/screens/widgets/snackbar.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
@@ -65,7 +64,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   late RelatedSongsManager _relatedSongsManager;
   late RecentlyPlayedTracker _recentlyPlayedTracker;
   late MediaResolverService _resolver;
-  late SmartTrackReplacementService _smartTrackReplacementService;
+  late SmartTrackReplacementService _replacements;
 
   // Long-lived stream subjects — kept open to prevent downstream StreamBuilder
   // widgets from entering error state when the player is revived.
@@ -81,13 +80,15 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   CancelableCompleter<void>? _playCompleter;
   bool _playRequested = false;
   Duration _retryPosition = Duration.zero;
-  CancelableOperation<ResolvedMediaSource>? _preResolveOp;
+  CancelableOperation<(Track, ResolvedMediaSource)>? _preResolveOp;
   CancelableOperation<(Track, ResolvedMediaSource)>? _currentResolveOp;
   bool _isAdvancing = false;
 
   // ── Preload identity ───────────────────────────────────────────────────────
   String? _preloadedTrackId;
   bool _preloadedTrackOffline = false;
+  // The track a preload was last started for (in flight or done).
+  String? _preloadTargetId;
 
   // ── Stream subscriptions ───────────────────────────────────────────────────
   StreamSubscription? _engineStateSub;
@@ -121,9 +122,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
   Track _currentTrack = trackNull;
   Track get currentTrackInfo => _currentTrack;
-  List<Track> get queueTracks => List<Track>.unmodifiable(_queueManager.tracks);
+
+  /// Unmodifiable.
+  List<Track> get queueTracks => _queueManager.tracks;
   int get currentQueueIndex => _queueManager.currentIndex;
   PluginService get pluginService => ServiceLocator.pluginService;
+  SmartTrackReplacementService get smartReplacement => _replacements;
 
   // ─── Constructor ───────────────────────────────────────────────────────────
 
@@ -325,7 +329,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     _queueManager = QueueManager();
     _relatedSongsManager = RelatedSongsManager(ServiceLocator.pluginService);
     _resolver = MediaResolverService.create(ServiceLocator.pluginService);
-    _smartTrackReplacementService =
+    _replacements =
         SmartTrackReplacementService.create(ServiceLocator.pluginService);
 
     _errorHandler.onSkipToNext = _internalSkipToNext;
@@ -343,8 +347,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       DiscordService.clearPresence();
     };
 
-    _relatedSongsManager.onAddQueueItems =
-        (items, {bool atLast = false}) => addQueueTracks(items, atLast: atLast);
+    _relatedSongsManager.onAddQueueItems = _queueManager.addTracks;
 
     _recentlyPlayedTracker = RecentlyPlayedTracker(
       engine,
@@ -396,6 +399,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
 
     _queueSyncSub = _queueManager.tracksStream.listen((tracks) {
       queue.add(tracks.map(trackToMediaItem).toList());
+      _refreshPreloadIfStale();
       // Don't persist during restore — we'd just write back what we read.
       if (_queueManager.isRestoring) return;
       _schedulePersist();
@@ -568,6 +572,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   void setLoopMode(LoopMode mode) {
     loopMode.add(mode);
     engine.setLoopMode(mode);
+    // Loop-all changes what follows the last track.
+    _refreshPreloadIfStale();
   }
 
   void setCrossfadeDuration(Duration duration) {
@@ -575,7 +581,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   Future<void> shuffle(bool enabled) async {
-    _queueManager.shuffle(enabled);
+    _queueManager.setShuffle(enabled);
   }
 
   // ─── Core Play Dispatch ────────────────────────────────────────────────────
@@ -583,6 +589,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   void _clearPreloadedMarker() {
     _preloadedTrackId = null;
     _preloadedTrackOffline = false;
+    _preloadTargetId = null;
   }
 
   Future<void> _enqueuePlayTrack(
@@ -667,7 +674,12 @@ class BloomeeMusicPlayer extends BaseAudioHandler
         if (resolved == null || !alive()) return;
 
         resolvedTrack = resolved.$1;
-        if (resolvedTrack.id != track.id) _updateCurrentTrack(resolvedTrack);
+        if (resolvedTrack.id != track.id) {
+          // Smart Replace swapped in another track: track its success and
+          // retries under the id now in the queue.
+          _errorHandler.registerAttempt(resolvedTrack.id);
+          _updateCurrentTrack(resolvedTrack);
+        }
         isOffline.add(resolved.$2.isOffline);
 
         result = await engine.openDirect(
@@ -728,68 +740,113 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     }
   }
 
+  /// Resolves [track]; if its source is gone, plays a matching track from
+  /// another resolver instead (Smart Replace) and swaps it into the queue,
+  /// and into the playlists when the match is near-certain, so the search
+  /// happens once per dead track. Used for playback and preload alike.
   Future<(Track, ResolvedMediaSource)> _resolveWithFallback(Track track) async {
     try {
       return (track, await _resolver.resolve(track));
-    } catch (e) {
-      final replacement = await _tryAutoReplace(track, e);
-      if (replacement == null) rethrow;
-      return (replacement, await _resolver.resolve(replacement));
+    } catch (error, stack) {
+      if (!await _shouldAutoReplace(track, error)) rethrow;
+      for (final candidate in await _replacements.findAutoReplacements(track)) {
+        try {
+          final source = await _resolver.resolve(candidate.track);
+          _adoptReplacement(track, candidate);
+          return (candidate.track, source);
+        } catch (e) {
+          log('Replacement ${candidate.track.id} unplayable: $e',
+              name: 'BloomeeMusicPlayer');
+        }
+      }
+      _replacements.forget(track.id);
+      Error.throwWithStackTrace(error, stack);
     }
   }
 
-  Future<Track?> _tryAutoReplace(Track track, Object error) async {
-    if (!_isAutoResolvableError(error) || isLocalMediaId(track.id)) return null;
+  /// Network failures are left to the retry logic: a search would fail the
+  /// same way, and the track itself is fine.
+  Future<bool> _shouldAutoReplace(Track track, Object error) async {
+    if (_isDisposed || isLocalMediaId(track.id)) return false;
+    if (_errorHandler.categorizeError(error) ==
+        PlayerErrorType.networkDropped) {
+      return false;
+    }
     final enabled = await SettingsDAO(DBProvider.db)
         .getSettingBool(SettingKeys.autoResolveUnavailableTracks);
-    if (enabled == false) return null;
-    final candidate =
-        await _smartTrackReplacementService.findBestReplacement(track);
-    if (candidate == null) return null;
-    SnackbarService.showMessage(
-      'Playing fallback source for ${track.title} from ${candidate.pluginName}.',
-      duration: const Duration(seconds: 3),
-    );
-    return candidate.track;
+    return enabled != false;
   }
 
-  bool _isAutoResolvableError(Object error) {
-    if (error is PluginNotLoadedException || error is PluginNotFoundException) {
-      return true;
+  void _adoptReplacement(
+      Track original, SmartTrackReplacementCandidate candidate) {
+    if (_isDisposed) return;
+    final replacement = candidate.track;
+    // A preload of [original] carries on as the preload of [replacement];
+    // without this the queue change would restart it.
+    if (_preloadTargetId == original.id) _preloadTargetId = replacement.id;
+    _queueManager.replaceTrack(original.id, replacement);
+    final persist = candidate.confidence >=
+        SmartTrackReplacementService.persistMinConfidence;
+    if (persist) {
+      unawaited(_replacements
+          .applyReplacement(original: original, replacement: replacement)
+          .then<void>((_) {}, onError: (Object e) {
+        log('Saving replacement failed: $e', name: 'BloomeeMusicPlayer');
+      }));
     }
-    final msg = error.toString().toLowerCase();
-    return msg.contains('no streams returned') ||
-        msg.contains('plugin is not loaded') ||
-        msg.contains('plugin not found');
+    SnackbarService.showMessage(
+      persist
+          ? 'Replaced unavailable "${original.title}" with a copy from '
+              '${candidate.pluginName}.'
+          : 'Playing "${original.title}" from ${candidate.pluginName}.',
+      duration: const Duration(seconds: 3),
+    );
   }
 
   // ─── Preload ───────────────────────────────────────────────────────────────
 
+  bool get _isLoadingTrack => !(_playCompleter?.isCompleted ?? true);
+
+  /// Re-preloads when a queue edit or loop change altered the next track.
+  /// Never while a track is loading: it would compete for the same plugin.
+  void _refreshPreloadIfStale() {
+    if (_isDisposed || _isLoadingTrack || engine.state == EngineState.idle) {
+      return;
+    }
+    final nextId = _queueManager.peekNext(loopMode: loopMode.value)?.id;
+    if (nextId != _preloadTargetId) _preResolveNextTrack();
+  }
+
   void _preResolveNextTrack() {
     final next = _queueManager.peekNext(loopMode: loopMode.value);
+    _preResolveOp?.cancel();
+    _preloadTargetId = next?.id;
     if (next == null) {
       _clearPreloadedMarker();
       engine.clearPreload(); // ignore: discarded_futures
       return;
     }
 
-    final expectedId = next.id;
-    _preResolveOp?.cancel();
-    _preResolveOp = CancelableOperation.fromFuture(_resolver.resolve(next));
-    _preResolveOp!.value.then((resolved) async {
-      if (_isDisposed) return;
-      if (_queueManager.peekNext(loopMode: loopMode.value)?.id != expectedId) {
+    final op = CancelableOperation.fromFuture(_resolveWithFallback(next));
+    _preResolveOp = op;
+    op.value.then((resolved) async {
+      // [track] is a replacement if [next] was unavailable; the queue
+      // already holds it in [next]'s place.
+      final (track, source) = resolved;
+      if (_isDisposed || op.isCanceled) return;
+      if (_queueManager.peekNext(loopMode: loopMode.value)?.id != track.id) {
         _clearPreloadedMarker();
         engine.clearPreload(); // ignore: discarded_futures
         return;
       }
       final ok =
-          await engine.preloadNext(resolved.uri, httpHeaders: resolved.headers);
-      if (!_isDisposed && ok) {
-        _preloadedTrackId = expectedId;
-        _preloadedTrackOffline = resolved.isOffline;
+          await engine.preloadNext(source.uri, httpHeaders: source.headers);
+      if (!_isDisposed && ok && identical(_preResolveOp, op)) {
+        _preloadedTrackId = track.id;
+        _preloadedTrackOffline = source.isOffline;
       }
     }).catchError((Object _) {
+      if (!identical(_preResolveOp, op)) return;
       _clearPreloadedMarker();
       engine.clearPreload(); // ignore: discarded_futures
     });
@@ -838,8 +895,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       if (track == null) return;
       await _relatedSongsManager.checkForRelatedSongs(
         currentMedia: track,
-        queue: _queueManager.tracks,
-        currentPlayingIdx: _queueManager.currentIndex,
+        remaining: () => _queueManager.remaining,
         loopMode: loopMode.value,
       );
     } finally {
@@ -923,11 +979,30 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     );
   }
 
-  Future<void> replaceTrackInQueue(Track replacement) async {
+  /// Swaps [original] for [replacement] in the queue in place. If
+  /// [original] is the current track it is reloaded as [replacement] at the
+  /// same position; a dead current track (not loaded) starts afresh.
+  Future<void> replaceTrackInQueue(Track replacement, {Track? original}) async {
     if (_isDisposed) return;
-    final changed = _queueManager.replaceTrackById(replacement.id, replacement);
-    if (!changed) return;
-    if (_currentTrack.id == replacement.id) _updateCurrentTrack(replacement);
+    final oldId = original?.id ?? replacement.id;
+    final wasCurrent = _queueManager.currentTrack?.id == oldId;
+    if (!_queueManager.replaceTrack(oldId, replacement)) return;
+    if (!wasCurrent) return;
+    if (oldId == replacement.id) {
+      _updateCurrentTrack(replacement); // metadata refresh
+      return;
+    }
+    final loaded = engine.state == EngineState.ready ||
+        engine.state == EngineState.buffering;
+    if (!loaded && !_playRequested) {
+      _updateCurrentTrack(replacement); // loads when the user presses play
+      return;
+    }
+    await _enqueuePlayTrack(
+      replacement,
+      doPlay: _playRequested,
+      initialPosition: loaded ? engine.position : null,
+    );
   }
 
   // ─── Queue Operations ─────────────────────────────────────────────────────
@@ -1040,8 +1115,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
       }
 
       _queueManager.loadTracks(sanitized,
-          playlistName: playlist.title, idx: newIdx, shuffling: shuffling);
-      queueTitle.add(playlist.title);
+          title: playlist.title, index: newIdx, shuffle: shuffling);
 
       if (doPlay || shuffling) {
         final track = _queueManager.currentTrack;
@@ -1116,7 +1190,7 @@ class BloomeeMusicPlayer extends BaseAudioHandler
     if (_queueManager.tracks.isEmpty) {
       await loadPlaylist(playlist, doPlay: false);
     } else {
-      _queueManager.addTracks(playlist.tracks, atLast: true);
+      _queueManager.addTracks(playlist.tracks);
     }
   }
 
@@ -1124,38 +1198,33 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   Future<void> addQueueItem(MediaItem mi) async =>
       _queueManager.addTrack(mediaItemToTrack(mi));
 
-  Future<void> addQueueTrack(Track track) async =>
+  /// "Add to queue". Returns false if [track] is current or already upcoming.
+  Future<bool> addQueueTrack(Track track) async =>
       _queueManager.addTrack(track);
 
   @override
-  Future<void> addQueueItems(List<MediaItem> items,
-          {String queueName = 'Queue', bool atLast = false}) async =>
-      _queueManager.addTracks(items.map(mediaItemToTrack).toList(),
-          atLast: atLast);
-
-  Future<void> addQueueTracks(List<Track> tracks,
-          {bool atLast = false}) async =>
-      _queueManager.addTracks(tracks, atLast: atLast);
+  Future<void> addQueueItems(List<MediaItem> items) async =>
+      _queueManager.addTracks(items.map(mediaItemToTrack));
 
   Future<void> updateQueueTracks(List<Track> tracks,
       {bool doPlay = false, int startIndex = 0, String? title}) async {
-    _queueManager.updateQueue(tracks, startIndex: startIndex, title: title);
+    _queueManager.loadTracks(tracks,
+        index: startIndex, title: title ?? 'Queue');
     if (doPlay) {
       final t = _queueManager.currentTrack;
       if (t != null) await _enqueuePlayTrack(t, doPlay: true);
     }
   }
 
-  Future<void> addPlayNextItem(MediaItem item) async =>
-      _queueManager.addPlayNext(mediaItemToTrack(item));
-
-  Future<void> addPlayNextTrack(Track track) async =>
+  /// "Play next". Returns false if [track] is the current track.
+  Future<bool> addPlayNextTrack(Track track) async =>
       _queueManager.addPlayNext(track);
 
   @override
   Future<void> insertQueueItem(int index, MediaItem mi) async =>
       _queueManager.insertTrack(index, mediaItemToTrack(mi));
 
+  /// The current track cannot be removed; skip it instead.
   @override
   Future<void> removeQueueItemAt(int index) async =>
       _queueManager.removeTrackAt(index);
@@ -1169,14 +1238,8 @@ class BloomeeMusicPlayer extends BaseAudioHandler
   }
 
   @override
-  Future<void> updateQueue(List<MediaItem> newQueue,
-      {bool doPlay = false}) async {
-    _queueManager.updateQueue(newQueue.map(mediaItemToTrack).toList());
-    if (doPlay) {
-      final t = _queueManager.currentTrack;
-      if (t != null) await _enqueuePlayTrack(t, doPlay: true);
-    }
-  }
+  Future<void> updateQueue(List<MediaItem> newQueue) =>
+      updateQueueTracks(newQueue.map(mediaItemToTrack).toList());
 
   void setRecentlyPlayedThresholdSeconds(int s) =>
       _recentlyPlayedTracker.setThresholdSeconds(s);

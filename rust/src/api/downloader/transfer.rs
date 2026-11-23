@@ -1,10 +1,7 @@
-/// HTTP download loop and audio metadata writing.
-///
-/// Both functions are free functions that accept only what they need, so they
-/// can run inside `tokio::task::spawn_blocking` without holding a reference to
-/// the async runtime.
+//! HTTP download loop and audio metadata writing.
+
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufWriter, Cursor, Read, Write};
+use std::io::{Cursor, Write};
 use std::path::Path;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -16,7 +13,6 @@ use lofty::picture::{Picture, PictureType};
 use lofty::prelude::{Accessor, TaggedFileExt};
 use lofty::probe::Probe;
 use lofty::tag::{ItemKey, Tag};
-use reqwest::blocking::Client;
 use reqwest::header::{ACCEPT_RANGES, RANGE};
 
 use crate::api::downloader::types::{DownloadTaskState, ManagedTask, TransferOutcome};
@@ -24,10 +20,9 @@ use crate::api::downloader::utils::{
     build_download_file_name, extract_total_bytes, guess_extension_from_url,
 };
 use crate::api::plugin::models::{StreamSource, Track};
+use crate::utils::http;
 
-/// Minimum interval between emitted progress updates during the download loop.
 const PROGRESS_EMIT_INTERVAL: Duration = Duration::from_millis(250);
-const NETWORK_READ_BUFFER_SIZE: usize = 256 * 1024;
 const FILE_WRITE_BUFFER_SIZE: usize = 512 * 1024;
 
 /// Progress update emitted from the download loop back to the caller.
@@ -40,25 +35,18 @@ pub struct ProgressUpdate {
     pub warning: Option<String>,
 }
 
-/// Download the stream at `stream.url` into the task's temp file, then rename
-/// to the final target path and write audio metadata.
+/// Downloads the stream into the task's `.part` file, renames it to the final
+/// target and tags it. Network reads are async; file writes go through a
+/// buffered writer on a blocking thread, so no async worker ever waits on
+/// the disk.
 ///
-/// Progress callbacks are sent via `on_progress`. The function does not hold
-/// the task mutex while doing I/O; it only acquires it briefly to check the
-/// pause/cancel flags and to read needed fields.
-///
-/// # Errors
-/// Returns `Err` for non-recoverable failures (bad HTTP status, I/O errors,
-/// etc.) that should trigger a retry in the caller.
-/// Returns `Ok(TransferOutcome::*)` for user-driven outcomes (pause/cancel)
-/// and successful completion.
-pub fn download_task_blocking(
-    task: &Arc<Mutex<ManagedTask>>,
-    stream: &StreamSource,
-    http_client: &Client,
-    mut on_progress: impl FnMut(ProgressUpdate),
+/// Returns `Err` for failures that should be retried, and `Ok` for the user
+/// driven outcomes (pause, cancel) and completion.
+pub async fn download_task(
+    task: Arc<Mutex<ManagedTask>>,
+    stream: StreamSource,
+    on_progress: impl Fn(ProgressUpdate) + Send + Sync + 'static,
 ) -> Result<TransferOutcome, String> {
-    // Read necessary paths from the task under a short lock.
     let (task_id, temp_path, target_path, extra_headers) = {
         let guard = task.lock().map_err(|_| "Task mutex poisoned".to_string())?;
         let headers = guard
@@ -74,17 +62,14 @@ pub fn download_task_blocking(
         )
     };
 
-    // Validate target_path — if resolution never ran this would be empty.
     if target_path.is_empty() {
         return Err(format!(
             "Task {task_id}: target path was not set (stream resolution may have been skipped)"
         ));
     }
 
-    // Determine how many bytes we already have in the .part file.
-    let existing_size = File::open(&temp_path)
-        .ok()
-        .and_then(|f| f.metadata().ok())
+    let existing_size = tokio::fs::metadata(&temp_path)
+        .await
         .map(|m| m.len())
         .unwrap_or(0);
 
@@ -96,25 +81,22 @@ pub fn download_task_blocking(
         warning: None,
     });
 
-    // Build the HTTP request, appending Range header if we have partial data.
-    let mut req = http_client.get(&stream.url);
+    let mut req = http::client().get(&stream.url);
     if let Some(headers) = &extra_headers {
         for (k, v) in headers {
             req = req.header(k, v);
         }
     }
-    // Always prefer a range request, even for a fresh download. Some backends
-    // serve the initial 200 response through a slower path but handle ranged
-    // responses efficiently. If the server ignores it and returns 200, we
-    // transparently fall back below.
+    // Always ask for a range, even from zero: some backends serve ranged
+    // responses on a faster path. A plain 200 falls back below.
     req = req.header(RANGE, format!("bytes={existing_size}-"));
 
-    let mut response = req.send().map_err(|e| format!("Request failed: {e}"))?;
+    let mut response = req.send().await.map_err(|e| format!("Request failed: {e}"))?;
 
     let status = response.status();
     if !status.is_success() && status.as_u16() != 206 {
         // A signed URL can be revoked before its advertised expiry. Retry
-        // through the provider rather than reusing the rejected cached URL.
+        // through the provider rather than reusing the rejected URL.
         if matches!(status.as_u16(), 401 | 403 | 410) {
             if let Ok(mut guard) = task.lock() {
                 guard.persisted.selected_stream = None;
@@ -123,37 +105,21 @@ pub fn download_task_blocking(
         return Err(format!("Server responded with {status}"));
     }
 
-    // Decide if the server actually supports resuming this request.
     let range_supported = response
         .headers()
         .get(ACCEPT_RANGES)
         .and_then(|v| v.to_str().ok())
         .map(|v| v.eq_ignore_ascii_case("bytes"))
         .unwrap_or(status.as_u16() == 206);
-
-    // If we sent a Range header but got 200 back, start from the beginning.
     let resume_from = if existing_size > 0 && status.as_u16() != 206 { 0 } else { existing_size };
-
     let total_bytes = extract_total_bytes(response.headers(), resume_from);
 
-    // Open or create the .part file.
     let append = resume_from > 0 && status.as_u16() == 206;
-    let file = if append {
-        OpenOptions::new().create(true).append(true).open(&temp_path)
-    } else {
-        OpenOptions::new().create(true).truncate(true).write(true).open(&temp_path)
-    }
-    .map_err(|e| format!("Failed to open part file: {e}"))?;
-    let mut output = BufWriter::with_capacity(FILE_WRITE_BUFFER_SIZE, file);
-
+    let mut output = PartFile::open(temp_path.clone(), append).await?;
     let mut downloaded = resume_from;
-    let mut buf = [0u8; NETWORK_READ_BUFFER_SIZE];
     let mut last_emit = Instant::now();
 
-    // ── Read loop ────────────────────────────────────────────────────────────
-
     loop {
-        // Sample flags once per chunk — acquire semantics so we see the latest write.
         let (pause, cancel, delete_partial) = task
             .lock()
             .map(|g| {
@@ -166,39 +132,35 @@ pub fn download_task_blocking(
             .unwrap_or((false, false, false));
 
         if cancel {
-            let _ = output.flush();
-            drop(output);
+            let _ = output.finish().await;
             if delete_partial {
-                let _ = fs::remove_file(&temp_path);
-                let _ = remove_file_if_exists(&target_path);
+                let _ = tokio::fs::remove_file(&temp_path).await;
+                remove_file_if_exists(&target_path);
             }
             return Ok(TransferOutcome::Cancelled);
         }
 
         if pause {
-            output.flush().map_err(|e| format!("Flush error: {e}"))?;
-            drop(output);
-            let msg = if range_supported {
-                "Paused".to_string()
-            } else {
-                "Paused (server does not support resume)".to_string()
-            };
+            output.finish().await?;
             on_progress(ProgressUpdate {
                 state: DownloadTaskState::Paused,
                 bytes_downloaded: downloaded,
                 total_bytes,
-                message: msg,
+                message: if range_supported {
+                    "Paused".to_string()
+                } else {
+                    "Paused (server does not support resume)".to_string()
+                },
                 warning: None,
             });
             return Ok(TransferOutcome::Paused);
         }
 
-        let n = response.read(&mut buf).map_err(|e| format!("Read error: {e}"))?;
-        if n == 0 {
+        let Some(chunk) = response.chunk().await.map_err(|e| format!("Read error: {e}"))? else {
             break;
-        }
-        output.write_all(&buf[..n]).map_err(|e| format!("Write error: {e}"))?;
-        downloaded += n as u64;
+        };
+        downloaded += chunk.len() as u64;
+        output.write(&chunk).await?;
 
         if last_emit.elapsed() >= PROGRESS_EMIT_INTERVAL {
             on_progress(ProgressUpdate {
@@ -211,14 +173,16 @@ pub fn download_task_blocking(
             last_emit = Instant::now();
         }
     }
+    output.finish().await?;
 
-    output.flush().map_err(|e| format!("Flush error: {e}"))?;
-    drop(output);
-
-    // ── Rename .part → final file using detected container format ────────────
-
-    let (final_target_path, path_warning) = finalize_output_path(task, &temp_path, stream)
-        .map_err(|e| format!("Failed to finalize download output path: {e}"))?;
+    let finalize_task = task.clone();
+    let finalize_stream = stream.clone();
+    let (final_target_path, path_warning) = tokio::task::spawn_blocking(move || {
+        finalize_output_path(&finalize_task, &temp_path, &finalize_stream)
+    })
+    .await
+    .map_err(|e| format!("Finalize worker failed: {e}"))?
+    .map_err(|e| format!("Failed to finalize download output path: {e}"))?;
 
     on_progress(ProgressUpdate {
         state: DownloadTaskState::WritingMetadata,
@@ -228,17 +192,19 @@ pub fn download_task_blocking(
         warning: None,
     });
 
-    // ── Write audio metadata (non-fatal) ──────────────────────────────────────
-
     let track = task
         .lock()
         .map(|g| g.persisted.track.clone())
         .map_err(|_| "Task mutex poisoned during metadata read".to_string())?;
-
-    let metadata_warning = match write_audio_metadata(http_client, &final_target_path, &track) {
-        Ok(warning) => warning,
-        Err(error) => Some(error),
-    };
+    let cover = fetch_cover_picture(&track).await;
+    let metadata_warning = tokio::task::spawn_blocking(move || {
+        match write_audio_metadata(&final_target_path, &track, cover) {
+            Ok(warning) => warning,
+            Err(error) => Some(error),
+        }
+    })
+    .await
+    .unwrap_or_else(|e| Some(format!("Metadata worker failed: {e}")));
     let warning = combine_warnings(path_warning, metadata_warning);
 
     on_progress(ProgressUpdate {
@@ -256,6 +222,67 @@ pub fn download_task_blocking(
     Ok(TransferOutcome::Completed)
 }
 
+/// The `.part` file. Chunks collect in one buffer that is handed to a
+/// blocking thread when full, so the disk never stalls an async worker.
+struct PartFile {
+    file: Option<File>,
+    buffer: Vec<u8>,
+}
+
+impl PartFile {
+    async fn open(path: String, append: bool) -> Result<Self, String> {
+        let file = tokio::task::spawn_blocking(move || {
+            if append {
+                OpenOptions::new().create(true).append(true).open(&path)
+            } else {
+                OpenOptions::new().create(true).truncate(true).write(true).open(&path)
+            }
+        })
+        .await
+        .map_err(|e| format!("Failed to open part file: {e}"))?
+        .map_err(|e| format!("Failed to open part file: {e}"))?;
+        Ok(Self {
+            file: Some(file),
+            buffer: Vec::with_capacity(FILE_WRITE_BUFFER_SIZE),
+        })
+    }
+
+    async fn write(&mut self, chunk: &[u8]) -> Result<(), String> {
+        self.buffer.extend_from_slice(chunk);
+        if self.buffer.len() >= FILE_WRITE_BUFFER_SIZE {
+            self.flush(false).await?;
+        }
+        Ok(())
+    }
+
+    async fn finish(&mut self) -> Result<(), String> {
+        self.flush(true).await
+    }
+
+    async fn flush(&mut self, close: bool) -> Result<(), String> {
+        let Some(mut file) = self.file.take() else {
+            return Ok(());
+        };
+        let mut buffer = std::mem::take(&mut self.buffer);
+        let (file, buffer) = tokio::task::spawn_blocking(move || {
+            file.write_all(&buffer)?;
+            buffer.clear();
+            if close {
+                file.flush()?;
+            }
+            Ok::<_, std::io::Error>((file, buffer))
+        })
+        .await
+        .map_err(|e| format!("Write worker failed: {e}"))?
+        .map_err(|e| format!("Write error: {e}"))?;
+        if !close {
+            self.file = Some(file);
+            self.buffer = buffer;
+        }
+        Ok(())
+    }
+}
+
 /// Write title, artist, album, and cover art to the audio file at `file_path`
 /// using the `lofty` crate.
 ///
@@ -266,9 +293,9 @@ pub fn download_task_blocking(
 /// Returns an optional warning string for non-fatal issues such as artwork
 /// download/parse failures.
 pub fn write_audio_metadata(
-    client: &Client,
     file_path: &str,
     track: &Track,
+    cover: Result<Option<Picture>, String>,
 ) -> Result<Option<String>, String> {
     let probe = Probe::open(file_path)
         .map_err(|e| format!("Cannot open '{file_path}' for tagging: {e}"))?
@@ -328,7 +355,7 @@ pub fn write_audio_metadata(
     }
 
     // Embed cover art when available.
-    let artwork_warning = match fetch_cover_picture(client, track) {
+    let artwork_warning = match cover {
         Ok(Some(picture)) => {
             tag.remove_picture_type(PictureType::CoverFront);
             tag.push_picture(picture);
@@ -441,7 +468,7 @@ fn extension_for_file_type(file_type: FileType) -> &'static str {
     }
 }
 
-fn fetch_cover_picture(client: &Client, track: &Track) -> Result<Option<Picture>, String> {
+async fn fetch_cover_picture(track: &Track) -> Result<Option<Picture>, String> {
     let artwork_url = track
         .thumbnail
         .url_high
@@ -453,9 +480,10 @@ fn fetch_cover_picture(client: &Client, track: &Track) -> Result<Option<Picture>
         return Ok(None);
     }
 
-    let response = client
+    let response = http::client()
         .get(&artwork_url)
         .send()
+        .await
         .map_err(|e| format!("Failed to fetch artwork: {e}"))?;
     if !response.status().is_success() {
         return Err(format!("Artwork request failed with {}", response.status()));
@@ -463,9 +491,9 @@ fn fetch_cover_picture(client: &Client, track: &Track) -> Result<Option<Picture>
 
     let bytes = response
         .bytes()
+        .await
         .map_err(|e| format!("Failed to read artwork bytes: {e}"))?;
-    let mut cursor = Cursor::new(bytes.to_vec());
-    let mut picture = Picture::from_reader(&mut cursor)
+    let mut picture = Picture::from_reader(&mut Cursor::new(bytes.as_ref()))
         .map_err(|e| format!("Artwork is not in a supported image format: {e}"))?;
     picture.set_pic_type(PictureType::CoverFront);
     picture.set_description(Some("Cover".to_string()));
@@ -484,10 +512,11 @@ fn combine_warnings(first: Option<String>, second: Option<String>) -> Option<Str
 mod tests {
     use super::*;
     use crate::api::downloader::types::PersistedDownloadTask;
+    use std::io::Read;
     use std::net::TcpListener;
 
-    #[test]
-    fn rejected_signed_urls_are_invalidated_but_server_errors_keep_the_stream() {
+    #[tokio::test(flavor = "multi_thread")]
+    async fn rejected_signed_urls_are_invalidated_but_server_errors_keep_the_stream() {
         for status in [401, 403, 410, 500] {
             let listener = TcpListener::bind("127.0.0.1:0").unwrap();
             let url = format!("http://{}/audio", listener.local_addr().unwrap());
@@ -514,8 +543,7 @@ mod tests {
             })).unwrap();
             let stream = persisted.selected_stream.clone().unwrap();
             let task = Arc::new(Mutex::new(ManagedTask::from_persisted(persisted)));
-            let client = Client::builder().no_proxy().timeout(Duration::from_secs(5)).build().unwrap();
-            let result = download_task_blocking(&task, &stream, &client, |_| {});
+            let result = download_task(task.clone(), stream, |_| {}).await;
             assert!(result.err().unwrap().contains(&status.to_string()));
             assert_eq!(task.lock().unwrap().persisted.selected_stream.is_none(), status != 500);
             server.join().unwrap();

@@ -41,11 +41,11 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1247186383;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 798287679;
 
 // Section: executor
 
-flutter_rust_bridge::frb_generated_default_handler!();
+pub use crate::api::runtime::FLUTTER_RUST_BRIDGE_HANDLER;
 
 // Section: wire_funcs
 
@@ -2249,6 +2249,39 @@ fn wire__crate__api__bridge__acknowledge_download_persisted_impl(
         },
     )
 }
+fn wire__crate__api__matching__artist_similarity_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "artist_similarity",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_left = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_right = <Vec<String>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(crate::api::matching::artist_similarity(
+                    api_left, api_right,
+                ))?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__bridge__cancel_download_task_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -2579,6 +2612,39 @@ fn wire__crate__api__discord__discord_stop_impl(
                 let output_ok = Result::<_, ()>::Ok({
                     crate::api::discord::discord_stop();
                 })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__matching__duration_similarity_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "duration_similarity",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_left = <Option<u64>>::sse_decode(&mut deserializer);
+            let api_right = <Option<u64>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(crate::api::matching::duration_similarity(
+                    api_left, api_right,
+                ))?;
                 Ok(output_ok)
             })())
         },
@@ -3409,6 +3475,40 @@ fn wire__crate__api__bridge__is_plugin_loaded_impl(
         },
     )
 }
+fn wire__crate__api__matching__is_strong_match_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "is_strong_match",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_target = <crate::api::matching::MatchTrack>::sse_decode(&mut deserializer);
+            let api_candidate = <crate::api::matching::MatchTrack>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(crate::api::matching::is_strong_match(
+                    api_target,
+                    api_candidate,
+                ))?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__bridge__load_plugin_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3471,6 +3571,37 @@ fn wire__crate__api__bridge__load_plugin_impl(
                     .await,
                 )
             }
+        },
+    )
+}
+fn wire__crate__api__matching__normalize_text_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "normalize_text",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_value = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok =
+                    Result::<_, ()>::Ok(crate::api::matching::normalize_text(api_value))?;
+                Ok(output_ok)
+            })())
         },
     )
 }
@@ -4199,6 +4330,41 @@ fn wire__crate__api__bridge__scan_bex_files_impl(
         },
     )
 }
+fn wire__crate__api__matching__score_tracks_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "score_tracks",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_target = <crate::api::matching::MatchTrack>::sse_decode(&mut deserializer);
+            let api_candidates =
+                <Vec<crate::api::matching::MatchTrack>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(crate::api::matching::score_tracks(
+                    api_target,
+                    api_candidates,
+                ))?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__bridge__shutdown_plugin_manager_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -4255,6 +4421,70 @@ fn wire__crate__api__bridge__shutdown_plugin_manager_impl(
                     .await,
                 )
             }
+        },
+    )
+}
+fn wire__crate__api__matching__simplify_title_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "simplify_title",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_value = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok =
+                    Result::<_, ()>::Ok(crate::api::matching::simplify_title(api_value))?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__matching__text_similarity_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "text_similarity",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_left = <String>::sse_decode(&mut deserializer);
+            let api_right = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(crate::api::matching::text_similarity(
+                    api_left, api_right,
+                ))?;
+                Ok(output_ok)
+            })())
         },
     )
 }
@@ -5560,6 +5790,18 @@ impl SseDecode for Vec<crate::api::plugin::models::LyricsToken> {
     }
 }
 
+impl SseDecode for Vec<crate::api::matching::MatchTrack> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::matching::MatchTrack>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::plugin::models::MediaItem> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5569,6 +5811,18 @@ impl SseDecode for Vec<crate::api::plugin::models::MediaItem> {
             ans_.push(<crate::api::plugin::models::MediaItem>::sse_decode(
                 deserializer,
             ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<f64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<f64>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -5882,6 +6136,22 @@ impl SseDecode for crate::api::plugin::manifest::Manifest {
             resolver: var_resolver,
             last_updated: var_lastUpdated,
             country_allowlist: var_countryAllowlist,
+        };
+    }
+}
+
+impl SseDecode for crate::api::matching::MatchTrack {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_artists = <Vec<String>>::sse_decode(deserializer);
+        let mut var_album = <Option<String>>::sse_decode(deserializer);
+        let mut var_durationMs = <Option<u64>>::sse_decode(deserializer);
+        return crate::api::matching::MatchTrack {
+            title: var_title,
+            artists: var_artists,
+            album: var_album,
+            duration_ms: var_durationMs,
         };
     }
 }
@@ -7047,116 +7317,116 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        42 => {
+        43 => {
             wire__crate__api__bridge__cancel_download_task_impl(port, ptr, rust_vec_len, data_len)
         }
-        43 => wire__crate__api__bridge__create_download_manager_impl(
+        44 => wire__crate__api__bridge__create_download_manager_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        44 => {
+        45 => {
             wire__crate__api__bridge__create_plugin_manager_impl(port, ptr, rust_vec_len, data_len)
         }
-        48 => {
+        49 => {
             wire__crate__api__discord__discord_status_stream_impl(port, ptr, rust_vec_len, data_len)
         }
-        50 => {
+        52 => {
             wire__crate__api__bridge__enqueue_download_task_impl(port, ptr, rust_vec_len, data_len)
         }
-        51 => {
+        53 => {
             wire__crate__api__bridge__get_available_plugins_impl(port, ptr, rust_vec_len, data_len)
         }
-        52 => wire__crate__api__bridge__get_download_task_snapshots_impl(
+        54 => wire__crate__api__bridge__get_download_task_snapshots_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        53 => wire__crate__api__bridge__get_filename_url_impl(port, ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__bridge__get_plugin_info_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__bridge__get_plugins_dir_impl(port, ptr, rust_vec_len, data_len),
-        58 => {
+        55 => wire__crate__api__bridge__get_filename_url_impl(port, ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__bridge__get_plugin_info_impl(port, ptr, rust_vec_len, data_len),
+        58 => wire__crate__api__bridge__get_plugins_dir_impl(port, ptr, rust_vec_len, data_len),
+        60 => {
             wire__crate__api__bridge__handle_plugin_request_impl(port, ptr, rust_vec_len, data_len)
         }
-        59 => wire__crate__api__bridge__init_app_impl(port, ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__bridge__init_download_event_stream_impl(
+        61 => wire__crate__api__bridge__init_app_impl(port, ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__bridge__init_download_event_stream_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        61 => wire__crate__api__bridge__init_plugin_event_stream_impl(
+        63 => wire__crate__api__bridge__init_plugin_event_stream_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        62 => {
+        64 => {
             wire__crate__api__bridge__inspect_packed_plugin_impl(port, ptr, rust_vec_len, data_len)
         }
-        63 => {
+        65 => {
             wire__crate__api__bridge__install_packed_plugin_impl(port, ptr, rust_vec_len, data_len)
         }
-        64 => wire__crate__api__bridge__is_plugin_loaded_impl(port, ptr, rust_vec_len, data_len),
-        65 => wire__crate__api__bridge__load_plugin_impl(port, ptr, rust_vec_len, data_len),
-        66 => wire__crate__api__bridge__pause_download_task_impl(port, ptr, rust_vec_len, data_len),
-        67 => {
+        66 => wire__crate__api__bridge__is_plugin_loaded_impl(port, ptr, rust_vec_len, data_len),
+        68 => wire__crate__api__bridge__load_plugin_impl(port, ptr, rust_vec_len, data_len),
+        70 => wire__crate__api__bridge__pause_download_task_impl(port, ptr, rust_vec_len, data_len),
+        71 => {
             wire__crate__api__bridge__plugin_storage_clear_impl(port, ptr, rust_vec_len, data_len)
         }
-        68 => wire__crate__api__bridge__plugin_storage_get_impl(port, ptr, rust_vec_len, data_len),
-        69 => {
+        72 => wire__crate__api__bridge__plugin_storage_get_impl(port, ptr, rust_vec_len, data_len),
+        73 => {
             wire__crate__api__bridge__plugin_storage_preload_impl(port, ptr, rust_vec_len, data_len)
         }
-        70 => wire__crate__api__bridge__plugin_storage_set_impl(port, ptr, rust_vec_len, data_len),
-        71 => wire__crate__api__plugin__types__plugin_type_description_impl(
+        74 => wire__crate__api__bridge__plugin_storage_set_impl(port, ptr, rust_vec_len, data_len),
+        75 => wire__crate__api__plugin__types__plugin_type_description_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        72 => wire__crate__api__plugin__types__plugin_type_from_string_impl(
+        76 => wire__crate__api__plugin__types__plugin_type_from_string_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        73 => wire__crate__api__plugin__types__plugin_type_type_string_impl(
+        77 => wire__crate__api__plugin__types__plugin_type_type_string_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        74 => wire__crate__api__local_music__read_audio_metadata_impl(
+        78 => wire__crate__api__local_music__read_audio_metadata_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        75 => wire__crate__api__bridge__refresh_available_plugins_impl(
+        79 => wire__crate__api__bridge__refresh_available_plugins_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        76 => {
+        80 => {
             wire__crate__api__bridge__restore_download_tasks_impl(port, ptr, rust_vec_len, data_len)
         }
-        77 => {
+        81 => {
             wire__crate__api__bridge__resume_download_task_impl(port, ptr, rust_vec_len, data_len)
         }
-        78 => {
+        82 => {
             wire__crate__api__local_music__scan_audio_files_impl(port, ptr, rust_vec_len, data_len)
         }
-        79 => wire__crate__api__bridge__scan_bex_files_impl(port, ptr, rust_vec_len, data_len),
-        80 => wire__crate__api__bridge__shutdown_plugin_manager_impl(
+        83 => wire__crate__api__bridge__scan_bex_files_impl(port, ptr, rust_vec_len, data_len),
+        85 => wire__crate__api__bridge__shutdown_plugin_manager_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        81 => wire__crate__api__bridge__unload_plugin_impl(port, ptr, rust_vec_len, data_len),
+        88 => wire__crate__api__bridge__unload_plugin_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -7219,12 +7489,19 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__api__discord__discord_reconnect_impl(ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__discord__discord_set_activity_impl(ptr, rust_vec_len, data_len),
-        47 => wire__crate__api__discord__discord_start_impl(ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__discord__discord_stop_impl(ptr, rust_vec_len, data_len),
-        54 => wire__crate__api__bridge__get_loaded_plugins_impl(ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__bridge__greet_impl(ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__matching__artist_similarity_impl(ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__discord__discord_reconnect_impl(ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__discord__discord_set_activity_impl(ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__discord__discord_start_impl(ptr, rust_vec_len, data_len),
+        50 => wire__crate__api__discord__discord_stop_impl(ptr, rust_vec_len, data_len),
+        51 => wire__crate__api__matching__duration_similarity_impl(ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__bridge__get_loaded_plugins_impl(ptr, rust_vec_len, data_len),
+        59 => wire__crate__api__bridge__greet_impl(ptr, rust_vec_len, data_len),
+        67 => wire__crate__api__matching__is_strong_match_impl(ptr, rust_vec_len, data_len),
+        69 => wire__crate__api__matching__normalize_text_impl(ptr, rust_vec_len, data_len),
+        84 => wire__crate__api__matching__score_tracks_impl(ptr, rust_vec_len, data_len),
+        86 => wire__crate__api__matching__simplify_title_impl(ptr, rust_vec_len, data_len),
+        87 => wire__crate__api__matching__text_similarity_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -8381,6 +8658,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::plugin::manifest::Manifest>
     for crate::api::plugin::manifest::Manifest
 {
     fn into_into_dart(self) -> crate::api::plugin::manifest::Manifest {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::matching::MatchTrack {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.artists.into_into_dart().into_dart(),
+            self.album.into_into_dart().into_dart(),
+            self.duration_ms.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::matching::MatchTrack
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::matching::MatchTrack>
+    for crate::api::matching::MatchTrack
+{
+    fn into_into_dart(self) -> crate::api::matching::MatchTrack {
         self
     }
 }
@@ -9983,12 +10283,32 @@ impl SseEncode for Vec<crate::api::plugin::models::LyricsToken> {
     }
 }
 
+impl SseEncode for Vec<crate::api::matching::MatchTrack> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::matching::MatchTrack>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::plugin::models::MediaItem> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::plugin::models::MediaItem>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<f64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <f64>::sse_encode(item, serializer);
         }
     }
 }
@@ -10201,6 +10521,16 @@ impl SseEncode for crate::api::plugin::manifest::Manifest {
         <bool>::sse_encode(self.resolver, serializer);
         <Option<String>>::sse_encode(self.last_updated, serializer);
         <Vec<String>>::sse_encode(self.country_allowlist, serializer);
+    }
+}
+
+impl SseEncode for crate::api::matching::MatchTrack {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <Vec<String>>::sse_encode(self.artists, serializer);
+        <Option<String>>::sse_encode(self.album, serializer);
+        <Option<u64>>::sse_encode(self.duration_ms, serializer);
     }
 }
 

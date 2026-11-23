@@ -10,7 +10,7 @@ import 'plugin/models.dart';
 import 'plugin/plugin.dart';
 
 // These functions are ignored because they are not marked as `pub`: `emit`, `fail_task`, `get_task`, `handle_progress_update`, `persist_manifest`, `remove_task`, `run_task`, `set_task_state`, `snapshot_for`, `spawn_worker`, `update_retrying`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `drop`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DownloadManager>>
 abstract class DownloadManager implements RustOpaqueInterface {

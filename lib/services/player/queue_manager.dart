@@ -1,158 +1,98 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:math' show Random, max;
 
 import 'package:Bloomee/core/constants/setting_keys.dart';
+import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/services/db/dao/settings_dao.dart';
 import 'package:Bloomee/services/db/dao/track_dao.dart';
 import 'package:Bloomee/services/db/db_provider.dart';
-import 'package:Bloomee/core/models/exported.dart';
 import 'package:Bloomee/services/player/player_engine.dart';
 import 'package:rxdart/rxdart.dart';
 
-List<int> generateRandomIndices(int length) {
-  final indices = List<int>.generate(length, (i) => i);
-  indices.shuffle();
-  return indices;
-}
-
-/// Manages the playback queue (track list, ordering, shuffle, navigation).
+/// The playback queue: one ordered list of tracks with unique ids, and the
+/// index of the current one.
 ///
-/// Pure data structure — does NOT control the audio engine.
-/// The [BloomeeMusicPlayer] reads [currentTrack] after calling navigation
-/// methods and decides what to play.
+/// Shuffle reorders the list itself (current track first, the rest in random
+/// order), so the queue the user sees is always the play order and every
+/// edit (play next, reorder, remove) means the same thing with shuffle on or
+/// off. The order from before shuffling is kept and restored when shuffle is
+/// turned off, with the edits made meanwhile carried over.
+///
+/// Pure data structure: it never touches the audio engine. The player reads
+/// [currentTrack] after a navigation call and decides what to play.
 class QueueManager {
-  final BehaviorSubject<List<Track>> _queue = BehaviorSubject.seeded([]);
+  QueueManager({Random? random}) : _random = random ?? Random();
+
+  final Random _random;
+  final BehaviorSubject<List<Track>> _queue =
+      BehaviorSubject.seeded(const <Track>[]);
   final BehaviorSubject<bool> shuffleMode = BehaviorSubject.seeded(false);
   final BehaviorSubject<String> queueTitle = BehaviorSubject.seeded('Queue');
 
   int _currentIndex = 0;
-  int _shuffleIndex = 0;
-  List<int> _shuffleList = [];
 
-  /// True while [restoreQueueState] is populating the queue from disk.
-  /// [BloomeeMusicPlayer] checks this to skip the persistence listener
-  /// and avoid writing back the exact same data we just read.
+  /// The order to restore when shuffle is turned off; null while unshuffled.
+  List<Track>? _unshuffled;
+
+  /// The list last written by [persistQueueState]. Lists are never mutated
+  /// in place, so an identical list means only the index or title changed.
+  List<Track>? _persistedTracks;
+
+  /// True while [restoreQueueState] is populating the queue from disk, so
+  /// the player does not write back the data just read.
   bool _isRestoring = false;
   bool get isRestoring => _isRestoring;
 
   // ─── Getters ───────────────────────────────────────────────────────────────
 
+  /// Unmodifiable; replaced (never mutated) on every change.
   List<Track> get tracks => _queue.value;
   Stream<List<Track>> get tracksStream => _queue.stream;
   int get currentIndex => _currentIndex;
   int get length => _queue.value.length;
   bool get isEmpty => _queue.value.isEmpty;
-  bool get isNotEmpty => _queue.value.isNotEmpty;
 
   Track? get currentTrack {
-    if (_queue.value.isEmpty || _currentIndex >= _queue.value.length) {
-      return null;
-    }
-    return _queue.value[_currentIndex];
+    final queue = _queue.value;
+    return _currentIndex < queue.length ? queue[_currentIndex] : null;
   }
 
-  bool hasNext({LoopMode loopMode = LoopMode.off}) {
-    if (_queue.value.isEmpty) return false;
-    if (loopMode == LoopMode.all) return true;
-    if (shuffleMode.value) {
-      return _shuffleList.isNotEmpty &&
-          _shuffleIndex < (_shuffleList.length - 1);
-    }
-    return _currentIndex < (_queue.value.length - 1);
-  }
+  /// Tracks after the current one.
+  int get remaining =>
+      _queue.value.isEmpty ? 0 : _queue.value.length - 1 - _currentIndex;
 
-  bool hasPrevious({LoopMode loopMode = LoopMode.off}) {
-    if (_queue.value.isEmpty) return false;
-    if (loopMode == LoopMode.all) return true;
-    if (shuffleMode.value) {
-      return _shuffleList.isNotEmpty && _shuffleIndex > 0;
-    }
-    return _currentIndex > 0;
-  }
-
-  /// Peek at the next track without advancing the index.
+  /// The track [advanceToNext] would move to, without moving.
   Track? peekNext({LoopMode loopMode = LoopMode.off}) {
-    if (_queue.value.isEmpty) return null;
-
-    if (!shuffleMode.value) {
-      if (_currentIndex < _queue.value.length - 1) {
-        return _queue.value[_currentIndex + 1];
-      } else if (loopMode == LoopMode.all) {
-        return _queue.value[0];
-      }
-    } else {
-      _ensureShuffleListValid();
-      if (_shuffleIndex < _shuffleList.length - 1) {
-        final nextIdx = _shuffleList[_shuffleIndex + 1];
-        if (nextIdx < _queue.value.length) return _queue.value[nextIdx];
-      } else if (loopMode == LoopMode.all && _shuffleList.isNotEmpty) {
-        return _queue.value[_shuffleList[0]];
-      }
-    }
-    return null;
+    final next = _nextIndex(loopMode);
+    return next == null ? null : _queue.value[next];
   }
 
   // ─── Navigation ────────────────────────────────────────────────────────────
 
-  /// Advance to the next track. Returns true if index changed.
+  /// Moves to the next track. Returns true if the index changed.
   bool advanceToNext({LoopMode loopMode = LoopMode.off}) {
-    if (_queue.value.isEmpty) return false;
-
-    if (!shuffleMode.value) {
-      if (_currentIndex < _queue.value.length - 1) {
-        _currentIndex++;
-        return true;
-      } else if (loopMode == LoopMode.all) {
-        _currentIndex = 0;
-        return true;
-      }
-    } else {
-      _ensureShuffleListValid();
-      if (_shuffleIndex < _shuffleList.length - 1) {
-        _shuffleIndex++;
-        _currentIndex =
-            _shuffleList[_shuffleIndex].clamp(0, _queue.value.length - 1);
-        return true;
-      } else if (loopMode == LoopMode.all) {
-        _shuffleIndex = 0;
-        _currentIndex =
-            _shuffleList[_shuffleIndex].clamp(0, _queue.value.length - 1);
-        return true;
-      }
-    }
-    return false;
+    final next = _nextIndex(loopMode);
+    if (next == null) return false;
+    _currentIndex = next;
+    return true;
   }
 
-  /// Go back to the previous track. Returns true if index changed.
+  /// Moves to the previous track. Returns true if the index changed.
   bool advanceToPrevious({LoopMode loopMode = LoopMode.off}) {
-    if (_queue.value.isEmpty) return false;
-
-    if (!shuffleMode.value) {
-      if (_currentIndex > 0) {
-        _currentIndex--;
-        return true;
-      } else if (loopMode == LoopMode.all) {
-        _currentIndex = _queue.value.length - 1;
-        return true;
-      }
-    } else {
-      _ensureShuffleListValid();
-      if (_shuffleIndex > 0) {
-        _shuffleIndex--;
-        _currentIndex =
-            _shuffleList[_shuffleIndex].clamp(0, _queue.value.length - 1);
-        return true;
-      } else if (loopMode == LoopMode.all) {
-        _shuffleIndex = _shuffleList.length - 1;
-        _currentIndex =
-            _shuffleList[_shuffleIndex].clamp(0, _queue.value.length - 1);
-        return true;
-      }
+    final length = _queue.value.length;
+    if (length == 0) return false;
+    if (_currentIndex > 0) {
+      _currentIndex--;
+      return true;
+    }
+    if (loopMode == LoopMode.all) {
+      _currentIndex = length - 1;
+      return true;
     }
     return false;
   }
 
-  /// Jump directly to a queue index.
   void jumpTo(int index) {
     if (index < 0 || index >= _queue.value.length) {
       log('jumpTo: index $index out of bounds (len: ${_queue.value.length})',
@@ -160,357 +100,322 @@ class QueueManager {
       return;
     }
     _currentIndex = index;
-    if (shuffleMode.value && _shuffleList.isNotEmpty) {
-      _shuffleIndex = _shuffleList.indexOf(index);
-      if (_shuffleIndex == -1) _shuffleIndex = 0;
-    }
   }
 
-  // ─── Queue Mutations ──────────────────────────────────────────────────────
+  int? _nextIndex(LoopMode loopMode) {
+    final length = _queue.value.length;
+    if (length == 0) return null;
+    if (_currentIndex < length - 1) return _currentIndex + 1;
+    return loopMode == LoopMode.all ? 0 : null;
+  }
 
-  /// Replace the queue with a new playlist.
+  // ─── Loading ───────────────────────────────────────────────────────────────
+
+  /// Replaces the queue with [tracks] (duplicates dropped), current at
+  /// [index].
+  ///
+  /// [shuffle] turns shuffle on and starts from a random track (the shuffle
+  /// play button). With shuffle already on, the chosen track plays first and
+  /// the rest follow in random order.
   void loadTracks(
     List<Track> tracks, {
-    String playlistName = 'Queue',
-    int idx = 0,
-    bool shuffling = false,
+    String title = 'Queue',
+    int index = 0,
+    bool shuffle = false,
   }) {
-    // Deduplicate by ID, preserving order. We track whether the requested
-    // start index needs to be remapped after deduplication.
-    final seenIds = <String>{};
-    Track? requestedTrack;
-    if (idx >= 0 && idx < tracks.length) {
-      requestedTrack = tracks[idx];
-    }
-    final deduped =
-        tracks.where((t) => seenIds.add(t.id)).toList(growable: false);
+    final start = index >= 0 && index < tracks.length ? tracks[index] : null;
+    final unique = _unique(tracks);
+    queueTitle.add(title);
+    if (shuffle && !shuffleMode.value) shuffleMode.add(true);
 
-    // Remap idx to the deduplicated list so the right song still starts.
-    int remappedIdx = 0;
-    if (requestedTrack != null) {
-      final pos = deduped.indexWhere((t) => t.id == requestedTrack!.id);
-      remappedIdx = pos != -1 ? pos : 0;
-    }
+    var current =
+        start == null ? 0 : max(0, unique.indexWhere((t) => t.id == start.id));
+    if (shuffle && unique.isNotEmpty) current = _random.nextInt(unique.length);
 
-    _queue.add(deduped);
-    queueTitle.add(playlistName);
-
-    final shouldShuffle = shuffling || shuffleMode.value;
-    shuffleMode.add(shouldShuffle);
-
-    if (shouldShuffle && deduped.isNotEmpty) {
-      _shuffleList = generateRandomIndices(deduped.length);
-      if (shuffling) {
-        _shuffleIndex = 0;
-        _currentIndex = _shuffleList[0];
-      } else {
-        _shuffleIndex = _shuffleList.indexOf(remappedIdx);
-        if (_shuffleIndex == -1) _shuffleIndex = 0;
-        _currentIndex = remappedIdx;
-      }
+    if (shuffleMode.value) {
+      _unshuffled = unique;
+      _set(unique.isEmpty ? unique : _shuffledAround(unique, current), 0);
     } else {
-      _shuffleList = [];
-      _shuffleIndex = 0;
-      _currentIndex =
-          remappedIdx.clamp(0, deduped.isEmpty ? 0 : deduped.length - 1);
+      _unshuffled = null;
+      _set(unique, current);
     }
   }
 
-  /// Toggle shuffle mode.
-  void shuffle(bool enabled) {
+  void setShuffle(bool enabled) {
+    if (enabled == shuffleMode.value) return;
     shuffleMode.add(enabled);
-    if (enabled && _queue.value.isNotEmpty) {
-      _shuffleList = generateRandomIndices(_queue.value.length);
-      // Put current track at shuffle index 0.
-      final pos = _shuffleList.indexOf(_currentIndex);
-      if (pos != -1 && pos != 0) {
-        _shuffleList.removeAt(pos);
-        _shuffleList.insert(0, _currentIndex);
-      }
-      _shuffleIndex = 0;
-    }
-  }
+    final queue = _queue.value;
 
-  /// Add a track to the end of the queue. Skips duplicates (by id).
-  void addTrack(Track track) {
-    if (_queue.value.any((t) => t.id == track.id)) return;
-    queueTitle.add('Queue');
-    final newQueue = List<Track>.from(_queue.value)..add(track);
-    final newIdx = newQueue.length - 1;
-    _queue.add(newQueue);
-    if (shuffleMode.value && _shuffleList.isNotEmpty) {
-      _shuffleList.add(newIdx);
-    }
-  }
-
-  /// Add multiple tracks to the queue.
-  void addTracks(List<Track> tracks, {bool atLast = false}) {
-    if (atLast) {
-      final existingIds = _queue.value.map((t) => t.id).toSet();
-      final deduplicated =
-          tracks.where((t) => existingIds.add(t.id)).toList(growable: false);
-      if (deduplicated.isEmpty) return;
-      final startIdx = _queue.value.length;
-      final newQueue = List<Track>.from(_queue.value)..addAll(deduplicated);
-      _queue.add(newQueue);
-      // Append new indices to the shuffle list so the existing shuffle order
-      // is preserved. Without this, _ensureShuffleListValid would regenerate
-      // the entire order, causing unpredictable jumps.
-      if (shuffleMode.value && _shuffleList.isNotEmpty) {
-        for (int i = 0; i < deduplicated.length; i++) {
-          _shuffleList.add(startIdx + i);
-        }
-      }
-    } else {
-      for (final track in tracks) {
-        addTrack(track);
-      }
-    }
-  }
-
-  /// Insert a track to play next (after current).
-  void addPlayNext(Track track) {
-    if (_queue.value.isEmpty) {
-      _queue.add([track]);
-      _currentIndex = 0;
+    if (enabled) {
+      _unshuffled = queue;
+      if (queue.isNotEmpty) _set(_shuffledAround(queue, _currentIndex), 0);
       return;
     }
-    if (_queue.value.any((t) => t.id == track.id)) return;
 
-    final insertIdx = _currentIndex + 1;
-    final newQueue = List<Track>.from(_queue.value)..insert(insertIdx, track);
-    _queue.add(newQueue);
-
-    if (shuffleMode.value && _shuffleList.isNotEmpty) {
-      for (int i = 0; i < _shuffleList.length; i++) {
-        if (_shuffleList[i] >= insertIdx) _shuffleList[i]++;
-      }
-      _shuffleList.insert(_shuffleIndex + 1, insertIdx);
-    }
+    final original = _unshuffled;
+    _unshuffled = null;
+    if (original == null || queue.isEmpty) return;
+    final current = queue[_currentIndex].id;
+    // Original order for tracks still queued (as they are now, so replaced
+    // or refreshed tracks stay current), then tracks added while shuffled.
+    final pending = {for (final t in queue) t.id: t};
+    final restored = <Track>[
+      for (final t in original)
+        if (pending.remove(t.id) case final kept?) kept,
+      ...pending.values,
+    ];
+    _set(restored, restored.indexWhere((t) => t.id == current));
   }
 
-  /// Insert a track at a specific index.
+  // ─── Adding ────────────────────────────────────────────────────────────────
+
+  /// "Add to queue": appends [track]. An upcoming copy stays where it is; an
+  /// already played one moves to the end so it plays again. Returns false
+  /// when nothing changed (it is the current or an upcoming track).
+  bool addTrack(Track track) => addTracks([track], requeuePlayed: true) > 0;
+
+  /// Appends [tracks], skipping ones already queued. With [requeuePlayed],
+  /// already played ones move to the end instead of being skipped. Returns
+  /// how many tracks were appended or moved.
+  int addTracks(Iterable<Track> tracks, {bool requeuePlayed = false}) {
+    final queue = _queue.value;
+    final positions = _positions(queue);
+    final seen = <String>{};
+    final requeued = <String>{};
+    final appended = <Track>[];
+    for (final track in tracks) {
+      if (!seen.add(track.id)) continue;
+      final at = positions[track.id];
+      if (at == null) {
+        appended.add(track);
+      } else if (requeuePlayed && at < _currentIndex) {
+        requeued.add(track.id);
+        appended.add(track);
+      }
+    }
+    if (appended.isEmpty) return 0;
+
+    final kept = requeued.isEmpty
+        ? queue
+        : [
+            for (final t in queue)
+              if (!requeued.contains(t.id)) t
+          ];
+    // Requeued tracks all came from before the current one.
+    _set([...kept, ...appended], _currentIndex - requeued.length);
+    return appended.length;
+  }
+
+  /// "Play next": puts [track] right after the current one, moving it there
+  /// if it is already queued. The latest play-next plays first. Returns
+  /// false when [track] is the current track.
+  bool addPlayNext(Track track) {
+    final queue = _queue.value;
+    if (queue.isEmpty) {
+      _set([track], 0);
+      if (shuffleMode.value) _unshuffled = [track];
+      return true;
+    }
+    final at = queue.indexWhere((t) => t.id == track.id);
+    if (at == _currentIndex) return false;
+
+    final list = [...queue];
+    var current = _currentIndex;
+    if (at != -1) {
+      list.removeAt(at);
+      if (at < current) current--;
+    }
+    list.insert(current + 1, track);
+    _set(list, current);
+
+    // Keep it next to the current track if shuffle is turned off later.
+    final original = _unshuffled;
+    if (original != null) {
+      final currentId = list[current].id;
+      final restored = [
+        for (final t in original)
+          if (t.id != track.id) t
+      ];
+      final pos = restored.indexWhere((t) => t.id == currentId);
+      restored.insert(pos == -1 ? restored.length : pos + 1, track);
+      _unshuffled = restored;
+    }
+    return true;
+  }
+
+  /// Inserts [track] at [index] unless it is already queued.
   void insertTrack(int index, Track track) {
-    // Guard against inserting a duplicate ID — same reason as addTrack.
-    if (_queue.value.any((t) => t.id == track.id)) return;
-
-    final queue = List<Track>.from(_queue.value);
-    final actualIdx = index.clamp(0, queue.length);
-    if (actualIdx < queue.length) {
-      queue.insert(actualIdx, track);
-    } else {
-      queue.add(track);
-    }
-    _queue.add(queue);
-
-    if (_currentIndex >= actualIdx) _currentIndex++;
-
-    if (shuffleMode.value && _shuffleList.isNotEmpty) {
-      for (int i = 0; i < _shuffleList.length; i++) {
-        if (_shuffleList[i] >= actualIdx) _shuffleList[i]++;
-      }
-      final insertPos =
-          (_shuffleIndex + 1 + (_shuffleList.length - _shuffleIndex - 1) ~/ 2)
-              .clamp(0, _shuffleList.length);
-      _shuffleList.insert(insertPos, actualIdx);
-    }
+    final queue = _queue.value;
+    if (queue.any((t) => t.id == track.id)) return;
+    final at = index.clamp(0, queue.length);
+    final list = [...queue]..insert(at, track);
+    final current = queue.isNotEmpty && at <= _currentIndex
+        ? _currentIndex + 1
+        : _currentIndex;
+    _set(list, current);
   }
 
-  /// Remove a track by queue index.
-  void removeTrackAt(int index) {
-    if (index >= _queue.value.length) return;
+  // ─── Editing ───────────────────────────────────────────────────────────────
 
-    final newQueue = List<Track>.from(_queue.value)..removeAt(index);
-    _queue.add(newQueue);
-
-    // Adjust shuffle list.
-    if (shuffleMode.value && _shuffleList.isNotEmpty) {
-      final posInShuffle = _shuffleList.indexOf(index);
-      if (posInShuffle != -1) {
-        _shuffleList.removeAt(posInShuffle);
-        if (posInShuffle < _shuffleIndex) {
-          _shuffleIndex--;
-        } else if (posInShuffle == _shuffleIndex &&
-            _shuffleIndex >= _shuffleList.length) {
-          _shuffleIndex =
-              (_shuffleList.length - 1).clamp(0, _shuffleList.length);
-        }
-      }
-      for (int i = 0; i < _shuffleList.length; i++) {
-        if (_shuffleList[i] > index) _shuffleList[i]--;
-      }
+  /// Removes the track at [index]. The current track cannot be removed (it
+  /// is playing; skip it instead). Returns true if a track was removed.
+  bool removeTrackAt(int index) {
+    final queue = _queue.value;
+    if (index < 0 || index >= queue.length || index == _currentIndex) {
+      return false;
     }
-
-    // Adjust current index.
-    if (_currentIndex == index) {
-      if (newQueue.isEmpty) {
-        _currentIndex = 0;
-      } else {
-        _currentIndex = _currentIndex.clamp(0, newQueue.length - 1);
-      }
-    } else if (_currentIndex > index) {
-      _currentIndex--;
-    }
+    final list = [...queue]..removeAt(index);
+    _set(list, index < _currentIndex ? _currentIndex - 1 : _currentIndex);
+    return true;
   }
 
-  /// Move a track from one position to another.
+  /// Moves a track, with [newIndex] as Flutter's reorder callbacks give it
+  /// (the position before the dragged item is taken out).
   void moveTrack(int oldIndex, int newIndex) {
-    final queue = List<Track>.from(_queue.value);
+    final queue = _queue.value;
+    if (oldIndex < 0 || oldIndex >= queue.length) return;
     if (oldIndex < newIndex) newIndex--;
-    final item = queue.removeAt(oldIndex);
-    queue.insert(newIndex, item);
-    _queue.add(queue);
+    newIndex = newIndex.clamp(0, queue.length - 1);
+    if (oldIndex == newIndex) return;
 
-    // Update shuffle list.
-    if (shuffleMode.value && _shuffleList.isNotEmpty) {
-      for (int i = 0; i < _shuffleList.length; i++) {
-        if (_shuffleList[i] == oldIndex) {
-          _shuffleList[i] = newIndex;
-        } else if (oldIndex < newIndex) {
-          if (_shuffleList[i] > oldIndex && _shuffleList[i] <= newIndex) {
-            _shuffleList[i]--;
-          }
-        } else {
-          if (_shuffleList[i] >= newIndex && _shuffleList[i] < oldIndex) {
-            _shuffleList[i]++;
-          }
-        }
-      }
-    }
+    final list = [...queue];
+    list.insert(newIndex, list.removeAt(oldIndex));
 
-    // Update current index.
-    if (_currentIndex == oldIndex) {
-      _currentIndex = newIndex;
-    } else if (oldIndex < _currentIndex && newIndex >= _currentIndex) {
-      _currentIndex--;
-    } else if (oldIndex > _currentIndex && newIndex <= _currentIndex) {
-      _currentIndex++;
+    var current = _currentIndex;
+    if (current == oldIndex) {
+      current = newIndex;
+    } else if (oldIndex < current && newIndex >= current) {
+      current--;
+    } else if (oldIndex > current && newIndex <= current) {
+      current++;
     }
+    _set(list, current);
   }
 
-  /// Clear all tracks from the queue, keeping only the currently playing
-  /// track so playback does not stop abruptly.
+  /// Replaces the track [oldId] with [replacement] in place (a smart replace
+  /// or a metadata refresh). If [replacement] was already queued elsewhere,
+  /// that copy is dropped so ids stay unique. Returns true if [oldId] was
+  /// queued.
+  bool replaceTrack(String oldId, Track replacement) {
+    final queue = _queue.value;
+    final at = queue.indexWhere((t) => t.id == oldId);
+    if (at == -1) return false;
+    final dup = oldId == replacement.id
+        ? -1
+        : queue.indexWhere((t) => t.id == replacement.id);
+
+    final list = [...queue];
+    list[at] = replacement;
+    var current = _currentIndex;
+    if (dup != -1) {
+      list.removeAt(dup);
+      if (dup == current) {
+        current = at > dup ? at - 1 : at;
+      } else if (dup < current) {
+        current--;
+      }
+    }
+    _set(list, current);
+
+    final original = _unshuffled;
+    if (original != null) {
+      _unshuffled = _unique([
+        for (final t in original) t.id == oldId ? replacement : t,
+      ]);
+    }
+    return true;
+  }
+
+  /// Clears the queue except the current track, so playback continues.
   void clearQueue() {
-    // Only the current song remains: this is no longer the playlist.
-    queueTitle.add('Queue');
     final current = currentTrack;
-    if (current == null) {
-      _queue.add([]);
-      _currentIndex = 0;
-    } else {
-      _queue.add([current]);
-      _currentIndex = 0;
-    }
-    _shuffleList = [];
-    _shuffleIndex = 0;
-  }
-
-  /// Replace the entire queue with new tracks.
-  ///
-  /// The queue is no longer a playlist unless [title] says it still is (e.g.
-  /// the same playlist with one track swapped). A stale playlist title made
-  /// that playlist's play button resume this unrelated queue.
-  void updateQueue(List<Track> tracks, {int startIndex = 0, String? title}) {
-    final seenIds = <String>{};
-    final deduped =
-        tracks.where((t) => seenIds.add(t.id)).toList(growable: false);
-    queueTitle.add(title ?? 'Queue');
-    _queue.add(deduped);
-    _currentIndex =
-        startIndex.clamp(0, deduped.isEmpty ? 0 : deduped.length - 1);
-    if (shuffleMode.value && deduped.isNotEmpty) {
-      _shuffleList = generateRandomIndices(deduped.length);
-      _shuffleIndex = 0;
-    } else {
-      _shuffleList = [];
-      _shuffleIndex = 0;
-    }
-  }
-
-  bool replaceTrackById(String mediaId, Track replacement) {
-    final queue = List<Track>.from(_queue.value);
-    var changed = false;
-    for (var i = 0; i < queue.length; i++) {
-      if (queue[i].id == mediaId) {
-        queue[i] = replacement;
-        changed = true;
-      }
-    }
-    if (changed) {
-      _queue.add(queue);
-    }
-    return changed;
+    queueTitle.add('Queue');
+    final list = current == null ? const <Track>[] : [current];
+    _unshuffled = shuffleMode.value ? list : null;
+    _set(list, 0);
   }
 
   // ─── Internal ──────────────────────────────────────────────────────────────
 
-  void _ensureShuffleListValid() {
-    if (_shuffleList.isEmpty || _shuffleList.length != _queue.value.length) {
-      log('Shuffle list invalid, regenerating', name: 'QueueManager');
-      _shuffleList = generateRandomIndices(_queue.value.length);
-      _shuffleIndex = _shuffleList.indexOf(_currentIndex);
-      if (_shuffleIndex == -1) _shuffleIndex = 0;
-    }
+  void _set(List<Track> tracks, int currentIndex) {
+    _currentIndex =
+        tracks.isEmpty ? 0 : currentIndex.clamp(0, tracks.length - 1);
+    _queue.add(List<Track>.unmodifiable(tracks));
   }
 
-  // ─── Queue Persistence ───────────────────────────────────────────────────
+  List<Track> _shuffledAround(List<Track> tracks, int current) {
+    final rest = [...tracks]..removeAt(current);
+    rest.shuffle(_random);
+    return [tracks[current], ...rest];
+  }
 
-  /// Persist current queue state to DB settings for session restore.
-  ///
-  /// Stores only track IDs + index — the full Track objects are already in
-  /// TrackDAO from the normal play/add pipeline. This avoids fragile custom
-  /// serialization and keeps the persisted payload tiny.
-  ///
-  /// Called from [BloomeeMusicPlayer] via a throttled listener on
-  /// [tracksStream], and eagerly in [onTaskRemoved] as a last-chance save.
+  static List<Track> _unique(Iterable<Track> tracks) {
+    final seen = <String>{};
+    return [
+      for (final t in tracks)
+        if (seen.add(t.id)) t
+    ];
+  }
+
+  static Map<String, int> _positions(List<Track> tracks) =>
+      {for (var i = 0; i < tracks.length; i++) tracks[i].id: i};
+
+  // ─── Persistence ───────────────────────────────────────────────────────────
+
+  /// Saves the queue (track ids, index, title) for session restore. Track
+  /// rows are only rewritten when the list itself changed.
   Future<void> persistQueueState() async {
+    final tracks = _queue.value;
     try {
-      await TrackDAO(DBProvider.db).persistQueueState(_queue.value,
-          currentIndex: _currentIndex, title: queueTitle.value);
+      await TrackDAO(DBProvider.db).persistQueueState(
+        tracks,
+        currentIndex: _currentIndex,
+        title: queueTitle.value,
+        upsertTracks: !identical(tracks, _persistedTracks),
+      );
+      _persistedTracks = tracks;
     } catch (error) {
       log('Failed to persist queue: $error', name: 'QueueManager');
     }
   }
 
-  /// Restore queue state from DB settings. Returns true if restored.
-  ///
-  /// Fetches full [Track] objects from [TrackDAO] by their IDs, so every
-  /// field (title, artists, artwork, plugin-stamped ID) is correct and
-  /// the tracks are immediately resolvable by [MediaResolverService].
+  /// Restores the saved queue. Returns true if one was restored.
   Future<bool> restoreQueueState() async {
     try {
-      final dao = SettingsDAO(DBProvider.db);
-      final raw = await dao.getSettingStr(SettingKeys.lastQueueState);
+      final raw = await SettingsDAO(DBProvider.db)
+          .getSettingStr(SettingKeys.lastQueueState);
       if (raw == null || raw.isEmpty) return false;
       final data = jsonDecode(raw) as Map<String, dynamic>;
+      final ids = [
+        for (final id in (data['trackIds'] as List?) ?? const [])
+          if (id is String && id.isNotEmpty) id
+      ];
+      if (ids.isEmpty) return false;
 
-      // Support both v2 (ID-only) and legacy v1 (full track JSON)
-      final trackIds = data['trackIds'] as List?;
-      if (trackIds == null || trackIds.isEmpty) return false;
-
-      final trackDao = TrackDAO(DBProvider.db);
-      final tracks = <Track>[];
-      for (final id in trackIds) {
-        if (id is! String || id.isEmpty) continue;
-        try {
-          final track = await trackDao.getTrackByMediaId(id);
-          if (track != null) tracks.add(track);
-        } catch (e) {
-          log('Skipping track $id: $e', name: 'QueueManager');
-        }
-      }
+      final byId = await TrackDAO(DBProvider.db).getTracksByMediaIds(ids);
+      final tracks = [
+        for (final id in ids)
+          if (byId[id] case final track?) track
+      ];
       if (tracks.isEmpty) return false;
 
-      final idx =
-          (data['currentIndex'] as int?)?.clamp(0, tracks.length - 1) ?? 0;
+      // Find the saved current track by id: tracks missing from the DB
+      // shift the indexes.
+      final savedIndex = (data['currentIndex'] as int? ?? 0);
+      final currentId =
+          savedIndex >= 0 && savedIndex < ids.length ? ids[savedIndex] : null;
+      final index = max(0, tracks.indexWhere((t) => t.id == currentId));
+
       _isRestoring = true;
-      loadTracks(tracks, idx: idx, playlistName: data['queueTitle'] ?? 'Queue');
-      _isRestoring = false;
+      loadTracks(tracks,
+          index: index, title: data['queueTitle'] as String? ?? 'Queue');
+      _persistedTracks = _queue.value;
       return true;
     } catch (e) {
-      _isRestoring = false;
       log('Failed to restore queue: $e', name: 'QueueManager');
       return false;
+    } finally {
+      _isRestoring = false;
     }
   }
 

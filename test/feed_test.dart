@@ -66,6 +66,7 @@ void main() {
           }
         },
         'image': 'http://insecure.example.com/a.png',
+        'icon': 'http://insecure.example.com/logo.png',
       });
       expect(item.actionUrlFor(_android), 'https://play.google.com/x');
       expect(item.actionUrlFor(_store), 'ms-windows-store://pdp/?productid=1');
@@ -75,6 +76,9 @@ void main() {
               platform: 'linux', storeBuild: false, appVersion: '1')),
           'https://example.com');
       expect(item.image, isNull);
+      expect(item.icon, isNull);
+      expect(_item({'icon': 'https://example.com/logo.png'}).icon,
+          'https://example.com/logo.png');
       expect(_item({}).actionUrlFor(_windows), isNull);
     });
 
@@ -267,8 +271,11 @@ void main() {
     });
   });
 
-  test('the published ghpage/feed.json is valid', () {
-    final raw = jsonDecode(File('ghpage/feed.json').readAsStringSync());
+  // ghpage/feed.json is git-ignored (deploy_page.py --feed sends it straight to the
+  // ghpage branch), so a fresh checkout does not have it.
+  final published = File('ghpage/feed.json');
+  test('your ghpage/feed.json is valid', () {
+    final raw = jsonDecode(published.readAsStringSync());
     final items = FeedItem.parseFeed(raw);
     expect(items, hasLength((raw['items'] as List).length),
         reason: 'every entry needs an id and a title, ids unique');
@@ -280,5 +287,8 @@ void main() {
             reason: '${item.id}: action links must be https or a store link');
       }
     }
-  });
+  },
+      skip: published.existsSync()
+          ? false
+          : 'ghpage/feed.json is not in this checkout');
 }

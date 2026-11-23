@@ -463,6 +463,65 @@ class PlaylistDAO {
     return playlists.whereType<PlaylistDB>().map((p) => p.name).toList();
   }
 
+  /// Points every playlist entry of [oldMediaId] at [replacement] in one
+  /// transaction, skipping playlists named in [skipPlaylists]. Positions are
+  /// untouched, so order is kept. A playlist that already holds
+  /// [replacement] just drops the old entry.
+  ///
+  /// Returns the names of the changed playlists and how many old entries
+  /// were dropped as duplicates.
+  Future<({List<String> playlists, int droppedDuplicates})>
+      replaceTrackInPlaylists(
+    String oldMediaId,
+    Track replacement, {
+    Set<String> skipPlaylists = const {},
+  }) async {
+    const none = (playlists: <String>[], droppedDuplicates: 0);
+    if (oldMediaId == replacement.id) return none;
+    final isar = await _db;
+    return isar.writeTxnSync(() {
+      final old =
+          isar.trackDBs.filter().mediaIdEqualTo(oldMediaId).findFirstSync();
+      if (old == null) return none;
+      final entries = isar.playlistEntryDBs
+          .filter()
+          .track((q) => q.idEqualTo(old.id))
+          .findAllSync();
+      if (entries.isEmpty) return none;
+
+      final newId = _trackDAO.upsertTrackInTransaction(isar, replacement);
+      final newRow = isar.trackDBs.getSync(newId);
+      final now = DateTime.now();
+      final changed = <String>[];
+      var dropped = 0;
+      for (final entry in entries) {
+        final playlistId = entry.playlistId;
+        if (playlistId == null) continue;
+        final playlist = isar.playlistDBs.getSync(playlistId);
+        if (playlist == null || skipPlaylists.contains(playlist.name)) continue;
+
+        final hasReplacement = isar.playlistEntryDBs
+                .filter()
+                .playlistIdEqualTo(playlistId)
+                .and()
+                .track((q) => q.idEqualTo(newId))
+                .countSync() >
+            0;
+        if (hasReplacement) {
+          isar.playlistEntryDBs.deleteSync(entry.id);
+          dropped++;
+        } else {
+          entry.track.value = newRow;
+          entry.track.saveSync();
+        }
+        playlist.updatedAt = now;
+        isar.playlistDBs.putSync(playlist);
+        changed.add(playlist.name);
+      }
+      return (playlists: changed, droppedDuplicates: dropped);
+    });
+  }
+
   // ── Library search ─────────────────────────────────────────────────────────
 
   /// Search track titles across all playlists.
