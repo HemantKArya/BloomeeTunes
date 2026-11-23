@@ -193,7 +193,7 @@ flutter:
 # taken from `version:` above as MAJOR.MINOR.PATCH.0 (the Store requires the
 # fourth part to be 0).
 msix_config:
-  display_name: Bloomee🌸
+  display_name: Bloomee
   publisher_display_name: BloomeeX
   identity_name: BloomeeX.BloomeeTunes
   publisher: CN=D8C27799-3849-4699-88A1-CF0F0D632062

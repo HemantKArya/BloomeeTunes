@@ -7,8 +7,7 @@
 
 namespace {
 
-// "Bloomee🌸" (escaped so the source stays plain ASCII).
-constexpr wchar_t kWindowTitle[] = L"Bloomee\U0001F338";
+constexpr wchar_t kWindowTitle[] = L"Bloomee";
 constexpr wchar_t kWindowClass[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
 constexpr wchar_t kInstanceMutex[] = L"Local\\BloomeeX.BloomeeTunes";
 
@@ -83,8 +82,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-  // "Bloomee🌸" (escaped so the source stays plain ASCII).
-  if (!window.Create(L"Bloomee\U0001F338", origin, size)) {
+  if (!window.Create(kWindowTitle, origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);
