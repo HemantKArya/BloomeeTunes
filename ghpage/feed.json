@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "microsoft-store-2026-12",
+      "kind": "announcement",
+      "draft": true,
+      "home": true,
+      "platforms": ["windows"],
+      "store": false,
+      "title": {
+        "en": "Bloomee is on the Microsoft Store",
+        "hi": "Bloomee अब Microsoft Store पर है"
+      },
+      "body": {
+        "en": "Get automatic updates and a cleaner install. Your library stays on this PC.",
+        "hi": "अपने-आप अपडेट और साफ़ इंस्टॉल पाएँ। आपकी लाइब्रेरी इसी पीसी पर रहती है।"
+      },
+      "action": {
+        "label": { "en": "Get it", "hi": "पाएँ" },
+        "url": {
+          "windows": "ms-windows-store://pdp/?productid=9MXZLZHXR44L",
+          "default": "https://apps.microsoft.com/detail/9MXZLZHXR44L"
+        }
+      }
+    }
+  ]
+}

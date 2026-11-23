@@ -23,7 +23,6 @@ import 'package:Bloomee/services/db/dao/cache_dao.dart';
 import 'package:Bloomee/services/db/dao/download_dao.dart';
 import 'package:Bloomee/services/db/dao/history_dao.dart';
 import 'package:Bloomee/services/db/dao/lyrics_dao.dart';
-import 'package:Bloomee/services/db/dao/notification_dao.dart';
 import 'package:Bloomee/services/db/dao/library_dao.dart';
 import 'package:Bloomee/services/db/dao/playlist_dao.dart';
 import 'package:Bloomee/services/db/dao/search_history_dao.dart';
@@ -343,7 +342,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ),
         BlocProvider(
           create: (context) => NotificationCubit(
-            notificationDao: NotificationDAO(DBProvider.db),
+            settingsDao: SettingsDAO(DBProvider.db),
           ),
           lazy: false,
         ),

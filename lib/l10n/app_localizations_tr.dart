@@ -226,12 +226,6 @@ class AppLocalizationsTr extends AppLocalizations {
       'Eklentileri yükleyin, etkinleştirin ve yönetin.';
 
   @override
-  String get settingsUpdates => 'Güncellemeler';
-
-  @override
-  String get settingsUpdatesSubtitle => 'Yeni güncellemeleri denetleyin';
-
-  @override
   String get settingsDownloads => 'İndirilenler';
 
   @override
@@ -894,9 +888,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Bildirimler';
-
-  @override
-  String get notificationsEmpty => 'Henüz bildirim yok';
 
   @override
   String get recentsTitle => 'Geçmiş';
@@ -2362,4 +2353,69 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get trayQuit => 'Bloomee\'den çık';
+
+  @override
+  String get feedKindAnnouncement => 'Haberler';
+
+  @override
+  String get feedKindApp => 'Yeni uygulama';
+
+  @override
+  String get feedKindForm => 'Kaydol';
+
+  @override
+  String get feedKindNotice => 'Önemli';
+
+  @override
+  String get feedKindUpdate => 'Güncelleme';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version kullanılabilir';
+  }
+
+  @override
+  String get feedUpdateBody => 'Yenilikleri gör ve indir.';
+
+  @override
+  String get feedUpdateAction => 'Güncellemeyi gör';
+
+  @override
+  String get feedOpen => 'Aç';
+
+  @override
+  String get feedDismiss => 'Kapat';
+
+  @override
+  String get feedNew => 'Yeni';
+
+  @override
+  String get feedDraft => 'Taslak';
+
+  @override
+  String get feedPreview => 'Taslakları önizle';
+
+  @override
+  String get feedEmpty => 'Her şeyi gördün';
+
+  @override
+  String get feedEmptySubtitle =>
+      'Haberler, yeni uygulamalar ve güncellemeler burada görünecek.';
+
+  @override
+  String get settingsNotifications => 'Güncellemeler ve haberler';
+
+  @override
+  String get settingsNotificationsSubtitle =>
+      'Güncelleme uyarıları, haberler ve duyurular';
+
+  @override
+  String get feedSection => 'Haberler ve duyurular';
+
+  @override
+  String get feedOnHome => 'Ana sayfada göster';
+
+  @override
+  String get feedOnHomeSubtitle =>
+      'Haberler ve yeni uygulamalar için küçük bir kart. Önemli bildirimler her zaman görünür.';
 }

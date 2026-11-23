@@ -15,6 +15,7 @@ import 'package:Bloomee/plugins/blocs/plugin/plugin_bloc.dart';
 import 'package:Bloomee/plugins/blocs/plugin/plugin_state.dart';
 import 'package:Bloomee/screens/screen/home_views/recents_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/about.dart';
+import 'package:Bloomee/screens/widgets/feed_card.dart';
 import 'package:Bloomee/screens/widgets/more_bottom_sheet.dart';
 import 'package:Bloomee/screens/widgets/sign_board_widget.dart';
 import 'package:Bloomee/screens/widgets/song_tile.dart';
@@ -180,6 +181,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 SliverList(
                   delegate: SliverChildListDelegate(
                     [
+                      const HomeFeedCard(),
                       const CaraouselWidget(),
                       Padding(
                         padding: const EdgeInsets.only(top: 15.0),
@@ -495,58 +497,34 @@ class NotificationIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NotificationCubit, NotificationState>(
-      builder: (context, state) {
-        if (state is NotificationInitial || state.notifications.isEmpty) {
-          return IconButton(
-            padding: const EdgeInsets.all(5),
-            constraints: const BoxConstraints(),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationView(),
-                ),
-              );
-            },
-            icon: const Icon(
-              MingCute.notification_line,
-              color: Default_Theme.primaryColor1,
-              size: 30.0,
-            ),
-          );
-        }
-        return badges.Badge(
-          badgeContent: Padding(
-            padding: const EdgeInsets.all(1.5),
-            child: Text(
-              state.notifications.length.toString(),
-              style: Default_Theme.primaryTextStyle.merge(
-                const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Default_Theme.primaryColor2,
-                ),
+    return BlocSelector<NotificationCubit, NotificationState, int>(
+      selector: (state) => state.unread,
+      builder: (context, unread) {
+        return IconButton(
+          padding: const EdgeInsets.all(5),
+          constraints: const BoxConstraints(),
+          tooltip: AppLocalizations.of(context)!.notificationsTitle,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const NotificationView()),
+          ),
+          icon: badges.Badge(
+            showBadge: unread > 0,
+            badgeAnimation: const badges.BadgeAnimation.scale(),
+            badgeContent: Text(
+              unread > 9 ? '9+' : '$unread',
+              style: Default_Theme.secondoryTextStyleMedium.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: Default_Theme.primaryColor2,
               ),
             ),
-          ),
-          badgeStyle: const badges.BadgeStyle(
-            badgeColor: Default_Theme.accentColor2,
-            shape: badges.BadgeShape.circle,
-          ),
-          position: badges.BadgePosition.topEnd(top: -10, end: -5),
-          child: IconButton(
-            padding: const EdgeInsets.all(5),
-            constraints: const BoxConstraints(),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationView(),
-                ),
-              );
-            },
-            icon: const Icon(
+            badgeStyle: const badges.BadgeStyle(
+              badgeColor: Default_Theme.accentColor2,
+              padding: EdgeInsets.all(4.5),
+            ),
+            position: badges.BadgePosition.topEnd(top: -6, end: -6),
+            child: const Icon(
               MingCute.notification_line,
               color: Default_Theme.primaryColor1,
               size: 30.0,

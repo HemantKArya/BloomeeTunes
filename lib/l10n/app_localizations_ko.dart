@@ -221,12 +221,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsPluginsSubtitle => '플러그인 설치 및 관리';
 
   @override
-  String get settingsUpdates => '업데이트';
-
-  @override
-  String get settingsUpdatesSubtitle => '새 버전 확인';
-
-  @override
   String get settingsDownloads => '다운로드';
 
   @override
@@ -854,9 +848,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notificationsTitle => '알림';
-
-  @override
-  String get notificationsEmpty => '새로운 알림이 없습니다';
 
   @override
   String get recentsTitle => '감상 기록';
@@ -2274,4 +2265,66 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trayQuit => 'Bloomee 종료';
+
+  @override
+  String get feedKindAnnouncement => '소식';
+
+  @override
+  String get feedKindApp => '새 앱';
+
+  @override
+  String get feedKindForm => '가입하기';
+
+  @override
+  String get feedKindNotice => '중요';
+
+  @override
+  String get feedKindUpdate => '업데이트';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version 버전을 사용할 수 있습니다';
+  }
+
+  @override
+  String get feedUpdateBody => '새로운 기능을 확인하고 다운로드하세요.';
+
+  @override
+  String get feedUpdateAction => '업데이트 보기';
+
+  @override
+  String get feedOpen => '열기';
+
+  @override
+  String get feedDismiss => '닫기';
+
+  @override
+  String get feedNew => '새 소식';
+
+  @override
+  String get feedDraft => '초안';
+
+  @override
+  String get feedPreview => '초안 미리보기';
+
+  @override
+  String get feedEmpty => '모두 확인했습니다';
+
+  @override
+  String get feedEmptySubtitle => '소식, 새 앱, 업데이트가 여기에 표시됩니다.';
+
+  @override
+  String get settingsNotifications => '업데이트 및 소식';
+
+  @override
+  String get settingsNotificationsSubtitle => '업데이트 알림, 소식 및 공지';
+
+  @override
+  String get feedSection => '소식 및 공지';
+
+  @override
+  String get feedOnHome => '홈에 표시';
+
+  @override
+  String get feedOnHomeSubtitle => '소식과 새 앱을 작은 카드로 보여줍니다. 중요한 공지는 항상 표시됩니다.';
 }

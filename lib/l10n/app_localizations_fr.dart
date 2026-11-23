@@ -235,12 +235,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Installez, activez et gérez les extensions.';
 
   @override
-  String get settingsUpdates => 'Mises à jour';
-
-  @override
-  String get settingsUpdatesSubtitle => 'Rechercher des mises à jour';
-
-  @override
   String get settingsDownloads => 'Téléchargements';
 
   @override
@@ -917,9 +911,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Notifications';
-
-  @override
-  String get notificationsEmpty => 'Aucune notification pour le moment';
 
   @override
   String get recentsTitle => 'Historique';
@@ -2447,4 +2438,69 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trayQuit => 'Quitter Bloomee';
+
+  @override
+  String get feedKindAnnouncement => 'Actualités';
+
+  @override
+  String get feedKindApp => 'Nouvelle app';
+
+  @override
+  String get feedKindForm => 'S\'inscrire';
+
+  @override
+  String get feedKindNotice => 'Important';
+
+  @override
+  String get feedKindUpdate => 'Mise à jour';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version est disponible';
+  }
+
+  @override
+  String get feedUpdateBody => 'Découvrez les nouveautés et téléchargez-la.';
+
+  @override
+  String get feedUpdateAction => 'Voir la mise à jour';
+
+  @override
+  String get feedOpen => 'Ouvrir';
+
+  @override
+  String get feedDismiss => 'Masquer';
+
+  @override
+  String get feedNew => 'Nouveau';
+
+  @override
+  String get feedDraft => 'Brouillon';
+
+  @override
+  String get feedPreview => 'Voir les brouillons';
+
+  @override
+  String get feedEmpty => 'Vous êtes à jour';
+
+  @override
+  String get feedEmptySubtitle =>
+      'Les actualités, nouvelles apps et mises à jour apparaîtront ici.';
+
+  @override
+  String get settingsNotifications => 'Mises à jour et actualités';
+
+  @override
+  String get settingsNotificationsSubtitle =>
+      'Alertes de mise à jour, actualités et annonces';
+
+  @override
+  String get feedSection => 'Actualités et annonces';
+
+  @override
+  String get feedOnHome => 'Afficher sur l\'accueil';
+
+  @override
+  String get feedOnHomeSubtitle =>
+      'Une petite carte pour les actualités et les nouvelles apps. Les avis importants s\'affichent toujours.';
 }

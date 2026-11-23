@@ -193,7 +193,7 @@ class _AboutState extends State<About> {
                   const SizedBox(width: 12),
                   Flexible(
                     child: Text(
-                      '@iamhemantindia',
+                      '@iamhemant.in',
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: kPrimaryTextColor,

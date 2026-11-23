@@ -220,12 +220,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsPluginsSubtitle => '安装、加载和管理插件。';
 
   @override
-  String get settingsUpdates => '软件更新';
-
-  @override
-  String get settingsUpdatesSubtitle => '检查新版本';
-
-  @override
   String get settingsDownloads => '下载设置';
 
   @override
@@ -851,9 +845,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get notificationsTitle => '通知';
-
-  @override
-  String get notificationsEmpty => '暂无通知！';
 
   @override
   String get recentsTitle => '历史记录';
@@ -2261,4 +2252,66 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trayQuit => '退出 Bloomee';
+
+  @override
+  String get feedKindAnnouncement => '动态';
+
+  @override
+  String get feedKindApp => '新应用';
+
+  @override
+  String get feedKindForm => '报名';
+
+  @override
+  String get feedKindNotice => '重要';
+
+  @override
+  String get feedKindUpdate => '更新';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version 已发布';
+  }
+
+  @override
+  String get feedUpdateBody => '查看新功能并下载。';
+
+  @override
+  String get feedUpdateAction => '查看更新';
+
+  @override
+  String get feedOpen => '打开';
+
+  @override
+  String get feedDismiss => '忽略';
+
+  @override
+  String get feedNew => '新';
+
+  @override
+  String get feedDraft => '草稿';
+
+  @override
+  String get feedPreview => '预览草稿';
+
+  @override
+  String get feedEmpty => '已全部查看';
+
+  @override
+  String get feedEmptySubtitle => '动态、新应用和更新会显示在这里。';
+
+  @override
+  String get settingsNotifications => '更新与动态';
+
+  @override
+  String get settingsNotificationsSubtitle => '更新提醒、动态和公告';
+
+  @override
+  String get feedSection => '动态与公告';
+
+  @override
+  String get feedOnHome => '在首页显示';
+
+  @override
+  String get feedOnHomeSubtitle => '用小卡片显示动态和新应用。重要通知始终显示。';
 }

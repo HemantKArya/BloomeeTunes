@@ -234,12 +234,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Instala, activa y gestiona complementos.';
 
   @override
-  String get settingsUpdates => 'Actualizaciones';
-
-  @override
-  String get settingsUpdatesSubtitle => 'Buscar nuevas versiones';
-
-  @override
   String get settingsDownloads => 'Descargas';
 
   @override
@@ -914,9 +908,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Notificaciones';
-
-  @override
-  String get notificationsEmpty => 'Aún no hay notificaciones';
 
   @override
   String get recentsTitle => 'Historial';
@@ -2428,4 +2419,69 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trayQuit => 'Salir de Bloomee';
+
+  @override
+  String get feedKindAnnouncement => 'Novedades';
+
+  @override
+  String get feedKindApp => 'Nueva app';
+
+  @override
+  String get feedKindForm => 'Regístrate';
+
+  @override
+  String get feedKindNotice => 'Importante';
+
+  @override
+  String get feedKindUpdate => 'Actualización';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version está disponible';
+  }
+
+  @override
+  String get feedUpdateBody => 'Mira las novedades y descárgala.';
+
+  @override
+  String get feedUpdateAction => 'Ver actualización';
+
+  @override
+  String get feedOpen => 'Abrir';
+
+  @override
+  String get feedDismiss => 'Descartar';
+
+  @override
+  String get feedNew => 'Nuevo';
+
+  @override
+  String get feedDraft => 'Borrador';
+
+  @override
+  String get feedPreview => 'Ver borradores';
+
+  @override
+  String get feedEmpty => 'Estás al día';
+
+  @override
+  String get feedEmptySubtitle =>
+      'Aquí aparecerán novedades, nuevas apps y actualizaciones.';
+
+  @override
+  String get settingsNotifications => 'Actualizaciones y novedades';
+
+  @override
+  String get settingsNotificationsSubtitle =>
+      'Avisos de actualización, novedades y anuncios';
+
+  @override
+  String get feedSection => 'Novedades y anuncios';
+
+  @override
+  String get feedOnHome => 'Mostrar en Inicio';
+
+  @override
+  String get feedOnHomeSubtitle =>
+      'Una pequeña tarjeta con novedades y nuevas apps. Los avisos importantes siempre se muestran.';
 }

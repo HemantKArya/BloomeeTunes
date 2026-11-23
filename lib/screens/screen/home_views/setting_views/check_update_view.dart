@@ -25,7 +25,7 @@ class CheckUpdateView extends StatelessWidget {
       ),
       body: Center(
         child: FutureBuilder(
-          future: getLatestVersion(),
+          future: getAppUpdates(force: true),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               if (!snapshot.data?["results"]) {

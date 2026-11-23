@@ -230,12 +230,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPluginsSubtitle => 'Install, load and manage plugins.';
 
   @override
-  String get settingsUpdates => 'Updates';
-
-  @override
-  String get settingsUpdatesSubtitle => 'Check for new updates';
-
-  @override
   String get settingsDownloads => 'Downloads';
 
   @override
@@ -904,9 +898,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Notifications';
-
-  @override
-  String get notificationsEmpty => 'No Notifications yet!';
 
   @override
   String get recentsTitle => 'History';
@@ -2400,4 +2391,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trayQuit => 'Quit Bloomee';
+
+  @override
+  String get feedKindAnnouncement => 'News';
+
+  @override
+  String get feedKindApp => 'New app';
+
+  @override
+  String get feedKindForm => 'Sign up';
+
+  @override
+  String get feedKindNotice => 'Important';
+
+  @override
+  String get feedKindUpdate => 'Update';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version is available';
+  }
+
+  @override
+  String get feedUpdateBody => 'See what\'s new and download it.';
+
+  @override
+  String get feedUpdateAction => 'View update';
+
+  @override
+  String get feedOpen => 'Open';
+
+  @override
+  String get feedDismiss => 'Dismiss';
+
+  @override
+  String get feedNew => 'New';
+
+  @override
+  String get feedDraft => 'Draft';
+
+  @override
+  String get feedPreview => 'Preview drafts';
+
+  @override
+  String get feedEmpty => 'You\'re all caught up';
+
+  @override
+  String get feedEmptySubtitle =>
+      'News, new apps and updates will show up here.';
+
+  @override
+  String get settingsNotifications => 'Updates & news';
+
+  @override
+  String get settingsNotificationsSubtitle =>
+      'Update alerts, news and announcements';
+
+  @override
+  String get feedSection => 'News & announcements';
+
+  @override
+  String get feedOnHome => 'Show on Home';
+
+  @override
+  String get feedOnHomeSubtitle =>
+      'A small card for news and new apps. Important notices always show.';
 }

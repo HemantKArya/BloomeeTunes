@@ -222,12 +222,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsPluginsSubtitle => 'プラグインのインストールと管理';
 
   @override
-  String get settingsUpdates => 'アップデート';
-
-  @override
-  String get settingsUpdatesSubtitle => '新着情報の確認';
-
-  @override
   String get settingsDownloads => 'ダウンロード';
 
   @override
@@ -853,9 +847,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get notificationsTitle => '通知';
-
-  @override
-  String get notificationsEmpty => '通知はありません';
 
   @override
   String get recentsTitle => '最近の履歴';
@@ -2273,4 +2264,66 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trayQuit => 'Bloomeeを終了';
+
+  @override
+  String get feedKindAnnouncement => 'お知らせ';
+
+  @override
+  String get feedKindApp => '新しいアプリ';
+
+  @override
+  String get feedKindForm => '登録';
+
+  @override
+  String get feedKindNotice => '重要';
+
+  @override
+  String get feedKindUpdate => 'アップデート';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version が利用可能です';
+  }
+
+  @override
+  String get feedUpdateBody => '新機能を確認してダウンロードしましょう。';
+
+  @override
+  String get feedUpdateAction => 'アップデートを見る';
+
+  @override
+  String get feedOpen => '開く';
+
+  @override
+  String get feedDismiss => '閉じる';
+
+  @override
+  String get feedNew => '新着';
+
+  @override
+  String get feedDraft => '下書き';
+
+  @override
+  String get feedPreview => '下書きをプレビュー';
+
+  @override
+  String get feedEmpty => '新しいお知らせはありません';
+
+  @override
+  String get feedEmptySubtitle => 'お知らせ、新しいアプリ、アップデートがここに表示されます。';
+
+  @override
+  String get settingsNotifications => 'アップデートとお知らせ';
+
+  @override
+  String get settingsNotificationsSubtitle => 'アップデート通知、お知らせ、告知';
+
+  @override
+  String get feedSection => 'お知らせと告知';
+
+  @override
+  String get feedOnHome => 'ホームに表示';
+
+  @override
+  String get feedOnHomeSubtitle => 'お知らせや新しいアプリを小さなカードで表示します。重要なお知らせは常に表示されます。';
 }

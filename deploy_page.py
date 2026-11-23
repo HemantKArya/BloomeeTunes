@@ -11,6 +11,7 @@ Improvements:
 """
 
 from pathlib import Path
+import json
 import shutil
 import subprocess
 import tempfile
@@ -305,31 +306,53 @@ def copy_changelogs_into_build(repo_root: Path):
     return copied_any
 
 
-def copy_repositories_into_build(repo_root: Path):
-    """Copy ghpage/repositories.json into the build dir so it is served as a static asset.
+# Files the app downloads from the site (see lib/services/feed/feed_service.dart
+# and lib/services/plugin_bootstrap_service.dart).
+APP_FILES = ("repositories.json", "feed.json")
 
-    The Flutter app fetches this file from the hosted GitHub Pages URL at startup to
-    discover plugin repositories.  Returns True if the file was copied.
+
+def copy_app_files_into_build(repo_root: Path):
+    """Validate and copy APP_FILES from ghpage/ into the build dir.
+
+    A file that is not valid JSON stops the deploy, so a typo never reaches
+    users; the app would keep its cached copy anyway, but the site should not
+    serve a broken file.
     """
-    src = (repo_root / BUILD_SOURCE / "repositories.json").resolve()
     build_dir = (repo_root / BUILD_DIR).resolve()
-
-    if not src.exists():
-        log("ℹ️ ghpage/repositories.json not found — skipping.")
-        return False
-
     if not build_dir.exists():
-        log(f"⚠️ Build directory not found: {build_dir} — skipping repositories.json copy.")
-        return False
+        raise RuntimeError(f"Build directory not found: {build_dir}")
 
-    dest = build_dir / "repositories.json"
-    try:
-        shutil.copy2(src, dest)
-        log(f"📄 Copied repositories.json -> {dest}")
-        return True
-    except Exception as e:
-        log(f"⚠️ Failed to copy repositories.json -> {dest}: {e}")
-        return False
+    for name in APP_FILES:
+        src = (repo_root / BUILD_SOURCE / name).resolve()
+        if not src.exists():
+            log(f"ℹ️ ghpage/{name} not found — skipping.")
+            continue
+        try:
+            data = json.loads(src.read_text(encoding="utf-8"))
+        except ValueError as e:
+            raise RuntimeError(f"ghpage/{name} is not valid JSON: {e}") from e
+        if name == "feed.json":
+            check_feed(data)
+        shutil.copy2(src, build_dir / name)
+        log(f"📄 Copied {name}")
+
+
+def check_feed(data):
+    """The few rules the app needs; everything else is optional."""
+    items = data.get("items") if isinstance(data, dict) else None
+    if not isinstance(items, list):
+        raise RuntimeError('feed.json needs {"items": [...]}')
+    ids = set()
+    for i, item in enumerate(items):
+        where = f"feed.json item {i + 1}"
+        if not isinstance(item, dict) or not item.get("id") or not item.get("title"):
+            raise RuntimeError(f"{where}: needs an id and a title")
+        if item["id"] in ids:
+            raise RuntimeError(f"{where}: id {item['id']!r} is used twice")
+        ids.add(item["id"])
+    live = sum(1 for it in items if not it.get("draft"))
+    log(f"📰 feed.json: {len(items)} entries ({live} live, {len(items) - live} drafts)")
+
 
 def commit_and_push(wt: Path):
     # run_stream(["git", "config", "user.name", "ghpage-deployer"], cwd=wt, check=False)
@@ -392,11 +415,12 @@ def main():
     except Exception as e:
         log(f"⚠️ Failed while copying changelogs: {e}")
 
-    # Copy repositories.json so the Flutter app can fetch it at startup
+    # Copy the files the app reads (plugin repositories, announcements)
     try:
-        copy_repositories_into_build(repo_root)
+        copy_app_files_into_build(repo_root)
     except Exception as e:
-        log(f"⚠️ Failed while copying repositories.json: {e}")
+        log(f"❌ {e}")
+        return 1
 
     # Prepare temp worktree (from HEAD) and unique orphan branch
     try:

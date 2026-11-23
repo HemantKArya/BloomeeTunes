@@ -232,12 +232,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsPluginsSubtitle => 'Instale, ative e gerencie plugins.';
 
   @override
-  String get settingsUpdates => 'Atualizações';
-
-  @override
-  String get settingsUpdatesSubtitle => 'Verifique se há atualizações';
-
-  @override
   String get settingsDownloads => 'Downloads';
 
   @override
@@ -914,9 +908,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Notificações';
-
-  @override
-  String get notificationsEmpty => 'Nenhuma notificação ainda';
 
   @override
   String get recentsTitle => 'Histórico';
@@ -2432,4 +2423,69 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trayQuit => 'Sair do Bloomee';
+
+  @override
+  String get feedKindAnnouncement => 'Novidades';
+
+  @override
+  String get feedKindApp => 'Novo app';
+
+  @override
+  String get feedKindForm => 'Inscreva-se';
+
+  @override
+  String get feedKindNotice => 'Importante';
+
+  @override
+  String get feedKindUpdate => 'Atualização';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version está disponível';
+  }
+
+  @override
+  String get feedUpdateBody => 'Veja as novidades e baixe.';
+
+  @override
+  String get feedUpdateAction => 'Ver atualização';
+
+  @override
+  String get feedOpen => 'Abrir';
+
+  @override
+  String get feedDismiss => 'Dispensar';
+
+  @override
+  String get feedNew => 'Novo';
+
+  @override
+  String get feedDraft => 'Rascunho';
+
+  @override
+  String get feedPreview => 'Ver rascunhos';
+
+  @override
+  String get feedEmpty => 'Você está em dia';
+
+  @override
+  String get feedEmptySubtitle =>
+      'Novidades, novos apps e atualizações aparecerão aqui.';
+
+  @override
+  String get settingsNotifications => 'Atualizações e novidades';
+
+  @override
+  String get settingsNotificationsSubtitle =>
+      'Alertas de atualização, novidades e anúncios';
+
+  @override
+  String get feedSection => 'Novidades e anúncios';
+
+  @override
+  String get feedOnHome => 'Mostrar no Início';
+
+  @override
+  String get feedOnHomeSubtitle =>
+      'Um pequeno cartão para novidades e novos apps. Avisos importantes sempre aparecem.';
 }

@@ -1,4 +1,6 @@
+import 'package:Bloomee/blocs/notification/notification_cubit.dart';
 import 'package:Bloomee/blocs/settings_cubit/cubit/settings_cubit.dart';
+import 'package:Bloomee/core/utils/app_distribution.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/check_update_view.dart';
 import 'package:Bloomee/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +36,7 @@ class UpdatesSettings extends StatelessWidget {
           ),
         ),
         title: Text(
-          l10n.updateSettingTitle,
+          l10n.settingsNotifications,
           style: const TextStyle(
             color: Default_Theme.primaryColor1,
             fontSize: 22,
@@ -43,30 +45,28 @@ class UpdatesSettings extends StatelessWidget {
           ).merge(Default_Theme.secondoryTextStyleMedium),
         ),
       ),
-      body: BlocBuilder<SettingsCubit, SettingsState>(
-        buildWhen: (prev, curr) =>
-            prev.autoUpdateNotify != curr.autoUpdateNotify,
-        builder: (context, state) {
-          return ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            children: [
-              SettingSectionHeader(label: l10n.updateSettingTitle),
-              SettingCard(
+      body: ListView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        children: [
+          // Store installs are updated by the Store.
+          if (!AppDistribution.updatesManagedExternally) ...[
+            SettingSectionHeader(label: l10n.updateSettingTitle),
+            BlocBuilder<SettingsCubit, SettingsState>(
+              buildWhen: (prev, curr) =>
+                  prev.autoUpdateNotify != curr.autoUpdateNotify,
+              builder: (context, state) => SettingCard(
                 children: [
                   SettingNavTile(
                     icon: MingCute.download_3_fill,
                     title: l10n.updateCheckForUpdates,
                     subtitle: l10n.updateCheckSubtitle,
                     roundBottom: false,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CheckUpdateView(),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CheckUpdateView()),
+                    ),
                   ),
                   const SettingDivider(),
                   SettingToggleTile(
@@ -74,16 +74,32 @@ class UpdatesSettings extends StatelessWidget {
                     title: l10n.updateAutoNotify,
                     subtitle: l10n.updateAutoNotifySubtitle,
                     value: state.autoUpdateNotify,
-                    onChanged: (value) {
-                      context.read<SettingsCubit>().setAutoUpdateNotify(value);
-                    },
+                    onChanged: (value) =>
+                        context.read<SettingsCubit>().setAutoUpdateNotify(value),
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
-            ],
-          );
-        },
+            ),
+            const SizedBox(height: 28),
+          ],
+          SettingSectionHeader(label: l10n.feedSection),
+          BlocSelector<NotificationCubit, NotificationState, bool>(
+            selector: (state) => state.showOnHome,
+            builder: (context, showOnHome) => SettingCard(
+              children: [
+                SettingToggleTile(
+                  icon: MingCute.news_fill,
+                  title: l10n.feedOnHome,
+                  subtitle: l10n.feedOnHomeSubtitle,
+                  value: showOnHome,
+                  onChanged: (value) =>
+                      context.read<NotificationCubit>().setShowOnHome(value),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }

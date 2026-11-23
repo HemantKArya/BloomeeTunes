@@ -177,6 +177,8 @@ class PlaylistEntryDB {
   }
 }
 
+/// No longer used: the inbox is built from feed.json. Kept so existing
+/// databases open unchanged.
 @collection
 class NotificationsDB {
   Id id = Isar.autoIncrement;

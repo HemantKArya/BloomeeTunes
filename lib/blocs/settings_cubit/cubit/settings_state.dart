@@ -167,7 +167,7 @@ class SettingsInitial extends SettingsState {
   SettingsInitial()
       : super(
           settingsReady: false,
-          autoUpdateNotify: false,
+          autoUpdateNotify: true,
           autoSlideCharts: true,
           downPath: "",
           downQuality: "Medium",

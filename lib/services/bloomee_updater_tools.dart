@@ -213,8 +213,18 @@ Future<Map<String, dynamic>> githubUpdate(
   }
 }
 
-/// New public API: try GitHub first, then SourceForge; return a consistent map.
-Future<Map<String, dynamic>> getAppUpdates() async {
+Future<Map<String, dynamic>>? _sessionCheck;
+
+/// The update check, run once per session and shared by every caller (the
+/// startup dialog, the inbox, the "Check for updates" page). [force] asks
+/// again, e.g. when the user opens that page.
+Future<Map<String, dynamic>> getAppUpdates({bool force = false}) {
+  if (force || _sessionCheck == null) _sessionCheck = _checkForUpdates();
+  return _sessionCheck!;
+}
+
+/// Tries GitHub first, then SourceForge; returns a consistent map.
+Future<Map<String, dynamic>> _checkForUpdates() async {
   // Try GitHub first, then SourceForge, produce an `updates` map and attach changelogs.
   Map<String, dynamic> updates;
   if (AppDistribution.updatesManagedExternally) {
@@ -306,9 +316,6 @@ Future<String?> fetchChangelog(
     return null;
   }
 }
-
-/// Backwards-compatible wrapper for existing callers
-Future<Map<String, dynamic>> getLatestVersion() async => await getAppUpdates();
 
 String? extractUpUrl(Map<String, dynamic> data) {
   // List<String> urls = [];

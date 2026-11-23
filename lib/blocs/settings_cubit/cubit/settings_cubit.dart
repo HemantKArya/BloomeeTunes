@@ -258,7 +258,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     // Single emit: one widget tree rebuild instead of 20+.
     emit(SettingsState(
       settingsReady: true,
-      autoUpdateNotify: (results[0] as bool?) ?? false,
+      autoUpdateNotify: (results[0] as bool?) ?? true,
       autoSlideCharts: (results[1] as bool?) ?? true,
       downPath: results[2] as String,
       downQuality: normalizedDownQ,

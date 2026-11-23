@@ -232,12 +232,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsPluginsSubtitle => 'प्लगइन्स इंस्टॉल, लोड और मैनेज करें।';
 
   @override
-  String get settingsUpdates => 'अपडेट्स';
-
-  @override
-  String get settingsUpdatesSubtitle => 'नए अपडेट्स की जाँच करें।';
-
-  @override
   String get settingsDownloads => 'डाउनलोड्स';
 
   @override
@@ -909,9 +903,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'नोटिफ़िकेशन्स';
-
-  @override
-  String get notificationsEmpty => 'अभी तक कोई नया नोटिफ़िकेशन नहीं है!';
 
   @override
   String get recentsTitle => 'हिस्ट्री';
@@ -2413,4 +2404,68 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get trayQuit => 'Bloomee बंद करें';
+
+  @override
+  String get feedKindAnnouncement => 'समाचार';
+
+  @override
+  String get feedKindApp => 'नया ऐप';
+
+  @override
+  String get feedKindForm => 'साइन अप';
+
+  @override
+  String get feedKindNotice => 'ज़रूरी';
+
+  @override
+  String get feedKindUpdate => 'अपडेट';
+
+  @override
+  String feedUpdateTitle(String version) {
+    return 'Bloomee $version उपलब्ध है';
+  }
+
+  @override
+  String get feedUpdateBody => 'नया क्या है देखें और डाउनलोड करें।';
+
+  @override
+  String get feedUpdateAction => 'अपडेट देखें';
+
+  @override
+  String get feedOpen => 'खोलें';
+
+  @override
+  String get feedDismiss => 'हटाएँ';
+
+  @override
+  String get feedNew => 'नया';
+
+  @override
+  String get feedDraft => 'ड्राफ़्ट';
+
+  @override
+  String get feedPreview => 'ड्राफ़्ट देखें';
+
+  @override
+  String get feedEmpty => 'आप पूरी तरह अप-टू-डेट हैं';
+
+  @override
+  String get feedEmptySubtitle => 'समाचार, नए ऐप और अपडेट यहाँ दिखेंगे।';
+
+  @override
+  String get settingsNotifications => 'अपडेट और समाचार';
+
+  @override
+  String get settingsNotificationsSubtitle =>
+      'अपडेट सूचनाएँ, समाचार और घोषणाएँ';
+
+  @override
+  String get feedSection => 'समाचार और घोषणाएँ';
+
+  @override
+  String get feedOnHome => 'होम पर दिखाएँ';
+
+  @override
+  String get feedOnHomeSubtitle =>
+      'समाचार और नए ऐप के लिए एक छोटा कार्ड। ज़रूरी सूचनाएँ हमेशा दिखती हैं।';
 }

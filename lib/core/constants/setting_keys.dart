@@ -79,6 +79,17 @@ class SettingKeys {
   /// Value format: e.g. "v2.11.6+171".
   static const String readChangelogs = "readChangelogs";
 
+  /// The app update ("3.2.0+90") the update dialog was last shown for, so
+  /// it appears once per new version instead of on every launch.
+  static const String updatePrompted = "updatePrompted";
+
+  // ── Announcements (feed.json) ──────────────────────────────────────────────
+  /// JSON FeedMemory: seen / closed / dismissed announcement ids.
+  static const String feedMemory = "feedMemory";
+
+  /// Whether announcements may appear as a card on Home.
+  static const String feedOnHome = "feedOnHome";
+
   /// Whether the first-run plugin repository bootstrap has been completed.
   /// Once true, the bootstrap is never run again even if the user uninstalls plugins.
   static const String repositoriesBootstrapped = "repositoriesBootstrapped";

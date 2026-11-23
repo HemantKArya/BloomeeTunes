@@ -7,6 +7,7 @@
 - **Microsoft Store Package**: Bloomee can now be packaged for the Microsoft Store. Store installs are updated by the Store and skip the in-app update check.
 - **Last.fm Scrobble Queue**: Scrobbles are saved while offline and sent automatically later, with sync status, a pending count, Sync Now, and Clear Queue in Last.fm settings.
 - **Windows Media Controls**: The Windows media overlay now shows the song's position and cover art and can seek.
+- **News & Announcements**: The bell on Home now shows news, our other apps, sign-up links, and important notices published on the Bloomee website, plus any available update. New entries are marked, can be dismissed, and work offline. One small card can appear on Home; turn it off in Settings > Updates & news.
 
 ### Changed
 - **Discord Rich Presence**: Rebuilt on a dedicated background connection with live connection status, your Discord account, a presence preview, and options for artwork, progress, links, local files, and paused behavior.
@@ -17,6 +18,7 @@
 - **Navigation Layout**: Phones always use the bottom navigation bar, tablets use the side rail, and desktop windows switch by width.
 - **Search and Sheets**: Faster search, lyrics search, and option sheets with less rendering work.
 - **Window Name**: The window and Start menu now show Bloomee🌸.
+- **Update Checks**: Bloomee checks for updates once per launch instead of up to three times, and the update dialog appears once per new version instead of on every launch.
 
 ### Fixed
 - Fixed the full player's progress bar freezing at the start of a song after opening the player.
@@ -25,11 +27,14 @@
 - Fixed queue changes made in quick succession sometimes not being saved.
 - Opening Bloomee again while it is running, including from the tray, now brings the existing window back instead of starting a second copy.
 - Tray and window menus on Windows now use the dark theme.
+- Notifications are no longer deleted when you leave the notifications screen.
+- The "Update alerts" switch now shows its real state; it appeared off while alerts were on.
 
 ### Developer Notes
 - Added window_manager 0.5.2, tray_manager 0.5.3, and msix. Linux builds now need libayatana-appindicator3-dev.
 - Release builds also produce an unsigned Microsoft Store MSIX as a separate artifact.
 - Added tests for the desktop title bar, close options, scrobble queue, and playback session tracking.
+- Announcements are published from `ghpage/feed.json` by `deploy_page.py`, which rejects an invalid feed. See docs/announcements.md. Preview with `flutter run --dart-define=BLOOMEE_FEED=ghpage/feed.json`, or render `test/feed_preview_test.dart` to PNG.
 
 ## [3.1.0+207] - 2026-10-21
 

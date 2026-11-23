@@ -516,18 +516,6 @@ abstract class AppLocalizations {
   /// **'Install, load and manage plugins.'**
   String get settingsPluginsSubtitle;
 
-  /// No description provided for @settingsUpdates.
-  ///
-  /// In en, this message translates to:
-  /// **'Updates'**
-  String get settingsUpdates;
-
-  /// No description provided for @settingsUpdatesSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Check for new updates'**
-  String get settingsUpdatesSubtitle;
-
   /// No description provided for @settingsDownloads.
   ///
   /// In en, this message translates to:
@@ -1721,12 +1709,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications'**
   String get notificationsTitle;
-
-  /// No description provided for @notificationsEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No Notifications yet!'**
-  String get notificationsEmpty;
 
   /// No description provided for @recentsTitle.
   ///
@@ -4315,6 +4297,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Quit Bloomee'**
   String get trayQuit;
+
+  /// No description provided for @feedKindAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get feedKindAnnouncement;
+
+  /// No description provided for @feedKindApp.
+  ///
+  /// In en, this message translates to:
+  /// **'New app'**
+  String get feedKindApp;
+
+  /// No description provided for @feedKindForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get feedKindForm;
+
+  /// No description provided for @feedKindNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Important'**
+  String get feedKindNotice;
+
+  /// No description provided for @feedKindUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get feedKindUpdate;
+
+  /// No description provided for @feedUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bloomee {version} is available'**
+  String feedUpdateTitle(String version);
+
+  /// No description provided for @feedUpdateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'See what\'s new and download it.'**
+  String get feedUpdateBody;
+
+  /// No description provided for @feedUpdateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View update'**
+  String get feedUpdateAction;
+
+  /// No description provided for @feedOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get feedOpen;
+
+  /// No description provided for @feedDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get feedDismiss;
+
+  /// No description provided for @feedNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get feedNew;
+
+  /// No description provided for @feedDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get feedDraft;
+
+  /// No description provided for @feedPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview drafts'**
+  String get feedPreview;
+
+  /// No description provided for @feedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up'**
+  String get feedEmpty;
+
+  /// No description provided for @feedEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'News, new apps and updates will show up here.'**
+  String get feedEmptySubtitle;
+
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates & news'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsNotificationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update alerts, news and announcements'**
+  String get settingsNotificationsSubtitle;
+
+  /// No description provided for @feedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'News & announcements'**
+  String get feedSection;
+
+  /// No description provided for @feedOnHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on Home'**
+  String get feedOnHome;
+
+  /// No description provided for @feedOnHomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A small card for news and new apps. Important notices always show.'**
+  String get feedOnHomeSubtitle;
 }
 
 class _AppLocalizationsDelegate
