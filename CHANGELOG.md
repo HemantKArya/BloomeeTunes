@@ -1,4 +1,4 @@
-## [3.1.1] - 2026-11-23
+## [3.1.2] - 2026-11-23
 
 ### Added
 - **Custom Desktop Title Bar**: A new title bar with round minimize, maximize, and close buttons looks the same on Windows, Linux, and macOS, while keeping native snapping, resizing, window animations, and the taskbar.
