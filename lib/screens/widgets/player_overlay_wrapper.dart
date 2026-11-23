@@ -4,6 +4,7 @@ import 'package:Bloomee/blocs/mini_player/mini_player_cubit.dart';
 import 'package:Bloomee/blocs/player_overlay/player_overlay_cubit.dart';
 import 'package:Bloomee/screens/screen/player_screen.dart';
 import 'package:Bloomee/screens/widgets/player_view_activity.dart';
+import 'package:Bloomee/screens/widgets/window_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +30,11 @@ class _PlayerOverlayWrapperState extends State<PlayerOverlayWrapper>
   bool _rendered = false;
   bool _requested = false;
   bool _preparationScheduled = false;
+
+  /// The player draws behind the desktop title bar only while it fully
+  /// covers the window. Switching relays out the app beneath, which must not
+  /// happen while that app is still visible.
+  bool _immersive = false;
   Timer? _preparationTimer;
 
   @override
@@ -36,7 +42,7 @@ class _PlayerOverlayWrapperState extends State<PlayerOverlayWrapper>
     super.initState();
     _overlay = context.read<PlayerOverlayCubit>();
     _requested = _overlay.state;
-    _prepared = _rendered = _requested;
+    _prepared = _rendered = _immersive = _requested;
     _animation = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -82,6 +88,9 @@ class _PlayerOverlayWrapperState extends State<PlayerOverlayWrapper>
     if (status == AnimationStatus.dismissed && !_requested && _rendered) {
       setState(() => _rendered = false);
     }
+    if (status == AnimationStatus.completed && _requested && !_immersive) {
+      setState(() => _immersive = true);
+    }
   }
 
   void _onVisibility(bool visible) {
@@ -90,6 +99,7 @@ class _PlayerOverlayWrapperState extends State<PlayerOverlayWrapper>
     setState(() {
       _requested = visible;
       if (visible) _prepared = _rendered = true;
+      if (!visible) _immersive = false;
     });
     _animation.duration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
@@ -156,16 +166,20 @@ class _PlayerOverlayWrapperState extends State<PlayerOverlayWrapper>
                     enabled: _rendered,
                     child: PlayerViewActivity(
                       active: _rendered,
-                      child: SlideTransition(
-                        position: _slide,
-                        // No full-screen opacity layer. The opaque player can
-                        // be retained and composited as one translated layer.
-                        child: SnapshotWidget(
-                          controller: _transitionSnapshot,
-                          mode: SnapshotMode.permissive,
-                          autoresize: true,
-                          child:
-                              const RepaintBoundary(child: AudioPlayerView()),
+                      child: ImmersiveCaption(
+                        enabled: _immersive,
+                        child: SlideTransition(
+                          position: _slide,
+                          // No full-screen opacity layer. The opaque player
+                          // can be retained and composited as one translated
+                          // layer.
+                          child: SnapshotWidget(
+                            controller: _transitionSnapshot,
+                            mode: SnapshotMode.permissive,
+                            autoresize: true,
+                            child:
+                                const RepaintBoundary(child: AudioPlayerView()),
+                          ),
                         ),
                       ),
                     ),

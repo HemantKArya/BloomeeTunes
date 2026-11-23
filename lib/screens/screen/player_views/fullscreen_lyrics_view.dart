@@ -12,6 +12,7 @@ import 'package:Bloomee/screens/widgets/player_progress_bar.dart';
 import 'package:Bloomee/screens/widgets/media_metadata_links.dart';
 import 'package:Bloomee/screens/widgets/play_pause_widget.dart';
 import 'package:Bloomee/screens/widgets/up_next_panel.dart';
+import 'package:Bloomee/screens/widgets/window_frame.dart';
 import 'package:Bloomee/utils/lyrics_timing.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -200,159 +201,164 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
               onPopInvokedWithResult: (didPop, result) {
                 if (!didPop) _back();
               },
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Positioned.fill(
-                    child: StreamBuilder<MediaItem?>(
-                      stream: player.mediaItem,
-                      initialData: player.mediaItem.valueOrNull,
-                      builder: (context, snapshot) {
-                        final track = snapshot.data == null
-                            ? player.currentTrackInfo
-                            : mediaItemToTrack(snapshot.data!);
-                        return ArtworkAmbientBackground(
-                          imageUrl:
-                              track.thumbnail.urlHigh ?? track.thumbnail.url,
-                          fallbackUrl:
-                              track.thumbnail.urlLow ?? track.thumbnail.url,
-                        );
-                      },
+              child: ImmersiveCaption(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Positioned.fill(
+                      child: StreamBuilder<MediaItem?>(
+                        stream: player.mediaItem,
+                        initialData: player.mediaItem.valueOrNull,
+                        builder: (context, snapshot) {
+                          final track = snapshot.data == null
+                              ? player.currentTrackInfo
+                              : mediaItemToTrack(snapshot.data!);
+                          return ArtworkAmbientBackground(
+                            imageUrl:
+                                track.thumbnail.urlHigh ?? track.thumbnail.url,
+                            fallbackUrl:
+                                track.thumbnail.urlLow ?? track.thumbnail.url,
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  Scaffold(
-                    backgroundColor: Colors.transparent,
-                    appBar: _lyricsOnly
-                        ? null
-                        : AppBar(
-                            backgroundColor: Colors.transparent,
-                            surfaceTintColor: Colors.transparent,
-                            leading: IconButton(
-                              tooltip: MaterialLocalizations.of(context)
-                                  .backButtonTooltip,
-                              onPressed: _saving ? null : _back,
-                              icon: const Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  size: 30),
+                    Scaffold(
+                      backgroundColor: Colors.transparent,
+                      appBar: _lyricsOnly
+                          ? null
+                          : AppBar(
+                              backgroundColor: Colors.transparent,
+                              surfaceTintColor: Colors.transparent,
+                              leading: IconButton(
+                                tooltip: MaterialLocalizations.of(context)
+                                    .backButtonTooltip,
+                                onPressed: _saving ? null : _back,
+                                icon: const Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    size: 30),
+                              ),
+                              title:
+                                  _LyricsTrackHeader(title: l10n.lyricsTitle),
+                              actions: [
+                                IconButton(
+                                  tooltip: l10n.lyricsEnterFullscreen,
+                                  icon: const Icon(Icons.fullscreen_rounded),
+                                  onPressed: () {
+                                    _queueController.collapse();
+                                    setState(() {
+                                      _lyricsOnly = true;
+                                      _queueOpen = false;
+                                    });
+                                  },
+                                ),
+                                IconButton(
+                                  tooltip: l10n.upNextTitle,
+                                  icon: const Icon(Icons.queue_music_rounded),
+                                  onPressed: () {
+                                    if (desktop) {
+                                      setState(() => _queueOpen = !_queueOpen);
+                                    } else {
+                                      _queueController.toggle();
+                                    }
+                                  },
+                                ),
+                                IconButton(
+                                  tooltip: l10n.tooltipMoreOptions,
+                                  onPressed: _saving ? null : _openSettings,
+                                  icon: const Icon(MingCute.more_2_fill),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                             ),
-                            title: _LyricsTrackHeader(title: l10n.lyricsTitle),
-                            actions: [
-                              IconButton(
-                                tooltip: l10n.lyricsEnterFullscreen,
-                                icon: const Icon(Icons.fullscreen_rounded),
-                                onPressed: () {
-                                  _queueController.collapse();
-                                  setState(() {
-                                    _lyricsOnly = true;
-                                    _queueOpen = false;
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                tooltip: l10n.upNextTitle,
-                                icon: const Icon(Icons.queue_music_rounded),
-                                onPressed: () {
-                                  if (desktop) {
-                                    setState(() => _queueOpen = !_queueOpen);
-                                  } else {
-                                    _queueController.toggle();
-                                  }
-                                },
-                              ),
-                              IconButton(
-                                tooltip: l10n.tooltipMoreOptions,
-                                onPressed: _saving ? null : _openSettings,
-                                icon: const Icon(MingCute.more_2_fill),
-                              ),
-                              const SizedBox(width: 8),
-                            ],
-                          ),
-                    body: BlocListener<LyricsCubit, LyricsState>(
-                      listener: (context, state) => _onLyricsChanged(state),
-                      child: SafeArea(
-                        top: false,
-                        child: LayoutBuilder(builder: (context, viewport) {
-                          return Stack(
-                            children: [
-                              Column(
-                                children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Expanded(child: _buildLyrics(desktop)),
-                                        if (desktop && !_lyricsOnly)
-                                          ClipRect(
-                                            child: AnimatedContainer(
-                                              duration: const Duration(
-                                                  milliseconds: 240),
-                                              curve: Curves.easeInOutCubic,
-                                              width: _queueOpen ? 360 : 0,
-                                              child: Visibility(
-                                                visible: _queueOpen,
-                                                maintainState: true,
-                                                child: OverflowBox(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  minWidth: 360,
-                                                  maxWidth: 360,
-                                                  child: Padding(
-                                                    padding: const EdgeInsets
-                                                        .fromLTRB(
-                                                        0, 12, 16, 12),
-                                                    child: UpNextPanel(
-                                                      peekHeight: 60,
-                                                      parentHeight:
-                                                          viewport.maxHeight,
-                                                      isDesktopMode: true,
-                                                      onDesktopCollapse: () =>
-                                                          setState(() =>
-                                                              _queueOpen =
-                                                                  false),
+                      body: BlocListener<LyricsCubit, LyricsState>(
+                        listener: (context, state) => _onLyricsChanged(state),
+                        child: SafeArea(
+                          top: false,
+                          child: LayoutBuilder(builder: (context, viewport) {
+                            return Stack(
+                              children: [
+                                Column(
+                                  children: [
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                              child: _buildLyrics(desktop)),
+                                          if (desktop && !_lyricsOnly)
+                                            ClipRect(
+                                              child: AnimatedContainer(
+                                                duration: const Duration(
+                                                    milliseconds: 240),
+                                                curve: Curves.easeInOutCubic,
+                                                width: _queueOpen ? 360 : 0,
+                                                child: Visibility(
+                                                  visible: _queueOpen,
+                                                  maintainState: true,
+                                                  child: OverflowBox(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    minWidth: 360,
+                                                    maxWidth: 360,
+                                                    child: Padding(
+                                                      padding: const EdgeInsets
+                                                          .fromLTRB(
+                                                          0, 12, 16, 12),
+                                                      child: UpNextPanel(
+                                                        peekHeight: 60,
+                                                        parentHeight:
+                                                            viewport.maxHeight,
+                                                        isDesktopMode: true,
+                                                        onDesktopCollapse: () =>
+                                                            setState(() =>
+                                                                _queueOpen =
+                                                                    false),
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                      ],
+                                        ],
+                                      ),
+                                    ),
+                                    if (_editingTiming && !_lyricsOnly)
+                                      ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                            maxHeight:
+                                                viewport.maxHeight * 0.45),
+                                        child: SingleChildScrollView(
+                                            child: _buildTimingControls()),
+                                      ),
+                                    if (!_lyricsOnly) const _LyricsTransport(),
+                                  ],
+                                ),
+                                if (!desktop && !_lyricsOnly)
+                                  UpNextPanel(
+                                    controller: _queueController,
+                                    peekHeight: 60,
+                                    parentHeight: viewport.maxHeight,
+                                    canBeHidden: true,
+                                  ),
+                                if (_lyricsOnly)
+                                  Positioned(
+                                    top: MediaQuery.paddingOf(context).top + 8,
+                                    right: 16,
+                                    child: IconButton(
+                                      tooltip: l10n.lyricsExitFullscreen,
+                                      onPressed: () =>
+                                          setState(() => _lyricsOnly = false),
+                                      icon: const Icon(
+                                          Icons.fullscreen_exit_rounded),
                                     ),
                                   ),
-                                  if (_editingTiming && !_lyricsOnly)
-                                    ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                          maxHeight: viewport.maxHeight * 0.45),
-                                      child: SingleChildScrollView(
-                                          child: _buildTimingControls()),
-                                    ),
-                                  if (!_lyricsOnly) const _LyricsTransport(),
-                                ],
-                              ),
-                              if (!desktop && !_lyricsOnly)
-                                UpNextPanel(
-                                  controller: _queueController,
-                                  peekHeight: 60,
-                                  parentHeight: viewport.maxHeight,
-                                  canBeHidden: true,
-                                ),
-                              if (_lyricsOnly)
-                                Positioned(
-                                  top: MediaQuery.paddingOf(context).top + 8,
-                                  right: 16,
-                                  child: IconButton(
-                                    tooltip: l10n.lyricsExitFullscreen,
-                                    onPressed: () =>
-                                        setState(() => _lyricsOnly = false),
-                                    icon: const Icon(
-                                        Icons.fullscreen_exit_rounded),
-                                  ),
-                                ),
-                            ],
-                          );
-                        }),
+                              ],
+                            );
+                          }),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             )));
   }

@@ -18,8 +18,110 @@ class WindowFrame extends StatefulWidget {
 
   static const captionHeight = 38.0;
 
+  /// Active [ImmersiveCaption] requests, newest last. The newest one styles
+  /// the caption.
+  static final _immersive = <_ImmersiveRequest>[];
+  static final _immersiveRevision = ValueNotifier<int>(0);
+  static bool _notifyScheduled = false;
+
+  /// Changes land after the current frame: the frame rebuilds the whole app
+  /// and must not be marked dirty while a requesting subtree is building.
+  static void _immersiveChanged() {
+    if (_notifyScheduled) return;
+    _notifyScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notifyScheduled = false;
+      _immersiveRevision.value++;
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
   @override
   State<WindowFrame> createState() => _WindowFrameState();
+}
+
+class _ImmersiveRequest {
+  _ImmersiveRequest(this.scrim);
+  double scrim;
+}
+
+/// Lets [child]'s screen draw behind the desktop title bar.
+///
+/// While [enabled] and on the current route, the caption turns transparent
+/// and floats over the app. The app then gets the whole window, and the
+/// caption height arrives as a top inset in [MediaQuery.paddingOf], so an
+/// [AppBar] or a [SafeArea] keeps the screen's content where it was and only
+/// backgrounds extend upwards. The window buttons stay legible over a soft
+/// top [scrim] (0 = none, 1 = black at the top edge).
+///
+/// Enable it only for a screen that covers the whole window: everything
+/// else in the app gets the same inset while it is active. Without a custom
+/// frame (mobile, web, system title bar) it does nothing.
+class ImmersiveCaption extends StatefulWidget {
+  const ImmersiveCaption({
+    super.key,
+    this.enabled = true,
+    this.scrim = 0.28,
+    required this.child,
+  });
+
+  final bool enabled;
+  final double scrim;
+  final Widget child;
+
+  @override
+  State<ImmersiveCaption> createState() => _ImmersiveCaptionState();
+}
+
+class _ImmersiveCaptionState extends State<ImmersiveCaption> {
+  _ImmersiveRequest? _request;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(ImmersiveCaption oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_request != null && oldWidget.scrim != widget.scrim) {
+      _request!.scrim = widget.scrim;
+      WindowFrame._immersiveChanged();
+    }
+    _sync();
+  }
+
+  @override
+  void dispose() {
+    _release();
+    super.dispose();
+  }
+
+  /// Covered by a pushed route, the screen gives the caption back.
+  void _sync() {
+    final wanted = DesktopWindow.isCustomFrame &&
+        widget.enabled &&
+        (ModalRoute.isCurrentOf(context) ?? true);
+    if (wanted && _request == null) {
+      _request = _ImmersiveRequest(widget.scrim);
+      WindowFrame._immersive.add(_request!);
+      WindowFrame._immersiveChanged();
+    } else if (!wanted) {
+      _release();
+    }
+  }
+
+  void _release() {
+    final request = _request;
+    if (request == null) return;
+    _request = null;
+    WindowFrame._immersive.remove(request);
+    WindowFrame._immersiveChanged();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _WindowFrameState extends State<WindowFrame> with WindowListener {
@@ -39,8 +141,11 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
     super.initState();
     if (!DesktopWindow.isCustomFrame) return;
     windowManager.addListener(this);
+    WindowFrame._immersiveRevision.addListener(_onImmersiveChanged);
     _syncState();
   }
+
+  void _onImmersiveChanged() => _update(() {});
 
   @override
   void didUpdateWidget(WindowFrame oldWidget) {
@@ -50,7 +155,10 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
 
   @override
   void dispose() {
-    if (DesktopWindow.isCustomFrame) windowManager.removeListener(this);
+    if (DesktopWindow.isCustomFrame) {
+      windowManager.removeListener(this);
+      WindowFrame._immersiveRevision.removeListener(_onImmersiveChanged);
+    }
     super.dispose();
   }
 
@@ -119,26 +227,41 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
   Widget _buildFrame(BuildContext context) {
     final media = MediaQuery.of(context);
     final captionHeight = _fullScreen ? 0.0 : WindowFrame.captionHeight;
+    final immersive =
+        captionHeight > 0 ? WindowFrame._immersive.lastOrNull : null;
+    // Normally the app sees only the area below the caption. An immersive
+    // screen gets the whole window and the caption as a top inset instead.
+    // The widget path to the app never changes, so switching only lays it
+    // out again.
+    final offset = immersive == null ? captionHeight : 0.0;
+    final inset = immersive == null ? 0.0 : captionHeight;
     final framed = ColoredBox(
       color: Default_Theme.themeColor,
-      child: Column(
+      child: Stack(
         children: [
-          SizedBox(
-            height: captionHeight,
-            child: captionHeight > 0 ? _caption() : null,
-          ),
-          Expanded(
-            // The app sees only the area below the caption.
+          Positioned.fill(
+            top: offset,
             child: MediaQuery(
               data: media.copyWith(
                 size: Size(
                   media.size.width,
-                  (media.size.height - captionHeight).clamp(0, double.infinity),
+                  (media.size.height - offset).clamp(0, double.infinity),
                 ),
+                padding: media.padding.copyWith(top: media.padding.top + inset),
+                viewPadding: media.viewPadding
+                    .copyWith(top: media.viewPadding.top + inset),
               ),
               child: widget.child,
             ),
           ),
+          if (captionHeight > 0)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: captionHeight,
+              child: _caption(scrim: immersive?.scrim ?? 0),
+            ),
         ],
       ),
     );
@@ -153,8 +276,8 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
     );
   }
 
-  Widget _caption() {
-    final caption = Row(
+  Widget _caption({required double scrim}) {
+    final row = Row(
       children: [
         Expanded(
           child: _CaptionDragArea(
@@ -173,6 +296,31 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
           onClose: windowManager.close,
         ),
       ],
+    );
+    // Over an immersive screen, a soft shade keeps the title and buttons
+    // readable on any artwork. It fades in and out with the mode.
+    final caption = TweenAnimationBuilder<double>(
+      tween: Tween(end: scrim.clamp(0.0, 1.0)),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      builder: (context, shade, child) => DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: shade == 0
+              ? null
+              : LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: shade),
+                    Colors.black.withValues(alpha: shade * 0.45),
+                    Colors.black.withValues(alpha: 0),
+                  ],
+                  stops: const [0, 0.55, 1],
+                ),
+        ),
+        child: child,
+      ),
+      child: row,
     );
 
     if (!Platform.isWindows) return caption;
