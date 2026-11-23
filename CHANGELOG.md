@@ -10,6 +10,7 @@
 - **News & Announcements**: The bell on Home now shows news, our other apps, sign-up links, and important notices published on the Bloomee website, plus any available update. New entries are marked, can be dismissed, and work offline. One small card can appear on Home; turn it off in Settings > Updates & news.
 
 ### Changed
+- **Home Page**: Faster and smoother with the same look. Sections load only as you scroll to them, artwork is decoded at the size shown, and loading placeholders keep the page from jumping.
 - **Discord Rich Presence**: Rebuilt on a dedicated background connection with live connection status, your Discord account, a presence preview, and options for artwork, progress, links, local files, and paused behavior.
 - **Up Next on Desktop**: The queue panel takes a soft glow from the current artwork. Queue rows show actions only on hover, use one subtle hover highlight, and lift neutrally while dragging.
 - **Queue Reordering**: Moving or removing songs no longer reloads every row and its artwork. On mobile, long-press a song to drag it or swipe it away to remove it.
@@ -22,6 +23,7 @@
 
 ### Fixed
 - Fixed the full player's progress bar freezing at the start of a song after opening the player.
+- Fixed the chart carousel slowing down or freezing Home at startup. It starts sliding a few seconds after Home appears and pauses while you touch it, while Home is covered or scrolled away, and while Bloomee is minimized or in the tray. On desktop, arrows appear when you hover over it.
 - Fixed songs being skipped silently when their stream stopped early.
 - Fixed playback errors from a preloaded song being blamed on the wrong track.
 - Fixed queue changes made in quick succession sometimes not being saved.
