@@ -1,0 +1,1054 @@
+{
+  "@@locale": "sv",
+  "onboardingTitle": "Välkommen till Bloomee",
+  "onboardingSubtitle": "Välj språk och region.",
+  "continueButton": "Fortsätt",
+  "navHome": "Hem",
+  "navLibrary": "Bibliotek",
+  "navSearch": "Sök",
+  "navLocal": "Lokalt",
+  "navOffline": "Offline",
+  "playerEnjoyingFrom": "Spelas från",
+  "playerPlayWithMix": "Spela med automatisk mix",
+  "playerPlayNext": "Spela härnäst",
+  "playerAddToQueue": "Lägg till i kön",
+  "playerAddToFavorites": "Lägg till i favoriter",
+  "playerNoLyricsFound": "Ingen låttext hittades",
+  "playerLyricsNoPlugin": "Ingen låttextkälla har valts. Gå till Inställningar → Tillägg för att installera en.",
+  "localMusicTitle": "Lokalt",
+  "localMusicGrantPermission": "Tillåt åtkomst",
+  "localMusicStorageAccessRequired": "Åtkomst till lagring krävs",
+  "localMusicStorageAccessDesc": "Tillåt åtkomst för att söka efter och spela upp ljudfiler som finns på din enhet.",
+  "localMusicAddFolder": "Lägg till musikmapp",
+  "localMusicScanNow": "Sök nu",
+  "localMusicScanFailed": "Sökningen misslyckades: {message}",
+  "@localMusicScanFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "localMusicScanning": "Söker efter ljudfiler på enheten…",
+  "localMusicShuffle": "Blanda",
+  "localMusicPlayAll": "Spela alla",
+  "localMusicSearchHint": "Sök i lokal musik…",
+  "localMusicRescanDevice": "Sök igenom enheten igen",
+  "buttonCancel": "Avbryt",
+  "buttonDelete": "Radera",
+  "buttonOk": "OK",
+  "buttonUpdate": "Uppdatera",
+  "buttonDownload": "Hämta",
+  "buttonLater": "Senare",
+  "buttonInfo": "Info",
+  "buttonMore": "Mer",
+  "dialogDeleteTrack": "Radera låt",
+  "dialogDeleteTrackMessage": "Vill du radera ”{title}” från din enhet? Det går inte att ångra.",
+  "@dialogDeleteTrackMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "dialogDeleteTrackLinkedPlaylists": "Låten tas också bort från:",
+  "dialogDontAskAgain": "Fråga inte igen",
+  "dialogUpdateAvailable": "Uppdatering tillgänglig",
+  "dialogUpdateNow": "Uppdatera nu",
+  "dialogDownloadPlaylist": "Hämta spellista",
+  "dialogDownloadPlaylistMessage": "Vill du hämta {count} låtar från ”{title}”? De läggs till i hämtningskön.",
+  "@dialogDownloadPlaylistMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "dialogDownloadAll": "Hämta alla",
+  "playlistEdit": "Redigera spellista",
+  "playlistShareFile": "Dela fil",
+  "playlistExportFile": "Exportera fil",
+  "playlistPlay": "Spela",
+  "playlistAddToQueue": "Lägg till spellistan i kön",
+  "playlistShare": "Dela spellista",
+  "playlistDelete": "Radera spellista",
+  "playlistEmptyState": "Inga låtar ännu",
+  "playlistAvailableOffline": "Tillgänglig offline",
+  "playlistShuffle": "Blanda",
+  "playlistNoMatchSearch": "Inga spellistor matchar din sökning",
+  "playlistCreateNew": "Skapa spellista",
+  "playlistCreateFirstOne": "Inga spellistor ännu. Skapa en för att komma igång.",
+  "addToPlaylistNoSongSelected": "Ingen låt har valts",
+  "createPlaylistDialogBarrierLabel": "Dialogruta för att skapa spellista",
+  "createPlaylistDialogNameHint": "Sommarkänsla",
+  "createPlaylistDialogCreate": "Skapa",
+  "playlistSongCount": "{count, plural, =1{1 låt} other{{count} låtar}}",
+  "@playlistSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistRemovedTrack": "{title} har tagits bort från {playlist}",
+  "@playlistRemovedTrack": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "playlist": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistFailedToLoad": "Det gick inte att läsa in spellistan",
+  "settingsTitle": "Inställningar",
+  "settingsPlugins": "Tillägg",
+  "settingsPluginsSubtitle": "Installera, läs in och hantera tillägg.",
+  "settingsUpdates": "Uppdateringar",
+  "settingsUpdatesSubtitle": "Sök efter uppdateringar",
+  "settingsDownloads": "Hämtningar",
+  "settingsDownloadsSubtitle": "Hämtningsmapp, ljudkvalitet och mer…",
+  "settingsLocalTracks": "Lokala låtar",
+  "settingsLocalTracksSubtitle": "Sök efter låtar, hantera mappar och ställ in automatisk genomsökning.",
+  "settingsPlayer": "Spelarinställningar",
+  "settingsPlayerSubtitle": "Strömningskvalitet, automatisk uppspelning med mera.",
+  "settingsPluginDefaults": "Standardval för tillägg",
+  "settingsPluginDefaultsSubtitle": "Källa för Upptäck och källornas prioritetsordning.",
+  "settingsUIElements": "Gränssnitt och tjänster",
+  "settingsUIElementsSubtitle": "Automatisk växling, gränssnittsinställningar med mera.",
+  "settingsLastFM": "Last.fm-inställningar",
+  "settingsLastFMSubtitle": "API-nyckel, API-hemlighet och skrobbling.",
+  "settingsStorage": "Lagring",
+  "settingsStorageSubtitle": "Säkerhetskopior, cache, historik, återställning och mer…",
+  "settingsLanguageCountry": "Språk och land",
+  "settingsLanguageCountrySubtitle": "Välj språk och land.",
+  "settingsAbout": "Om",
+  "settingsAboutSubtitle": "Om appen, versionen, utvecklaren med mera.",
+  "settingsScanning": "Genomsökning",
+  "settingsMusicFolders": "Musikmappar",
+  "settingsQuality": "Kvalitet",
+  "settingsHistory": "Historik",
+  "settingsBackupRestore": "Säkerhetskopiering och återställning",
+  "settingsAutomatic": "Automatiskt",
+  "settingsDangerZone": "Riskfyllda åtgärder",
+  "settingsScrobbling": "Skrobbling",
+  "settingsAuthentication": "Autentisering",
+  "settingsHomeScreen": "Startsida",
+  "settingsChartVisibility": "Visa topplistor",
+  "dialogAddingToDownloadQueue": "Lägger till i hämtningskön",
+  "emptyNoInternet": "Ingen internetanslutning",
+  "emptyNoContentPlugin": "Inget innehållstillägg har lästs in. Läs in en innehållskälla i tilläggshanteraren.",
+  "emptyRefreshingSource": "Uppdaterar källan för Upptäck… Den tidigare källan är inte längre tillgänglig.",
+  "emptyNoTracks": "Inga låtar tillgängliga",
+  "emptyNoResults": "Inga träffar hittades",
+  "snackbarDeletedTrack": "”{title}” har raderats",
+  "@snackbarDeletedTrack": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarDeleteFailed": "Det gick inte att radera ”{title}”",
+  "@snackbarDeleteFailed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarAddedToNextQueue": "Tillagd som nästa i kön",
+  "snackbarAddedToQueue": "Tillagd i kön",
+  "snackbarAddedToLiked": "{title} har lagts till i favoriter",
+  "@snackbarAddedToLiked": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarNowPlaying": "Spelar {name}",
+  "@snackbarNowPlaying": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarPlaylistAddedToQueue": "{name} har lagts till i kön",
+  "@snackbarPlaylistAddedToQueue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarPlaylistUpdated": "Spellistan har uppdaterats",
+  "snackbarLinkCopied": "Länken har kopierats",
+  "snackbarCouldNotOpenLink": "Det gick inte att öppna länken",
+  "snackbarSongsAddedToQueue": "{count} låtar har lagts till i hämtningskön",
+  "@snackbarSongsAddedToQueue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchHintExplore": "Vad vill du lyssna på?",
+  "searchHintLibrary": "Sök i biblioteket…",
+  "searchHintPlaylists": "Sök bland spellistor…",
+  "searchStartTyping": "Börja skriva för att söka…",
+  "searchNoSuggestions": "Inga förslag hittades",
+  "searchNoResults": "Inga resultat hittades.\nProva ett annat sökord eller en annan källa.",
+  "searchFailed": "Sökningen misslyckades",
+  "searchDiscover": "Upptäck ny musik",
+  "searchSources": "KÄLLOR",
+  "searchNoPlugins": "Inga tillägg installerade",
+  "searchTracks": "Låtar",
+  "searchAlbums": "Album",
+  "searchArtists": "Artister",
+  "searchPlaylists": "Spellistor",
+  "exploreDiscover": "Upptäck",
+  "exploreRecently": "Senaste",
+  "exploreLastFmPicks": "Tips från Last.fm",
+  "exploreFailedToLoad": "Det gick inte att läsa in startsidans innehåll.",
+  "libraryTitle": "Bibliotek",
+  "libraryEmptyState": "Ditt bibliotek är tomt. Lägg till låtar och spellistor för att komma igång.",
+  "libraryIn": "i {playlistName}",
+  "@libraryIn": {
+    "placeholders": {
+      "playlistName": {
+        "type": "String"
+      }
+    }
+  },
+  "menuAddToPlaylist": "Lägg till i spellista",
+  "menuSmartReplace": "Smart ersättning",
+  "menuShare": "Dela",
+  "menuAvailableOffline": "Tillgänglig offline",
+  "menuDownload": "Hämta",
+  "menuOpenOriginalLink": "Öppna ursprunglig länk",
+  "menuDeleteTrack": "Radera",
+  "tooltipRemoveFromLibrary": "Ta bort från biblioteket",
+  "tooltipSaveToLibrary": "Spara i biblioteket",
+  "tooltipOpenOriginalLink": "Öppna ursprunglig länk",
+  "tooltipAvailableOffline": "Tillgänglig offline",
+  "tooltipMoreOptions": "Fler alternativ",
+  "appuiTitle": "Gränssnitt och tjänster",
+  "appuiAutoSlideCharts": "Växla topplistor automatiskt",
+  "appuiAutoSlideChartsSubtitle": "Växla automatiskt mellan topplistor på startsidan.",
+  "appuiLastFmPicksSubtitle": "Visa förslag från Last.fm. Inloggning och omstart krävs.",
+  "appuiNoChartsAvailable": "Inga topplistor tillgängliga. Läs in ett tillägg för topplistor.",
+  "appuiLoginToLastFm": "Logga först in på Last.fm.",
+  "appuiShowInCarousel": "Visa i karusellen på startsidan.",
+  "countrySettingTitle": "Land och språk",
+  "countrySettingAutoDetect": "Identifiera land automatiskt",
+  "countrySettingAutoDetectSubtitle": "Identifiera ditt land automatiskt när appen öppnas.",
+  "countrySettingCountryLabel": "Land",
+  "countrySettingLanguageLabel": "Språk",
+  "countrySettingSystemDefault": "Systemstandard",
+  "downloadSettingTitle": "Hämtningar",
+  "downloadSettingQuality": "Ljudkvalitet vid hämtning",
+  "downloadSettingQualitySubtitle": "Gemensam inställning för ljudkvaliteten på hämtade låtar.",
+  "downloadSettingFolder": "Hämtningsmapp",
+  "downloadSettingResetFolder": "Återställ hämtningsmapp",
+  "downloadSettingResetFolderSubtitle": "Återställ standardmappen för hämtningar.",
+  "lastfmTitle": "Last.fm",
+  "lastfmScrobbleTracks": "Skrobbla låtar",
+  "lastfmScrobbleTracksSubtitle": "Skicka spelade låtar till din Last.fm-profil.",
+  "lastfmAuthFirst": "Autentisera först Last.fm-API:et.",
+  "lastfmAuthenticatedAs": "Autentiserad som",
+  "lastfmAuthFailed": "Autentiseringen misslyckades:",
+  "lastfmNotAuthenticated": "Inte autentiserad",
+  "lastfmSteps": "Så autentiserar du:\n1. Skapa eller öppna ett Last.fm-konto på last.fm\n2. Skapa en API-nyckel på last.fm/api/account/create\n3. Ange API-nyckeln och API-hemligheten nedan\n4. Tryck på ”Starta autentisering” och godkänn i webbläsaren\n5. Tryck på ”Hämta och spara sessionsnyckel” för att slutföra",
+  "lastfmApiKey": "API-nyckel",
+  "lastfmApiSecret": "API-hemlighet",
+  "lastfmStartAuth": "1. Starta autentisering",
+  "lastfmGetSession": "2. Hämta och spara sessionsnyckel",
+  "lastfmRemoveKeys": "Ta bort nycklar",
+  "lastfmStartAuthFirst": "Starta autentiseringen först och godkänn sedan i webbläsaren.",
+  "localSettingTitle": "Lokala låtar",
+  "localSettingAutoScan": "Sök automatiskt vid start",
+  "localSettingAutoScanSubtitle": "Sök automatiskt efter nya lokala låtar när appen startar.",
+  "localSettingLastScan": "Senaste genomsökning",
+  "localSettingNeverScanned": "Aldrig",
+  "localSettingScanInProgress": "Genomsökning pågår…",
+  "localSettingScanNowSubtitle": "Starta en fullständig genomsökning av biblioteket.",
+  "localSettingNoFolders": "Inga mappar har lagts till. Lägg till en mapp för att börja söka.",
+  "localSettingAddFolder": "Lägg till mapp",
+  "playerSettingTitle": "Spelarinställningar",
+  "playerSettingStreamingHeader": "Strömning",
+  "playerSettingStreamQuality": "Strömningskvalitet",
+  "playerSettingStreamQualitySubtitle": "Bithastighet för strömmad musik.",
+  "playerSettingQualityLow": "Låg",
+  "playerSettingQualityMedium": "Medel",
+  "playerSettingQualityHigh": "Hög",
+  "playerSettingPlaybackHeader": "Uppspelning",
+  "playerSettingAutoPlay": "Automatisk uppspelning",
+  "playerSettingAutoPlaySubtitle": "Lägg till liknande låtar när kön tar slut.",
+  "playerSettingAutoFallback": "Automatiskt källbyte",
+  "playerSettingAutoFallbackSubtitle": "Om ett tillägg saknas eller inte hittar någon ljudström, prova en kompatibel källa enbart för uppspelningen.",
+  "playerSettingCrossfade": "Övertoning",
+  "playerSettingCrossfadeOff": "Av",
+  "playerSettingCrossfadeInstant": "Låtarna växlar direkt",
+  "playerSettingCrossfadeBlend": "{seconds} s övertoning mellan låtar",
+  "@playerSettingCrossfadeBlend": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "playerSettingEqualizer": "Equalizer",
+  "playerSettingEqualizerActive": "Aktiv",
+  "playerSettingEqualizerActivePreset": "Aktiverad – förinställning: {preset}",
+  "@playerSettingEqualizerActivePreset": {
+    "placeholders": {
+      "preset": {
+        "type": "String"
+      }
+    }
+  },
+  "playerSettingEqualizerSubtitle": "10-bands parametrisk equalizer via FFmpeg.",
+  "pluginDefaultsTitle": "Standardval för tillägg",
+  "pluginDefaultsDiscoverHeader": "Källa för Upptäck",
+  "pluginDefaultsNoResolver": "Ingen innehållskälla är inläst. Läs in ett tillägg för att välja en källa för Upptäck.",
+  "pluginDefaultsAutomaticSubtitle": "Använd den första tillgängliga innehållskällan.",
+  "pluginDefaultsPriorityHeader": "Källornas prioritet",
+  "pluginDefaultsNoPriority": "Inga innehållskällor är inlästa. Prioritetsordningen visas här när tilläggen har lästs in.",
+  "pluginDefaultsPriorityDesc": "Dra för att ändra ordningen. Källor med högre prioritet provas först när topplisteposter eller importerade låtar ska matchas med spelbara låtar.",
+  "pluginDefaultsLyricsHeader": "Låttextkällornas prioritet",
+  "pluginDefaultsLyricsNone": "Inga låttextkällor är inlästa.",
+  "pluginDefaultsLyricsDesc": "Dra för att ändra ordningen på låttextkällorna. Den översta källan provas först.",
+  "pluginDefaultsSuggestionsHeader": "Sökförslag",
+  "pluginDefaultsSuggestionsNone": "Inga förslagskällor är inlästa.",
+  "pluginDefaultsSuggestionsHistoryOnlyTitle": "Ingen",
+  "pluginDefaultsSuggestionsHistoryOnlySubtitle": "Använd endast sökhistoriken.",
+  "storageSettingTitle": "Lagring",
+  "storageClearHistoryEvery": "Rensa historik efter",
+  "storageClearHistorySubtitle": "Rensa lyssningshistoriken efter den valda perioden.",
+  "storageDays": "{count, plural, =1{1 dag} other{{count} dagar}}",
+  "@storageDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storageBackupCreatedAt": "Säkerhetskopia skapad i {path}",
+  "@storageBackupCreatedAt": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "storageBackupShareFailed": "Kunde inte dela säkerhetskopian: {error}",
+  "@storageBackupShareFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "storageRestoreBackup": "Återställ säkerhetskopia",
+  "storageRestoreBackupSubtitle": "Återställ inställningar och data från en säkerhetskopia.",
+  "storageAutoBackup": "Automatisk säkerhetskopiering",
+  "storageAutoLyrics": "Spara låttexter automatiskt",
+  "storageAutoLyricsSubtitle": "Spara låttexten automatiskt när en låt spelas.",
+  "storageResetApp": "Nollställ Bloomee",
+  "storageResetConfirmTitle": "Bekräfta nollställning",
+  "storageResetButton": "Nollställ",
+  "storageRestoreOptionsTitle": "Återställningsalternativ",
+  "storageRestoreContinue": "Fortsätt",
+  "storageRestoreConfirmTitle": "Bekräfta återställning",
+  "storageRestoreYes": "Ja, återställ",
+  "storageRestoring": "Återställer valda data…\nVänta tills åtgärden är klar.",
+  "storageRestoreFailedTitle": "Återställningen misslyckades",
+  "updateSettingTitle": "Uppdateringar",
+  "updateCheckForUpdates": "Sök efter uppdateringar",
+  "updateCheckSubtitle": "Kontrollera om en nyare version av Bloomee finns.",
+  "updateAutoNotify": "Avisera om uppdateringar",
+  "updateAutoNotifySubtitle": "Avisera om nya uppdateringar när appen startas.",
+  "updateCheckTitle": "Sök efter uppdateringar",
+  "updateUpToDate": "Bloomee är uppdaterat",
+  "updateViewPreRelease": "Visa senaste förhandsversionen",
+  "updateCurrentVersion": "Nuvarande version: {curr} + {build}",
+  "@updateCurrentVersion": {
+    "placeholders": {
+      "curr": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNewVersionAvailable": "En ny version av Bloomee finns",
+  "updateVersion": "Version: {ver}+{build}",
+  "@updateVersion": {
+    "placeholders": {
+      "ver": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "updateDownloadNow": "Hämta nu",
+  "updateChecking": "Söker efter uppdateringar…",
+  "timerTitle": "Insomningstimer",
+  "timerInterludeMessage": "Uppspelningen stoppas om…",
+  "timerHours": "Timmar",
+  "timerMinutes": "Minuter",
+  "timerSeconds": "Sekunder",
+  "timerStop": "Stoppa timern",
+  "timerFinishedMessage": "Insomningstimern stoppade uppspelningen.",
+  "timerGotIt": "Jag förstår",
+  "timerSetTimeError": "Ange en tid",
+  "timerStart": "Starta timern",
+  "notificationsTitle": "Aviseringar",
+  "notificationsEmpty": "Inga aviseringar ännu",
+  "recentsTitle": "Historik",
+  "playlistByCreator": "av {creator}",
+  "@playlistByCreator": {
+    "placeholders": {
+      "creator": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistYou": "Du",
+  "pluginManagerTitle": "Tillägg",
+  "pluginManagerEmpty": "Inga tillägg är installerade.\nTryck på + för att lägga till en .bex-fil.",
+  "pluginManagerFilterAll": "Alla",
+  "pluginManagerFilterContent": "Innehållskällor",
+  "pluginManagerFilterCharts": "Topplistekällor",
+  "pluginManagerFilterLyrics": "Låttextkällor",
+  "pluginManagerFilterSuggestions": "Förslagskällor",
+  "pluginManagerFilterImporters": "Innehållsimportörer",
+  "pluginManagerTooltipRefresh": "Uppdatera",
+  "pluginManagerTooltipInstall": "Installera tillägg",
+  "pluginManagerNoMatch": "Inga tillägg matchar filtret",
+  "pluginManagerPickFailed": "Kunde inte välja fil: {error}",
+  "@pluginManagerPickFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginManagerInstalling": "Installerar tillägg…",
+  "pluginManagerTypeContentResolver": "Innehållskälla",
+  "pluginManagerTypeChartProvider": "Topplistekälla",
+  "pluginManagerTypeLyricsProvider": "Låttextkälla",
+  "pluginManagerTypeSuggestionProvider": "Sökförslag",
+  "pluginManagerTypeContentImporter": "Innehållsimportör",
+  "pluginManagerDeleteTitle": "Radera tillägg?",
+  "pluginManagerDeleteMessage": "Vill du radera ”{name}”? Tilläggets filer tas bort permanent.",
+  "@pluginManagerDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginManagerDeleteAction": "Radera",
+  "pluginManagerCancel": "Avbryt",
+  "pluginManagerEnablePlugin": "Aktivera tillägg",
+  "pluginManagerUnloadPlugin": "Inaktivera tillägg",
+  "pluginManagerDeleting": "Raderar…",
+  "pluginManagerApiKeysTitle": "API-nycklar",
+  "pluginManagerApiKeysSaved": "API-nycklar sparade",
+  "pluginManagerSave": "Spara",
+  "pluginManagerDetailVersion": "Version",
+  "pluginManagerDetailType": "Typ",
+  "pluginManagerDetailPublisher": "Utgivare",
+  "pluginManagerDetailLastUpdated": "Senast uppdaterat",
+  "pluginManagerDetailCreated": "Skapat",
+  "pluginManagerDetailHomepage": "Webbplats",
+  "pluginManagerDeleteStorageTitle": "Radera tilläggsdata?",
+  "pluginManagerDeleteStorageMessage": "Vill du även radera sparade API-nycklar och inställningar för ”{name}”?",
+  "@pluginManagerDeleteStorageMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginManagerDeleteStorageKeep": "Behåll data",
+  "pluginManagerDeleteStorageRemove": "Radera data",
+  "segmentsSheetTitle": "Segment",
+  "segmentsSheetEmpty": "Inga segment finns",
+  "segmentsSheetUntitled": "Namnlöst segment",
+  "smartReplaceTitle": "Smart ersättning",
+  "smartReplaceSubtitle": "Välj en spelbar ersättning för ”{title}” och uppdatera hänvisningarna i sparade spellistor.",
+  "@smartReplaceSubtitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "smartReplaceClose": "Stäng",
+  "smartReplaceNoMatch": "Ingen ersättning hittades",
+  "smartReplaceNoMatchSubtitle": "Ingen av de inlästa innehållskällorna hittade en tillräckligt bra matchning.",
+  "smartReplaceBestMatch": "Bästa matchning",
+  "smartReplaceSearchFailed": "Sökningen misslyckades",
+  "smartReplaceApplyFailed": "Smart ersättning misslyckades: {error}",
+  "@smartReplaceApplyFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "smartReplaceApplied": "Ersatte låten{queue}.",
+  "@smartReplaceApplied": {
+    "placeholders": {
+      "queue": {
+        "type": "String"
+      }
+    }
+  },
+  "smartReplaceQueueUpdated": " och uppdaterade kön",
+  "playerUnknownQueue": "Okänd",
+  "playerLiked": "{title} har lagts till i favoriter",
+  "@playerLiked": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerUnliked": "{title} har tagits bort från favoriter",
+  "@playerUnliked": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineNoDownloads": "Inga hämtade låtar",
+  "offlineTitle": "Offline",
+  "offlineSearchHint": "Sök bland dina låtar…",
+  "offlineRefreshTooltip": "Uppdatera hämtade låtar",
+  "offlineCloseSearch": "Stäng sökningen",
+  "offlineSearchTooltip": "Sök",
+  "offlineOpenFailed": "Kunde inte öppna den här offlinelåten. Prova att uppdatera listan över hämtade låtar.",
+  "offlinePlayFailed": "Kunde inte spela den här offlinelåten. Försök igen.",
+  "albumViewTrackCount": "{count, plural, =1{1 låt} other{{count} låtar}}",
+  "@albumViewTrackCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "albumViewLoadFailed": "Kunde inte läsa in albumet",
+  "aboutCraftingSubtitle": "Skapat för musik.",
+  "aboutFollowGitHub": "Följ honom på GitHub",
+  "aboutSendInquiry": "Skicka en affärsförfrågan",
+  "aboutCreativeHighlights": "Uppdateringar och kreativa höjdpunkter",
+  "aboutTipQuote": "Gillar du Bloomee? Du kan stödja utvecklingen.",
+  "aboutTipButton": "Stöd projektet",
+  "aboutTipDesc": "Ditt bidrag hjälper till att förbättra Bloomee.",
+  "aboutGitHub": "GitHub",
+  "songInfoSectionDetails": "Låtinformation",
+  "songInfoSectionTechnical": "Teknisk information",
+  "songInfoSectionActions": "Åtgärder",
+  "songInfoLabelTitle": "Titel",
+  "songInfoLabelArtist": "Artist",
+  "songInfoLabelAlbum": "Album",
+  "songInfoLabelDuration": "Speltid",
+  "songInfoLabelSource": "Källa",
+  "songInfoLabelMediaId": "Medie-ID",
+  "songInfoLabelPluginId": "Tilläggs-ID",
+  "songInfoCopyId": "Kopiera ID",
+  "songInfoCopyLink": "Kopiera länk",
+  "songInfoOpenBrowser": "Öppna i webbläsaren",
+  "songInfoIdCopied": "Medie-ID kopierat",
+  "songInfoLinkCopied": "Länk kopierad",
+  "songInfoNoLink": "Ingen länk finns",
+  "songInfoOpenFailed": "Kunde inte öppna länken",
+  "songInfoUpdateMetadata": "Hämta senaste metadata",
+  "songInfoMetadataUpdated": "Metadata uppdaterade",
+  "songInfoMetadataUpdateFailed": "Kunde inte uppdatera metadata",
+  "songInfoMetadataUnavailable": "Det går inte att uppdatera metadata från den här källan",
+  "songInfoSearchTitle": "Sök efter den här låten i Bloomee",
+  "songInfoSearchArtist": "Sök efter den här artisten i Bloomee",
+  "songInfoSearchAlbum": "Sök efter det här albumet i Bloomee",
+  "eqTitle": "Equalizer",
+  "chartNoItems": "Topplistan är tom",
+  "chartLoadFailed": "Kunde inte läsa in topplistan",
+  "chartPlay": "Spela",
+  "chartResolving": "Söker spelbara låtar",
+  "chartReady": "Klart",
+  "chartAddToPlaylist": "Lägg till i spellista",
+  "chartNoResolver": "Ingen innehållskälla är inläst. Installera ett tillägg för att spela.",
+  "chartResolveFailed": "Kunde inte hitta en spelbar låt. Söker i stället…",
+  "chartNoResolverAdd": "Ingen innehållskälla är inläst.",
+  "chartNoMatch": "Ingen matchning hittades. Prova att söka manuellt.",
+  "chartStatPeak": "Högsta placering",
+  "chartStatWeeks": "Veckor",
+  "chartStatChange": "Förändring",
+  "menuSharePreparing": "Förbereder delning av {title}.",
+  "@menuSharePreparing": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "menuOpenLinkFailed": "Kunde inte öppna länken",
+  "localMusicFolders": "Musikmappar",
+  "localMusicRemoveFolder": "Ta bort mapp",
+  "localMusicCloseSearch": "Stäng sökningen",
+  "localMusicOpenSearch": "Sök",
+  "localMusicNoMusicFound": "Ingen lokal musik hittades",
+  "localMusicNoSearchResults": "Inga låtar matchar din sökning.",
+  "localMusicTrackCount": "{count, plural, =1{1 låt} other{{count} låtar}}",
+  "@localMusicTrackCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importSongsTitle": "Importera låtar",
+  "importNoPluginsLoaded": "Inga importtillägg är inlästa.\nInstallera ett importtillägg för att importera spellistor från andra tjänster.",
+  "importBloomeeFiles": "Importera Bloomee-filer",
+  "importM3UFiles": "Importera M3U-spellista",
+  "importM3UNameDialogTitle": "Spellistans namn",
+  "importM3UNameHint": "Ange ett namn för spellistan",
+  "importM3UNoTracks": "Inga giltiga låtar hittades i M3U-filen.",
+  "importNoteTitle": "Observera",
+  "importNoteMessage": "Du kan bara importera filer som har skapats av Bloomee.\nOm filen kommer från en annan källa fungerar det inte. Vill du fortsätta ändå?",
+  "importTitle": "Importera",
+  "importCheckingUrl": "Kontrollerar webbadress…",
+  "importFetchingTracks": "Hämtar låtar…",
+  "importSavingToLibrary": "Sparar i biblioteket…",
+  "importPasteUrlHint": "Klistra in webbadressen till en spellista eller ett album att importera",
+  "importAction": "Importera",
+  "importTrackCount": "{count} låtar",
+  "@importTrackCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importResolvingProgress": "Matchar låtar: {done} / {total}",
+  "@importResolvingProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "importSaveTracks": "Spara {count} låtar",
+  "@importSaveTracks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importTracksSaved": "{count} låtar har sparats!",
+  "@importTracksSaved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importDone": "Klart",
+  "importMore": "Importera fler",
+  "importUnknownError": "Okänt fel",
+  "importTryAgain": "Försök igen",
+  "importSkipTrack": "Hoppa över den här låten",
+  "importMatchOptions": "Matchningsalternativ",
+  "importSkipped": "Överhoppad",
+  "importReorderTip": "Håll en spellista nedtryckt för att ändra ordningen",
+  "importErrorCannotHandleUrl": "Tillägget kan inte hantera den angivna webbadressen.",
+  "importErrorUnexpectedResponse": "Oväntat svar från tillägget.",
+  "importErrorFailedToCheck": "Kunde inte kontrollera webbadressen: {error}",
+  "@importErrorFailedToCheck": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorFailedToFetchInfo": "Kunde inte hämta information om samlingen: {error}",
+  "@importErrorFailedToFetchInfo": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorFailedToFetchTracks": "Kunde inte hämta låtar: {error}",
+  "@importErrorFailedToFetchTracks": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorFailedToSave": "Kunde inte spara spellistan: {error}",
+  "@importErrorFailedToSave": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistPinToTop": "Fäst överst",
+  "playlistUnpin": "Lossa",
+  "snackbarInvalidFileFormat": "Ogiltigt filformat",
+  "snackbarProcessingFile": "Bearbetar fil…",
+  "pluginManagerTabInstalled": "Installerade",
+  "pluginManagerTabStore": "Tilläggsbutik",
+  "pluginManagerSelectPackage": "Välj tilläggspaket (.bex)",
+  "pluginManagerOutdatedManifest": "Tillägget använder en föråldrad manifestversion. Vissa funktioner kanske inte fungerar. Överväg att uppdatera tillägget.",
+  "pluginManagerStatusActive": "Aktivt",
+  "pluginManagerStatusInactive": "Inaktivt",
+  "pluginRepositoryAddTitle": "Lägg till källa",
+  "pluginRepositoryAddSubtitle": "Ange webbadressen till en giltig JSON-fil för en tilläggskälla.",
+  "pluginRepositoryAddAction": "Lägg till källa",
+  "pluginRepositoryTitle": "Tilläggskällor",
+  "pluginRepositorySubtitle": "Lägg till en JSON-källa för att bläddra bland tillägg på nätet.",
+  "pluginRepositoryEmpty": "Inga källor har lagts till ännu.",
+  "pluginRepositoryUnknownUpdate": "Okänd uppdatering",
+  "pluginRepositoryNoDescription": "Ingen beskrivning finns.",
+  "pluginRepositoryUrlCopied": "Källans webbadress kopierades till urklipp",
+  "pluginRepositoryPluginsCount": "{count, plural, =1{1 tillägg} other{{count} tillägg}}",
+  "@pluginRepositoryPluginsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pluginRepositoryUpdatedOn": "Uppdaterad {date}",
+  "@pluginRepositoryUpdatedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginRepositoryAvailableCount": "{count, plural, =1{1 tillägg tillgängligt} other{{count} tillägg tillgängliga}}",
+  "@pluginRepositoryAvailableCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pluginRepositoryOutdatedManifest": "Föråldrat manifest. Vissa funktioner kanske inte fungerar.",
+  "pluginRepositoryUnknownPublisher": "Okänd utgivare",
+  "pluginRepositoryActionRetry": "Försök igen",
+  "pluginRepositoryActionOutdated": "Föråldrat",
+  "pluginRepositoryActionInstalled": "Installerat",
+  "pluginRepositoryActionInstall": "Installera",
+  "pluginRepositoryActionUnavailable": "Otillgängligt",
+  "pluginRepositoryInstallFailed": "Installationen misslyckades.",
+  "pluginRepositoryDownloadFailed": "Kunde inte hämta {name}.",
+  "@pluginRepositoryDownloadFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginRepositoryErrorLoad": "Kunde inte läsa in källorna.",
+  "pluginRepositoryErrorInvalid": "Ogiltig källadress eller källfil.",
+  "pluginRepositoryErrorRemove": "Kunde inte ta bort källan.",
+  "smartReplaceAppliedPlaylistsSummary": "{count, plural, =1{Ersatte låten i 1 spellista{queue}.} other{Ersatte låten i {count} spellistor{queue}.}}",
+  "@smartReplaceAppliedPlaylistsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "queue": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsSearchFieldLabel": "Sök efter låttext…",
+  "lyricsSearchEmptyPrompt": "Ange en låt eller artist för att hitta låttexter.",
+  "lyricsSearchNoResults": "Ingen låttext hittades för ”{query}”",
+  "@lyricsSearchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsSearchApplied": "Låttexten har lagts till",
+  "lyricsSearchFetchFailed": "Kunde inte hämta låttexten",
+  "lyricsSearchPreview": "Förhandsgranska",
+  "lyricsSearchPreviewTooltip": "Förhandsgranska låttext",
+  "lyricsSearchSynced": "SYNKRONISERAD",
+  "lyricsSearchPreviewLoadFailed": "Kunde inte läsa in låttexten.",
+  "lyricsSearchApplyAction": "Använd låttext",
+  "lyricsSettingsSearchTitle": "Sök annan låttext",
+  "lyricsSettingsSearchSubtitle": "Hitta andra versioner på nätet",
+  "lyricsSettingsSyncTitle": "Justera tidsförskjutning",
+  "lyricsSettingsSyncSubtitle": "Anpassa låttextens visning till musiken",
+  "lyricsSettingsSaveTitle": "Spara offline",
+  "lyricsSettingsSaveSubtitle": "Spara låttexten på enheten",
+  "lyricsSettingsDeleteTitle": "Radera sparad låttext",
+  "lyricsSettingsDeleteSubtitle": "Ta bort låttexten som sparats offline",
+  "lyricsSyncTapToReset": "Tryck för att återställa",
+  "upNextTitle": "Härnäst",
+  "upNextItemsInQueue": "{count, plural, =1{1 post i kön} other{{count} poster i kön}}",
+  "@upNextItemsInQueue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tooltipCopyToClipboard": "Kopiera till urklipp",
+  "snackbarCopiedToClipboard": "Kopierat till urklipp",
+  "tooltipSongInfo": "Låtinformation",
+  "snackbarCannotDeletePlayingSong": "Låten som spelas kan inte raderas",
+  "playerLoopOff": "Av",
+  "playerLoopOne": "Upprepa en",
+  "playerLoopAll": "Upprepa alla",
+  "snackbarOpeningAlbumPage": "Öppnar albumets ursprungliga sida.",
+  "updateAvailableBody": "En ny version av Bloomee finns tillgänglig.\n\nVersion: {ver}+{build}",
+  "@updateAvailableBody": {
+    "placeholders": {
+      "ver": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginSnackbarInstalled": "Tillägget ”{id}” har installerats",
+  "@pluginSnackbarInstalled": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginSnackbarDeleted": "Tillägget ”{id}” har raderats",
+  "@pluginSnackbarDeleted": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginBootstrapTitle": "Ställer in Bloomee",
+  "pluginBootstrapProgress": "Ställer in den nya tilläggsmotorn… {percent} %",
+  "@pluginBootstrapProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "pluginBootstrapHint": "Det här görs bara en gång.",
+  "backupSave": "Spara säkerhetskopia som JSON",
+  "backupShare": "Dela JSON-säkerhetskopia",
+  "backupPortableDetails": "Innehåller spellistor, favoriter, sparade samlingar, historik och inställningar som kan överföras mellan enheter. Ljudfiler, konton och enhetens mappar ingår inte.",
+  "backupHistories": "Uppspelnings- och sökhistorik",
+  "backupPreferences": "Inställningar som kan överföras",
+  "backupNewCopy": "Importera som nya spellistor",
+  "backupMerge": "Slå samman med befintliga data",
+  "backupReplace": "Ersätt valda delar",
+  "backupMergeDetails": "Befintliga låtar, metadata och inställningar bevaras. Saknade låtar läggs till sist i samma ordning som i filen. Favoriter slås samman.",
+  "backupReplaceWarning": "De valda delarna ersätts. Om biblioteket är valt ersätts även befintliga spellistor och favoriter. Delar som inte valts och filer på enheten bevaras. Först skapas en privat återställningskopia.",
+  "backupAutoDetails": "Sparar sju privata återställningskopior. Kontrollen görs när appen öppnas, högst en gång per 24 timmar. De privata kopiorna tas bort om appen avinstalleras.",
+  "backupLocationDetails": "Välj var kopian ska sparas med Spara säkerhetskopia. Privata återställningskopior sparas inne i appen.",
+  "backupResetDetails": "Alla data i databasen raderas nästa gång appen startas. Hämtade ljudfiler och installerade tilläggsfiler finns kvar på enheten. Först skapas en privat återställningskopia.",
+  "backupResetPending": "Nollställning schemalagd. Stäng och öppna Bloomee igen för att genomföra den.",
+  "backupPreviewCounts": "{playlists} spellistor och {tracks} låtar",
+  "@backupPreviewCounts": {
+    "placeholders": {
+      "playlists": {
+        "type": "int"
+      },
+      "tracks": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImportResult": "Importen är klar: {playlists} spellistor skapades, {tracks} låtposter och {history} historikposter lades till och {settings} inställningar tillämpades.",
+  "@backupImportResult": {
+    "placeholders": {
+      "playlists": {
+        "type": "int"
+      },
+      "tracks": {
+        "type": "int"
+      },
+      "history": {
+        "type": "int"
+      },
+      "settings": {
+        "type": "int"
+      }
+    }
+  },
+  "backupRefreshFailed": "Data har importerats. Stäng och öppna Bloomee igen för att läsa in alla inställningar på nytt.",
+  "backupRecoveryCopies": "Återställningskopior",
+  "backupNoRecoveryCopies": "Inga återställningskopior ännu.",
+  "backupRecoveryAutomatic": "Automatisk säkerhetskopia",
+  "backupRecoveryBeforeImport": "Före en import",
+  "backupRecoveryBeforeReset": "Före en nollställning",
+  "backupCancelReset": "Avbryt nollställning",
+  "libraryRecoveryTitle": "Återställ saknat bibliotek",
+  "libraryRecoverySubtitle": "Sök efter spellistor och hämtningsposter som sparats från tidigare versioner.",
+  "libraryRecoveryChooseSource": "Välj en sparad databas att söka igenom. Ditt nuvarande bibliotek och originalfilerna bevaras.",
+  "libraryRecoveryNoSources": "Inga sparade databaser hittades. Enbart ljudfiler räcker inte för att återställa vilka spellistor låtarna ingick i.",
+  "libraryRecoverySummary": "Hittade {tracks} låtar, {playlists} spellistor och {downloads} hämtningsposter. {unavailable} filer är för närvarande otillgängliga, men deras poster bevaras.",
+  "@libraryRecoverySummary": {
+    "placeholders": {
+      "tracks": {
+        "type": "int"
+      },
+      "playlists": {
+        "type": "int"
+      },
+      "downloads": {
+        "type": "int"
+      },
+      "unavailable": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryRecoveryWarnings": "{broken} trasiga spellistereferenser kunde inte återskapas från den här kopian.",
+  "@libraryRecoveryWarnings": {
+    "placeholders": {
+      "broken": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryRecoveryMergeDetails": "Återställningen lägger till saknade låtar, spellisteposter och hämtningsposter. Befintliga spellistor, filkopplingar och inställningar bevaras. Först skapas en återställningskopia. Upprepa med en annan sparad kopia om den innehåller mer av ditt bibliotek.",
+  "libraryRecoveryMerge": "Slå samman återställt bibliotek",
+  "libraryRecoveryComplete": "Återställningen är klar: {entries} spellisteposter och {downloads} hämtningsposter lades till.",
+  "@libraryRecoveryComplete": {
+    "placeholders": {
+      "entries": {
+        "type": "int"
+      },
+      "downloads": {
+        "type": "int"
+      }
+    }
+  },
+  "backupStartupFailed": "Bloomee kunde inte startas",
+  "backupStartupFailedDetails": "Starten avbröts utan att databasen reparerades eller ersattes automatiskt. Stäng appen och försök igen. Behåll appdata när du rapporterar felet.",
+  "lyricsTitle": "Låttext",
+  "lyricsEnterFullscreen": "Låttext i helskärm",
+  "lyricsExitFullscreen": "Lämna helskärm",
+  "lyricsFollowPlayback": "Följ uppspelningen",
+  "lyricsTimingEarlier": "Tidigare",
+  "lyricsTimingLater": "Senare",
+  "lyricsTimingSave": "Spara tidsförskjutning",
+  "lyricsSaved": "Låttexten har sparats.",
+  "lyricsSaveFailed": "Kunde inte spara låttexten. Försök igen.",
+  "lyricsDeleteFailed": "Kunde inte radera den sparade låttexten. Försök igen.",
+  "artistTopSongs": "Populäraste låtarna",
+  "artistLoadFailed": "Kunde inte läsa in artisten",
+  "artistNoTopSongs": "Inga populära låtar tillgängliga",
+  "artistNoAlbums": "Inga album tillgängliga",
+  "snackbarOpeningArtistPage": "Öppnar artistens ursprungliga sida.",
+  "snackbarOpeningPlaylistPage": "Öppnar spellistans ursprungliga sida.",
+  "playlistSaveOrderFailed": "Kunde inte spara spellistans ordning. Försök igen.",
+  "playlistReorderTracksHint": "Håll i handtaget för att ändra låtarnas ordning",
+  "playlistTrackCountLabel": "Antal låtar",
+  "playlistDescription": "Beskrivning",
+  "playlistOriginalUrl": "Ursprunglig webbadress",
+  "searchSearching": "Söker…",
+  "searchSuggestions": "Förslag",
+  "searchTopResults": "Bästa träffarna",
+  "changelogEmpty": "Ingen versionshistorik tillgänglig.",
+  "changelogTitle": "Nyheter",
+  "changelogLatest": "Senaste",
+  "changelogNext": "Nästa version",
+  "changelogVersion": "Version {version}",
+  "@changelogVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginBootstrapIncomplete": "Installationen är inte klar",
+  "pluginBootstrapRetryBody": "Vissa tillägg kunde inte installeras just nu. Försök igen för att slutföra installationen.",
+  "pluginBootstrapInternetTitle": "Internetanslutning krävs",
+  "pluginBootstrapInternetBody": "Bloomee behöver ansluta till internet en gång för att identifiera ditt land och ställa in tilläggsmotorn.",
+  "buttonExit": "Avsluta",
+  "eqSource": "Val av equalizer",
+  "eqBuiltin": "Appens equalizer",
+  "eqBuiltinSubtitle": "10-bands equalizer",
+  "eqDevice": "Enhetens equalizer",
+  "eqDeviceSubtitle": "System / Dolby Atmos",
+  "eqDeviceHint": "Appens equalizer är avstängd. Ställ in enhetens equalizer i enhetens ljudinställningar.",
+  "eqPresets": "Förinställningar",
+  "eqCustomCurve": "Egen kurva",
+  "shortcutMuted": "Ljud av",
+  "shortcutUnmuted": "Ljud på",
+  "shortcutShuffleOn": "Blandning på",
+  "shortcutShuffleOff": "Blandning av",
+  "shortcutRepeatOff": "Upprepning av",
+  "shortcutLiked": "Tillagd i favoriter",
+  "shortcutUnliked": "Borttagen från favoriter",
+  "downloadFolderSelectFailed": "Kunde inte välja hämtningsmapp: {error}",
+  "@downloadFolderSelectFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutVersionUnavailable": "Versionen är inte tillgänglig",
+  "backupNewCopyDetails": "Skapar separata spellistor och slår samman favoriter. Befintliga spellistor bevaras. Även vald historik och valda inställningar importeras.",
+  "changelogCurrent": "Nuvarande",
+  "backupLibrary": "Bibliotek (spellistor, favoriter och sparade samlingar)",
+  "eqPresetFlat": "Neutral",
+  "eqPresetAcoustic": "Akustisk",
+  "eqPresetBassBoost": "Basförstärkning",
+  "eqPresetBassReducer": "Basdämpning",
+  "eqPresetClassical": "Klassiskt",
+  "eqPresetDance": "Dans",
+  "eqPresetDeep": "Djup",
+  "eqPresetEDM": "EDM",
+  "eqPresetElectronic": "Elektronisk",
+  "eqPresetHipHop": "Hiphop",
+  "eqPresetJazz": "Jazz",
+  "eqPresetLatin": "Latin",
+  "eqPresetLive": "Live",
+  "eqPresetLounge": "Lounge",
+  "eqPresetMetal": "Metal",
+  "eqPresetPiano": "Piano",
+  "eqPresetPop": "Pop",
+  "eqPresetRB": "R&B",
+  "eqPresetRock": "Rock",
+  "eqPresetSmallSpeakers": "Små högtalare",
+  "eqPresetSpokenWord": "Tal",
+  "eqPresetTrebleBoost": "Diskantförstärkning",
+  "eqPresetTrebleReducer": "Diskantdämpning",
+  "eqPresetVocalBooster": "Sångförstärkning",
+  "eqPresetCustom": "Egen"
+}
